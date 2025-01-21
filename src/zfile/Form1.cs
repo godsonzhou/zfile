@@ -1,25 +1,13 @@
-using System;
-using System.Drawing;
-using System.IO;
-using System.Windows.Forms;
-using System.Collections.Generic;
-using LibVLCSharp.Shared;
-using System.Linq;
-using System.Threading.Tasks;
+using CmdProcessor;
+using Microsoft.Win32; // Add this namespace
+using System.Runtime.InteropServices; // Add this namespace
+using System.Text;
+using Keys = System.Windows.Forms.Keys;//引入CmdProcessor命名空间
 using CSCore;
 using CSCore.Codecs;
 using CSCore.SoundOut;
-using SharpCompress.Archives; // Add this namespace
-using SharpCompress.Readers; // Add this namespace
-using SharpCompress.Common; // Add this namespace
-using System.Text;
-using LibVLCSharp.WinForms; // Add this namespace
-using System.Reflection; // Add this namespace
-using Microsoft.Win32; // Add this namespace
-using System.Runtime.InteropServices; // Add this namespace
-using System.Runtime.InteropServices.ComTypes;
-using CmdProcessor;
-using Keys = System.Windows.Forms.Keys;//引入CmdProcessor命名空间
+using LibVLCSharp.Shared;
+using SharpCompress.Archives;
 
 namespace WinFormsApp1
 {
@@ -345,27 +333,19 @@ namespace WinFormsApp1
                             {
                                 string text = mii.dwTypeData;
                                 if (string.IsNullOrEmpty(text))
-                                {
                                     contextMenuStrip.Items.Add(new ToolStripSeparator());
-                                }
                                 else
                                 {
                                     ToolStripMenuItem item = new ToolStripMenuItem(text);
                                     if (mii.hSubMenu != IntPtr.Zero)
-                                    {
                                         AddSubMenuItems(item, mii.hSubMenu);
-                                    }
                                     else
-                                    {
                                         item.Click += (s, e) => InvokeCommand(path, mii.wID);
-                                    }
                                     contextMenuStrip.Items.Add(item);
                                 }
                             }
                             else
-                            {
                                 MessageBox.Show("无法获取菜单项信息", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            }
                         }
                         contextMenuStrip.Show(control, location);
                     }
@@ -373,9 +353,7 @@ namespace WinFormsApp1
                 finally
                 {
                     if (menu != IntPtr.Zero)
-                    {
                         DestroyMenu(menu);
-                    }
                 }
             }
         }
@@ -449,7 +427,7 @@ namespace WinFormsApp1
             return menu;
         }
 
-        private void InvokeCommand(string path, uint id)
+        private void InvokeCommand_bak(string path, uint id)
         {
             IntPtr pidl = ILCreateFromPath(path);
             if (pidl != IntPtr.Zero)
@@ -478,7 +456,27 @@ namespace WinFormsApp1
                 ILFree(parentPidl);
             }
         }
-        public void myShellExe()
+		private void InvokeCommand(string path, uint id)
+		{
+			//ShellExecute(IntPtr.Zero, "open", path, "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
+			//WinExec(path, 1);
+			//System.Diagnostics.Process.Start(path);
+			//System.Diagnostics.Process.Start("explorer.exe", path);
+			//System.Diagnostics.Process.Start("cmd.exe", "/c " + path);
+			//System.Diagnostics.Process.Start("cmd.exe", "/c start " + path);
+			//System.Diagnostics.Process.Start("cmd.exe", "/c start explorer.exe " + path);
+			//System.Diagnostics.Process.Start("cmd.exe", "/c start explorer.exe /select," + path);
+			try
+			{
+				// 使用File.App.Utils.Shell中的contextmenu类的相关方法，完成执行右键菜单的各种功能
+				ShellExecute(IntPtr.Zero, "open", path, "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"无法执行命令: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+		public void myShellExe()
         {
             ShellExecute(IntPtr.Zero, "open", "cmd.exe", "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
             //Window wnd = Window.GetWindow(this); //获取当前窗口
@@ -1846,7 +1844,7 @@ namespace WinFormsApp1
             return panel;
         }
 
-        // ... other code ...
+        // ...
 
         private Control CreateVideoPlayer(string filePath)
         {
@@ -1862,7 +1860,7 @@ namespace WinFormsApp1
             var mediaPlayer = new MediaPlayer(libVLC); // Create MediaPlayer instance
             mediaPlayer.Play(new Media(libVLC, filePath, FromType.FromPath));
 
-            var videoView = new VideoView
+            var videoView = new LibVLCSharp.WinForms.VideoView
             {
                 MediaPlayer = mediaPlayer,
                 Dock = DockStyle.Fill

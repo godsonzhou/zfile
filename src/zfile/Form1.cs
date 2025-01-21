@@ -444,7 +444,7 @@ namespace WinFormsApp1
             return menu;
         }
 
-        private void InvokeCommand_bak(string path, uint id)
+        private void InvokeCommand(string path, uint id)
         {
             IntPtr pidl = ILCreateFromPath(path);
             if (pidl != IntPtr.Zero)
@@ -463,9 +463,11 @@ namespace WinFormsApp1
                 CMINVOKECOMMANDINFOEX invoke = new CMINVOKECOMMANDINFOEX();
                 invoke.cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX));
                 invoke.lpVerb = (IntPtr)(id - 1);
+				invoke.lpDirectory = string.Empty;
                 invoke.nShow = SW_SHOWNORMAL;
-                invoke.fMask = CMIC.CMIC_MASK_UNICODE; // Ensure the fMask is set correctly
-                contextMenu.InvokeCommand(ref invoke);
+				invoke.fMask = 0;	// CMIC.CMIC_MASK_UNICODE; // Ensure the fMask is set correctly
+				invoke.ptInvoke = new POINT(MousePosition.X, MousePosition.Y);
+				contextMenu.InvokeCommand(ref invoke);
                 Marshal.ReleaseComObject(contextMenu);
                 Marshal.ReleaseComObject(parentFolder);
                 Marshal.ReleaseComObject(desktopFolder);
@@ -473,7 +475,7 @@ namespace WinFormsApp1
                 ILFree(parentPidl);
             }
         }
-		private void InvokeCommand(string path, uint id)
+		private void InvokeCommand1(string path, uint id)
 		{
 			//ShellExecute(IntPtr.Zero, "open", path, "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
 			//WinExec(path, 1);
@@ -632,7 +634,13 @@ namespace WinFormsApp1
         {
             public int x;
             public int y;
-        }
+			public POINT(int x, int y)
+			{
+				this.x = x;
+				this.y = y;
+			}
+
+		}
 
         [Flags]
         private enum CMF : uint

@@ -73,8 +73,8 @@ namespace WinFormsApp1
         private CmdProc cmdProcessor;
         MenuStrip dynamicMenuStrip = new();
         ToolStrip dynamicToolStrip = new();
-
-        public Form1()
+		private ImageList treeViewImageList;
+		public Form1()
         {
             InitializeComponent();
             InitializeContextMenu();
@@ -92,8 +92,25 @@ namespace WinFormsApp1
             InitializeDynamicMenu();
             cmdProcessor = new CmdProc(this);
             InitializeDynamicToolbar();
-        }
-        private void InitializeContextMenu()
+			InitializeTreeViewIcons(); // 初始化TreeView图标
+		}
+		private void InitializeTreeViewIcons()
+		{
+			treeViewImageList = new ImageList();
+			treeViewImageList.ImageSize = new Size(16, 16);
+
+			// 获取系统默认文件夹图标
+			Icon folderIcon = GetSystemIcon.GetIconByFileType("folder", false);
+			if (folderIcon != null)
+			{
+				treeViewImageList.Images.Add("folder", folderIcon);
+			}
+
+			// 将ImageList分配给TreeView
+			leftTree.ImageList = treeViewImageList;
+			rightTree.ImageList = treeViewImageList;
+		}
+		private void InitializeContextMenu()
         {
             // 初始化ContextMenuStrip
             contextMenuStrip.Opening += ContextMenuStrip_Opening;
@@ -941,8 +958,10 @@ namespace WinFormsApp1
                             {
                                 TreeNode node = new(dirInfo.Name)
                                 {
-                                    Tag = dir
-                                };
+                                    Tag = dir,
+									ImageKey = "folder", // 设置图标
+									SelectedImageKey = "folder" // 设置选中图标
+								};
                                 parentNode.Nodes.Add(node);
                             }
                         }
@@ -968,8 +987,10 @@ namespace WinFormsApp1
 
                 TreeNode rootNode = new(drivePath)
                 {
-                    Tag = drivePath
-                };
+                    Tag = drivePath,
+					ImageKey = "folder", // 设置图标
+					SelectedImageKey = "folder" // 设置选中图标
+				};
                 treeView.Nodes.Add(rootNode);
 
                 // 加载并展开根目录

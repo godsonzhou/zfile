@@ -13,14 +13,20 @@ namespace WinShell
     [Flags()]
     public enum SHCONTF
     {
-        FOLDERS = 0x20,
+		HECKING_FOR_CHILDREN = 0x00010,
+		FOLDERS = 0x20,
         NONFOLDERS = 0x40,
         INCLUDEHIDDEN = 0x80,
         INIT_ON_FIRST_NEXT = 0x100,
         NETPRINTERSRCH = 0x200,
         SHAREABLE = 0x400,
-        STORAGE = 0x800
-    }
+        STORAGE = 0x800,
+		NAVIGATION_ENUM = 0x01000,
+		FASTITEMS = 0x02000,
+		FLATLIST = 0x04000,
+		ENABLE_ASYNC = 0x08000,
+		INCLUDESUPERHIDDEN = 0x10000
+	}
 
     [Flags()]
     public enum SFGAO
@@ -58,7 +64,8 @@ namespace WinShell
         STREAM = 0x400000,
         STORAGEANCESTOR = 0x800000,
         STORAGECAPMASK = 0x70C50008
-    }
+		//PKEYSFGAOMASK = 0x81044000
+	}
 
     [Flags()]
     public enum SHGNO
@@ -170,7 +177,10 @@ namespace WinShell
 
     public enum GetCommandStringInformations
     {
-        VERB = 0x00000004,
+		VERBA = 0x00000000,
+		HELPTEXTA = 0x00000001,
+		VALIDATEA = 0x00000002,
+		VERB = 0x00000004,
         HELPTEXT = 0x00000005,
         VALIDATE = 0x00000006,
     }
@@ -186,8 +196,14 @@ namespace WinShell
         CANRENAME = 0x00000010,
         NODEFAULT = 0x00000020,
         INCLUDESTATIC = 0x00000040,
-        EXTENDEDVERBS = 0x00000100,
-        RESERVED = 0xffff0000
+		ITEMMENU = 0x00000080,
+		EXTENDEDVERBS = 0x00000100,
+		DISABLEDVERBS = 0x00000200,
+		ASYNCVERBSTATE = 0x00000400,
+		OPTIMIZEFORINVOKE = 0x00000800,
+		SYNCCASCADEMENU = 0x00001000,
+		DONOTPICKDEFAULT = 0x00002000,
+		RESERVED = 0xffff0000
     }
 
     [Flags]

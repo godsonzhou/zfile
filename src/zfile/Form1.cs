@@ -119,8 +119,11 @@ namespace WinFormsApp1
             // 初始化ContextMenuStrip
             contextMenuStrip.Opening += ContextMenuStrip_Opening;
         }
-
-        private void 加载文件ToolStripMenuItem_Click(object sender, EventArgs e)
+		public void ContextMenuStrip_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+		{
+			// 在这里可以添加自定义的菜单项
+		}
+		private void 加载文件ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog dlg = new FolderBrowserDialog();
             //if (dlg.ShowDialog() == DialogResult.OK)
@@ -192,9 +195,6 @@ namespace WinFormsApp1
             ConfigureUpperPanel(leftUpperPanel, leftDrivePanel, leftPanel.Panel1);
             ConfigureUpperPanel(rightUpperPanel, rightDrivePanel, rightPanel.Panel1);
 
-            // 确保菜单和工具栏在最上层
-            //menuStrip2.BringToFront();
-            //toolStrip1.BringToFront();
         }
 
         // 分割条移动事件处理
@@ -289,10 +289,8 @@ namespace WinFormsApp1
 
         private void InitializeTreeViews()
         {
-            // 配置左侧树列表分割容器
-            ConfigureTreeListSplitter(leftTreeListSplitter, leftUpperPanel, leftTree, leftList);
-            // 配置右侧树列表分割容器
-            ConfigureTreeListSplitter(rightTreeListSplitter, rightUpperPanel, rightTree, rightList);
+            ConfigureTreeListSplitter(leftTreeListSplitter, leftUpperPanel, leftTree, leftList);// 配置左侧树列表分割容器
+            ConfigureTreeListSplitter(rightTreeListSplitter, rightUpperPanel, rightTree, rightList);// 配置右侧树列表分割容器
         }
 		private void TreeView_MouseDown(object sender, MouseEventArgs e)
 		{
@@ -341,7 +339,6 @@ namespace WinFormsApp1
         }
 		private void ShowContextMenu1(TreeView Tree1, TreeNode node, Point location)
 		{
-			
 			//获得当前节点的 PIDL
 			ShellItem sItem = (ShellItem)Tree1.SelectedNode.Tag;
 			IntPtr PIDL = sItem.PIDL;
@@ -403,16 +400,16 @@ namespace WinFormsApp1
                     if (menu != IntPtr.Zero)
                     {
                         contextMenuStrip.Items.Clear();
-                        int count = GetMenuItemCount(menu);
+                        int count = w32.GetMenuItemCount(menu);
                         for (int i = 0; i < count; i++)
                         {
                             MENUITEMINFO mii = new();
                             mii.cbSize = (uint)Marshal.SizeOf(typeof(MENUITEMINFO));
-                            mii.fMask = MIIM.MIIM_ID | MIIM.MIIM_STRING | MIIM.MIIM_SUBMENU;
+                            mii.fMask = MIIM.ID | MIIM.STRING | MIIM.SUBMENU;
                             mii.dwTypeData = new string('\0', 256);
                             mii.cch = (uint)mii.dwTypeData.Length;
 
-                            if (GetMenuItemInfo(menu, (uint)i, true, ref mii))
+                            if (w32.GetMenuItemInfo(menu, (uint)i, true, ref mii))
                             {
                                 string text = mii.dwTypeData;
                                 if (string.IsNullOrEmpty(text))
@@ -436,23 +433,23 @@ namespace WinFormsApp1
                 finally
                 {
                     if (menu != IntPtr.Zero)
-                        DestroyMenu(menu);
+                        w32.DestroyMenu(menu);
                 }
             }
         }
 
         private void AddSubMenuItems(ToolStripMenuItem parentItem, IntPtr hSubMenu)
         {
-            int subMenuCount = GetMenuItemCount(hSubMenu);
+            int subMenuCount = w32.GetMenuItemCount(hSubMenu);
             for (int j = 0; j < subMenuCount; j++)
             {
                 MENUITEMINFO subMii = new();
                 subMii.cbSize = (uint)Marshal.SizeOf(typeof(MENUITEMINFO));
-                subMii.fMask = MIIM.MIIM_ID | MIIM.MIIM_STRING | MIIM.MIIM_SUBMENU;
+                subMii.fMask = MIIM.ID | MIIM.STRING | MIIM.SUBMENU;
                 subMii.dwTypeData = new string('\0', 256);
                 subMii.cch = (uint)subMii.dwTypeData.Length;
 
-                if (GetMenuItemInfo(hSubMenu, (uint)j, true, ref subMii))
+                if (w32.GetMenuItemInfo(hSubMenu, (uint)j, true, ref subMii))
                 {
                     string subText = subMii.dwTypeData;
                     if (string.IsNullOrEmpty(subText))
@@ -482,29 +479,29 @@ namespace WinFormsApp1
 
         private IntPtr CreateContextMenu(string path)
         {
-            IntPtr menu = CreatePopupMenu();
+            IntPtr menu = w32.CreatePopupMenu();
             if (menu != IntPtr.Zero)
             {
-                IntPtr pidl = ILCreateFromPath(path);
+                IntPtr pidl = w32.ILCreateFromPath(path);
                 if (pidl != IntPtr.Zero)
                 {
-                    IntPtr parentPidl = ILClone(pidl);
-                    ILRemoveLastID(parentPidl);
+                    IntPtr parentPidl = w32.ILClone(pidl);
+					w32.ILRemoveLastID(parentPidl);
                     IShellFolder desktopFolder;
-                    SHGetDesktopFolder(out desktopFolder);
+					w32.SHGetDesktopFolder(out desktopFolder);
                     IShellFolder parentFolder;
-                    Guid iidShellFolder = IID_IShellFolder;
+                    Guid iidShellFolder = w32.IID_IShellFolder;
                     desktopFolder.BindToObject(parentPidl, IntPtr.Zero, ref iidShellFolder, out parentFolder);
-                    IntPtr[] pidls = new IntPtr[] { ILFindLastID(pidl) };
+                    IntPtr[] pidls = new IntPtr[] { w32.ILFindLastID(pidl) };
                     IContextMenu contextMenu;
-                    Guid iidContextMenu = IID_IContextMenu;
+                    Guid iidContextMenu = w32.IID_IContextMenu;
                     parentFolder.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length, pidls, ref iidContextMenu, IntPtr.Zero, out contextMenu);
-                    contextMenu.QueryContextMenu(menu, 0, 1, 0x7FFF, CMF.CMF_NORMAL);
+                    contextMenu.QueryContextMenu(menu, 0, 1, 0x7FFF, CMF.NORMAL);
                     Marshal.ReleaseComObject(contextMenu);
                     Marshal.ReleaseComObject(parentFolder);
                     Marshal.ReleaseComObject(desktopFolder);
-                    ILFree(pidl);
-                    ILFree(parentPidl);
+					w32.ILFree(pidl);
+					w32.ILFree(parentPidl);
                 }
             }
             return menu;
@@ -512,33 +509,33 @@ namespace WinFormsApp1
 
         private void InvokeCommand(string path, uint id)
         {
-            IntPtr pidl = ILCreateFromPath(path);
+            IntPtr pidl = w32.ILCreateFromPath(path);
             if (pidl != IntPtr.Zero)
             {
-                IntPtr parentPidl = ILClone(pidl);
-                ILRemoveLastID(parentPidl);
+                IntPtr parentPidl = w32.ILClone(pidl);
+                w32.ILRemoveLastID(parentPidl);
                 IShellFolder desktopFolder;
-                SHGetDesktopFolder(out desktopFolder);
+                w32.SHGetDesktopFolder(out desktopFolder);
                 IShellFolder parentFolder;
-                Guid iid_IShellFolder = IID_IShellFolder;
+                Guid iid_IShellFolder = w32.IID_IShellFolder;
                 desktopFolder.BindToObject(parentPidl, IntPtr.Zero, ref iid_IShellFolder, out parentFolder);
-                IntPtr[] pidls = new IntPtr[] { ILFindLastID(pidl) };
+                IntPtr[] pidls = new IntPtr[] { w32.ILFindLastID(pidl) };
                 IContextMenu contextMenu;
-                Guid iid_IContextMenu = IID_IContextMenu;
+                Guid iid_IContextMenu = w32.IID_IContextMenu;
                 parentFolder.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length, pidls, ref iid_IContextMenu, IntPtr.Zero, out contextMenu);
                 CMINVOKECOMMANDINFOEX invoke = new CMINVOKECOMMANDINFOEX();
                 invoke.cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX));
                 invoke.lpVerb = (IntPtr)(id - 1);
 				invoke.lpDirectory = string.Empty;
-                invoke.nShow = SW_SHOWNORMAL;
+                invoke.nShow = w32.SW_SHOWNORMAL;
 				invoke.fMask = 0;	// CMIC.CMIC_MASK_UNICODE; // Ensure the fMask is set correctly
 				invoke.ptInvoke = new POINT(MousePosition.X, MousePosition.Y);
 				contextMenu.InvokeCommand(ref invoke);
                 Marshal.ReleaseComObject(contextMenu);
                 Marshal.ReleaseComObject(parentFolder);
                 Marshal.ReleaseComObject(desktopFolder);
-                ILFree(pidl);
-                ILFree(parentPidl);
+                w32.ILFree(pidl);
+                w32.ILFree(parentPidl);
             }
         }
 		private void InvokeCommand1(string path, uint id)
@@ -554,7 +551,7 @@ namespace WinFormsApp1
 			try
 			{
 				// 使用File.App.Utils.Shell中的contextmenu类的相关方法，完成执行右键菜单的各种功能
-				ShellExecute(IntPtr.Zero, "open", path, "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
+				w32.ShellExecute(IntPtr.Zero, "open", path, "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
 			}
 			catch (Exception ex)
 			{
@@ -563,322 +560,13 @@ namespace WinFormsApp1
 		}
 		public void myShellExe()
         {
-            ShellExecute(IntPtr.Zero, "open", "cmd.exe", "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
+            w32.ShellExecute(IntPtr.Zero, "open", "cmd.exe", "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
             //Window wnd = Window.GetWindow(this); //获取当前窗口
             //var wih = new WindowInteropHelper(wnd); //该类支持获取hWnd
             //IntPtr hWnd = wih.Handle;    //获取窗口句柄
             //var result = ShellExecute(hWnd, "open", "需要打开的路径如C:\\Users\\Desktop\\xx.exe", null, null, (int)ShowWindowCommands.SW_SHOW);
         }
-        [DllImport("shell32.dll")]
-        public static extern IntPtr ShellExecute(IntPtr hwnd, //窗口句柄
-             string lpOperation, //指定要进行的操作
-             string lpFile,  //要执行的程序、要浏览的文件夹或者网址
-             string lpParameters, //若lpFile参数是一个可执行程序，则此参数指定命令行参数
-             string lpDirectory, //指定默认目录
-             int nShowCmd   //若lpFile参数是一个可执行程序，则此参数指定程序窗口的初始显示方式(参考如下枚举)
-         );
-        [DllImport("kernel32.dll")]
-        public static extern int WinExec(string programPath, int operType);
-        public enum ShowWindowCommands : int
-        {
-            SW_HIDE = 0,
-            SW_SHOWNORMAL = 1,
-            SW_NORMAL = 1,
-            SW_SHOWMINIMIZED = 2,
-            SW_SHOWMAXIMIZED = 3,
-            SW_MAXIMIZE = 3,
-            SW_SHOWNOACTIVATE = 4,
-            SW_SHOW = 5,  //显示一个窗口，同时令其进入活动状态
-            SW_MINIMIZE = 6,
-            SW_SHOWMINNOACTIVE = 7,
-            SW_SHOWNA = 8,
-            SW_RESTORE = 9,
-            SW_SHOWDEFAULT = 10,
-            SW_MAX = 10
-        }
 
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern IntPtr CreatePopupMenu();
-
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern bool DestroyMenu(IntPtr hMenu);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern int GetMenuItemCount(IntPtr hMenu);
-
-        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        private static extern bool GetMenuItemInfo(IntPtr hMenu, uint uItem, bool fByPosition, ref MENUITEMINFO lpmii);
-
-        [DllImport("shell32.dll", CharSet = CharSet.Auto)]
-        private static extern IntPtr ILCreateFromPath(string pszPath);
-
-        [DllImport("shell32.dll", SetLastError = true)]
-        private static extern void ILFree(IntPtr pidl);
-
-        [DllImport("shell32.dll", SetLastError = true)]
-        private static extern IntPtr ILClone(IntPtr pidl);
-
-        [DllImport("shell32.dll", SetLastError = true)]
-        private static extern void ILRemoveLastID(IntPtr pidl);
-
-        [DllImport("shell32.dll", SetLastError = true)]
-        private static extern IntPtr ILFindLastID(IntPtr pidl);
-
-        [DllImport("shell32.dll", SetLastError = true)]
-        private static extern int SHGetDesktopFolder(out IShellFolder ppshf);
-
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        private struct MENUITEMINFO
-        {
-            public uint cbSize;
-            public MIIM fMask;
-            public uint fType;
-            public uint fState;
-            public uint wID;
-            public IntPtr hSubMenu;
-            public IntPtr hbmpChecked;
-            public IntPtr hbmpUnchecked;
-            public IntPtr dwItemData;
-            public string dwTypeData;
-            public uint cch;
-            public IntPtr hbmpItem;
-        }
-
-        [Flags]
-        private enum MIIM : uint
-        {
-            MIIM_STATE = 0x00000001,
-            MIIM_ID = 0x00000002,
-            MIIM_SUBMENU = 0x00000004,
-            MIIM_CHECKMARKS = 0x00000008,
-            MIIM_TYPE = 0x00000010,
-            MIIM_DATA = 0x00000020,
-            MIIM_STRING = 0x00000040,
-            MIIM_BITMAP = 0x00000080,
-            MIIM_FTYPE = 0x00000100
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct CMINVOKECOMMANDINFOEX
-        {
-            public int cbSize;
-            public CMIC fMask;
-            public IntPtr hwnd;
-            public IntPtr lpVerb;
-            public string lpParameters;
-            public string lpDirectory;
-            public int nShow;
-            public int dwHotKey;
-            public IntPtr hIcon;
-            public string lpTitle;
-            public IntPtr lpVerbW;
-            public string lpParametersW;
-            public string lpDirectoryW;
-            public string lpTitleW;
-            public POINT ptInvoke;
-        }
-
-        [Flags]
-        private enum CMIC : uint
-        {
-            CMIC_MASK_ICON = 0x00000010,
-            CMIC_MASK_HOTKEY = 0x00000020,
-            CMIC_MASK_NOASYNC = 0x00000100,
-            CMIC_MASK_FLAG_NO_UI = 0x00000400,
-            CMIC_MASK_UNICODE = 0x00004000,
-            CMIC_MASK_NO_CONSOLE = 0x00008000,
-            CMIC_MASK_ASYNCOK = 0x00100000,
-            CMIC_MASK_NOZONECHECKS = 0x00800000,
-            CMIC_MASK_SHIFT_DOWN = 0x10000000,
-            CMIC_MASK_CONTROL_DOWN = 0x40000000,
-            CMIC_MASK_FLAG_LOG_USAGE = 0x04000000,
-            CMIC_MASK_PTINVOKE = 0x20000000
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct POINT
-        {
-            public int x;
-            public int y;
-			public POINT(int x, int y)
-			{
-				this.x = x;
-				this.y = y;
-			}
-
-		}
-
-        [Flags]
-        private enum CMF : uint
-        {
-            CMF_NORMAL = 0x00000000,
-            CMF_DEFAULTONLY = 0x00000001,
-            CMF_VERBSONLY = 0x00000002,
-            CMF_EXPLORE = 0x00000004,
-            CMF_NOVERBS = 0x00000008,
-            CMF_CANRENAME = 0x00000010,
-            CMF_NODEFAULT = 0x00000020,
-            CMF_INCLUDESTATIC = 0x00000040,
-            CMF_ITEMMENU = 0x00000080,
-            CMF_EXTENDEDVERBS = 0x00000100,
-            CMF_DISABLEDVERBS = 0x00000200,
-            CMF_ASYNCVERBSTATE = 0x00000400,
-            CMF_OPTIMIZEFORINVOKE = 0x00000800,
-            CMF_SYNCCASCADEMENU = 0x00001000,
-            CMF_DONOTPICKDEFAULT = 0x00002000,
-            CMF_RESERVED = 0xffff0000
-        }
-
-        [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("000214E6-0000-0000-C000-000000000046")]
-        private interface IShellFolder
-        {
-            void ParseDisplayName(IntPtr hwnd, IntPtr pbc, [MarshalAs(UnmanagedType.LPWStr)] string pszDisplayName, out uint pchEaten, out IntPtr ppidl, ref uint pdwAttributes);
-            void EnumObjects(IntPtr hwnd, SHCONTF grfFlags, out IEnumIDList ppenumIDList);
-            void BindToObject(IntPtr pidl, IntPtr pbc, ref Guid riid, out IShellFolder ppv);
-            void BindToStorage(IntPtr pidl, IntPtr pbc, ref Guid riid, out IntPtr ppv);
-            [PreserveSig]
-            int CompareIDs(IntPtr lParam, IntPtr pidl1, IntPtr pidl2);
-            void CreateViewObject(IntPtr hwndOwner, ref Guid riid, out IntPtr ppv);
-            void GetAttributesOf(uint cidl, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] IntPtr[] apidl, ref SFGAO rgfInOut);
-            void GetUIObjectOf(IntPtr hwndOwner, uint cidl, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] IntPtr[] apidl, ref Guid riid, IntPtr rgfReserved, out IContextMenu ppv);
-            void GetDisplayNameOf(IntPtr pidl, SHGDN uFlags, out STRRET pName);
-            void SetNameOf(IntPtr hwnd, IntPtr pidl, [MarshalAs(UnmanagedType.LPWStr)] string pszName, SHCONTF uFlags, out IntPtr ppidlOut);
-        }
-
-        [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("000214E4-0000-0000-C000-000000000046")]
-        private interface IContextMenu
-        {
-            [PreserveSig]
-            int QueryContextMenu(IntPtr hmenu, uint indexMenu, uint idCmdFirst, uint idCmdLast, CMF uFlags);
-            void InvokeCommand(ref CMINVOKECOMMANDINFOEX pici);
-            void GetCommandString(uint idCmd, GCS uType, IntPtr pReserved, [MarshalAs(UnmanagedType.LPStr)] StringBuilder pszName, uint cchMax);
-        }
-
-        [Flags]
-        private enum SHCONTF
-        {
-            SHCONTF_CHECKING_FOR_CHILDREN = 0x00010,
-            SHCONTF_FOLDERS = 0x00020,
-            SHCONTF_NONFOLDERS = 0x00040,
-            SHCONTF_INCLUDEHIDDEN = 0x00080,
-            SHCONTF_INIT_ON_FIRST_NEXT = 0x00100,
-            SHCONTF_NETPRINTERSRCH = 0x00200,
-            SHCONTF_SHAREABLE = 0x00400,
-            SHCONTF_STORAGE = 0x00800,
-            SHCONTF_NAVIGATION_ENUM = 0x01000,
-            SHCONTF_FASTITEMS = 0x02000,
-            SHCONTF_FLATLIST = 0x04000,
-            SHCONTF_ENABLE_ASYNC = 0x08000,
-            SHCONTF_INCLUDESUPERHIDDEN = 0x10000
-        }
-
-        [Flags]
-        private enum SFGAO : uint
-        {
-            SFGAO_CANCOPY = 0x1,
-            SFGAO_CANMOVE = 0x2,
-            SFGAO_CANLINK = 0x4,
-            SFGAO_STORAGE = 0x00000008,
-            SFGAO_CANRENAME = 0x00000010,
-            SFGAO_CANDELETE = 0x00000020,
-            SFGAO_HASPROPSHEET = 0x00000040,
-            SFGAO_DROPTARGET = 0x00000100,
-            SFGAO_CAPABILITYMASK = 0x00000177,
-            SFGAO_ENCRYPTED = 0x00002000,
-            SFGAO_ISSLOW = 0x00004000,
-            SFGAO_GHOSTED = 0x00008000,
-            SFGAO_LINK = 0x00010000,
-            SFGAO_SHARE = 0x00020000,
-            SFGAO_READONLY = 0x00040000,
-            SFGAO_HIDDEN = 0x00080000,
-            SFGAO_DISPLAYATTRMASK = 0x000FC000,
-            SFGAO_FILESYSANCESTOR = 0x10000000,
-            SFGAO_FOLDER = 0x20000000,
-            SFGAO_FILESYSTEM = 0x40000000,
-            SFGAO_HASSUBFOLDER = 0x80000000,
-            SFGAO_CONTENTSMASK = 0x80000000,
-            SFGAO_VALIDATE = 0x01000000,
-            SFGAO_REMOVABLE = 0x02000000,
-            SFGAO_COMPRESSED = 0x04000000,
-            SFGAO_BROWSABLE = 0x08000000,
-            SFGAO_NONENUMERATED = 0x00100000,
-            SFGAO_NEWCONTENT = 0x00200000,
-            SFGAO_CANMONIKER = 0x00400000,
-            SFGAO_HASSTORAGE = 0x00400000,
-            SFGAO_STREAM = 0x00400000,
-            SFGAO_STORAGEANCESTOR = 0x00800000,
-            SFGAO_STORAGECAPMASK = 0x70C50008,
-            SFGAO_PKEYSFGAOMASK = 0x81044000
-        }
-
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        private struct STRRET
-        {
-            public uint uType;
-            public IntPtr pOleStr;
-        }
-
-        [Flags]
-        private enum SHGDN : uint
-        {
-            SHGDN_NORMAL = 0x0000,
-            SHGDN_INFOLDER = 0x0001,
-            SHGDN_FOREDITING = 0x1000,
-            SHGDN_FORADDRESSBAR = 0x4000,
-            SHGDN_FORPARSING = 0x8000
-        }
-
-        [Flags]
-        private enum GCS : uint
-        {
-            GCS_VERBA = 0x00000000,
-            GCS_HELPTEXTA = 0x00000001,
-            GCS_VALIDATEA = 0x00000002,
-            GCS_VERBW = 0x00000004,
-            GCS_HELPTEXTW = 0x00000005,
-            GCS_VALIDATEW = 0x00000006,
-            GCS_UNICODE = 0x00000004
-        }
-
-        [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("000214F2-0000-0000-C000-000000000046")]
-        private interface IEnumIDList
-        {
-            [PreserveSig]
-            int Next(uint celt, out IntPtr rgelt, out uint pceltFetched);
-            void Skip(uint celt);
-            void Reset();
-            void Clone(out IEnumIDList ppenum);
-        }
-
-        private static readonly Guid IID_IShellFolder = new Guid("000214E6-0000-0000-C000-000000000046");
-        private static readonly Guid IID_IContextMenu = new Guid("000214E4-0000-0000-C000-000000000046");
-        private const int SW_SHOWNORMAL = 1;
-
-        private void ContextMenuStrip_Opening(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            // 在这里可以添加自定义的菜单项
-        }
-
-        [DllImport("shell32.dll", CharSet = CharSet.Auto)]
-        private static extern IntPtr SHGetFileInfo(string pszPath, uint dwFileAttributes, ref SHFILEINFO psfi, uint cbFileInfo, uint uFlags);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern bool DestroyIcon(IntPtr hIcon);
-
-        private const uint SHGFI_ICON = 0x000000100;
-        private const uint SHGFI_SMALLICON = 0x000000001;
-
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        private struct SHFILEINFO
-        {
-            public IntPtr hIcon;
-            public int iIcon;
-            public uint dwAttributes;
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
-            public string szDisplayName;
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
-            public string szTypeName;
-        }
         private void TreeView_DrawNode(object? sender, DrawTreeNodeEventArgs e)
         {
             if (e.Node == null) return;
@@ -990,7 +678,7 @@ namespace WinFormsApp1
 			IntPtr pidlSub;
 			uint celtFetched;
 
-			if (root.EnumObjects(this.Handle, WinShell.SHCONTF.FOLDERS, out EnumPtr) == API.S_OK)
+			if (root.EnumObjects(this.Handle, SHCONTF.FOLDERS, out EnumPtr) == API.S_OK)
 			{
 				Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
 				while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == API.S_FALSE)
@@ -1078,7 +766,7 @@ namespace WinFormsApp1
 			IntPtr pidlSub;
 			uint celtFetched;
 
-			if (root.EnumObjects(this.Handle, WinShell.SHCONTF.FOLDERS, out EnumPtr) == API.S_OK)
+			if (root.EnumObjects(this.Handle, SHCONTF.FOLDERS, out EnumPtr) == API.S_OK)
 			{
 				Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
 				while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == API.S_FALSE)
@@ -1251,7 +939,6 @@ namespace WinFormsApp1
 			//itemPath = ;
 			if (selectedItem.SubItems[2].Text == "文件夹" || selectedItem.SubItems[2].Text == "本地磁盘" || selectedItem.SubItems[2].Text.Contains(":")) // 确认是文件夹
 			{
-				
 				{
 					try
 					{
@@ -1525,7 +1212,7 @@ namespace WinFormsApp1
 			listView.BeginUpdate();
 			listView.Items.Clear();
 
-			if (root.EnumObjects(this.Handle, WinShell.SHCONTF.FOLDERS, out EnumPtr) == API.S_OK)
+			if (root.EnumObjects(this.Handle, SHCONTF.FOLDERS, out EnumPtr) == API.S_OK)
 			{
 				Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
 				while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == API.S_FALSE)
@@ -2729,7 +2416,7 @@ namespace WinFormsApp1
             //     Enumerable.Range(0, (int)count)
             //     .Select(x => new ListViewItem(x.ToString(), x)).ToArray());
             // this.Controls.Add(listView1);
-            phiconLarge.ToList().ForEach(x => DestroyIcon(x));
+            phiconLarge.ToList().ForEach(x => w32.DestroyIcon(x));
             return imagelist1;
         }
 
@@ -2765,8 +2452,8 @@ namespace WinFormsApp1
                     rst = ExtractIconEx(tcFullName, 0, phiconLarge, phiconSmall, 1);
                     hIcon = tlIsLarge ? phiconLarge[0] : phiconSmall[0];
                     ico = hIcon == IntPtr.Zero ? null : Icon.FromHandle(hIcon).Clone() as Icon;
-                    if (phiconLarge[0] != IntPtr.Zero) DestroyIcon(phiconLarge[0]);
-                    if (phiconSmall[0] != IntPtr.Zero) DestroyIcon(phiconSmall[0]);
+                    if (phiconLarge[0] != IntPtr.Zero) w32.DestroyIcon(phiconLarge[0]);
+                    if (phiconSmall[0] != IntPtr.Zero) w32.DestroyIcon(phiconSmall[0]);
                     if (ico != null)
                     {
                         return ico;
@@ -2806,8 +2493,8 @@ namespace WinFormsApp1
             rst = ExtractIconEx(fileIcon[0].Trim('\"'), Int32.Parse(fileIcon[1]), phiconLarge, phiconSmall, 1);
             hIcon = tlIsLarge ? phiconLarge[0] : phiconSmall[0];
             ico = hIcon == IntPtr.Zero ? null : Icon.FromHandle(hIcon).Clone() as Icon;
-            if (phiconLarge[0] != IntPtr.Zero) DestroyIcon(phiconLarge[0]);
-            if (phiconSmall[0] != IntPtr.Zero) DestroyIcon(phiconSmall[0]);
+            if (phiconLarge[0] != IntPtr.Zero) w32.DestroyIcon(phiconLarge[0]);
+            if (phiconSmall[0] != IntPtr.Zero) w32.DestroyIcon(phiconSmall[0]);
             if (ico != null)
             {
                 return ico;
@@ -2823,8 +2510,8 @@ namespace WinFormsApp1
                 rst = ExtractIconEx(fileIcon[0], Int32.Parse(fileIcon[1]), phiconLarge, phiconSmall, 1);
                 hIcon = tlIsLarge ? phiconLarge[0] : phiconSmall[0];
                 ico = hIcon == IntPtr.Zero ? null : Icon.FromHandle(hIcon).Clone() as Icon;
-                if (phiconLarge[0] != IntPtr.Zero) DestroyIcon(phiconLarge[0]);
-                if (phiconSmall[0] != IntPtr.Zero) DestroyIcon(phiconSmall[0]);
+                if (phiconLarge[0] != IntPtr.Zero) w32.DestroyIcon(phiconLarge[0]);
+                if (phiconSmall[0] != IntPtr.Zero) w32.DestroyIcon(phiconSmall[0]);
             }
 
             return ico;

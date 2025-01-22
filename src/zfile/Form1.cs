@@ -9,6 +9,7 @@ using CSCore.SoundOut;
 using LibVLCSharp.Shared;
 using SharpCompress.Archives;
 using WinShell;
+using CSCore.Streams.SampleConverter;
 
 namespace WinFormsApp1
 {
@@ -1220,17 +1221,20 @@ namespace WinFormsApp1
                 isSelecting = false;
                 SelectItemsInRectangle(activeListView, selectionRectangle);
                 activeListView.Invalidate();
-                return;
+                //return;
             }
-            if (e.Button == MouseButtons.Right)
+			if (sender is not ListView)
+				return;
+			ListView listView = sender as ListView;
+			if (e.Button == MouseButtons.Right)
             {
-                ListView listView = sender as ListView;
+
                 ListViewItem item = listView.GetItemAt(e.X, e.Y);
                 if (item != null)
                 {
                     listView.FocusedItem = item;
-                    string itemPath = Path.Combine(currentDirectory, item.Text);
-                    ShowContextMenu(listView, itemPath, e.Location);
+
+                    ShowContextMenu(listView, Path.Combine(currentDirectory, item.Text), e.Location);
                 }
                 else
                 {
@@ -1238,14 +1242,91 @@ namespace WinFormsApp1
                     ShowContextMenu(listView, currentDirectory, e.Location);
                 }
             }
-        }
+			
+
+			if (listView.SelectedItems.Count == 0) return;
+
+			ListViewItem selectedItem = listView.SelectedItems[0];
+			string itemPath = Path.Combine(currentDirectory, selectedItem.Text);
+			//itemPath = ;
+			if (selectedItem.SubItems[2].Text == "文件夹" || selectedItem.SubItems[2].Text == "本地磁盘" || selectedItem.SubItems[2].Text.Contains(":")) // 确认是文件夹
+			{
+				
+				{
+					try
+					{
+						// 获取关联的TreeView
+						TreeView treeView = listView == leftList ? leftTree : rightTree;
+
+						// 查找并选择对应的TreeNode
+						TreeNode? node = FindTreeNode(treeView.Nodes, itemPath);	//node.text='此电脑//system c' 'itempath=[c:\\]'
+						if (node != null)
+						{
+							// 设置选中状态并高亮显示
+							treeView.SelectedNode = node;
+							ClearTreeViewHighlight(treeView);
+							node.BackColor = SystemColors.Highlight;
+							node.ForeColor = SystemColors.HighlightText;
+							treeView.Refresh(); // 强制重绘
+							node.EnsureVisible(); // 确保节点可见
+							node.Expand();
+
+							// 更新当前目录和ListView
+							currentDirectory = itemPath;
+							selectedNode = node;
+							RefreshTreeViewAndListView(treeView, listView, itemPath);
+						}
+						else
+						{
+							// 如果在树中找不到节点，直接更新ListView
+							//LoadListView(itemPath, listView);
+							currentDirectory = itemPath;
+						}
+
+						// 更新监视器
+						if (Directory.Exists(itemPath))
+						{
+							watcher.Path = itemPath;
+							watcher.EnableRaisingEvents = true;
+						}
+					}
+					catch (Exception ex)
+					{
+						MessageBox.Show($"访问文件夹失败: {ex.Message}", "错误");
+					}
+				}
+			}
+			else // 处理文件
+			{
+				if (File.Exists(itemPath))
+				{
+					try
+					{
+						// 如果是可执行文件，直接执行
+						if (Path.GetExtension(itemPath).Equals(".exe", StringComparison.OrdinalIgnoreCase))
+						{
+							System.Diagnostics.Process.Start(itemPath);
+						}
+						else
+						{
+							// 使用系统默认关联程序打开文件
+							System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(itemPath) { UseShellExecute = true });
+						}
+					}
+					catch (Exception ex)
+					{
+						MessageBox.Show($"无法打开文件: {ex.Message}", "错误");
+					}
+				}
+			}
+		}
         private void SelectItemsInRectangle(ListView listView, Rectangle rect)
         {
             foreach (ListViewItem item in listView.Items)
             {
                 if (item.Bounds.IntersectsWith(rect))
                 {
-                    item.Selected = true;
+                    item.Selected = true;					
                 }
             }
         }
@@ -1260,91 +1341,40 @@ namespace WinFormsApp1
         }
         private void ListView_MouseDoubleClick(object? sender, MouseEventArgs e)
         {
-            if (sender is not ListView listView || listView.SelectedItems.Count == 0) return;
 
-            ListViewItem selectedItem = listView.SelectedItems[0];
-            string itemPath = Path.Combine(currentDirectory, selectedItem.Text);
 
-            if (selectedItem.SubItems[1].Text == "<DIR>") // 确认是文件夹
-            {
-                if (Directory.Exists(itemPath))
-                {
-                    try
-                    {
-                        // 获取关联的TreeView
-                        TreeView treeView = listView == leftList ? leftTree : rightTree;
-
-                        // 查找并选择对应的TreeNode
-                        TreeNode? node = FindTreeNode(treeView.Nodes, itemPath);
-                        if (node != null)
-                        {
-                            // 设置选中状态并高亮显示
-                            treeView.SelectedNode = node;
-                            ClearTreeViewHighlight(treeView);
-                            node.BackColor = SystemColors.Highlight;
-                            node.ForeColor = SystemColors.HighlightText;
-                            treeView.Refresh(); // 强制重绘
-                            node.EnsureVisible(); // 确保节点可见
-                            node.Expand();
-
-                            // 更新当前目录和ListView
-                            currentDirectory = itemPath;
-                            selectedNode = node;
-                        }
-                        else
-                        {
-                            // 如果在树中找不到节点，直接更新ListView
-                            //LoadListView(itemPath, listView);
-                            currentDirectory = itemPath;
-                        }
-
-                        // 更新监视器
-                        watcher.Path = itemPath;
-                        watcher.EnableRaisingEvents = true;
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"访问文件夹失败: {ex.Message}", "错误");
-                    }
-                }
-            }
-            else // 处理文件
-            {
-                if (File.Exists(itemPath))
-                {
-                    try
-                    {
-                        // 如果是可执行文件，直接执行
-                        if (Path.GetExtension(itemPath).Equals(".exe", StringComparison.OrdinalIgnoreCase))
-                        {
-                            System.Diagnostics.Process.Start(itemPath);
-                        }
-                        else
-                        {
-                            // 使用系统默认关联程序打开文件
-                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(itemPath) { UseShellExecute = true });
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"无法打开文件: {ex.Message}", "错误");
-                    }
-                }
-            }
         }
 
-        private TreeNode? FindTreeNode(TreeNodeCollection nodes, string fullPath)
+		private TreeNode? FindTreeNode(TreeNodeCollection nodes, string fullPath)
         {
             foreach (TreeNode node in nodes)
             {
-                if (node.Tag?.ToString() == fullPath)
+				string p1;
+				if (node.Text.Contains(':'))
+				{
+					//读取 ':'的前一个字符
+					var p = node.Text.IndexOf(':');
+					p1 = node.Text.Substring(p - 1, 1);
+					//if (fullPath.StartsWith(p1 + ":"))
+					if(fullPath.Contains(node.Text))
+						return node;
+				}
+				else
+					p1 = node.Text;
+				
+				if (node.Text == fullPath)
                 {
                     return node;
                 }
 
-                // 如果当前节点的路径是目标路径的父路径，则展开并递归搜索
-                var nodeTag = node.Tag?.ToString();
-                if (nodeTag != null && fullPath.StartsWith(nodeTag))
+				var i = (ShellItem)node.Tag;
+				//var p1 = API.GetNameByIShell(iDeskTop, i.PIDL);
+				//var p2 = API.GetPathByIShell(iDeskTop, i.PIDL);
+				//var p3 = API.SHGetFileInfo(p2, 0, ref shFileInfo, (uint)Marshal.SizeOf(shFileInfo), SHGFI_ICON | SHGFI_SMALLICON);
+				//var p3 = API.GetNameByPIDL(i.PIDL);
+				// 如果当前节点的路径是目标路径的父路径，则展开并递归搜索
+				
+				if (node.Text.Equals("桌面") || node.Text.Equals("此电脑") || fullPath.Contains(node.Text))
                 {
                     LoadSubDirectories(node); // 确保子节点已加载
                     node.Expand();
@@ -1491,39 +1521,70 @@ namespace WinFormsApp1
 			IntPtr EnumPtr = IntPtr.Zero;
 			IntPtr pidlSub;
 			uint celtFetched;
+			//var found = false;
+			listView.BeginUpdate();
+			listView.Items.Clear();
 
 			if (root.EnumObjects(this.Handle, WinShell.SHCONTF.FOLDERS, out EnumPtr) == API.S_OK)
 			{
 				Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
 				while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == API.S_FALSE)
 				{
+					//if (found) return;
 					string name = API.GetNameByIShell(root, pidlSub);
+					string pth = API.GetPathByIShell(root, pidlSub);
 					WinShell.IShellFolder iSub;
 					root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);
-
+					string[] s = { name, "", pth, "" };
+					var i = new ListViewItem(s);
+					listView.Items.Add(i);
+					
 					//TreeNode nodeSub = new TreeNode(name);
 					//nodeSub.Tag = new ShellItem(pidlSub, iSub);
 					//nodeSub.Nodes.Add("...");
 					//e.Node.Nodes.Add(nodeSub);
-					listView.BeginUpdate();
-					listView.Items.Clear();
-					if (!Directory.Exists(node.Text))
-						return;
-					List<FileSystemInfo> items = GetDirectoryContents(node.Text);
-					foreach (var item in items)
-					{
-						if ((item.Attributes & FileAttributes.Hidden) != 0) continue;
+					//listView.BeginUpdate();
+					//var t = node.Tag as ShellItem;
+					//var p = API.GetPathByIShell(root, pidlSub);
+					//if (Directory.Exists(pth))
+					//{
+					//	listView.Items.Clear();
 
-						var lvItem = CreateListViewItem(item);
-						if (lvItem != null)
-						{
-							listView.Items.Add(lvItem);
-						}
-					}
+					//	List<FileSystemInfo> items = GetDirectoryContents(pth);
+					//	foreach (var item in items)
+					//	{
+					//		if ((item.Attributes & FileAttributes.Hidden) != 0) continue;
 
-					listView.EndUpdate();
+					//		var lvItem = CreateListViewItem(item);
+					//		if (lvItem != null)
+					//		{
+					//			listView.Items.Add(lvItem);
+					//		}
+					//	}
+					//	found = true;
+					//}
+					//else if (pth.Equals("此电脑"))
+					//{
+					//	listView.Items.Clear();
+
+					//	// 如果不是文件夹，而是比如是‘此电脑’，则返回所有硬盘分区
+					//	foreach (var drive in DriveInfo.GetDrives())
+					//	{
+					//		if (drive.DriveType == DriveType.Fixed)
+					//		{
+					//			var lvItem = new ListViewItem(drive.Name)
+					//			{
+					//				SubItems = { "硬盘", "本地磁盘", drive.VolumeLabel, drive.DriveFormat }
+					//			};
+					//			listView.Items.Add(lvItem);
+					//		}
+					//	}
+					//	found = true;
+					//}
+					
 				}
 			}
+			listView.EndUpdate();
 		}
 		// 加载文件列表
 		private void LoadListView1(string path, ListView listView)

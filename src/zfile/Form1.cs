@@ -28,8 +28,9 @@ namespace WinFormsApp1
         private Point selectionStart;
         private Rectangle selectionRectangle;
         private ListView activeListView;
+		private TreeView activeTreeview;
 
-        private readonly FileSystemWatcher watcher = new();
+		private readonly FileSystemWatcher watcher = new();
 		private string currentDirectory = "";// @"";
 
         // 声明控件为私有字段
@@ -92,7 +93,8 @@ namespace WinFormsApp1
             InitializeTreeViews();
             InitializeListViews();
             activeListView = leftList;  //default active view is left list view
-            InitializePreviewPanels();
+			activeTreeview = leftTree;
+			InitializePreviewPanels();
             InitializeStatusStrips(); // 初始化状态栏
             InitializeFileSystemWatcher();
             InitializeThemeToggleButton(); // 初始化主题切换按钮
@@ -114,19 +116,19 @@ namespace WinFormsApp1
                 treeViewImageList.Images.Add("folder", folderIcon);
             }
 
-            // 获取系统默认驱动器图标
-            Icon driveIcon = GetSystemIcon.GetIconByFileType("drive", false);
-            if (driveIcon != null)
-            {
-                treeViewImageList.Images.Add("drive", driveIcon);
-            }
+            //// 获取系统默认驱动器图标
+            //Icon driveIcon = GetSystemIcon.GetIconByFileType("drive", false);
+            //if (driveIcon != null)
+            //{
+            //    treeViewImageList.Images.Add("drive", driveIcon);
+            //}
 
-            // 获取系统默认文件图标
-            Icon fileIcon = GetSystemIcon.GetIconByFileType("file", false);
-            if (fileIcon != null)
-            {
-                treeViewImageList.Images.Add("file", fileIcon);
-            }
+            //// 获取系统默认文件图标
+            //Icon fileIcon = GetSystemIcon.GetIconByFileType("file", false);
+            //if (fileIcon != null)
+            //{
+            //    treeViewImageList.Images.Add("file", fileIcon);
+            //}
 
             // 将ImageList分配给TreeView
             leftTree.ImageList = treeViewImageList;
@@ -417,6 +419,7 @@ namespace WinFormsApp1
 
         private void ShowContextMenu(Control control, string path, Point location)
         {
+			path = getFSpath(path);
             if (File.Exists(path) || Directory.Exists(path))
             {
                 IntPtr menu = IntPtr.Zero;
@@ -674,7 +677,7 @@ namespace WinFormsApp1
 			}
             catch (Exception ex)
             {
-                MessageBox.Show($"加载目录失败: {ex.Message}", "错误");
+                MessageBox.Show($"TreeView_NodeMouseClick加载目录失败: {ex.Message}", "错误");
             }
         }
         private void TreeView_BeforeExpand(object sender, TreeViewCancelEventArgs e)
@@ -727,7 +730,7 @@ namespace WinFormsApp1
 			}
 			catch (Exception ex)
 			{
-				MessageBox.Show($"加载目录失败: {ex.Message}", "错误");
+				MessageBox.Show($"TreeView_AfterSelect加载目录失败: {ex.Message}", "错误");
 			}
 		}
 
@@ -853,7 +856,6 @@ namespace WinFormsApp1
 
         private void ConfigureListView(ListView listView, Panel parent)
         {
-            // 不再使用单独的容器Panel
             listView.Dock = DockStyle.Fill;
             listView.View = View.Details;
             listView.FullRowSelect = true;
@@ -863,6 +865,7 @@ namespace WinFormsApp1
 
             // 配置列
             listView.Columns.Clear();
+            listView.Columns.Add("图标", 50); // 新增图标列
             listView.Columns.Add("名称", 200);
             listView.Columns.Add("大小", 100);
             listView.Columns.Add("类型", 80);
@@ -884,7 +887,11 @@ namespace WinFormsApp1
                 selectionStart = e.Location;
                 activeListView = sender as ListView;
                 activeListView.SelectedItems.Clear();
-            }
+				if (activeListView == leftList)
+					activeTreeview = leftTree;
+				else
+					activeTreeview = rightTree;
+			}
         }
 
         private void ListView_MouseMove(object sender, MouseEventArgs e)
@@ -911,20 +918,27 @@ namespace WinFormsApp1
 
             if (sender is not ListView listView)
                 return;
+			ListViewItem item = listView.GetItemAt(e.X, e.Y);
+			if (item != null)
+				item.Selected = true;
 
-            if (e.Button == MouseButtons.Right)
-            {
-                ListViewItem item = listView.GetItemAt(e.X, e.Y);
+			if (e.Button == MouseButtons.Right)
+            {    
                 if (item != null)
                 {
                     listView.FocusedItem = item;
-                    ShowContextMenu(listView, Path.Combine(currentDirectory, item.Text), e.Location);
-                }
+					var p = Path.Combine(currentDirectory, item.Text);
+					if (p.Contains(':'))
+						ShowContextMenu(listView, p, e.Location);
+					else
+						ShowContextMenu1(leftTree, selectedNode, e.Location);
+				}
                 else
                 {
                     // Show context menu for the ListView itself
                     ShowContextMenu(listView, currentDirectory, e.Location);
                 }
+				return;
             }
 
             if (listView.SelectedItems.Count == 0) return;
@@ -932,7 +946,7 @@ namespace WinFormsApp1
             ListViewItem selectedItem = listView.SelectedItems[0];
             string itemPath = Path.Combine(currentDirectory, selectedItem.Text);
 
-            if (selectedItem.SubItems[2].Text.ToUpper() == "<DIR>" || selectedItem.SubItems[2].Text == "本地磁盘")  //|| selectedItem.SubItems[2].Text.Contains(":")
+            if (selectedItem.SubItems[3].Text.ToUpper() == "<DIR>" || selectedItem.SubItems[3].Text == "本地磁盘")  //|| selectedItem.SubItems[2].Text.Contains(":")
 			{
                 try
                 {
@@ -1267,6 +1281,10 @@ namespace WinFormsApp1
         private void LoadListView(TreeNode node, ListView listView)
         {
             if (listView == null) return;
+            if (listView.SmallImageList == null)
+            {
+                listView.SmallImageList = new ImageList();
+            }
             ShellItem sItem = (ShellItem)node.Tag;
             WinShell.IShellFolder root = sItem.ShellFolder;
 
@@ -1288,18 +1306,21 @@ namespace WinFormsApp1
                     string pth = API.GetPathByIShell(root, pidlSub);
                     WinShell.IShellFolder iSub;
                     root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);
-					string[] s = { name, "", name.Contains(':') ? "本地磁盘" : "<DIR>", "" };
+
+					// 获取图标
+					//Icon icon = GetSystemIcon.GetIconByFileType(name.Contains(':') ? "folder" : Path.GetExtension(name), false);
+					var fiwi = new FileInfoWithIcon(name);
+					var icon = fiwi.smallIcon != null ? fiwi.smallIcon : GetIconByFileName("FILE", name);
+					int iconIndex = listView.SmallImageList.Images.Count;
+                    listView.SmallImageList.Images.Add(icon);
+
+                    string[] s = { "", name, "", name.Contains(':') ? "本地磁盘" : "<DIR>", "" };
                     var i = new ListViewItem(s);
+                    i.ImageIndex = iconIndex;
+					i.Text = name;
                     listView.Items.Add(i);
                 }
             }
-		
-            // 当root为文件系统的某个盘符或者文件系统的普通文件夹时，利用loadlistviewbyfilesystem加载文件列表到listview
-            //string rootPath = API.GetPathByIShell(root, sItem.PIDL);
-            //if (Directory.Exists(rootPath))
-            //{
-            //    LoadListViewByFilesystem(rootPath, listView);
-            //}
 
             listView.EndUpdate();
         }
@@ -1316,17 +1337,12 @@ namespace WinFormsApp1
 			return path;
 		}
 		// 加载文件列表
-		private void LoadListViewByFilesystem(string path, ListView listView)
+		    private void LoadListViewByFilesystem(string path, ListView listView)
         {
             if (string.IsNullOrEmpty(path)) return;
-			//if (!path.Contains(':')) return;    //如果不是文件夹，���是比如我的电脑/网上邻居等，则无需处理，如果是文件夹，则继续
-			//var pathParts = path.Split(':');    // path = 桌面\\此电脑\\system (c:)\\windows\\system32 -> c:\\windows\\system32
-			////get the last char of pathparts[0] to get the drive letter
-			//var len = pathParts[0].Length;
-			//var drive = pathParts[0].Substring(len -1, 1);
-			//path = drive + ":" + pathParts[1].TrimStart(')');
-			path = getFSpath(path);
-			try
+            path = getFSpath(path);
+
+            try
             {
                 var currentTime = DateTime.Now;
                 var needsUpdate = !_directoryCache.ContainsKey(path) ||
@@ -1351,7 +1367,7 @@ namespace WinFormsApp1
                 {
                     if ((item.Attributes & FileAttributes.Hidden) != 0) continue;
 
-                    var lvItem = CreateListViewItem(item);
+                    var lvItem = CreateListViewItem(item, listView);
                     if (lvItem != null)
                     {
                         listView.Items.Add(lvItem);
@@ -1401,37 +1417,50 @@ namespace WinFormsApp1
         }
 
         // 优化ListViewItem创建
-        private ListViewItem? CreateListViewItem(FileSystemInfo item)
+        private ListViewItem? CreateListViewItem(FileSystemInfo item, ListView listView)
         {
             try
             {
                 string[] itemData;
+                Icon icon;
                 if (item is DirectoryInfo)
                 {
                     itemData = new[]
                     {
+                        "",
                         item.Name,
                         "<DIR>",
                         "文件夹",
                         item.LastWriteTime.ToString("yyyy-MM-dd HH:mm")
                     };
+                    icon = GetSystemIcon.GetIconByFileType("folder", false);
                 }
                 else if (item is FileInfo fileInfo)
                 {
                     itemData = new[]
                     {
+                        "",
                         item.Name,
                         FormatFileSize(fileInfo.Length),
                         fileInfo.Extension.ToUpperInvariant(),
                         item.LastWriteTime.ToString("yyyy-MM-dd HH:mm")
                     };
+                    icon = GetSystemIcon.GetIconByFileType(fileInfo.Extension, false);
                 }
                 else
                 {
                     return null;
                 }
 
-                return new ListViewItem(itemData);
+                int iconIndex = listView.SmallImageList.Images.Count;
+                listView.SmallImageList.Images.Add(icon);
+
+                var lvItem = new ListViewItem(itemData)
+                {
+                    ImageIndex = iconIndex
+                };
+				lvItem.Text = item.Name;
+				return lvItem;
             }
             catch
             {
@@ -1545,12 +1574,12 @@ namespace WinFormsApp1
                 // 根据列类型进行比较
                 switch (column)
                 {
-                    case 0: // 名称列
+                    case 1: // 名称列
                         result = string.Compare(item1.SubItems[column].Text,
                                              item2.SubItems[column].Text);
                         break;
 
-                    case 1: // 大小列
+                    case 2: // 大小列
                         var size1 = item1.SubItems[column].Text;
                         var size2 = item2.SubItems[column].Text;
                         if (size1 == "<DIR>" && size2 == "<DIR>")
@@ -1563,7 +1592,7 @@ namespace WinFormsApp1
                             result = CompareFileSize(size1, size2);
                         break;
 
-                    case 3: // 日期列
+                    case 4: // 日期列
                         result = DateTime.Compare(
                             DateTime.Parse(item1.SubItems[column].Text),
                             DateTime.Parse(item2.SubItems[column].Text));
@@ -1958,7 +1987,7 @@ namespace WinFormsApp1
 
             try
             {
-                if (selectedItem.SubItems[1].Text == "<DIR>")
+                if (selectedItem.SubItems[3].Text == "<DIR>")
                 {
                     CopyDirectory(sourcePath, targetPath);
                 }
@@ -2009,7 +2038,7 @@ namespace WinFormsApp1
 
             try
             {
-                if (selectedItem.SubItems[1].Text == "<DIR>")
+                if (selectedItem.SubItems[3].Text == "<DIR>")
                 {
                     Directory.Move(sourcePath, targetPath);
                 }
@@ -2076,7 +2105,7 @@ namespace WinFormsApp1
             {
                 try
                 {
-                    if (selectedItem.SubItems[1].Text == "<DIR>")
+                    if (selectedItem.SubItems[3].Text == "<DIR>")
                     {
                         Directory.Delete(itemPath, true);
                     }

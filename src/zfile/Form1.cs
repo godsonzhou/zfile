@@ -20,13 +20,17 @@ namespace WinFormsApp1
 
 	public partial class Form1 : Form
     {
-        private bool isSelecting = false;
+		// 声明新的 TextBox 控件
+		private readonly TextBox leftPathTextBox = new();
+		private readonly TextBox rightPathTextBox = new();
+
+		private bool isSelecting = false;
         private Point selectionStart;
         private Rectangle selectionRectangle;
         private ListView activeListView;
 
         private readonly FileSystemWatcher watcher = new();
-        private string currentDirectory = @"C:\";
+		private string currentDirectory = "";// @"";
 
         // 声明控件为私有字段
         private readonly SplitContainer mainContainer = new();
@@ -98,22 +102,36 @@ namespace WinFormsApp1
             InitializeDynamicToolbar();
 			InitializeTreeViewIcons(); // 初始化TreeView图标
 		}
-		private void InitializeTreeViewIcons()
-		{
-			treeViewImageList = new ImageList();
-			treeViewImageList.ImageSize = new Size(16, 16);
+        private void InitializeTreeViewIcons()
+        {
+            treeViewImageList = new ImageList();
+            treeViewImageList.ImageSize = new Size(16, 16);
 
-			// 获取系统默认文件夹图标
-			Icon folderIcon = GetSystemIcon.GetIconByFileType("folder", false);
-			if (folderIcon != null)
-			{
-				treeViewImageList.Images.Add("folder", folderIcon);
-			}
+            // 获取系统默认文件夹图标
+            Icon folderIcon = GetSystemIcon.GetIconByFileType("folder", false);
+            if (folderIcon != null)
+            {
+                treeViewImageList.Images.Add("folder", folderIcon);
+            }
 
-			// 将ImageList分配给TreeView
-			leftTree.ImageList = treeViewImageList;
-			rightTree.ImageList = treeViewImageList;
-		}
+            // 获取系统默认驱动器图标
+            Icon driveIcon = GetSystemIcon.GetIconByFileType("drive", false);
+            if (driveIcon != null)
+            {
+                treeViewImageList.Images.Add("drive", driveIcon);
+            }
+
+            // 获取系统默认文件图标
+            Icon fileIcon = GetSystemIcon.GetIconByFileType("file", false);
+            if (fileIcon != null)
+            {
+                treeViewImageList.Images.Add("file", fileIcon);
+            }
+
+            // 将ImageList分配给TreeView
+            leftTree.ImageList = treeViewImageList;
+            rightTree.ImageList = treeViewImageList;
+        }
 		private void InitializeContextMenu()
         {
             // 初始化ContextMenuStrip
@@ -255,19 +273,27 @@ namespace WinFormsApp1
 
         private void InitializeDriveComboBoxes()
         {
-            ConfigureDriveBox(leftDriveBox, leftDrivePanel);
-            ConfigureDriveBox(rightDriveBox, rightDrivePanel);
+			//ConfigureDriveBox(leftDriveBox, leftDrivePanel);
+			//ConfigureDriveBox(rightDriveBox, rightDrivePanel);
+			ConfigureDriveBox(leftDriveBox, leftDrivePanel, leftPathTextBox);
+			ConfigureDriveBox(rightDriveBox, rightDrivePanel, rightPathTextBox);
 
-            LoadDrives();
-        }
 
-        private void ConfigureDriveBox(ComboBox driveBox, Panel parent)
-        {
-            driveBox.Dock = DockStyle.Fill;
-            driveBox.DropDownStyle = ComboBoxStyle.DropDownList;
-            driveBox.SelectedIndexChanged += DriveComboBox_SelectedIndexChanged;
-            parent.Controls.Add(driveBox);
+			LoadDrives();
         }
+		private void ConfigureDriveBox(ComboBox driveBox, Panel parent, TextBox pathTextBox)
+		{
+			driveBox.Dock = DockStyle.Left;
+			driveBox.DropDownStyle = ComboBoxStyle.DropDownList;
+			driveBox.SelectedIndexChanged += DriveComboBox_SelectedIndexChanged;
+
+			pathTextBox.Dock = DockStyle.Fill;
+			pathTextBox.ReadOnly = true;
+
+			parent.Controls.Add(pathTextBox);
+			parent.Controls.Add(driveBox);
+		}
+		
 
         private void LoadDrives()
         {
@@ -300,7 +326,7 @@ namespace WinFormsApp1
 				Tree1.SelectedNode = Tree1.GetNodeAt(e.X, e.Y);
 			}
 		}
-		private void ConfigureTreeView(TreeView treeView)
+        private void ConfigureTreeView(TreeView treeView)
         {
             treeView.Dock = DockStyle.Fill;
 
@@ -315,14 +341,14 @@ namespace WinFormsApp1
             treeView.FullRowSelect = true;  // 允许整行选择
             treeView.ItemHeight = 20;       // 设置节点高度
             treeView.DrawMode = TreeViewDrawMode.OwnerDrawText; // 使用自定义绘制
-            
-			treeView.DrawNode += TreeView_DrawNode; // 添加绘制事件处理
+
+            treeView.DrawNode += TreeView_DrawNode; // 添加绘制事件处理
             treeView.MouseUp += TreeView_MouseUp;
-			treeView.AfterSelect += TreeView_AfterSelect;
-			treeView.NodeMouseClick += TreeView_NodeMouseClick;
-			treeView.BeforeExpand += TreeView_BeforeExpand;
-			treeView.MouseDown += TreeView_MouseDown;
-		}
+            treeView.AfterSelect += TreeView_AfterSelect;
+            treeView.NodeMouseClick += TreeView_NodeMouseClick;
+            treeView.BeforeExpand += TreeView_BeforeExpand;
+            treeView.MouseDown += TreeView_MouseDown;
+        }
 		private void TreeView_MouseUp(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right)
@@ -369,7 +395,7 @@ namespace WinFormsApp1
 			//提供一个弹出式菜单的句柄
 			IntPtr contextMenu = API.CreatePopupMenu();
 			iContextMenu.QueryContextMenu(contextMenu, 0,
-				API.CMD_FIRST, API.CMD_LAST, WinShell.CMF.NORMAL | WinShell.CMF.EXPLORE);
+				API.CMD_FIRST, API.CMD_LAST, CMF.NORMAL | CMF.EXPLORE);
 
 			//弹出菜单
 			uint cmd = API.TrackPopupMenuEx(contextMenu, TPM.RETURNCMD,
@@ -378,12 +404,12 @@ namespace WinFormsApp1
 			//获取命令序号，执行菜单命令
 			if (cmd >= API.CMD_FIRST)
 			{
-				var invoke = new WinShell.CMINVOKECOMMANDINFOEX();
-				invoke.cbSize = Marshal.SizeOf(typeof(WinShell.CMINVOKECOMMANDINFOEX));
+				var invoke = new CMINVOKECOMMANDINFOEX();
+				invoke.cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX));
 				invoke.lpVerb = (IntPtr)(cmd - 1);
 				invoke.lpDirectory = string.Empty;
 				invoke.fMask = 0;
-				invoke.ptInvoke = new WinShell.POINT(MousePosition.X, MousePosition.Y);
+				invoke.ptInvoke = new POINT(MousePosition.X, MousePosition.Y);
 				invoke.nShow = 1;
 				iContextMenu.InvokeCommand(ref invoke);
 			}
@@ -651,92 +677,73 @@ namespace WinFormsApp1
                 MessageBox.Show($"加载目录失败: {ex.Message}", "错误");
             }
         }
-		private void TreeView_BeforeExpand(object sender, TreeViewCancelEventArgs e)
-		{
-			#region 判断节点是否已经展开
-			if (e.Node.Nodes.Count != 1)
-			{
-				return;
-			}
-			else
-			{
-				if (e.Node.FirstNode.Text != "...")
-				{
-					return;
-				}
-			}
-
-			e.Node.Nodes.Clear();
-			#endregion
-
-			ShellItem sItem = (ShellItem)e.Node.Tag;
-			WinShell.IShellFolder root = sItem.ShellFolder;
-
-			//循环查找子项
-			IEnumIDList Enum = null;
-			IntPtr EnumPtr = IntPtr.Zero;
-			IntPtr pidlSub;
-			uint celtFetched;
-
-			if (root.EnumObjects(this.Handle, SHCONTF.FOLDERS, out EnumPtr) == API.S_OK)
-			{
-				Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
-				while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == API.S_FALSE)
-				{
-					string name = API.GetNameByIShell(root, pidlSub);
-					WinShell.IShellFolder iSub;
-					root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);
-
-					TreeNode nodeSub = new TreeNode(name);
-					nodeSub.Tag = new ShellItem(pidlSub, iSub);
-					nodeSub.Nodes.Add("...");
-					e.Node.Nodes.Add(nodeSub);
-				}
-			}
-		}
-		private void TreeView_AfterSelect(object? sender, TreeViewEventArgs e)
+        private void TreeView_BeforeExpand(object sender, TreeViewCancelEventArgs e)
         {
-            if (e.Node?.Tag == null) return;
-
-            try
+            if (e.Node.Nodes.Count == 1 && e.Node.FirstNode.Text == "...")
             {
-                //string path = e.Node.Tag.ToString() ?? string.Empty;
-                //if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
-                {
-                    if (sender is TreeView treeView)
-                    {
-                        // 清除所有节点的高亮状态
-                        ClearTreeViewHighlight(treeView);
-
-                        // 设置当前节点的高亮状态
-                        e.Node.BackColor = SystemColors.Highlight;
-                        e.Node.ForeColor = SystemColors.HighlightText;
-                        treeView.Refresh(); // 强制重绘
-
-                        var listView = treeView == leftTree ? leftList : rightList;
-						//ShellItem shellItem = (ShellItem)e.Node.Tag;
-						//var path = API.GetNameByIShell(shellItem.ShellFolder, shellItem.PIDL);	//利用api.getpathbyishell，根据当前选中的treeview.selectednode.tag,来获取到path,以便刷新listview
-						var path = e.Node.Text;
-						LoadListView(e.Node, listView);
-                        currentDirectory = path;
-                        selectedNode = e.Node;
-
-						// 更新监视器
-						if (Directory.Exists(path))
-						{
-							watcher.Path = path;
-							watcher.EnableRaisingEvents = true;
-						}
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"加载目录失败: {ex.Message}", "错误");
+                LoadSubDirectories(e.Node);
             }
         }
+		private void TreeView_AfterSelect(object? sender, TreeViewEventArgs e)
+		{
+			if (e.Node?.Tag == null) return;
 
-        private void ClearTreeViewHighlight(TreeView treeView)
+			try
+			{
+				if (sender is TreeView treeView)
+				{
+					// 清除所有节点的高亮状态
+					ClearTreeViewHighlight(treeView);
+
+					// 设置当前节点的高亮状态
+					e.Node.BackColor = SystemColors.Highlight;
+					e.Node.ForeColor = SystemColors.HighlightText;
+					treeView.Refresh(); // 强制重绘
+
+					var listView = treeView == leftTree ? leftList : rightList;
+					LoadListView(e.Node, listView);
+					var path = GetFullPath(e.Node);
+					LoadListViewByFilesystem(path, listView);
+					currentDirectory = path;
+					selectedNode = e.Node;
+
+					// 更新监视器
+					if (Directory.Exists(path))
+					{
+						watcher.Path = path;
+						watcher.EnableRaisingEvents = true;
+					}
+
+					// 更新路径 TextBox
+					if (treeView == leftTree)
+					{
+						leftPathTextBox.Text = path;
+					}
+					else
+					{
+						rightPathTextBox.Text = path;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"加载目录失败: {ex.Message}", "错误");
+			}
+		}
+
+		private string GetFullPath(TreeNode node)
+		{
+			List<string> pathParts = new List<string>();
+			while (node != null)
+			{
+				pathParts.Insert(0, node.Text);
+				node = node.Parent;
+			}
+			return Path.Combine(pathParts.ToArray());
+		}
+
+
+		private void ClearTreeViewHighlight(TreeView treeView)
         {
             foreach (TreeNode node in treeView.Nodes)
             {
@@ -775,10 +782,38 @@ namespace WinFormsApp1
                 {
                     string name = API.GetNameByIShell(root, pidlSub);
                     WinShell.IShellFolder iSub;
+                    try
+                    {
+                        root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);
+                    }
+                    catch (COMException ex)
+                    {
+                        MessageBox.Show($"Failed to bind to object: {ex.Message}");
+                    }
                     root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);
 
                     TreeNode nodeSub = new TreeNode(name);
                     nodeSub.Tag = new ShellItem(pidlSub, iSub);
+
+                    // 根据项类型设置图标
+                    SFGAO attributes = SFGAO.FOLDER;
+                    root.GetAttributesOf(1, new IntPtr[] { pidlSub }, ref attributes);
+                    if ((attributes & SFGAO.FILESYSTEM) != 0)
+                    {
+                        nodeSub.ImageKey = "file";
+                        nodeSub.SelectedImageKey = "file";
+                    }
+                    else if ((attributes & SFGAO.FOLDER) != 0)
+                    {
+                        nodeSub.ImageKey = "folder";
+                        nodeSub.SelectedImageKey = "folder";
+                    }
+                    else
+                    {
+                        nodeSub.ImageKey = "drive";
+                        nodeSub.SelectedImageKey = "drive";
+                    }
+
                     nodeSub.Nodes.Add("...");
                     parentNode.Nodes.Add(nodeSub);
                 }
@@ -792,19 +827,16 @@ namespace WinFormsApp1
                 treeView.BeginUpdate();
                 treeView.Nodes.Clear();
 
-				//获得桌面 PIDL
-				IntPtr deskTopPtr;
-				iDeskTop = (WinShell.IShellFolder)API.GetDesktopFolder(out deskTopPtr);
+                //获得桌面 PIDL
+                IntPtr deskTopPtr;
+                iDeskTop = API.GetDesktopFolder(out deskTopPtr);
 
-				TreeNode rootNode = new TreeNode("桌面")
-				{
-					//Tag = drivePath,
-				};
-				rootNode.Tag = new ShellItem(deskTopPtr, (WinShell.IShellFolder)iDeskTop);
-				rootNode.ImageKey = "desktop"; // 设置图标
-				rootNode.SelectedImageKey = "desktop"; // 设置选中图标
-
-				//rootNode.Nodes.Add("...");
+                TreeNode rootNode = new TreeNode("桌面")
+                {
+                    Tag = new ShellItem(deskTopPtr, (WinShell.IShellFolder)iDeskTop),
+                    ImageKey = "desktop", // 设置图标
+                    SelectedImageKey = "desktop" // 设置选中图标
+                };
                 treeView.Nodes.Add(rootNode);
 
                 // 加载并展开根目录
@@ -900,8 +932,8 @@ namespace WinFormsApp1
             ListViewItem selectedItem = listView.SelectedItems[0];
             string itemPath = Path.Combine(currentDirectory, selectedItem.Text);
 
-            if (selectedItem.SubItems[2].Text == "文件夹" || selectedItem.SubItems[2].Text == "本地磁盘" || selectedItem.SubItems[2].Text.Contains(":"))
-            {
+            if (selectedItem.SubItems[2].Text.ToUpper() == "<DIR>" || selectedItem.SubItems[2].Text == "本地磁盘")  //|| selectedItem.SubItems[2].Text.Contains(":")
+			{
                 try
                 {
                     // 获取关联的TreeView
@@ -945,6 +977,7 @@ namespace WinFormsApp1
             }
             else // 处理文件
             {
+				itemPath = getFSpath(itemPath);
                 if (File.Exists(itemPath))
                 {
                     try
@@ -988,31 +1021,105 @@ namespace WinFormsApp1
         }
         private void ListView_MouseDoubleClick(object? sender, MouseEventArgs e)
         {
+            if (sender is not ListView listView) return;
 
+            if (listView.SelectedItems.Count == 0) return;
 
+            ListViewItem selectedItem = listView.SelectedItems[0];
+            string itemPath = Path.Combine(currentDirectory, selectedItem.Text);
+
+            if (Directory.Exists(itemPath))
+            {
+                try
+                {
+                    // 获取关联的 TreeView
+                    TreeView treeView = listView == leftList ? leftTree : rightTree;
+
+                    // 查找并选择对应的 TreeNode
+                    TreeNode? node = FindTreeNode(treeView.Nodes, itemPath);
+                    if (node != null)
+                    {
+                        // 设置选中状态并高亮显示
+                        treeView.SelectedNode = node;
+                        ClearTreeViewHighlight(treeView);
+                        node.BackColor = SystemColors.Highlight;
+                        node.ForeColor = SystemColors.HighlightText;
+                        treeView.Refresh(); // 强制重绘
+                        node.EnsureVisible(); // 确保节点可见
+                        node.Expand();
+
+                        // 更新当前目录和 ListView
+                        currentDirectory = itemPath;
+                        selectedNode = node;
+                        RefreshTreeViewAndListView(treeView, listView, itemPath);
+                    }
+                    else
+                    {
+                        // 如果在树中找不到节点，直接更新 ListView
+                        currentDirectory = itemPath;
+                        LoadListViewByFilesystem(itemPath, listView);
+                    }
+
+                    // 更新监视器
+                    if (Directory.Exists(itemPath))
+                    {
+                        watcher.Path = itemPath;
+                        watcher.EnableRaisingEvents = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"访问文件夹失败: {ex.Message}", "错误");
+                }
+            }
+            else if (File.Exists(itemPath))
+            {
+                try
+                {
+                    // 如果是可执行文件，直接执行
+                    if (Path.GetExtension(itemPath).Equals(".exe", StringComparison.OrdinalIgnoreCase))
+                    {
+                        System.Diagnostics.Process.Start(itemPath);
+                    }
+                    else
+                    {
+                        // 使用系统默认关联程序打开文件
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(itemPath) { UseShellExecute = true });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"无法打开文件: {ex.Message}", "错误");
+                }
+            }
         }
 
 		private TreeNode? FindTreeNode(TreeNodeCollection nodes, string fullPath)
         {
             foreach (TreeNode node in nodes)
             {
-				string p1;
-				if (node.Text.Contains(':'))
+				//string p1;
+				//if (node.Text.Contains(':'))
+				//{
+				//	//读取 ':'的前一个字符
+				//	var p = node.Text.IndexOf(':');
+				//	p1 = node.Text.Substring(p - 1, 1);
+				//	//if (fullPath.StartsWith(p1 + ":"))
+				//	if(fullPath.Contains(node.Text))
+				//		return node;
+				//}
+				//else
+				//	p1 = node.Text;
+
+				//if (node.Text == fullPath)
+				//            {
+				//                return node;
+				//            }
+				//if (node.Text.Contains(':'))	
+				if(fullPath.EndsWith(node.Text))
 				{
-					//读取 ':'的前一个字符
-					var p = node.Text.IndexOf(':');
-					p1 = node.Text.Substring(p - 1, 1);
-					//if (fullPath.StartsWith(p1 + ":"))
-					if(fullPath.Contains(node.Text))
-						return node;
+					return node;
 				}
-				else
-					p1 = node.Text;
-				
-				if (node.Text == fullPath)
-                {
-                    return node;
-                }
 
 				var i = (ShellItem)node.Tag;
 				//var p1 = API.GetNameByIShell(iDeskTop, i.PIDL);
@@ -1021,7 +1128,7 @@ namespace WinFormsApp1
 				//var p3 = API.GetNameByPIDL(i.PIDL);
 				// 如果当前节点的路径是目标路径的父路径，则展开并递归搜索
 				
-				if (node.Text.Equals("桌面") || node.Text.Equals("此电脑") || fullPath.Contains(node.Text))
+				if (fullPath.Contains(node.Text))
                 {
                     LoadSubDirectories(node); // 确保子节点已加载
                     node.Expand();
@@ -1181,7 +1288,7 @@ namespace WinFormsApp1
                     string pth = API.GetPathByIShell(root, pidlSub);
                     WinShell.IShellFolder iSub;
                     root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);
-                    string[] s = { name, "", pth, "" };
+					string[] s = { name, "", name.Contains(':') ? "本地磁盘" : "<DIR>", "" };
                     var i = new ListViewItem(s);
                     listView.Items.Add(i);
                 }
@@ -1196,12 +1303,30 @@ namespace WinFormsApp1
 
             listView.EndUpdate();
         }
+		private string getFSpath(string path)
+		{
+			if (path.Contains(':'))
+			{
+				var pathParts = path.Split(':');    // path = 桌面\\此电脑\\system (c:)\\windows\\system32 -> c:\\windows\\system32
+													//get the last char of pathparts[0] to get the drive letter
+				var len = pathParts[0].Length;
+				var drive = pathParts[0].Substring(len - 1, 1);
+				return drive + ":" + pathParts[1].TrimStart(')');
+			}
+			return path;
+		}
 		// 加载文件列表
-		    private void LoadListViewByFilesystem(string path, ListView listView)
+		private void LoadListViewByFilesystem(string path, ListView listView)
         {
             if (string.IsNullOrEmpty(path)) return;
-
-            try
+			//if (!path.Contains(':')) return;    //如果不是文件夹，���是比如我的电脑/网上邻居等，则无需处理，如果是文件夹，则继续
+			//var pathParts = path.Split(':');    // path = 桌面\\此电脑\\system (c:)\\windows\\system32 -> c:\\windows\\system32
+			////get the last char of pathparts[0] to get the drive letter
+			//var len = pathParts[0].Length;
+			//var drive = pathParts[0].Substring(len -1, 1);
+			//path = drive + ":" + pathParts[1].TrimStart(')');
+			path = getFSpath(path);
+			try
             {
                 var currentTime = DateTime.Now;
                 var needsUpdate = !_directoryCache.ContainsKey(path) ||
@@ -1220,7 +1345,7 @@ namespace WinFormsApp1
                 }
 
                 listView.BeginUpdate();
-                listView.Items.Clear();
+                //listView.Items.Clear();
 
                 foreach (var item in items)
                 {
@@ -1243,7 +1368,7 @@ namespace WinFormsApp1
         }
 
         // 优化获取目录内容的方法
-        private List<FileSystemInfo> GetDirectoryContents(string path)
+        private List<FileSystemInfo> GetDirectoryContents(string path, bool includeFolder = false)
         {
             var result = new List<FileSystemInfo>();
             var dirInfo = new DirectoryInfo(path);
@@ -1252,12 +1377,18 @@ namespace WinFormsApp1
 				try
 				{
 					// 并行处理目录和文件
-					var directories = dirInfo.GetDirectories()
-						.Where(d => (d.Attributes & FileAttributes.Hidden) == 0);
+					if (includeFolder)
+					{
+						var directories = dirInfo.GetDirectories()
+							.Where(d => (d.Attributes & FileAttributes.Hidden) == 0);
+						result.AddRange(directories);
+					}
+					//var directories = dirInfo.GetDirectories()
+					//	.Where(d => (d.Attributes & FileAttributes.Hidden) == 0);
 					var files = dirInfo.GetFiles()
 						.Where(f => (f.Attributes & FileAttributes.Hidden) == 0);
 
-					result.AddRange(directories);
+					//result.AddRange(directories);
 					result.AddRange(files);
 				}
 				catch (UnauthorizedAccessException)
@@ -1350,7 +1481,8 @@ namespace WinFormsApp1
             if (listView.SelectedItems.Count > 0)
             {
                 ListViewItem selectedItem = listView.SelectedItems[0];
-                string filePath = Path.Combine(currentDirectory, selectedItem.Text);
+                string filePath = getFSpath(Path.Combine(currentDirectory, selectedItem.Text));
+
                 if (File.Exists(filePath))
                 {
                     await PreviewFileAsync(filePath, previewPanel);
@@ -1928,7 +2060,8 @@ namespace WinFormsApp1
                 selectedNode.Expand();
             }
             LoadListView(selectedNode, listView);
-        }
+			LoadListViewByFilesystem(path, listView);
+		}
 
         private void DeleteButton_Click(object? sender, EventArgs e)
         {

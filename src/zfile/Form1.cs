@@ -1157,84 +1157,47 @@ namespace WinFormsApp1
                 //LoadListView(drivePath, listView);
             }
         }
-		private void LoadListView(TreeNode node, ListView listView)
-		{
-			if (listView == null) return;
-			ShellItem sItem = (ShellItem)node.Tag;
-			WinShell.IShellFolder root = sItem.ShellFolder;
+        private void LoadListView(TreeNode node, ListView listView)
+        {
+            if (listView == null) return;
+            ShellItem sItem = (ShellItem)node.Tag;
+            WinShell.IShellFolder root = sItem.ShellFolder;
 
-			//循环查找子项
-			IEnumIDList Enum = null;
-			IntPtr EnumPtr = IntPtr.Zero;
-			IntPtr pidlSub;
-			uint celtFetched;
-			//var found = false;
-			listView.BeginUpdate();
-			listView.Items.Clear();
+            // 循环查找子项
+            IEnumIDList Enum = null;
+            IntPtr EnumPtr = IntPtr.Zero;
+            IntPtr pidlSub;
+            uint celtFetched;
+            listView.BeginUpdate();
+            listView.Items.Clear();
 
-			if (root.EnumObjects(this.Handle, SHCONTF.FOLDERS, out EnumPtr) == API.S_OK)
-			{
-				Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
-				while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == API.S_FALSE)
-				{
-					//if (found) return;
-					string name = API.GetNameByIShell(root, pidlSub);
-					string pth = API.GetPathByIShell(root, pidlSub);
-					WinShell.IShellFolder iSub;
-					root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);
-					string[] s = { name, "", pth, "" };
-					var i = new ListViewItem(s);
-					listView.Items.Add(i);
-					
-					//TreeNode nodeSub = new TreeNode(name);
-					//nodeSub.Tag = new ShellItem(pidlSub, iSub);
-					//nodeSub.Nodes.Add("...");
-					//e.Node.Nodes.Add(nodeSub);
-					//listView.BeginUpdate();
-					//var t = node.Tag as ShellItem;
-					//var p = API.GetPathByIShell(root, pidlSub);
-					//if (Directory.Exists(pth))
-					//{
-					//	listView.Items.Clear();
+            // 加载文件夹和文件
+            if (root.EnumObjects(this.Handle, SHCONTF.FOLDERS, out EnumPtr) == API.S_OK)
+            {
+                Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
+                while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == API.S_FALSE)
+                {
+                    string name = API.GetNameByIShell(root, pidlSub);
+                    string pth = API.GetPathByIShell(root, pidlSub);
+                    WinShell.IShellFolder iSub;
+                    root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);
+                    string[] s = { name, "", pth, "" };
+                    var i = new ListViewItem(s);
+                    listView.Items.Add(i);
+                }
+            }
+		
+            // 当root为文件系统的某个盘符或者文件系统的普通文件夹时，利用loadlistviewbyfilesystem加载文件列表到listview
+            //string rootPath = API.GetPathByIShell(root, sItem.PIDL);
+            //if (Directory.Exists(rootPath))
+            //{
+            //    LoadListViewByFilesystem(rootPath, listView);
+            //}
 
-					//	List<FileSystemInfo> items = GetDirectoryContents(pth);
-					//	foreach (var item in items)
-					//	{
-					//		if ((item.Attributes & FileAttributes.Hidden) != 0) continue;
-
-					//		var lvItem = CreateListViewItem(item);
-					//		if (lvItem != null)
-					//		{
-					//			listView.Items.Add(lvItem);
-					//		}
-					//	}
-					//	found = true;
-					//}
-					//else if (pth.Equals("此电脑"))
-					//{
-					//	listView.Items.Clear();
-
-					//	// 如果不是文件夹，而是比如是‘此电脑’，则返回所有硬盘分区
-					//	foreach (var drive in DriveInfo.GetDrives())
-					//	{
-					//		if (drive.DriveType == DriveType.Fixed)
-					//		{
-					//			var lvItem = new ListViewItem(drive.Name)
-					//			{
-					//				SubItems = { "硬盘", "本地磁盘", drive.VolumeLabel, drive.DriveFormat }
-					//			};
-					//			listView.Items.Add(lvItem);
-					//		}
-					//	}
-					//	found = true;
-					//}
-					
-				}
-			}
-			listView.EndUpdate();
-		}
+            listView.EndUpdate();
+        }
 		// 加载文件列表
-		private void LoadListView1(string path, ListView listView)
+		    private void LoadListViewByFilesystem(string path, ListView listView)
         {
             if (string.IsNullOrEmpty(path)) return;
 

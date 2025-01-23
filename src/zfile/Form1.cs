@@ -865,8 +865,8 @@ namespace WinFormsApp1
 
             // 配置列
             listView.Columns.Clear();
-            listView.Columns.Add("图标", 50); // 新增图标列
-            listView.Columns.Add("名称", 200);
+            listView.Columns.Add("名称", 250); // 新增图标列
+            listView.Columns.Add("名称", 0); // 隐藏名称列
             listView.Columns.Add("大小", 100);
             listView.Columns.Add("类型", 80);
             listView.Columns.Add("修改日期", 150);

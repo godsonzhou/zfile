@@ -54,14 +54,14 @@
             // 
             // treeView
             // 
-            this.treeView.Dock = System.Windows.Forms.DockStyle.Fill; // Add this line
-            this.treeView.Location = new System.Drawing.Point(0, 0); // Add this line
-            this.treeView.Name = "treeView"; // Add this line
-            this.treeView.Size = new System.Drawing.Size(300, 400); // Add this line
-            this.treeView.TabIndex = 0; // Add this line
-                                        // 
-                                        // button1
-                                        // 
+            this.treeView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.treeView.Location = new System.Drawing.Point(0, 0);
+            this.treeView.Name = "treeView";
+            this.treeView.Size = new System.Drawing.Size(300, 400);
+            this.treeView.TabIndex = 0;
+            // 
+            // button1
+            // 
             this.button1.Location = new System.Drawing.Point(713, 3);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);

@@ -117,7 +117,11 @@ namespace WinFormsApp1
         {
             treeView = new TreeView
             {
-                Dock = DockStyle.Fill
+                Dock = DockStyle.Fill,
+                BorderStyle = BorderStyle.FixedSingle,
+                ShowLines = true,
+                ShowRootLines = true,
+                ShowPlusMinus = true
             };
 
             TreeNode rootNode = new TreeNode("设置");
@@ -130,7 +134,9 @@ namespace WinFormsApp1
 
             treeView.AfterSelect += TreeView_AfterSelect;
 
+            splitContainer1.Panel1.Controls.Clear();
             splitContainer1.Panel1.Controls.Add(treeView);
+            treeView.BringToFront();
         }
 
         private void TreeView_AfterSelect(object sender, TreeViewEventArgs e)

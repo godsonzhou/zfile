@@ -20,9 +20,9 @@ namespace WinFormsApp1
 
     public partial class Form1 : Form
     {
-		private Dictionary<Keys, string> hotkeyMappings;
-		// 声明新的 TextBox 控件
-		private readonly TextBox leftPathTextBox = new();
+        private Dictionary<Keys, string> hotkeyMappings;
+        // 声明新的 TextBox 控件
+        private readonly TextBox leftPathTextBox = new();
         private readonly TextBox rightPathTextBox = new();
 
         private bool isSelecting = false;
@@ -104,34 +104,34 @@ namespace WinFormsApp1
             cmdProcessor = new CmdProc(this);
             InitializeDynamicToolbar();
             InitializeTreeViewIcons(); // 初始化TreeView图标
-			InitializeHotkeys(); // 初始化热键
-		}
-		private void InitializeHotkeys()
-		{
-			hotkeyMappings = new Dictionary<Keys, string>
-			{
-				{ Keys.F3, "cm_List" },
-				{ Keys.F4, "cm_Edit" },
-				{ Keys.F5, "cm_Copy" },
-				{ Keys.F6, "cm_Move" },
-				{ Keys.F7, "cm_NewFolder" },
-				{ Keys.F8, "cm_Delete" },
-				{ Keys.F9, "cm_ExecuteDOS" },
-				{ Keys.Alt | Keys.X, "cm_Exit" }
-			};
+            InitializeHotkeys(); // 初始化热键
+        }
+        private void InitializeHotkeys()
+        {
+            hotkeyMappings = new Dictionary<Keys, string>
+            {
+                { Keys.F3, "cm_List" },
+                { Keys.F4, "cm_Edit" },
+                { Keys.F5, "cm_Copy" },
+                { Keys.F6, "cm_Move" },
+                { Keys.F7, "cm_NewFolder" },
+                { Keys.F8, "cm_Delete" },
+                { Keys.F9, "cm_ExecuteDOS" },
+                { Keys.Alt | Keys.X, "cm_Exit" }
+            };
 
-			this.KeyPreview = true;
-			this.KeyDown += new KeyEventHandler(Form1_KeyDown);
-		}
+            this.KeyPreview = true;
+            this.KeyDown += new KeyEventHandler(Form1_KeyDown);
+        }
 
-		private void Form1_KeyDown(object sender, KeyEventArgs e)
-		{
-			if (hotkeyMappings.TryGetValue(e.KeyData, out string cmdName))
-			{
-				cmdProcessor.processCmdByName(cmdName);
-				e.Handled = true;
-			}
-		}
+        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (hotkeyMappings.TryGetValue(e.KeyData, out string cmdName))
+            {
+                cmdProcessor.processCmdByName(cmdName);
+                e.Handled = true;
+            }
+        }
         public void OpenOptions()
         {
             // 打开Options窗口
@@ -143,7 +143,7 @@ namespace WinFormsApp1
             }
         }
 
-		private void InitializeTreeViewIcons()
+        private void InitializeTreeViewIcons()
         {
             treeViewImageList = new ImageList();
             treeViewImageList.ImageSize = new Size(16, 16);
@@ -155,19 +155,6 @@ namespace WinFormsApp1
                 treeViewImageList.Images.Add("folder", folderIcon);
             }
 
-            //// 获取系统默认驱动器图标
-            //Icon driveIcon = GetSystemIcon.GetIconByFileType("drive", false);
-            //if (driveIcon != null)
-            //{
-            //    treeViewImageList.Images.Add("drive", driveIcon);
-            //}
-
-            //// 获取系统默认文件图标
-            //Icon fileIcon = GetSystemIcon.GetIconByFileType("file", false);
-            //if (fileIcon != null)
-            //{
-            //    treeViewImageList.Images.Add("file", fileIcon);
-            //}
 
             // 将ImageList分配给TreeView
             leftTree.ImageList = treeViewImageList;
@@ -406,45 +393,27 @@ namespace WinFormsApp1
         }
         private void showCtxMenu(TreeNode parentNode, string path, Point location)
         {
-			// 先获取路径的父目录
-			path = getFSpath(path);
-			//var pidl = w32.ILCreateFromPath(path);
-			//var parentFolder = ((ShellItem)parentNode.Tag).ShellFolder;
+            // 先获取路径的父目录
+            path = getFSpath(path);
 
-			//string parentPath = Path.GetDirectoryName(path);
-			//string fileName = Path.GetFileName(path);
+            var parentFolder = iDeskTop;
+            IntPtr pidl;
+            if (Directory.Exists(path))
+            {
+                // 如果是文件夹,直接获取其 PIDL
+                pidl = w32.ILCreateFromPath(path);
+            }
+            else
+            {
+                // 如果是文件,先获取其父文件夹
+                var parentPath = Path.GetDirectoryName(path);
+                var fileName = Path.GetFileName(path);
+                parentFolder = w32.GetParentFolder(parentPath);
+                API.GetShellFolder(parentFolder, fileName, out pidl, false);
+            }
+            //}
 
-			//IntPtr pidl;
-			//WinShell.IShellFolder parentFolder;
-
-			//if (parentNode != null)
-			//{
-			//    // 如果有父节点,使用父节点的 ShellFolder
-			//    parentFolder = ((ShellItem)parentNode.Tag).ShellFolder;
-			//    // 获取文件相对于父文件夹的 PIDL
-			//    API.GetShellFolder(parentFolder, fileName, out pidl);
-			//}
-			//else
-			//{
-			// 如果没有父节点,使用桌面文件夹
-			var parentFolder = iDeskTop;
-			IntPtr pidl;
-			if (Directory.Exists(path))
-			{
-				// 如果是文件夹,直接获取其 PIDL
-				pidl = w32.ILCreateFromPath(path);
-			}
-			else
-			{
-				// 如果是文件,先获取其父文件夹
-				var parentPath = Path.GetDirectoryName(path);
-				var fileName = Path.GetFileName(path);
-				parentFolder = w32.GetParentFolder(parentPath);
-				API.GetShellFolder(parentFolder, fileName, out pidl, false);
-			}
-			//}
-
-			if (pidl == IntPtr.Zero)
+            if (pidl == IntPtr.Zero)
             {
                 MessageBox.Show("无法获取文件 PIDL");
                 return;
@@ -553,10 +522,9 @@ namespace WinFormsApp1
 
         private void InvokeCommand1(string path, uint id)
         {
-        
+
             try
             {
-                // 使用File.App.Utils.Shell中的contextmenu类的相关方法，完成执行右键菜单的各种功能
                 w32.ShellExecute(IntPtr.Zero, "open", path, "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
             }
             catch (Exception ex)
@@ -649,7 +617,6 @@ namespace WinFormsApp1
                 else
                 {
                     //如果不是文件夹，而是比如我的电脑/网上邻居等，则通过其他方式打开
-
                 }
             }
             catch (Exception ex)
@@ -889,10 +856,10 @@ namespace WinFormsApp1
             if (isSelecting)
             {
                 isSelecting = false;
-				if (selectionRectangle.Width > 0 && selectionRectangle.Height > 0)
-					SelectItemsInRectangle(activeListView, selectionRectangle);
+                if (selectionRectangle.Width > 0 && selectionRectangle.Height > 0)
+                    SelectItemsInRectangle(activeListView, selectionRectangle);
                 activeListView.Invalidate();
-				selectionRectangle = Rectangle.Empty;
+                selectionRectangle = Rectangle.Empty;
             }
 
             if (sender is not ListView listView)
@@ -933,11 +900,7 @@ namespace WinFormsApp1
                         }
                     }
                 }
-                else
-                {
-                    // Show context menu for the ListView itself
-                    //ShowContextMenu(listView, currentDirectory, e.Location);
-                }
+
                 return;
             }
 
@@ -1112,36 +1075,12 @@ namespace WinFormsApp1
         {
             foreach (TreeNode node in nodes)
             {
-                //string p1;
-                //if (node.Text.Contains(':'))
-                //{
-                //	//读取 ':'的前一个字符
-                //	var p = node.Text.IndexOf(':');
-                //	p1 = node.Text.Substring(p - 1, 1);
-                //	//if (fullPath.StartsWith(p1 + ":"))
-                //	if(fullPath.Contains(node.Text))
-                //		return node;
-                //}
-                //else
-                //	p1 = node.Text;
-
-                //if (node.Text == fullPath)
-                //            {
-                //                return node;
-                //            }
-                //if (node.Text.Contains(':'))	
                 if (fullPath.EndsWith(node.Text))
                 {
                     return node;
                 }
 
                 var i = (ShellItem)node.Tag;
-                //var p1 = API.GetNameByIShell(iDeskTop, i.PIDL);
-                //var p2 = API.GetPathByIShell(iDeskTop, i.PIDL);
-                //var p3 = API.SHGetFileInfo(p2, 0, ref shFileInfo, (uint)Marshal.SizeOf(shFileInfo), SHGFI_ICON | SHGFI_SMALLICON);
-                //var p3 = API.GetNameByPIDL(i.PIDL);
-                // 如果当前节点的路径是目标路径的父路径，则展开并递归搜索
-
                 if (fullPath.Contains(node.Text))
                 {
                     LoadSubDirectories(node); // 确保子节点已加载
@@ -1248,7 +1187,7 @@ namespace WinFormsApp1
             var listView = selectedDrive != null && watcher.Path.StartsWith(selectedDrive) ? leftList : rightList;
             //LoadListView(watcher.Path, listView);
         }
-       
+
         public void ExitApp()
         {
             Application.Exit();
@@ -1291,9 +1230,9 @@ namespace WinFormsApp1
             listView.BeginUpdate();
             listView.Items.Clear();
 
-			var flag = includefile ? SHCONTF.FOLDERS | SHCONTF.NONFOLDERS : SHCONTF.FOLDERS;
-			// 加载文件夹和文件
-			if (root.EnumObjects(this.Handle, flag, out EnumPtr) == API.S_OK)
+            var flag = includefile ? SHCONTF.FOLDERS | SHCONTF.NONFOLDERS : SHCONTF.FOLDERS;
+            // 加载文件夹和文件
+            if (root.EnumObjects(this.Handle, flag, out EnumPtr) == API.S_OK)
             {
                 Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
                 while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == API.S_FALSE)
@@ -1337,10 +1276,10 @@ namespace WinFormsApp1
         {
             if (string.IsNullOrEmpty(path)) return;
             path = getFSpath(path);
-			if (path.EndsWith(':'))
-				path += "\\";
+            if (path.EndsWith(':'))
+                path += "\\";
 
-			try
+            try
             {
                 var currentTime = DateTime.Now;
                 var needsUpdate = !_directoryCache.ContainsKey(path) ||
@@ -1782,7 +1721,7 @@ namespace WinFormsApp1
         // 查看按钮点击处理逻辑
         private void ViewButton_Click(object? sender, EventArgs e)
         {
-			do_cm_list();
+            do_cm_list();
 
         }
 
@@ -1905,8 +1844,6 @@ namespace WinFormsApp1
             return panel;
         }
 
-        // ... other code ...
-
         private Control CreateArchiveViewer(string filePath)
         {
             var textBox = new TextBox
@@ -1937,39 +1874,39 @@ namespace WinFormsApp1
             return textBox;
         }
 
-		public void do_cm_list()
-		{
-			// view button clicked,
-			var listView = leftList.Focused ? leftList : rightList;
-			if (listView.SelectedItems.Count == 0) return;
+        public void do_cm_list()
+        {
+            // view button clicked,
+            var listView = leftList.Focused ? leftList : rightList;
+            if (listView.SelectedItems.Count == 0) return;
 
-			var selectedItem = listView.SelectedItems[0];
-			var filePath = getFSpath(Path.Combine(currentDirectory, selectedItem.Text));
+            var selectedItem = listView.SelectedItems[0];
+            var filePath = getFSpath(Path.Combine(currentDirectory, selectedItem.Text));
 
-			if (File.Exists(filePath))
-			{
-				var extension = Path.GetExtension(filePath).ToLower();
-				Form viewerForm = new Form
-				{
-					Text = $"查看文件 - {selectedItem.Text}",
-					Size = new Size(800, 600)
-				};
+            if (File.Exists(filePath))
+            {
+                var extension = Path.GetExtension(filePath).ToLower();
+                Form viewerForm = new Form
+                {
+                    Text = $"查看文件 - {selectedItem.Text}",
+                    Size = new Size(800, 600)
+                };
 
-				Control viewerControl = extension switch
-				{
-					".txt" or ".cs" or ".html" or ".htm" or ".xml" or ".json" or ".css" or ".js" or ".md" => CreateTextViewer(filePath),
-					".doc" or ".docx" or ".xls" or ".xlsx" or ".ppt" or ".pptx" => CreateOfficeViewer(filePath),
-					".jpg" or ".jpeg" or ".png" or ".bmp" or ".gif" => CreateImageViewer(filePath),
-					".mp3" or ".wav" or ".wma" or ".aac" => CreateAudioPlayer(filePath),
-					".mp4" or ".avi" or ".mkv" or ".mov" => CreateVideoPlayer(filePath),
-					".zip" or ".rar" or ".7z" => CreateArchiveViewer(filePath),
-					_ => new Label { Text = "不支持的文件格式", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }
-				};
+                Control viewerControl = extension switch
+                {
+                    ".txt" or ".cs" or ".html" or ".htm" or ".xml" or ".json" or ".css" or ".js" or ".md" => CreateTextViewer(filePath),
+                    ".doc" or ".docx" or ".xls" or ".xlsx" or ".ppt" or ".pptx" => CreateOfficeViewer(filePath),
+                    ".jpg" or ".jpeg" or ".png" or ".bmp" or ".gif" => CreateImageViewer(filePath),
+                    ".mp3" or ".wav" or ".wma" or ".aac" => CreateAudioPlayer(filePath),
+                    ".mp4" or ".avi" or ".mkv" or ".mov" => CreateVideoPlayer(filePath),
+                    ".zip" or ".rar" or ".7z" => CreateArchiveViewer(filePath),
+                    _ => new Label { Text = "不支持的文件格式", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }
+                };
 
-				viewerForm.Controls.Add(viewerControl);
-				viewerForm.Show();
-			}
-		}
+                viewerForm.Controls.Add(viewerControl);
+                viewerForm.Show();
+            }
+        }
         private void EditButton_Click(object? sender, EventArgs e)
         {
             // 编辑按钮点击处理逻辑
@@ -2134,178 +2071,25 @@ namespace WinFormsApp1
         private void ExitButton_Click(object? sender, EventArgs e)
         {
             Application.Exit();
-		}
+        }
 
-		// private void ShowContextMenu(Control control, string path, Point location)
-		// {
-		// 	path = getFSpath(path);
-		//     if (File.Exists(path) || Directory.Exists(path))
-		//     {
-		//         IntPtr menu = IntPtr.Zero;
-		//         try
-		//         {
-		//             menu = CreateContextMenu(path);
-		//             if (menu != IntPtr.Zero)
-		//             {
-		//                 contextMenuStrip.Items.Clear();
-		//                 int count = w32.GetMenuItemCount(menu);
-		//                 for (int i = 0; i < count; i++)
-		//                 {
-		//                     MENUITEMINFO mii = new();
-		//                     mii.cbSize = (uint)Marshal.SizeOf(typeof(MENUITEMINFO));
-		//                     mii.fMask = MIIM.ID | MIIM.STRING | MIIM.SUBMENU;
-		//                     mii.dwTypeData = new string('\0', 256);
-		//                     mii.cch = (uint)mii.dwTypeData.Length;
-
-		//                     if (w32.GetMenuItemInfo(menu, (uint)i, true, ref mii))
-		//                     {
-		//                         string text = mii.dwTypeData;
-		//                         if (string.IsNullOrEmpty(text))
-		//                             contextMenuStrip.Items.Add(new ToolStripSeparator());
-		//                         else
-		//                         {
-		//                             ToolStripMenuItem item = new ToolStripMenuItem(text);
-		//                             if (mii.hSubMenu != IntPtr.Zero)
-		//                                 AddSubMenuItems(item, mii.hSubMenu);
-		//                             else
-		//                                 item.Click += (s, e) => InvokeCommand(path, mii.wID);
-		//                             contextMenuStrip.Items.Add(item);
-		//                         }
-		//                     }
-		//                     else
-		//                         MessageBox.Show("无法获取菜单项信息", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-		//                 }
-		//                 contextMenuStrip.Show(control, location);
-		//             }
-		//         }
-		//         finally
-		//         {
-		//             if (menu != IntPtr.Zero)
-		//                 w32.DestroyMenu(menu);
-		//         }
-		//     }
-		// }
-
-		// private void AddSubMenuItems(ToolStripMenuItem parentItem, IntPtr hSubMenu)
-		// {
-		//     int subMenuCount = w32.GetMenuItemCount(hSubMenu);
-		//     for (int j = 0; j < subMenuCount; j++)
-		//     {
-		//         MENUITEMINFO subMii = new();
-		//         subMii.cbSize = (uint)Marshal.SizeOf(typeof(MENUITEMINFO));
-		//         subMii.fMask = MIIM.ID | MIIM.STRING | MIIM.SUBMENU;
-		//         subMii.dwTypeData = new string('\0', 256);
-		//         subMii.cch = (uint)subMii.dwTypeData.Length;
-
-		//         if (w32.GetMenuItemInfo(hSubMenu, (uint)j, true, ref subMii))
-		//         {
-		//             string subText = subMii.dwTypeData;
-		//             if (string.IsNullOrEmpty(subText))
-		//             {
-		//                 parentItem.DropDownItems.Add(new ToolStripSeparator());
-		//             }
-		//             else
-		//             {
-		//                 ToolStripMenuItem subItem = new ToolStripMenuItem(subText);
-		//                 if (subMii.hSubMenu != IntPtr.Zero)
-		//                 {
-		//                     AddSubMenuItems(subItem, subMii.hSubMenu);
-		//                 }
-		//                 else
-		//                 {
-		//                     subItem.Click += (s, e) => InvokeCommand(parentItem.Tag.ToString(), subMii.wID);
-		//                 }
-		//                 parentItem.DropDownItems.Add(subItem);
-		//             }
-		//         }
-		//         else
-		//         {
-		//             MessageBox.Show("无法获取子菜单项信息", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-		//         }
-		//     }
-		// }
-
-		// private IntPtr CreateContextMenu(string path)
-		// {
-		//     IntPtr menu = w32.CreatePopupMenu();
-		//     if (menu != IntPtr.Zero)
-		//     {
-		//         IntPtr pidl = w32.ILCreateFromPath(path);
-		//         if (pidl != IntPtr.Zero)
-		//         {
-		//             IntPtr parentPidl = w32.ILClone(pidl);
-		// 			w32.ILRemoveLastID(parentPidl);
-		//             IShellFolder desktopFolder;
-		// 			w32.SHGetDesktopFolder(out desktopFolder);
-		//             IShellFolder parentFolder;
-		//             Guid iidShellFolder = w32.IID_IShellFolder;
-		//             desktopFolder.BindToObject(parentPidl, IntPtr.Zero, ref iidShellFolder, out parentFolder);
-		//             IntPtr[] pidls = new IntPtr[] { w32.ILFindLastID(pidl) };
-		//             IContextMenu contextMenu;
-		//             Guid iidContextMenu = w32.IID_IContextMenu;
-		//             parentFolder.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length, pidls, ref iidContextMenu, IntPtr.Zero, out contextMenu);
-		//             contextMenu.QueryContextMenu(menu, 0, 1, 0x7FFF, CMF.NORMAL);
-		//             Marshal.ReleaseComObject(contextMenu);
-		//             Marshal.ReleaseComObject(parentFolder);
-		//             Marshal.ReleaseComObject(desktopFolder);
-		// 			w32.ILFree(pidl);
-		// 			w32.ILFree(parentPidl);
-		//         }
-		//     }
-		//     return menu;
-		// }
-
-		// private void InvokeCommand(string path, uint id)
-		// {
-		//     IntPtr pidl = w32.ILCreateFromPath(path);
-		//     if (pidl != IntPtr.Zero)
-		//     {
-		//         IntPtr parentPidl = w32.ILClone(pidl);
-		//         w32.ILRemoveLastID(parentPidl);
-		//         IShellFolder desktopFolder;
-		//         w32.SHGetDesktopFolder(out desktopFolder);
-		//         IShellFolder parentFolder;
-		//         Guid iid_IShellFolder = w32.IID_IShellFolder;
-		//         desktopFolder.BindToObject(parentPidl, IntPtr.Zero, ref iid_IShellFolder, out parentFolder);
-		//         IntPtr[] pidls = new IntPtr[] { w32.ILFindLastID(pidl) };
-		//         IContextMenu contextMenu;
-		//         Guid iid_IContextMenu = w32.IID_IContextMenu;
-		//         parentFolder.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length, pidls, ref iid_IContextMenu, IntPtr.Zero, out contextMenu);
-		//         CMINVOKECOMMANDINFOEX invoke = new CMINVOKECOMMANDINFOEX();
-		//         invoke.cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX));
-		//         invoke.lpVerb = (IntPtr)(id - 1);
-		// 		invoke.lpDirectory = string.Empty;
-		//         invoke.nShow = w32.SW_SHOWNORMAL;
-		// 		invoke.fMask = 0;	// CMIC.CMIC_MASK_UNICODE; // Ensure the fMask is set correctly
-		// 		invoke.ptInvoke = new POINT(MousePosition.X, MousePosition.Y);
-		// 		contextMenu.InvokeCommand(ref invoke);
-		//         Marshal.ReleaseComObject(contextMenu);
-		//         Marshal.ReleaseComObject(parentFolder);
-		//         Marshal.ReleaseComObject(desktopFolder);
-		//         w32.ILFree(pidl);
-		//         w32.ILFree(parentPidl);
-		//     }
-		// }
-		public void OpenCommandPrompt()
-		{
-			try
-			{
-				System.Diagnostics.Process.Start("cmd.exe");
-				//w32.ShellExecute(IntPtr.Zero, "open", "notepad.exe", "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
-				//WinExec(path, 1);
-				//System.Diagnostics.Process.Start(path);
-				//System.Diagnostics.Process.Start("explorer.exe", path);
-				//System.Diagnostics.Process.Start("cmd.exe", "/c " + path);
-				//System.Diagnostics.Process.Start("cmd.exe", "/c start " + path);
-				//System.Diagnostics.Process.Start("cmd.exe", "/c start explorer.exe " + path);
-				//System.Diagnostics.Process.Start("cmd.exe", "/c start explorer.exe /select," + path);
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show($"无法打开命令提示符: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-			}
-		}
-		private string getCurrentPath()
+        public void OpenCommandPrompt()
+        {
+            try
+            {
+                System.Diagnostics.Process.Start("cmd.exe");
+                //w32.ShellExecute(IntPtr.Zero, "open", "notepad.exe", "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
+                //WinExec(path, 1);
+                //System.Diagnostics.Process.Start(path);
+                //System.Diagnostics.Process.Start("explorer.exe", path);
+                //System.Diagnostics.Process.Start("cmd.exe", "/c start explorer.exe /select," + path);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"无法打开命令提示符: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        private string getCurrentPath()
         {
             // 获取当前exe文件所在目录
             string currentDirectory = Directory.GetCurrentDirectory();
@@ -2666,14 +2450,7 @@ namespace WinFormsApp1
             ImageList imagelist1 = new ImageList();
             imagelist1.ImageSize = SystemInformation.IconSize;
             imagelist1.Images.AddRange(phiconLarge.Select(x => Icon.FromHandle(x).ToBitmap()).ToArray());
-            // var listView1 = new ListView();
-            // listView1.LargeImageList = imagelist1;
-            // listView1.Dock = DockStyle.Fill;
-            // listView1.View = View.LargeIcon;
-            // listView1.Items.AddRange(
-            //     Enumerable.Range(0, (int)count)
-            //     .Select(x => new ListViewItem(x.ToString(), x)).ToArray());
-            // this.Controls.Add(listView1);
+
             phiconLarge.ToList().ForEach(x => w32.DestroyIcon(x));
             return imagelist1;
         }

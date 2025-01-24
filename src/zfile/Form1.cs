@@ -13,25 +13,25 @@ using CSCore.Streams.SampleConverter;
 
 namespace WinFormsApp1
 {
-	public static class constant_value
-	{
-		public const string zfilePath = "D:\\gitrepos\\Files\\config\\";
-	}
-
-	public partial class Form1 : Form
+    public static class constant_value
     {
-		// 声明新的 TextBox 控件
-		private readonly TextBox leftPathTextBox = new();
-		private readonly TextBox rightPathTextBox = new();
+        public const string zfilePath = "D:\\gitrepos\\Files\\config\\";
+    }
 
-		private bool isSelecting = false;
+    public partial class Form1 : Form
+    {
+        // 声明新的 TextBox 控件
+        private readonly TextBox leftPathTextBox = new();
+        private readonly TextBox rightPathTextBox = new();
+
+        private bool isSelecting = false;
         private Point selectionStart;
         private Rectangle selectionRectangle;
         private ListView activeListView;
-		private TreeView activeTreeview;
+        private TreeView activeTreeview;
 
-		private readonly FileSystemWatcher watcher = new();
-		private string currentDirectory = "";// @"";
+        private readonly FileSystemWatcher watcher = new();
+        private string currentDirectory = "";// @"";
 
         // 声明控件为私有字段
         private readonly SplitContainer mainContainer = new();
@@ -80,10 +80,10 @@ namespace WinFormsApp1
         private CmdProc cmdProcessor;
         MenuStrip dynamicMenuStrip = new();
         ToolStrip dynamicToolStrip = new();
-		private ImageList treeViewImageList;
-		private WinShell.IShellFolder iDeskTop;
+        private ImageList treeViewImageList;
+        private WinShell.IShellFolder iDeskTop;
 
-		public Form1()
+        public Form1()
         {
             InitializeComponent();
             InitializeContextMenu();
@@ -93,8 +93,8 @@ namespace WinFormsApp1
             InitializeTreeViews();
             InitializeListViews();
             activeListView = leftList;  //default active view is left list view
-			activeTreeview = leftTree;
-			InitializePreviewPanels();
+            activeTreeview = leftTree;
+            InitializePreviewPanels();
             InitializeStatusStrips(); // 初始化状态栏
             InitializeFileSystemWatcher();
             InitializeThemeToggleButton(); // 初始化主题切换按钮
@@ -102,8 +102,8 @@ namespace WinFormsApp1
             InitializeDynamicMenu();
             cmdProcessor = new CmdProc(this);
             InitializeDynamicToolbar();
-			InitializeTreeViewIcons(); // 初始化TreeView图标
-		}
+            InitializeTreeViewIcons(); // 初始化TreeView图标
+        }
         private void InitializeTreeViewIcons()
         {
             treeViewImageList = new ImageList();
@@ -134,16 +134,16 @@ namespace WinFormsApp1
             leftTree.ImageList = treeViewImageList;
             rightTree.ImageList = treeViewImageList;
         }
-		private void InitializeContextMenu()
+        private void InitializeContextMenu()
         {
             // 初始化ContextMenuStrip
             contextMenuStrip.Opening += ContextMenuStrip_Opening;
         }
-		public void ContextMenuStrip_Opening(object sender, System.ComponentModel.CancelEventArgs e)
-		{
-			// 在这里可以添加自定义的菜单项
-		}
-		private void 加载文件ToolStripMenuItem_Click(object sender, EventArgs e)
+        public void ContextMenuStrip_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            // 在这里可以添加自定义的菜单项
+        }
+        private void 加载文件ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog dlg = new FolderBrowserDialog();
             //if (dlg.ShowDialog() == DialogResult.OK)
@@ -275,27 +275,27 @@ namespace WinFormsApp1
 
         private void InitializeDriveComboBoxes()
         {
-			//ConfigureDriveBox(leftDriveBox, leftDrivePanel);
-			//ConfigureDriveBox(rightDriveBox, rightDrivePanel);
-			ConfigureDriveBox(leftDriveBox, leftDrivePanel, leftPathTextBox);
-			ConfigureDriveBox(rightDriveBox, rightDrivePanel, rightPathTextBox);
+            //ConfigureDriveBox(leftDriveBox, leftDrivePanel);
+            //ConfigureDriveBox(rightDriveBox, rightDrivePanel);
+            ConfigureDriveBox(leftDriveBox, leftDrivePanel, leftPathTextBox);
+            ConfigureDriveBox(rightDriveBox, rightDrivePanel, rightPathTextBox);
 
 
-			LoadDrives();
+            LoadDrives();
         }
-		private void ConfigureDriveBox(ComboBox driveBox, Panel parent, TextBox pathTextBox)
-		{
-			driveBox.Dock = DockStyle.Left;
-			driveBox.DropDownStyle = ComboBoxStyle.DropDownList;
-			driveBox.SelectedIndexChanged += DriveComboBox_SelectedIndexChanged;
+        private void ConfigureDriveBox(ComboBox driveBox, Panel parent, TextBox pathTextBox)
+        {
+            driveBox.Dock = DockStyle.Left;
+            driveBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            driveBox.SelectedIndexChanged += DriveComboBox_SelectedIndexChanged;
 
-			pathTextBox.Dock = DockStyle.Fill;
-			pathTextBox.ReadOnly = true;
+            pathTextBox.Dock = DockStyle.Fill;
+            pathTextBox.ReadOnly = true;
 
-			parent.Controls.Add(pathTextBox);
-			parent.Controls.Add(driveBox);
-		}
-		
+            parent.Controls.Add(pathTextBox);
+            parent.Controls.Add(driveBox);
+        }
+
 
         private void LoadDrives()
         {
@@ -320,14 +320,14 @@ namespace WinFormsApp1
             ConfigureTreeListSplitter(leftTreeListSplitter, leftUpperPanel, leftTree, leftList);// 配置左侧树列表分割容器
             ConfigureTreeListSplitter(rightTreeListSplitter, rightUpperPanel, rightTree, rightList);// 配置右侧树列表分割容器
         }
-		private void TreeView_MouseDown(object sender, MouseEventArgs e)
-		{
-			if (e.Button == MouseButtons.Right)
-			{
-				TreeView Tree1 = sender as TreeView;
-				Tree1.SelectedNode = Tree1.GetNodeAt(e.X, e.Y);
-			}
-		}
+        private void TreeView_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                TreeView Tree1 = sender as TreeView;
+                Tree1.SelectedNode = Tree1.GetNodeAt(e.X, e.Y);
+            }
+        }
         private void ConfigureTreeView(TreeView treeView)
         {
             treeView.Dock = DockStyle.Fill;
@@ -351,7 +351,7 @@ namespace WinFormsApp1
             treeView.BeforeExpand += TreeView_BeforeExpand;
             treeView.MouseDown += TreeView_MouseDown;
         }
-		private void TreeView_MouseUp(object sender, MouseEventArgs e)
+        private void TreeView_MouseUp(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right)
             {
@@ -360,234 +360,282 @@ namespace WinFormsApp1
                 if (node != null)
                 {
                     treeView.SelectedNode = node;
-					//ShowContextMenu(treeView, node.Tag.ToString(), e.Location);
-					ShowContextMenu1(treeView, node, e.Location);
-				}
-            }
-        }
-		private void ShowContextMenu1(TreeView Tree1, TreeNode node, Point location)
-		{
-			//获得当前节点的 PIDL
-			ShellItem sItem = (ShellItem)Tree1.SelectedNode.Tag;
-			IntPtr PIDL = sItem.PIDL;
-
-			//获得父节点的 IShellFolder 接口
-			WinShell.IShellFolder IParent = iDeskTop;
-			if (Tree1.SelectedNode.Parent != null)
-			{
-				IParent = ((ShellItem)Tree1.SelectedNode.Parent.Tag).ShellFolder;
-			}
-			else
-			{
-				//桌面的真实路径的 PIDL
-				string path = API.GetSpecialFolderPath(this.Handle, ShellSpecialFolders.DESKTOPDIRECTORY);
-				API.GetShellFolder(iDeskTop, path, out PIDL);
-			}
-
-			//存放 PIDL 的数组
-			IntPtr[] pidls = new IntPtr[1];
-			pidls[0] = PIDL;
-
-			//得到 IContextMenu 接口
-			IntPtr iContextMenuPtr = IntPtr.Zero;
-			iContextMenuPtr = IParent.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length,
-				pidls, ref Guids.IID_IContextMenu, out iContextMenuPtr);
-			WinShell.IContextMenu iContextMenu = (WinShell.IContextMenu)Marshal.GetObjectForIUnknown(iContextMenuPtr);
-
-			//提供一个弹出式菜单的句柄
-			IntPtr contextMenu = API.CreatePopupMenu();
-			iContextMenu.QueryContextMenu(contextMenu, 0,
-				API.CMD_FIRST, API.CMD_LAST, CMF.NORMAL | CMF.EXPLORE);
-
-			//弹出菜单
-			uint cmd = API.TrackPopupMenuEx(contextMenu, TPM.RETURNCMD,
-				MousePosition.X, MousePosition.Y, this.Handle, IntPtr.Zero);
-
-			//获取命令序号，执行菜单命令
-			if (cmd >= API.CMD_FIRST)
-			{
-				var invoke = new CMINVOKECOMMANDINFOEX();
-				invoke.cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX));
-				invoke.lpVerb = (IntPtr)(cmd - 1);
-				invoke.lpDirectory = string.Empty;
-				invoke.fMask = 0;
-				invoke.ptInvoke = new POINT(MousePosition.X, MousePosition.Y);
-				invoke.nShow = 1;
-				iContextMenu.InvokeCommand(ref invoke);
-			}
-		}
-
-        private void ShowContextMenu(Control control, string path, Point location)
-        {
-			path = getFSpath(path);
-            if (File.Exists(path) || Directory.Exists(path))
-            {
-                IntPtr menu = IntPtr.Zero;
-                try
-                {
-                    menu = CreateContextMenu(path);
-                    if (menu != IntPtr.Zero)
-                    {
-                        contextMenuStrip.Items.Clear();
-                        int count = w32.GetMenuItemCount(menu);
-                        for (int i = 0; i < count; i++)
-                        {
-                            MENUITEMINFO mii = new();
-                            mii.cbSize = (uint)Marshal.SizeOf(typeof(MENUITEMINFO));
-                            mii.fMask = MIIM.ID | MIIM.STRING | MIIM.SUBMENU;
-                            mii.dwTypeData = new string('\0', 256);
-                            mii.cch = (uint)mii.dwTypeData.Length;
-
-                            if (w32.GetMenuItemInfo(menu, (uint)i, true, ref mii))
-                            {
-                                string text = mii.dwTypeData;
-                                if (string.IsNullOrEmpty(text))
-                                    contextMenuStrip.Items.Add(new ToolStripSeparator());
-                                else
-                                {
-                                    ToolStripMenuItem item = new ToolStripMenuItem(text);
-                                    if (mii.hSubMenu != IntPtr.Zero)
-                                        AddSubMenuItems(item, mii.hSubMenu);
-                                    else
-                                        item.Click += (s, e) => InvokeCommand(path, mii.wID);
-                                    contextMenuStrip.Items.Add(item);
-                                }
-                            }
-                            else
-                                MessageBox.Show("无法获取菜单项信息", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        }
-                        contextMenuStrip.Show(control, location);
-                    }
-                }
-                finally
-                {
-                    if (menu != IntPtr.Zero)
-                        w32.DestroyMenu(menu);
+                    //ShowContextMenu(treeView, node.Tag.ToString(), e.Location);
+                    ShowContextMenu1(node, e.Location);
                 }
             }
         }
-
-        private void AddSubMenuItems(ToolStripMenuItem parentItem, IntPtr hSubMenu)
+        private void showCtxMenu(TreeNode parentNode, string path, Point location)
         {
-            int subMenuCount = w32.GetMenuItemCount(hSubMenu);
-            for (int j = 0; j < subMenuCount; j++)
+            var PIDL = w32.ILCreateFromPath(getFSpath(path));
+            //获得父节点的 IShellFolder 接口
+            WinShell.IShellFolder IParent = iDeskTop;
+            if (parentNode != null)
             {
-                MENUITEMINFO subMii = new();
-                subMii.cbSize = (uint)Marshal.SizeOf(typeof(MENUITEMINFO));
-                subMii.fMask = MIIM.ID | MIIM.STRING | MIIM.SUBMENU;
-                subMii.dwTypeData = new string('\0', 256);
-                subMii.cch = (uint)subMii.dwTypeData.Length;
-
-                if (w32.GetMenuItemInfo(hSubMenu, (uint)j, true, ref subMii))
-                {
-                    string subText = subMii.dwTypeData;
-                    if (string.IsNullOrEmpty(subText))
-                    {
-                        parentItem.DropDownItems.Add(new ToolStripSeparator());
-                    }
-                    else
-                    {
-                        ToolStripMenuItem subItem = new ToolStripMenuItem(subText);
-                        if (subMii.hSubMenu != IntPtr.Zero)
-                        {
-                            AddSubMenuItems(subItem, subMii.hSubMenu);
-                        }
-                        else
-                        {
-                            subItem.Click += (s, e) => InvokeCommand(parentItem.Tag.ToString(), subMii.wID);
-                        }
-                        parentItem.DropDownItems.Add(subItem);
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("无法获取子菜单项信息", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                IParent = ((ShellItem)parentNode.Tag).ShellFolder;
             }
-        }
-
-        private IntPtr CreateContextMenu(string path)
-        {
-            IntPtr menu = w32.CreatePopupMenu();
-            if (menu != IntPtr.Zero)
+            else
             {
-                IntPtr pidl = w32.ILCreateFromPath(path);
-                if (pidl != IntPtr.Zero)
-                {
-                    IntPtr parentPidl = w32.ILClone(pidl);
-					w32.ILRemoveLastID(parentPidl);
-                    IShellFolder desktopFolder;
-					w32.SHGetDesktopFolder(out desktopFolder);
-                    IShellFolder parentFolder;
-                    Guid iidShellFolder = w32.IID_IShellFolder;
-                    desktopFolder.BindToObject(parentPidl, IntPtr.Zero, ref iidShellFolder, out parentFolder);
-                    IntPtr[] pidls = new IntPtr[] { w32.ILFindLastID(pidl) };
-                    IContextMenu contextMenu;
-                    Guid iidContextMenu = w32.IID_IContextMenu;
-                    parentFolder.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length, pidls, ref iidContextMenu, IntPtr.Zero, out contextMenu);
-                    contextMenu.QueryContextMenu(menu, 0, 1, 0x7FFF, CMF.NORMAL);
-                    Marshal.ReleaseComObject(contextMenu);
-                    Marshal.ReleaseComObject(parentFolder);
-                    Marshal.ReleaseComObject(desktopFolder);
-					w32.ILFree(pidl);
-					w32.ILFree(parentPidl);
-                }
+                //桌面的真实路径的 PIDL
+                string pa = API.GetSpecialFolderPath(this.Handle, ShellSpecialFolders.DESKTOPDIRECTORY);
+                API.GetShellFolder(iDeskTop, pa, out PIDL);
             }
-            return menu;
-        }
 
-        private void InvokeCommand(string path, uint id)
-        {
-            IntPtr pidl = w32.ILCreateFromPath(path);
-            if (pidl != IntPtr.Zero)
+            //存放 PIDL 的数组
+            IntPtr[] pidls = new IntPtr[1];
+            pidls[0] = PIDL;
+
+            //得到 IContextMenu 接口
+            IntPtr iContextMenuPtr = IntPtr.Zero;
+            iContextMenuPtr = IParent.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length,
+                pidls, ref Guids.IID_IContextMenu, out iContextMenuPtr);
+            WinShell.IContextMenu iContextMenu = (WinShell.IContextMenu)Marshal.GetObjectForIUnknown(iContextMenuPtr);
+
+            //提供一个弹出式菜单的句柄
+            IntPtr contextMenu = API.CreatePopupMenu();
+            iContextMenu.QueryContextMenu(contextMenu, 0,
+                API.CMD_FIRST, API.CMD_LAST, CMF.NORMAL | CMF.EXPLORE);
+
+            //弹出菜单
+            uint cmd = API.TrackPopupMenuEx(contextMenu, TPM.RETURNCMD,
+                MousePosition.X, MousePosition.Y, this.Handle, IntPtr.Zero);
+
+            //获取命令序号，执行菜单命令
+            if (cmd >= API.CMD_FIRST)
             {
-                IntPtr parentPidl = w32.ILClone(pidl);
-                w32.ILRemoveLastID(parentPidl);
-                IShellFolder desktopFolder;
-                w32.SHGetDesktopFolder(out desktopFolder);
-                IShellFolder parentFolder;
-                Guid iid_IShellFolder = w32.IID_IShellFolder;
-                desktopFolder.BindToObject(parentPidl, IntPtr.Zero, ref iid_IShellFolder, out parentFolder);
-                IntPtr[] pidls = new IntPtr[] { w32.ILFindLastID(pidl) };
-                IContextMenu contextMenu;
-                Guid iid_IContextMenu = w32.IID_IContextMenu;
-                parentFolder.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length, pidls, ref iid_IContextMenu, IntPtr.Zero, out contextMenu);
-                CMINVOKECOMMANDINFOEX invoke = new CMINVOKECOMMANDINFOEX();
+                var invoke = new CMINVOKECOMMANDINFOEX();
                 invoke.cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX));
-                invoke.lpVerb = (IntPtr)(id - 1);
-				invoke.lpDirectory = string.Empty;
-                invoke.nShow = w32.SW_SHOWNORMAL;
-				invoke.fMask = 0;	// CMIC.CMIC_MASK_UNICODE; // Ensure the fMask is set correctly
-				invoke.ptInvoke = new POINT(MousePosition.X, MousePosition.Y);
-				contextMenu.InvokeCommand(ref invoke);
-                Marshal.ReleaseComObject(contextMenu);
-                Marshal.ReleaseComObject(parentFolder);
-                Marshal.ReleaseComObject(desktopFolder);
-                w32.ILFree(pidl);
-                w32.ILFree(parentPidl);
+                invoke.lpVerb = (IntPtr)(cmd - 1);
+                invoke.lpDirectory = string.Empty;
+                invoke.fMask = 0;
+                invoke.ptInvoke = new POINT(MousePosition.X, MousePosition.Y);
+                invoke.nShow = 1;
+                iContextMenu.InvokeCommand(ref invoke);
             }
         }
-		private void InvokeCommand1(string path, uint id)
-		{
-			//ShellExecute(IntPtr.Zero, "open", path, "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
-			//WinExec(path, 1);
-			//System.Diagnostics.Process.Start(path);
-			//System.Diagnostics.Process.Start("explorer.exe", path);
-			//System.Diagnostics.Process.Start("cmd.exe", "/c " + path);
-			//System.Diagnostics.Process.Start("cmd.exe", "/c start " + path);
-			//System.Diagnostics.Process.Start("cmd.exe", "/c start explorer.exe " + path);
-			//System.Diagnostics.Process.Start("cmd.exe", "/c start explorer.exe /select," + path);
-			try
-			{
-				// 使用File.App.Utils.Shell中的contextmenu类的相关方法，完成执行右键菜单的各种功能
-				w32.ShellExecute(IntPtr.Zero, "open", path, "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show($"无法执行命令: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-			}
-		}
-		public void myShellExe()
+        private void ShowContextMenu1(TreeNode node, Point location)
+        {
+            //获得当前节点的 PIDL
+            ShellItem sItem = (ShellItem)node.Tag;
+            IntPtr PIDL = sItem.PIDL;
+
+            //获得父节点的 IShellFolder 接口
+            WinShell.IShellFolder IParent = iDeskTop;
+            if (node.Parent != null)
+            {
+                IParent = ((ShellItem)node.Parent.Tag).ShellFolder;
+            }
+            else
+            {
+                //桌面的真实路径的 PIDL
+                string path = API.GetSpecialFolderPath(this.Handle, ShellSpecialFolders.DESKTOPDIRECTORY);
+                API.GetShellFolder(iDeskTop, path, out PIDL);
+            }
+
+            //存放 PIDL 的数组
+            IntPtr[] pidls = new IntPtr[1];
+            pidls[0] = PIDL;
+
+            //得到 IContextMenu 接口
+            IntPtr iContextMenuPtr = IntPtr.Zero;
+            iContextMenuPtr = IParent.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length,
+                pidls, ref Guids.IID_IContextMenu, out iContextMenuPtr);
+            WinShell.IContextMenu iContextMenu = (WinShell.IContextMenu)Marshal.GetObjectForIUnknown(iContextMenuPtr);
+
+            //提供一个弹出式菜单的句柄
+            IntPtr contextMenu = API.CreatePopupMenu();
+            iContextMenu.QueryContextMenu(contextMenu, 0,
+                API.CMD_FIRST, API.CMD_LAST, CMF.NORMAL | CMF.EXPLORE);
+
+            //弹出菜单
+            uint cmd = API.TrackPopupMenuEx(contextMenu, TPM.RETURNCMD,
+                MousePosition.X, MousePosition.Y, this.Handle, IntPtr.Zero);
+
+            //获取命令序号，执行菜单命令
+            if (cmd >= API.CMD_FIRST)
+            {
+                var invoke = new CMINVOKECOMMANDINFOEX();
+                invoke.cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX));
+                invoke.lpVerb = (IntPtr)(cmd - 1);
+                invoke.lpDirectory = string.Empty;
+                invoke.fMask = 0;
+                invoke.ptInvoke = new POINT(MousePosition.X, MousePosition.Y);
+                invoke.nShow = 1;
+                iContextMenu.InvokeCommand(ref invoke);
+            }
+        }
+
+        // private void ShowContextMenu(Control control, string path, Point location)
+        // {
+        // 	path = getFSpath(path);
+        //     if (File.Exists(path) || Directory.Exists(path))
+        //     {
+        //         IntPtr menu = IntPtr.Zero;
+        //         try
+        //         {
+        //             menu = CreateContextMenu(path);
+        //             if (menu != IntPtr.Zero)
+        //             {
+        //                 contextMenuStrip.Items.Clear();
+        //                 int count = w32.GetMenuItemCount(menu);
+        //                 for (int i = 0; i < count; i++)
+        //                 {
+        //                     MENUITEMINFO mii = new();
+        //                     mii.cbSize = (uint)Marshal.SizeOf(typeof(MENUITEMINFO));
+        //                     mii.fMask = MIIM.ID | MIIM.STRING | MIIM.SUBMENU;
+        //                     mii.dwTypeData = new string('\0', 256);
+        //                     mii.cch = (uint)mii.dwTypeData.Length;
+
+        //                     if (w32.GetMenuItemInfo(menu, (uint)i, true, ref mii))
+        //                     {
+        //                         string text = mii.dwTypeData;
+        //                         if (string.IsNullOrEmpty(text))
+        //                             contextMenuStrip.Items.Add(new ToolStripSeparator());
+        //                         else
+        //                         {
+        //                             ToolStripMenuItem item = new ToolStripMenuItem(text);
+        //                             if (mii.hSubMenu != IntPtr.Zero)
+        //                                 AddSubMenuItems(item, mii.hSubMenu);
+        //                             else
+        //                                 item.Click += (s, e) => InvokeCommand(path, mii.wID);
+        //                             contextMenuStrip.Items.Add(item);
+        //                         }
+        //                     }
+        //                     else
+        //                         MessageBox.Show("无法获取菜单项信息", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //                 }
+        //                 contextMenuStrip.Show(control, location);
+        //             }
+        //         }
+        //         finally
+        //         {
+        //             if (menu != IntPtr.Zero)
+        //                 w32.DestroyMenu(menu);
+        //         }
+        //     }
+        // }
+
+        // private void AddSubMenuItems(ToolStripMenuItem parentItem, IntPtr hSubMenu)
+        // {
+        //     int subMenuCount = w32.GetMenuItemCount(hSubMenu);
+        //     for (int j = 0; j < subMenuCount; j++)
+        //     {
+        //         MENUITEMINFO subMii = new();
+        //         subMii.cbSize = (uint)Marshal.SizeOf(typeof(MENUITEMINFO));
+        //         subMii.fMask = MIIM.ID | MIIM.STRING | MIIM.SUBMENU;
+        //         subMii.dwTypeData = new string('\0', 256);
+        //         subMii.cch = (uint)subMii.dwTypeData.Length;
+
+        //         if (w32.GetMenuItemInfo(hSubMenu, (uint)j, true, ref subMii))
+        //         {
+        //             string subText = subMii.dwTypeData;
+        //             if (string.IsNullOrEmpty(subText))
+        //             {
+        //                 parentItem.DropDownItems.Add(new ToolStripSeparator());
+        //             }
+        //             else
+        //             {
+        //                 ToolStripMenuItem subItem = new ToolStripMenuItem(subText);
+        //                 if (subMii.hSubMenu != IntPtr.Zero)
+        //                 {
+        //                     AddSubMenuItems(subItem, subMii.hSubMenu);
+        //                 }
+        //                 else
+        //                 {
+        //                     subItem.Click += (s, e) => InvokeCommand(parentItem.Tag.ToString(), subMii.wID);
+        //                 }
+        //                 parentItem.DropDownItems.Add(subItem);
+        //             }
+        //         }
+        //         else
+        //         {
+        //             MessageBox.Show("无法获取子菜单项信息", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //         }
+        //     }
+        // }
+
+        // private IntPtr CreateContextMenu(string path)
+        // {
+        //     IntPtr menu = w32.CreatePopupMenu();
+        //     if (menu != IntPtr.Zero)
+        //     {
+        //         IntPtr pidl = w32.ILCreateFromPath(path);
+        //         if (pidl != IntPtr.Zero)
+        //         {
+        //             IntPtr parentPidl = w32.ILClone(pidl);
+        // 			w32.ILRemoveLastID(parentPidl);
+        //             IShellFolder desktopFolder;
+        // 			w32.SHGetDesktopFolder(out desktopFolder);
+        //             IShellFolder parentFolder;
+        //             Guid iidShellFolder = w32.IID_IShellFolder;
+        //             desktopFolder.BindToObject(parentPidl, IntPtr.Zero, ref iidShellFolder, out parentFolder);
+        //             IntPtr[] pidls = new IntPtr[] { w32.ILFindLastID(pidl) };
+        //             IContextMenu contextMenu;
+        //             Guid iidContextMenu = w32.IID_IContextMenu;
+        //             parentFolder.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length, pidls, ref iidContextMenu, IntPtr.Zero, out contextMenu);
+        //             contextMenu.QueryContextMenu(menu, 0, 1, 0x7FFF, CMF.NORMAL);
+        //             Marshal.ReleaseComObject(contextMenu);
+        //             Marshal.ReleaseComObject(parentFolder);
+        //             Marshal.ReleaseComObject(desktopFolder);
+        // 			w32.ILFree(pidl);
+        // 			w32.ILFree(parentPidl);
+        //         }
+        //     }
+        //     return menu;
+        // }
+
+        // private void InvokeCommand(string path, uint id)
+        // {
+        //     IntPtr pidl = w32.ILCreateFromPath(path);
+        //     if (pidl != IntPtr.Zero)
+        //     {
+        //         IntPtr parentPidl = w32.ILClone(pidl);
+        //         w32.ILRemoveLastID(parentPidl);
+        //         IShellFolder desktopFolder;
+        //         w32.SHGetDesktopFolder(out desktopFolder);
+        //         IShellFolder parentFolder;
+        //         Guid iid_IShellFolder = w32.IID_IShellFolder;
+        //         desktopFolder.BindToObject(parentPidl, IntPtr.Zero, ref iid_IShellFolder, out parentFolder);
+        //         IntPtr[] pidls = new IntPtr[] { w32.ILFindLastID(pidl) };
+        //         IContextMenu contextMenu;
+        //         Guid iid_IContextMenu = w32.IID_IContextMenu;
+        //         parentFolder.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length, pidls, ref iid_IContextMenu, IntPtr.Zero, out contextMenu);
+        //         CMINVOKECOMMANDINFOEX invoke = new CMINVOKECOMMANDINFOEX();
+        //         invoke.cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX));
+        //         invoke.lpVerb = (IntPtr)(id - 1);
+        // 		invoke.lpDirectory = string.Empty;
+        //         invoke.nShow = w32.SW_SHOWNORMAL;
+        // 		invoke.fMask = 0;	// CMIC.CMIC_MASK_UNICODE; // Ensure the fMask is set correctly
+        // 		invoke.ptInvoke = new POINT(MousePosition.X, MousePosition.Y);
+        // 		contextMenu.InvokeCommand(ref invoke);
+        //         Marshal.ReleaseComObject(contextMenu);
+        //         Marshal.ReleaseComObject(parentFolder);
+        //         Marshal.ReleaseComObject(desktopFolder);
+        //         w32.ILFree(pidl);
+        //         w32.ILFree(parentPidl);
+        //     }
+        // }
+        private void InvokeCommand1(string path, uint id)
+        {
+            //ShellExecute(IntPtr.Zero, "open", path, "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
+            //WinExec(path, 1);
+            //System.Diagnostics.Process.Start(path);
+            //System.Diagnostics.Process.Start("explorer.exe", path);
+            //System.Diagnostics.Process.Start("cmd.exe", "/c " + path);
+            //System.Diagnostics.Process.Start("cmd.exe", "/c start " + path);
+            //System.Diagnostics.Process.Start("cmd.exe", "/c start explorer.exe " + path);
+            //System.Diagnostics.Process.Start("cmd.exe", "/c start explorer.exe /select," + path);
+            try
+            {
+                // 使用File.App.Utils.Shell中的contextmenu类的相关方法，完成执行右键菜单的各种功能
+                w32.ShellExecute(IntPtr.Zero, "open", path, "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"无法执行命令: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        public void myShellExe()
         {
             w32.ShellExecute(IntPtr.Zero, "open", "cmd.exe", "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
             //Window wnd = Window.GetWindow(this); //获取当前窗口
@@ -669,12 +717,12 @@ namespace WinFormsApp1
                     // 展开节点
                     e.Node.Expand();
                 }
-				else
-				{
-					//如果不是文件夹，而是比如我的电脑/网上邻居等，则通过其他方式打开
+                else
+                {
+                    //如果不是文件夹，而是比如我的电脑/网上邻居等，则通过其他方式打开
 
-				}
-			}
+                }
+            }
             catch (Exception ex)
             {
                 MessageBox.Show($"TreeView_NodeMouseClick加载目录失败: {ex.Message}", "错误");
@@ -687,66 +735,66 @@ namespace WinFormsApp1
                 LoadSubDirectories(e.Node);
             }
         }
-		private void TreeView_AfterSelect(object? sender, TreeViewEventArgs e)
-		{
-			if (e.Node?.Tag == null) return;
+        private void TreeView_AfterSelect(object? sender, TreeViewEventArgs e)
+        {
+            if (e.Node?.Tag == null) return;
 
-			try
-			{
-				if (sender is TreeView treeView)
-				{
-					// 清除所有节点的高亮状态
-					ClearTreeViewHighlight(treeView);
+            try
+            {
+                if (sender is TreeView treeView)
+                {
+                    // 清除所有节点的高亮状态
+                    ClearTreeViewHighlight(treeView);
 
-					// 设置当前节点的高亮状态
-					e.Node.BackColor = SystemColors.Highlight;
-					e.Node.ForeColor = SystemColors.HighlightText;
-					treeView.Refresh(); // 强制重绘
+                    // 设置当前节点的高亮状态
+                    e.Node.BackColor = SystemColors.Highlight;
+                    e.Node.ForeColor = SystemColors.HighlightText;
+                    treeView.Refresh(); // 强制重绘
 
-					var listView = treeView == leftTree ? leftList : rightList;
-					LoadListView(e.Node, listView);
-					var path = GetFullPath(e.Node);
-					LoadListViewByFilesystem(path, listView);
-					currentDirectory = path;
-					selectedNode = e.Node;
+                    var listView = treeView == leftTree ? leftList : rightList;
+                    LoadListView(e.Node, listView);
+                    var path = GetFullPath(e.Node);
+                    LoadListViewByFilesystem(path, listView);
+                    currentDirectory = path;
+                    selectedNode = e.Node;
 
-					// 更新监视器
-					if (Directory.Exists(path))
-					{
-						watcher.Path = path;
-						watcher.EnableRaisingEvents = true;
-					}
+                    // 更新监视器
+                    if (Directory.Exists(path))
+                    {
+                        watcher.Path = path;
+                        watcher.EnableRaisingEvents = true;
+                    }
 
-					// 更新路径 TextBox
-					if (treeView == leftTree)
-					{
-						leftPathTextBox.Text = path;
-					}
-					else
-					{
-						rightPathTextBox.Text = path;
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show($"TreeView_AfterSelect加载目录失败: {ex.Message}", "错误");
-			}
-		}
+                    // 更新路径 TextBox
+                    if (treeView == leftTree)
+                    {
+                        leftPathTextBox.Text = path;
+                    }
+                    else
+                    {
+                        rightPathTextBox.Text = path;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"TreeView_AfterSelect加载目录失败: {ex.Message}", "错误");
+            }
+        }
 
-		private string GetFullPath(TreeNode node)
-		{
-			List<string> pathParts = new List<string>();
-			while (node != null)
-			{
-				pathParts.Insert(0, node.Text);
-				node = node.Parent;
-			}
-			return Path.Combine(pathParts.ToArray());
-		}
+        private string GetFullPath(TreeNode node)
+        {
+            List<string> pathParts = new List<string>();
+            while (node != null)
+            {
+                pathParts.Insert(0, node.Text);
+                node = node.Parent;
+            }
+            return Path.Combine(pathParts.ToArray());
+        }
 
 
-		private void ClearTreeViewHighlight(TreeView treeView)
+        private void ClearTreeViewHighlight(TreeView treeView)
         {
             foreach (TreeNode node in treeView.Nodes)
             {
@@ -887,11 +935,11 @@ namespace WinFormsApp1
                 selectionStart = e.Location;
                 activeListView = sender as ListView;
                 activeListView.SelectedItems.Clear();
-				if (activeListView == leftList)
-					activeTreeview = leftTree;
-				else
-					activeTreeview = rightTree;
-			}
+                if (activeListView == leftList)
+                    activeTreeview = leftTree;
+                else
+                    activeTreeview = rightTree;
+            }
         }
 
         private void ListView_MouseMove(object sender, MouseEventArgs e)
@@ -918,27 +966,48 @@ namespace WinFormsApp1
 
             if (sender is not ListView listView)
                 return;
-			ListViewItem item = listView.GetItemAt(e.X, e.Y);
-			if (item != null)
-				item.Selected = true;
+            ListViewItem item = listView.GetItemAt(e.X, e.Y);
+            if (item != null)
+                item.Selected = true;
 
-			if (e.Button == MouseButtons.Right)
-            {    
+            if (e.Button == MouseButtons.Right)
+            {
                 if (item != null)
                 {
                     listView.FocusedItem = item;
-					var p = Path.Combine(currentDirectory, item.Text);
-					if (p.Contains(':'))
-						ShowContextMenu(listView, p, e.Location);
-					else
-						ShowContextMenu1(leftTree, selectedNode, e.Location);
-				}
+                    var p = Path.Combine(currentDirectory, item.Text);
+                    // if (p.Contains(':'))
+                    //     ShowContextMenu(listView, p, e.Location);
+                    // else
+                    var tree1 = listView == leftList ? leftTree : rightTree;
+                    // Find corresponding TreeNode for the clicked ListView item
+                    TreeNode? node = tree1.SelectedNode;
+                    if (node != null)
+                    {
+                        // Get the full path by combining current directory and selected item name
+                        string iPath = Path.Combine(currentDirectory, item.Text);
+
+                        // Get corresponding TreeNode for this path
+                        TreeNode? targetNode = FindTreeNode(tree1.Nodes, iPath);
+                        if (targetNode != null)
+                        {
+                            // Show context menu for this node
+                            ShowContextMenu1(targetNode, e.Location);
+                        }
+                        else
+                        {
+                            // If no corresponding node found, use path to show context menu
+                            TreeNode? parentNode = FindTreeNode(tree1.Nodes, currentDirectory);
+                            showCtxMenu(parentNode, iPath, e.Location);
+                        }
+                    }
+                }
                 else
                 {
                     // Show context menu for the ListView itself
-                    ShowContextMenu(listView, currentDirectory, e.Location);
+                    //ShowContextMenu(listView, currentDirectory, e.Location);
                 }
-				return;
+                return;
             }
 
             if (listView.SelectedItems.Count == 0) return;
@@ -947,7 +1016,7 @@ namespace WinFormsApp1
             string itemPath = Path.Combine(currentDirectory, selectedItem.Text);
 
             if (selectedItem.SubItems[3].Text.ToUpper() == "<DIR>" || selectedItem.SubItems[3].Text == "本地磁盘")  //|| selectedItem.SubItems[2].Text.Contains(":")
-			{
+            {
                 try
                 {
                     // 获取关联的TreeView
@@ -991,7 +1060,7 @@ namespace WinFormsApp1
             }
             else // 处理文件
             {
-				itemPath = getFSpath(itemPath);
+                itemPath = getFSpath(itemPath);
                 if (File.Exists(itemPath))
                 {
                     try
@@ -1020,7 +1089,7 @@ namespace WinFormsApp1
             {
                 if (item.Bounds.IntersectsWith(rect))
                 {
-                    item.Selected = true;					
+                    item.Selected = true;
                 }
             }
         }
@@ -1108,41 +1177,41 @@ namespace WinFormsApp1
             }
         }
 
-		private TreeNode? FindTreeNode(TreeNodeCollection nodes, string fullPath)
+        private TreeNode? FindTreeNode(TreeNodeCollection nodes, string fullPath)
         {
             foreach (TreeNode node in nodes)
             {
-				//string p1;
-				//if (node.Text.Contains(':'))
-				//{
-				//	//读取 ':'的前一个字符
-				//	var p = node.Text.IndexOf(':');
-				//	p1 = node.Text.Substring(p - 1, 1);
-				//	//if (fullPath.StartsWith(p1 + ":"))
-				//	if(fullPath.Contains(node.Text))
-				//		return node;
-				//}
-				//else
-				//	p1 = node.Text;
+                //string p1;
+                //if (node.Text.Contains(':'))
+                //{
+                //	//读取 ':'的前一个字符
+                //	var p = node.Text.IndexOf(':');
+                //	p1 = node.Text.Substring(p - 1, 1);
+                //	//if (fullPath.StartsWith(p1 + ":"))
+                //	if(fullPath.Contains(node.Text))
+                //		return node;
+                //}
+                //else
+                //	p1 = node.Text;
 
-				//if (node.Text == fullPath)
-				//            {
-				//                return node;
-				//            }
-				//if (node.Text.Contains(':'))	
-				if(fullPath.EndsWith(node.Text))
-				{
-					return node;
-				}
+                //if (node.Text == fullPath)
+                //            {
+                //                return node;
+                //            }
+                //if (node.Text.Contains(':'))	
+                if (fullPath.EndsWith(node.Text))
+                {
+                    return node;
+                }
 
-				var i = (ShellItem)node.Tag;
-				//var p1 = API.GetNameByIShell(iDeskTop, i.PIDL);
-				//var p2 = API.GetPathByIShell(iDeskTop, i.PIDL);
-				//var p3 = API.SHGetFileInfo(p2, 0, ref shFileInfo, (uint)Marshal.SizeOf(shFileInfo), SHGFI_ICON | SHGFI_SMALLICON);
-				//var p3 = API.GetNameByPIDL(i.PIDL);
-				// 如果当前节点的路径是目标路径的父路径，则展开并递归搜索
-				
-				if (fullPath.Contains(node.Text))
+                var i = (ShellItem)node.Tag;
+                //var p1 = API.GetNameByIShell(iDeskTop, i.PIDL);
+                //var p2 = API.GetPathByIShell(iDeskTop, i.PIDL);
+                //var p3 = API.SHGetFileInfo(p2, 0, ref shFileInfo, (uint)Marshal.SizeOf(shFileInfo), SHGFI_ICON | SHGFI_SMALLICON);
+                //var p3 = API.GetNameByPIDL(i.PIDL);
+                // 如果当前节点的路径是目标路径的父路径，则展开并递归搜索
+
+                if (fullPath.Contains(node.Text))
                 {
                     LoadSubDirectories(node); // 确保子节点已加载
                     node.Expand();
@@ -1307,37 +1376,37 @@ namespace WinFormsApp1
                     WinShell.IShellFolder iSub;
                     root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);
 
-					// 获取图标
-					//Icon icon = GetSystemIcon.GetIconByFileType(name.Contains(':') ? "folder" : Path.GetExtension(name), false);
-					var fiwi = new FileInfoWithIcon(name);
-					var icon = fiwi.smallIcon != null ? fiwi.smallIcon : GetIconByFileName("FILE", name);
-					int iconIndex = listView.SmallImageList.Images.Count;
+                    // 获取图标
+                    //Icon icon = GetSystemIcon.GetIconByFileType(name.Contains(':') ? "folder" : Path.GetExtension(name), false);
+                    var fiwi = new FileInfoWithIcon(name);
+                    var icon = fiwi.smallIcon != null ? fiwi.smallIcon : GetIconByFileName("FILE", name);
+                    int iconIndex = listView.SmallImageList.Images.Count;
                     listView.SmallImageList.Images.Add(icon);
 
                     string[] s = { "", name, "", name.Contains(':') ? "本地磁盘" : "<DIR>", "" };
                     var i = new ListViewItem(s);
                     i.ImageIndex = iconIndex;
-					i.Text = name;
+                    i.Text = name;
                     listView.Items.Add(i);
                 }
             }
 
             listView.EndUpdate();
         }
-		private string getFSpath(string path)
-		{
-			if (path.Contains(':'))
-			{
-				var pathParts = path.Split(':');    // path = 桌面\\此电脑\\system (c:)\\windows\\system32 -> c:\\windows\\system32
-													//get the last char of pathparts[0] to get the drive letter
-				var len = pathParts[0].Length;
-				var drive = pathParts[0].Substring(len - 1, 1);
-				return drive + ":" + pathParts[1].TrimStart(')');
-			}
-			return path;
-		}
-		// 加载文件列表
-		    private void LoadListViewByFilesystem(string path, ListView listView)
+        private string getFSpath(string path)
+        {
+            if (path.Contains(':'))
+            {
+                var pathParts = path.Split(':');    // path = 桌面\\此电脑\\system (c:)\\windows\\system32 -> c:\\windows\\system32
+                                                    //get the last char of pathparts[0] to get the drive letter
+                var len = pathParts[0].Length;
+                var drive = pathParts[0].Substring(len - 1, 1);
+                return drive + ":" + pathParts[1].TrimStart(')');
+            }
+            return path;
+        }
+        // 加载文件列表
+        private void LoadListViewByFilesystem(string path, ListView listView)
         {
             if (string.IsNullOrEmpty(path)) return;
             path = getFSpath(path);
@@ -1388,32 +1457,32 @@ namespace WinFormsApp1
         {
             var result = new List<FileSystemInfo>();
             var dirInfo = new DirectoryInfo(path);
-			if (Directory.Exists(path))
-			{
-				try
-				{
-					// 并行处理目录和文件
-					if (includeFolder)
-					{
-						var directories = dirInfo.GetDirectories()
-							.Where(d => (d.Attributes & FileAttributes.Hidden) == 0);
-						result.AddRange(directories);
-					}
-					//var directories = dirInfo.GetDirectories()
-					//	.Where(d => (d.Attributes & FileAttributes.Hidden) == 0);
-					var files = dirInfo.GetFiles()
-						.Where(f => (f.Attributes & FileAttributes.Hidden) == 0);
+            if (Directory.Exists(path))
+            {
+                try
+                {
+                    // 并行处理目录和文件
+                    if (includeFolder)
+                    {
+                        var directories = dirInfo.GetDirectories()
+                            .Where(d => (d.Attributes & FileAttributes.Hidden) == 0);
+                        result.AddRange(directories);
+                    }
+                    //var directories = dirInfo.GetDirectories()
+                    //	.Where(d => (d.Attributes & FileAttributes.Hidden) == 0);
+                    var files = dirInfo.GetFiles()
+                        .Where(f => (f.Attributes & FileAttributes.Hidden) == 0);
 
-					//result.AddRange(directories);
-					result.AddRange(files);
-				}
-				catch (UnauthorizedAccessException)
-				{
-					// 忽略访问受限的目录
-				}
-			}
+                    //result.AddRange(directories);
+                    result.AddRange(files);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    // 忽略访问受限的目录
+                }
+            }
 
-			return result;
+            return result;
         }
 
         // 优化ListViewItem创建
@@ -1459,8 +1528,8 @@ namespace WinFormsApp1
                 {
                     ImageIndex = iconIndex
                 };
-				lvItem.Text = item.Name;
-				return lvItem;
+                lvItem.Text = item.Name;
+                return lvItem;
             }
             catch
             {
@@ -2089,8 +2158,8 @@ namespace WinFormsApp1
                 selectedNode.Expand();
             }
             LoadListView(selectedNode, listView);
-			LoadListViewByFilesystem(path, listView);
-		}
+            LoadListViewByFilesystem(path, listView);
+        }
 
         private void DeleteButton_Click(object? sender, EventArgs e)
         {
@@ -2232,17 +2301,17 @@ namespace WinFormsApp1
 
         private void InitializeDynamicToolbar()
         {
-            string toolbarFilePath = constant_value.zfilePath+"DEFAULT.BAR";
+            string toolbarFilePath = constant_value.zfilePath + "DEFAULT.BAR";
             if (!File.Exists(toolbarFilePath))
             {
                 MessageBox.Show("工具栏配置文件不存在" + toolbarFilePath, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-			//读取config文件夹中wcmdicons.dll文件中所有图标到列表iconlist中
-			var zfile_path = constant_value.zfilePath+"WCMIcon3.dll";   //"C:\\Users\\zhouy\\source\\repos\\WinFormsApp1\\src\\config\\wcmdicons3.dll"
+            //读取config文件夹中wcmdicons.dll文件中所有图标到列表iconlist中
+            var zfile_path = constant_value.zfilePath + "WCMIcon3.dll";   //"C:\\Users\\zhouy\\source\\repos\\WinFormsApp1\\src\\config\\wcmdicons3.dll"
 
-			icons_Load(zfile_path);
+            icons_Load(zfile_path);
             var fileInfoList = new FileInfoList(new string[] { zfile_path });
 
             using (StreamReader reader = new StreamReader(toolbarFilePath, Encoding.GetEncoding("GB2312")))
@@ -2363,7 +2432,7 @@ namespace WinFormsApp1
             //if (string.IsNullOrEmpty(commanderPath))
             {
                 //MessageBox.Show("未设置COMMANDER_PATH环境变量", "warning", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                
+
                 //var bb = Environment.CurrentDirectory;
                 //var cc = AppDomain.CurrentDomain.BaseDirectory;
                 //var dd = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
@@ -2426,15 +2495,15 @@ namespace WinFormsApp1
 
         private Image? LoadIcon(string iconPath)
         {
-			if (iconPath == null)
-			{
-				return null;
-			}
-			if (iconPath.ToLower().StartsWith("wcmicon"))
-			{
-				iconPath = constant_value.zfilePath + iconPath;
-			}
-			if (iconPath.Contains(","))
+            if (iconPath == null)
+            {
+                return null;
+            }
+            if (iconPath.ToLower().StartsWith("wcmicon"))
+            {
+                iconPath = constant_value.zfilePath + iconPath;
+            }
+            if (iconPath.Contains(","))
             {
                 string[] parts = iconPath.Split(',');
                 if (parts.Length == 2 && int.TryParse(parts[1], out int iconIndex))

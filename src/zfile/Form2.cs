@@ -89,6 +89,25 @@ namespace WinFormsApp1
             fontComboBox.SelectedIndexChanged += FontComboBox_SelectedIndexChanged;
             fontPanel.Controls.Add(fontComboBox);
 
+            Label fontSizeLabel = new Label
+            {
+                Text = "字体大小",
+                Location = new Point(10, 80),
+                AutoSize = true
+            };
+            fontPanel.Controls.Add(fontSizeLabel);
+
+            NumericUpDown fontSizeNumeric = new NumericUpDown
+            {
+                Location = new Point(10, 110),
+                Width = 100,
+                Minimum = 6,
+                Maximum = 72,
+                Value = 10
+            };
+            fontSizeNumeric.ValueChanged += FontComboBox_SelectedIndexChanged;
+            fontPanel.Controls.Add(fontSizeNumeric);
+
             splitContainer1.Panel2.Controls.Add(fontPanel);
             fontPanel.Visible = false; // 初始隐藏
         }
@@ -98,7 +117,8 @@ namespace WinFormsApp1
             if (fontComboBox.SelectedItem != null)
             {
                 string selectedFont = fontComboBox.SelectedItem.ToString();
-                Font newFont = new Font(selectedFont, 10);
+                float fontSize = (float)(fontPanel.Controls.OfType<NumericUpDown>().FirstOrDefault()?.Value ?? 10);
+                Font newFont = new Font(selectedFont, fontSize);
                 ApplyFontToControls(this, newFont);
                 ApplyFontToControls(mainForm, newFont);
             }

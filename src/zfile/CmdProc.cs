@@ -172,7 +172,10 @@ namespace CmdProcessor
                     case 490:
                         owner.OpenOptions();
                         break;
-                    case 2950:
+					case 511: // 添加对 cmdID 为 511 的处理
+						owner.OpenCommandPrompt();
+						break;
+					case 2950:
                         owner.ThemeToggle();
                         break;
                     case 24340:

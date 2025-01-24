@@ -512,166 +512,9 @@ namespace WinFormsApp1
             }
         }
 
-        // private void ShowContextMenu(Control control, string path, Point location)
-        // {
-        // 	path = getFSpath(path);
-        //     if (File.Exists(path) || Directory.Exists(path))
-        //     {
-        //         IntPtr menu = IntPtr.Zero;
-        //         try
-        //         {
-        //             menu = CreateContextMenu(path);
-        //             if (menu != IntPtr.Zero)
-        //             {
-        //                 contextMenuStrip.Items.Clear();
-        //                 int count = w32.GetMenuItemCount(menu);
-        //                 for (int i = 0; i < count; i++)
-        //                 {
-        //                     MENUITEMINFO mii = new();
-        //                     mii.cbSize = (uint)Marshal.SizeOf(typeof(MENUITEMINFO));
-        //                     mii.fMask = MIIM.ID | MIIM.STRING | MIIM.SUBMENU;
-        //                     mii.dwTypeData = new string('\0', 256);
-        //                     mii.cch = (uint)mii.dwTypeData.Length;
-
-        //                     if (w32.GetMenuItemInfo(menu, (uint)i, true, ref mii))
-        //                     {
-        //                         string text = mii.dwTypeData;
-        //                         if (string.IsNullOrEmpty(text))
-        //                             contextMenuStrip.Items.Add(new ToolStripSeparator());
-        //                         else
-        //                         {
-        //                             ToolStripMenuItem item = new ToolStripMenuItem(text);
-        //                             if (mii.hSubMenu != IntPtr.Zero)
-        //                                 AddSubMenuItems(item, mii.hSubMenu);
-        //                             else
-        //                                 item.Click += (s, e) => InvokeCommand(path, mii.wID);
-        //                             contextMenuStrip.Items.Add(item);
-        //                         }
-        //                     }
-        //                     else
-        //                         MessageBox.Show("无法获取菜单项信息", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //                 }
-        //                 contextMenuStrip.Show(control, location);
-        //             }
-        //         }
-        //         finally
-        //         {
-        //             if (menu != IntPtr.Zero)
-        //                 w32.DestroyMenu(menu);
-        //         }
-        //     }
-        // }
-
-        // private void AddSubMenuItems(ToolStripMenuItem parentItem, IntPtr hSubMenu)
-        // {
-        //     int subMenuCount = w32.GetMenuItemCount(hSubMenu);
-        //     for (int j = 0; j < subMenuCount; j++)
-        //     {
-        //         MENUITEMINFO subMii = new();
-        //         subMii.cbSize = (uint)Marshal.SizeOf(typeof(MENUITEMINFO));
-        //         subMii.fMask = MIIM.ID | MIIM.STRING | MIIM.SUBMENU;
-        //         subMii.dwTypeData = new string('\0', 256);
-        //         subMii.cch = (uint)subMii.dwTypeData.Length;
-
-        //         if (w32.GetMenuItemInfo(hSubMenu, (uint)j, true, ref subMii))
-        //         {
-        //             string subText = subMii.dwTypeData;
-        //             if (string.IsNullOrEmpty(subText))
-        //             {
-        //                 parentItem.DropDownItems.Add(new ToolStripSeparator());
-        //             }
-        //             else
-        //             {
-        //                 ToolStripMenuItem subItem = new ToolStripMenuItem(subText);
-        //                 if (subMii.hSubMenu != IntPtr.Zero)
-        //                 {
-        //                     AddSubMenuItems(subItem, subMii.hSubMenu);
-        //                 }
-        //                 else
-        //                 {
-        //                     subItem.Click += (s, e) => InvokeCommand(parentItem.Tag.ToString(), subMii.wID);
-        //                 }
-        //                 parentItem.DropDownItems.Add(subItem);
-        //             }
-        //         }
-        //         else
-        //         {
-        //             MessageBox.Show("无法获取子菜单项信息", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //         }
-        //     }
-        // }
-
-        // private IntPtr CreateContextMenu(string path)
-        // {
-        //     IntPtr menu = w32.CreatePopupMenu();
-        //     if (menu != IntPtr.Zero)
-        //     {
-        //         IntPtr pidl = w32.ILCreateFromPath(path);
-        //         if (pidl != IntPtr.Zero)
-        //         {
-        //             IntPtr parentPidl = w32.ILClone(pidl);
-        // 			w32.ILRemoveLastID(parentPidl);
-        //             IShellFolder desktopFolder;
-        // 			w32.SHGetDesktopFolder(out desktopFolder);
-        //             IShellFolder parentFolder;
-        //             Guid iidShellFolder = w32.IID_IShellFolder;
-        //             desktopFolder.BindToObject(parentPidl, IntPtr.Zero, ref iidShellFolder, out parentFolder);
-        //             IntPtr[] pidls = new IntPtr[] { w32.ILFindLastID(pidl) };
-        //             IContextMenu contextMenu;
-        //             Guid iidContextMenu = w32.IID_IContextMenu;
-        //             parentFolder.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length, pidls, ref iidContextMenu, IntPtr.Zero, out contextMenu);
-        //             contextMenu.QueryContextMenu(menu, 0, 1, 0x7FFF, CMF.NORMAL);
-        //             Marshal.ReleaseComObject(contextMenu);
-        //             Marshal.ReleaseComObject(parentFolder);
-        //             Marshal.ReleaseComObject(desktopFolder);
-        // 			w32.ILFree(pidl);
-        // 			w32.ILFree(parentPidl);
-        //         }
-        //     }
-        //     return menu;
-        // }
-
-        // private void InvokeCommand(string path, uint id)
-        // {
-        //     IntPtr pidl = w32.ILCreateFromPath(path);
-        //     if (pidl != IntPtr.Zero)
-        //     {
-        //         IntPtr parentPidl = w32.ILClone(pidl);
-        //         w32.ILRemoveLastID(parentPidl);
-        //         IShellFolder desktopFolder;
-        //         w32.SHGetDesktopFolder(out desktopFolder);
-        //         IShellFolder parentFolder;
-        //         Guid iid_IShellFolder = w32.IID_IShellFolder;
-        //         desktopFolder.BindToObject(parentPidl, IntPtr.Zero, ref iid_IShellFolder, out parentFolder);
-        //         IntPtr[] pidls = new IntPtr[] { w32.ILFindLastID(pidl) };
-        //         IContextMenu contextMenu;
-        //         Guid iid_IContextMenu = w32.IID_IContextMenu;
-        //         parentFolder.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length, pidls, ref iid_IContextMenu, IntPtr.Zero, out contextMenu);
-        //         CMINVOKECOMMANDINFOEX invoke = new CMINVOKECOMMANDINFOEX();
-        //         invoke.cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX));
-        //         invoke.lpVerb = (IntPtr)(id - 1);
-        // 		invoke.lpDirectory = string.Empty;
-        //         invoke.nShow = w32.SW_SHOWNORMAL;
-        // 		invoke.fMask = 0;	// CMIC.CMIC_MASK_UNICODE; // Ensure the fMask is set correctly
-        // 		invoke.ptInvoke = new POINT(MousePosition.X, MousePosition.Y);
-        // 		contextMenu.InvokeCommand(ref invoke);
-        //         Marshal.ReleaseComObject(contextMenu);
-        //         Marshal.ReleaseComObject(parentFolder);
-        //         Marshal.ReleaseComObject(desktopFolder);
-        //         w32.ILFree(pidl);
-        //         w32.ILFree(parentPidl);
-        //     }
-        // }
         private void InvokeCommand1(string path, uint id)
         {
-            //ShellExecute(IntPtr.Zero, "open", path, "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
-            //WinExec(path, 1);
-            //System.Diagnostics.Process.Start(path);
-            //System.Diagnostics.Process.Start("explorer.exe", path);
-            //System.Diagnostics.Process.Start("cmd.exe", "/c " + path);
-            //System.Diagnostics.Process.Start("cmd.exe", "/c start " + path);
-            //System.Diagnostics.Process.Start("cmd.exe", "/c start explorer.exe " + path);
-            //System.Diagnostics.Process.Start("cmd.exe", "/c start explorer.exe /select," + path);
+        
             try
             {
                 // 使用File.App.Utils.Shell中的contextmenu类的相关方法，完成执行右键菜单的各种功能
@@ -2252,8 +2095,178 @@ namespace WinFormsApp1
         private void ExitButton_Click(object? sender, EventArgs e)
         {
             Application.Exit();
-        }
-        private string getCurrentPath()
+		}
+
+		// private void ShowContextMenu(Control control, string path, Point location)
+		// {
+		// 	path = getFSpath(path);
+		//     if (File.Exists(path) || Directory.Exists(path))
+		//     {
+		//         IntPtr menu = IntPtr.Zero;
+		//         try
+		//         {
+		//             menu = CreateContextMenu(path);
+		//             if (menu != IntPtr.Zero)
+		//             {
+		//                 contextMenuStrip.Items.Clear();
+		//                 int count = w32.GetMenuItemCount(menu);
+		//                 for (int i = 0; i < count; i++)
+		//                 {
+		//                     MENUITEMINFO mii = new();
+		//                     mii.cbSize = (uint)Marshal.SizeOf(typeof(MENUITEMINFO));
+		//                     mii.fMask = MIIM.ID | MIIM.STRING | MIIM.SUBMENU;
+		//                     mii.dwTypeData = new string('\0', 256);
+		//                     mii.cch = (uint)mii.dwTypeData.Length;
+
+		//                     if (w32.GetMenuItemInfo(menu, (uint)i, true, ref mii))
+		//                     {
+		//                         string text = mii.dwTypeData;
+		//                         if (string.IsNullOrEmpty(text))
+		//                             contextMenuStrip.Items.Add(new ToolStripSeparator());
+		//                         else
+		//                         {
+		//                             ToolStripMenuItem item = new ToolStripMenuItem(text);
+		//                             if (mii.hSubMenu != IntPtr.Zero)
+		//                                 AddSubMenuItems(item, mii.hSubMenu);
+		//                             else
+		//                                 item.Click += (s, e) => InvokeCommand(path, mii.wID);
+		//                             contextMenuStrip.Items.Add(item);
+		//                         }
+		//                     }
+		//                     else
+		//                         MessageBox.Show("无法获取菜单项信息", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+		//                 }
+		//                 contextMenuStrip.Show(control, location);
+		//             }
+		//         }
+		//         finally
+		//         {
+		//             if (menu != IntPtr.Zero)
+		//                 w32.DestroyMenu(menu);
+		//         }
+		//     }
+		// }
+
+		// private void AddSubMenuItems(ToolStripMenuItem parentItem, IntPtr hSubMenu)
+		// {
+		//     int subMenuCount = w32.GetMenuItemCount(hSubMenu);
+		//     for (int j = 0; j < subMenuCount; j++)
+		//     {
+		//         MENUITEMINFO subMii = new();
+		//         subMii.cbSize = (uint)Marshal.SizeOf(typeof(MENUITEMINFO));
+		//         subMii.fMask = MIIM.ID | MIIM.STRING | MIIM.SUBMENU;
+		//         subMii.dwTypeData = new string('\0', 256);
+		//         subMii.cch = (uint)subMii.dwTypeData.Length;
+
+		//         if (w32.GetMenuItemInfo(hSubMenu, (uint)j, true, ref subMii))
+		//         {
+		//             string subText = subMii.dwTypeData;
+		//             if (string.IsNullOrEmpty(subText))
+		//             {
+		//                 parentItem.DropDownItems.Add(new ToolStripSeparator());
+		//             }
+		//             else
+		//             {
+		//                 ToolStripMenuItem subItem = new ToolStripMenuItem(subText);
+		//                 if (subMii.hSubMenu != IntPtr.Zero)
+		//                 {
+		//                     AddSubMenuItems(subItem, subMii.hSubMenu);
+		//                 }
+		//                 else
+		//                 {
+		//                     subItem.Click += (s, e) => InvokeCommand(parentItem.Tag.ToString(), subMii.wID);
+		//                 }
+		//                 parentItem.DropDownItems.Add(subItem);
+		//             }
+		//         }
+		//         else
+		//         {
+		//             MessageBox.Show("无法获取子菜单项信息", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+		//         }
+		//     }
+		// }
+
+		// private IntPtr CreateContextMenu(string path)
+		// {
+		//     IntPtr menu = w32.CreatePopupMenu();
+		//     if (menu != IntPtr.Zero)
+		//     {
+		//         IntPtr pidl = w32.ILCreateFromPath(path);
+		//         if (pidl != IntPtr.Zero)
+		//         {
+		//             IntPtr parentPidl = w32.ILClone(pidl);
+		// 			w32.ILRemoveLastID(parentPidl);
+		//             IShellFolder desktopFolder;
+		// 			w32.SHGetDesktopFolder(out desktopFolder);
+		//             IShellFolder parentFolder;
+		//             Guid iidShellFolder = w32.IID_IShellFolder;
+		//             desktopFolder.BindToObject(parentPidl, IntPtr.Zero, ref iidShellFolder, out parentFolder);
+		//             IntPtr[] pidls = new IntPtr[] { w32.ILFindLastID(pidl) };
+		//             IContextMenu contextMenu;
+		//             Guid iidContextMenu = w32.IID_IContextMenu;
+		//             parentFolder.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length, pidls, ref iidContextMenu, IntPtr.Zero, out contextMenu);
+		//             contextMenu.QueryContextMenu(menu, 0, 1, 0x7FFF, CMF.NORMAL);
+		//             Marshal.ReleaseComObject(contextMenu);
+		//             Marshal.ReleaseComObject(parentFolder);
+		//             Marshal.ReleaseComObject(desktopFolder);
+		// 			w32.ILFree(pidl);
+		// 			w32.ILFree(parentPidl);
+		//         }
+		//     }
+		//     return menu;
+		// }
+
+		// private void InvokeCommand(string path, uint id)
+		// {
+		//     IntPtr pidl = w32.ILCreateFromPath(path);
+		//     if (pidl != IntPtr.Zero)
+		//     {
+		//         IntPtr parentPidl = w32.ILClone(pidl);
+		//         w32.ILRemoveLastID(parentPidl);
+		//         IShellFolder desktopFolder;
+		//         w32.SHGetDesktopFolder(out desktopFolder);
+		//         IShellFolder parentFolder;
+		//         Guid iid_IShellFolder = w32.IID_IShellFolder;
+		//         desktopFolder.BindToObject(parentPidl, IntPtr.Zero, ref iid_IShellFolder, out parentFolder);
+		//         IntPtr[] pidls = new IntPtr[] { w32.ILFindLastID(pidl) };
+		//         IContextMenu contextMenu;
+		//         Guid iid_IContextMenu = w32.IID_IContextMenu;
+		//         parentFolder.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length, pidls, ref iid_IContextMenu, IntPtr.Zero, out contextMenu);
+		//         CMINVOKECOMMANDINFOEX invoke = new CMINVOKECOMMANDINFOEX();
+		//         invoke.cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX));
+		//         invoke.lpVerb = (IntPtr)(id - 1);
+		// 		invoke.lpDirectory = string.Empty;
+		//         invoke.nShow = w32.SW_SHOWNORMAL;
+		// 		invoke.fMask = 0;	// CMIC.CMIC_MASK_UNICODE; // Ensure the fMask is set correctly
+		// 		invoke.ptInvoke = new POINT(MousePosition.X, MousePosition.Y);
+		// 		contextMenu.InvokeCommand(ref invoke);
+		//         Marshal.ReleaseComObject(contextMenu);
+		//         Marshal.ReleaseComObject(parentFolder);
+		//         Marshal.ReleaseComObject(desktopFolder);
+		//         w32.ILFree(pidl);
+		//         w32.ILFree(parentPidl);
+		//     }
+		// }
+		public void OpenCommandPrompt()
+		{
+			try
+			{
+				System.Diagnostics.Process.Start("cmd.exe");
+				//w32.ShellExecute(IntPtr.Zero, "open", "notepad.exe", "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
+				//WinExec(path, 1);
+				//System.Diagnostics.Process.Start(path);
+				//System.Diagnostics.Process.Start("explorer.exe", path);
+				//System.Diagnostics.Process.Start("cmd.exe", "/c " + path);
+				//System.Diagnostics.Process.Start("cmd.exe", "/c start " + path);
+				//System.Diagnostics.Process.Start("cmd.exe", "/c start explorer.exe " + path);
+				//System.Diagnostics.Process.Start("cmd.exe", "/c start explorer.exe /select," + path);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"无法打开命令提示符: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+		private string getCurrentPath()
         {
             // 获取当前exe文件所在目录
             string currentDirectory = Directory.GetCurrentDirectory();

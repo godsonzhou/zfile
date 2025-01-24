@@ -367,50 +367,92 @@ namespace WinFormsApp1
         }
         private void showCtxMenu(TreeNode parentNode, string path, Point location)
         {
-            var PIDL = w32.ILCreateFromPath(getFSpath(path));
-            //获得父节点的 IShellFolder 接口
-            WinShell.IShellFolder IParent = iDeskTop;
+            // 先获取路径的父目录
+            string parentPath = Path.GetDirectoryName(path);
+            string fileName = Path.GetFileName(path);
+
+            IntPtr pidl;
+            WinShell.IShellFolder parentFolder;
+
             if (parentNode != null)
             {
-                IParent = ((ShellItem)parentNode.Tag).ShellFolder;
+                // 如果有父节点,使用父节点的 ShellFolder
+                parentFolder = ((ShellItem)parentNode.Tag).ShellFolder;
+                // 获取文件相对于父文件夹的 PIDL
+                API.GetShellFolder(parentFolder, fileName, out pidl);
             }
             else
             {
-                //桌面的真实路径的 PIDL
-                string pa = API.GetSpecialFolderPath(this.Handle, ShellSpecialFolders.DESKTOPDIRECTORY);
-                API.GetShellFolder(iDeskTop, pa, out PIDL);
+                // 如果没有父节点,使用桌面文件夹
+                parentFolder = iDeskTop;
+                if (Directory.Exists(path))
+                {
+                    // 如果是文件夹,直接获取其 PIDL
+                    pidl = w32.ILCreateFromPath(path);
+                }
+                else
+                {
+                    // 如果是文件,先获取其父文件夹
+                    parentPath = Path.GetDirectoryName(path);
+                    fileName = Path.GetFileName(path);
+                    parentFolder = API.GetParentFolder(parentPath);
+                    API.GetShellFolder(parentFolder, fileName, out pidl);
+                }
             }
 
-            //存放 PIDL 的数组
-            IntPtr[] pidls = new IntPtr[1];
-            pidls[0] = PIDL;
-
-            //得到 IContextMenu 接口
-            IntPtr iContextMenuPtr = IntPtr.Zero;
-            iContextMenuPtr = IParent.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length,
-                pidls, ref Guids.IID_IContextMenu, out iContextMenuPtr);
-            WinShell.IContextMenu iContextMenu = (WinShell.IContextMenu)Marshal.GetObjectForIUnknown(iContextMenuPtr);
-
-            //提供一个弹出式菜单的句柄
-            IntPtr contextMenu = API.CreatePopupMenu();
-            iContextMenu.QueryContextMenu(contextMenu, 0,
-                API.CMD_FIRST, API.CMD_LAST, CMF.NORMAL | CMF.EXPLORE);
-
-            //弹出菜单
-            uint cmd = API.TrackPopupMenuEx(contextMenu, TPM.RETURNCMD,
-                MousePosition.X, MousePosition.Y, this.Handle, IntPtr.Zero);
-
-            //获取命令序号，执行菜单命令
-            if (cmd >= API.CMD_FIRST)
+            if (pidl == IntPtr.Zero)
             {
-                var invoke = new CMINVOKECOMMANDINFOEX();
-                invoke.cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX));
-                invoke.lpVerb = (IntPtr)(cmd - 1);
-                invoke.lpDirectory = string.Empty;
-                invoke.fMask = 0;
-                invoke.ptInvoke = new POINT(MousePosition.X, MousePosition.Y);
-                invoke.nShow = 1;
-                iContextMenu.InvokeCommand(ref invoke);
+                MessageBox.Show("无法获取文件 PIDL");
+                return;
+            }
+
+            // 存放 PIDL 的数组
+            IntPtr[] pidls = new IntPtr[1];
+            pidls[0] = pidl;
+
+            try
+            {
+                // 得到 IContextMenu 接口
+                IntPtr iContextMenuPtr = IntPtr.Zero;
+                iContextMenuPtr = parentFolder.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length,
+                    pidls, ref Guids.IID_IContextMenu, out iContextMenuPtr);
+
+                if (iContextMenuPtr == IntPtr.Zero)
+                {
+                    MessageBox.Show("无法获取上下文菜单接口");
+                    return;
+                }
+
+                WinShell.IContextMenu iContextMenu = (WinShell.IContextMenu)Marshal.GetObjectForIUnknown(iContextMenuPtr);
+
+                // 提供一个弹出式菜单的句柄
+                IntPtr contextMenu = API.CreatePopupMenu();
+                iContextMenu.QueryContextMenu(contextMenu, 0,
+                    API.CMD_FIRST, API.CMD_LAST, CMF.NORMAL | CMF.EXPLORE);
+
+                // 弹出菜单
+                uint cmd = API.TrackPopupMenuEx(contextMenu, TPM.RETURNCMD,
+                    MousePosition.X, MousePosition.Y, this.Handle, IntPtr.Zero);
+
+                // 获取命令序号,执行菜单命令
+                if (cmd >= API.CMD_FIRST)
+                {
+                    var invoke = new CMINVOKECOMMANDINFOEX();
+                    invoke.cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX));
+                    invoke.lpVerb = (IntPtr)(cmd - 1);
+                    invoke.lpDirectory = string.Empty;
+                    invoke.fMask = 0;
+                    invoke.ptInvoke = new POINT(MousePosition.X, MousePosition.Y);
+                    invoke.nShow = 1;
+                    iContextMenu.InvokeCommand(ref invoke);
+                }
+            }
+            finally
+            {
+                if (pidl != IntPtr.Zero)
+                {
+                    w32.ILFree(pidl);
+                }
             }
         }
         private void ShowContextMenu1(TreeNode node, Point location)

@@ -1,8 +1,8 @@
-//³ÌÐò¿ª·¢£ºlc_mtt
-//CSDN²©¿Í£ºhttp://lemony.cnblogs.com
-//¸öÈËÖ÷Ò³£ºhttp://www.3lsoft.com
-//×¢£º´Ë´úÂë½ûÖ¹ÓÃÓÚÉÌÒµÓÃÍ¾¡£ÓÐÐÞ¸ÄÕß·¢ÎÒÒ»·Ý£¬Ð»Ð»£¡
-//---------------- ¿ªÔ´ÊÀ½ç£¬ÄãÎÒ¸ü½ø²½ ----------------
+//ï¿½ï¿½ï¿½ò¿ª·ï¿½ï¿½ï¿½lc_mtt
+//CSDNï¿½ï¿½ï¿½Í£ï¿½http://lemony.cnblogs.com
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò³ï¿½ï¿½http://www.3lsoft.com
+//×¢ï¿½ï¿½ï¿½Ë´ï¿½ï¿½ï¿½ï¿½Ö¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òµï¿½ï¿½Í¾ï¿½ï¿½ï¿½ï¿½ï¿½Þ¸ï¿½ï¿½ß·ï¿½ï¿½ï¿½Ò»ï¿½Ý£ï¿½Ð»Ð»ï¿½ï¿½
+//---------------- ï¿½ï¿½Ô´ï¿½ï¿½ï¿½ç£¬ï¿½ï¿½ï¿½Ò¸ï¿½ï¿½ï¿½ï¿½ï¿½ ----------------
 
 using System;
 using System.Collections.Generic;
@@ -13,7 +13,7 @@ namespace WinShell
 {
     public class API
     {
-        #region API µ¼Èë
+        #region API ï¿½ï¿½ï¿½ï¿½
 
         public const int MAX_PATH = 260;
         public const int S_OK = 0;
@@ -60,7 +60,7 @@ namespace WinShell
 
         [DllImport("Shell32.Dll")]
         private static extern bool SHGetSpecialFolderPath(
-            IntPtr hwndOwner, 
+            IntPtr hwndOwner,
             StringBuilder lpszPath,
             ShellSpecialFolders nFolder,
             bool fCreate);
@@ -68,7 +68,7 @@ namespace WinShell
         #endregion
 
         /// <summary>
-        /// »ñµÃ×ÀÃæ Shell
+        /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Shell
         /// </summary>
         public static IShellFolder GetDesktopFolder(out IntPtr ppshf)
         {
@@ -78,7 +78,7 @@ namespace WinShell
         }
 
         /// <summary>
-        /// »ñÈ¡Â·¾¶
+        /// ï¿½ï¿½È¡Â·ï¿½ï¿½
         /// </summary>
         public static string GetPathByIShell(IShellFolder Root, IntPtr pidlSub)
         {
@@ -92,7 +92,7 @@ namespace WinShell
         }
 
         /// <summary>
-        /// »ñÈ¡ÏÔÊ¾Ãû³Æ
+        /// ï¿½ï¿½È¡ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½
         /// </summary>
         public static string GetNameByIShell(IShellFolder Root, IntPtr pidlSub)
         {
@@ -106,7 +106,7 @@ namespace WinShell
         }
 
         /// <summary>
-        /// ¸ù¾Ý PIDL »ñÈ¡ÏÔÊ¾Ãû³Æ
+        /// ï¿½ï¿½ï¿½ï¿½ PIDL ï¿½ï¿½È¡ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½
         /// </summary>
         public static string GetNameByPIDL(IntPtr pidl)
         {
@@ -117,7 +117,7 @@ namespace WinShell
         }
 
         /// <summary>
-        /// »ñÈ¡ÌØÊâÎÄ¼þ¼ÐµÄÂ·¾¶
+        /// ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½Ðµï¿½Â·ï¿½ï¿½
         /// </summary>
         public static string GetSpecialFolderPath(IntPtr hwnd, ShellSpecialFolders nFolder)
         {
@@ -127,7 +127,7 @@ namespace WinShell
         }
 
         /// <summary>
-        /// ¸ù¾ÝÂ·¾¶»ñÈ¡ IShellFolder ºÍ PIDL
+        /// ï¿½ï¿½ï¿½ï¿½Â·ï¿½ï¿½ï¿½ï¿½È¡ IShellFolder ï¿½ï¿½ PIDL
         /// </summary>
         public static IShellFolder GetShellFolder(IShellFolder desktop, string path, out IntPtr Pidl)
         {
@@ -139,12 +139,32 @@ namespace WinShell
         }
 
         /// <summary>
-        /// ¸ù¾ÝÂ·¾¶»ñÈ¡ IShellFolder
+        /// ï¿½ï¿½ï¿½ï¿½Â·ï¿½ï¿½ï¿½ï¿½È¡ IShellFolder
         /// </summary>
         public static IShellFolder GetShellFolder(IShellFolder desktop, string path)
         {
             IntPtr Pidl;
             return GetShellFolder(desktop, path, out Pidl);
+        }
+        // åœ¨ API ç±»ä¸­æ·»åŠ 
+        public static IShellFolder GetParentFolder(string path)
+        {
+            IntPtr pidl = w32.ILCreateFromPath(path);
+            try
+            {
+                IShellFolder desktop = API.GetDesktopFolder(out _);
+                Guid iid = Guids.IID_IShellFolder;
+                IShellFolder folder;
+                desktop.BindToObject(pidl, IntPtr.Zero, ref iid, out folder);
+                return folder;
+            }
+            finally
+            {
+                if (pidl != IntPtr.Zero)
+                {
+                    w32.ILFree(pidl);
+                }
+            }
         }
     }
 }

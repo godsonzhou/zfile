@@ -20,8 +20,9 @@ namespace WinFormsApp1
 
     public partial class Form1 : Form
     {
-        // 声明新的 TextBox 控件
-        private readonly TextBox leftPathTextBox = new();
+		private Dictionary<Keys, string> hotkeyMappings;
+		// 声明新的 TextBox 控件
+		private readonly TextBox leftPathTextBox = new();
         private readonly TextBox rightPathTextBox = new();
 
         private bool isSelecting = false;
@@ -103,8 +104,46 @@ namespace WinFormsApp1
             cmdProcessor = new CmdProc(this);
             InitializeDynamicToolbar();
             InitializeTreeViewIcons(); // 初始化TreeView图标
+			InitializeHotkeys(); // 初始化热键
+		}
+		private void InitializeHotkeys()
+		{
+			hotkeyMappings = new Dictionary<Keys, string>
+			{
+				{ Keys.F3, "cm_List" },
+				{ Keys.F4, "cm_Edit" },
+				{ Keys.F5, "cm_Copy" },
+				{ Keys.F6, "cm_Move" },
+				{ Keys.F7, "cm_NewFolder" },
+				{ Keys.F8, "cm_Delete" },
+				{ Keys.F9, "cm_ExecuteDOS" },
+				{ Keys.Alt | Keys.X, "cm_Exit" }
+			};
+
+			this.KeyPreview = true;
+			this.KeyDown += new KeyEventHandler(Form1_KeyDown);
+		}
+
+		private void Form1_KeyDown(object sender, KeyEventArgs e)
+		{
+			if (hotkeyMappings.TryGetValue(e.KeyData, out string cmdName))
+			{
+				cmdProcessor.processCmdByName(cmdName);
+				e.Handled = true;
+			}
+		}
+        public void OpenOptions()
+        {
+            // 打开Options窗口
+            OptionsForm optionsForm = new OptionsForm(hotkeyMappings.ToDictionary(kvp => kvp.Value.ToString(), kvp => kvp.Key), this);
+            if (optionsForm.ShowDialog() == DialogResult.OK)
+            {
+                // 更新热键映射
+                hotkeyMappings = optionsForm.commandHotkeys.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
+            }
         }
-        private void InitializeTreeViewIcons()
+
+		private void InitializeTreeViewIcons()
         {
             treeViewImageList = new ImageList();
             treeViewImageList.ImageSize = new Size(16, 16);
@@ -1209,12 +1248,7 @@ namespace WinFormsApp1
             var listView = selectedDrive != null && watcher.Path.StartsWith(selectedDrive) ? leftList : rightList;
             //LoadListView(watcher.Path, listView);
         }
-        public void OpenOptions()
-        {
-            //打开Options窗口
-            OptionsForm optionsForm = new();
-            optionsForm.ShowDialog();
-        }
+       
         public void ExitApp()
         {
             Application.Exit();
@@ -1748,35 +1782,8 @@ namespace WinFormsApp1
         // 查看按钮点击处理逻辑
         private void ViewButton_Click(object? sender, EventArgs e)
         {
-            var listView = leftList.Focused ? leftList : rightList;
-            if (listView.SelectedItems.Count == 0) return;
+			do_cm_list();
 
-            var selectedItem = listView.SelectedItems[0];
-            var filePath = Path.Combine(currentDirectory, selectedItem.Text);
-
-            if (File.Exists(filePath))
-            {
-                var extension = Path.GetExtension(filePath).ToLower();
-                Form viewerForm = new Form
-                {
-                    Text = $"查看文件 - {selectedItem.Text}",
-                    Size = new Size(800, 600)
-                };
-
-                Control viewerControl = extension switch
-                {
-                    ".txt" or ".cs" or ".html" or ".htm" or ".xml" or ".json" or ".css" or ".js" or ".md" => CreateTextViewer(filePath),
-                    ".doc" or ".docx" or ".xls" or ".xlsx" or ".ppt" or ".pptx" => CreateOfficeViewer(filePath),
-                    ".jpg" or ".jpeg" or ".png" or ".bmp" or ".gif" => CreateImageViewer(filePath),
-                    ".mp3" or ".wav" or ".wma" or ".aac" => CreateAudioPlayer(filePath),
-                    ".mp4" or ".avi" or ".mkv" or ".mov" => CreateVideoPlayer(filePath),
-                    ".zip" or ".rar" or ".7z" => CreateArchiveViewer(filePath),
-                    _ => new Label { Text = "不支持的文件格式", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }
-                };
-
-                viewerForm.Controls.Add(viewerControl);
-                viewerForm.Show();
-            }
         }
 
         private Control CreateTextViewer(string filePath)
@@ -1930,7 +1937,39 @@ namespace WinFormsApp1
             return textBox;
         }
 
+		public void do_cm_list()
+		{
+			// view button clicked,
+			var listView = leftList.Focused ? leftList : rightList;
+			if (listView.SelectedItems.Count == 0) return;
 
+			var selectedItem = listView.SelectedItems[0];
+			var filePath = getFSpath(Path.Combine(currentDirectory, selectedItem.Text));
+
+			if (File.Exists(filePath))
+			{
+				var extension = Path.GetExtension(filePath).ToLower();
+				Form viewerForm = new Form
+				{
+					Text = $"查看文件 - {selectedItem.Text}",
+					Size = new Size(800, 600)
+				};
+
+				Control viewerControl = extension switch
+				{
+					".txt" or ".cs" or ".html" or ".htm" or ".xml" or ".json" or ".css" or ".js" or ".md" => CreateTextViewer(filePath),
+					".doc" or ".docx" or ".xls" or ".xlsx" or ".ppt" or ".pptx" => CreateOfficeViewer(filePath),
+					".jpg" or ".jpeg" or ".png" or ".bmp" or ".gif" => CreateImageViewer(filePath),
+					".mp3" or ".wav" or ".wma" or ".aac" => CreateAudioPlayer(filePath),
+					".mp4" or ".avi" or ".mkv" or ".mov" => CreateVideoPlayer(filePath),
+					".zip" or ".rar" or ".7z" => CreateArchiveViewer(filePath),
+					_ => new Label { Text = "不支持的文件格式", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }
+				};
+
+				viewerForm.Controls.Add(viewerControl);
+				viewerForm.Show();
+			}
+		}
         private void EditButton_Click(object? sender, EventArgs e)
         {
             // 编辑按钮点击处理逻辑

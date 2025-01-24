@@ -137,7 +137,8 @@ namespace CmdProcessor
                 if (cmdItem != null)
                 {
                     Console.WriteLine($"Processing command: {cmdItem}");
-                    // 在这里添加处理命令的逻辑
+					// 在这里添加处理命令的逻辑
+					processCmdByID(cmdItem.Value.CmdId);
                 }
                 else
                 {
@@ -174,6 +175,9 @@ namespace CmdProcessor
                         break;
 					case 511: // 添加对 cmdID 为 511 的处理
 						owner.OpenCommandPrompt();
+						break;
+					case 903:
+						owner.do_cm_list();
 						break;
 					case 2950:
                         owner.ThemeToggle();

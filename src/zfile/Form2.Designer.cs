@@ -2,15 +2,13 @@
 {
     partial class OptionsForm
     {
-        /// <summary>
-        /// Required designer variable.
-        /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        private System.Windows.Forms.TreeView treeView; // Add this line
 
-        /// <summary>
-        /// Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        private System.ComponentModel.IContainer components = null;
+        private System.Windows.Forms.SplitContainer splitContainer1;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button Okbutton;
+
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -20,151 +18,82 @@
             base.Dispose(disposing);
         }
 
-        #region Windows Form Designer generated code
-
-        /// <summary>
-        /// Required method for Designer support - do not modify
-        /// the contents of this method with the code editor.
-        /// </summary>
         private void InitializeComponent()
         {
-            TreeNode treeNode1 = new TreeNode("language");
-            TreeNode treeNode2 = new TreeNode("options", new TreeNode[] { treeNode1 });
-            splitContainer1 = new SplitContainer();
-            treeView1 = new TreeView();
-            button1 = new Button();
-            Okbutton = new Button();
-            tabControl1 = new TabControl();
-            tabPage1 = new TabPage();
-            groupBox1 = new GroupBox();
-            tabPage2 = new TabPage();
-            ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
-            splitContainer1.Panel1.SuspendLayout();
-            splitContainer1.Panel2.SuspendLayout();
-            splitContainer1.SuspendLayout();
-            tabControl1.SuspendLayout();
-            tabPage1.SuspendLayout();
-            SuspendLayout();
+            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.treeView = new System.Windows.Forms.TreeView(); // Add this line
+            this.button1 = new System.Windows.Forms.Button();
+            this.Okbutton = new System.Windows.Forms.Button();
+            //((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
+            this.splitContainer1.Panel1.SuspendLayout();
+            this.splitContainer1.Panel2.SuspendLayout();
+            this.splitContainer1.SuspendLayout();
+            this.SuspendLayout();
             // 
             // splitContainer1
             // 
-            splitContainer1.Dock = DockStyle.Fill;
-            splitContainer1.Location = new Point(0, 0);
-            splitContainer1.Name = "splitContainer1";
+            this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer1.Location = new System.Drawing.Point(0, 0);
+            this.splitContainer1.Name = "splitContainer1";
+            this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Vertical;
+            this.splitContainer1.SplitterDistance = 240; // 设置初始分割位置为 3:7
+            this.splitContainer1.Size = new System.Drawing.Size(800, 450);
+            this.splitContainer1.TabIndex = 0;
             // 
             // splitContainer1.Panel1
             // 
-            splitContainer1.Panel1.Controls.Add(treeView1);
+            this.splitContainer1.Panel1.Controls.Add(this.treeView);
             // 
             // splitContainer1.Panel2
             // 
-            splitContainer1.Panel2.Controls.Add(button1);
-            splitContainer1.Panel2.Controls.Add(Okbutton);
-            splitContainer1.Panel2.Controls.Add(tabControl1);
-            splitContainer1.Size = new Size(1000, 761);
-            splitContainer1.SplitterDistance = 333;
-            splitContainer1.TabIndex = 0;
+            this.splitContainer1.Panel2.Controls.Add(this.button1);
+            this.splitContainer1.Panel2.Controls.Add(this.Okbutton);
+            this.splitContainer1.Size = new System.Drawing.Size(800, 450);
+            this.splitContainer1.SplitterDistance = 240;
+            this.splitContainer1.TabIndex = 0;
             // 
-            // treeView1
+            // treeView
             // 
-            treeView1.Location = new Point(11, 14);
-            treeView1.Name = "treeView1";
-            treeNode1.Name = "节点1";
-            treeNode1.Tag = "language";
-            treeNode1.Text = "language";
-            treeNode2.Checked = true;
-            treeNode2.Name = "节点0";
-            treeNode2.Text = "options";
-            treeView1.Nodes.AddRange(new TreeNode[] { treeNode2 });
-            treeView1.Size = new Size(306, 726);
-            treeView1.TabIndex = 0;
-            // 
-            // button1
-            // 
-            button1.Location = new Point(372, 704);
-            button1.Name = "button1";
-            button1.Size = new Size(127, 33);
-            button1.TabIndex = 3;
-            button1.Text = "Cancel";
-            button1.UseVisualStyleBackColor = true;
-            button1.Click += button1_Click;
+            this.treeView.Dock = System.Windows.Forms.DockStyle.Fill; // Add this line
+            this.treeView.Location = new System.Drawing.Point(0, 0); // Add this line
+            this.treeView.Name = "treeView"; // Add this line
+            this.treeView.Size = new System.Drawing.Size(300, 400); // Add this line
+            this.treeView.TabIndex = 0; // Add this line
+                                        // 
+                                        // button1
+                                        // 
+            this.button1.Location = new System.Drawing.Point(713, 3);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 0;
+            this.button1.Text = "Cancel";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // Okbutton
             // 
-            Okbutton.Location = new Point(243, 704);
-            Okbutton.Name = "Okbutton";
-            Okbutton.Size = new Size(127, 33);
-            Okbutton.TabIndex = 2;
-            Okbutton.Text = "OK";
-            Okbutton.UseVisualStyleBackColor = true;
-            Okbutton.Click += Okbutton_Click;
-            // 
-            // tabControl1
-            // 
-            tabControl1.Controls.Add(tabPage1);
-            tabControl1.Controls.Add(tabPage2);
-            tabControl1.Location = new Point(12, 88);
-            tabControl1.Name = "tabControl1";
-            tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(621, 601);
-            tabControl1.TabIndex = 1;
-            // 
-            // tabPage1
-            // 
-            tabPage1.Controls.Add(groupBox1);
-            tabPage1.Location = new Point(4, 26);
-            tabPage1.Name = "tabPage1";
-            tabPage1.Padding = new Padding(3);
-            tabPage1.Size = new Size(613, 571);
-            tabPage1.TabIndex = 0;
-            tabPage1.Text = "tabPage1";
-            tabPage1.UseVisualStyleBackColor = true;
-            // 
-            // groupBox1
-            // 
-            groupBox1.Location = new Point(33, 97);
-            groupBox1.Name = "groupBox1";
-            groupBox1.Size = new Size(450, 224);
-            groupBox1.TabIndex = 0;
-            groupBox1.TabStop = false;
-            groupBox1.Text = "groupBox1";
-            // 
-            // tabPage2
-            // 
-            tabPage2.Location = new Point(4, 26);
-            tabPage2.Name = "tabPage2";
-            tabPage2.Padding = new Padding(3);
-            tabPage2.Size = new Size(613, 571);
-            tabPage2.TabIndex = 1;
-            tabPage2.Text = "tabPage2";
-            tabPage2.UseVisualStyleBackColor = true;
+            this.Okbutton.Location = new System.Drawing.Point(632, 3);
+            this.Okbutton.Name = "Okbutton";
+            this.Okbutton.Size = new System.Drawing.Size(75, 23);
+            this.Okbutton.TabIndex = 1;
+            this.Okbutton.Text = "OK";
+            this.Okbutton.UseVisualStyleBackColor = true;
+            this.Okbutton.Click += new System.EventHandler(this.Okbutton_Click);
             // 
             // OptionsForm
             // 
-            AutoScaleDimensions = new SizeF(7F, 17F);
-            AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1000, 761);
-            Controls.Add(splitContainer1);
-            Name = "OptionsForm";
-            Text = "Form2";
-            splitContainer1.Panel1.ResumeLayout(false);
-            splitContainer1.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
-            splitContainer1.ResumeLayout(false);
-            tabControl1.ResumeLayout(false);
-            tabPage1.ResumeLayout(false);
-            ResumeLayout(false);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.splitContainer1);
+            this.Name = "OptionsForm";
+            this.Text = "OptionsForm";
+            this.splitContainer1.Panel1.ResumeLayout(false);
+            this.splitContainer1.Panel2.ResumeLayout(false);
+            //((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
+            this.splitContainer1.ResumeLayout(false);
+            this.ResumeLayout(false);
+
         }
-
-        #endregion
-
-        private SplitContainer splitContainer1;
-        private TabControl tabControl1;
-        private TabPage tabPage1;
-        private GroupBox groupBox1;
-        private TabPage tabPage2;
-        private TreeView treeView1;
-        private Button button1;
-        private Button Okbutton;
     }
 }

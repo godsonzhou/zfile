@@ -305,6 +305,26 @@ namespace WinFormsApp1
 
 		[DllImport("user32.dll", SetLastError = true)]
 		public static extern bool DestroyIcon(IntPtr hIcon);
+		// 在 API 类中添加
+		public static WinShell.IShellFolder GetParentFolder(string path)
+		{
+			IntPtr pidl = w32.ILCreateFromPath(path);
+			try
+			{
+				WinShell.IShellFolder desktop = API.GetDesktopFolder(out _);
+				Guid iid = Guids.IID_IShellFolder;
+				WinShell.IShellFolder folder;
+				desktop.BindToObject(pidl, IntPtr.Zero, ref iid, out folder);
+				return folder;
+			}
+			finally
+			{
+				if (pidl != IntPtr.Zero)
+				{
+					w32.ILFree(pidl);
+				}
+			}
+		}
 	}
 
 }

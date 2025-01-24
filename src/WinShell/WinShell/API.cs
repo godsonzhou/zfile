@@ -1,8 +1,3 @@
-//���򿪷���lc_mtt
-//CSDN���ͣ�http://lemony.cnblogs.com
-//������ҳ��http://www.3lsoft.com
-//ע���˴����ֹ������ҵ��;�����޸��߷���һ�ݣ�лл��
-//---------------- ��Դ���磬���Ҹ����� ----------------
 
 using System;
 using System.Collections.Generic;
@@ -129,13 +124,16 @@ namespace WinShell
         /// <summary>
         /// ����·����ȡ IShellFolder �� PIDL
         /// </summary>
-        public static IShellFolder GetShellFolder(IShellFolder desktop, string path, out IntPtr Pidl)
+        public static IShellFolder GetShellFolder(IShellFolder desktop, string path, out IntPtr Pidl, bool getfolder = true)
         {
             IShellFolder IFolder;
             uint i, j = 0;
             desktop.ParseDisplayName(IntPtr.Zero, IntPtr.Zero, path, out i, out Pidl, ref j);
-            desktop.BindToObject(Pidl, IntPtr.Zero, ref Guids.IID_IShellFolder, out IFolder);
-            return IFolder;
+			if (getfolder)
+				desktop.BindToObject(Pidl, IntPtr.Zero, ref Guids.IID_IShellFolder, out IFolder);
+			else
+				IFolder = null;
+			return IFolder;
         }
 
         /// <summary>
@@ -146,25 +144,6 @@ namespace WinShell
             IntPtr Pidl;
             return GetShellFolder(desktop, path, out Pidl);
         }
-        // 在 API 类中添加
-        public static IShellFolder GetParentFolder(string path)
-        {
-            IntPtr pidl = w32.ILCreateFromPath(path);
-            try
-            {
-                IShellFolder desktop = API.GetDesktopFolder(out _);
-                Guid iid = Guids.IID_IShellFolder;
-                IShellFolder folder;
-                desktop.BindToObject(pidl, IntPtr.Zero, ref iid, out folder);
-                return folder;
-            }
-            finally
-            {
-                if (pidl != IntPtr.Zero)
-                {
-                    w32.ILFree(pidl);
-                }
-            }
-        }
+    
     }
 }

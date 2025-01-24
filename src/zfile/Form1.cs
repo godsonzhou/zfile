@@ -367,40 +367,45 @@ namespace WinFormsApp1
         }
         private void showCtxMenu(TreeNode parentNode, string path, Point location)
         {
-            // 先获取路径的父目录
-            string parentPath = Path.GetDirectoryName(path);
-            string fileName = Path.GetFileName(path);
+			// 先获取路径的父目录
+			path = getFSpath(path);
+			//var pidl = w32.ILCreateFromPath(path);
+			//var parentFolder = ((ShellItem)parentNode.Tag).ShellFolder;
 
-            IntPtr pidl;
-            WinShell.IShellFolder parentFolder;
+			//string parentPath = Path.GetDirectoryName(path);
+			//string fileName = Path.GetFileName(path);
 
-            if (parentNode != null)
-            {
-                // 如果有父节点,使用父节点的 ShellFolder
-                parentFolder = ((ShellItem)parentNode.Tag).ShellFolder;
-                // 获取文件相对于父文件夹的 PIDL
-                API.GetShellFolder(parentFolder, fileName, out pidl);
-            }
-            else
-            {
-                // 如果没有父节点,使用桌面文件夹
-                parentFolder = iDeskTop;
-                if (Directory.Exists(path))
-                {
-                    // 如果是文件夹,直接获取其 PIDL
-                    pidl = w32.ILCreateFromPath(path);
-                }
-                else
-                {
-                    // 如果是文件,先获取其父文件夹
-                    parentPath = Path.GetDirectoryName(path);
-                    fileName = Path.GetFileName(path);
-                    parentFolder = API.GetParentFolder(parentPath);
-                    API.GetShellFolder(parentFolder, fileName, out pidl);
-                }
-            }
+			//IntPtr pidl;
+			//WinShell.IShellFolder parentFolder;
 
-            if (pidl == IntPtr.Zero)
+			//if (parentNode != null)
+			//{
+			//    // 如果有父节点,使用父节点的 ShellFolder
+			//    parentFolder = ((ShellItem)parentNode.Tag).ShellFolder;
+			//    // 获取文件相对于父文件夹的 PIDL
+			//    API.GetShellFolder(parentFolder, fileName, out pidl);
+			//}
+			//else
+			//{
+			// 如果没有父节点,使用桌面文件夹
+			var parentFolder = iDeskTop;
+			IntPtr pidl;
+			if (Directory.Exists(path))
+			{
+				// 如果是文件夹,直接获取其 PIDL
+				pidl = w32.ILCreateFromPath(path);
+			}
+			else
+			{
+				// 如果是文件,先获取其父文件夹
+				var parentPath = Path.GetDirectoryName(path);
+				var fileName = Path.GetFileName(path);
+				parentFolder = w32.GetParentFolder(parentPath);
+				API.GetShellFolder(parentFolder, fileName, out pidl, false);
+			}
+			//}
+
+			if (pidl == IntPtr.Zero)
             {
                 MessageBox.Show("无法获取文件 PIDL");
                 return;
@@ -747,7 +752,7 @@ namespace WinFormsApp1
                     if (sender is TreeView treeView)
                     {
                         var listView = treeView == leftTree ? leftList : rightList;
-                        LoadListView(e.Node, listView);
+                        LoadListView(e.Node, listView, true);
                         currentDirectory = path;
                         selectedNode = e.Node;
 
@@ -1389,7 +1394,7 @@ namespace WinFormsApp1
                 //LoadListView(drivePath, listView);
             }
         }
-        private void LoadListView(TreeNode node, ListView listView)
+        private void LoadListView(TreeNode node, ListView listView, bool includefile = false)
         {
             if (listView == null) return;
             if (listView.SmallImageList == null)
@@ -1407,8 +1412,9 @@ namespace WinFormsApp1
             listView.BeginUpdate();
             listView.Items.Clear();
 
-            // 加载文件夹和文件
-            if (root.EnumObjects(this.Handle, SHCONTF.FOLDERS, out EnumPtr) == API.S_OK)
+			var flag = includefile ? SHCONTF.FOLDERS | SHCONTF.NONFOLDERS : SHCONTF.FOLDERS;
+			// 加载文件夹和文件
+			if (root.EnumObjects(this.Handle, flag, out EnumPtr) == API.S_OK)
             {
                 Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
                 while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == API.S_FALSE)

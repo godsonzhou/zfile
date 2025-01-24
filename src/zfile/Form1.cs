@@ -1007,8 +1007,10 @@ namespace WinFormsApp1
             if (isSelecting)
             {
                 isSelecting = false;
-                SelectItemsInRectangle(activeListView, selectionRectangle);
+				if (selectionRectangle.Width > 0 && selectionRectangle.Height > 0)
+					SelectItemsInRectangle(activeListView, selectionRectangle);
                 activeListView.Invalidate();
+				selectionRectangle = Rectangle.Empty;
             }
 
             if (sender is not ListView listView)
@@ -1458,8 +1460,10 @@ namespace WinFormsApp1
         {
             if (string.IsNullOrEmpty(path)) return;
             path = getFSpath(path);
+			if (path.EndsWith(':'))
+				path += "\\";
 
-            try
+			try
             {
                 var currentTime = DateTime.Now;
                 var needsUpdate = !_directoryCache.ContainsKey(path) ||

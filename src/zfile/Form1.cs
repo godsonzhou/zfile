@@ -50,12 +50,14 @@ namespace WinFormsApp1
         private readonly TreeView leftTree = new();
         private readonly ListView leftList = new();
         private readonly TextBox leftPreview = new();
+		private readonly ListBox leftBookmarkList = new();
 
-        private readonly TreeView rightTree = new();
+		private readonly TreeView rightTree = new();
         private readonly ListView rightList = new();
         private readonly TextBox rightPreview = new();
+		private readonly ListBox rightBookmarkList = new();
 
-        private TreeNode? selectedNode = null; // 添加可空标记
+		private TreeNode? selectedNode = null; // 添加可空标记
 
         // 添加排序状态追踪
         private int sortColumn = -1;
@@ -104,6 +106,7 @@ namespace WinFormsApp1
             InitializeDynamicToolbar();
             InitializeTreeViewIcons(); // 初始化TreeView图标
             InitializeHotkeys(); // 初始化热键
+			InitializeBookmarkLists(); // 初始化书签栏
 			getSpecPathFromReg();
 			getEnv();
         }
@@ -192,7 +195,65 @@ namespace WinFormsApp1
                 cmdProcessor.processCmdByName(cmdName);
                 e.Handled = true;
             }
-        }
+			else if (e.KeyCode == Keys.T)
+			{
+				AddCurrentPathToBookmarks();
+				e.Handled = true;
+			}
+		}
+		private void InitializeBookmarkLists()
+		{
+			// 初始化左侧书签栏
+			leftBookmarkList.Dock = DockStyle.Top;
+			leftBookmarkList.Height = 80;
+			leftBookmarkList.DoubleClick += LeftBookmarkList_DoubleClick;
+			leftPanel.Panel1.Controls.Add(leftBookmarkList);
+			leftBookmarkList.BringToFront();
+			leftDrivePanel.BringToFront();
+			// 初始化右侧书签栏
+			rightBookmarkList.Dock = DockStyle.Top;
+			rightBookmarkList.Height = 80;
+			rightBookmarkList.DoubleClick += RightBookmarkList_DoubleClick;
+			rightPanel.Panel1.Controls.Add(rightBookmarkList);
+			rightBookmarkList.BringToFront();
+			rightDrivePanel.BringToFront();
+			// 调整布局顺序
+			leftPanel.Panel1.Controls.SetChildIndex(leftBookmarkList, 0);
+			leftPanel.Panel1.Controls.SetChildIndex(leftDrivePanel, 1);
+			rightPanel.Panel1.Controls.SetChildIndex(rightBookmarkList, 0);
+			rightPanel.Panel1.Controls.SetChildIndex(rightDrivePanel, 1);
+		}
+		private void AddCurrentPathToBookmarks()
+		{
+			if (string.IsNullOrEmpty(currentDirectory)) return;
+			var bookmarkList = activeTreeview == leftTree ? leftBookmarkList : rightBookmarkList;
+
+			if (!bookmarkList.Items.Contains(currentDirectory))
+			{
+				bookmarkList.Items.Add(currentDirectory);
+			}
+		}
+		private void LeftBookmarkList_DoubleClick(object sender, EventArgs e)
+		{
+			HandleBookmarkListDoubleClick(leftBookmarkList);
+		}
+		private void RightBookmarkList_DoubleClick(object sender, EventArgs e)
+		{
+			HandleBookmarkListDoubleClick(rightBookmarkList);
+		}
+		private void HandleBookmarkListDoubleClick(ListBox bookmarkList)
+		{
+			if (bookmarkList.SelectedItem != null)
+			{
+				// 双击书签项 - 删除
+				bookmarkList.Items.Remove(bookmarkList.SelectedItem);
+			}
+			else
+			{
+				// 双击空白区域 - 添加当前路径
+				AddCurrentPathToBookmarks();
+			}
+		}
         public void OpenOptions()
         {
             // 打开Options窗口

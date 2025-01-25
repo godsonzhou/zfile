@@ -73,8 +73,6 @@ namespace WinFormsApp1
         private readonly StatusStrip leftStatusStrip = new();
         private readonly StatusStrip rightStatusStrip = new();
 
-        private readonly ListBox leftBookmarkList = new();
-        private readonly ListBox rightBookmarkList = new();
         private readonly List<Icon> iconList = new();
         FileInfoList fileList;
 
@@ -98,7 +96,6 @@ namespace WinFormsApp1
             activeTreeview = leftTree;
             InitializePreviewPanels();
             InitializeStatusStrips(); // 初始化状态栏
-            InitializeBookmarkLists(); // 初始化书签栏
             InitializeFileSystemWatcher();
             InitializeThemeToggleButton(); // 初始化主题切换按钮
             InitializeToolStrip(); // 初始化工具栏
@@ -107,11 +104,70 @@ namespace WinFormsApp1
             InitializeDynamicToolbar();
             InitializeTreeViewIcons(); // 初始化TreeView图标
             InitializeHotkeys(); // 初始化热键
-            FileSystemHelper.getSpecPathFromReg();
-            FileSystemHelper.getEnv();
+			getSpecPathFromReg();
+			getEnv();
         }
-       
-        private void InitializeHotkeys()
+		private void getSpecPathFromReg()
+		{
+			RegistryKey folders;
+			folders = OpenRegistryPath(Registry.CurrentUser, @"\software\microsoft\windows\currentversion\explorer\shell folders");
+			//Windows用户桌面路径
+			string desktopPath = folders.GetValue("Desktop").ToString();
+			//Windows用户字体目录路径
+			string fontsPath = folders.GetValue("Fonts").ToString();
+			//Windows用户网络邻居路径
+			string nethoodPath = folders.GetValue("Nethood").ToString();
+			//Windows用户我的文档路径
+			string personalPath = folders.GetValue("Personal").ToString();
+			//Windows用户开始菜单程序路径
+			string programsPath = folders.GetValue("Programs").ToString();
+			//Windows用户存放用户最近访问文档快捷方式的目录路径
+			string recentPath = folders.GetValue("Recent").ToString();
+			//Windows用户发送到目录路径
+			string sendtoPath = folders.GetValue("Sendto").ToString();
+			//Windows用户开始菜单目录路径
+			string startmenuPath = folders.GetValue("Start menu").ToString();
+			//Windows用户开始菜单启动项目录路径
+			string startupPath = folders.GetValue("Startup").ToString();
+			//Windows用户收藏夹目录路径
+			string favoritesPath = folders.GetValue("Favorites").ToString();
+			//Windows用户网页历史目录路径
+			string historyPath = folders.GetValue("History").ToString();
+			//Windows用户Cookies目录路径
+			string cookiesPath = folders.GetValue("Cookies").ToString();
+			//Windows用户Cache目录路径
+			string cachePath = folders.GetValue("Cache").ToString();
+			//Windows用户应用程式数据目录路径
+			string appdataPath = folders.GetValue("Appdata").ToString();
+			//Windows用户打印目录路径
+			string printhoodPath = folders.GetValue("Printhood").ToString();
+			String Path = Environment.GetFolderPath(Environment.SpecialFolder.Favorites);//返回收藏夹位置
+			Console.WriteLine(Path);
+		}
+		private RegistryKey OpenRegistryPath(RegistryKey root, string s)
+		{
+			s = s.Remove(0, 1) + @"\";
+			while (s.IndexOf(@"\") != -1) {
+				root = root.OpenSubKey(s.Substring(0, s.IndexOf(@"\")));
+				s = s.Remove(0, s.IndexOf(@"\") + 1);
+			}
+			return root;
+		}
+
+		public static void getEnv()
+		{
+			//把环境变量中所有的值取出来，放到变量environment中
+			IDictionary environment = Environment.GetEnvironmentVariables();
+			//打印表头
+			Console.WriteLine("环境变量名\t=\t环境变量值");
+			//遍历environment中所有键值
+			foreach (string environmentKey in environment.Keys)
+			{
+				//打印出所有环境变量的名称和值
+				Console.WriteLine("(0}\t=\t{(1}", environmentKey, environment[environmentKey].ToString());
+			}
+		}
+		private void InitializeHotkeys()
         {
             hotkeyMappings = new Dictionary<Keys, string>
             {
@@ -135,72 +191,6 @@ namespace WinFormsApp1
             {
                 cmdProcessor.processCmdByName(cmdName);
                 e.Handled = true;
-            }
-            else if (e.KeyCode == Keys.T)
-            {
-                AddCurrentPathToBookmarks();
-                e.Handled = true;
-            }
-        }
-
-        private void InitializeBookmarkLists()
-        {
-            // 初始化左侧书签栏
-            leftBookmarkList.Dock = DockStyle.Top;
-            leftBookmarkList.Height = 80;
-            leftBookmarkList.DoubleClick += LeftBookmarkList_DoubleClick;
-            leftPanel.Panel1.Controls.Add(leftBookmarkList);
-            leftBookmarkList.BringToFront();
-            leftDrivePanel.BringToFront();
-
-            // 初始化右侧书签栏
-            rightBookmarkList.Dock = DockStyle.Top;
-            rightBookmarkList.Height = 80;
-            rightBookmarkList.DoubleClick += RightBookmarkList_DoubleClick;
-            rightPanel.Panel1.Controls.Add(rightBookmarkList);
-            rightBookmarkList.BringToFront();
-            rightDrivePanel.BringToFront();
-
-            // 调整布局顺序
-            leftPanel.Panel1.Controls.SetChildIndex(leftBookmarkList, 0);
-            leftPanel.Panel1.Controls.SetChildIndex(leftDrivePanel, 1);
-            rightPanel.Panel1.Controls.SetChildIndex(rightBookmarkList, 0);
-            rightPanel.Panel1.Controls.SetChildIndex(rightDrivePanel, 1);
-        }
-
-        private void AddCurrentPathToBookmarks()
-        {
-            if (string.IsNullOrEmpty(currentDirectory)) return;
-
-            var bookmarkList = activeTreeview == leftTree ? leftBookmarkList : rightBookmarkList;
-            
-            if (!bookmarkList.Items.Contains(currentDirectory))
-            {
-                bookmarkList.Items.Add(currentDirectory);
-            }
-        }
-
-        private void LeftBookmarkList_DoubleClick(object sender, EventArgs e)
-        {
-            HandleBookmarkListDoubleClick(leftBookmarkList);
-        }
-
-        private void RightBookmarkList_DoubleClick(object sender, EventArgs e)
-        {
-            HandleBookmarkListDoubleClick(rightBookmarkList);
-        }
-
-        private void HandleBookmarkListDoubleClick(ListBox bookmarkList)
-        {
-            if (bookmarkList.SelectedItem != null)
-            {
-                // 双击书签项 - 删除
-                bookmarkList.Items.Remove(bookmarkList.SelectedItem);
-            }
-            else
-            {
-                // 双击空白区域 - 添加当前路径
-                AddCurrentPathToBookmarks();
             }
         }
         public void OpenOptions()
@@ -564,7 +554,7 @@ namespace WinFormsApp1
                 iContextMenu.InvokeCommand(ref invoke);
             }
         }
-
+       
         public void myShellExe()
         {
             w32.ShellExecute(IntPtr.Zero, "open", "cmd.exe", "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
@@ -681,10 +671,10 @@ namespace WinFormsApp1
 
                     var listView = treeView == leftTree ? leftList : rightList;
                     LoadListView(e.Node, listView);
-                    //var path = GetFullPath(e.Node);	//bugfix: d:资料->d:\"my document", convert some display name to real path
-
-                    var path = FileSystemHelper.getFSpathbyTree(e.Node);
-                    if (string.IsNullOrEmpty(path)) return;
+					//var path = GetFullPath(e.Node);	//bugfix: d:资料->d:\"my document", convert some display name to real path
+			
+					var path = FileSystemHelper.getFSpathbyTree(e.Node);
+					if (string.IsNullOrEmpty(path)) return;
                     LoadListViewByFilesystem(path, listView);
                     currentDirectory = path;
                     selectedNode = e.Node;
@@ -818,205 +808,205 @@ namespace WinFormsApp1
                 MessageBox.Show($"加载驱动器目录失败: {ex.Message}", "错误");
             }
         }
-        private void InitializeDynamicToolbar()
-        {
-            string toolbarFilePath = constant_value.zfilePath + "DEFAULT.BAR";
-            if (!File.Exists(toolbarFilePath))
-            {
-                MessageBox.Show("工具栏配置文件不存在" + toolbarFilePath, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
+		private void InitializeDynamicToolbar()
+		{
+			string toolbarFilePath = constant_value.zfilePath + "DEFAULT.BAR";
+			if (!File.Exists(toolbarFilePath))
+			{
+				MessageBox.Show("工具栏配置文件不存在" + toolbarFilePath, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return;
+			}
 
-            //读取config文件夹中wcmdicons.dll文件中所有图标到列表iconlist中
-            var zfile_path = constant_value.zfilePath + "WCMIcon3.dll";   //"C:\\Users\\zhouy\\source\\repos\\WinFormsApp1\\src\\config\\wcmdicons3.dll"
+			//读取config文件夹中wcmdicons.dll文件中所有图标到列表iconlist中
+			var zfile_path = constant_value.zfilePath + "WCMIcon3.dll";   //"C:\\Users\\zhouy\\source\\repos\\WinFormsApp1\\src\\config\\wcmdicons3.dll"
 
-            icons_Load(zfile_path);
-            var fileInfoList = new FileInfoList(new string[] { zfile_path });
+			icons_Load(zfile_path);
+			var fileInfoList = new FileInfoList(new string[] { zfile_path });
 
-            using (StreamReader reader = new StreamReader(toolbarFilePath, Encoding.GetEncoding("GB2312")))
-            {
-                dynamicToolStrip = new ToolStrip();
-                string? line;
-                int buttonCount = 0;
-                int buttonIndex;
-                string buttonIcon = "";
-                string cmd = "";
-                string menuText = "";
-                string pathText = "";
-                string iconic = "";
-                string paramText = "";
-                List<int> emptybuttons = new List<int>();
+			using (StreamReader reader = new StreamReader(toolbarFilePath, Encoding.GetEncoding("GB2312")))
+			{
+				dynamicToolStrip = new ToolStrip();
+				string? line;
+				int buttonCount = 0;
+				int buttonIndex;
+				string buttonIcon = "";
+				string cmd = "";
+				string menuText = "";
+				string pathText = "";
+				string iconic = "";
+				string paramText = "";
+				List<int> emptybuttons = new List<int>();
 
-                while ((line = reader.ReadLine()) != null)
-                {
-                    line = line.Trim();
-                    if (line.StartsWith("Buttoncount="))
-                    {
-                        buttonCount = int.Parse(line.Substring("Buttoncount=".Length));
-                        continue;
-                    }
-                    else if (line.StartsWith("iconic"))
-                    {
-                        var _buttonIndex = int.Parse(line.Substring(6, line.IndexOf('=') - 6));
-                        if (emptybuttons.Contains(_buttonIndex))  //如果emptybuttons中存在_buttonIndex，则跳过
-                            continue;
-                        iconic = line.Substring(line.IndexOf('=') + 1);
-                    }
-                    else if (line.StartsWith("cmd"))
-                    {
-                        int _buttonIndex = int.Parse(line.Substring(3, line.IndexOf('=') - 3));
-                        if (emptybuttons.Contains(_buttonIndex))
-                            continue;
+				while ((line = reader.ReadLine()) != null)
+				{
+					line = line.Trim();
+					if (line.StartsWith("Buttoncount="))
+					{
+						buttonCount = int.Parse(line.Substring("Buttoncount=".Length));
+						continue;
+					}
+					else if (line.StartsWith("iconic"))
+					{
+						var _buttonIndex = int.Parse(line.Substring(6, line.IndexOf('=') - 6));
+						if (emptybuttons.Contains(_buttonIndex))  //如果emptybuttons中存在_buttonIndex，则跳过
+							continue;
+						iconic = line.Substring(line.IndexOf('=') + 1);
+					}
+					else if (line.StartsWith("cmd"))
+					{
+						int _buttonIndex = int.Parse(line.Substring(3, line.IndexOf('=') - 3));
+						if (emptybuttons.Contains(_buttonIndex))
+							continue;
 
-                        cmd = line.Substring(line.IndexOf('=') + 1);
-                    }
-                    else if (line.StartsWith("menu"))
-                    {
-                        int _buttonIndex = int.Parse(line.Substring(4, line.IndexOf('=') - 4));
-                        if (emptybuttons.Contains(_buttonIndex))
-                            continue;
-                        menuText = line.Substring(line.IndexOf('=') + 1);
-                    }
-                    else if (line.StartsWith("path"))
-                    {
-                        int _buttonIndex = int.Parse(line.Substring(4, line.IndexOf('=') - 4));
-                        if (emptybuttons.Contains(_buttonIndex))
-                            continue;
-                        pathText = line.Substring(line.IndexOf('=') + 1);
-                    }
-                    else if (line.StartsWith("param"))
-                    {
-                        int _buttonIndex = int.Parse(line.Substring(5, line.IndexOf('=') - 5));
-                        if (emptybuttons.Contains(_buttonIndex))
-                            continue;
-                        paramText = line.Substring(line.IndexOf('=') + 1);
-                    }
-                    else if (line.StartsWith("button"))
-                    {
-                        if (!cmd.Equals(""))
-                        {
-                            var zhdesc = cmdProcessor.cmdTable.GetByCmdName(cmd)?.ZhDesc ?? "";
-                            ToolStripButton button = new ToolStripButton
-                            {
-                                Text = menuText,
-                                ToolTipText = zhdesc,
-                                Image = LoadIcon(buttonIcon),
-                                Tag = cmd
-                            };
+						cmd = line.Substring(line.IndexOf('=') + 1);
+					}
+					else if (line.StartsWith("menu"))
+					{
+						int _buttonIndex = int.Parse(line.Substring(4, line.IndexOf('=') - 4));
+						if (emptybuttons.Contains(_buttonIndex))
+							continue;
+						menuText = line.Substring(line.IndexOf('=') + 1);
+					}
+					else if (line.StartsWith("path"))
+					{
+						int _buttonIndex = int.Parse(line.Substring(4, line.IndexOf('=') - 4));
+						if (emptybuttons.Contains(_buttonIndex))
+							continue;
+						pathText = line.Substring(line.IndexOf('=') + 1);
+					}
+					else if (line.StartsWith("param"))
+					{
+						int _buttonIndex = int.Parse(line.Substring(5, line.IndexOf('=') - 5));
+						if (emptybuttons.Contains(_buttonIndex))
+							continue;
+						paramText = line.Substring(line.IndexOf('=') + 1);
+					}
+					else if (line.StartsWith("button"))
+					{
+						if (!cmd.Equals(""))
+						{
+							var zhdesc = cmdProcessor.cmdTable.GetByCmdName(cmd)?.ZhDesc ?? "";
+							ToolStripButton button = new ToolStripButton
+							{
+								Text = menuText,
+								ToolTipText = zhdesc,
+								Image = LoadIcon(buttonIcon),
+								Tag = cmd
+							};
 
-                            if (cmd.StartsWith("openbar"))
-                            {
-                                string dropdownFilePath = cmd.Substring("openbar ".Length);
-                                ToolStripDropDownButton dropdownButton = new ToolStripDropDownButton
-                                {
-                                    Text = menuText,
-                                    ToolTipText = menuText,
-                                    Image = LoadIcon(buttonIcon)
-                                };
-                                InitializeDropdownMenu(dropdownButton, dropdownFilePath);
-                                dynamicToolStrip.Items.Add(dropdownButton);
-                            }
-                            else
-                            {
-                                button.Click += ToolbarButton_Click;
-                                dynamicToolStrip.Items.Add(button);
-                            }
-                            menuText = "";
-                            pathText = "";
-                            cmd = "";
-                            iconic = "";
-                            paramText = "";
-                        }
+							if (cmd.StartsWith("openbar"))
+							{
+								string dropdownFilePath = cmd.Substring("openbar ".Length);
+								ToolStripDropDownButton dropdownButton = new ToolStripDropDownButton
+								{
+									Text = menuText,
+									ToolTipText = menuText,
+									Image = LoadIcon(buttonIcon)
+								};
+								InitializeDropdownMenu(dropdownButton, dropdownFilePath);
+								dynamicToolStrip.Items.Add(dropdownButton);
+							}
+							else
+							{
+								button.Click += ToolbarButton_Click;
+								dynamicToolStrip.Items.Add(button);
+							}
+							menuText = "";
+							pathText = "";
+							cmd = "";
+							iconic = "";
+							paramText = "";
+						}
 
-                        buttonIndex = int.Parse(line.Substring(6, line.IndexOf('=') - 6));
-                        buttonIcon = line.Substring(line.IndexOf('=') + 1);
-                        //如果buttonIcon为空，则读取下一行，并记录当前buttonIndex,忽略下面所有编号为buttonIndex的行
-                        if (string.IsNullOrEmpty(buttonIcon))
-                        {
-                            emptybuttons.Add(buttonIndex);
-                            continue;
-                        }
-                    }
-                }
+						buttonIndex = int.Parse(line.Substring(6, line.IndexOf('=') - 6));
+						buttonIcon = line.Substring(line.IndexOf('=') + 1);
+						//如果buttonIcon为空，则读取下一行，并记录当前buttonIndex,忽略下面所有编号为buttonIndex的行
+						if (string.IsNullOrEmpty(buttonIcon))
+						{
+							emptybuttons.Add(buttonIndex);
+							continue;
+						}
+					}
+				}
 
-                this.Controls.Add(dynamicToolStrip);
-            }
+				this.Controls.Add(dynamicToolStrip);
+			}
 
 
-        }
-        private void InitializeDynamicMenu()
-        {
-            string menuFilePath = "C:\\Users\\zhouy\\source\\repos\\WinFormsApp1\\src\\config\\WCMD_CHN.MNU";
-            if (!File.Exists(menuFilePath))
-            {
-                MessageBox.Show("菜单文件不存在" + menuFilePath, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
+		}
+		private void InitializeDynamicMenu()
+		{
+			string menuFilePath = "C:\\Users\\zhouy\\source\\repos\\WinFormsApp1\\src\\config\\WCMD_CHN.MNU";
+			if (!File.Exists(menuFilePath))
+			{
+				MessageBox.Show("菜单文件不存在" + menuFilePath, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return;
+			}
 
-            try
-            {
-                using (StreamReader reader = new StreamReader(menuFilePath, Encoding.GetEncoding("GB2312")))
-                {
-                    dynamicMenuStrip = new MenuStrip();
-                    Stack<ToolStripMenuItem> menuStack = new Stack<ToolStripMenuItem>();
-                    ToolStripMenuItem? currentPopup = null;
+			try
+			{
+				using (StreamReader reader = new StreamReader(menuFilePath, Encoding.GetEncoding("GB2312")))
+				{
+					dynamicMenuStrip = new MenuStrip();
+					Stack<ToolStripMenuItem> menuStack = new Stack<ToolStripMenuItem>();
+					ToolStripMenuItem? currentPopup = null;
 
-                    string? line;
-                    while ((line = reader.ReadLine()) != null)
-                    {
-                        line = line.Trim();
-                        if (line.StartsWith("POPUP"))
-                        {
-                            string menuItemText = line.Substring(6).Trim().Trim('"');
-                            ToolStripMenuItem menuItem = new ToolStripMenuItem(menuItemText);
-                            if (menuStack.Count > 0)
-                            {
-                                menuStack.Peek().DropDownItems.Add(menuItem);
-                            }
-                            else
-                            {
-                                dynamicMenuStrip.Items.Add(menuItem);
-                            }
-                            menuStack.Push(menuItem);
-                            currentPopup = menuItem;
-                        }
-                        else if (line.StartsWith("END_POPUP"))
-                        {
-                            if (menuStack.Count > 0)
-                            {
-                                menuStack.Pop();
-                            }
-                            currentPopup = menuStack.Count > 0 ? menuStack.Peek() : null;
-                        }
-                        else if (currentPopup != null)
-                        {
-                            line = line.TrimStart().Substring(9);
-                            if (line.StartsWith("SEPARATOR"))
-                            {
-                                if (currentPopup != null)
-                                {
-                                    currentPopup.DropDownItems.Add(new ToolStripSeparator());
-                                }
-                            }
-                            else
-                            {
-                                ToolStripMenuItem menuItem = new ToolStripMenuItem(line);
-                                menuItem.Click += MenuItem_Click;
-                                currentPopup.DropDownItems.Add(menuItem);
-                            }
-                        }
-                    }
+					string? line;
+					while ((line = reader.ReadLine()) != null)
+					{
+						line = line.Trim();
+						if (line.StartsWith("POPUP"))
+						{
+							string menuItemText = line.Substring(6).Trim().Trim('"');
+							ToolStripMenuItem menuItem = new ToolStripMenuItem(menuItemText);
+							if (menuStack.Count > 0)
+							{
+								menuStack.Peek().DropDownItems.Add(menuItem);
+							}
+							else
+							{
+								dynamicMenuStrip.Items.Add(menuItem);
+							}
+							menuStack.Push(menuItem);
+							currentPopup = menuItem;
+						}
+						else if (line.StartsWith("END_POPUP"))
+						{
+							if (menuStack.Count > 0)
+							{
+								menuStack.Pop();
+							}
+							currentPopup = menuStack.Count > 0 ? menuStack.Peek() : null;
+						}
+						else if (currentPopup != null)
+						{
+							line = line.TrimStart().Substring(9);
+							if (line.StartsWith("SEPARATOR"))
+							{
+								if (currentPopup != null)
+								{
+									currentPopup.DropDownItems.Add(new ToolStripSeparator());
+								}
+							}
+							else
+							{
+								ToolStripMenuItem menuItem = new ToolStripMenuItem(line);
+								menuItem.Click += MenuItem_Click;
+								currentPopup.DropDownItems.Add(menuItem);
+							}
+						}
+					}
 
-                    this.MainMenuStrip = dynamicMenuStrip;
-                    this.Controls.Add(dynamicMenuStrip);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"加载菜单失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-        private void ConfigureListView(ListView listView, Panel parent)
+					this.MainMenuStrip = dynamicMenuStrip;
+					this.Controls.Add(dynamicMenuStrip);
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"加载菜单失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+		private void ConfigureListView(ListView listView, Panel parent)
         {
             listView.Dock = DockStyle.Fill;
             listView.View = View.Details;
@@ -1092,7 +1082,7 @@ namespace WinFormsApp1
                 {
                     listView.FocusedItem = item;
                     var p = Path.Combine(currentDirectory, item.Text);
-
+                
                     var tree1 = listView == leftList ? leftTree : rightTree;
                     // Find corresponding TreeNode for the clicked ListView item
                     TreeNode? node = tree1.SelectedNode;
@@ -1297,7 +1287,7 @@ namespace WinFormsApp1
                 }
 
                 var i = (ShellItem)node.Tag;
-                if (fullPath.Contains(node.Text) || node.Text.Equals("桌面"))
+                if (fullPath.Contains(node.Text)||node.Text.Equals("桌面"))
                 {
                     LoadSubDirectories(node); // 确保子节点已加载
                     node.Expand();
@@ -1477,7 +1467,7 @@ namespace WinFormsApp1
         private void LoadListViewByFilesystem(string path, ListView listView)
         {
             if (string.IsNullOrEmpty(path)) return;
-            if (!path.Contains(':')) return;
+			if (!path.Contains(':')) return;
             path = FileSystemHelper.getFSpath(path);
             if (path.EndsWith(':'))
                 path += "\\";
@@ -1487,8 +1477,8 @@ namespace WinFormsApp1
                 var currentTime = DateTime.Now;
                 var needsUpdate = !_directoryCache.ContainsKey(path) ||
                                 (currentTime - _lastCacheUpdate).TotalMilliseconds > _cacheTimeout;
-                //d:\资料->d:\my document, use getPathFS to get the true path of the displayed name
-                path = FileSystemHelper.getFSpathbyList(path);
+				//d:\资料->d:\my document, use getPathFS to get the true path of the displayed name
+				path = FileSystemHelper.getFSpathbyList(path);
                 List<FileSystemInfo> items;
                 if (needsUpdate)
                 {
@@ -2243,7 +2233,7 @@ namespace WinFormsApp1
                 cmdProcessor.processCmdByName(menuItem.Text);
             }
         }
-
+     
         //从环境变量获取%COMMANDER_PATH%
         private string GetCommanderPath()
         {
@@ -2356,7 +2346,7 @@ namespace WinFormsApp1
             IntPtr[] phiconLarge,
             IntPtr[] phiconSmall,
             uint nIcons
-            );
+			);
 
         private Image GetIconByFilenameAndIdx(string path, int index)
         {

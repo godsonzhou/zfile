@@ -36,10 +36,10 @@ namespace WinFormsApp1
         /// <returns></returns>
         public static Icon GetIconByFileName(string fileName, bool isLarge = true)
         {
-            int[] phiconLarge = new int[1];
-            int[] phiconSmall = new int[1];
+            IntPtr[] phiconLarge = new IntPtr[1];
+			IntPtr[] phiconSmall = new IntPtr[1];
             //文件名 图标索引 
-            Win32.ExtractIconEx(fileName, 0, phiconLarge, phiconSmall, 1);
+            ExtractIconEx(fileName, 0, phiconLarge, phiconSmall, 1);
             IntPtr IconHnd = new IntPtr(isLarge ? phiconLarge[0] : phiconSmall[0]);
 
             if (IconHnd.ToString() == "0")
@@ -97,17 +97,109 @@ namespace WinFormsApp1
             Icon resultIcon = null;
             try
             {
-                //调用API方法读取图标  
-                int[] phiconLarge = new int[1];
-                int[] phiconSmall = new int[1];
-                uint count = Win32.ExtractIconEx(fileIcon[0], Int32.Parse(fileIcon[1]), phiconLarge, phiconSmall, 1);
+				//调用API方法读取图标  
+				IntPtr[] phiconLarge = new IntPtr[1];
+				IntPtr[] phiconSmall = new IntPtr[1];
+                uint count = ExtractIconEx(fileIcon[0], Int32.Parse(fileIcon[1]), phiconLarge, phiconSmall, 1);
                 IntPtr IconHnd = new IntPtr(isLarge ? phiconLarge[0] : phiconSmall[0]);
                 resultIcon = Icon.FromHandle(IconHnd);
             }
             catch { }
             return resultIcon;
         }
-    }
+		/// <summary>
+		/// 通过文件名称获取文件图标
+		/// </summary>
+		/// <param name="tcType">指定参数tcFullName的类型: FILE/DIR</param>
+		/// <param name="tcFullName">需要获取图片的全路径文件名</param>
+		/// <param name="tlIsLarge">是否获取大图标(32*32)</param>
+		/// <returns></returns>
+		public static Icon GetIconByFileName(string tcType, string tcFullName, bool tlIsLarge = false)
+		{
+			Icon ico = null;
+
+			string fileType = tcFullName.Contains(".") ? tcFullName.Substring(tcFullName.LastIndexOf('.')).ToLower() : string.Empty;
+
+			RegistryKey regVersion = null;
+			string regFileType = null;
+			string regIconString = null;
+			string systemDirectory = Environment.SystemDirectory + "\\";
+			IntPtr[] phiconLarge = new IntPtr[1];
+			IntPtr[] phiconSmall = new IntPtr[1];
+			IntPtr hIcon = IntPtr.Zero;
+			uint rst = 0;
+
+			if (tcType == "FILE")
+			{
+				//含图标的文件，优先使用文件中自带图标
+				if (".exe.ico".Contains(fileType))
+				{
+					//文件名 图标索引
+					phiconLarge[0] = phiconSmall[0] = IntPtr.Zero;
+					rst = ExtractIconEx(tcFullName, 0, phiconLarge, phiconSmall, 1);
+					hIcon = tlIsLarge ? phiconLarge[0] : phiconSmall[0];
+					ico = hIcon == IntPtr.Zero ? null : Icon.FromHandle(hIcon).Clone() as Icon;
+					if (phiconLarge[0] != IntPtr.Zero) w32.DestroyIcon(phiconLarge[0]);
+					if (phiconSmall[0] != IntPtr.Zero) w32.DestroyIcon(phiconSmall[0]);
+					if (ico != null)
+						return ico;
+				}
+
+				//通过文件扩展名读取图标
+				regVersion = Registry.ClassesRoot.OpenSubKey(fileType, false);
+				if (regVersion != null)
+				{
+					regFileType = regVersion.GetValue("") as string;
+					regVersion.Close();
+					regVersion = Registry.ClassesRoot.OpenSubKey(regFileType + @"\DefaultIcon", false);
+					if (regVersion != null)
+					{
+						regIconString = regVersion.GetValue("") as string;
+						regVersion.Close();
+					}
+				}
+				if (regIconString == null)
+				{
+					//没有读取到文件类型注册信息，指定为未知文件类型的图标
+					regIconString = systemDirectory + "shell32.dll,0";
+				}
+			}
+			else
+			{
+				//直接指定为文件夹图标
+				regIconString = systemDirectory + "shell32.dll,3";
+			}
+
+			string[] fileIcon = regIconString.Split(new char[] { ',' });
+			//系统注册表中注册的标图不能直接提取，则返回可执行文件的通用图标
+			fileIcon = fileIcon.Length == 2 ? fileIcon : new string[] { systemDirectory + "shell32.dll", "2" };
+
+			phiconLarge[0] = phiconSmall[0] = IntPtr.Zero;
+			rst = ExtractIconEx(fileIcon[0].Trim('\"'), Int32.Parse(fileIcon[1]), phiconLarge, phiconSmall, 1);
+			hIcon = tlIsLarge ? phiconLarge[0] : phiconSmall[0];
+			ico = hIcon == IntPtr.Zero ? null : Icon.FromHandle(hIcon).Clone() as Icon;
+			if (phiconLarge[0] != IntPtr.Zero) w32.DestroyIcon(phiconLarge[0]);
+			if (phiconSmall[0] != IntPtr.Zero) w32.DestroyIcon(phiconSmall[0]);
+			if (ico != null)
+				return ico;
+
+			// 对于文件，如果提取文件图标失败，则重新使用可执行文件通用图标
+			if (tcType == "FILE")
+			{
+				//系统注册表中注册的标图不能直接提取，则返回可执行文件的通用图标
+				fileIcon = new string[] { systemDirectory + "shell32.dll", "2" };
+				phiconLarge = new IntPtr[1];
+				phiconSmall = new IntPtr[1];
+				rst = ExtractIconEx(fileIcon[0], Int32.Parse(fileIcon[1]), phiconLarge, phiconSmall, 1);
+				hIcon = tlIsLarge ? phiconLarge[0] : phiconSmall[0];
+				ico = hIcon == IntPtr.Zero ? null : Icon.FromHandle(hIcon).Clone() as Icon;
+				if (phiconLarge[0] != IntPtr.Zero) w32.DestroyIcon(phiconLarge[0]);
+				if (phiconSmall[0] != IntPtr.Zero) w32.DestroyIcon(phiconSmall[0]);
+			}
+
+			return ico;
+		}
+	}
     
     class FileInfoList
     {

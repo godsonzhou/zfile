@@ -4,73 +4,7 @@ using WinShell;
 
 namespace WinFormsApp1
 {
-	//[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-	//public struct SHFILEINFO
-	//{
-	//	public IntPtr hIcon;
-	//	public int iIcon;
-	//	public uint dwAttributes;
-	//	[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
-	//	public string szDisplayName;
-	//	[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
-	//	public string szTypeName;
-	//}
-	//[Flags]
-	//public enum SHCONTF
-	//{
-	//	CHECKING_FOR_CHILDREN = 0x00010,
-	//	FOLDERS = 0x00020,
-	//	NONFOLDERS = 0x00040,
-	//	INCLUDEHIDDEN = 0x00080,
-	//	INIT_ON_FIRST_NEXT = 0x00100,
-	//	NETPRINTERSRCH = 0x00200,
-	//	SHAREABLE = 0x00400,
-	//	STORAGE = 0x00800,
-	//	NAVIGATION_ENUM = 0x01000,
-	//	FASTITEMS = 0x02000,
-	//	FLATLIST = 0x04000,
-	//	ENABLE_ASYNC = 0x08000,
-	//	INCLUDESUPERHIDDEN = 0x10000
-	//}
 
-	//[Flags]
-	//public enum SFGAO : uint
-	//{
-	//	CANCOPY = 0x1,
-	//	CANMOVE = 0x2,
-	//	CANLINK = 0x4,
-	//	STORAGE = 0x00000008,
-	//	CANRENAME = 0x00000010,
-	//	CANDELETE = 0x00000020,
-	//	HASPROPSHEET = 0x00000040,
-	//	DROPTARGET = 0x00000100,
-	//	CAPABILITYMASK = 0x00000177,
-	//	ENCRYPTED = 0x00002000,
-	//	ISSLOW = 0x00004000,
-	//	GHOSTED = 0x00008000,
-	//	LINK = 0x00010000,
-	//	SHARE = 0x00020000,
-	//	READONLY = 0x00040000,
-	//	HIDDEN = 0x00080000,
-	//	DISPLAYATTRMASK = 0x000FC000,
-	//	FILESYSANCESTOR = 0x10000000,
-	//	FOLDER = 0x20000000,
-	//	FILESYSTEM = 0x40000000,
-	//	HASSUBFOLDER = 0x80000000,
-	//	CONTENTSMASK = 0x80000000,
-	//	VALIDATE = 0x01000000,
-	//	REMOVABLE = 0x02000000,
-	//	COMPRESSED = 0x04000000,
-	//	BROWSABLE = 0x08000000,
-	//	NONENUMERATED = 0x00100000,
-	//	NEWCONTENT = 0x00200000,
-	//	CANMONIKER = 0x00400000,
-	//	HASSTORAGE = 0x00400000,
-	//	STREAM = 0x00400000,
-	//	STORAGEANCESTOR = 0x00800000,
-	//	STORAGECAPMASK = 0x70C50008,
-	//	PKEYSFGAOMASK = 0x81044000
-	//}
 
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
 	public struct STRRET
@@ -89,17 +23,6 @@ namespace WinFormsApp1
 		FORPARSING = 0x8000
 	}
 
-	//[Flags]
-	//public enum GCS : uint
-	//{
-	//	VERBA = 0x00000000,
-	//	HELPTEXTA = 0x00000001,
-	//	VALIDATEA = 0x00000002,
-	//	VERBW = 0x00000004,
-	//	HELPTEXTW = 0x00000005,
-	//	VALIDATEW = 0x00000006,
-	//	UNICODE = 0x00000004
-	//}
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
 	public struct MENUITEMINFO
 	{
@@ -130,26 +53,7 @@ namespace WinFormsApp1
 		BITMAP = 0x00000080,
 		FTYPE = 0x00000100
 	}
-
-	//[StructLayout(LayoutKind.Sequential)]
-	//public struct CMINVOKECOMMANDINFOEX
-	//{
-	//	public int cbSize;
-	//	public CMIC fMask;
-	//	public IntPtr hwnd;
-	//	public IntPtr lpVerb;
-	//	public string lpParameters;
-	//	public string lpDirectory;
-	//	public int nShow;
-	//	public int dwHotKey;
-	//	public IntPtr hIcon;
-	//	public string lpTitle;
-	//	public IntPtr lpVerbW;
-	//	public string lpParametersW;
-	//	public string lpDirectoryW;
-	//	public string lpTitleW;
-	//	public POINT ptInvoke;
-	//}
+	
 
 	[Flags]
 	public enum CMIC : uint
@@ -168,38 +72,7 @@ namespace WinFormsApp1
 		MASK_PTINVOKE = 0x20000000
 	}
 
-	//[StructLayout(LayoutKind.Sequential)]
-	//public struct POINT
-	//{
-	//	public int x;
-	//	public int y;
-	//	public POINT(int x, int y)
-	//	{
-	//		this.x = x;
-	//		this.y = y;
-	//	}
-	//}
-
-	//[Flags]
-	//public enum CMF : uint
-	//{
-	//	NORMAL = 0x00000000,
-	//	DEFAULTONLY = 0x00000001,
-	//	VERBSONLY = 0x00000002,
-	//	EXPLORE = 0x00000004,
-	//	NOVERBS = 0x00000008,
-	//	CANRENAME = 0x00000010,
-	//	NODEFAULT = 0x00000020,
-	//	INCLUDESTATIC = 0x00000040,
-	//	ITEMMENU = 0x00000080,
-	//	EXTENDEDVERBS = 0x00000100,
-	//	DISABLEDVERBS = 0x00000200,
-	//	ASYNCVERBSTATE = 0x00000400,
-	//	OPTIMIZEFORINVOKE = 0x00000800,
-	//	SYNCCASCADEMENU = 0x00001000,
-	//	DONOTPICKDEFAULT = 0x00002000,
-	//	RESERVED = 0xffff0000
-	//}
+	
 	public enum ShowWindowCommands : int
 	{
 		SW_HIDE = 0,

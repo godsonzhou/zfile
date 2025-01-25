@@ -1,4 +1,5 @@
 using System.Text;
+using WinShell;
 
 namespace WinFormsApp1
 {
@@ -53,5 +54,22 @@ namespace WinFormsApp1
             }
             return path;
         }
-    }
+		public static string getFSpathbyTree(TreeNode Node)
+		{
+			if (Node.Parent == null)
+			{
+				//top node process, does not need to process listviewbyfilesystem
+				return string.Empty;
+			}
+			var parentfolder = ((ShellItem)Node.Parent.Tag).ShellFolder;
+			var pidl = ((ShellItem)Node.Tag).PIDL;
+			return API.GetPathByIShell(parentfolder, pidl);
+		}
+		public static string getFSpathbyList(string path)
+		    {			
+			var parentfolder = w32.GetParentFolder(path);
+			var pidl = w32.ILCreateFromPath(path);
+			return API.GetPathByIShell(parentfolder, pidl);
+		}
+	}
 }

@@ -10,6 +10,7 @@ using LibVLCSharp.Shared;
 using SharpCompress.Archives;
 using WinShell;
 using CSCore.Streams.SampleConverter;
+using System.Collections;
 
 namespace WinFormsApp1
 {
@@ -17,7 +18,6 @@ namespace WinFormsApp1
     {
         public const string zfilePath = "D:\\gitrepos\\Files\\config\\";
     }
-
     public partial class Form1 : Form
     {
         private Dictionary<Keys, string> hotkeyMappings;
@@ -73,7 +73,6 @@ namespace WinFormsApp1
         private readonly StatusStrip leftStatusStrip = new();
         private readonly StatusStrip rightStatusStrip = new();
 
-        //private readonly CmdTable cmdTable = new();
         private readonly List<Icon> iconList = new();
         FileInfoList fileList;
 
@@ -105,8 +104,70 @@ namespace WinFormsApp1
             InitializeDynamicToolbar();
             InitializeTreeViewIcons(); // 初始化TreeView图标
             InitializeHotkeys(); // 初始化热键
+			getSpecPathFromReg();
+			getEnv();
         }
-        private void InitializeHotkeys()
+		private void getSpecPathFromReg()
+		{
+			RegistryKey folders;
+			folders = OpenRegistryPath(Registry.CurrentUser, @"\software\microsoft\windows\currentversion\explorer\shell folders");
+			//Windows用户桌面路径
+			string desktopPath = folders.GetValue("Desktop").ToString();
+			//Windows用户字体目录路径
+			string fontsPath = folders.GetValue("Fonts").ToString();
+			//Windows用户网络邻居路径
+			string nethoodPath = folders.GetValue("Nethood").ToString();
+			//Windows用户我的文档路径
+			string personalPath = folders.GetValue("Personal").ToString();
+			//Windows用户开始菜单程序路径
+			string programsPath = folders.GetValue("Programs").ToString();
+			//Windows用户存放用户最近访问文档快捷方式的目录路径
+			string recentPath = folders.GetValue("Recent").ToString();
+			//Windows用户发送到目录路径
+			string sendtoPath = folders.GetValue("Sendto").ToString();
+			//Windows用户开始菜单目录路径
+			string startmenuPath = folders.GetValue("Start menu").ToString();
+			//Windows用户开始菜单启动项目录路径
+			string startupPath = folders.GetValue("Startup").ToString();
+			//Windows用户收藏夹目录路径
+			string favoritesPath = folders.GetValue("Favorites").ToString();
+			//Windows用户网页历史目录路径
+			string historyPath = folders.GetValue("History").ToString();
+			//Windows用户Cookies目录路径
+			string cookiesPath = folders.GetValue("Cookies").ToString();
+			//Windows用户Cache目录路径
+			string cachePath = folders.GetValue("Cache").ToString();
+			//Windows用户应用程式数据目录路径
+			string appdataPath = folders.GetValue("Appdata").ToString();
+			//Windows用户打印目录路径
+			string printhoodPath = folders.GetValue("Printhood").ToString();
+			String Path = Environment.GetFolderPath(Environment.SpecialFolder.Favorites);//返回收藏夹位置
+			Console.WriteLine(Path);
+		}
+		private RegistryKey OpenRegistryPath(RegistryKey root, string s)
+		{
+			s = s.Remove(0, 1) + @"\";
+			while (s.IndexOf(@"\") != -1) {
+				root = root.OpenSubKey(s.Substring(0, s.IndexOf(@"\")));
+				s = s.Remove(0, s.IndexOf(@"\") + 1);
+			}
+			return root;
+		}
+
+		public static void getEnv()
+		{
+			//把环境变量中所有的值取出来，放到变量environment中
+			IDictionary environment = Environment.GetEnvironmentVariables();
+			//打印表头
+			Console.WriteLine("环境变量名\t=\t环境变量值");
+			//遍历environment中所有键值
+			foreach (string environmentKey in environment.Keys)
+			{
+				//打印出所有环境变量的名称和值
+				Console.WriteLine("(0}\t=\t{(1}", environmentKey, environment[environmentKey].ToString());
+			}
+		}
+		private void InitializeHotkeys()
         {
             hotkeyMappings = new Dictionary<Keys, string>
             {
@@ -154,8 +215,6 @@ namespace WinFormsApp1
             {
                 treeViewImageList.Images.Add("folder", folderIcon);
             }
-
-
             // 将ImageList分配给TreeView
             leftTree.ImageList = treeViewImageList;
             rightTree.ImageList = treeViewImageList;
@@ -279,22 +338,11 @@ namespace WinFormsApp1
                 mainContainer.SplitterDistance = halfWidth;
             }
         }
-        private void ConfigureMainContainer()
-        {
-            mainContainer.Dock = DockStyle.Fill;
-            mainContainer.Orientation = Orientation.Vertical;
-            mainContainer.SplitterDistance = ClientSize.Width / 2;
-        }
-
-        // ...condensed initialization methods...
 
         private void InitializeDriveComboBoxes()
         {
-            //ConfigureDriveBox(leftDriveBox, leftDrivePanel);
-            //ConfigureDriveBox(rightDriveBox, rightDrivePanel);
             ConfigureDriveBox(leftDriveBox, leftDrivePanel, leftPathTextBox);
             ConfigureDriveBox(rightDriveBox, rightDrivePanel, rightPathTextBox);
-
 
             LoadDrives();
         }
@@ -310,8 +358,6 @@ namespace WinFormsApp1
             parent.Controls.Add(pathTextBox);
             parent.Controls.Add(driveBox);
         }
-
-
         private void LoadDrives()
         {
             foreach (DriveInfo drive in DriveInfo.GetDrives())
@@ -508,19 +554,7 @@ namespace WinFormsApp1
                 iContextMenu.InvokeCommand(ref invoke);
             }
         }
-
-        private void InvokeCommand1(string path, uint id)
-        {
-
-            try
-            {
-                w32.ShellExecute(IntPtr.Zero, "open", path, "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"无法执行命令: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
+       
         public void myShellExe()
         {
             w32.ShellExecute(IntPtr.Zero, "open", "cmd.exe", "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
@@ -529,7 +563,6 @@ namespace WinFormsApp1
             //IntPtr hWnd = wih.Handle;    //获取窗口句柄
             //var result = ShellExecute(hWnd, "open", "需要打开的路径如C:\\Users\\Desktop\\xx.exe", null, null, (int)ShowWindowCommands.SW_SHOW);
         }
-
         private void TreeView_DrawNode(object? sender, DrawTreeNodeEventArgs e)
         {
             if (e.Node == null) return;
@@ -638,7 +671,10 @@ namespace WinFormsApp1
 
                     var listView = treeView == leftTree ? leftList : rightList;
                     LoadListView(e.Node, listView);
-                    var path = GetFullPath(e.Node);
+					//var path = GetFullPath(e.Node);	//bugfix: d:资料->d:\"my document", convert some display name to real path
+			
+					var path = FileSystemHelper.getFSpathbyTree(e.Node);
+					if (string.IsNullOrEmpty(path)) return;
                     LoadListViewByFilesystem(path, listView);
                     currentDirectory = path;
                     selectedNode = e.Node;
@@ -652,13 +688,9 @@ namespace WinFormsApp1
 
                     // 更新路径 TextBox
                     if (treeView == leftTree)
-                    {
                         leftPathTextBox.Text = path;
-                    }
                     else
-                    {
                         rightPathTextBox.Text = path;
-                    }
                 }
             }
             catch (Exception ex)
@@ -677,26 +709,18 @@ namespace WinFormsApp1
             }
             return Path.Combine(pathParts.ToArray());
         }
-
-
         private void ClearTreeViewHighlight(TreeView treeView)
         {
             foreach (TreeNode node in treeView.Nodes)
-            {
                 ClearNodeHighlight(node);
-            }
         }
-
         private void ClearNodeHighlight(TreeNode node)
         {
             node.BackColor = SystemColors.Window;
             node.ForeColor = SystemColors.WindowText;
             foreach (TreeNode childNode in node.Nodes)
-            {
                 ClearNodeHighlight(childNode);
-            }
         }
-
         private void LoadSubDirectories(TreeNode parentNode)
         {
             ShellItem sItem = (ShellItem)parentNode.Tag;
@@ -774,11 +798,9 @@ namespace WinFormsApp1
                     SelectedImageKey = "desktop" // 设置选中图标
                 };
                 treeView.Nodes.Add(rootNode);
-
                 // 加载并展开根目录
                 LoadSubDirectories(rootNode);
                 rootNode.Expand();
-
                 treeView.EndUpdate();
             }
             catch (Exception ex)
@@ -786,8 +808,205 @@ namespace WinFormsApp1
                 MessageBox.Show($"加载驱动器目录失败: {ex.Message}", "错误");
             }
         }
+		private void InitializeDynamicToolbar()
+		{
+			string toolbarFilePath = constant_value.zfilePath + "DEFAULT.BAR";
+			if (!File.Exists(toolbarFilePath))
+			{
+				MessageBox.Show("工具栏配置文件不存在" + toolbarFilePath, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return;
+			}
 
-        private void ConfigureListView(ListView listView, Panel parent)
+			//读取config文件夹中wcmdicons.dll文件中所有图标到列表iconlist中
+			var zfile_path = constant_value.zfilePath + "WCMIcon3.dll";   //"C:\\Users\\zhouy\\source\\repos\\WinFormsApp1\\src\\config\\wcmdicons3.dll"
+
+			icons_Load(zfile_path);
+			var fileInfoList = new FileInfoList(new string[] { zfile_path });
+
+			using (StreamReader reader = new StreamReader(toolbarFilePath, Encoding.GetEncoding("GB2312")))
+			{
+				dynamicToolStrip = new ToolStrip();
+				string? line;
+				int buttonCount = 0;
+				int buttonIndex;
+				string buttonIcon = "";
+				string cmd = "";
+				string menuText = "";
+				string pathText = "";
+				string iconic = "";
+				string paramText = "";
+				List<int> emptybuttons = new List<int>();
+
+				while ((line = reader.ReadLine()) != null)
+				{
+					line = line.Trim();
+					if (line.StartsWith("Buttoncount="))
+					{
+						buttonCount = int.Parse(line.Substring("Buttoncount=".Length));
+						continue;
+					}
+					else if (line.StartsWith("iconic"))
+					{
+						var _buttonIndex = int.Parse(line.Substring(6, line.IndexOf('=') - 6));
+						if (emptybuttons.Contains(_buttonIndex))  //如果emptybuttons中存在_buttonIndex，则跳过
+							continue;
+						iconic = line.Substring(line.IndexOf('=') + 1);
+					}
+					else if (line.StartsWith("cmd"))
+					{
+						int _buttonIndex = int.Parse(line.Substring(3, line.IndexOf('=') - 3));
+						if (emptybuttons.Contains(_buttonIndex))
+							continue;
+
+						cmd = line.Substring(line.IndexOf('=') + 1);
+					}
+					else if (line.StartsWith("menu"))
+					{
+						int _buttonIndex = int.Parse(line.Substring(4, line.IndexOf('=') - 4));
+						if (emptybuttons.Contains(_buttonIndex))
+							continue;
+						menuText = line.Substring(line.IndexOf('=') + 1);
+					}
+					else if (line.StartsWith("path"))
+					{
+						int _buttonIndex = int.Parse(line.Substring(4, line.IndexOf('=') - 4));
+						if (emptybuttons.Contains(_buttonIndex))
+							continue;
+						pathText = line.Substring(line.IndexOf('=') + 1);
+					}
+					else if (line.StartsWith("param"))
+					{
+						int _buttonIndex = int.Parse(line.Substring(5, line.IndexOf('=') - 5));
+						if (emptybuttons.Contains(_buttonIndex))
+							continue;
+						paramText = line.Substring(line.IndexOf('=') + 1);
+					}
+					else if (line.StartsWith("button"))
+					{
+						if (!cmd.Equals(""))
+						{
+							var zhdesc = cmdProcessor.cmdTable.GetByCmdName(cmd)?.ZhDesc ?? "";
+							ToolStripButton button = new ToolStripButton
+							{
+								Text = menuText,
+								ToolTipText = zhdesc,
+								Image = LoadIcon(buttonIcon),
+								Tag = cmd
+							};
+
+							if (cmd.StartsWith("openbar"))
+							{
+								string dropdownFilePath = cmd.Substring("openbar ".Length);
+								ToolStripDropDownButton dropdownButton = new ToolStripDropDownButton
+								{
+									Text = menuText,
+									ToolTipText = menuText,
+									Image = LoadIcon(buttonIcon)
+								};
+								InitializeDropdownMenu(dropdownButton, dropdownFilePath);
+								dynamicToolStrip.Items.Add(dropdownButton);
+							}
+							else
+							{
+								button.Click += ToolbarButton_Click;
+								dynamicToolStrip.Items.Add(button);
+							}
+							menuText = "";
+							pathText = "";
+							cmd = "";
+							iconic = "";
+							paramText = "";
+						}
+
+						buttonIndex = int.Parse(line.Substring(6, line.IndexOf('=') - 6));
+						buttonIcon = line.Substring(line.IndexOf('=') + 1);
+						//如果buttonIcon为空，则读取下一行，并记录当前buttonIndex,忽略下面所有编号为buttonIndex的行
+						if (string.IsNullOrEmpty(buttonIcon))
+						{
+							emptybuttons.Add(buttonIndex);
+							continue;
+						}
+					}
+				}
+
+				this.Controls.Add(dynamicToolStrip);
+			}
+
+
+		}
+		private void InitializeDynamicMenu()
+		{
+			string menuFilePath = "C:\\Users\\zhouy\\source\\repos\\WinFormsApp1\\src\\config\\WCMD_CHN.MNU";
+			if (!File.Exists(menuFilePath))
+			{
+				MessageBox.Show("菜单文件不存在" + menuFilePath, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return;
+			}
+
+			try
+			{
+				using (StreamReader reader = new StreamReader(menuFilePath, Encoding.GetEncoding("GB2312")))
+				{
+					dynamicMenuStrip = new MenuStrip();
+					Stack<ToolStripMenuItem> menuStack = new Stack<ToolStripMenuItem>();
+					ToolStripMenuItem? currentPopup = null;
+
+					string? line;
+					while ((line = reader.ReadLine()) != null)
+					{
+						line = line.Trim();
+						if (line.StartsWith("POPUP"))
+						{
+							string menuItemText = line.Substring(6).Trim().Trim('"');
+							ToolStripMenuItem menuItem = new ToolStripMenuItem(menuItemText);
+							if (menuStack.Count > 0)
+							{
+								menuStack.Peek().DropDownItems.Add(menuItem);
+							}
+							else
+							{
+								dynamicMenuStrip.Items.Add(menuItem);
+							}
+							menuStack.Push(menuItem);
+							currentPopup = menuItem;
+						}
+						else if (line.StartsWith("END_POPUP"))
+						{
+							if (menuStack.Count > 0)
+							{
+								menuStack.Pop();
+							}
+							currentPopup = menuStack.Count > 0 ? menuStack.Peek() : null;
+						}
+						else if (currentPopup != null)
+						{
+							line = line.TrimStart().Substring(9);
+							if (line.StartsWith("SEPARATOR"))
+							{
+								if (currentPopup != null)
+								{
+									currentPopup.DropDownItems.Add(new ToolStripSeparator());
+								}
+							}
+							else
+							{
+								ToolStripMenuItem menuItem = new ToolStripMenuItem(line);
+								menuItem.Click += MenuItem_Click;
+								currentPopup.DropDownItems.Add(menuItem);
+							}
+						}
+					}
+
+					this.MainMenuStrip = dynamicMenuStrip;
+					this.Controls.Add(dynamicMenuStrip);
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"加载菜单失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+		private void ConfigureListView(ListView listView, Panel parent)
         {
             listView.Dock = DockStyle.Fill;
             listView.View = View.Details;
@@ -863,9 +1082,7 @@ namespace WinFormsApp1
                 {
                     listView.FocusedItem = item;
                     var p = Path.Combine(currentDirectory, item.Text);
-                    // if (p.Contains(':'))
-                    //     ShowContextMenu(listView, p, e.Location);
-                    // else
+                
                     var tree1 = listView == leftList ? leftTree : rightTree;
                     // Find corresponding TreeNode for the clicked ListView item
                     TreeNode? node = tree1.SelectedNode;
@@ -1070,7 +1287,7 @@ namespace WinFormsApp1
                 }
 
                 var i = (ShellItem)node.Tag;
-                if (fullPath.Contains(node.Text))
+                if (fullPath.Contains(node.Text)||node.Text.Equals("桌面"))
                 {
                     LoadSubDirectories(node); // 确保子节点已加载
                     node.Expand();
@@ -1096,7 +1313,6 @@ namespace WinFormsApp1
 
             // 调用函数执行treeview绑定事件
             ConfigureTreeView(tree);
-
 
             // 添加控件到分割容器
             splitter.Panel1.Controls.Add(tree);
@@ -1230,11 +1446,9 @@ namespace WinFormsApp1
                     string pth = API.GetPathByIShell(root, pidlSub);
                     WinShell.IShellFolder iSub;
                     root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);
-
-                    // 获取图标
                     //Icon icon = IconHelper.GetIconByFileType(name.Contains(':') ? "folder" : Path.GetExtension(name), false);
                     var fiwi = new FileInfoWithIcon(name);
-                    var icon = fiwi.smallIcon != null ? fiwi.smallIcon : GetIconByFileName("FILE", name);
+                    var icon = fiwi.smallIcon != null ? fiwi.smallIcon : IconHelper.GetIconByFileName("FILE", name);
                     int iconIndex = listView.SmallImageList.Images.Count;
                     listView.SmallImageList.Images.Add(icon);
 
@@ -1253,6 +1467,7 @@ namespace WinFormsApp1
         private void LoadListViewByFilesystem(string path, ListView listView)
         {
             if (string.IsNullOrEmpty(path)) return;
+			if (!path.Contains(':')) return;
             path = FileSystemHelper.getFSpath(path);
             if (path.EndsWith(':'))
                 path += "\\";
@@ -1262,7 +1477,8 @@ namespace WinFormsApp1
                 var currentTime = DateTime.Now;
                 var needsUpdate = !_directoryCache.ContainsKey(path) ||
                                 (currentTime - _lastCacheUpdate).TotalMilliseconds > _cacheTimeout;
-
+				//d:\资料->d:\my document, use getPathFS to get the true path of the displayed name
+				path = FileSystemHelper.getFSpathbyList(path);
                 List<FileSystemInfo> items;
                 if (needsUpdate)
                 {
@@ -1288,7 +1504,6 @@ namespace WinFormsApp1
                         listView.Items.Add(lvItem);
                     }
                 }
-
                 listView.EndUpdate();
             }
             catch (Exception ex)
@@ -1297,8 +1512,6 @@ namespace WinFormsApp1
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
-        // 优化ListViewItem创建
         private ListViewItem? CreateListViewItem(FileSystemInfo item, ListView listView)
         {
             try
@@ -1383,7 +1596,6 @@ namespace WinFormsApp1
                 previewPanel.Text = $"无法预览文件: {ex.Message}";
             }
         }
-
         private async void ListView_SelectedIndexChanged(object? sender, EventArgs e)
         {
             if (sender is not ListView listView) return;
@@ -1426,7 +1638,6 @@ namespace WinFormsApp1
         {
             private readonly int column;
             private readonly SortOrder order;
-
             public ListViewItemComparer(int column, SortOrder order)
             {
                 this.column = column;
@@ -1476,7 +1687,6 @@ namespace WinFormsApp1
                 // 根据排序顺序返回结果
                 return order == SortOrder.Ascending ? result : -result;
             }
-
             private int CompareFileSize(string size1, string size2)
             {
                 try
@@ -1654,7 +1864,6 @@ namespace WinFormsApp1
         private void ViewButton_Click(object? sender, EventArgs e)
         {
             do_cm_list();
-
         }
 
         private Control CreateTextViewer(string filePath)
@@ -1744,8 +1953,6 @@ namespace WinFormsApp1
             return panel;
         }
 
-        // ...
-
         private Control CreateVideoPlayer(string filePath)
         {
             var panel = new Panel { Dock = DockStyle.Fill };
@@ -1802,7 +2009,6 @@ namespace WinFormsApp1
             {
                 textBox.Text = $"无法读取压缩文件: {ex.Message}";
             }
-
             return textBox;
         }
 
@@ -1844,7 +2050,6 @@ namespace WinFormsApp1
             // 编辑按钮点击处理逻辑
         }
 
-
         private void CopyButton_Click(object? sender, EventArgs e)
         {
             var sourceListView = leftList.Focused ? leftList : rightList;
@@ -1877,7 +2082,6 @@ namespace WinFormsApp1
                 MessageBox.Show($"复制失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
         private void CopyDirectory(string sourceDir, string targetDir)
         {
             Directory.CreateDirectory(targetDir);
@@ -1895,7 +2099,6 @@ namespace WinFormsApp1
             }
         }
 
-
         private void MoveButton_Click(object? sender, EventArgs e)
         {
             var sourceListView = leftList.Focused ? leftList : rightList;
@@ -1911,13 +2114,9 @@ namespace WinFormsApp1
             try
             {
                 if (selectedItem.SubItems[3].Text == "<DIR>")
-                {
                     Directory.Move(sourcePath, targetPath);
-                }
                 else
-                {
                     File.Move(sourcePath, targetPath);
-                }
 
                 // Refresh both panels
                 RefreshTreeViewAndListView(leftTree, leftList, leftDriveBox.SelectedItem?.ToString() ?? string.Empty);
@@ -1972,8 +2171,6 @@ namespace WinFormsApp1
             var selectedItem = listView.SelectedItems[0];
             var itemPath = Path.Combine(currentDirectory, selectedItem.Text);
 
-            //var confirmResult = MessageBox.Show($"确定要删除 {selectedItem.Text} 吗？", "确认删除", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-            //if (confirmResult == DialogResult.Yes)
             {
                 try
                 {
@@ -2017,12 +2214,6 @@ namespace WinFormsApp1
                 MessageBox.Show($"无法打开命令提示符: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private string getCurrentPath()
-        {
-            // 获取当前exe文件所在目录
-            string currentDirectory = Directory.GetCurrentDirectory();
-            return currentDirectory;
-        }
         public static string ConvertGB2312ToUTF8(string str)
         {
             Encoding utf8;
@@ -2033,78 +2224,6 @@ namespace WinFormsApp1
             gb = Encoding.Convert(gb2312, utf8, gb);
             return utf8.GetString(gb);
         }
-        private void InitializeDynamicMenu()
-        {
-            string menuFilePath = "C:\\Users\\zhouy\\source\\repos\\WinFormsApp1\\src\\config\\WCMD_CHN.MNU";
-            if (!File.Exists(menuFilePath))
-            {
-                MessageBox.Show("菜单文件不存在" + menuFilePath, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            try
-            {
-                using (StreamReader reader = new StreamReader(menuFilePath, Encoding.GetEncoding("GB2312")))
-                {
-                    dynamicMenuStrip = new MenuStrip();
-                    Stack<ToolStripMenuItem> menuStack = new Stack<ToolStripMenuItem>();
-                    ToolStripMenuItem? currentPopup = null;
-
-                    string? line;
-                    while ((line = reader.ReadLine()) != null)
-                    {
-                        line = line.Trim();
-                        if (line.StartsWith("POPUP"))
-                        {
-                            string menuItemText = line.Substring(6).Trim().Trim('"');
-                            ToolStripMenuItem menuItem = new ToolStripMenuItem(menuItemText);
-                            if (menuStack.Count > 0)
-                            {
-                                menuStack.Peek().DropDownItems.Add(menuItem);
-                            }
-                            else
-                            {
-                                dynamicMenuStrip.Items.Add(menuItem);
-                            }
-                            menuStack.Push(menuItem);
-                            currentPopup = menuItem;
-                        }
-                        else if (line.StartsWith("END_POPUP"))
-                        {
-                            if (menuStack.Count > 0)
-                            {
-                                menuStack.Pop();
-                            }
-                            currentPopup = menuStack.Count > 0 ? menuStack.Peek() : null;
-                        }
-                        else if (currentPopup != null)
-                        {
-                            line = line.TrimStart().Substring(9);
-                            if (line.StartsWith("SEPARATOR"))
-                            {
-                                if (currentPopup != null)
-                                {
-                                    currentPopup.DropDownItems.Add(new ToolStripSeparator());
-                                }
-                            }
-                            else
-                            {
-                                ToolStripMenuItem menuItem = new ToolStripMenuItem(line);
-                                menuItem.Click += MenuItem_Click;
-                                currentPopup.DropDownItems.Add(menuItem);
-                            }
-                        }
-                    }
-
-                    this.MainMenuStrip = dynamicMenuStrip;
-                    this.Controls.Add(dynamicMenuStrip);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"加载菜单失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
 
         private void MenuItem_Click(object? sender, EventArgs e)
         {
@@ -2114,133 +2233,7 @@ namespace WinFormsApp1
                 cmdProcessor.processCmdByName(menuItem.Text);
             }
         }
-
-        private void InitializeDynamicToolbar()
-        {
-            string toolbarFilePath = constant_value.zfilePath + "DEFAULT.BAR";
-            if (!File.Exists(toolbarFilePath))
-            {
-                MessageBox.Show("工具栏配置文件不存在" + toolbarFilePath, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            //读取config文件夹中wcmdicons.dll文件中所有图标到列表iconlist中
-            var zfile_path = constant_value.zfilePath + "WCMIcon3.dll";   //"C:\\Users\\zhouy\\source\\repos\\WinFormsApp1\\src\\config\\wcmdicons3.dll"
-
-            icons_Load(zfile_path);
-            var fileInfoList = new FileInfoList(new string[] { zfile_path });
-
-            using (StreamReader reader = new StreamReader(toolbarFilePath, Encoding.GetEncoding("GB2312")))
-            {
-                dynamicToolStrip = new ToolStrip();
-                string? line;
-                int buttonCount = 0;
-                int buttonIndex;
-                string buttonIcon = "";
-                string cmd = "";
-                string menuText = "";
-                string pathText = "";
-                string iconic = "";
-                string paramText = "";
-                List<int> emptybuttons = new List<int>();
-
-                while ((line = reader.ReadLine()) != null)
-                {
-                    line = line.Trim();
-                    if (line.StartsWith("Buttoncount="))
-                    {
-                        buttonCount = int.Parse(line.Substring("Buttoncount=".Length));
-                        continue;
-                    }
-                    else if (line.StartsWith("iconic"))
-                    {
-                        var _buttonIndex = int.Parse(line.Substring(6, line.IndexOf('=') - 6));
-                        if (emptybuttons.Contains(_buttonIndex))  //如果emptybuttons中存在_buttonIndex，则跳过
-                            continue;
-                        iconic = line.Substring(line.IndexOf('=') + 1);
-                    }
-                    else if (line.StartsWith("cmd"))
-                    {
-                        int _buttonIndex = int.Parse(line.Substring(3, line.IndexOf('=') - 3));
-                        if (emptybuttons.Contains(_buttonIndex))
-                            continue;
-
-                        cmd = line.Substring(line.IndexOf('=') + 1);
-                    }
-                    else if (line.StartsWith("menu"))
-                    {
-                        int _buttonIndex = int.Parse(line.Substring(4, line.IndexOf('=') - 4));
-                        if (emptybuttons.Contains(_buttonIndex))
-                            continue;
-                        menuText = line.Substring(line.IndexOf('=') + 1);
-                    }
-                    else if (line.StartsWith("path"))
-                    {
-                        int _buttonIndex = int.Parse(line.Substring(4, line.IndexOf('=') - 4));
-                        if (emptybuttons.Contains(_buttonIndex))
-                            continue;
-                        pathText = line.Substring(line.IndexOf('=') + 1);
-                    }
-                    else if (line.StartsWith("param"))
-                    {
-                        int _buttonIndex = int.Parse(line.Substring(5, line.IndexOf('=') - 5));
-                        if (emptybuttons.Contains(_buttonIndex))
-                            continue;
-                        paramText = line.Substring(line.IndexOf('=') + 1);
-                    }
-                    else if (line.StartsWith("button"))
-                    {
-                        if (!cmd.Equals(""))
-                        {
-                            var zhdesc = cmdProcessor.cmdTable.GetByCmdName(cmd)?.ZhDesc ?? "";
-                            ToolStripButton button = new ToolStripButton
-                            {
-                                Text = menuText,
-                                ToolTipText = zhdesc,
-                                Image = LoadIcon(buttonIcon),
-                                Tag = cmd
-                            };
-
-                            if (cmd.StartsWith("openbar"))
-                            {
-                                string dropdownFilePath = cmd.Substring("openbar ".Length);
-                                ToolStripDropDownButton dropdownButton = new ToolStripDropDownButton
-                                {
-                                    Text = menuText,
-                                    ToolTipText = menuText,
-                                    Image = LoadIcon(buttonIcon)
-                                };
-                                InitializeDropdownMenu(dropdownButton, dropdownFilePath);
-                                dynamicToolStrip.Items.Add(dropdownButton);
-                            }
-                            else
-                            {
-                                button.Click += ToolbarButton_Click;
-                                dynamicToolStrip.Items.Add(button);
-                            }
-                            menuText = "";
-                            pathText = "";
-                            cmd = "";
-                            iconic = "";
-                            paramText = "";
-                        }
-
-                        buttonIndex = int.Parse(line.Substring(6, line.IndexOf('=') - 6));
-                        buttonIcon = line.Substring(line.IndexOf('=') + 1);
-                        //如果buttonIcon为空，则读取下一行，并记录当前buttonIndex,忽略下面所有编号为buttonIndex的行
-                        if (string.IsNullOrEmpty(buttonIcon))
-                        {
-                            emptybuttons.Add(buttonIndex);
-                            continue;
-                        }
-                    }
-                }
-
-                this.Controls.Add(dynamicToolStrip);
-            }
-
-
-        }
+     
         //从环境变量获取%COMMANDER_PATH%
         private string GetCommanderPath()
         {
@@ -2248,12 +2241,10 @@ namespace WinFormsApp1
             //if (string.IsNullOrEmpty(commanderPath))
             {
                 //MessageBox.Show("未设置COMMANDER_PATH环境变量", "warning", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
                 //var bb = Environment.CurrentDirectory;
                 //var cc = AppDomain.CurrentDomain.BaseDirectory;
                 //var dd = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
                 return Directory.GetCurrentDirectory(); ;
-
             }
             return commanderPath;
         }
@@ -2345,7 +2336,6 @@ namespace WinFormsApp1
                     //return new Icon(iconPath).ToBitmap();
                     return GetIconByFilenameAndIdx(iconPath, 0);
                 }
-
             }
             return null;
         }
@@ -2355,8 +2345,8 @@ namespace WinFormsApp1
             int nIconIndex,
             IntPtr[] phiconLarge,
             IntPtr[] phiconSmall,
-            uint nIcons);
-
+            uint nIcons
+			);
 
         private Image GetIconByFilenameAndIdx(string path, int index)
         {
@@ -2382,109 +2372,5 @@ namespace WinFormsApp1
             phiconLarge.ToList().ForEach(x => w32.DestroyIcon(x));
             return imagelist1;
         }
-
-        /// <summary>
-        /// 通过文件名称获取文件图标
-        /// </summary>
-        /// <param name="tcType">指定参数tcFullName的类型: FILE/DIR</param>
-        /// <param name="tcFullName">需要获取图片的全路径文件名</param>
-        /// <param name="tlIsLarge">是否获取大图标(32*32)</param>
-        /// <returns></returns>
-        private Icon GetIconByFileName(string tcType, string tcFullName, bool tlIsLarge = false)
-        {
-            Icon ico = null;
-
-            string fileType = tcFullName.Contains(".") ? tcFullName.Substring(tcFullName.LastIndexOf('.')).ToLower() : string.Empty;
-
-            RegistryKey regVersion = null;
-            string regFileType = null;
-            string regIconString = null;
-            string systemDirectory = Environment.SystemDirectory + "\\";
-            IntPtr[] phiconLarge = new IntPtr[1];
-            IntPtr[] phiconSmall = new IntPtr[1];
-            IntPtr hIcon = IntPtr.Zero;
-            uint rst = 0;
-
-            if (tcType == "FILE")
-            {
-                //含图标的文件，优先使用文件中自带图标
-                if (".exe.ico".Contains(fileType))
-                {
-                    //文件名 图标索引
-                    phiconLarge[0] = phiconSmall[0] = IntPtr.Zero;
-                    rst = ExtractIconEx(tcFullName, 0, phiconLarge, phiconSmall, 1);
-                    hIcon = tlIsLarge ? phiconLarge[0] : phiconSmall[0];
-                    ico = hIcon == IntPtr.Zero ? null : Icon.FromHandle(hIcon).Clone() as Icon;
-                    if (phiconLarge[0] != IntPtr.Zero) w32.DestroyIcon(phiconLarge[0]);
-                    if (phiconSmall[0] != IntPtr.Zero) w32.DestroyIcon(phiconSmall[0]);
-                    if (ico != null)
-                        return ico;
-                }
-
-                //通过文件扩展名读取图标
-                regVersion = Registry.ClassesRoot.OpenSubKey(fileType, false);
-                if (regVersion != null)
-                {
-                    regFileType = regVersion.GetValue("") as string;
-                    regVersion.Close();
-                    regVersion = Registry.ClassesRoot.OpenSubKey(regFileType + @"\DefaultIcon", false);
-                    if (regVersion != null)
-                    {
-                        regIconString = regVersion.GetValue("") as string;
-                        regVersion.Close();
-                    }
-                }
-                if (regIconString == null)
-                {
-                    //没有读取到文件类型注册信息，指定为未知文件类型的图标
-                    regIconString = systemDirectory + "shell32.dll,0";
-                }
-            }
-            else
-            {
-                //直接指定为文件夹图标
-                regIconString = systemDirectory + "shell32.dll,3";
-            }
-
-            string[] fileIcon = regIconString.Split(new char[] { ',' });
-            //系统注册表中注册的标图不能直接提取，则返回可执行文件的通用图标
-            fileIcon = fileIcon.Length == 2 ? fileIcon : new string[] { systemDirectory + "shell32.dll", "2" };
-
-            phiconLarge[0] = phiconSmall[0] = IntPtr.Zero;
-            rst = ExtractIconEx(fileIcon[0].Trim('\"'), Int32.Parse(fileIcon[1]), phiconLarge, phiconSmall, 1);
-            hIcon = tlIsLarge ? phiconLarge[0] : phiconSmall[0];
-            ico = hIcon == IntPtr.Zero ? null : Icon.FromHandle(hIcon).Clone() as Icon;
-            if (phiconLarge[0] != IntPtr.Zero) w32.DestroyIcon(phiconLarge[0]);
-            if (phiconSmall[0] != IntPtr.Zero) w32.DestroyIcon(phiconSmall[0]);
-            if (ico != null)
-            {
-                return ico;
-            }
-
-            // 对于文件，如果提取文件图标失败，则重新使用可执行文件通用图标
-            if (tcType == "FILE")
-            {
-                //系统注册表中注册的标图不能直接提取，则返回可执行文件的通用图标
-                fileIcon = new string[] { systemDirectory + "shell32.dll", "2" };
-                phiconLarge = new IntPtr[1];
-                phiconSmall = new IntPtr[1];
-                rst = ExtractIconEx(fileIcon[0], Int32.Parse(fileIcon[1]), phiconLarge, phiconSmall, 1);
-                hIcon = tlIsLarge ? phiconLarge[0] : phiconSmall[0];
-                ico = hIcon == IntPtr.Zero ? null : Icon.FromHandle(hIcon).Clone() as Icon;
-                if (phiconLarge[0] != IntPtr.Zero) w32.DestroyIcon(phiconLarge[0]);
-                if (phiconSmall[0] != IntPtr.Zero) w32.DestroyIcon(phiconSmall[0]);
-            }
-
-            return ico;
-        }
     }
-}
-
-/// <summary>  
-/// 定义调用的API方法  
-/// </summary>  
-class Win32
-{
-    [DllImport("shell32.dll")]
-    public static extern uint ExtractIconEx(string lpszFile, int nIconIndex, int[] phiconLarge, int[] phiconSmall, uint nIcons);
 }

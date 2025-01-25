@@ -149,7 +149,7 @@ namespace WinFormsApp1
             treeViewImageList.ImageSize = new Size(16, 16);
 
             // 获取系统默认文件夹图标
-            Icon folderIcon = GetSystemIcon.GetIconByFileType("folder", false);
+            Icon folderIcon = IconHelper.GetIconByFileType("folder", false);
             if (folderIcon != null)
             {
                 treeViewImageList.Images.Add("folder", folderIcon);
@@ -242,35 +242,6 @@ namespace WinFormsApp1
             ConfigureUpperPanel(rightUpperPanel, rightDrivePanel, rightPanel.Panel1);
 
         }
-
-        // 分割条移动事件处理
-        private void MainContainer_SplitterMoved(object? sender, SplitterEventArgs e)
-        {
-            // 如果分割位置偏离中心过多，则重置到中心位置
-            int halfWidth = (this.ClientSize.Width - mainContainer.SplitterWidth) / 2;
-            if (Math.Abs(mainContainer.SplitterDistance - halfWidth) > 5) // 允许5像素的误差
-            {
-                mainContainer.SplitterDistance = halfWidth;
-            }
-        }
-
-        // 修改窗体大小改变事件处理
-        protected override void OnSizeChanged(EventArgs e)
-        {
-            base.OnSizeChanged(e);
-            if (mainContainer != null && this.WindowState != FormWindowState.Minimized)
-            {
-                // 计算新的中心位置
-                int halfWidth = (this.ClientSize.Width - mainContainer.SplitterWidth) / 2;
-                mainContainer.SplitterDistance = halfWidth;
-            }
-        }
-
-        /// <summary>
-        /// 配置并初始化分割面板。
-        /// </summary>
-        /// <param name="panel">要配置的SplitContainer对象。</param>
-        /// <param name="parent">SplitContainer的父控件。</param>
         private void ConfigurePanel(SplitContainer panel, Control parent)
         {
             // 设置分割面板填充其父控件
@@ -298,6 +269,24 @@ namespace WinFormsApp1
             parent.Controls.Add(drivePanel);
             drivePanel.BringToFront(); // 确保驱动器面板在最上层
         }
+        // 分割条移动事件处理
+        private void MainContainer_SplitterMoved(object? sender, SplitterEventArgs e)
+        {
+            // 如果分割位置偏离中心过多，则重置到中心位置
+            int halfWidth = (this.ClientSize.Width - mainContainer.SplitterWidth) / 2;
+            if (Math.Abs(mainContainer.SplitterDistance - halfWidth) > 5) // 允许5像素的误差
+            {
+                mainContainer.SplitterDistance = halfWidth;
+            }
+        }
+        private void ConfigureMainContainer()
+        {
+            mainContainer.Dock = DockStyle.Fill;
+            mainContainer.Orientation = Orientation.Vertical;
+            mainContainer.SplitterDistance = ClientSize.Width / 2;
+        }
+
+        // ...condensed initialization methods...
 
         private void InitializeDriveComboBoxes()
         {
@@ -394,7 +383,7 @@ namespace WinFormsApp1
         private void showCtxMenu(TreeNode parentNode, string path, Point location)
         {
             // 先获取路径的父目录
-            path = getFSpath(path);
+            path = FileSystemHelper.getFSpath(path);
 
             var parentFolder = iDeskTop;
             IntPtr pidl;
@@ -954,7 +943,7 @@ namespace WinFormsApp1
             }
             else // 处理文件
             {
-                itemPath = getFSpath(itemPath);
+                itemPath = FileSystemHelper.getFSpath(itemPath);
                 if (File.Exists(itemPath))
                 {
                     try
@@ -1243,7 +1232,7 @@ namespace WinFormsApp1
                     root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);
 
                     // 获取图标
-                    //Icon icon = GetSystemIcon.GetIconByFileType(name.Contains(':') ? "folder" : Path.GetExtension(name), false);
+                    //Icon icon = IconHelper.GetIconByFileType(name.Contains(':') ? "folder" : Path.GetExtension(name), false);
                     var fiwi = new FileInfoWithIcon(name);
                     var icon = fiwi.smallIcon != null ? fiwi.smallIcon : GetIconByFileName("FILE", name);
                     int iconIndex = listView.SmallImageList.Images.Count;
@@ -1259,23 +1248,12 @@ namespace WinFormsApp1
 
             listView.EndUpdate();
         }
-        private string getFSpath(string path)
-        {
-            if (path.Contains(':'))
-            {
-                var pathParts = path.Split(':');    // path = 桌面\\此电脑\\system (c:)\\windows\\system32 -> c:\\windows\\system32
-                                                    //get the last char of pathparts[0] to get the drive letter
-                var len = pathParts[0].Length;
-                var drive = pathParts[0].Substring(len - 1, 1);
-                return drive + ":" + pathParts[1].TrimStart(')');
-            }
-            return path;
-        }
+
         // 加载文件列表
         private void LoadListViewByFilesystem(string path, ListView listView)
         {
             if (string.IsNullOrEmpty(path)) return;
-            path = getFSpath(path);
+            path = FileSystemHelper.getFSpath(path);
             if (path.EndsWith(':'))
                 path += "\\";
 
@@ -1288,7 +1266,7 @@ namespace WinFormsApp1
                 List<FileSystemInfo> items;
                 if (needsUpdate)
                 {
-                    items = GetDirectoryContents(path);
+                    items = FileSystemHelper.GetDirectoryContents(path);
                     _directoryCache[path] = items;
                     _lastCacheUpdate = currentTime;
                 }
@@ -1320,39 +1298,6 @@ namespace WinFormsApp1
             }
         }
 
-        // 优化获取目录内容的方法
-        private List<FileSystemInfo> GetDirectoryContents(string path, bool includeFolder = false)
-        {
-            var result = new List<FileSystemInfo>();
-            var dirInfo = new DirectoryInfo(path);
-            if (Directory.Exists(path))
-            {
-                try
-                {
-                    // 并行处理目录和文件
-                    if (includeFolder)
-                    {
-                        var directories = dirInfo.GetDirectories()
-                            .Where(d => (d.Attributes & FileAttributes.Hidden) == 0);
-                        result.AddRange(directories);
-                    }
-                    //var directories = dirInfo.GetDirectories()
-                    //	.Where(d => (d.Attributes & FileAttributes.Hidden) == 0);
-                    var files = dirInfo.GetFiles()
-                        .Where(f => (f.Attributes & FileAttributes.Hidden) == 0);
-
-                    //result.AddRange(directories);
-                    result.AddRange(files);
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    // 忽略访问受限的目录
-                }
-            }
-
-            return result;
-        }
-
         // 优化ListViewItem创建
         private ListViewItem? CreateListViewItem(FileSystemInfo item, ListView listView)
         {
@@ -1370,7 +1315,7 @@ namespace WinFormsApp1
                         "文件夹",
                         item.LastWriteTime.ToString("yyyy-MM-dd HH:mm")
                     };
-                    icon = GetSystemIcon.GetIconByFileType("folder", false);
+                    icon = IconHelper.GetIconByFileType("folder", false);
                 }
                 else if (item is FileInfo fileInfo)
                 {
@@ -1378,11 +1323,11 @@ namespace WinFormsApp1
                     {
                         "",
                         item.Name,
-                        FormatFileSize(fileInfo.Length),
+                        FileSystemHelper.FormatFileSize(fileInfo.Length),
                         fileInfo.Extension.ToUpperInvariant(),
                         item.LastWriteTime.ToString("yyyy-MM-dd HH:mm")
                     };
-                    icon = GetSystemIcon.GetIconByFileType(fileInfo.Extension, false);
+                    icon = IconHelper.GetIconByFileType(fileInfo.Extension, false);
                 }
                 else
                 {
@@ -1447,26 +1392,13 @@ namespace WinFormsApp1
             if (listView.SelectedItems.Count > 0)
             {
                 ListViewItem selectedItem = listView.SelectedItems[0];
-                string filePath = getFSpath(Path.Combine(currentDirectory, selectedItem.Text));
+                string filePath = FileSystemHelper.getFSpath(Path.Combine(currentDirectory, selectedItem.Text));
 
                 if (File.Exists(filePath))
                 {
                     await PreviewFileAsync(filePath, previewPanel);
                 }
             }
-        }
-
-        private string FormatFileSize(long bytes)
-        {
-            string[] sizes = { "B", "KB", "MB", "GB", "TB" };
-            int order = 0;
-            double size = bytes;
-            while (size >= 1024 && order < sizes.Length - 1)
-            {
-                order++;
-                size = size / 1024;
-            }
-            return $"{size:0.##} {sizes[order]}";
         }
 
         private void ListView_ColumnClick(object? sender, ColumnClickEventArgs e)
@@ -1881,7 +1813,7 @@ namespace WinFormsApp1
             if (listView.SelectedItems.Count == 0) return;
 
             var selectedItem = listView.SelectedItems[0];
-            var filePath = getFSpath(Path.Combine(currentDirectory, selectedItem.Text));
+            var filePath = FileSystemHelper.getFSpath(Path.Combine(currentDirectory, selectedItem.Text));
 
             if (File.Exists(filePath))
             {
@@ -2046,13 +1978,9 @@ namespace WinFormsApp1
                 try
                 {
                     if (selectedItem.SubItems[3].Text == "<DIR>")
-                    {
                         Directory.Delete(itemPath, true);
-                    }
                     else
-                    {
                         File.Delete(itemPath);
-                    }
 
                     listView.Items.Remove(selectedItem);
                 }
@@ -2490,9 +2418,7 @@ namespace WinFormsApp1
                     if (phiconLarge[0] != IntPtr.Zero) w32.DestroyIcon(phiconLarge[0]);
                     if (phiconSmall[0] != IntPtr.Zero) w32.DestroyIcon(phiconSmall[0]);
                     if (ico != null)
-                    {
                         return ico;
-                    }
                 }
 
                 //通过文件扩展名读取图标
@@ -2553,141 +2479,6 @@ namespace WinFormsApp1
         }
     }
 }
-
-class FileInfoList
-{
-    public List<FileInfoWithIcon> list;
-    public ImageList imageListLargeIcon;
-    public ImageList imageListSmallIcon;
-
-
-    /// <summary>
-    /// 根据文件路径获取生成文件信息，并提取文件的图标
-    /// </summary>
-    /// <param name="filespath"></param>
-    public FileInfoList(string[] filespath)
-    {
-        list = new List<FileInfoWithIcon>();
-        imageListLargeIcon = new ImageList();
-        imageListLargeIcon.ImageSize = new Size(32, 32);
-        imageListSmallIcon = new ImageList();
-        imageListSmallIcon.ImageSize = new Size(16, 16);
-        foreach (string path in filespath)
-        {
-            FileInfoWithIcon file = new FileInfoWithIcon(path);
-            imageListLargeIcon.Images.Add(file.largeIcon);
-            imageListSmallIcon.Images.Add(file.smallIcon);
-            file.iconIndex = imageListLargeIcon.Images.Count - 1;
-            list.Add(file);
-        }
-    }
-}
-class FileInfoWithIcon
-{
-    public FileInfo fileInfo;
-    public Icon largeIcon;
-    public Icon smallIcon;
-    public int iconIndex;
-    public FileInfoWithIcon(string path)
-    {
-        fileInfo = new FileInfo(path);
-        largeIcon = GetSystemIcon.GetIconByFileName(path, true);
-        if (largeIcon == null)
-            largeIcon = GetSystemIcon.GetIconByFileType(Path.GetExtension(path), true);
-
-
-        smallIcon = GetSystemIcon.GetIconByFileName(path, false);
-        if (smallIcon == null)
-            smallIcon = GetSystemIcon.GetIconByFileType(Path.GetExtension(path), false);
-    }
-}
-public static class GetSystemIcon
-{
-    /// <summary>
-    /// 依据文件名读取图标，若指定文件不存在，则返回空值。  
-    /// </summary>
-    /// <param name="fileName">文件路径</param>
-    /// <param name="isLarge">是否返回大图标</param>
-    /// <returns></returns>
-    public static Icon GetIconByFileName(string fileName, bool isLarge = true)
-    {
-        int[] phiconLarge = new int[1];
-        int[] phiconSmall = new int[1];
-        //文件名 图标索引 
-        Win32.ExtractIconEx(fileName, 0, phiconLarge, phiconSmall, 1);
-        IntPtr IconHnd = new IntPtr(isLarge ? phiconLarge[0] : phiconSmall[0]);
-
-        if (IconHnd.ToString() == "0")
-            return null;
-        return Icon.FromHandle(IconHnd);
-    }
-
-
-    /// <summary>  
-    /// 根据文件扩展名（如:.*），返回与之关联的图标。
-    /// 若不以"."开头则返回文件夹的图标。  
-    /// </summary>  
-    /// <param name="fileType">文件扩展名</param>  
-    /// <param name="isLarge">是否返回大图标</param>  
-    /// <returns></returns>  
-    public static Icon GetIconByFileType(string fileType, bool isLarge)
-    {
-        if (fileType == null || fileType.Equals(string.Empty)) return null;
-
-
-        RegistryKey regVersion = null;
-        string regFileType = null;
-        string regIconString = null;
-        string systemDirectory = Environment.SystemDirectory + "\\";
-
-
-        if (fileType[0] == '.')
-        {
-            //读系统注册表中文件类型信息  
-            regVersion = Registry.ClassesRoot.OpenSubKey(fileType, false);
-            if (regVersion != null)
-            {
-                regFileType = regVersion.GetValue("") as string;
-                regVersion.Close();
-                regVersion = Registry.ClassesRoot.OpenSubKey(regFileType + @"\DefaultIcon", false);
-                if (regVersion != null)
-                {
-                    regIconString = regVersion.GetValue("") as string;
-                    regVersion.Close();
-                }
-            }
-            if (regIconString == null)
-            {
-                //没有读取到文件类型注册信息，指定为未知文件类型的图标  
-                regIconString = systemDirectory + "shell32.dll,0";
-            }
-        }
-        else
-        {
-            //直接指定为文件夹图标  
-            regIconString = systemDirectory + "shell32.dll,3";
-        }
-        string[] fileIcon = regIconString.Split(new char[] { ',' });
-        if (fileIcon.Length != 2)
-        {
-            //系统注册表中注册的标图不能直接提取，则返回可执行文件的通用图标  
-            fileIcon = new string[] { systemDirectory + "shell32.dll", "2" };
-        }
-        Icon resultIcon = null;
-        try
-        {
-            //调用API方法读取图标  
-            int[] phiconLarge = new int[1];
-            int[] phiconSmall = new int[1];
-            uint count = Win32.ExtractIconEx(fileIcon[0], Int32.Parse(fileIcon[1]), phiconLarge, phiconSmall, 1);
-            IntPtr IconHnd = new IntPtr(isLarge ? phiconLarge[0] : phiconSmall[0]);
-            resultIcon = Icon.FromHandle(IconHnd);
-        }
-        catch { }
-        return resultIcon;
-    }
-}
-
 
 /// <summary>  
 /// 定义调用的API方法  

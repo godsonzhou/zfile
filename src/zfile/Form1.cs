@@ -8,9 +8,9 @@ using CSCore.Codecs;
 using CSCore.SoundOut;
 using LibVLCSharp.Shared;
 using SharpCompress.Archives;
-using WinShell;
 using CSCore.Streams.SampleConverter;
 using System.Collections;
+using WinShell;
 
 namespace WinFormsApp1
 {
@@ -1907,50 +1907,50 @@ namespace WinFormsApp1
             var playButton = new Button { Text = "Play", Dock = DockStyle.Top };
             var stopButton = new Button { Text = "Stop", Dock = DockStyle.Top };
 
-            try
-            {
-                var waveOut = new CSCore.SoundOut.WaveOut();
-                IWaveSource audioFile;
+			try
+			{
+				var waveOut = new CSCore.SoundOut.WaveOut();
+				IWaveSource audioFile;
 
-                // 根据文件扩展名选择合适的解码器
-                switch (Path.GetExtension(filePath).ToLower())
-                {
-                    case ".wav":
-                        audioFile = new CSCore.Codecs.WAV.WaveFileReader(filePath);
-                        break;
-                    case ".mp3":
-                        audioFile = new CSCore.Codecs.MP3.Mp3MediafoundationDecoder(filePath);
-                        break;
-                    case ".flac":
-                        audioFile = new CSCore.Codecs.FLAC.FlacFile(filePath);
-                        break;
-                    case ".wma":
-                        audioFile = new CSCore.Codecs.WMA.WmaDecoder(filePath);
-                        break;
-                    case ".aac":
-                        audioFile = new CSCore.Codecs.AAC.AacDecoder(filePath);
-                        break;
-                    // case ".ogg":
-                    //     audioFile = new CSCore.Codecs.OGG.OggVorbisDecoder(filePath);
-                    //     break;
-                    default:
-                        throw new NotSupportedException("不支持的音频格式");
-                }
+				// 根据文件扩展名选择合适的解码器
+				switch (Path.GetExtension(filePath).ToLower())
+				{
+					case ".wav":
+						audioFile = new CSCore.Codecs.WAV.WaveFileReader(filePath);
+						break;
+					case ".mp3":
+						audioFile = new CSCore.Codecs.MP3.Mp3MediafoundationDecoder(filePath);
+						break;
+					case ".flac":
+						audioFile = new CSCore.Codecs.FLAC.FlacFile(filePath);
+						break;
+					case ".wma":
+						audioFile = new CSCore.Codecs.WMA.WmaDecoder(filePath);
+						break;
+					case ".aac":
+						audioFile = new CSCore.Codecs.AAC.AacDecoder(filePath);
+						break;
+					// case ".ogg":
+					//     audioFile = new CSCore.Codecs.OGG.OggVorbisDecoder(filePath);
+					//     break;
+					default:
+						throw new NotSupportedException("不支持的音频格式");
+				}
 
-                waveOut.Initialize(audioFile);
+				waveOut.Initialize(audioFile);
 
-                playButton.Click += (s, e) => waveOut.Play();
-                stopButton.Click += (s, e) => waveOut.Stop();
+				playButton.Click += (s, e) => waveOut.Play();
+				stopButton.Click += (s, e) => waveOut.Stop();
 
-                panel.Controls.Add(stopButton);
-                panel.Controls.Add(playButton);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"无法播放音频文件: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+				panel.Controls.Add(stopButton);
+				panel.Controls.Add(playButton);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"无法播放音频文件: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
 
-            return panel;
+			return panel;
         }
 
         private Control CreateVideoPlayer(string filePath)
@@ -1961,26 +1961,26 @@ namespace WinFormsApp1
 
             // Specify the path to the LibVLC native libraries
             string libVlcPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "libvlc", "win-x64");
-            Core.Initialize(libVlcPath); // Initialize LibVLC with the specified path
+			Core.Initialize(libVlcPath); // Initialize LibVLC with the specified path
 
-            using var libVLC = new LibVLC();
-            var mediaPlayer = new MediaPlayer(libVLC); // Create MediaPlayer instance
-            mediaPlayer.Play(new Media(libVLC, filePath, FromType.FromPath));
+			using var libVLC = new LibVLC();
+			var mediaPlayer = new MediaPlayer(libVLC); // Create MediaPlayer instance
+			mediaPlayer.Play(new Media(libVLC, filePath, FromType.FromPath));
 
-            var videoView = new LibVLCSharp.WinForms.VideoView
-            {
-                MediaPlayer = mediaPlayer,
-                Dock = DockStyle.Fill
-            };
+			var videoView = new LibVLCSharp.WinForms.VideoView
+			{
+				MediaPlayer = mediaPlayer,
+				Dock = DockStyle.Fill
+			};
 
-            playButton.Click += (s, e) => mediaPlayer.Play();
-            stopButton.Click += (s, e) => mediaPlayer.Stop();
+			playButton.Click += (s, e) => mediaPlayer.Play();
+			stopButton.Click += (s, e) => mediaPlayer.Stop();
 
-            panel.Controls.Add(stopButton);
-            panel.Controls.Add(playButton);
-            panel.Controls.Add(videoView);
+			panel.Controls.Add(stopButton);
+			panel.Controls.Add(playButton);
+			panel.Controls.Add(videoView);
 
-            return panel;
+			return panel;
         }
 
         private Control CreateArchiveViewer(string filePath)
@@ -1993,23 +1993,23 @@ namespace WinFormsApp1
                 Dock = DockStyle.Fill
             };
 
-            try
-            {
-                using (var archive = ArchiveFactory.Open(filePath)) // Use ArchiveFactory from SharpCompress
-                {
-                    var sb = new StringBuilder();
-                    foreach (var entry in archive.Entries)
-                    {
-                        sb.AppendLine($"{entry.Key} ({entry.Size} bytes)");
-                    }
-                    textBox.Text = sb.ToString();
-                }
-            }
-            catch (Exception ex)
-            {
-                textBox.Text = $"无法读取压缩文件: {ex.Message}";
-            }
-            return textBox;
+			try
+			{
+				using (var archive = ArchiveFactory.Open(filePath)) // Use ArchiveFactory from SharpCompress
+				{
+					var sb = new StringBuilder();
+					foreach (var entry in archive.Entries)
+					{
+						sb.AppendLine($"{entry.Key} ({entry.Size} bytes)");
+					}
+					textBox.Text = sb.ToString();
+				}
+			}
+			catch (Exception ex)
+			{
+				textBox.Text = $"无法读取压缩文件: {ex.Message}";
+			}
+			return textBox;
         }
 
         public void do_cm_list()

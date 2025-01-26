@@ -29,8 +29,8 @@ namespace WinFormsApp1
 		//private readonly TabControl rightTabControl = new();
 		private Dictionary<Keys, string> hotkeyMappings;
         // 声明新的 TextBox 控件
-        private readonly TextBox leftPathTextBox = new();
-        private readonly TextBox rightPathTextBox = new();
+        private readonly ShengAddressBar leftPathTextBox = new();
+        private readonly ShengAddressBar rightPathTextBox = new();
 
         private bool isSelecting = false;
         private Point selectionStart;
@@ -471,14 +471,14 @@ namespace WinFormsApp1
 
             LoadDrives();
         }
-        private void ConfigureDriveBox(ComboBox driveBox, Panel parent, TextBox pathTextBox)
+        private void ConfigureDriveBox(ComboBox driveBox, Panel parent, ShengAddressBar pathTextBox)
         {
             driveBox.Dock = DockStyle.Left;
             driveBox.DropDownStyle = ComboBoxStyle.DropDownList;
             driveBox.SelectedIndexChanged += DriveComboBox_SelectedIndexChanged;
 
             pathTextBox.Dock = DockStyle.Fill;
-            pathTextBox.ReadOnly = true;
+            //pathTextBox.ReadOnly = true;
 
             parent.Controls.Add(pathTextBox);
             parent.Controls.Add(driveBox);
@@ -808,7 +808,8 @@ namespace WinFormsApp1
                         watcher.EnableRaisingEvents = true;
                     }
 
-                    // 更新路径 TextBox
+                    // 对于leftpathtextbox更新路径
+
                     if (treeView == leftTree)
                         leftPathTextBox.Text = path;
                     else

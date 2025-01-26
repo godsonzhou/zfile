@@ -201,28 +201,28 @@ namespace WinFormsApp1
 				e.Handled = true;
 			}
 		}
-		private void InitializeBookmarkLists()
-		{
-			// 初始化左侧书签栏
-			leftBookmarkList.Dock = DockStyle.Top;
-			leftBookmarkList.Height = 80;
-			leftBookmarkList.DoubleClick += LeftBookmarkList_DoubleClick;
-			leftPanel.Panel1.Controls.Add(leftBookmarkList);
-			leftBookmarkList.BringToFront();
-			leftDrivePanel.BringToFront();
-			// 初始化右侧书签栏
-			rightBookmarkList.Dock = DockStyle.Top;
-			rightBookmarkList.Height = 80;
-			rightBookmarkList.DoubleClick += RightBookmarkList_DoubleClick;
-			rightPanel.Panel1.Controls.Add(rightBookmarkList);
-			rightBookmarkList.BringToFront();
-			rightDrivePanel.BringToFront();
-			// 调整布局顺序
-			leftPanel.Panel1.Controls.SetChildIndex(leftBookmarkList, 0);
-			leftPanel.Panel1.Controls.SetChildIndex(leftDrivePanel, 1);
-			rightPanel.Panel1.Controls.SetChildIndex(rightBookmarkList, 0);
-			rightPanel.Panel1.Controls.SetChildIndex(rightDrivePanel, 1);
-		}
+        private void InitializeBookmarkLists()
+        {
+            // 初始化左侧书签栏
+            leftBookmarkList.Dock = DockStyle.Top;
+            leftBookmarkList.Height = 40;
+            leftBookmarkList.DoubleClick += LeftBookmarkList_DoubleClick;
+            leftPanel.Panel2.Controls.Add(leftBookmarkList);
+            leftBookmarkList.BringToFront();
+
+            // 初始化右侧书签栏
+            rightBookmarkList.Dock = DockStyle.Top;
+            rightBookmarkList.Height = 40;
+            rightBookmarkList.DoubleClick += RightBookmarkList_DoubleClick;
+            rightPanel.Panel2.Controls.Add(rightBookmarkList);
+            rightBookmarkList.BringToFront();
+
+            // 调整布局顺序
+            leftPanel.Panel2.Controls.SetChildIndex(leftBookmarkList, 0);
+            leftPanel.Panel2.Controls.SetChildIndex(leftPreview, 1);
+            rightPanel.Panel2.Controls.SetChildIndex(rightBookmarkList, 0);
+            rightPanel.Panel2.Controls.SetChildIndex(rightPreview, 1);
+        }
 		private void AddCurrentPathToBookmarks()
 		{
 			if (string.IsNullOrEmpty(currentDirectory)) return;

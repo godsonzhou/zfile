@@ -11,7 +11,7 @@ using SharpCompress.Archives;
 using CSCore.Streams.SampleConverter;
 using System.Collections;
 using WinShell;
-using Sheng.Winform.Controls.SEAdressBar;
+using Sheng.Winform.Controls;
 
 namespace WinFormsApp1
 {
@@ -29,8 +29,8 @@ namespace WinFormsApp1
 		//private readonly TabControl rightTabControl = new();
 		private Dictionary<Keys, string> hotkeyMappings;
         // 声明新的 TextBox 控件
-        private readonly ShengAddressBar leftPathTextBox = new();
-        private readonly ShengAddressBar rightPathTextBox = new();
+        private readonly ShengAddressBarStrip leftPathTextBox = new();
+        private readonly ShengAddressBarStrip rightPathTextBox = new();
 
         private bool isSelecting = false;
         private Point selectionStart;
@@ -471,7 +471,7 @@ namespace WinFormsApp1
 
             LoadDrives();
         }
-        private void ConfigureDriveBox(ComboBox driveBox, Panel parent, ShengAddressBar pathTextBox)
+        private void ConfigureDriveBox(ComboBox driveBox, Panel parent, ShengAddressBarStrip pathTextBox)
         {
             driveBox.Dock = DockStyle.Left;
             driveBox.DropDownStyle = ComboBoxStyle.DropDownList;
@@ -808,12 +808,13 @@ namespace WinFormsApp1
                         watcher.EnableRaisingEvents = true;
                     }
 
-                    // 对于leftpathtextbox更新路径
+                    // 调用leftpathtextbox的setaddress方法来更新路径
+
 
                     if (treeView == leftTree)
-                        leftPathTextBox.Text = path;
+                        leftPathTextBox.SetAddress(path);
                     else
-                        rightPathTextBox.Text = path;
+                        rightPathTextBox.SetAddress(path);
                 }
             }
             catch (Exception ex)

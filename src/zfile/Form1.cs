@@ -11,6 +11,7 @@ using SharpCompress.Archives;
 using CSCore.Streams.SampleConverter;
 using System.Collections;
 using WinShell;
+using Sheng.Winform.Controls.SEAdressBar;
 
 namespace WinFormsApp1
 {
@@ -255,6 +256,7 @@ namespace WinFormsApp1
 				e.Handled = true;
 			}
 		}
+		
 		private void AddCurrentPathToBookmarks()
 		{
 			if (string.IsNullOrEmpty(currentDirectory)) return;

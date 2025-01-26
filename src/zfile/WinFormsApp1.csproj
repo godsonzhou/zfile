@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Sheng.Winform.Controls\Sheng.Winform.Controls.csproj" />
     <ProjectReference Include="..\WinShell\WinShell\WinShell.csproj" />
   </ItemGroup>
 

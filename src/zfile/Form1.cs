@@ -17,10 +17,16 @@ namespace WinFormsApp1
     public static class constant_value
     {
         public const string zfilePath = "D:\\gitrepos\\Files\\config\\";
+     
     }
     public partial class Form1 : Form
     {
-        private Dictionary<Keys, string> hotkeyMappings;
+		private readonly FlowLayoutPanel leftBookmarkPanel = new();
+		private readonly FlowLayoutPanel rightBookmarkPanel = new();
+      
+		//private readonly TabControl leftTabControl = new();
+		//private readonly TabControl rightTabControl = new();
+		private Dictionary<Keys, string> hotkeyMappings;
         // 声明新的 TextBox 控件
         private readonly TextBox leftPathTextBox = new();
         private readonly TextBox rightPathTextBox = new();
@@ -110,6 +116,54 @@ namespace WinFormsApp1
 			getSpecPathFromReg();
 			getEnv();
         }
+		private async Task LoadListViewByFilesystemAsync(string path, ListView listView)
+		{
+			if (string.IsNullOrEmpty(path)) return;
+			if (!path.Contains(':')) return;
+			path = FileSystemHelper.getFSpath(path);
+			if (path.EndsWith(':'))
+				path += "\\";
+
+			try
+			{
+				var currentTime = DateTime.Now;
+				var needsUpdate = !_directoryCache.ContainsKey(path) ||
+								  (currentTime - _lastCacheUpdate).TotalMilliseconds > _cacheTimeout;
+
+				path = FileSystemHelper.getFSpathbyList(path);
+				List<FileSystemInfo> items;
+				if (needsUpdate)
+				{
+					items = await Task.Run(() => FileSystemHelper.GetDirectoryContents(path));
+					_directoryCache[path] = items;
+					_lastCacheUpdate = currentTime;
+				}
+				else
+				{
+					items = _directoryCache[path];
+				}
+
+				listView.BeginUpdate();
+				listView.Items.Clear();
+
+				foreach (var item in items)
+				{
+					if ((item.Attributes & FileAttributes.Hidden) != 0) continue;
+
+					var lvItem = CreateListViewItem(item, listView);
+					if (lvItem != null)
+					{
+						listView.Items.Add(lvItem);
+					}
+				}
+				listView.EndUpdate();
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"加载文件列表失败: {ex.Message}", "错误",
+					MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
 		private void getSpecPathFromReg()
 		{
 			RegistryKey folders;
@@ -201,59 +255,68 @@ namespace WinFormsApp1
 				e.Handled = true;
 			}
 		}
-        private void InitializeBookmarkLists()
-        {
-            // 初始化左侧书签栏
-            leftBookmarkList.Dock = DockStyle.Top;
-            leftBookmarkList.Height = 40;
-            leftBookmarkList.DoubleClick += LeftBookmarkList_DoubleClick;
-            leftPanel.Panel2.Controls.Add(leftBookmarkList);
-            leftBookmarkList.BringToFront();
-
-            // 初始化右侧书签栏
-            rightBookmarkList.Dock = DockStyle.Top;
-            rightBookmarkList.Height = 40;
-            rightBookmarkList.DoubleClick += RightBookmarkList_DoubleClick;
-            rightPanel.Panel2.Controls.Add(rightBookmarkList);
-            rightBookmarkList.BringToFront();
-
-            // 调整布局顺序
-            leftPanel.Panel2.Controls.SetChildIndex(leftBookmarkList, 0);
-            leftPanel.Panel2.Controls.SetChildIndex(leftPreview, 1);
-            rightPanel.Panel2.Controls.SetChildIndex(rightBookmarkList, 0);
-            rightPanel.Panel2.Controls.SetChildIndex(rightPreview, 1);
-        }
 		private void AddCurrentPathToBookmarks()
 		{
 			if (string.IsNullOrEmpty(currentDirectory)) return;
-			var bookmarkList = activeTreeview == leftTree ? leftBookmarkList : rightBookmarkList;
+			var bookmarkPanel = activeTreeview == leftTree ? leftBookmarkPanel : rightBookmarkPanel;
 
-			if (!bookmarkList.Items.Contains(currentDirectory))
+			if (!bookmarkPanel.Controls.OfType<Label>().Any(label => label.Text == currentDirectory))
 			{
-				bookmarkList.Items.Add(currentDirectory);
+				var bookmarkLabel = new Label
+				{
+					Text = currentDirectory,
+					AutoSize = true,
+					Padding = new Padding(5),
+					BorderStyle = BorderStyle.FixedSingle
+				};
+				bookmarkLabel.MouseClick += BookmarkLabel_MouseClick;
+				
+				bookmarkPanel.Controls.Add(bookmarkLabel);
+				bookmarkPanel.Refresh(); // 确保控件刷新
 			}
 		}
-		private void LeftBookmarkList_DoubleClick(object sender, EventArgs e)
+
+		private void BookmarkLabel_MouseClick(object? sender, MouseEventArgs e)
 		{
-			HandleBookmarkListDoubleClick(leftBookmarkList);
-		}
-		private void RightBookmarkList_DoubleClick(object sender, EventArgs e)
-		{
-			HandleBookmarkListDoubleClick(rightBookmarkList);
-		}
-		private void HandleBookmarkListDoubleClick(ListBox bookmarkList)
-		{
-			if (bookmarkList.SelectedItem != null)
+			if (sender is Label bookmarkLabel)
 			{
-				// 双击书签项 - 删除
-				bookmarkList.Items.Remove(bookmarkList.SelectedItem);
-			}
-			else
-			{
-				// 双击空白区域 - 添加当前路径
-				AddCurrentPathToBookmarks();
+				if (e.Button == MouseButtons.Left)
+				{
+					// 左键点击 - 处理书签点击事件
+					MessageBox.Show($"书签点击: {bookmarkLabel.Text}", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				}
+				else if (e.Button == MouseButtons.Right)
+				{
+					// 右键点击 - 删除书签
+					var bookmarkPanel = bookmarkLabel.Parent as FlowLayoutPanel;
+					bookmarkPanel?.Controls.Remove(bookmarkLabel);
+				}
 			}
 		}
+
+        private void InitializeBookmarkLists()
+        {
+            // 初始化左侧书签Panel
+            leftBookmarkPanel.Dock = DockStyle.Top;
+            leftBookmarkPanel.FlowDirection = FlowDirection.LeftToRight;
+            leftBookmarkPanel.WrapContents = false;
+            leftBookmarkPanel.AutoScroll = true;
+            leftPanel.Panel2.Controls.Add(leftBookmarkPanel);
+
+            // 初始化右侧书签Panel
+            rightBookmarkPanel.Dock = DockStyle.Top;
+            rightBookmarkPanel.FlowDirection = FlowDirection.LeftToRight;
+            rightBookmarkPanel.WrapContents = false;
+            rightBookmarkPanel.AutoScroll = true;
+            rightPanel.Panel2.Controls.Add(rightBookmarkPanel);
+
+            // 调整布局顺序
+            leftPanel.Panel2.Controls.SetChildIndex(leftBookmarkPanel, 0);
+            leftPanel.Panel2.Controls.SetChildIndex(leftPreview, 1);
+            rightPanel.Panel2.Controls.SetChildIndex(rightBookmarkPanel, 0);
+            rightPanel.Panel2.Controls.SetChildIndex(rightPreview, 1);
+        }
+	
         public void OpenOptions()
         {
             // 打开Options窗口
@@ -270,15 +333,14 @@ namespace WinFormsApp1
             treeViewImageList = new ImageList();
             treeViewImageList.ImageSize = new Size(16, 16);
 
-            // 获取系统默认文件夹图标
             Icon folderIcon = IconHelper.GetIconByFileType("folder", false);
             if (folderIcon != null)
             {
                 treeViewImageList.Images.Add("folder", folderIcon);
             }
-            // 将ImageList分配给TreeView
-            leftTree.ImageList = treeViewImageList;
-            rightTree.ImageList = treeViewImageList;
+
+            ConfigureTreeView(leftTree);
+            ConfigureTreeView(rightTree);
         }
         private void InitializeContextMenu()
         {
@@ -453,20 +515,17 @@ namespace WinFormsApp1
         private void ConfigureTreeView(TreeView treeView)
         {
             treeView.Dock = DockStyle.Fill;
-
-            // 修改TreeView的基本属性和样式
             treeView.ShowLines = true;
             treeView.HideSelection = false;
             treeView.ShowPlusMinus = true;
             treeView.ShowRootLines = true;
             treeView.PathSeparator = "\\";
+            treeView.FullRowSelect = true;
+            treeView.ItemHeight = 20;
+            treeView.DrawMode = TreeViewDrawMode.OwnerDrawText;
+            treeView.ImageList = treeViewImageList;
 
-            // 添加这些关键设置以启用自定义绘制
-            treeView.FullRowSelect = true;  // 允许整行选择
-            treeView.ItemHeight = 20;       // 设置节点高度
-            treeView.DrawMode = TreeViewDrawMode.OwnerDrawText; // 使用自定义绘制
-
-            treeView.DrawNode += TreeView_DrawNode; // 添加绘制事件处理
+            treeView.DrawNode += TreeView_DrawNode;
             treeView.MouseUp += TreeView_MouseUp;
             treeView.AfterSelect += TreeView_AfterSelect;
             treeView.NodeMouseClick += TreeView_NodeMouseClick;

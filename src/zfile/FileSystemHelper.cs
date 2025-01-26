@@ -5,7 +5,11 @@ namespace WinFormsApp1
 {
     public static class FileSystemHelper
     {
-        public static List<FileSystemInfo> GetDirectoryContents(string path, bool includeFolder = false)
+		public static async Task<List<FileSystemInfo>> GetDirectoryContentsAsync(string path)
+		{
+			return await Task.Run(() => GetDirectoryContents(path));
+		}
+		public static List<FileSystemInfo> GetDirectoryContents(string path, bool includeFolder = false)
         {
             var result = new List<FileSystemInfo>();
             if (!Directory.Exists(path)) return result;

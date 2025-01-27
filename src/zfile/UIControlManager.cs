@@ -274,8 +274,8 @@ namespace WinFormsApp1
 
 		public void InitializeListViews()
 		{
-			ConfigureListView(LeftList, LeftPanel.Panel2);
-			ConfigureListView(RightList, RightPanel.Panel2);
+			ConfigureListView(LeftList, LeftTreeListSplitter.Panel2);
+			ConfigureListView(RightList, RightTreeListSplitter.Panel2);
 		}
 
 		private void ConfigureListView(ListView listView, Control parent)

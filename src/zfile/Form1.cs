@@ -17,17 +17,14 @@ namespace WinFormsApp1
 {
     public partial class Form1 : Form
     {
-		private readonly IconManager iconManager = new();
-		private readonly ThemeManager themeManager;
-		private readonly FilePreviewManager previewManager = new();
-		private readonly FileSystemManager fsManager = new();
-		private readonly UIControlManager uiManager;
-		private readonly FlowLayoutPanel leftBookmarkPanel = new();
-		private readonly FlowLayoutPanel rightBookmarkPanel = new();
-      
-		//private readonly TabControl leftTabControl = new();
-		//private readonly TabControl rightTabControl = new();
-		private Dictionary<Keys, string> hotkeyMappings;
+        public readonly IconManager iconManager = new();
+        private readonly ThemeManager themeManager;
+        private readonly FilePreviewManager previewManager = new();
+        private readonly FileSystemManager fsManager = new();
+        private readonly UIControlManager uiManager;
+   
+
+        private Dictionary<Keys, string> hotkeyMappings;
         // 声明新的 TextBox 控件
         private readonly ShengAddressBarStrip leftPathTextBox = new();
         private readonly ShengAddressBarStrip rightPathTextBox = new();
@@ -57,23 +54,18 @@ namespace WinFormsApp1
         private readonly TreeView leftTree = new();
         private readonly ListView leftList = new();
         private readonly TextBox leftPreview = new();
-		private readonly ListBox leftBookmarkList = new();
+        //private readonly ListBox leftBookmarkList = new();
 
-		private readonly TreeView rightTree = new();
+        private readonly TreeView rightTree = new();
         private readonly ListView rightList = new();
         private readonly TextBox rightPreview = new();
-		private readonly ListBox rightBookmarkList = new();
+        //private readonly ListBox rightBookmarkList = new();
 
-		private TreeNode? selectedNode = null; // 添加可空标记
+        private TreeNode? selectedNode = null; // 添加可空标记
 
         // 添加排序状态追踪
         private int sortColumn = -1;
         private SortOrder sortOrder = SortOrder.None;
-
-        // 添加缓存机制，避免频繁刷新
-        private readonly Dictionary<string, List<FileSystemInfo>> _directoryCache = new();
-        private readonly int _cacheTimeout = 5000; // 缓存超时时间(毫秒)
-        private DateTime _lastCacheUpdate = DateTime.MinValue;
 
         private readonly SplitContainer leftTreeListSplitter = new();
         private readonly SplitContainer rightTreeListSplitter = new();
@@ -82,15 +74,37 @@ namespace WinFormsApp1
         private readonly StatusStrip leftStatusStrip = new();
         private readonly StatusStrip rightStatusStrip = new();
 
-        private readonly List<Icon> iconList = new();
         FileInfoList fileList;
 
         private readonly ContextMenuStrip contextMenuStrip = new ContextMenuStrip();
-        private CmdProc cmdProcessor;
-        MenuStrip dynamicMenuStrip = new();
-        ToolStrip dynamicToolStrip = new();
+        public CmdProc cmdProcessor;
+        
+        
         private ImageList treeViewImageList;
         private WinShell.IShellFolder iDeskTop;
+
+        // Form1
+        // ├── mainContainer(SplitContainer)
+        // │   ├── leftPanel(SplitContainer)
+        // │   │   ├── leftUpperPanel(Panel)
+        // │   │   │   ├── leftDriveBox(ComboBox)
+        // │   │   │   └── leftPathTextBox(ShengAddressBarStrip)
+        // │   │   ├── leftTreeListSplitter(SplitContainer)
+        // │   │   │   ├── leftTree(TreeView)
+        // │   │   │   └── leftList(ListView)
+        // │   │   ├── leftBookmarkPanel(FlowLayoutPanel)
+        // │   │   └── leftPreview(TextBox)
+        // │   └── rightPanel(SplitContainer)
+        // │       ├── rightUpperPanel(Panel)
+        // │       │   ├── rightDriveBox(ComboBox)
+        // │       │   └── rightPathTextBox(ShengAddressBarStrip)
+        // │       ├── rightTreeListSplitter(SplitContainer)
+        // │       │   ├── rightTree(TreeView)
+        // │       │   └── rightList(ListView)
+        // │       ├── rightBookmarkPanel(FlowLayoutPanel)
+        // │       └── rightPreview(TextBox)
+        // ├── leftStatusStrip(StatusStrip)
+        // └── rightStatusStrip(StatusStrip)
 
         public Form1()
         {
@@ -112,11 +126,9 @@ namespace WinFormsApp1
                 leftTree,
                 leftList,
                 leftPreview,
-                leftBookmarkList,
                 rightTree,
                 rightList,
                 rightPreview,
-                rightBookmarkList,
                 leftPathTextBox,
                 rightPathTextBox,
                 leftStatusStrip,
@@ -135,120 +147,27 @@ namespace WinFormsApp1
             uiManager.InitializeStatusStrips();
             InitializeFileSystemWatcher();
             InitializeThemeToggleButton();
-            InitializeToolStrip();
-            InitializeDynamicMenu();
+            uiManager.InitializeToolStrip();
+            uiManager.InitializeDynamicMenu();
             cmdProcessor = new CmdProc(this);
-            InitializeDynamicToolbar();
+            uiManager.InitializeDynamicToolbar();
             uiManager.InitializeTreeViewIcons();
             InitializeHotkeys();
-            InitializeBookmarkLists();
-            getSpecPathFromReg();
-            getEnv();
+            uiManager.InitializeBookmarkLists();
+            FileSystemHelper.GetSpecPathFromReg();
+            FileSystemHelper.getEnv();
 
             // 初始化ThemeManager
             themeManager = new ThemeManager(
-                this, dynamicToolStrip, dynamicMenuStrip,
+                this, uiManager.dynamicToolStrip, uiManager.dynamicMenuStrip,
                 leftTree, rightTree,
                 leftList, rightList,
                 leftPreview, rightPreview,
                 leftStatusStrip, rightStatusStrip
             );
         }
-		private async Task LoadListViewByFilesystemAsync(string path, ListView listView)
-		{
-			if (string.IsNullOrEmpty(path)) return;
-			if (!path.Contains(':')) return;
-			path = FileSystemHelper.getFSpath(path);
-			if (path.EndsWith(':'))
-				path += "\\";
-
-			try
-			{
-				path = FileSystemHelper.getFSpathbyList(path);
-				var items = await Task.Run(() => fsManager.GetDirectoryContents(path));
-
-				listView.BeginUpdate();
-				listView.Items.Clear();
-
-				foreach (var item in items)
-				{
-					if ((item.Attributes & FileAttributes.Hidden) != 0) continue;
-
-					var lvItem = CreateListViewItem(item);
-					if (lvItem != null)
-					{
-						listView.Items.Add(lvItem);
-					}
-				}
-				listView.EndUpdate();
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show($"加载文件列表失败: {ex.Message}", "错误",
-					MessageBoxButtons.OK, MessageBoxIcon.Error);
-			}
-		}
-		private void getSpecPathFromReg()
-		{
-			RegistryKey folders;
-			folders = OpenRegistryPath(Registry.CurrentUser, @"\software\microsoft\windows\currentversion\explorer\shell folders");
-			//Windows用户桌面路径
-			string desktopPath = folders.GetValue("Desktop").ToString();
-			//Windows用户字体目录路径
-			string fontsPath = folders.GetValue("Fonts").ToString();
-			//Windows用户网络邻居路径
-			string nethoodPath = folders.GetValue("Nethood").ToString();
-			//Windows用户我的文档路径
-			string personalPath = folders.GetValue("Personal").ToString();
-			//Windows用户开始菜单程序路径
-			string programsPath = folders.GetValue("Programs").ToString();
-			//Windows用户存放用户最近访问文档快捷方式的目录路径
-			string recentPath = folders.GetValue("Recent").ToString();
-			//Windows用户发送到目录路径
-			string sendtoPath = folders.GetValue("Sendto").ToString();
-			//Windows用户开始菜单目录路径
-			string startmenuPath = folders.GetValue("Start menu").ToString();
-			//Windows用户开始菜单启动项目录路径
-			string startupPath = folders.GetValue("Startup").ToString();
-			//Windows用户收藏夹目录路径
-			string favoritesPath = folders.GetValue("Favorites").ToString();
-			//Windows用户网页历史目录路径
-			string historyPath = folders.GetValue("History").ToString();
-			//Windows用户Cookies目录路径
-			string cookiesPath = folders.GetValue("Cookies").ToString();
-			//Windows用户Cache目录路径
-			string cachePath = folders.GetValue("Cache").ToString();
-			//Windows用户应用程式数据目录路径
-			string appdataPath = folders.GetValue("Appdata").ToString();
-			//Windows用户打印目录路径
-			string printhoodPath = folders.GetValue("Printhood").ToString();
-			String Path = Environment.GetFolderPath(Environment.SpecialFolder.Favorites);//返回收藏夹位置
-			Console.WriteLine(Path);
-		}
-		private RegistryKey OpenRegistryPath(RegistryKey root, string s)
-		{
-			s = s.Remove(0, 1) + @"\";
-			while (s.IndexOf(@"\") != -1) {
-				root = root.OpenSubKey(s.Substring(0, s.IndexOf(@"\")));
-				s = s.Remove(0, s.IndexOf(@"\") + 1);
-			}
-			return root;
-		}
-
-		public static void getEnv()
-		{
-			//把环境变量中所有的值取出来，放到变量environment中
-			IDictionary environment = Environment.GetEnvironmentVariables();
-			//打印表头
-			Console.WriteLine("环境变量名\t=\t环境变量值");
-			//遍历environment中所有键值
-			foreach (string environmentKey in environment.Keys)
-			{
-				//打印出所有环境变量的名称和值
-				Console.WriteLine("(0}\t=\t{(1}", environmentKey, environment[environmentKey].ToString());
-			}
-		}
-		private void InitializeHotkeys()
+      
+        private void InitializeHotkeys()
         {
             hotkeyMappings = new Dictionary<Keys, string>
             {
@@ -273,75 +192,54 @@ namespace WinFormsApp1
                 cmdProcessor.processCmdByName(cmdName);
                 e.Handled = true;
             }
-			else if (e.KeyCode == Keys.T)
-			{
-				AddCurrentPathToBookmarks();
-				e.Handled = true;
-			}
-		}
-		
-		private void AddCurrentPathToBookmarks()
-		{
-			if (string.IsNullOrEmpty(currentDirectory)) return;
-			var bookmarkPanel = activeTreeview == leftTree ? leftBookmarkPanel : rightBookmarkPanel;
-
-			if (!bookmarkPanel.Controls.OfType<Label>().Any(label => label.Text == currentDirectory))
-			{
-				var bookmarkLabel = new Label
-				{
-					Text = currentDirectory,
-					AutoSize = true,
-					Padding = new Padding(5),
-					BorderStyle = BorderStyle.FixedSingle
-				};
-				bookmarkLabel.MouseClick += BookmarkLabel_MouseClick;
-				
-				bookmarkPanel.Controls.Add(bookmarkLabel);
-				bookmarkPanel.Refresh(); // 确保控件刷新
-			}
-		}
-
-		private void BookmarkLabel_MouseClick(object? sender, MouseEventArgs e)
-		{
-			if (sender is Label bookmarkLabel)
-			{
-				if (e.Button == MouseButtons.Left)
-				{
-					// 左键点击 - 处理书签点击事件
-					MessageBox.Show($"书签点击: {bookmarkLabel.Text}", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
-				}
-				else if (e.Button == MouseButtons.Right)
-				{
-					// 右键点击 - 删除书签
-					var bookmarkPanel = bookmarkLabel.Parent as FlowLayoutPanel;
-					bookmarkPanel?.Controls.Remove(bookmarkLabel);
-				}
-			}
-		}
-
-        private void InitializeBookmarkLists()
-        {
-            // 初始化左侧书签Panel
-            leftBookmarkPanel.Dock = DockStyle.Top;
-            leftBookmarkPanel.FlowDirection = FlowDirection.LeftToRight;
-            leftBookmarkPanel.WrapContents = false;
-            leftBookmarkPanel.AutoScroll = true;
-            leftPanel.Panel2.Controls.Add(leftBookmarkPanel);
-
-            // 初始化右侧书签Panel
-            rightBookmarkPanel.Dock = DockStyle.Top;
-            rightBookmarkPanel.FlowDirection = FlowDirection.LeftToRight;
-            rightBookmarkPanel.WrapContents = false;
-            rightBookmarkPanel.AutoScroll = true;
-            rightPanel.Panel2.Controls.Add(rightBookmarkPanel);
-
-            // 调整布局顺序
-            leftPanel.Panel2.Controls.SetChildIndex(leftBookmarkPanel, 0);
-            leftPanel.Panel2.Controls.SetChildIndex(leftPreview, 1);
-            rightPanel.Panel2.Controls.SetChildIndex(rightBookmarkPanel, 0);
-            rightPanel.Panel2.Controls.SetChildIndex(rightPreview, 1);
+            else if (e.KeyCode == Keys.T)
+            {
+                AddCurrentPathToBookmarks();
+                e.Handled = true;
+            }
         }
-	
+
+        private void AddCurrentPathToBookmarks()
+        {
+            if (string.IsNullOrEmpty(currentDirectory)) return;
+            var bookmarkPanel = activeTreeview == leftTree ? uiManager.leftBookmarkPanel : uiManager.rightBookmarkPanel;
+
+            if (!bookmarkPanel.Controls.OfType<Label>().Any(label => label.Text == currentDirectory))
+            {
+                var bookmarkLabel = new Label
+                {
+                    Text = currentDirectory,
+                    AutoSize = true,
+                    Padding = new Padding(5),
+                    BorderStyle = BorderStyle.FixedSingle
+                };
+                bookmarkLabel.MouseClick += BookmarkLabel_MouseClick;
+
+                bookmarkPanel.Controls.Add(bookmarkLabel);
+                bookmarkPanel.Refresh(); // 确保控件刷新
+            }
+        }
+
+        private void BookmarkLabel_MouseClick(object? sender, MouseEventArgs e)
+        {
+            if (sender is Label bookmarkLabel)
+            {
+                if (e.Button == MouseButtons.Left)
+                {
+                    // 左键点击 - 处理书签点击事件
+                    MessageBox.Show($"书签点击: {bookmarkLabel.Text}", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else if (e.Button == MouseButtons.Right)
+                {
+                    // 右键点击 - 删除书签
+                    var bookmarkPanel = bookmarkLabel.Parent as FlowLayoutPanel;
+                    bookmarkPanel?.Controls.Remove(bookmarkLabel);
+                }
+            }
+        }
+
+     
+
         public void OpenOptions()
         {
             // 打开Options窗口
@@ -564,7 +462,7 @@ namespace WinFormsApp1
                 iContextMenu.InvokeCommand(ref invoke);
             }
         }
-       
+
         public void myShellExe()
         {
             w32.ShellExecute(IntPtr.Zero, "open", "cmd.exe", "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
@@ -681,10 +579,10 @@ namespace WinFormsApp1
 
                     var listView = treeView == leftTree ? leftList : rightList;
                     LoadListView(e.Node, listView);
-					//var path = GetFullPath(e.Node);	//bugfix: d:资料->d:\"my document", convert some display name to real path
-			
-					var path = FileSystemHelper.getFSpathbyTree(e.Node);
-					if (string.IsNullOrEmpty(path)) return;
+                    //var path = GetFullPath(e.Node);	//bugfix: d:资料->d:\"my document", convert some display name to real path
+
+                    var path = FileSystemHelper.getFSpathbyTree(e.Node);
+                    if (string.IsNullOrEmpty(path)) return;
                     LoadListViewByFilesystem(path, listView);
                     currentDirectory = path;
                     selectedNode = e.Node;
@@ -820,228 +718,8 @@ namespace WinFormsApp1
                 MessageBox.Show($"加载驱动器目录失败: {ex.Message}", "错误");
             }
         }
-		private void InitializeDynamicToolbar()
-		{
-			string toolbarFilePath = Path.Combine(Constants.ZfilePath, "DEFAULT.BAR");
-			if (!File.Exists(toolbarFilePath))
-			{
-				MessageBox.Show("工具栏配置文件不存在" + toolbarFilePath, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-				return;
-			}
-
-			var zfile_path = Path.Combine(Constants.ZfilePath, "WCMIcon3.dll");
-			var iconList = iconManager.LoadIconsFromFile(zfile_path);
-			var fileInfoList = new FileInfoList(new string[] { zfile_path });
-
-			using (StreamReader reader = new StreamReader(toolbarFilePath, Encoding.GetEncoding("GB2312")))
-			{
-				dynamicToolStrip = new ToolStrip();
-				string? line;
-				int buttonCount = 0;
-				int buttonIndex;
-				string buttonIcon = "";
-				string cmd = "";
-				string menuText = "";
-				string pathText = "";
-				string iconic = "";
-				string paramText = "";
-				List<int> emptybuttons = new List<int>();
-
-				while ((line = reader.ReadLine()) != null)
-				{
-					line = line.Trim();
-					if (line.StartsWith("Buttoncount="))
-					{
-						buttonCount = int.Parse(line.Substring("Buttoncount=".Length));
-						continue;
-					}
-					else if (line.StartsWith("iconic"))
-					{
-						var _buttonIndex = int.Parse(line.Substring(6, line.IndexOf('=') - 6));
-						if (emptybuttons.Contains(_buttonIndex))  //如果emptybuttons中存在_buttonIndex，则跳过
-							continue;
-						iconic = line.Substring(line.IndexOf('=') + 1);
-					}
-					else if (line.StartsWith("cmd"))
-					{
-						int _buttonIndex = int.Parse(line.Substring(3, line.IndexOf('=') - 3));
-						if (emptybuttons.Contains(_buttonIndex))
-							continue;
-
-						cmd = line.Substring(line.IndexOf('=') + 1);
-					}
-					else if (line.StartsWith("menu"))
-					{
-						int _buttonIndex = int.Parse(line.Substring(4, line.IndexOf('=') - 4));
-						if (emptybuttons.Contains(_buttonIndex))
-							continue;
-						menuText = line.Substring(line.IndexOf('=') + 1);
-					}
-					else if (line.StartsWith("path"))
-					{
-						int _buttonIndex = int.Parse(line.Substring(4, line.IndexOf('=') - 4));
-						if (emptybuttons.Contains(_buttonIndex))
-							continue;
-						pathText = line.Substring(line.IndexOf('=') + 1);
-					}
-					else if (line.StartsWith("param"))
-					{
-						int _buttonIndex = int.Parse(line.Substring(5, line.IndexOf('=') - 5));
-						if (emptybuttons.Contains(_buttonIndex))
-							continue;
-						paramText = line.Substring(line.IndexOf('=') + 1);
-					}
-					else if (line.StartsWith("button"))
-					{
-						if (!cmd.Equals(""))
-						{
-							var zhdesc = cmdProcessor.cmdTable.GetByCmdName(cmd)?.ZhDesc ?? "";
-							ToolStripButton button = new ToolStripButton
-							{
-								Text = menuText,
-								ToolTipText = zhdesc,
-								Image = iconManager.LoadIcon(buttonIcon),
-								Tag = cmd
-							};
-
-							if (cmd.StartsWith("openbar"))
-							{
-								string dropdownFilePath = cmd.Substring("openbar ".Length);
-								ToolStripDropDownButton dropdownButton = new ToolStripDropDownButton
-								{
-									Text = menuText,
-									ToolTipText = menuText,
-									Image = iconManager.LoadIcon(buttonIcon)
-								};
-								InitializeDropdownMenu(dropdownButton, dropdownFilePath);
-								dynamicToolStrip.Items.Add(dropdownButton);
-							}
-							else
-							{
-								button.Click += ToolbarButton_Click;
-								dynamicToolStrip.Items.Add(button);
-							}
-							menuText = "";
-							pathText = "";
-							cmd = "";
-							iconic = "";
-							paramText = "";
-						}
-
-						buttonIndex = int.Parse(line.Substring(6, line.IndexOf('=') - 6));
-						buttonIcon = line.Substring(line.IndexOf('=') + 1);
-						//如果buttonIcon为空，则读取下一行，并记录当前buttonIndex,忽略下面所有编号为buttonIndex的行
-						if (string.IsNullOrEmpty(buttonIcon))
-						{
-							emptybuttons.Add(buttonIndex);
-							continue;
-						}
-					}
-				}
-
-				this.Controls.Add(dynamicToolStrip);
-			}
-
-
-		}
-		private void InitializeDynamicMenu()
-		{
-			string menuFilePath = "C:\\Users\\zhouy\\source\\repos\\WinFormsApp1\\src\\config\\WCMD_CHN.MNU";
-			if (!File.Exists(menuFilePath))
-			{
-				MessageBox.Show("菜单文件不存在" + menuFilePath, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-				return;
-			}
-
-			try
-			{
-				using (StreamReader reader = new StreamReader(menuFilePath, Encoding.GetEncoding("GB2312")))
-				{
-					dynamicMenuStrip = new MenuStrip();
-					Stack<ToolStripMenuItem> menuStack = new Stack<ToolStripMenuItem>();
-					ToolStripMenuItem? currentPopup = null;
-
-					string? line;
-					while ((line = reader.ReadLine()) != null)
-					{
-						line = line.Trim();
-						if (line.StartsWith("POPUP"))
-						{
-							string menuItemText = line.Substring(6).Trim().Trim('"');
-							ToolStripMenuItem menuItem = new ToolStripMenuItem(menuItemText);
-							if (menuStack.Count > 0)
-							{
-								menuStack.Peek().DropDownItems.Add(menuItem);
-							}
-							else
-							{
-								dynamicMenuStrip.Items.Add(menuItem);
-							}
-							menuStack.Push(menuItem);
-							currentPopup = menuItem;
-						}
-						else if (line.StartsWith("END_POPUP"))
-						{
-							if (menuStack.Count > 0)
-							{
-								menuStack.Pop();
-							}
-							currentPopup = menuStack.Count > 0 ? menuStack.Peek() : null;
-						}
-						else if (currentPopup != null)
-						{
-							line = line.TrimStart().Substring(9);
-							if (line.StartsWith("SEPARATOR"))
-							{
-								if (currentPopup != null)
-								{
-									currentPopup.DropDownItems.Add(new ToolStripSeparator());
-								}
-							}
-							else
-							{
-								ToolStripMenuItem menuItem = new ToolStripMenuItem(line);
-								menuItem.Click += MenuItem_Click;
-								currentPopup.DropDownItems.Add(menuItem);
-							}
-						}
-					}
-
-					this.MainMenuStrip = dynamicMenuStrip;
-					this.Controls.Add(dynamicMenuStrip);
-				}
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show($"加载菜单失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-			}
-		}
-		private void ConfigureListView(ListView listView, Panel parent)
-        {
-            listView.Dock = DockStyle.Fill;
-            listView.View = View.Details;
-            listView.FullRowSelect = true;
-            listView.GridLines = true;
-            listView.MultiSelect = true;
-            listView.Sorting = SortOrder.Ascending;
-
-            // 配置列
-            listView.Columns.Clear();
-            listView.Columns.Add("名称", 250); // 新增图标列
-            listView.Columns.Add("名称", 0); // 隐藏名称列
-            listView.Columns.Add("大小", 100);
-            listView.Columns.Add("类型", 80);
-            listView.Columns.Add("修改日期", 150);
-
-            // 添加双击事件
-            listView.MouseDoubleClick += ListView_MouseDoubleClick;
-            listView.ColumnClick += ListView_ColumnClick;
-            listView.SelectedIndexChanged += ListView_SelectedIndexChanged;
-            listView.MouseUp += ListView_MouseUp;
-            listView.MouseDown += ListView_MouseDown;
-            listView.MouseMove += ListView_MouseMove;
-        }
-        private void ListView_MouseDown(object sender, MouseEventArgs e)
+     
+        public void ListView_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
             {
@@ -1056,7 +734,7 @@ namespace WinFormsApp1
             }
         }
 
-        private void ListView_MouseMove(object sender, MouseEventArgs e)
+        public void ListView_MouseMove(object sender, MouseEventArgs e)
         {
             if (isSelecting)
             {
@@ -1069,7 +747,7 @@ namespace WinFormsApp1
                 activeListView.Invalidate();
             }
         }
-        private void ListView_MouseUp(object sender, MouseEventArgs e)
+        public void ListView_MouseUp(object sender, MouseEventArgs e)
         {
             if (isSelecting)
             {
@@ -1092,7 +770,7 @@ namespace WinFormsApp1
                 {
                     listView.FocusedItem = item;
                     var p = Path.Combine(currentDirectory, item.Text);
-                
+
                     var tree1 = listView == leftList ? leftTree : rightTree;
                     // Find corresponding TreeNode for the clicked ListView item
                     TreeNode? node = tree1.SelectedNode;
@@ -1212,7 +890,7 @@ namespace WinFormsApp1
             }
             e.DrawDefault = true;
         }
-        private void ListView_MouseDoubleClick(object? sender, MouseEventArgs e)
+        public void ListView_MouseDoubleClick(object? sender, MouseEventArgs e)
         {
             if (sender is not ListView listView) return;
 
@@ -1297,7 +975,7 @@ namespace WinFormsApp1
                 }
 
                 var i = (ShellItem)node.Tag;
-                if (fullPath.Contains(node.Text)||node.Text.Equals("桌面"))
+                if (fullPath.Contains(node.Text) || node.Text.Equals("桌面"))
                 {
                     LoadSubDirectories(node);
                     node.Expand();
@@ -1311,90 +989,6 @@ namespace WinFormsApp1
             return null;
         }
 
-        private void ConfigureTreeListSplitter(SplitContainer splitter, Panel parent, TreeView tree, ListView list)
-        {
-            // 配置分割容器基本属性
-            splitter.Dock = DockStyle.Fill;
-            splitter.Orientation = Orientation.Vertical;
-
-            // 设置合理的最小尺寸
-            splitter.Panel1MinSize = 100;
-            splitter.Panel2MinSize = 100;
-
-            // 调用函数执行treeview绑定事件
-            uiManager.ConfigureTreeView(tree);
-
-            // 添加控件到分割容器
-            splitter.Panel1.Controls.Add(tree);
-            splitter.Panel2.Controls.Add(list);
-
-            // 将分割容器添加到父面板
-            parent.Controls.Add(splitter);
-
-            // 设置初始分割位置
-            if (parent.Width > 0)
-            {
-                int desiredDistance = parent.Width / 3;
-                // 确保分割线位置在有效范围内
-                splitter.SplitterDistance = Math.Max(
-                    splitter.Panel1MinSize,
-                    Math.Min(desiredDistance, parent.Width - splitter.Panel2MinSize)
-                );
-            }
-
-            // 处理父容器大小改变事件
-            parent.SizeChanged += (s, e) =>
-            {
-                if (parent.Width > 0)
-                {
-                    int desiredDistance = parent.Width / 3;
-                    try
-                    {
-                        splitter.SplitterDistance = Math.Max(
-                            splitter.Panel1MinSize,
-                            Math.Min(desiredDistance, parent.Width - splitter.Panel2MinSize)
-                        );
-                    }
-                    catch (ArgumentException)
-                    {
-                        // 忽略可能的参数异常
-                    }
-                }
-            };
-        }
-
-        private void InitializeListViews()
-        {
-            // 只需配置ListView的属性，不需要添加到面板
-            ConfigureListView(leftList, leftPanel.Panel2);
-            ConfigureListView(rightList, rightPanel.Panel2);
-        }
-
-        private void InitializePreviewPanels()
-        {
-            leftPreview.Dock = DockStyle.Fill;
-            leftPreview.Multiline = true;
-            leftPreview.ReadOnly = true;
-            leftPreview.ScrollBars = ScrollBars.Both;
-            leftPanel.Panel2.Controls.Add(leftPreview);
-
-            rightPreview.Dock = DockStyle.Fill;
-            rightPreview.Multiline = true;
-            rightPreview.ReadOnly = true;
-            rightPreview.ScrollBars = ScrollBars.Both;
-            rightPanel.Panel2.Controls.Add(rightPreview);
-        }
-
-        private void InitializeStatusStrips()
-        {
-            // 配置左侧状态栏
-            leftStatusStrip.Dock = DockStyle.Bottom;
-            leftPanel.Panel2.Controls.Add(leftStatusStrip);
-
-            // 配置右侧状态栏
-            rightStatusStrip.Dock = DockStyle.Bottom;
-            rightPanel.Panel2.Controls.Add(rightStatusStrip);
-        }
 
         private void Watcher_Changed(object sender, FileSystemEventArgs e)
         {
@@ -1472,12 +1066,12 @@ namespace WinFormsApp1
 
             listView.EndUpdate();
         }
-
+    
         // 加载文件列表
         private void LoadListViewByFilesystem(string path, ListView listView)
         {
             if (string.IsNullOrEmpty(path)) return;
-			if (!path.Contains(':')) return;
+            if (!path.Contains(':')) return;
             path = FileSystemHelper.getFSpath(path);
             if (path.EndsWith(':'))
                 path += "\\";
@@ -1508,7 +1102,41 @@ namespace WinFormsApp1
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private ListViewItem? CreateListViewItem(FileSystemInfo item)
+		private async Task LoadListViewByFilesystemAsync(string path, ListView listView)
+		{
+			if (string.IsNullOrEmpty(path)) return;
+			if (!path.Contains(':')) return;
+			path = FileSystemHelper.getFSpath(path);
+			if (path.EndsWith(':'))
+				path += "\\";
+
+			try
+			{
+				path = FileSystemHelper.getFSpathbyList(path);
+				var items = await Task.Run(() => fsManager.GetDirectoryContents(path));
+
+				listView.BeginUpdate();
+				listView.Items.Clear();
+
+				foreach (var item in items)
+				{
+					if ((item.Attributes & FileAttributes.Hidden) != 0) continue;
+
+					var lvItem = CreateListViewItem(item);
+					if (lvItem != null)
+					{
+						listView.Items.Add(lvItem);
+					}
+				}
+				listView.EndUpdate();
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"加载文件列表失败: {ex.Message}", "错误",
+					MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+		private ListViewItem? CreateListViewItem(FileSystemInfo item)
         {
             try
             {
@@ -1581,7 +1209,7 @@ namespace WinFormsApp1
                 previewPanel.Text = $"无法预览文件: {ex.Message}";
             }
         }
-        private async void ListView_SelectedIndexChanged(object? sender, EventArgs e)
+        public async void ListView_SelectedIndexChanged(object? sender, EventArgs e)
         {
             if (sender is not ListView listView) return;
             var previewPanel = listView == leftList ? leftPreview : rightPreview;
@@ -1598,7 +1226,7 @@ namespace WinFormsApp1
             }
         }
 
-        private void ListView_ColumnClick(object? sender, ColumnClickEventArgs e)
+        public void ListView_ColumnClick(object? sender, ColumnClickEventArgs e)
         {
             if (sender is not ListView listView) return;
 
@@ -1736,7 +1364,7 @@ namespace WinFormsApp1
                 DisplayStyle = ToolStripItemDisplayStyle.Text
             };
             themeToggleButton.Click += ThemeToggleButton_Click;
-            dynamicToolStrip.Items.Add(themeToggleButton);
+            uiManager.dynamicToolStrip.Items.Add(themeToggleButton);
         }
 
         private void ThemeToggleButton_Click(object? sender, EventArgs e)
@@ -1762,42 +1390,8 @@ namespace WinFormsApp1
             }
         }
 
-        private void InitializeToolStrip()
-        {
-            ToolStrip toolStrip = new ToolStrip
-            {
-                Dock = DockStyle.Bottom
-            };
-
-            // 添加按钮
-            toolStrip.Items.Add(CreateToolStripButton("查看", Keys.F3, ViewButton_Click));
-            toolStrip.Items.Add(CreateToolStripButton("编辑", Keys.F4, EditButton_Click));
-            toolStrip.Items.Add(CreateToolStripButton("复制", Keys.F5, CopyButton_Click));
-            toolStrip.Items.Add(CreateToolStripButton("移动", Keys.F6, MoveButton_Click));
-            toolStrip.Items.Add(CreateToolStripButton("文件夹", Keys.F7, FolderButton_Click));
-            toolStrip.Items.Add(CreateToolStripButton("删除", Keys.F8, DeleteButton_Click));
-            toolStrip.Items.Add(CreateToolStripButton("终端", Keys.F9, TerminalButton_Click));
-            toolStrip.Items.Add(CreateToolStripButton("退出", Keys.Alt | Keys.X, ExitButton_Click));
-
-            // 将工具栏添加到窗体
-            Controls.Add(toolStrip);
-        }
-
-        private ToolStripButton CreateToolStripButton(string text, Keys shortcutKeys, EventHandler onClick)
-        {
-            var button = new ToolStripButton
-            {
-                Text = $"{text} ({shortcutKeys})",
-                DisplayStyle = ToolStripItemDisplayStyle.Text
-            };
-            button.Click += onClick;
-            return button;
-        }
-
-        // 按钮点击事件处理
-
         // 查看按钮点击处理逻辑
-        private void ViewButton_Click(object? sender, EventArgs e)
+        public void ViewButton_Click(object? sender, EventArgs e)
         {
             do_cm_list();
         }
@@ -1824,12 +1418,12 @@ namespace WinFormsApp1
             }
         }
 
-        private void EditButton_Click(object? sender, EventArgs e)
+        public void EditButton_Click(object? sender, EventArgs e)
         {
             // 编辑按钮点击处理逻辑
         }
 
-        private void CopyButton_Click(object? sender, EventArgs e)
+        public void CopyButton_Click(object? sender, EventArgs e)
         {
             var sourceListView = leftList.Focused ? leftList : rightList;
             var targetTreeView = leftList.Focused ? rightTree : leftTree;
@@ -1860,7 +1454,7 @@ namespace WinFormsApp1
                 MessageBox.Show($"复制失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private void DeleteButton_Click(object? sender, EventArgs e)
+        public void DeleteButton_Click(object? sender, EventArgs e)
         {
             var listView = leftList.Focused ? leftList : rightList;
             if (listView.SelectedItems.Count == 0) return;
@@ -1872,7 +1466,7 @@ namespace WinFormsApp1
             listView.Items.Remove(selectedItem);
         }
 
-        private void FolderButton_Click(object? sender, EventArgs e)
+        public void FolderButton_Click(object? sender, EventArgs e)
         {
             var listView = leftList.Focused ? leftList : rightList;
             var treeView = leftList.Focused ? leftTree : rightTree;
@@ -1887,7 +1481,7 @@ namespace WinFormsApp1
             RefreshTreeViewAndListView(treeView, listView, currentDirectory);
         }
 
-        private void MoveButton_Click(object? sender, EventArgs e)
+        public void MoveButton_Click(object? sender, EventArgs e)
         {
             var sourceListView = leftList.Focused ? leftList : rightList;
             var targetTreeView = leftList.Focused ? rightTree : leftTree;
@@ -1914,12 +1508,12 @@ namespace WinFormsApp1
             LoadListViewByFilesystem(path, listView);
         }
 
-        private void TerminalButton_Click(object? sender, EventArgs e)
+        public void TerminalButton_Click(object? sender, EventArgs e)
         {
             // 终端按钮点击处理逻辑
         }
 
-        private void ExitButton_Click(object? sender, EventArgs e)
+        public void ExitButton_Click(object? sender, EventArgs e)
         {
             Application.Exit();
         }
@@ -1951,7 +1545,7 @@ namespace WinFormsApp1
             return utf8.GetString(gb);
         }
 
-        private void MenuItem_Click(object? sender, EventArgs e)
+        public void MenuItem_Click(object? sender, EventArgs e)
         {
             if (sender is ToolStripMenuItem menuItem)
             {
@@ -1960,70 +1554,5 @@ namespace WinFormsApp1
             }
         }
      
-        //从环境变量获取%COMMANDER_PATH%
-        private string GetCommanderPath()
-        {
-            string commanderPath = Environment.GetEnvironmentVariable("COMMANDER_PATH") ?? string.Empty;
-            //if (string.IsNullOrEmpty(commanderPath))
-            {
-                //MessageBox.Show("未设置COMMANDER_PATH环境变量", "warning", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                //var bb = Environment.CurrentDirectory;
-                //var cc = AppDomain.CurrentDomain.BaseDirectory;
-                //var dd = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
-                return Directory.GetCurrentDirectory(); ;
-            }
-            return commanderPath;
-        }
-        private void InitializeDropdownMenu(ToolStripDropDownButton dropdownButton, string dropdownFilePath)
-        {
-            var commanderPath = GetCommanderPath();
-            if (string.IsNullOrEmpty(commanderPath))
-            {
-                return;
-            }
-            dropdownFilePath = dropdownFilePath.ToUpper().Replace("%COMMANDER_PATH%", commanderPath + "\\..\\..\\..\\..\\config");
-            if (!File.Exists(dropdownFilePath))
-            {
-                MessageBox.Show("下拉菜单配置文件不存在" + dropdownFilePath, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            try
-            {
-                using (StreamReader reader = new StreamReader(dropdownFilePath, Encoding.GetEncoding("GB2312")))
-                {
-                    string? line;
-                    while ((line = reader.ReadLine()) != null)
-                    {
-                        line = line.Trim();
-                        if (line.StartsWith("button"))
-                        {
-                            string menuText = reader.ReadLine()?.Trim() ?? string.Empty;
-                            string cmd = reader.ReadLine()?.Trim() ?? string.Empty;
-
-                            ToolStripMenuItem menuItem = new ToolStripMenuItem
-                            {
-                                Text = menuText,
-                                Tag = cmd
-                            };
-                            menuItem.Click += ToolbarButton_Click;
-                            dropdownButton.DropDownItems.Add(menuItem);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"加载下拉菜单失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void ToolbarButton_Click(object? sender, EventArgs e)
-        {
-            if (sender is ToolStripItem item && item.Tag is string cmd)
-            {
-                MessageBox.Show($"执行命令: {cmd}", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-        }
     }
 }

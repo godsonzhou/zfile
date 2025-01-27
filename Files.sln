@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample3", "src\WinShell\Sam
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sheng.Winform.Controls", "src\Sheng.Winform.Controls\Sheng.Winform.Controls.csproj", "{8947FDAE-9F4B-4D77-91AA-0704ACD83DBD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sheng.Winform.Controls.Demo", "src\Sheng.Winform.Controls.Demo\Sheng.Winform.Controls.Demo.csproj", "{8DB4A7CC-C631-45BD-BB94-1BC9CF686609}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -91,6 +93,22 @@ Global
 		{8947FDAE-9F4B-4D77-91AA-0704ACD83DBD}.Release|x64.Build.0 = Release|Any CPU
 		{8947FDAE-9F4B-4D77-91AA-0704ACD83DBD}.Release|x86.ActiveCfg = Release|Any CPU
 		{8947FDAE-9F4B-4D77-91AA-0704ACD83DBD}.Release|x86.Build.0 = Release|Any CPU
+		{8DB4A7CC-C631-45BD-BB94-1BC9CF686609}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DB4A7CC-C631-45BD-BB94-1BC9CF686609}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DB4A7CC-C631-45BD-BB94-1BC9CF686609}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{8DB4A7CC-C631-45BD-BB94-1BC9CF686609}.Debug|arm64.Build.0 = Debug|Any CPU
+		{8DB4A7CC-C631-45BD-BB94-1BC9CF686609}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8DB4A7CC-C631-45BD-BB94-1BC9CF686609}.Debug|x64.Build.0 = Debug|Any CPU
+		{8DB4A7CC-C631-45BD-BB94-1BC9CF686609}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8DB4A7CC-C631-45BD-BB94-1BC9CF686609}.Debug|x86.Build.0 = Debug|Any CPU
+		{8DB4A7CC-C631-45BD-BB94-1BC9CF686609}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DB4A7CC-C631-45BD-BB94-1BC9CF686609}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DB4A7CC-C631-45BD-BB94-1BC9CF686609}.Release|arm64.ActiveCfg = Release|Any CPU
+		{8DB4A7CC-C631-45BD-BB94-1BC9CF686609}.Release|arm64.Build.0 = Release|Any CPU
+		{8DB4A7CC-C631-45BD-BB94-1BC9CF686609}.Release|x64.ActiveCfg = Release|Any CPU
+		{8DB4A7CC-C631-45BD-BB94-1BC9CF686609}.Release|x64.Build.0 = Release|Any CPU
+		{8DB4A7CC-C631-45BD-BB94-1BC9CF686609}.Release|x86.ActiveCfg = Release|Any CPU
+		{8DB4A7CC-C631-45BD-BB94-1BC9CF686609}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -100,6 +118,7 @@ Global
 		{5C1F5D13-B5F3-46F6-8A25-D02D7D0C83B8} = {A74DCE98-A744-4D71-A2B1-7EE4FED0936B}
 		{3A63E108-CA20-449B-8EB9-402A6328F216} = {A74DCE98-A744-4D71-A2B1-7EE4FED0936B}
 		{8947FDAE-9F4B-4D77-91AA-0704ACD83DBD} = {A74DCE98-A744-4D71-A2B1-7EE4FED0936B}
+		{8DB4A7CC-C631-45BD-BB94-1BC9CF686609} = {A74DCE98-A744-4D71-A2B1-7EE4FED0936B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0E62043C-A7A1-4982-9EC9-4CDB2939B776}

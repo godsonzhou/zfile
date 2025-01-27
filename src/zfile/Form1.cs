@@ -469,7 +469,7 @@ namespace WinFormsApp1
             ConfigureDriveBox(leftDriveBox, leftDrivePanel, leftPathTextBox);
             ConfigureDriveBox(rightDriveBox, rightDrivePanel, rightPathTextBox);
 			// 初始化根节点
-			var rootNode = new FileSystemAddressNode("根节点", "C:\\"); // 假设 FileSystemAddressNode 是实现 IShengAddressNode 的类
+			var rootNode = new ShengFileSystemNode(); // 假设 FileSystemAddressNode 是实现 IShengAddressNode 的类
 			leftPathTextBox.InitializeRoot(rootNode);
 			rightPathTextBox.InitializeRoot(rootNode);
 

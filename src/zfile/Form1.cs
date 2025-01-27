@@ -6,158 +6,62 @@ using Keys = System.Windows.Forms.Keys;//引入CmdProcessor命名空间
 
 namespace WinFormsApp1
 {
-	public partial class Form1 : Form
+    public partial class Form1 : Form
     {
         public readonly IconManager iconManager = new();
         private readonly ThemeManager themeManager;
         private readonly FilePreviewManager previewManager = new();
         private readonly FileSystemManager fsManager = new();
         private readonly UIControlManager uiManager;
-   
 
         private Dictionary<Keys, string> hotkeyMappings;
-        // 声明新的 TextBox 控件
-        private readonly ShengAddressBarStrip leftPathTextBox = new();
-        private readonly ShengAddressBarStrip rightPathTextBox = new();
-
         private bool isSelecting = false;
         private Point selectionStart;
         private Rectangle selectionRectangle;
         private ListView activeListView;
         private TreeView activeTreeview;
-
         private readonly FileSystemWatcher watcher = new();
-        private string currentDirectory = "";// @"";
-
-        // 声明控件为私有字段
-        private readonly SplitContainer mainContainer = new();
-        private readonly SplitContainer leftPanel = new();
-        private readonly SplitContainer rightPanel = new();
-
-        private readonly Panel leftUpperPanel = new();
-        private readonly Panel rightUpperPanel = new();
-        private readonly Panel leftDrivePanel = new();
-        private readonly Panel rightDrivePanel = new();
-
-        private readonly ComboBox leftDriveBox = new();
-        private readonly ComboBox rightDriveBox = new();
-
-        private readonly TreeView leftTree = new();
-        private readonly ListView leftList = new();
-        private readonly TextBox leftPreview = new();
-        //private readonly ListBox leftBookmarkList = new();
-
-        private readonly TreeView rightTree = new();
-        private readonly ListView rightList = new();
-        private readonly TextBox rightPreview = new();
-        //private readonly ListBox rightBookmarkList = new();
-
-        private TreeNode? selectedNode = null; // 添加可空标记
-
-        // 添加排序状态追踪
+        private string currentDirectory = "";
+        private TreeNode? selectedNode = null;
         private int sortColumn = -1;
         private SortOrder sortOrder = SortOrder.None;
-
-        private readonly SplitContainer leftTreeListSplitter = new();
-        private readonly SplitContainer rightTreeListSplitter = new();
-
-        // 声明状态栏控件
-        private readonly StatusStrip leftStatusStrip = new();
-        private readonly StatusStrip rightStatusStrip = new();
-
-        FileInfoList fileList;
-
-        private readonly ContextMenuStrip contextMenuStrip = new ContextMenuStrip();
+        private readonly ContextMenuStrip contextMenuStrip = new();
         public CmdProc cmdProcessor;
-        
-        
-        private ImageList treeViewImageList;
         private WinShell.IShellFolder iDeskTop;
-
-        // Form1
-        // ├── mainContainer(SplitContainer)
-        // │   ├── leftPanel(SplitContainer)
-        // │   │   ├── leftUpperPanel(Panel)
-        // │   │   │   ├── leftDriveBox(ComboBox)
-        // │   │   │   └── leftPathTextBox(ShengAddressBarStrip)
-        // │   │   ├── leftTreeListSplitter(SplitContainer)
-        // │   │   │   ├── leftTree(TreeView)
-        // │   │   │   └── leftList(ListView)
-        // │   │   ├── leftBookmarkPanel(FlowLayoutPanel)
-        // │   │   └── leftPreview(TextBox)
-        // │   └── rightPanel(SplitContainer)
-        // │       ├── rightUpperPanel(Panel)
-        // │       │   ├── rightDriveBox(ComboBox)
-        // │       │   └── rightPathTextBox(ShengAddressBarStrip)
-        // │       ├── rightTreeListSplitter(SplitContainer)
-        // │       │   ├── rightTree(TreeView)
-        // │       │   └── rightList(ListView)
-        // │       ├── rightBookmarkPanel(FlowLayoutPanel)
-        // │       └── rightPreview(TextBox)
-        // ├── leftStatusStrip(StatusStrip)
-        // └── rightStatusStrip(StatusStrip)
 
         public Form1()
         {
             InitializeComponent();
-            InitializeContextMenu();
             this.Size = new Size(1200, 800);
 
-            uiManager = new UIControlManager(
-                this,
-                mainContainer,
-                leftPanel,
-                rightPanel,
-                leftUpperPanel,
-                rightUpperPanel,
-                leftDrivePanel,
-                rightDrivePanel,
-                leftDriveBox,
-                rightDriveBox,
-                leftTree,
-                leftList,
-                leftPreview,
-                rightTree,
-                rightList,
-                rightPreview,
-                leftPathTextBox,
-                rightPathTextBox,
-                leftStatusStrip,
-                rightStatusStrip,
-                leftTreeListSplitter,
-                rightTreeListSplitter
-            );
+			cmdProcessor = new CmdProc(this);
 
-            uiManager.InitializeLayout();
-            uiManager.InitializeDriveComboBoxes();
-            uiManager.InitializeTreeViews();
-            uiManager.InitializeListViews();
-            activeListView = leftList;  //default active view is left list view
-            activeTreeview = leftTree;
-            uiManager.InitializePreviewPanels();
-            uiManager.InitializeStatusStrips();
+			// 创建UIManager并初始化
+			uiManager = new UIControlManager(this);
+
+            // 设置活动视图
+            activeListView = uiManager.LeftList;
+            activeTreeview = uiManager.LeftTree;
+
+            // 其他初始化
             InitializeFileSystemWatcher();
-            InitializeThemeToggleButton();
-            uiManager.InitializeToolStrip();
-            uiManager.InitializeDynamicMenu();
-            cmdProcessor = new CmdProc(this);
-            uiManager.InitializeDynamicToolbar();
-            uiManager.InitializeTreeViewIcons();
             InitializeHotkeys();
-            uiManager.InitializeBookmarkLists();
-            Helper.GetSpecPathFromReg();
-            Helper.getEnv();
 
-            // 初始化ThemeManager
+            // 初始化主题管理器
             themeManager = new ThemeManager(
-                this, uiManager.dynamicToolStrip, uiManager.dynamicMenuStrip,
-                leftTree, rightTree,
-                leftList, rightList,
-                leftPreview, rightPreview,
-                leftStatusStrip, rightStatusStrip
+                this,
+                uiManager.dynamicToolStrip,
+                uiManager.dynamicMenuStrip,
+                uiManager.LeftTree,
+                uiManager.RightTree,
+                uiManager.LeftList,
+                uiManager.RightList,
+                uiManager.LeftPreview,
+                uiManager.RightPreview,
+                uiManager.LeftStatusStrip,
+                uiManager.RightStatusStrip
             );
         }
-      
         private void InitializeHotkeys()
         {
             hotkeyMappings = new Dictionary<Keys, string>
@@ -193,7 +97,7 @@ namespace WinFormsApp1
         private void AddCurrentPathToBookmarks()
         {
             if (string.IsNullOrEmpty(currentDirectory)) return;
-            var bookmarkPanel = activeTreeview == leftTree ? uiManager.leftBookmarkPanel : uiManager.rightBookmarkPanel;
+            var bookmarkPanel = activeTreeview == uiManager.LeftTree ? uiManager.leftBookmarkPanel : uiManager.rightBookmarkPanel;
 
             if (!bookmarkPanel.Controls.OfType<Label>().Any(label => label.Text == currentDirectory))
             {
@@ -229,8 +133,6 @@ namespace WinFormsApp1
             }
         }
 
-     
-
         public void OpenOptions()
         {
             // 打开Options窗口
@@ -242,17 +144,17 @@ namespace WinFormsApp1
             }
         }
 
-        private void InitializeTreeViewIcons()
-        {
-            treeViewImageList = new ImageList();
-            treeViewImageList.ImageSize = new Size(16, 16);
+        // private void InitializeTreeViewIcons()
+        // {
+        //     treeViewImageList = new ImageList();
+        //     treeViewImageList.ImageSize = new Size(16, 16);
 
-            Icon folderIcon = Helper.GetIconByFileType("folder", false);
-            if (folderIcon != null)
-            {
-                treeViewImageList.Images.Add("folder", folderIcon);
-            }
-        }
+        //     Icon folderIcon = Helper.GetIconByFileType("folder", false);
+        //     if (folderIcon != null)
+        //     {
+        //         treeViewImageList.Images.Add("folder", folderIcon);
+        //     }
+        // }
         private void InitializeContextMenu()
         {
             // 初始化ContextMenuStrip
@@ -262,36 +164,36 @@ namespace WinFormsApp1
         {
             // 在这里可以添加自定义的菜单项
         }
-        private void 加载文件ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            FolderBrowserDialog dlg = new FolderBrowserDialog();
-            //if (dlg.ShowDialog() == DialogResult.OK)
-            {
-                string[] filespath = Directory.GetFiles(dlg.SelectedPath);
-                fileList = new FileInfoList(filespath);
-                InitListView();
-            }
-        }
+        // private void 加载文件ToolStripMenuItem_Click(object sender, EventArgs e)
+        // {
+        //     FolderBrowserDialog dlg = new FolderBrowserDialog();
+        //     //if (dlg.ShowDialog() == DialogResult.OK)
+        //     {
+        //         string[] filespath = Directory.GetFiles(dlg.SelectedPath);
+        //         fileList = new FileInfoList(filespath);
+        //         InitListView();
+        //     }
+        // }
 
-        private void InitListView()
-        {
-            activeListView.Items.Clear();
-            this.activeListView.BeginUpdate();
-            foreach (FileInfoWithIcon file in fileList.list)
-            {
-                ListViewItem item = new ListViewItem();
-                item.Text = file.fileInfo.Name.Split('.')[0];
-                item.ImageIndex = file.iconIndex;
-                item.SubItems.Add(file.fileInfo.LastWriteTime.ToString());
-                item.SubItems.Add(file.fileInfo.Extension.Replace(".", ""));
-                item.SubItems.Add(string.Format(("{0:N0}"), file.fileInfo.Length));
-                activeListView.Items.Add(item);
-            }
-            activeListView.LargeImageList = fileList.imageListLargeIcon;
-            activeListView.SmallImageList = fileList.imageListSmallIcon;
-            activeListView.Show();
-            this.activeListView.EndUpdate();
-        }
+        // private void InitListView()
+        // {
+        //     activeListView.Items.Clear();
+        //     this.activeListView.BeginUpdate();
+        //     foreach (FileInfoWithIcon file in fileList.list)
+        //     {
+        //         ListViewItem item = new ListViewItem();
+        //         item.Text = file.fileInfo.Name.Split('.')[0];
+        //         item.ImageIndex = file.iconIndex;
+        //         item.SubItems.Add(file.fileInfo.LastWriteTime.ToString());
+        //         item.SubItems.Add(file.fileInfo.Extension.Replace(".", ""));
+        //         item.SubItems.Add(string.Format(("{0:N0}"), file.fileInfo.Length));
+        //         activeListView.Items.Add(item);
+        //     }
+        //     activeListView.LargeImageList = fileList.imageListLargeIcon;
+        //     activeListView.SmallImageList = fileList.imageListSmallIcon;
+        //     activeListView.Show();
+        //     this.activeListView.EndUpdate();
+        // }
 
         public interface IActiveListViewChangeable
         {
@@ -522,7 +424,7 @@ namespace WinFormsApp1
                     // 更新ListView显示
                     if (sender is TreeView treeView)
                     {
-                        var listView = treeView == leftTree ? leftList : rightList;
+                        var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
                         LoadListView(e.Node, listView, true);
                         currentDirectory = path;
                         selectedNode = e.Node;
@@ -568,7 +470,7 @@ namespace WinFormsApp1
                     e.Node.ForeColor = SystemColors.HighlightText;
                     treeView.Refresh(); // 强制重绘
 
-                    var listView = treeView == leftTree ? leftList : rightList;
+                    var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
                     LoadListView(e.Node, listView);
                     //var path = GetFullPath(e.Node);	//bugfix: d:资料->d:\"my document", convert some display name to real path
 
@@ -588,10 +490,10 @@ namespace WinFormsApp1
                     // 调用leftpathtextbox的setaddress方法来更新路径
 
 
-                    if (treeView == leftTree)
-                        leftPathTextBox.SetAddress(path);
+                    if (treeView == uiManager.LeftTree)
+                        uiManager.LeftPathTextBox.SetAddress(path);
                     else
-                        rightPathTextBox.SetAddress(path);
+                        uiManager.RightPathTextBox.SetAddress(path);
                 }
             }
             catch (Exception ex)
@@ -709,7 +611,7 @@ namespace WinFormsApp1
                 MessageBox.Show($"加载驱动器目录失败: {ex.Message}", "错误");
             }
         }
-     
+
         public void ListView_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
@@ -718,10 +620,10 @@ namespace WinFormsApp1
                 selectionStart = e.Location;
                 activeListView = sender as ListView;
                 activeListView.SelectedItems.Clear();
-                if (activeListView == leftList)
-                    activeTreeview = leftTree;
+                if (activeListView == uiManager.LeftList)
+                    activeTreeview = uiManager.LeftTree;
                 else
-                    activeTreeview = rightTree;
+                    activeTreeview = uiManager.RightTree;
             }
         }
 
@@ -762,7 +664,7 @@ namespace WinFormsApp1
                     listView.FocusedItem = item;
                     var p = Path.Combine(currentDirectory, item.Text);
 
-                    var tree1 = listView == leftList ? leftTree : rightTree;
+                    var tree1 = listView == uiManager.LeftList ? uiManager.LeftTree : uiManager.RightTree;
                     // Find corresponding TreeNode for the clicked ListView item
                     TreeNode? node = tree1.SelectedNode;
                     if (node != null)
@@ -799,7 +701,7 @@ namespace WinFormsApp1
                 try
                 {
                     // 获取关联的TreeView
-                    TreeView treeView = listView == leftList ? leftTree : rightTree;
+                    TreeView treeView = listView == uiManager.LeftList ? uiManager.LeftTree : uiManager.RightTree;
 
                     // 查找并选择对应的TreeNode
                     TreeNode? node = FindTreeNode(treeView.Nodes, itemPath);
@@ -895,7 +797,7 @@ namespace WinFormsApp1
                 try
                 {
                     // 获取关联的 TreeView
-                    TreeView treeView = listView == leftList ? leftTree : rightTree;
+                    TreeView treeView = listView == uiManager.LeftList ? uiManager.LeftTree : uiManager.RightTree;
 
                     // 查找并选择对应的 TreeNode
                     TreeNode? node = FindTreeNode(treeView.Nodes, itemPath);
@@ -983,8 +885,8 @@ namespace WinFormsApp1
 
         private void Watcher_Changed(object sender, FileSystemEventArgs e)
         {
-            var selectedDrive = leftDriveBox.SelectedItem?.ToString();
-            var listView = selectedDrive != null && watcher.Path.StartsWith(selectedDrive) ? leftList : rightList;
+            var selectedDrive = uiManager.LeftDriveBox.SelectedItem?.ToString();
+            var listView = selectedDrive != null && watcher.Path.StartsWith(selectedDrive) ? uiManager.LeftList : uiManager.RightList;
             //LoadListView(watcher.Path, listView);
         }
 
@@ -1003,8 +905,8 @@ namespace WinFormsApp1
         {
             if (sender is not ComboBox comboBox) return;
 
-            var treeView = comboBox == leftDriveBox ? leftTree : rightTree;
-            var listView = comboBox == leftDriveBox ? leftList : rightList;
+            var treeView = comboBox == uiManager.LeftDriveBox ? uiManager.LeftTree : uiManager.RightTree;
+            var listView = comboBox == uiManager.LeftDriveBox ? uiManager.LeftList : uiManager.RightList;
 
             if (comboBox.SelectedItem is string drivePath)
             {
@@ -1057,7 +959,7 @@ namespace WinFormsApp1
 
             listView.EndUpdate();
         }
-    
+
         // 加载文件列表
         private void LoadListViewByFilesystem(string path, ListView listView)
         {
@@ -1093,41 +995,41 @@ namespace WinFormsApp1
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-		private async Task LoadListViewByFilesystemAsync(string path, ListView listView)
-		{
-			if (string.IsNullOrEmpty(path)) return;
-			if (!path.Contains(':')) return;
-			path = Helper.getFSpath(path);
-			if (path.EndsWith(':'))
-				path += "\\";
+        private async Task LoadListViewByFilesystemAsync(string path, ListView listView)
+        {
+            if (string.IsNullOrEmpty(path)) return;
+            if (!path.Contains(':')) return;
+            path = Helper.getFSpath(path);
+            if (path.EndsWith(':'))
+                path += "\\";
 
-			try
-			{
-				path = Helper.getFSpathbyList(path);
-				var items = await Task.Run(() => fsManager.GetDirectoryContents(path));
+            try
+            {
+                path = Helper.getFSpathbyList(path);
+                var items = await Task.Run(() => fsManager.GetDirectoryContents(path));
 
-				listView.BeginUpdate();
-				listView.Items.Clear();
+                listView.BeginUpdate();
+                listView.Items.Clear();
 
-				foreach (var item in items)
-				{
-					if ((item.Attributes & FileAttributes.Hidden) != 0) continue;
+                foreach (var item in items)
+                {
+                    if ((item.Attributes & FileAttributes.Hidden) != 0) continue;
 
-					var lvItem = CreateListViewItem(item);
-					if (lvItem != null)
-					{
-						listView.Items.Add(lvItem);
-					}
-				}
-				listView.EndUpdate();
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show($"加载文件列表失败: {ex.Message}", "错误",
-					MessageBoxButtons.OK, MessageBoxIcon.Error);
-			}
-		}
-		private ListViewItem? CreateListViewItem(FileSystemInfo item)
+                    var lvItem = CreateListViewItem(item);
+                    if (lvItem != null)
+                    {
+                        listView.Items.Add(lvItem);
+                    }
+                }
+                listView.EndUpdate();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"加载文件列表失败: {ex.Message}", "错误",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        private ListViewItem? CreateListViewItem(FileSystemInfo item)
         {
             try
             {
@@ -1203,7 +1105,7 @@ namespace WinFormsApp1
         public async void ListView_SelectedIndexChanged(object? sender, EventArgs e)
         {
             if (sender is not ListView listView) return;
-            var previewPanel = listView == leftList ? leftPreview : rightPreview;
+            var previewPanel = listView == uiManager.LeftList ? uiManager.LeftPreview : uiManager.RightPreview;
 
             if (listView.SelectedItems.Count > 0)
             {
@@ -1389,7 +1291,7 @@ namespace WinFormsApp1
 
         public void do_cm_list()
         {
-            var listView = leftList.Focused ? leftList : rightList;
+            var listView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
             if (listView.SelectedItems.Count == 0) return;
 
             var selectedItem = listView.SelectedItems[0];
@@ -1416,9 +1318,9 @@ namespace WinFormsApp1
 
         public void CopyButton_Click(object? sender, EventArgs e)
         {
-            var sourceListView = leftList.Focused ? leftList : rightList;
-            var targetTreeView = leftList.Focused ? rightTree : leftTree;
-            var targetListView = leftList.Focused ? rightList : leftList;
+            var sourceListView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
+            var targetTreeView = uiManager.LeftList.Focused ? uiManager.RightTree : uiManager.LeftTree;
+            var targetListView = uiManager.LeftList.Focused ? uiManager.RightList : uiManager.LeftList;
 
             if (sourceListView.SelectedItems.Count == 0 || targetTreeView.SelectedNode == null) return;
 
@@ -1437,8 +1339,8 @@ namespace WinFormsApp1
                     File.Copy(sourcePath, targetPath);
                 }
 
-                RefreshTreeViewAndListView(leftTree, leftList, leftDriveBox.SelectedItem?.ToString() ?? string.Empty);
-                RefreshTreeViewAndListView(rightTree, rightList, rightDriveBox.SelectedItem?.ToString() ?? string.Empty);
+                RefreshTreeViewAndListView(uiManager.LeftTree, uiManager.LeftList, uiManager.LeftDriveBox.SelectedItem?.ToString() ?? string.Empty);
+                RefreshTreeViewAndListView(uiManager.RightTree, uiManager.RightList, uiManager.RightDriveBox.SelectedItem?.ToString() ?? string.Empty);
             }
             catch (Exception ex)
             {
@@ -1447,7 +1349,7 @@ namespace WinFormsApp1
         }
         public void DeleteButton_Click(object? sender, EventArgs e)
         {
-            var listView = leftList.Focused ? leftList : rightList;
+            var listView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
             if (listView.SelectedItems.Count == 0) return;
 
             var selectedItem = listView.SelectedItems[0];
@@ -1459,8 +1361,8 @@ namespace WinFormsApp1
 
         public void FolderButton_Click(object? sender, EventArgs e)
         {
-            var listView = leftList.Focused ? leftList : rightList;
-            var treeView = leftList.Focused ? leftTree : rightTree;
+            var listView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
+            var treeView = uiManager.LeftList.Focused ? uiManager.LeftTree : uiManager.RightTree;
 
             if (selectedNode == null) return;
 
@@ -1474,8 +1376,8 @@ namespace WinFormsApp1
 
         public void MoveButton_Click(object? sender, EventArgs e)
         {
-            var sourceListView = leftList.Focused ? leftList : rightList;
-            var targetTreeView = leftList.Focused ? rightTree : leftTree;
+            var sourceListView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
+            var targetTreeView = uiManager.LeftList.Focused ? uiManager.RightTree : uiManager.LeftTree;
 
             if (sourceListView.SelectedItems.Count == 0 || targetTreeView.SelectedNode == null) return;
 
@@ -1484,8 +1386,8 @@ namespace WinFormsApp1
             var targetPath = Path.Combine(targetTreeView.SelectedNode.Tag.ToString() ?? string.Empty, selectedItem.Text);
 
             fsManager.MoveFileOrDirectory(sourcePath, targetPath);
-            RefreshTreeViewAndListView(leftTree, leftList, leftDriveBox.SelectedItem?.ToString() ?? string.Empty);
-            RefreshTreeViewAndListView(rightTree, rightList, rightDriveBox.SelectedItem?.ToString() ?? string.Empty);
+            RefreshTreeViewAndListView(uiManager.LeftTree, uiManager.LeftList, uiManager.LeftDriveBox.SelectedItem?.ToString() ?? string.Empty);
+            RefreshTreeViewAndListView(uiManager.RightTree, uiManager.RightList, uiManager.RightDriveBox.SelectedItem?.ToString() ?? string.Empty);
         }
 
         private void RefreshTreeViewAndListView(TreeView treeView, ListView listView, string path)
@@ -1525,7 +1427,7 @@ namespace WinFormsApp1
                 MessageBox.Show($"无法打开命令提示符: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-    
+
 
         public void MenuItem_Click(object? sender, EventArgs e)
         {
@@ -1535,6 +1437,6 @@ namespace WinFormsApp1
                 cmdProcessor.processCmdByName(menuItem.Text);
             }
         }
-     
+
     }
 }

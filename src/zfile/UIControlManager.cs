@@ -4,215 +4,209 @@ using System.Text;
 namespace WinFormsApp1
 {
 	public class UIControlManager
-    {
-        private readonly Form1 form;
-        private readonly ImageList treeViewImageList;
-        private readonly SplitContainer mainContainer;
-        private readonly SplitContainer leftPanel;
-        private readonly SplitContainer rightPanel;
-        private readonly Panel leftUpperPanel;
-        private readonly Panel rightUpperPanel;
-        private readonly Panel leftDrivePanel;
-        private readonly Panel rightDrivePanel;
-        private readonly ComboBox leftDriveBox;
-        private readonly ComboBox rightDriveBox;
-        private readonly TreeView leftTree;
-        private readonly ListView leftList;
-        private readonly TextBox leftPreview;
-        
-        private readonly TreeView rightTree;
-        private readonly ListView rightList;
-        private readonly TextBox rightPreview;
-        
-        private readonly ShengAddressBarStrip leftPathTextBox;
-        private readonly ShengAddressBarStrip rightPathTextBox;
-        private readonly StatusStrip leftStatusStrip;
-        private readonly StatusStrip rightStatusStrip;
-        private readonly SplitContainer leftTreeListSplitter;
-        private readonly SplitContainer rightTreeListSplitter;
+	{
+		private readonly Form1 form;
+		private readonly ImageList treeViewImageList;
+
+		#region Container Controls
+		public SplitContainer MainContainer { get; } = new();
+		public SplitContainer LeftPanel { get; } = new();
+		public SplitContainer RightPanel { get; } = new();
+		public SplitContainer LeftTreeListSplitter { get; } = new();
+		public SplitContainer RightTreeListSplitter { get; } = new();
+		#endregion
+
+		#region Panel Controls
+		public Panel LeftUpperPanel { get; } = new();
+		public Panel RightUpperPanel { get; } = new();
+		public Panel LeftDrivePanel { get; } = new();
+		public Panel RightDrivePanel { get; } = new();
+		#endregion
+
+		#region Drive Controls
+		public ComboBox LeftDriveBox { get; } = new();
+		public ComboBox RightDriveBox { get; } = new();
+		public ShengAddressBarStrip LeftPathTextBox { get; } = new();
+		public ShengAddressBarStrip RightPathTextBox { get; } = new();
+		#endregion
+
+		#region View Controls
+		public TreeView LeftTree { get; } = new();
+		public TreeView RightTree { get; } = new();
+		public ListView LeftList { get; } = new();
+		public ListView RightList { get; } = new();
+		#endregion
+
+		#region Preview Controls
+		public TextBox LeftPreview { get; } = new();
+		public TextBox RightPreview { get; } = new();
+		#endregion
+
+		#region Status Controls
+		public StatusStrip LeftStatusStrip { get; } = new();
+		public StatusStrip RightStatusStrip { get; } = new();
+		#endregion
+
+		#region Bookmark Controls
 		public readonly FlowLayoutPanel leftBookmarkPanel = new();
 		public readonly FlowLayoutPanel rightBookmarkPanel = new();
+		#endregion
+
+		#region Menu Controls
 		public MenuStrip dynamicMenuStrip = new();
 		public ToolStrip dynamicToolStrip = new();
-		public UIControlManager(Form1 form, 
-            SplitContainer mainContainer,
-            SplitContainer leftPanel,
-            SplitContainer rightPanel,
-            Panel leftUpperPanel,
-            Panel rightUpperPanel,
-            Panel leftDrivePanel,
-            Panel rightDrivePanel,
-            ComboBox leftDriveBox,
-            ComboBox rightDriveBox,
-            TreeView leftTree,
-            ListView leftList,
-            TextBox leftPreview,
-            TreeView rightTree,
-            ListView rightList,
-            TextBox rightPreview,
-            ShengAddressBarStrip leftPathTextBox,
-            ShengAddressBarStrip rightPathTextBox,
-            StatusStrip leftStatusStrip,
-            StatusStrip rightStatusStrip,
-            SplitContainer leftTreeListSplitter,
-            SplitContainer rightTreeListSplitter)
-        {
-            this.form = form;
-            this.mainContainer = mainContainer;
-            this.leftPanel = leftPanel;
-            this.rightPanel = rightPanel;
-            this.leftUpperPanel = leftUpperPanel;
-            this.rightUpperPanel = rightUpperPanel;
-            this.leftDrivePanel = leftDrivePanel;
-            this.rightDrivePanel = rightDrivePanel;
-            this.leftDriveBox = leftDriveBox;
-            this.rightDriveBox = rightDriveBox;
-            this.leftTree = leftTree;
-            this.leftList = leftList;
-            this.leftPreview = leftPreview;
-            this.rightTree = rightTree;
-            this.rightList = rightList;
-            this.rightPreview = rightPreview;
-            this.leftPathTextBox = leftPathTextBox;
-            this.rightPathTextBox = rightPathTextBox;
-            this.leftStatusStrip = leftStatusStrip;
-            this.rightStatusStrip = rightStatusStrip;
-            this.leftTreeListSplitter = leftTreeListSplitter;
-            this.rightTreeListSplitter = rightTreeListSplitter;
+		#endregion
 
-            treeViewImageList = new ImageList();
-            treeViewImageList.ImageSize = new Size(16, 16);
-        }
+		public UIControlManager(Form1 form)
+		{
+			this.form = form;
+			treeViewImageList = new ImageList();
+			treeViewImageList.ImageSize = new Size(16, 16);
+			InitializeUI(); // 初始化界面
+		}
+		private void InitializeUI()
+		{
+			InitializeLayout();
+			InitializeDriveComboBoxes();
+			InitializeTreeViews();
+			InitializeListViews();
+			InitializePreviewPanels();
+			InitializeStatusStrips();
+			InitializeToolStrip();
+			InitializeDynamicMenu();
+			InitializeDynamicToolbar();
+			InitializeTreeViewIcons();
+			InitializeBookmarkLists();
+		}
+		public void InitializeLayout()
+		{
+			int topHeight = 0;
+			Panel containerPanel = new()
+			{
+				Dock = DockStyle.Fill,
+				Padding = new Padding(0, topHeight, 0, 0)
+			};
+			form.Controls.Add(containerPanel);
 
-        public void InitializeLayout()
-        {
-            int topHeight = 0;
-            Panel containerPanel = new()
-            {
-                Dock = DockStyle.Fill,
-                Padding = new Padding(0, topHeight, 0, 0)
-            };
-            form.Controls.Add(containerPanel);
+			MainContainer.Dock = DockStyle.Fill;
+			MainContainer.Orientation = Orientation.Vertical;
 
-            mainContainer.Dock = DockStyle.Fill;
-            mainContainer.Orientation = Orientation.Vertical;
+			int halfWidth = (form.ClientSize.Width - MainContainer.SplitterWidth) / 2;
+			MainContainer.SplitterDistance = halfWidth;
+			MainContainer.SplitterMoved += MainContainer_SplitterMoved;
 
-            int halfWidth = (form.ClientSize.Width - mainContainer.SplitterWidth) / 2;
-            mainContainer.SplitterDistance = halfWidth;
-            mainContainer.SplitterMoved += MainContainer_SplitterMoved;
+			containerPanel.Controls.Add(MainContainer);
 
-            containerPanel.Controls.Add(mainContainer);
+			ConfigurePanel(LeftPanel, MainContainer.Panel1);
+			ConfigurePanel(RightPanel, MainContainer.Panel2);
 
-            ConfigurePanel(leftPanel, mainContainer.Panel1);
-            ConfigurePanel(rightPanel, mainContainer.Panel2);
+			ConfigureUpperPanel(LeftUpperPanel, LeftDrivePanel, LeftPanel.Panel1);
+			ConfigureUpperPanel(RightUpperPanel, RightDrivePanel, RightPanel.Panel1);
+		}
 
-            ConfigureUpperPanel(leftUpperPanel, leftDrivePanel, leftPanel.Panel1);
-            ConfigureUpperPanel(rightUpperPanel, rightDrivePanel, rightPanel.Panel1);
-        }
+		private void MainContainer_SplitterMoved(object? sender, SplitterEventArgs e)
+		{
+			int halfWidth = (form.ClientSize.Width - MainContainer.SplitterWidth) / 2;
+			if (Math.Abs(MainContainer.SplitterDistance - halfWidth) > 5)
+			{
+				MainContainer.SplitterDistance = halfWidth;
+			}
+		}
 
-        private void MainContainer_SplitterMoved(object? sender, SplitterEventArgs e)
-        {
-            int halfWidth = (form.ClientSize.Width - mainContainer.SplitterWidth) / 2;
-            if (Math.Abs(mainContainer.SplitterDistance - halfWidth) > 5)
-            {
-                mainContainer.SplitterDistance = halfWidth;
-            }
-        }
+		private void ConfigurePanel(SplitContainer panel, Control parent)
+		{
+			panel.Dock = DockStyle.Fill;
+			panel.Orientation = Orientation.Horizontal;
+			panel.SplitterDistance = (int)((parent.Width) * 0.5);
+			parent.Controls.Add(panel);
+		}
 
-        private void ConfigurePanel(SplitContainer panel, Control parent)
-        {
-            panel.Dock = DockStyle.Fill;
-            panel.Orientation = Orientation.Horizontal;
-            panel.SplitterDistance = (int)((parent.Width) * 0.5);
-            parent.Controls.Add(panel);
-        }
+		private void ConfigureUpperPanel(Panel upperPanel, Panel drivePanel, Control parent)
+		{
+			upperPanel.Dock = DockStyle.Fill;
+			upperPanel.Padding = new Padding(0, 30, 0, 0);
 
-        private void ConfigureUpperPanel(Panel upperPanel, Panel drivePanel, Control parent)
-        {
-            upperPanel.Dock = DockStyle.Fill;
-            upperPanel.Padding = new Padding(0, 30, 0, 0);
+			drivePanel.Dock = DockStyle.Top;
+			drivePanel.Height = 30;
 
-            drivePanel.Dock = DockStyle.Top;
-            drivePanel.Height = 30;
+			parent.Controls.Add(upperPanel);
+			parent.Controls.Add(drivePanel);
+			drivePanel.BringToFront();
+		}
 
-            parent.Controls.Add(upperPanel);
-            parent.Controls.Add(drivePanel);
-            drivePanel.BringToFront();
-        }
+		public void InitializeDriveComboBoxes()
+		{
+			ConfigureDriveBox(LeftDriveBox, LeftDrivePanel, LeftPathTextBox);
+			ConfigureDriveBox(RightDriveBox, RightDrivePanel, RightPathTextBox);
 
-        public void InitializeDriveComboBoxes()
-        {
-            ConfigureDriveBox(leftDriveBox, leftDrivePanel, leftPathTextBox);
-            ConfigureDriveBox(rightDriveBox, rightDrivePanel, rightPathTextBox);
+			var rootNode = new ShengFileSystemNode();
+			LeftPathTextBox.InitializeRoot(rootNode);
+			RightPathTextBox.InitializeRoot(rootNode);
 
-            var rootNode = new ShengFileSystemNode();
-            leftPathTextBox.InitializeRoot(rootNode);
-            rightPathTextBox.InitializeRoot(rootNode);
+			LoadDrives();
+		}
 
-            LoadDrives();
-        }
+		private void ConfigureDriveBox(ComboBox driveBox, Panel parent, ShengAddressBarStrip pathTextBox)
+		{
+			driveBox.Dock = DockStyle.Left;
+			driveBox.DropDownStyle = ComboBoxStyle.DropDownList;
+			driveBox.SelectedIndexChanged += DriveComboBox_SelectedIndexChanged;
 
-        private void ConfigureDriveBox(ComboBox driveBox, Panel parent, ShengAddressBarStrip pathTextBox)
-        {
-            driveBox.Dock = DockStyle.Left;
-            driveBox.DropDownStyle = ComboBoxStyle.DropDownList;
-            driveBox.SelectedIndexChanged += DriveComboBox_SelectedIndexChanged;
+			pathTextBox.Dock = DockStyle.Fill;
 
-            pathTextBox.Dock = DockStyle.Fill;
+			parent.Controls.Add(pathTextBox);
+			parent.Controls.Add(driveBox);
+		}
 
-            parent.Controls.Add(pathTextBox);
-            parent.Controls.Add(driveBox);
-        }
+		private void LoadDrives()
+		{
+			foreach (DriveInfo drive in DriveInfo.GetDrives())
+			{
+				if (drive.IsReady)
+				{
+					LeftDriveBox.Items.Add(drive.Name);
+					RightDriveBox.Items.Add(drive.Name);
+				}
+			}
 
-        private void LoadDrives()
-        {
-            foreach (DriveInfo drive in DriveInfo.GetDrives())
-            {
-                if (drive.IsReady)
-                {
-                    leftDriveBox.Items.Add(drive.Name);
-                    rightDriveBox.Items.Add(drive.Name);
-                }
-            }
+			if (LeftDriveBox.Items.Count > 0)
+			{
+				LeftDriveBox.SelectedIndex = 0;
+				RightDriveBox.SelectedIndex = 0;
+			}
+		}
 
-            if (leftDriveBox.Items.Count > 0)
-            {
-                leftDriveBox.SelectedIndex = 0;
-                rightDriveBox.SelectedIndex = 0;
-            }
-        }
+		private void DriveComboBox_SelectedIndexChanged(object? sender, EventArgs e)
+		{
+			if (sender is not ComboBox comboBox) return;
 
-        private void DriveComboBox_SelectedIndexChanged(object? sender, EventArgs e)
-        {
-            if (sender is not ComboBox comboBox) return;
+			var treeView = comboBox == LeftDriveBox ? LeftTree : RightTree;
+			var listView = comboBox == LeftDriveBox ? LeftList : RightList;
 
-            var treeView = comboBox == leftDriveBox ? leftTree : rightTree;
-            var listView = comboBox == leftDriveBox ? leftList : rightList;
+			if (comboBox.SelectedItem is string drivePath)
+			{
+				form.LoadDriveIntoTree(treeView, drivePath);
+			}
+		}
 
-            if (comboBox.SelectedItem is string drivePath)
-            {
-                form.LoadDriveIntoTree(treeView, drivePath);
-            }
-        }
+		public void InitializeTreeViews()
+		{
+			ConfigureTreeListSplitter(LeftTreeListSplitter, LeftUpperPanel, LeftTree, LeftList);
+			ConfigureTreeListSplitter(RightTreeListSplitter, RightUpperPanel, RightTree, RightList);
+		}
 
-        public void InitializeTreeViews()
-        {
-            ConfigureTreeListSplitter(leftTreeListSplitter, leftUpperPanel, leftTree, leftList);
-            ConfigureTreeListSplitter(rightTreeListSplitter, rightUpperPanel, rightTree, rightList);
-        }
-
-        private void ConfigureTreeListSplitter(SplitContainer splitter, Panel parent, TreeView treeView, ListView listView)
-        {
-            splitter.Dock = DockStyle.Fill;
-            splitter.Orientation = Orientation.Vertical;
+		private void ConfigureTreeListSplitter(SplitContainer splitter, Panel parent, TreeView treeView, ListView listView)
+		{
+			splitter.Dock = DockStyle.Fill;
+			splitter.Orientation = Orientation.Vertical;
 			// 设置合理的最小尺寸
 			splitter.Panel1MinSize = 100;
 			splitter.Panel2MinSize = 100;
 			// 调用函数执行treeview绑定事件
 			ConfigureTreeView(treeView);
 			splitter.Panel1.Controls.Add(treeView);
-            splitter.Panel2.Controls.Add(listView);
-            parent.Controls.Add(splitter);
+			splitter.Panel2.Controls.Add(listView);
+			parent.Controls.Add(splitter);
 			// 设置初始分割位置
 			if (parent.Width > 0)
 			{
@@ -245,55 +239,55 @@ namespace WinFormsApp1
 			};
 		}
 
-        public void InitializeTreeViewIcons()
-        {
-            Icon folderIcon = Helper.GetIconByFileType("folder", false);
-            if (folderIcon != null)
-            {
-                treeViewImageList.Images.Add("folder", folderIcon);
-            }
+		public void InitializeTreeViewIcons()
+		{
+			Icon folderIcon = Helper.GetIconByFileType("folder", false);
+			if (folderIcon != null)
+			{
+				treeViewImageList.Images.Add("folder", folderIcon);
+			}
 
-            ConfigureTreeView(leftTree);
-            ConfigureTreeView(rightTree);
-        }
+			ConfigureTreeView(LeftTree);
+			ConfigureTreeView(RightTree);
+		}
 
-        public void ConfigureTreeView(TreeView treeView)
-        {
-            treeView.Dock = DockStyle.Fill;
-            treeView.ShowLines = true;
-            treeView.HideSelection = false;
-            treeView.ShowPlusMinus = true;
-            treeView.ShowRootLines = true;
-            treeView.PathSeparator = "\\";
-            treeView.FullRowSelect = true;
-            treeView.ItemHeight = 20;
-            treeView.DrawMode = TreeViewDrawMode.OwnerDrawText;
-            treeView.ImageList = treeViewImageList;
+		public void ConfigureTreeView(TreeView treeView)
+		{
+			treeView.Dock = DockStyle.Fill;
+			treeView.ShowLines = true;
+			treeView.HideSelection = false;
+			treeView.ShowPlusMinus = true;
+			treeView.ShowRootLines = true;
+			treeView.PathSeparator = "\\";
+			treeView.FullRowSelect = true;
+			treeView.ItemHeight = 20;
+			treeView.DrawMode = TreeViewDrawMode.OwnerDrawText;
+			treeView.ImageList = treeViewImageList;
 
-            treeView.DrawNode += form.TreeView_DrawNode;
-            treeView.MouseUp += form.TreeView_MouseUp;
-            treeView.AfterSelect += form.TreeView_AfterSelect;
-            treeView.NodeMouseClick += form.TreeView_NodeMouseClick;
-            treeView.BeforeExpand += form.TreeView_BeforeExpand;
-            treeView.MouseDown += form.TreeView_MouseDown;
-        }
+			treeView.DrawNode += form.TreeView_DrawNode;
+			treeView.MouseUp += form.TreeView_MouseUp;
+			treeView.AfterSelect += form.TreeView_AfterSelect;
+			treeView.NodeMouseClick += form.TreeView_NodeMouseClick;
+			treeView.BeforeExpand += form.TreeView_BeforeExpand;
+			treeView.MouseDown += form.TreeView_MouseDown;
+		}
 
-        public void InitializeListViews()
-        {
-            ConfigureListView(leftList, leftPanel.Panel2);
-            ConfigureListView(rightList, rightPanel.Panel2);
-        }
+		public void InitializeListViews()
+		{
+			ConfigureListView(LeftList, LeftPanel.Panel2);
+			ConfigureListView(RightList, RightPanel.Panel2);
+		}
 
-        private void ConfigureListView(ListView listView, Control parent)
-        {
-            listView.Dock = DockStyle.Fill;
-            listView.View = View.Details;
-            listView.FullRowSelect = true;
-            listView.GridLines = true;
-            listView.AllowColumnReorder = true;
-            listView.LabelEdit = true;
-            listView.MultiSelect = true;
-            listView.HideSelection = false;
+		private void ConfigureListView(ListView listView, Control parent)
+		{
+			listView.Dock = DockStyle.Fill;
+			listView.View = View.Details;
+			listView.FullRowSelect = true;
+			listView.GridLines = true;
+			listView.AllowColumnReorder = true;
+			listView.LabelEdit = true;
+			listView.MultiSelect = true;
+			listView.HideSelection = false;
 			listView.Sorting = SortOrder.Ascending;
 			listView.Columns.Clear();
 			listView.Columns.Add("名称", 250); // 新增图标列
@@ -313,27 +307,27 @@ namespace WinFormsApp1
 		}
 
 		public void InitializePreviewPanels()
-        {
-            leftPreview.Dock = DockStyle.Fill;
-            leftPreview.Multiline = true;
-            leftPreview.ReadOnly = true;
-            leftPreview.ScrollBars = ScrollBars.Both;
-            leftPanel.Panel2.Controls.Add(leftPreview);
+		{
+			LeftPreview.Dock = DockStyle.Fill;
+			LeftPreview.Multiline = true;
+			LeftPreview.ReadOnly = true;
+			LeftPreview.ScrollBars = ScrollBars.Both;
+			LeftPanel.Panel2.Controls.Add(LeftPreview);
 
-            rightPreview.Dock = DockStyle.Fill;
-            rightPreview.Multiline = true;
-            rightPreview.ReadOnly = true;
-            rightPreview.ScrollBars = ScrollBars.Both;
-            rightPanel.Panel2.Controls.Add(rightPreview);
-        }
+			RightPreview.Dock = DockStyle.Fill;
+			RightPreview.Multiline = true;
+			RightPreview.ReadOnly = true;
+			RightPreview.ScrollBars = ScrollBars.Both;
+			RightPanel.Panel2.Controls.Add(RightPreview);
+		}
 
-        public void InitializeStatusStrips()
-        {
-            leftStatusStrip.Dock = DockStyle.Bottom;
-            leftPanel.Panel2.Controls.Add(leftStatusStrip);
+		public void InitializeStatusStrips()
+		{
+			LeftStatusStrip.Dock = DockStyle.Bottom;
+			LeftPanel.Panel2.Controls.Add(LeftStatusStrip);
 
-            rightStatusStrip.Dock = DockStyle.Bottom;
-            rightPanel.Panel2.Controls.Add(rightStatusStrip);
+			RightStatusStrip.Dock = DockStyle.Bottom;
+			RightPanel.Panel2.Controls.Add(RightStatusStrip);
 		}
 		private ToolStripButton CreateToolStripButton(string text, Keys shortcutKeys, EventHandler onClick)
 		{
@@ -372,20 +366,20 @@ namespace WinFormsApp1
 			leftBookmarkPanel.FlowDirection = FlowDirection.LeftToRight;
 			leftBookmarkPanel.WrapContents = false;
 			leftBookmarkPanel.AutoScroll = true;
-			leftPanel.Panel2.Controls.Add(leftBookmarkPanel);
+			LeftPanel.Panel2.Controls.Add(leftBookmarkPanel);
 
 			// 初始化右侧书签Panel
 			rightBookmarkPanel.Dock = DockStyle.Top;
 			rightBookmarkPanel.FlowDirection = FlowDirection.LeftToRight;
 			rightBookmarkPanel.WrapContents = false;
 			rightBookmarkPanel.AutoScroll = true;
-			rightPanel.Panel2.Controls.Add(rightBookmarkPanel);
+			RightPanel.Panel2.Controls.Add(rightBookmarkPanel);
 
 			// 调整布局顺序
-			leftPanel.Panel2.Controls.SetChildIndex(leftBookmarkPanel, 0);
-			leftPanel.Panel2.Controls.SetChildIndex(leftPreview, 1);
-			rightPanel.Panel2.Controls.SetChildIndex(rightBookmarkPanel, 0);
-			rightPanel.Panel2.Controls.SetChildIndex(rightPreview, 1);
+			LeftPanel.Panel2.Controls.SetChildIndex(leftBookmarkPanel, 0);
+			LeftPanel.Panel2.Controls.SetChildIndex(LeftPreview, 1);
+			RightPanel.Panel2.Controls.SetChildIndex(rightBookmarkPanel, 0);
+			RightPanel.Panel2.Controls.SetChildIndex(RightPreview, 1);
 		}
 		//从环境变量获取%COMMANDER_PATH%
 		private string GetCommanderPath()
@@ -651,4 +645,4 @@ namespace WinFormsApp1
 			}
 		}
 	}
-} 
+}

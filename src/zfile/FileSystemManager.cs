@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Windows.Forms;
-
 namespace WinFormsApp1
 {
-    public class FileSystemManager
+	public class FileSystemManager
     {
         private readonly Dictionary<string, List<FileSystemInfo>> _directoryCache = new();
         private DateTime _lastCacheUpdate = DateTime.MinValue;

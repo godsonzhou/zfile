@@ -1,13 +1,9 @@
-using System;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
 using Sheng.Winform.Controls;
-using WinShell;
+using System.Text;
 
 namespace WinFormsApp1
 {
-    public class UIControlManager
+	public class UIControlManager
     {
         private readonly Form1 form;
         private readonly ImageList treeViewImageList;
@@ -251,7 +247,7 @@ namespace WinFormsApp1
 
         public void InitializeTreeViewIcons()
         {
-            Icon folderIcon = IconHelper.GetIconByFileType("folder", false);
+            Icon folderIcon = Helper.GetIconByFileType("folder", false);
             if (folderIcon != null)
             {
                 treeViewImageList.Images.Add("folder", folderIcon);

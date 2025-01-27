@@ -1,31 +1,13 @@
-using System;
-using System.Drawing;
-using System.Runtime.InteropServices;
-using System.Windows.Forms;
-using System.Linq;
-
 namespace WinFormsApp1
 {
-    public class IconManager
+	public class IconManager
     {
-        [DllImport("shell32.dll")]
-        private static extern uint ExtractIconEx(
-            string lpszFile,
-            int nIconIndex,
-            IntPtr[] phiconLarge,
-            IntPtr[] phiconSmall,
-            uint nIcons
-        );
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        private static extern bool DestroyIcon(IntPtr handle);
-
         public ImageList LoadIconsFromFile(string path)
         {
-            var count = ExtractIconEx(path, -1, null, null, 0);
+            var count = w32.ExtractIconEx(path, -1, null, null, 0);
             var phiconLarge = new IntPtr[count];
             var phiconSmall = new IntPtr[count];
-            var result = ExtractIconEx(path, 0, phiconLarge, null, count);
+            var result = w32.ExtractIconEx(path, 0, phiconLarge, null, count);
 
             ImageList imageList = new()
             {
@@ -33,7 +15,7 @@ namespace WinFormsApp1
             };
 
             imageList.Images.AddRange(phiconLarge.Select(x => Icon.FromHandle(x).ToBitmap()).ToArray());
-            phiconLarge.ToList().ForEach(x => DestroyIcon(x));
+            phiconLarge.ToList().ForEach(x => w32.DestroyIcon(x));
 
             return imageList;
         }

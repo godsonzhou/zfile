@@ -1,17 +1,12 @@
-using System;
-using System.Drawing;
-using System.IO;
-using System.Windows.Forms;
+using CSCore;
 using CSCore.SoundOut;
-using CSCore.Codecs;
 using LibVLCSharp.Shared;
 using SharpCompress.Archives;
 using System.Text;
-using CSCore;
 
 namespace WinFormsApp1
 {
-    public class FilePreviewManager
+	public class FilePreviewManager
     {
         public Control CreatePreviewControl(string filePath)
         {

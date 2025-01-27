@@ -1,13 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text;
 using WinFormsApp1;
 
 namespace CmdProcessor
 {
-    public struct CmdTableItem
+	public struct CmdTableItem
     {
         public string CmdName;
         public int CmdId;

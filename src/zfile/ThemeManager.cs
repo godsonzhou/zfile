@@ -1,9 +1,6 @@
-using System.Drawing;
-using System.Windows.Forms;
-
 namespace WinFormsApp1
 {
-    public class ThemeManager
+	public class ThemeManager
     {
         private readonly Form mainForm;
         private readonly ToolStrip toolStrip;

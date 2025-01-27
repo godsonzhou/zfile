@@ -1,21 +1,12 @@
 using CmdProcessor;
-using Microsoft.Win32; // Add this namespace
-using System.Runtime.InteropServices; // Add this namespace
-using System.Text;
-using Keys = System.Windows.Forms.Keys;//引入CmdProcessor命名空间
-using CSCore;
-using CSCore.Codecs;
-using CSCore.SoundOut;
-using LibVLCSharp.Shared;
-using SharpCompress.Archives;
-using CSCore.Streams.SampleConverter;
-using System.Collections;
-using WinShell;
 using Sheng.Winform.Controls;
+using System.Runtime.InteropServices; // Add this namespace
+using WinShell;
+using Keys = System.Windows.Forms.Keys;//引入CmdProcessor命名空间
 
 namespace WinFormsApp1
 {
-    public partial class Form1 : Form
+	public partial class Form1 : Form
     {
         public readonly IconManager iconManager = new();
         private readonly ThemeManager themeManager;
@@ -154,8 +145,8 @@ namespace WinFormsApp1
             uiManager.InitializeTreeViewIcons();
             InitializeHotkeys();
             uiManager.InitializeBookmarkLists();
-            FileSystemHelper.GetSpecPathFromReg();
-            FileSystemHelper.getEnv();
+            Helper.GetSpecPathFromReg();
+            Helper.getEnv();
 
             // 初始化ThemeManager
             themeManager = new ThemeManager(
@@ -256,7 +247,7 @@ namespace WinFormsApp1
             treeViewImageList = new ImageList();
             treeViewImageList.ImageSize = new Size(16, 16);
 
-            Icon folderIcon = IconHelper.GetIconByFileType("folder", false);
+            Icon folderIcon = Helper.GetIconByFileType("folder", false);
             if (folderIcon != null)
             {
                 treeViewImageList.Images.Add("folder", folderIcon);
@@ -337,7 +328,7 @@ namespace WinFormsApp1
         private void showCtxMenu(TreeNode parentNode, string path, Point location)
         {
             // 先获取路径的父目录
-            path = FileSystemHelper.getFSpath(path);
+            path = Helper.getFSpath(path);
 
             var parentFolder = iDeskTop;
             IntPtr pidl;
@@ -581,7 +572,7 @@ namespace WinFormsApp1
                     LoadListView(e.Node, listView);
                     //var path = GetFullPath(e.Node);	//bugfix: d:资料->d:\"my document", convert some display name to real path
 
-                    var path = FileSystemHelper.getFSpathbyTree(e.Node);
+                    var path = Helper.getFSpathbyTree(e.Node);
                     if (string.IsNullOrEmpty(path)) return;
                     LoadListViewByFilesystem(path, listView);
                     currentDirectory = path;
@@ -848,7 +839,7 @@ namespace WinFormsApp1
             }
             else // 处理文件
             {
-                itemPath = FileSystemHelper.getFSpath(itemPath);
+                itemPath = Helper.getFSpath(itemPath);
                 if (File.Exists(itemPath))
                 {
                     try
@@ -1052,7 +1043,7 @@ namespace WinFormsApp1
                     root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);
                     //Icon icon = IconHelper.GetIconByFileType(name.Contains(':') ? "folder" : Path.GetExtension(name), false);
                     var fiwi = new FileInfoWithIcon(name);
-                    var icon = fiwi.smallIcon != null ? fiwi.smallIcon : IconHelper.GetIconByFileName("FILE", name);
+                    var icon = fiwi.smallIcon != null ? fiwi.smallIcon : Helper.GetIconByFileName("FILE", name);
                     int iconIndex = listView.SmallImageList.Images.Count;
                     listView.SmallImageList.Images.Add(icon);
 
@@ -1072,13 +1063,13 @@ namespace WinFormsApp1
         {
             if (string.IsNullOrEmpty(path)) return;
             if (!path.Contains(':')) return;
-            path = FileSystemHelper.getFSpath(path);
+            path = Helper.getFSpath(path);
             if (path.EndsWith(':'))
                 path += "\\";
 
             try
             {
-                path = FileSystemHelper.getFSpathbyList(path);
+                path = Helper.getFSpathbyList(path);
                 var items = fsManager.GetDirectoryContents(path);
 
                 listView.BeginUpdate();
@@ -1106,13 +1097,13 @@ namespace WinFormsApp1
 		{
 			if (string.IsNullOrEmpty(path)) return;
 			if (!path.Contains(':')) return;
-			path = FileSystemHelper.getFSpath(path);
+			path = Helper.getFSpath(path);
 			if (path.EndsWith(':'))
 				path += "\\";
 
 			try
 			{
-				path = FileSystemHelper.getFSpathbyList(path);
+				path = Helper.getFSpathbyList(path);
 				var items = await Task.Run(() => fsManager.GetDirectoryContents(path));
 
 				listView.BeginUpdate();
@@ -1217,7 +1208,7 @@ namespace WinFormsApp1
             if (listView.SelectedItems.Count > 0)
             {
                 ListViewItem selectedItem = listView.SelectedItems[0];
-                string filePath = FileSystemHelper.getFSpath(Path.Combine(currentDirectory, selectedItem.Text));
+                string filePath = Helper.getFSpath(Path.Combine(currentDirectory, selectedItem.Text));
 
                 if (File.Exists(filePath))
                 {
@@ -1402,7 +1393,7 @@ namespace WinFormsApp1
             if (listView.SelectedItems.Count == 0) return;
 
             var selectedItem = listView.SelectedItems[0];
-            var filePath = FileSystemHelper.getFSpath(Path.Combine(currentDirectory, selectedItem.Text));
+            var filePath = Helper.getFSpath(Path.Combine(currentDirectory, selectedItem.Text));
 
             if (File.Exists(filePath))
             {
@@ -1534,16 +1525,7 @@ namespace WinFormsApp1
                 MessageBox.Show($"无法打开命令提示符: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        public static string ConvertGB2312ToUTF8(string str)
-        {
-            Encoding utf8;
-            Encoding gb2312;
-            utf8 = Encoding.GetEncoding("UTF-8");
-            gb2312 = Encoding.GetEncoding("GB2312");
-            byte[] gb = gb2312.GetBytes(str);
-            gb = Encoding.Convert(gb2312, utf8, gb);
-            return utf8.GetString(gb);
-        }
+    
 
         public void MenuItem_Click(object? sender, EventArgs e)
         {

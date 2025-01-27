@@ -178,6 +178,17 @@ namespace WinFormsApp1
 
 		[DllImport("user32.dll", SetLastError = true)]
 		public static extern bool DestroyIcon(IntPtr hIcon);
+		[DllImport("shell32.dll")]
+		public static extern uint ExtractIconEx(
+		  string lpszFile,
+		  int nIconIndex,
+		  IntPtr[] phiconLarge,
+		  IntPtr[] phiconSmall,
+		  uint nIcons
+	  );
+
+		//[DllImport("user32.dll", CharSet = CharSet.Auto)]
+		//private static extern bool DestroyIcon(IntPtr handle);
 		// 在 API 类中添加
 		public static WinShell.IShellFolder GetParentFolder(string path)
 		{

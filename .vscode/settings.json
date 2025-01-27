@@ -1,1 +1,4 @@
-{}
+{
+    "dotnet.preferCSharpExtension": true,
+    "dotnet.defaultSolution": "Files.sln"
+}

@@ -110,7 +110,7 @@ namespace CmdProcessor
         public CmdProc(Form1 owner)
         {
             cmdTable = new CmdTable();
-            InitializeCmdTable(constant_value.zfilePath + "TOTALCMD.INC", constant_value.zfilePath+"WCMD_CHN.INC");
+            InitializeCmdTable(Constants.ZfilePath + "TOTALCMD.INC", Constants.ZfilePath+"WCMD_CHN.INC");
             this.owner = owner;
         }
 

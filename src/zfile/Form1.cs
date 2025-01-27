@@ -15,13 +15,13 @@ using Sheng.Winform.Controls;
 
 namespace WinFormsApp1
 {
-    public static class constant_value
-    {
-        public const string zfilePath = "D:\\gitrepos\\Files\\config\\";
-     
-    }
     public partial class Form1 : Form
     {
+		private readonly IconManager iconManager = new();
+		private readonly ThemeManager themeManager;
+		private readonly FilePreviewManager previewManager = new();
+		private readonly FileSystemManager fsManager = new();
+		private readonly UIControlManager uiManager;
 		private readonly FlowLayoutPanel leftBookmarkPanel = new();
 		private readonly FlowLayoutPanel rightBookmarkPanel = new();
       
@@ -97,25 +97,62 @@ namespace WinFormsApp1
             InitializeComponent();
             InitializeContextMenu();
             this.Size = new Size(1200, 800);
-            InitializeLayout();
-            InitializeDriveComboBoxes();
-            InitializeTreeViews();
-            InitializeListViews();
+
+            uiManager = new UIControlManager(
+                this,
+                mainContainer,
+                leftPanel,
+                rightPanel,
+                leftUpperPanel,
+                rightUpperPanel,
+                leftDrivePanel,
+                rightDrivePanel,
+                leftDriveBox,
+                rightDriveBox,
+                leftTree,
+                leftList,
+                leftPreview,
+                leftBookmarkList,
+                rightTree,
+                rightList,
+                rightPreview,
+                rightBookmarkList,
+                leftPathTextBox,
+                rightPathTextBox,
+                leftStatusStrip,
+                rightStatusStrip,
+                leftTreeListSplitter,
+                rightTreeListSplitter
+            );
+
+            uiManager.InitializeLayout();
+            uiManager.InitializeDriveComboBoxes();
+            uiManager.InitializeTreeViews();
+            uiManager.InitializeListViews();
             activeListView = leftList;  //default active view is left list view
             activeTreeview = leftTree;
-            InitializePreviewPanels();
-            InitializeStatusStrips(); // 初始化状态栏
+            uiManager.InitializePreviewPanels();
+            uiManager.InitializeStatusStrips();
             InitializeFileSystemWatcher();
-            InitializeThemeToggleButton(); // 初始化主题切换按钮
-            InitializeToolStrip(); // 初始化工具栏
+            InitializeThemeToggleButton();
+            InitializeToolStrip();
             InitializeDynamicMenu();
             cmdProcessor = new CmdProc(this);
             InitializeDynamicToolbar();
-            InitializeTreeViewIcons(); // 初始化TreeView图标
-            InitializeHotkeys(); // 初始化热键
-			InitializeBookmarkLists(); // 初始化书签栏
-			getSpecPathFromReg();
-			getEnv();
+            uiManager.InitializeTreeViewIcons();
+            InitializeHotkeys();
+            InitializeBookmarkLists();
+            getSpecPathFromReg();
+            getEnv();
+
+            // 初始化ThemeManager
+            themeManager = new ThemeManager(
+                this, dynamicToolStrip, dynamicMenuStrip,
+                leftTree, rightTree,
+                leftList, rightList,
+                leftPreview, rightPreview,
+                leftStatusStrip, rightStatusStrip
+            );
         }
 		private async Task LoadListViewByFilesystemAsync(string path, ListView listView)
 		{
@@ -127,22 +164,8 @@ namespace WinFormsApp1
 
 			try
 			{
-				var currentTime = DateTime.Now;
-				var needsUpdate = !_directoryCache.ContainsKey(path) ||
-								  (currentTime - _lastCacheUpdate).TotalMilliseconds > _cacheTimeout;
-
 				path = FileSystemHelper.getFSpathbyList(path);
-				List<FileSystemInfo> items;
-				if (needsUpdate)
-				{
-					items = await Task.Run(() => FileSystemHelper.GetDirectoryContents(path));
-					_directoryCache[path] = items;
-					_lastCacheUpdate = currentTime;
-				}
-				else
-				{
-					items = _directoryCache[path];
-				}
+				var items = await Task.Run(() => fsManager.GetDirectoryContents(path));
 
 				listView.BeginUpdate();
 				listView.Items.Clear();
@@ -151,7 +174,7 @@ namespace WinFormsApp1
 				{
 					if ((item.Attributes & FileAttributes.Hidden) != 0) continue;
 
-					var lvItem = CreateListViewItem(item, listView);
+					var lvItem = CreateListViewItem(item);
 					if (lvItem != null)
 					{
 						listView.Items.Add(lvItem);
@@ -340,9 +363,6 @@ namespace WinFormsApp1
             {
                 treeViewImageList.Images.Add("folder", folderIcon);
             }
-
-            ConfigureTreeView(leftTree);
-            ConfigureTreeView(rightTree);
         }
         private void InitializeContextMenu()
         {
@@ -393,123 +413,7 @@ namespace WinFormsApp1
             activeListView.View = v; // View.LargeIcon;
         }
 
-        private void InitializeLayout()
-        {
-            // 计算菜单和工具栏占用的总高度
-            int topHeight = 0; // menuStrip2.Height + toolStrip1.Height;
-
-            // 创建一个容器面板来持有主分割容器
-            Panel containerPanel = new()
-            {
-                Dock = DockStyle.Fill,
-                Padding = new Padding(0, topHeight, 0, 0) // 为顶部控件留出空间
-            };
-            this.Controls.Add(containerPanel);
-
-            // 主分割容器 (左右)
-            mainContainer.Dock = DockStyle.Fill;
-            mainContainer.Orientation = Orientation.Vertical;
-
-            // 明确设置分割位置为窗体宽度的一半
-            int halfWidth = (this.ClientSize.Width - mainContainer.SplitterWidth) / 2;
-            mainContainer.SplitterDistance = halfWidth;
-            mainContainer.SplitterMoved += MainContainer_SplitterMoved; // 添加分割条移动事件
-
-            containerPanel.Controls.Add(mainContainer);
-
-            // 左右面板基本布局
-            ConfigurePanel(leftPanel, mainContainer.Panel1);
-            ConfigurePanel(rightPanel, mainContainer.Panel2);
-
-            // 上部面板布局
-            ConfigureUpperPanel(leftUpperPanel, leftDrivePanel, leftPanel.Panel1);
-            ConfigureUpperPanel(rightUpperPanel, rightDrivePanel, rightPanel.Panel1);
-
-        }
-        private void ConfigurePanel(SplitContainer panel, Control parent)
-        {
-            // 设置分割面板填充其父控件
-            panel.Dock = DockStyle.Fill;
-            // 设置分割面板的分割方向为水平
-            panel.Orientation = Orientation.Horizontal;
-            // 设置分割面板的分割线位置，使其位于父控件宽度的50%处
-            panel.SplitterDistance = (int)((parent.Width) * 0.5);
-            // 将分割面板添加到父控件的控件集合中
-            parent.Controls.Add(panel);
-        }
-
-        private void ConfigureUpperPanel(Panel upperPanel, Panel drivePanel, Control parent)
-        {
-            // 修改上部面板布局
-            upperPanel.Dock = DockStyle.Fill;
-            upperPanel.Padding = new Padding(0, 30, 0, 0); // 为驱动器面板留出空间
-
-            // 修改驱动器面板布局
-            drivePanel.Dock = DockStyle.Top;
-            drivePanel.Height = 30;
-
-            // 调整添加顺序
-            parent.Controls.Add(upperPanel);
-            parent.Controls.Add(drivePanel);
-            drivePanel.BringToFront(); // 确保驱动器面板在最上层
-        }
-        // 分割条移动事件处理
-        private void MainContainer_SplitterMoved(object? sender, SplitterEventArgs e)
-        {
-            // 如果分割位置偏离中心过多，则重置到中心位置
-            int halfWidth = (this.ClientSize.Width - mainContainer.SplitterWidth) / 2;
-            if (Math.Abs(mainContainer.SplitterDistance - halfWidth) > 5) // 允许5像素的误差
-            {
-                mainContainer.SplitterDistance = halfWidth;
-            }
-        }
-
-        private void InitializeDriveComboBoxes()
-        {
-            ConfigureDriveBox(leftDriveBox, leftDrivePanel, leftPathTextBox);
-            ConfigureDriveBox(rightDriveBox, rightDrivePanel, rightPathTextBox);
-			// 初始化根节点
-			var rootNode = new ShengFileSystemNode(); // 假设 FileSystemAddressNode 是实现 IShengAddressNode 的类
-			leftPathTextBox.InitializeRoot(rootNode);
-			rightPathTextBox.InitializeRoot(rootNode);
-
-			LoadDrives();
-        }
-        private void ConfigureDriveBox(ComboBox driveBox, Panel parent, ShengAddressBarStrip pathTextBox)
-        {
-            driveBox.Dock = DockStyle.Left;
-            driveBox.DropDownStyle = ComboBoxStyle.DropDownList;
-            driveBox.SelectedIndexChanged += DriveComboBox_SelectedIndexChanged;
-
-            pathTextBox.Dock = DockStyle.Fill;
-
-            parent.Controls.Add(pathTextBox);
-            parent.Controls.Add(driveBox);
-        }
-        private void LoadDrives()
-        {
-            foreach (DriveInfo drive in DriveInfo.GetDrives())
-            {
-                if (drive.IsReady)
-                {
-                    leftDriveBox.Items.Add(drive.Name);
-                    rightDriveBox.Items.Add(drive.Name);
-                }
-            }
-
-            if (leftDriveBox.Items.Count > 0)
-            {
-                leftDriveBox.SelectedIndex = 0;
-                rightDriveBox.SelectedIndex = 0;
-            }
-        }
-
-        private void InitializeTreeViews()
-        {
-            ConfigureTreeListSplitter(leftTreeListSplitter, leftUpperPanel, leftTree, leftList);// 配置左侧树列表分割容器
-            ConfigureTreeListSplitter(rightTreeListSplitter, rightUpperPanel, rightTree, rightList);// 配置右侧树列表分割容器
-        }
-        private void TreeView_MouseDown(object sender, MouseEventArgs e)
+        public void TreeView_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right)
             {
@@ -517,27 +421,8 @@ namespace WinFormsApp1
                 Tree1.SelectedNode = Tree1.GetNodeAt(e.X, e.Y);
             }
         }
-        private void ConfigureTreeView(TreeView treeView)
-        {
-            treeView.Dock = DockStyle.Fill;
-            treeView.ShowLines = true;
-            treeView.HideSelection = false;
-            treeView.ShowPlusMinus = true;
-            treeView.ShowRootLines = true;
-            treeView.PathSeparator = "\\";
-            treeView.FullRowSelect = true;
-            treeView.ItemHeight = 20;
-            treeView.DrawMode = TreeViewDrawMode.OwnerDrawText;
-            treeView.ImageList = treeViewImageList;
 
-            treeView.DrawNode += TreeView_DrawNode;
-            treeView.MouseUp += TreeView_MouseUp;
-            treeView.AfterSelect += TreeView_AfterSelect;
-            treeView.NodeMouseClick += TreeView_NodeMouseClick;
-            treeView.BeforeExpand += TreeView_BeforeExpand;
-            treeView.MouseDown += TreeView_MouseDown;
-        }
-        private void TreeView_MouseUp(object sender, MouseEventArgs e)
+        public void TreeView_MouseUp(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right)
             {
@@ -688,7 +573,7 @@ namespace WinFormsApp1
             //IntPtr hWnd = wih.Handle;    //获取窗口句柄
             //var result = ShellExecute(hWnd, "open", "需要打开的路径如C:\\Users\\Desktop\\xx.exe", null, null, (int)ShowWindowCommands.SW_SHOW);
         }
-        private void TreeView_DrawNode(object? sender, DrawTreeNodeEventArgs e)
+        public void TreeView_DrawNode(object? sender, DrawTreeNodeEventArgs e)
         {
             if (e.Node == null) return;
 
@@ -733,7 +618,7 @@ namespace WinFormsApp1
             e.DrawDefault = false;
         }
 
-        private void TreeView_NodeMouseClick(object? sender, TreeNodeMouseClickEventArgs e)
+        public void TreeView_NodeMouseClick(object? sender, TreeNodeMouseClickEventArgs e)
         {
             if (e.Node?.Tag == null) return;
 
@@ -771,14 +656,14 @@ namespace WinFormsApp1
                 MessageBox.Show($"TreeView_NodeMouseClick加载目录失败: {ex.Message}", "错误");
             }
         }
-        private void TreeView_BeforeExpand(object sender, TreeViewCancelEventArgs e)
+        public void TreeView_BeforeExpand(object sender, TreeViewCancelEventArgs e)
         {
             if (e.Node.Nodes.Count == 1 && e.Node.FirstNode.Text == "...")
             {
                 LoadSubDirectories(e.Node);
             }
         }
-        private void TreeView_AfterSelect(object? sender, TreeViewEventArgs e)
+        public void TreeView_AfterSelect(object? sender, TreeViewEventArgs e)
         {
             if (e.Node?.Tag == null) return;
 
@@ -907,7 +792,7 @@ namespace WinFormsApp1
             }
         }
 
-        private void LoadDriveIntoTree(TreeView treeView, string drivePath)
+        public void LoadDriveIntoTree(TreeView treeView, string drivePath)
         {
             try
             {
@@ -937,17 +822,15 @@ namespace WinFormsApp1
         }
 		private void InitializeDynamicToolbar()
 		{
-			string toolbarFilePath = constant_value.zfilePath + "DEFAULT.BAR";
+			string toolbarFilePath = Path.Combine(Constants.ZfilePath, "DEFAULT.BAR");
 			if (!File.Exists(toolbarFilePath))
 			{
 				MessageBox.Show("工具栏配置文件不存在" + toolbarFilePath, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
 			}
 
-			//读取config文件夹中wcmdicons.dll文件中所有图标到列表iconlist中
-			var zfile_path = constant_value.zfilePath + "WCMIcon3.dll";   //"C:\\Users\\zhouy\\source\\repos\\WinFormsApp1\\src\\config\\wcmdicons3.dll"
-
-			icons_Load(zfile_path);
+			var zfile_path = Path.Combine(Constants.ZfilePath, "WCMIcon3.dll");
+			var iconList = iconManager.LoadIconsFromFile(zfile_path);
 			var fileInfoList = new FileInfoList(new string[] { zfile_path });
 
 			using (StreamReader reader = new StreamReader(toolbarFilePath, Encoding.GetEncoding("GB2312")))
@@ -1017,7 +900,7 @@ namespace WinFormsApp1
 							{
 								Text = menuText,
 								ToolTipText = zhdesc,
-								Image = LoadIcon(buttonIcon),
+								Image = iconManager.LoadIcon(buttonIcon),
 								Tag = cmd
 							};
 
@@ -1028,7 +911,7 @@ namespace WinFormsApp1
 								{
 									Text = menuText,
 									ToolTipText = menuText,
-									Image = LoadIcon(buttonIcon)
+									Image = iconManager.LoadIcon(buttonIcon)
 								};
 								InitializeDropdownMenu(dropdownButton, dropdownFilePath);
 								dynamicToolStrip.Items.Add(dropdownButton);
@@ -1416,7 +1299,7 @@ namespace WinFormsApp1
                 var i = (ShellItem)node.Tag;
                 if (fullPath.Contains(node.Text)||node.Text.Equals("桌面"))
                 {
-                    LoadSubDirectories(node); // 确保子节点已加载
+                    LoadSubDirectories(node);
                     node.Expand();
                     TreeNode? found = FindTreeNode(node.Nodes, fullPath);
                     if (found != null)
@@ -1439,7 +1322,7 @@ namespace WinFormsApp1
             splitter.Panel2MinSize = 100;
 
             // 调用函数执行treeview绑定事件
-            ConfigureTreeView(tree);
+            uiManager.ConfigureTreeView(tree);
 
             // 添加控件到分割容器
             splitter.Panel1.Controls.Add(tree);
@@ -1601,31 +1484,17 @@ namespace WinFormsApp1
 
             try
             {
-                var currentTime = DateTime.Now;
-                var needsUpdate = !_directoryCache.ContainsKey(path) ||
-                                (currentTime - _lastCacheUpdate).TotalMilliseconds > _cacheTimeout;
-				//d:\资料->d:\my document, use getPathFS to get the true path of the displayed name
-				path = FileSystemHelper.getFSpathbyList(path);
-                List<FileSystemInfo> items;
-                if (needsUpdate)
-                {
-                    items = FileSystemHelper.GetDirectoryContents(path);
-                    _directoryCache[path] = items;
-                    _lastCacheUpdate = currentTime;
-                }
-                else
-                {
-                    items = _directoryCache[path];
-                }
+                path = FileSystemHelper.getFSpathbyList(path);
+                var items = fsManager.GetDirectoryContents(path);
 
                 listView.BeginUpdate();
-                //listView.Items.Clear();
+                listView.Items.Clear();
 
                 foreach (var item in items)
                 {
                     if ((item.Attributes & FileAttributes.Hidden) != 0) continue;
 
-                    var lvItem = CreateListViewItem(item, listView);
+                    var lvItem = CreateListViewItem(item);
                     if (lvItem != null)
                     {
                         listView.Items.Add(lvItem);
@@ -1639,50 +1508,39 @@ namespace WinFormsApp1
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private ListViewItem? CreateListViewItem(FileSystemInfo item, ListView listView)
+        private ListViewItem? CreateListViewItem(FileSystemInfo item)
         {
             try
             {
                 string[] itemData;
-                Icon icon;
                 if (item is DirectoryInfo)
                 {
                     itemData = new[]
                     {
-                        "",
                         item.Name,
+                        "",
                         "<DIR>",
                         "文件夹",
                         item.LastWriteTime.ToString("yyyy-MM-dd HH:mm")
                     };
-                    icon = IconHelper.GetIconByFileType("folder", false);
                 }
                 else if (item is FileInfo fileInfo)
                 {
                     itemData = new[]
                     {
-                        "",
                         item.Name,
-                        FileSystemHelper.FormatFileSize(fileInfo.Length),
+                        "",
+                        fsManager.FormatFileSize(fileInfo.Length),
                         fileInfo.Extension.ToUpperInvariant(),
                         item.LastWriteTime.ToString("yyyy-MM-dd HH:mm")
                     };
-                    icon = IconHelper.GetIconByFileType(fileInfo.Extension, false);
                 }
                 else
                 {
                     return null;
                 }
 
-                int iconIndex = listView.SmallImageList.Images.Count;
-                listView.SmallImageList.Images.Add(icon);
-
-                var lvItem = new ListViewItem(itemData)
-                {
-                    ImageIndex = iconIndex
-                };
-                lvItem.Text = item.Name;
-                return lvItem;
+                return new ListViewItem(itemData);
             }
             catch
             {
@@ -1872,85 +1730,36 @@ namespace WinFormsApp1
 
         private void InitializeThemeToggleButton()
         {
-            // 创建主题切换按钮
             ToolStripButton themeToggleButton = new ToolStripButton
             {
                 Text = "切换主题",
                 DisplayStyle = ToolStripItemDisplayStyle.Text
             };
             themeToggleButton.Click += ThemeToggleButton_Click;
-
-            // 将按钮添加到工具栏
             dynamicToolStrip.Items.Add(themeToggleButton);
         }
 
         private void ThemeToggleButton_Click(object? sender, EventArgs e)
         {
-            ThemeToggle();
-        }
-        public void ThemeToggle()
-        {
-            // 切换主题
             if (BackColor == SystemColors.Control)
             {
-                ApplyDarkTheme();
+                themeManager.ApplyDarkTheme();
             }
             else
             {
-                ApplyLightTheme();
+                themeManager.ApplyLightTheme();
             }
         }
-
-        private void ApplyDarkTheme()
+        public void ThemeToggle()
         {
-            BackColor = Color.FromArgb(45, 45, 48);
-            ForeColor = Color.White;
-            dynamicToolStrip.BackColor = Color.FromArgb(28, 28, 28);
-            dynamicToolStrip.ForeColor = Color.White;
-            dynamicMenuStrip.BackColor = Color.FromArgb(28, 28, 28);//MenuStrip dynamicMenuStrip 
-            dynamicMenuStrip.ForeColor = Color.White;
-            leftTree.BackColor = Color.FromArgb(37, 37, 38);
-            leftTree.ForeColor = Color.White;
-            rightTree.BackColor = Color.FromArgb(37, 37, 38);
-            rightTree.ForeColor = Color.White;
-            leftList.BackColor = Color.FromArgb(37, 37, 38);
-            leftList.ForeColor = Color.White;
-            rightList.BackColor = Color.FromArgb(37, 37, 38);
-            rightList.ForeColor = Color.White;
-            leftPreview.BackColor = Color.FromArgb(37, 37, 38);
-            leftPreview.ForeColor = Color.White;
-            rightPreview.BackColor = Color.FromArgb(37, 37, 38);
-            rightPreview.ForeColor = Color.White;
-            leftStatusStrip.BackColor = Color.FromArgb(28, 28, 28);
-            leftStatusStrip.ForeColor = Color.White;
-            rightStatusStrip.BackColor = Color.FromArgb(28, 28, 28);
-            rightStatusStrip.ForeColor = Color.White;
-        }
-
-        private void ApplyLightTheme()
-        {
-            BackColor = SystemColors.Control;
-            ForeColor = SystemColors.ControlText;
-            dynamicToolStrip.BackColor = SystemColors.Control;
-            dynamicToolStrip.ForeColor = SystemColors.ControlText;
-            dynamicMenuStrip.BackColor = SystemColors.Control;
-            dynamicMenuStrip.ForeColor = SystemColors.ControlText;
-            leftTree.BackColor = SystemColors.Window;
-            leftTree.ForeColor = SystemColors.WindowText;
-            rightTree.BackColor = SystemColors.Window;
-            rightTree.ForeColor = SystemColors.WindowText;
-            leftList.BackColor = SystemColors.Window;
-            leftList.ForeColor = SystemColors.WindowText;
-            rightList.BackColor = SystemColors.Window;
-            rightList.ForeColor = SystemColors.WindowText;
-            leftPreview.BackColor = SystemColors.Window;
-            leftPreview.ForeColor = SystemColors.WindowText;
-            rightPreview.BackColor = SystemColors.Window;
-            rightPreview.ForeColor = SystemColors.WindowText;
-            leftStatusStrip.BackColor = SystemColors.Control;
-            leftStatusStrip.ForeColor = SystemColors.ControlText;
-            rightStatusStrip.BackColor = SystemColors.Control;
-            rightStatusStrip.ForeColor = SystemColors.ControlText;
+            if (BackColor == SystemColors.Control)
+            {
+                themeManager.ApplyDarkTheme();
+            }
+            else
+            {
+                themeManager.ApplyLightTheme();
+            }
         }
 
         private void InitializeToolStrip()
@@ -1993,155 +1802,8 @@ namespace WinFormsApp1
             do_cm_list();
         }
 
-        private Control CreateTextViewer(string filePath)
-        {
-            var textBox = new TextBox
-            {
-                Multiline = true,
-                ReadOnly = true,
-                ScrollBars = ScrollBars.Both,
-                Dock = DockStyle.Fill,
-                Text = File.ReadAllText(filePath)
-            };
-            return textBox;
-        }
-
-        private Control CreateOfficeViewer(string filePath)
-        {
-            // 使用WebBrowser控件来查看Office文档
-            var webBrowser = new WebBrowser
-            {
-                Dock = DockStyle.Fill,
-                Url = new Uri(filePath)
-            };
-            return webBrowser;
-        }
-
-        private Control CreateImageViewer(string filePath)
-        {
-            var pictureBox = new PictureBox
-            {
-                Dock = DockStyle.Fill,
-                Image = Image.FromFile(filePath),
-                SizeMode = PictureBoxSizeMode.Zoom
-            };
-            return pictureBox;
-        }
-
-        private Control CreateAudioPlayer(string filePath)
-        {
-            var panel = new Panel { Dock = DockStyle.Fill };
-            var playButton = new Button { Text = "Play", Dock = DockStyle.Top };
-            var stopButton = new Button { Text = "Stop", Dock = DockStyle.Top };
-
-			try
-			{
-				var waveOut = new CSCore.SoundOut.WaveOut();
-				IWaveSource audioFile;
-
-				// 根据文件扩展名选择合适的解码器
-				switch (Path.GetExtension(filePath).ToLower())
-				{
-					case ".wav":
-						audioFile = new CSCore.Codecs.WAV.WaveFileReader(filePath);
-						break;
-					case ".mp3":
-						audioFile = new CSCore.Codecs.MP3.Mp3MediafoundationDecoder(filePath);
-						break;
-					case ".flac":
-						audioFile = new CSCore.Codecs.FLAC.FlacFile(filePath);
-						break;
-					case ".wma":
-						audioFile = new CSCore.Codecs.WMA.WmaDecoder(filePath);
-						break;
-					case ".aac":
-						audioFile = new CSCore.Codecs.AAC.AacDecoder(filePath);
-						break;
-					// case ".ogg":
-					//     audioFile = new CSCore.Codecs.OGG.OggVorbisDecoder(filePath);
-					//     break;
-					default:
-						throw new NotSupportedException("不支持的音频格式");
-				}
-
-				waveOut.Initialize(audioFile);
-
-				playButton.Click += (s, e) => waveOut.Play();
-				stopButton.Click += (s, e) => waveOut.Stop();
-
-				panel.Controls.Add(stopButton);
-				panel.Controls.Add(playButton);
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show($"无法播放音频文件: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-			}
-
-			return panel;
-        }
-
-        private Control CreateVideoPlayer(string filePath)
-        {
-            var panel = new Panel { Dock = DockStyle.Fill };
-            var playButton = new Button { Text = "Play", Dock = DockStyle.Top };
-            var stopButton = new Button { Text = "Stop", Dock = DockStyle.Top };
-
-            // Specify the path to the LibVLC native libraries
-            string libVlcPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "libvlc", "win-x64");
-			Core.Initialize(libVlcPath); // Initialize LibVLC with the specified path
-
-			using var libVLC = new LibVLC();
-			var mediaPlayer = new MediaPlayer(libVLC); // Create MediaPlayer instance
-			mediaPlayer.Play(new Media(libVLC, filePath, FromType.FromPath));
-
-			var videoView = new LibVLCSharp.WinForms.VideoView
-			{
-				MediaPlayer = mediaPlayer,
-				Dock = DockStyle.Fill
-			};
-
-			playButton.Click += (s, e) => mediaPlayer.Play();
-			stopButton.Click += (s, e) => mediaPlayer.Stop();
-
-			panel.Controls.Add(stopButton);
-			panel.Controls.Add(playButton);
-			panel.Controls.Add(videoView);
-
-			return panel;
-        }
-
-        private Control CreateArchiveViewer(string filePath)
-        {
-            var textBox = new TextBox
-            {
-                Multiline = true,
-                ReadOnly = true,
-                ScrollBars = ScrollBars.Both,
-                Dock = DockStyle.Fill
-            };
-
-			try
-			{
-				using (var archive = ArchiveFactory.Open(filePath)) // Use ArchiveFactory from SharpCompress
-				{
-					var sb = new StringBuilder();
-					foreach (var entry in archive.Entries)
-					{
-						sb.AppendLine($"{entry.Key} ({entry.Size} bytes)");
-					}
-					textBox.Text = sb.ToString();
-				}
-			}
-			catch (Exception ex)
-			{
-				textBox.Text = $"无法读取压缩文件: {ex.Message}";
-			}
-			return textBox;
-        }
-
         public void do_cm_list()
         {
-            // view button clicked,
             var listView = leftList.Focused ? leftList : rightList;
             if (listView.SelectedItems.Count == 0) return;
 
@@ -2150,28 +1812,18 @@ namespace WinFormsApp1
 
             if (File.Exists(filePath))
             {
-                var extension = Path.GetExtension(filePath).ToLower();
                 Form viewerForm = new Form
                 {
                     Text = $"查看文件 - {selectedItem.Text}",
                     Size = new Size(800, 600)
                 };
 
-                Control viewerControl = extension switch
-                {
-                    ".txt" or ".cs" or ".html" or ".htm" or ".xml" or ".json" or ".css" or ".js" or ".md" => CreateTextViewer(filePath),
-                    ".doc" or ".docx" or ".xls" or ".xlsx" or ".ppt" or ".pptx" => CreateOfficeViewer(filePath),
-                    ".jpg" or ".jpeg" or ".png" or ".bmp" or ".gif" => CreateImageViewer(filePath),
-                    ".mp3" or ".wav" or ".wma" or ".aac" => CreateAudioPlayer(filePath),
-                    ".mp4" or ".avi" or ".mkv" or ".mov" => CreateVideoPlayer(filePath),
-                    ".zip" or ".rar" or ".7z" => CreateArchiveViewer(filePath),
-                    _ => new Label { Text = "不支持的文件格式", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter }
-                };
-
+                Control viewerControl = previewManager.CreatePreviewControl(filePath);
                 viewerForm.Controls.Add(viewerControl);
                 viewerForm.Show();
             }
         }
+
         private void EditButton_Click(object? sender, EventArgs e)
         {
             // 编辑按钮点击处理逻辑
@@ -2193,14 +1845,13 @@ namespace WinFormsApp1
             {
                 if (selectedItem.SubItems[3].Text == "<DIR>")
                 {
-                    CopyDirectory(sourcePath, targetPath);
+                    fsManager.CopyDirectory(sourcePath, targetPath);
                 }
                 else
                 {
                     File.Copy(sourcePath, targetPath);
                 }
 
-                // Refresh both panels
                 RefreshTreeViewAndListView(leftTree, leftList, leftDriveBox.SelectedItem?.ToString() ?? string.Empty);
                 RefreshTreeViewAndListView(rightTree, rightList, rightDriveBox.SelectedItem?.ToString() ?? string.Empty);
             }
@@ -2209,52 +1860,17 @@ namespace WinFormsApp1
                 MessageBox.Show($"复制失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private void CopyDirectory(string sourceDir, string targetDir)
+        private void DeleteButton_Click(object? sender, EventArgs e)
         {
-            Directory.CreateDirectory(targetDir);
+            var listView = leftList.Focused ? leftList : rightList;
+            if (listView.SelectedItems.Count == 0) return;
 
-            foreach (var file in Directory.GetFiles(sourceDir))
-            {
-                var targetFilePath = Path.Combine(targetDir, Path.GetFileName(file));
-                File.Copy(file, targetFilePath);
-            }
+            var selectedItem = listView.SelectedItems[0];
+            var itemPath = Path.Combine(currentDirectory, selectedItem.Text);
 
-            foreach (var directory in Directory.GetDirectories(sourceDir))
-            {
-                var targetDirectoryPath = Path.Combine(targetDir, Path.GetFileName(directory));
-                CopyDirectory(directory, targetDirectoryPath);
-            }
+            fsManager.DeleteFile(itemPath);
+            listView.Items.Remove(selectedItem);
         }
-
-        private void MoveButton_Click(object? sender, EventArgs e)
-        {
-            var sourceListView = leftList.Focused ? leftList : rightList;
-            var targetTreeView = leftList.Focused ? rightTree : leftTree;
-            var targetListView = leftList.Focused ? rightList : leftList;
-
-            if (sourceListView.SelectedItems.Count == 0 || targetTreeView.SelectedNode == null) return;
-
-            var selectedItem = sourceListView.SelectedItems[0];
-            var sourcePath = Path.Combine(currentDirectory, selectedItem.Text);
-            var targetPath = Path.Combine(targetTreeView.SelectedNode.Tag.ToString() ?? string.Empty, selectedItem.Text);
-
-            try
-            {
-                if (selectedItem.SubItems[3].Text == "<DIR>")
-                    Directory.Move(sourcePath, targetPath);
-                else
-                    File.Move(sourcePath, targetPath);
-
-                // Refresh both panels
-                RefreshTreeViewAndListView(leftTree, leftList, leftDriveBox.SelectedItem?.ToString() ?? string.Empty);
-                RefreshTreeViewAndListView(rightTree, rightList, rightDriveBox.SelectedItem?.ToString() ?? string.Empty);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"移动失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
 
         private void FolderButton_Click(object? sender, EventArgs e)
         {
@@ -2267,16 +1883,24 @@ namespace WinFormsApp1
             if (string.IsNullOrWhiteSpace(input)) return;
 
             string newFolderPath = Path.Combine(currentDirectory, input);
+            fsManager.CreateDirectory(newFolderPath);
+            RefreshTreeViewAndListView(treeView, listView, currentDirectory);
+        }
 
-            try
-            {
-                Directory.CreateDirectory(newFolderPath);
-                RefreshTreeViewAndListView(treeView, listView, currentDirectory);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"创建文件夹失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+        private void MoveButton_Click(object? sender, EventArgs e)
+        {
+            var sourceListView = leftList.Focused ? leftList : rightList;
+            var targetTreeView = leftList.Focused ? rightTree : leftTree;
+
+            if (sourceListView.SelectedItems.Count == 0 || targetTreeView.SelectedNode == null) return;
+
+            var selectedItem = sourceListView.SelectedItems[0];
+            var sourcePath = Path.Combine(currentDirectory, selectedItem.Text);
+            var targetPath = Path.Combine(targetTreeView.SelectedNode.Tag.ToString() ?? string.Empty, selectedItem.Text);
+
+            fsManager.MoveFileOrDirectory(sourcePath, targetPath);
+            RefreshTreeViewAndListView(leftTree, leftList, leftDriveBox.SelectedItem?.ToString() ?? string.Empty);
+            RefreshTreeViewAndListView(rightTree, rightList, rightDriveBox.SelectedItem?.ToString() ?? string.Empty);
         }
 
         private void RefreshTreeViewAndListView(TreeView treeView, ListView listView, string path)
@@ -2288,31 +1912,6 @@ namespace WinFormsApp1
             }
             LoadListView(selectedNode, listView);
             LoadListViewByFilesystem(path, listView);
-        }
-
-        private void DeleteButton_Click(object? sender, EventArgs e)
-        {
-            var listView = leftList.Focused ? leftList : rightList;
-            if (listView.SelectedItems.Count == 0) return;
-
-            var selectedItem = listView.SelectedItems[0];
-            var itemPath = Path.Combine(currentDirectory, selectedItem.Text);
-
-            {
-                try
-                {
-                    if (selectedItem.SubItems[3].Text == "<DIR>")
-                        Directory.Delete(itemPath, true);
-                    else
-                        File.Delete(itemPath);
-
-                    listView.Items.Remove(selectedItem);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"删除失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
         }
 
         private void TerminalButton_Click(object? sender, EventArgs e)
@@ -2425,79 +2024,6 @@ namespace WinFormsApp1
             {
                 MessageBox.Show($"执行命令: {cmd}", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-        }
-
-        private Image? LoadIcon(string iconPath)
-        {
-            if (iconPath == null)
-            {
-                return null;
-            }
-            if (iconPath.ToLower().StartsWith("wcmicon"))
-            {
-                iconPath = constant_value.zfilePath + iconPath;
-            }
-            if (iconPath.Contains(","))
-            {
-                string[] parts = iconPath.Split(',');
-                if (parts.Length == 2 && int.TryParse(parts[1], out int iconIndex))
-                {
-                    var iconFilePath = parts[0];
-                    var idx = int.Parse(parts[1]);
-                    //根据icon文件名和iconindex,调用相应函数读取图标并返回icon结果
-                    return GetIconByFilenameAndIdx(iconFilePath, idx);
-                }
-                else if (parts.Length == 1)
-                {
-                    var iconFilePath = parts[0];
-                    using (var icon = Icon.ExtractAssociatedIcon(parts[0]))
-                    {
-                        return icon?.ToBitmap();
-                    }
-                }
-            }
-            else
-            {
-                if (File.Exists(iconPath))
-                {
-                    //return new Icon(iconPath).ToBitmap();
-                    return GetIconByFilenameAndIdx(iconPath, 0);
-                }
-            }
-            return null;
-        }
-        [DllImport("shell32.dll")]
-        private static extern uint ExtractIconEx(
-            string lpszFile,
-            int nIconIndex,
-            IntPtr[] phiconLarge,
-            IntPtr[] phiconSmall,
-            uint nIcons
-			);
-
-        private Image GetIconByFilenameAndIdx(string path, int index)
-        {
-            ImageList images = icons_Load(path);
-            //返回images中的第index个图标
-            if (images != null && index < images.Images.Count)
-            {
-                return images.Images[index];
-            }
-            return null;
-        }
-
-        private ImageList icons_Load(string path)
-        {
-            var count = ExtractIconEx(path, -1, null, null, 0);// old value="shell32.dll"
-            var phiconLarge = new IntPtr[count];
-            var phiconSmall = new IntPtr[count];
-            var result = ExtractIconEx(path, 0, phiconLarge, null, count);// old value="shell32.dll"
-            ImageList imagelist1 = new ImageList();
-            imagelist1.ImageSize = SystemInformation.IconSize;
-            imagelist1.Images.AddRange(phiconLarge.Select(x => Icon.FromHandle(x).ToBitmap()).ToArray());
-
-            phiconLarge.ToList().ForEach(x => w32.DestroyIcon(x));
-            return imagelist1;
         }
     }
 }

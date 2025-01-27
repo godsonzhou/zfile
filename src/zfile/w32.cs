@@ -4,8 +4,6 @@ using WinShell;
 
 namespace WinFormsApp1
 {
-
-
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
 	public struct STRRET
 	{

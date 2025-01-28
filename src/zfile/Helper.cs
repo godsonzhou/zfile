@@ -127,6 +127,7 @@ namespace WinFormsApp1
 			}
 			return path;
 		}
+		//获取当前树节点的实际文件系统路径，eg. 'system (c:)' -> c:\\
 		public static string getFSpathbyTree(TreeNode Node)
 		{
 			if (Node.Parent == null)
@@ -134,9 +135,9 @@ namespace WinFormsApp1
 				//top node process, does not need to process listviewbyfilesystem
 				return string.Empty;
 			}
-			var parentfolder = ((ShellItem)Node.Parent.Tag).ShellFolder;
-			var pidl = ((ShellItem)Node.Tag).PIDL;
-			return API.GetPathByIShell(parentfolder, pidl);
+			var parentfolder = ((ShellItem)Node.Parent.Tag).ShellFolder;	//获取父节点的ishellfoler
+			var pidl = ((ShellItem)Node.Tag).PIDL;	//获取c:\\节点的pidl
+			return API.GetPathByIShell(parentfolder, pidl);	//取得实际path
 		}
 		public static string getFSpathbyList(string path)
 		{

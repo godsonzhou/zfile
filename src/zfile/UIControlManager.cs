@@ -63,6 +63,48 @@ namespace WinFormsApp1
 			treeViewImageList = new ImageList();
 			treeViewImageList.ImageSize = new Size(16, 16);
 			InitializeUI(); // 初始化界面
+			// 添加PathTextBox路径变化事件处理程序
+			LeftPathTextBox.SelectionChange += LeftPathTextBox_PathChanged;
+			RightPathTextBox.SelectionChange += RightPathTextBox_PathChanged;
+		}
+
+		private void LeftPathTextBox_PathChanged(object? sender, EventArgs e)
+		{
+			UpdateTreeViewSelection(LeftTree, LeftPathTextBox.CurrentNode.UniqueID);
+		}
+
+		private void RightPathTextBox_PathChanged(object? sender, EventArgs e)
+		{
+			UpdateTreeViewSelection(RightTree, RightPathTextBox.CurrentNode.ToString());
+		}
+
+		private void UpdateTreeViewSelection(TreeView treeView, string path)
+		{
+			TreeNode? node = FindTreeNodeByPath(treeView.Nodes, path);
+			if (node != null)
+			{
+				treeView.SelectedNode = node;
+				node.EnsureVisible();
+			}
+		}
+
+		private TreeNode? FindTreeNodeByPath(TreeNodeCollection nodes, string path)
+		{
+			foreach (TreeNode node in nodes)
+			{
+				if (node.FullPath.Equals(path, StringComparison.OrdinalIgnoreCase))
+				{
+					return node;
+				}
+				form.LoadSubDirectories(node);
+				node.Expand();
+				TreeNode? foundNode = FindTreeNodeByPath(node.Nodes, path);
+				if (foundNode != null)
+				{
+					return foundNode;
+				}
+			}
+			return null;
 		}
 		private void InitializeUI()
 		{

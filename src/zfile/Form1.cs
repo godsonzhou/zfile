@@ -1,5 +1,6 @@
 using CmdProcessor;
 using Sheng.Winform.Controls;
+using System.Diagnostics;
 using System.Runtime.InteropServices; // Add this namespace
 using WinShell;
 using Keys = System.Windows.Forms.Keys;//引入CmdProcessor命名空间
@@ -473,7 +474,6 @@ namespace WinFormsApp1
                     var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
                     LoadListView(e.Node, listView);
                     //var path = GetFullPath(e.Node);	//bugfix: d:资料->d:\"my document", convert some display name to real path
-
                     var path = Helper.getFSpathbyTree(e.Node);
                     if (string.IsNullOrEmpty(path)) return;
                     LoadListViewByFilesystem(path, listView);
@@ -488,8 +488,6 @@ namespace WinFormsApp1
                     }
 
                     // 调用leftpathtextbox的setaddress方法来更新路径
-
-
                     if (treeView == uiManager.LeftTree)
                         uiManager.LeftPathTextBox.SetAddress(path);
                     else
@@ -524,7 +522,7 @@ namespace WinFormsApp1
             foreach (TreeNode childNode in node.Nodes)
                 ClearNodeHighlight(childNode);
         }
-        private void LoadSubDirectories(TreeNode parentNode)
+        public void LoadSubDirectories(TreeNode parentNode)
         {
             ShellItem sItem = (ShellItem)parentNode.Tag;
             WinShell.IShellFolder root = sItem.ShellFolder;
@@ -544,6 +542,8 @@ namespace WinFormsApp1
                 while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == API.S_FALSE)
                 {
                     string name = API.GetNameByIShell(root, pidlSub);
+					string path = API.GetPathByIShell(root, pidlSub);
+					Debug.Print(path);
                     WinShell.IShellFolder iSub;
                     try
                     {
@@ -914,6 +914,7 @@ namespace WinFormsApp1
                 //LoadListView(drivePath, listView);
             }
         }
+		//加载选定树节点的子文件夹和文件到listview中
         private void LoadListView(TreeNode node, ListView listView, bool includefile = false)
         {
             if (listView == null) return;
@@ -941,8 +942,10 @@ namespace WinFormsApp1
                 {
                     string name = API.GetNameByIShell(root, pidlSub);
                     string pth = API.GetPathByIShell(root, pidlSub);
+					Debug.Print(pth);
                     WinShell.IShellFolder iSub;
                     root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);
+					//TODO: 目录的图标不正确 bug
                     //Icon icon = IconHelper.GetIconByFileType(name.Contains(':') ? "folder" : Path.GetExtension(name), false);
                     var fiwi = new FileInfoWithIcon(name);
                     var icon = fiwi.smallIcon != null ? fiwi.smallIcon : Helper.GetIconByFileName("FILE", name);

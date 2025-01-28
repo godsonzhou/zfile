@@ -13,8 +13,6 @@ namespace WinShell
 		public const int S_FALSE = 1;
 		public const uint CMD_FIRST = 1;
 		public const uint CMD_LAST = 30000;
-		public static readonly Guid IID_IShellFolder = new Guid("000214E6-0000-0000-C000-000000000046");
-		public static readonly Guid IID_IContextMenu = new Guid("000214E4-0000-0000-C000-000000000046");
 		public const int SW_SHOWNORMAL = 1;
 		public const uint SHGFI_ICON = 0x000000100;
 		public const uint SHGFI_SMALLICON = 0x000000001;
@@ -36,8 +34,6 @@ namespace WinShell
 			Marshal.FreeCoTaskMem(strr);
 			return buf.ToString();
 		}
-
-
 		public static string GetNameByIShell(IShellFolder Root, IntPtr pidlSub)
 		{
 			IntPtr strr = Marshal.AllocCoTaskMem(MAX_PATH * 2 + 4);
@@ -48,8 +44,6 @@ namespace WinShell
 			Marshal.FreeCoTaskMem(strr);
 			return buf.ToString();
 		}
-
-
 		public static string GetNameByPIDL(IntPtr pidl)
 		{
 			SHFILEINFO info = new SHFILEINFO();
@@ -57,16 +51,12 @@ namespace WinShell
 				SHGFI.PIDL | SHGFI.DISPLAYNAME | SHGFI.TYPENAME);
 			return info.szDisplayName;
 		}
-
-
 		public static string GetSpecialFolderPath(IntPtr hwnd, ShellSpecialFolders nFolder)
 		{
 			StringBuilder sb = new StringBuilder(MAX_PATH);
 			API.SHGetSpecialFolderPath(hwnd, sb, nFolder, false);
 			return sb.ToString();
 		}
-
-
 		public static IShellFolder GetShellFolder(IShellFolder desktop, string path, out IntPtr Pidl, bool getfolder = true)
 		{
 			IShellFolder IFolder;
@@ -78,8 +68,6 @@ namespace WinShell
 				IFolder = null;
 			return IFolder;
 		}
-
-
 		public static IShellFolder GetShellFolder(IShellFolder desktop, string path)
 		{
 			IntPtr Pidl;

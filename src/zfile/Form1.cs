@@ -28,7 +28,7 @@ namespace WinFormsApp1
         private SortOrder sortOrder = SortOrder.None;
         private readonly ContextMenuStrip contextMenuStrip = new();
         public CmdProc cmdProcessor;
-        private WinShell.IShellFolder iDeskTop;
+        private IShellFolder iDeskTop;
 
         public Form1()
         {
@@ -521,7 +521,7 @@ namespace WinFormsApp1
         public void LoadSubDirectories(TreeNode parentNode)
         {
             ShellItem sItem = (ShellItem)parentNode.Tag;
-            WinShell.IShellFolder root = sItem.ShellFolder;
+            IShellFolder root = sItem.ShellFolder;
 
             // 清除现有子节点，避免重复添加
             parentNode.Nodes.Clear();
@@ -540,7 +540,7 @@ namespace WinFormsApp1
                     string name = w32.GetNameByIShell(root, pidlSub);
 					string path = w32.GetPathByIShell(root, pidlSub);
 					Debug.Print(path);
-                    WinShell.IShellFolder iSub;
+                    IShellFolder iSub;
                     try
                     {
                         root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);
@@ -592,7 +592,7 @@ namespace WinFormsApp1
 
                 TreeNode rootNode = new TreeNode("桌面")
                 {
-                    Tag = new ShellItem(deskTopPtr, (WinShell.IShellFolder)iDeskTop),
+                    Tag = new ShellItem(deskTopPtr, iDeskTop),
                     ImageKey = "desktop", // 设置图标
                     SelectedImageKey = "desktop" // 设置选中图标
                 };
@@ -745,12 +745,12 @@ namespace WinFormsApp1
                         // 如果是可执行文件，直接执行
                         if (Path.GetExtension(itemPath).Equals(".exe", StringComparison.OrdinalIgnoreCase))
                         {
-                            System.Diagnostics.Process.Start(itemPath);
+                            Process.Start(itemPath);
                         }
                         else
                         {
                             // 使用系统默认关联程序打开文件
-                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(itemPath) { UseShellExecute = true });
+                            Process.Start(new ProcessStartInfo(itemPath) { UseShellExecute = true });
                         }
                     }
                     catch (Exception ex)
@@ -839,12 +839,12 @@ namespace WinFormsApp1
                     // 如果是可执行文件，直接执行
                     if (Path.GetExtension(itemPath).Equals(".exe", StringComparison.OrdinalIgnoreCase))
                     {
-                        System.Diagnostics.Process.Start(itemPath);
+                        Process.Start(itemPath);
                     }
                     else
                     {
                         // 使用系统默认关联程序打开文件
-                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(itemPath) { UseShellExecute = true });
+                        Process.Start(new ProcessStartInfo(itemPath) { UseShellExecute = true });
                     }
                 }
                 catch (Exception ex)
@@ -919,7 +919,7 @@ namespace WinFormsApp1
                 listView.SmallImageList = new ImageList();
             }
             ShellItem sItem = (ShellItem)node.Tag;
-            WinShell.IShellFolder root = sItem.ShellFolder;
+            IShellFolder root = sItem.ShellFolder;
 
             // 循环查找子项
             IEnumIDList Enum = null;
@@ -939,7 +939,7 @@ namespace WinFormsApp1
                     string name = w32.GetNameByIShell(root, pidlSub);
                     string pth = w32.GetPathByIShell(root, pidlSub);
 					Debug.Print(pth);
-                    WinShell.IShellFolder iSub;
+                    IShellFolder iSub;
                     root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);
 					//TODO: 目录的图标不正确 bug
                     //Icon icon = IconHelper.GetIconByFileType(name.Contains(':') ? "folder" : Path.GetExtension(name), false);
@@ -1414,7 +1414,7 @@ namespace WinFormsApp1
         {
             try
             {
-                System.Diagnostics.Process.Start("cmd.exe");
+                Process.Start("cmd.exe");
                 //w32.ShellExecute(IntPtr.Zero, "open", "notepad.exe", "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
                 //WinExec(path, 1);
                 //System.Diagnostics.Process.Start(path);

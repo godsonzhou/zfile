@@ -10,7 +10,8 @@ namespace WinShell
 
         public static Guid IID_IShellFolder = new Guid("{000214E6-0000-0000-C000-000000000046}");
         public static Guid IID_IContextMenu = new Guid("{000214e4-0000-0000-c000-000000000046}");
-        public static Guid IID_IContextMenu2 = new Guid("{000214f4-0000-0000-c000-000000000046}");
+		//public static readonly Guid IID_IContextMenu = new Guid("000214E4-0000-0000-C000-000000000046");
+		public static Guid IID_IContextMenu2 = new Guid("{000214f4-0000-0000-c000-000000000046}");
         public static Guid IID_IContextMenu3 = new Guid("{bcfce0a0-ec17-11d0-8d10-00a0c90f2719}");
 
         public static Guid IID_IDropTarget = new Guid("{00000122-0000-0000-C000-000000000046}");
@@ -27,5 +28,8 @@ namespace WinShell
         public static Guid IID_IShellExtInit = new Guid("{000214e8-0000-0000-c000-000000000046}");
         public static Guid IID_IStream = new Guid("{0000000c-0000-0000-c000-000000000046}");
         public static Guid IID_IStorage = new Guid("{0000000B-0000-0000-C000-000000000046}");
-    }
+
+
+
+	}
 }

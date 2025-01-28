@@ -238,7 +238,7 @@ namespace WinFormsApp1
             if (Directory.Exists(path))
             {
                 // 如果是文件夹,直接获取其 PIDL
-                pidl = w32.ILCreateFromPath(path);
+                pidl = API.ILCreateFromPath(path);
             }
             else
             {
@@ -246,7 +246,7 @@ namespace WinFormsApp1
                 var parentPath = Path.GetDirectoryName(path);
                 var fileName = Path.GetFileName(path);
                 parentFolder = w32.GetParentFolder(parentPath);
-                API.GetShellFolder(parentFolder, fileName, out pidl, false);
+                w32.GetShellFolder(parentFolder, fileName, out pidl, false);
             }
             //}
 
@@ -264,8 +264,7 @@ namespace WinFormsApp1
             {
                 // 得到 IContextMenu 接口
                 IntPtr iContextMenuPtr = IntPtr.Zero;
-                iContextMenuPtr = parentFolder.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length,
-                    pidls, ref Guids.IID_IContextMenu, out iContextMenuPtr);
+                iContextMenuPtr = parentFolder.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length, pidls, ref Guids.IID_IContextMenu, IntPtr.Zero, out iContextMenuPtr);
 
                 if (iContextMenuPtr == IntPtr.Zero)
                 {
@@ -273,19 +272,19 @@ namespace WinFormsApp1
                     return;
                 }
 
-                WinShell.IContextMenu iContextMenu = (WinShell.IContextMenu)Marshal.GetObjectForIUnknown(iContextMenuPtr);
+                IContextMenu iContextMenu = (IContextMenu)Marshal.GetObjectForIUnknown(iContextMenuPtr);
 
                 // 提供一个弹出式菜单的句柄
                 IntPtr contextMenu = API.CreatePopupMenu();
                 iContextMenu.QueryContextMenu(contextMenu, 0,
-                    API.CMD_FIRST, API.CMD_LAST, CMF.NORMAL | CMF.EXPLORE);
+                    w32.CMD_FIRST, w32.CMD_LAST, CMF.NORMAL | CMF.EXPLORE);
 
                 // 弹出菜单
                 uint cmd = API.TrackPopupMenuEx(contextMenu, TPM.RETURNCMD,
                     MousePosition.X, MousePosition.Y, this.Handle, IntPtr.Zero);
 
                 // 获取命令序号,执行菜单命令
-                if (cmd >= API.CMD_FIRST)
+                if (cmd >= w32.CMD_FIRST)
                 {
                     var invoke = new CMINVOKECOMMANDINFOEX();
                     invoke.cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX));
@@ -301,7 +300,7 @@ namespace WinFormsApp1
             {
                 if (pidl != IntPtr.Zero)
                 {
-                    w32.ILFree(pidl);
+                    API.ILFree(pidl);
                 }
             }
         }
@@ -312,7 +311,7 @@ namespace WinFormsApp1
             IntPtr PIDL = sItem.PIDL;
 
             //获得父节点的 IShellFolder 接口
-            WinShell.IShellFolder IParent = iDeskTop;
+            IShellFolder IParent = iDeskTop;
             if (node.Parent != null)
             {
                 IParent = ((ShellItem)node.Parent.Tag).ShellFolder;
@@ -320,8 +319,8 @@ namespace WinFormsApp1
             else
             {
                 //桌面的真实路径的 PIDL
-                string path = API.GetSpecialFolderPath(this.Handle, ShellSpecialFolders.DESKTOPDIRECTORY);
-                API.GetShellFolder(iDeskTop, path, out PIDL);
+                string path = w32.GetSpecialFolderPath(this.Handle, ShellSpecialFolders.DESKTOPDIRECTORY);
+                w32.GetShellFolder(iDeskTop, path, out PIDL);
             }
 
             //存放 PIDL 的数组
@@ -330,21 +329,18 @@ namespace WinFormsApp1
 
             //得到 IContextMenu 接口
             IntPtr iContextMenuPtr = IntPtr.Zero;
-            iContextMenuPtr = IParent.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length,
-                pidls, ref Guids.IID_IContextMenu, out iContextMenuPtr);
-            WinShell.IContextMenu iContextMenu = (WinShell.IContextMenu)Marshal.GetObjectForIUnknown(iContextMenuPtr);
+            iContextMenuPtr = IParent.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length, pidls, ref Guids.IID_IContextMenu, IntPtr.Zero, out iContextMenuPtr);
+            IContextMenu iContextMenu = (IContextMenu)Marshal.GetObjectForIUnknown(iContextMenuPtr);
 
             //提供一个弹出式菜单的句柄
             IntPtr contextMenu = API.CreatePopupMenu();
-            iContextMenu.QueryContextMenu(contextMenu, 0,
-                API.CMD_FIRST, API.CMD_LAST, CMF.NORMAL | CMF.EXPLORE);
+            iContextMenu.QueryContextMenu(contextMenu, 0, w32.CMD_FIRST, w32.CMD_LAST, CMF.NORMAL | CMF.EXPLORE);
 
             //弹出菜单
-            uint cmd = API.TrackPopupMenuEx(contextMenu, TPM.RETURNCMD,
-                MousePosition.X, MousePosition.Y, this.Handle, IntPtr.Zero);
+            uint cmd = API.TrackPopupMenuEx(contextMenu, TPM.RETURNCMD, MousePosition.X, MousePosition.Y, this.Handle, IntPtr.Zero);
 
             //获取命令序号，执行菜单命令
-            if (cmd >= API.CMD_FIRST)
+            if (cmd >= w32.CMD_FIRST)
             {
                 var invoke = new CMINVOKECOMMANDINFOEX();
                 invoke.cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX));
@@ -359,7 +355,7 @@ namespace WinFormsApp1
 
         public void myShellExe()
         {
-            w32.ShellExecute(IntPtr.Zero, "open", "cmd.exe", "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
+            API.ShellExecute(IntPtr.Zero, "open", "cmd.exe", "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
             //Window wnd = Window.GetWindow(this); //获取当前窗口
             //var wih = new WindowInteropHelper(wnd); //该类支持获取hWnd
             //IntPtr hWnd = wih.Handle;    //获取窗口句柄
@@ -536,13 +532,13 @@ namespace WinFormsApp1
             IntPtr pidlSub;
             uint celtFetched;
 
-            if (root.EnumObjects(this.Handle, SHCONTF.FOLDERS, out EnumPtr) == API.S_OK)
+            if (root.EnumObjects(this.Handle, SHCONTF.FOLDERS, out EnumPtr) == w32.S_OK)
             {
                 Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
-                while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == API.S_FALSE)
+                while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == w32.S_FALSE)
                 {
-                    string name = API.GetNameByIShell(root, pidlSub);
-					string path = API.GetPathByIShell(root, pidlSub);
+                    string name = w32.GetNameByIShell(root, pidlSub);
+					string path = w32.GetPathByIShell(root, pidlSub);
 					Debug.Print(path);
                     WinShell.IShellFolder iSub;
                     try
@@ -592,7 +588,7 @@ namespace WinFormsApp1
 
                 //获得桌面 PIDL
                 IntPtr deskTopPtr;
-                iDeskTop = API.GetDesktopFolder(out deskTopPtr);
+                iDeskTop = w32.GetDesktopFolder(out deskTopPtr);
 
                 TreeNode rootNode = new TreeNode("桌面")
                 {
@@ -935,13 +931,13 @@ namespace WinFormsApp1
 
             var flag = includefile ? SHCONTF.FOLDERS | SHCONTF.NONFOLDERS : SHCONTF.FOLDERS;
             // 加载文件夹和文件
-            if (root.EnumObjects(this.Handle, flag, out EnumPtr) == API.S_OK)
+            if (root.EnumObjects(this.Handle, flag, out EnumPtr) == w32.S_OK)
             {
                 Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
-                while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == API.S_FALSE)
+                while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == w32.S_FALSE)
                 {
-                    string name = API.GetNameByIShell(root, pidlSub);
-                    string pth = API.GetPathByIShell(root, pidlSub);
+                    string name = w32.GetNameByIShell(root, pidlSub);
+                    string pth = w32.GetPathByIShell(root, pidlSub);
 					Debug.Print(pth);
                     WinShell.IShellFolder iSub;
                     root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);

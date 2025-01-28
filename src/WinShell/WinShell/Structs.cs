@@ -5,13 +5,36 @@ using System.Runtime.InteropServices;
 
 namespace WinShell
 {
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+	public struct STRRET
+	{
+		public uint uType;
+		public IntPtr pOleStr;
+	}
+
+	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+	public struct MENUITEMINFO
+	{
+		public uint cbSize;
+		public MIIM fMask;
+		public uint fType;
+		public uint fState;
+		public uint wID;
+		public IntPtr hSubMenu;
+		public IntPtr hbmpChecked;
+		public IntPtr hbmpUnchecked;
+		public IntPtr dwItemData;
+		public string dwTypeData;
+		public uint cch;
+		public IntPtr hbmpItem;
+	}
+	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
     public struct SHFILEINFO
     {
         public IntPtr hIcon;
         public int iIcon;
         public SFGAO dwAttributes;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = API.MAX_PATH)]
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = w32.MAX_PATH)]
         public string szDisplayName;
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
         public string szTypeName;

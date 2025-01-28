@@ -41,9 +41,7 @@
     <Compile Include="API.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="Guids.cs" />
-    <Compile Include="IContextMenu.cs" />
-    <Compile Include="IEnumIDList.cs" />
-    <Compile Include="IShellFolder.cs" />
+    <Compile Include="Interfaces.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ShellItem.cs" />
     <Compile Include="Structs.cs" />

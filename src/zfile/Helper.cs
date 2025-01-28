@@ -137,13 +137,13 @@ namespace WinFormsApp1
 			}
 			var parentfolder = ((ShellItem)Node.Parent.Tag).ShellFolder;	//获取父节点的ishellfoler
 			var pidl = ((ShellItem)Node.Tag).PIDL;	//获取c:\\节点的pidl
-			return API.GetPathByIShell(parentfolder, pidl);	//取得实际path
+			return w32.GetPathByIShell(parentfolder, pidl);	//取得实际path
 		}
 		public static string getFSpathbyList(string path)
 		{
 			var parentfolder = w32.GetParentFolder(path);
-			var pidl = w32.ILCreateFromPath(path);
-			return API.GetPathByIShell(parentfolder, pidl);
+			var pidl = API.ILCreateFromPath(path);
+			return w32.GetPathByIShell(parentfolder, pidl); //TODO: bug here
 		}
 		public static string ConvertGB2312ToUTF8(string str)
 		{
@@ -170,7 +170,7 @@ namespace WinFormsApp1
 				ImageSize = SystemInformation.IconSize
 			};
 			imageList.Images.AddRange(phiconLarge.Select(x => Icon.FromHandle(x).ToBitmap()).ToArray());
-			phiconLarge.ToList().ForEach(x => w32.DestroyIcon(x));
+			phiconLarge.ToList().ForEach(x => API.DestroyIcon(x));
 
 			return imageList;
 		}
@@ -285,8 +285,8 @@ namespace WinFormsApp1
 					rst = ExtractIconEx(tcFullName, 0, phiconLarge, phiconSmall, 1);
 					hIcon = tlIsLarge ? phiconLarge[0] : phiconSmall[0];
 					ico = hIcon == IntPtr.Zero ? null : Icon.FromHandle(hIcon).Clone() as Icon;
-					if (phiconLarge[0] != IntPtr.Zero) w32.DestroyIcon(phiconLarge[0]);
-					if (phiconSmall[0] != IntPtr.Zero) w32.DestroyIcon(phiconSmall[0]);
+					if (phiconLarge[0] != IntPtr.Zero) API.DestroyIcon(phiconLarge[0]);
+					if (phiconSmall[0] != IntPtr.Zero) API.DestroyIcon(phiconSmall[0]);
 					if (ico != null)
 						return ico;
 				}
@@ -324,8 +324,8 @@ namespace WinFormsApp1
 			rst = ExtractIconEx(fileIcon[0].Trim('\"'), Int32.Parse(fileIcon[1]), phiconLarge, phiconSmall, 1);
 			hIcon = tlIsLarge ? phiconLarge[0] : phiconSmall[0];
 			ico = hIcon == IntPtr.Zero ? null : Icon.FromHandle(hIcon).Clone() as Icon;
-			if (phiconLarge[0] != IntPtr.Zero) w32.DestroyIcon(phiconLarge[0]);
-			if (phiconSmall[0] != IntPtr.Zero) w32.DestroyIcon(phiconSmall[0]);
+			if (phiconLarge[0] != IntPtr.Zero) API.DestroyIcon(phiconLarge[0]);
+			if (phiconSmall[0] != IntPtr.Zero) API.DestroyIcon(phiconSmall[0]);
 			if (ico != null)
 				return ico;
 
@@ -339,8 +339,8 @@ namespace WinFormsApp1
 				rst = ExtractIconEx(fileIcon[0], Int32.Parse(fileIcon[1]), phiconLarge, phiconSmall, 1);
 				hIcon = tlIsLarge ? phiconLarge[0] : phiconSmall[0];
 				ico = hIcon == IntPtr.Zero ? null : Icon.FromHandle(hIcon).Clone() as Icon;
-				if (phiconLarge[0] != IntPtr.Zero) w32.DestroyIcon(phiconLarge[0]);
-				if (phiconSmall[0] != IntPtr.Zero) w32.DestroyIcon(phiconSmall[0]);
+				if (phiconLarge[0] != IntPtr.Zero) API.DestroyIcon(phiconLarge[0]);
+				if (phiconSmall[0] != IntPtr.Zero) API.DestroyIcon(phiconSmall[0]);
 			}
 
 			return ico;

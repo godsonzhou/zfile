@@ -4,7 +4,76 @@ using System.Text;
 
 namespace WinShell
 {
-    [Flags()]
+	[Flags]
+	public enum MIIM : uint
+	{
+		STATE = 0x00000001,
+		ID = 0x00000002,
+		SUBMENU = 0x00000004,
+		CHECKMARKS = 0x00000008,
+		TYPE = 0x00000010,
+		DATA = 0x00000020,
+		STRING = 0x00000040,
+		BITMAP = 0x00000080,
+		FTYPE = 0x00000100
+	}
+
+
+	[Flags]
+	public enum CMIC : uint
+	{
+		MASK_ICON = 0x00000010,
+		MASK_HOTKEY = 0x00000020,
+		MASK_NOASYNC = 0x00000100,
+		MASK_FLAG_NO_UI = 0x00000400,
+		MASK_UNICODE = 0x00004000,
+		MASK_NO_CONSOLE = 0x00008000,
+		MASK_ASYNCOK = 0x00100000,
+		MASK_NOZONECHECKS = 0x00800000,
+		MASK_SHIFT_DOWN = 0x10000000,
+		MASK_CONTROL_DOWN = 0x40000000,
+		MASK_FLAG_LOG_USAGE = 0x04000000,
+		MASK_PTINVOKE = 0x20000000
+	}
+
+
+	public enum ShowWindowCommands : int
+	{
+		SW_HIDE = 0,
+		SW_SHOWNORMAL = 1,
+		SW_NORMAL = 1,
+		SW_SHOWMINIMIZED = 2,
+		SW_SHOWMAXIMIZED = 3,
+		SW_MAXIMIZE = 3,
+		SW_SHOWNOACTIVATE = 4,
+		SW_SHOW = 5,  //显示一个窗口，同时令其进入活动状态
+		SW_MINIMIZE = 6,
+		SW_SHOWMINNOACTIVE = 7,
+		SW_SHOWNA = 8,
+		SW_RESTORE = 9,
+		SW_SHOWDEFAULT = 10,
+		SW_MAX = 10
+	}
+	[Flags]
+	public enum SHGDN : uint
+	{
+		NORMAL = 0x0000,
+		INFOLDER = 0x0001,
+		FOREDITING = 0x1000,
+		FORADDRESSBAR = 0x4000,
+		FORPARSING = 0x8000
+	}
+
+	//[Flags()]
+	//public enum SHGNO
+	//{
+	//	NORMAL = 0x0,
+	//	INFOLDER = 0x1,
+	//	FOREDITING = 0x1000,
+	//	FORADDRESSBAR = 0x4000,
+	//	FORPARSING = 0x8000,
+	//}
+	[Flags()]
     public enum SHCONTF
     {
 		HECKING_FOR_CHILDREN = 0x00010,
@@ -60,16 +129,6 @@ namespace WinShell
         STORAGECAPMASK = 0x70C50008
 		//PKEYSFGAOMASK = 0x81044000
 	}
-
-    [Flags()]
-    public enum SHGNO
-    {
-        NORMAL = 0x0,
-        INFOLDER = 0x1,
-        FOREDITING = 0x1000,
-        FORADDRESSBAR = 0x4000,
-        FORPARSING = 0x8000,
-    }
 
     [Flags()]
     public enum CSIDL

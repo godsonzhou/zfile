@@ -1,13 +1,15 @@
+using WinShell;
+
 namespace WinFormsApp1
 {
 	public class IconManager
     {
         public ImageList LoadIconsFromFile(string path)
         {
-            var count = w32.ExtractIconEx(path, -1, null, null, 0);
+            var count = API.ExtractIconEx(path, -1, null, null, 0);
             var phiconLarge = new IntPtr[count];
             var phiconSmall = new IntPtr[count];
-            var result = w32.ExtractIconEx(path, 0, phiconLarge, null, count);
+            var result = API.ExtractIconEx(path, 0, phiconLarge, null, count);
 
             ImageList imageList = new()
             {
@@ -15,7 +17,7 @@ namespace WinFormsApp1
             };
 
             imageList.Images.AddRange(phiconLarge.Select(x => Icon.FromHandle(x).ToBitmap()).ToArray());
-            phiconLarge.ToList().ForEach(x => w32.DestroyIcon(x));
+            phiconLarge.ToList().ForEach(x => API.DestroyIcon(x));
 
             return imageList;
         }

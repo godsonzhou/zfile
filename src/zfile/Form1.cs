@@ -410,13 +410,14 @@ namespace WinFormsApp1
 
         public void TreeView_NodeMouseClick(object? sender, TreeNodeMouseClickEventArgs e)
         {
-			Debug.Print("TreeView_NodeMouseClick");
+			
 			if (e.Node?.Tag == null) return;
 
             try
             {
                 string path = e.Node.Text ?? string.Empty;
-                if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
+				Debug.Print("TreeView_NodeMouseClick：{0}", path);
+				if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
                 {
                     // 如果path是文件夹，则加载子目录
                     LoadSubDirectories(e.Node);
@@ -428,13 +429,10 @@ namespace WinFormsApp1
                         LoadListView(e.Node, listView, true);
                         currentDirectory = path;
                         selectedNode = e.Node;
-
                         // 更新监视器
                         watcher.Path = path;
                         watcher.EnableRaisingEvents = true;
                     }
-
-                    // 展开节点
                     e.Node.Expand();
                 }
                 else
@@ -451,9 +449,7 @@ namespace WinFormsApp1
         {
 			Debug.Print("TreeView_BeforeExpand");
 			if (e.Node.Nodes.Count == 1 && e.Node.FirstNode.Text == "...")
-			{
 				LoadSubDirectories(e.Node);
-			}
 		}
         public void TreeView_AfterSelect(object? sender, TreeViewEventArgs e)
         {
@@ -648,7 +644,7 @@ namespace WinFormsApp1
         }
         public void ListView_MouseUp(object sender, MouseEventArgs e)
         {
-			Debug.Print("listview_mouseup:");
+			//Debug.Print("listview_mouseup:");
             if (isSelecting)
             {
                 isSelecting = false;
@@ -701,7 +697,8 @@ namespace WinFormsApp1
             if (listView.SelectedItems.Count == 0) return;
 
             ListViewItem selectedItem = listView.SelectedItems[0];
-            string itemPath = Path.Combine(currentDirectory, selectedItem.Text);
+			Debug.Print("listview_mouseup:{0}, currentDir={1}", selectedItem.Text,currentDirectory);
+			string itemPath = Path.Combine(currentDirectory, selectedItem.Text);
 			
             if (selectedItem.SubItems[3].Text.Equals("<DIR>") || selectedItem.SubItems[3].Text == "本地磁盘")  //|| selectedItem.SubItems[2].Text.Contains(":")
             {
@@ -711,7 +708,7 @@ namespace WinFormsApp1
                     TreeView treeView = listView == uiManager.LeftList ? uiManager.LeftTree : uiManager.RightTree;
 
                     // 查找并选择对应的TreeNode
-                    TreeNode? node = FindTreeNode(treeView.SelectedNode.Nodes, itemPath);
+                    TreeNode? node = FindTreeNode(treeView.SelectedNode.Nodes, selectedItem.Text);
                     if (node != null)
                     {
                         // 设置选中状态并高亮显示
@@ -724,13 +721,8 @@ namespace WinFormsApp1
                         node.Expand();
 
                         // 更新当前目录和ListView
-
                         selectedNode = node;
                         RefreshTreeViewAndListView(treeView, listView, itemPath);
-                    }
-                    else
-                    {
-                        // 如果在树中找不到节点，直接更新ListView
                     }
 
 					// 更新监视器
@@ -792,7 +784,8 @@ namespace WinFormsApp1
         }
         public void ListView_MouseDoubleClick(object? sender, MouseEventArgs e)
         {
-            if (sender is not ListView listView) return;
+			Debug.Print("listview_mouseDoubleClick:");
+			if (sender is not ListView listView) return;
 
             if (listView.SelectedItems.Count == 0) return;
 
@@ -893,12 +886,22 @@ namespace WinFormsApp1
 			Debug.Print("FindTreeNode -> {0}", path);
 			foreach (TreeNode node in nodes)
 			{
-				if (node.FullPath.EndsWith(path, StringComparison.OrdinalIgnoreCase))
+				Debug.Print("FindTreeNode -> node: {0}, {1}", node.Text, node.FullPath);
+				//bug fix: node.fullpath=桌面\此电脑\system (C:)\aDrive, path=c:\\
+				var pidl = ((ShellItem)node.Tag).PIDL;
+				var pf = ((ShellItem)(node.Parent.Tag)).ShellFolder;
+				var p = w32.GetPathByIShell(pf, pidl);      ////子节点path -> 此电脑\\迅雷下载, c:\\
+				var n = w32.GetNameByIShell(pf, pidl);    //子节点name -> 迅雷下载, system (c:)
+				if (n.Equals(path, StringComparison.OrdinalIgnoreCase))
 				{
 					return node;
 				}
 				//LoadSubDirectories(node);
+				if (!p.Contains(path))
+					continue;
+				//if(node.Text.Contains(path))
 				node.Expand();//todo: 算法改进，这样效率太低，而且会展开之前所有的无关节点
+
 				TreeNode? foundNode = FindTreeNode(node.Nodes, path);
 				if (foundNode != null)
 				{
@@ -921,11 +924,7 @@ namespace WinFormsApp1
             Application.Exit();
         }
 
-        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show("关于此应用程序zFile ver0.0.1d", "关于");
-        }
-
+       
         // 驱动器选择变更事件处理
         private void DriveComboBox_SelectedIndexChanged(object? sender, EventArgs e)
         {
@@ -969,7 +968,7 @@ namespace WinFormsApp1
                 {
                     string name = w32.GetNameByIShell(root, pidlSub);
                     string pth = w32.GetPathByIShell(root, pidlSub);
-					Debug.Print(pth);
+					//Debug.Print(pth);
                     IShellFolder iSub;
                     root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);
 					//TODO: 目录的图标不正确 bug
@@ -993,7 +992,7 @@ namespace WinFormsApp1
         // 加载文件列表
         private void LoadListViewByFilesystem(string path, ListView listView)
         {
-			Debug.Print("LoadListViewByFilesystem");
+			Debug.Print("LoadListViewByFilesystem:{0}",path);
 			if (string.IsNullOrEmpty(path)) return;
             if (!path.Contains(':')) return;
             path = Helper.getFSpath(path);
@@ -1416,7 +1415,7 @@ namespace WinFormsApp1
 
         private void RefreshTreeViewAndListView(TreeView treeView, ListView listView, string path)
         {
-			Debug.Print("RefreshTreeViewAndListView");
+			Debug.Print("RefreshTreeViewAndListView:{0}", path);
 			if (selectedNode != null)
             {
                 LoadSubDirectories(selectedNode);

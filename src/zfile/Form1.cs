@@ -450,11 +450,11 @@ namespace WinFormsApp1
         public void TreeView_BeforeExpand(object sender, TreeViewCancelEventArgs e)
         {
 			Debug.Print("TreeView_BeforeExpand");
-            if (e.Node.Nodes.Count == 1 && e.Node.FirstNode.Text == "...")
-            {
-                LoadSubDirectories(e.Node);
-            }
-        }
+			if (e.Node.Nodes.Count == 1 && e.Node.FirstNode.Text == "...")
+			{
+				LoadSubDirectories(e.Node);
+			}
+		}
         public void TreeView_AfterSelect(object? sender, TreeViewEventArgs e)
         {
 			Debug.Print("TreeView_AfterSelect");
@@ -527,10 +527,15 @@ namespace WinFormsApp1
         {
 			Debug.Print("LoadSubDirectories:{0}",parentNode.Text);
 			ShellItem sItem = (ShellItem)parentNode.Tag;
+			if (sItem == null) return;
             IShellFolder root = sItem.ShellFolder;	//需要加载子目录的treenode的ishellfoler接口，用于enumobjects其所有下层子目录和文件
+			//bug to be fixed: 增加root是否为正常的folder, 比如 root=迅雷下载时，系统会报异常
+			if (root == null || parentNode.Text.Equals("迅雷下载")) return;
+			//var p = w32.GetPathByIShell(iDeskTop, sItem.PIDL);
+			//var n = w32.GetNameByIShell(iDeskTop, sItem.PIDL);
 
-            // 清除现有子节点，避免重复添加
-            parentNode.Nodes.Clear();
+			// 清除现有子节点，避免重复添加
+			parentNode.Nodes.Clear();
             
             IEnumIDList Enum = null;
             IntPtr EnumPtr = IntPtr.Zero;
@@ -700,13 +705,13 @@ namespace WinFormsApp1
 			
             if (selectedItem.SubItems[3].Text.Equals("<DIR>") || selectedItem.SubItems[3].Text == "本地磁盘")  //|| selectedItem.SubItems[2].Text.Contains(":")
             {
-                try
+                //try
                 {
                     // 获取关联的TreeView
                     TreeView treeView = listView == uiManager.LeftList ? uiManager.LeftTree : uiManager.RightTree;
 
                     // 查找并选择对应的TreeNode
-                    TreeNode? node = FindTreeNode(treeView.Nodes, itemPath);
+                    TreeNode? node = FindTreeNode(treeView.SelectedNode.Nodes, itemPath);
                     if (node != null)
                     {
                         // 设置选中状态并高亮显示
@@ -736,10 +741,10 @@ namespace WinFormsApp1
                         watcher.EnableRaisingEvents = true;
                     }
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"访问文件夹失败741: {ex.Message}", "错误");
-                }
+                //catch (Exception ex)
+                //{
+                //    MessageBox.Show($"访问文件夹失败741: {ex.Message}", "错误");
+                //}
             }
             else // 处理文件
             {
@@ -885,17 +890,19 @@ namespace WinFormsApp1
 		//}
 		public TreeNode? FindTreeNode(TreeNodeCollection nodes, string path)
 		{
+			Debug.Print("FindTreeNode -> {0}", path);
 			foreach (TreeNode node in nodes)
 			{
 				if (node.FullPath.EndsWith(path, StringComparison.OrdinalIgnoreCase))
 				{
 					return node;
 				}
-				LoadSubDirectories(node);
-				node.Expand();
+				//LoadSubDirectories(node);
+				node.Expand();//todo: 算法改进，这样效率太低，而且会展开之前所有的无关节点
 				TreeNode? foundNode = FindTreeNode(node.Nodes, path);
 				if (foundNode != null)
 				{
+					Debug.Print("FindTreeNode -> foundNode: {0}", foundNode.Text);
 					return foundNode;
 				}
 			}

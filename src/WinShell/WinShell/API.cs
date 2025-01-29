@@ -144,8 +144,9 @@ namespace WinShell
 		//[DllImport("user32.dll", CharSet = CharSet.Auto)]
 		//private static extern bool DestroyIcon(IntPtr handle);
 		[DllImport("shell32.dll")]
-		public static extern uint ExtractIconEx(
-		  string lpszFile, int nIconIndex, IntPtr[] phiconLarge, IntPtr[] phiconSmall, uint nIcons);
+		public static extern uint ExtractIconEx(string lpszFile, int nIconIndex, IntPtr[] phiconLarge, IntPtr[] phiconSmall, uint nIcons);
+		//[DllImport("shell32.dll")]
+		//public static extern uint ExtractIconEx(string lpszFile, int nIconIndex, IntPtr[] phiconLarge, IntPtr[] phiconSmall, uint nIcons);
 		#region API
 
 		[DllImport("shell32.dll")]

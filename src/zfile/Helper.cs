@@ -155,15 +155,12 @@ namespace WinFormsApp1
 			gb = Encoding.Convert(gb2312, utf8, gb);
 			return utf8.GetString(gb);
 		}
-		[DllImport("shell32.dll")]
-		private static extern uint ExtractIconEx(string lpszFile, int nIconIndex, IntPtr[] phiconLarge, IntPtr[] phiconSmall, uint nIcons);
-
 		public static ImageList LoadIconsFromFile(string path)
 		{
-			var count = ExtractIconEx(path, -1, null, null, 0);
+			var count = API.ExtractIconEx(path, -1, null, null, 0);
 			var phiconLarge = new IntPtr[count];
 			var phiconSmall = new IntPtr[count];
-			ExtractIconEx(path, 0, phiconLarge, null, count);
+			API.ExtractIconEx(path, 0, phiconLarge, null, count);
 
 			var imageList = new ImageList
 			{
@@ -185,7 +182,7 @@ namespace WinFormsApp1
 			IntPtr[] phiconLarge = new IntPtr[1];
 			IntPtr[] phiconSmall = new IntPtr[1];
 			//文件名 图标索引 
-			ExtractIconEx(fileName, 0, phiconLarge, phiconSmall, 1);
+			API.ExtractIconEx(fileName, 0, phiconLarge, phiconSmall, 1);
 			IntPtr IconHnd = new IntPtr(isLarge ? phiconLarge[0] : phiconSmall[0]);
 
 			if (IconHnd.ToString() == "0")
@@ -246,7 +243,7 @@ namespace WinFormsApp1
 				//调用API方法读取图标  
 				IntPtr[] phiconLarge = new IntPtr[1];
 				IntPtr[] phiconSmall = new IntPtr[1];
-				uint count = ExtractIconEx(fileIcon[0], Int32.Parse(fileIcon[1]), phiconLarge, phiconSmall, 1);
+				uint count = API.ExtractIconEx(fileIcon[0], Int32.Parse(fileIcon[1]), phiconLarge, phiconSmall, 1);
 				IntPtr IconHnd = new IntPtr(isLarge ? phiconLarge[0] : phiconSmall[0]);
 				resultIcon = Icon.FromHandle(IconHnd);
 			}
@@ -282,7 +279,7 @@ namespace WinFormsApp1
 				{
 					//文件名 图标索引
 					phiconLarge[0] = phiconSmall[0] = IntPtr.Zero;
-					rst = ExtractIconEx(tcFullName, 0, phiconLarge, phiconSmall, 1);
+					rst = API.ExtractIconEx(tcFullName, 0, phiconLarge, phiconSmall, 1);
 					hIcon = tlIsLarge ? phiconLarge[0] : phiconSmall[0];
 					ico = hIcon == IntPtr.Zero ? null : Icon.FromHandle(hIcon).Clone() as Icon;
 					if (phiconLarge[0] != IntPtr.Zero) API.DestroyIcon(phiconLarge[0]);
@@ -321,7 +318,7 @@ namespace WinFormsApp1
 			fileIcon = fileIcon.Length == 2 ? fileIcon : new string[] { systemDirectory + "shell32.dll", "2" };
 
 			phiconLarge[0] = phiconSmall[0] = IntPtr.Zero;
-			rst = ExtractIconEx(fileIcon[0].Trim('\"'), Int32.Parse(fileIcon[1]), phiconLarge, phiconSmall, 1);
+			rst = API.ExtractIconEx(fileIcon[0].Trim('\"'), Int32.Parse(fileIcon[1]), phiconLarge, phiconSmall, 1);
 			hIcon = tlIsLarge ? phiconLarge[0] : phiconSmall[0];
 			ico = hIcon == IntPtr.Zero ? null : Icon.FromHandle(hIcon).Clone() as Icon;
 			if (phiconLarge[0] != IntPtr.Zero) API.DestroyIcon(phiconLarge[0]);
@@ -336,7 +333,7 @@ namespace WinFormsApp1
 				fileIcon = new string[] { systemDirectory + "shell32.dll", "2" };
 				phiconLarge = new IntPtr[1];
 				phiconSmall = new IntPtr[1];
-				rst = ExtractIconEx(fileIcon[0], Int32.Parse(fileIcon[1]), phiconLarge, phiconSmall, 1);
+				rst = API.ExtractIconEx(fileIcon[0], Int32.Parse(fileIcon[1]), phiconLarge, phiconSmall, 1);
 				hIcon = tlIsLarge ? phiconLarge[0] : phiconSmall[0];
 				ico = hIcon == IntPtr.Zero ? null : Icon.FromHandle(hIcon).Clone() as Icon;
 				if (phiconLarge[0] != IntPtr.Zero) API.DestroyIcon(phiconLarge[0]);

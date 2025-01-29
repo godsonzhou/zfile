@@ -530,14 +530,26 @@ namespace Sheng.Winform.Controls
             }
 
             //解释path找到当前节点，然后调用RestBar方法就可以了
-            string[] pathArray = path.Split('/');
-            _currentNode =  _rootNode;
+            string[] pathArray = path.Split('\\');  //bugfix: '/' -> '\\' for windows, '/' is not a valid path separator
+			_currentNode =  _rootNode;
+			string pth = "";
             for (int i = 0; i < pathArray.Length; i++)
             {
-
+				//bugfix: c: -> c:\
+				if (pathArray[i] == string.Empty)
+					continue;
+				if (pathArray[i].EndsWith(":"))
+					pathArray[i] += "\\";
+				if(pth == string.Empty)
+					pth = pathArray[i];
+				else if (pth.EndsWith("\\"))
+					pth = pth + pathArray[i];
+				else
+					pth = pth + "\\" + pathArray[i];
+				
                 foreach (IShengAddressNode node in _currentNode.Children)
                 {
-                    if (node.UniqueID == pathArray[i])
+                    if (node.UniqueID == pth)
                     {
                         _currentNode = node;
                         break;

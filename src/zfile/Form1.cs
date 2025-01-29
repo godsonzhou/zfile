@@ -484,7 +484,8 @@ namespace WinFormsApp1
                         watcher.EnableRaisingEvents = true;
                     }
 
-                    // 调用leftpathtextbox的setaddress方法来更新路径
+					// 调用leftpathtextbox的setaddress方法来更新路径
+					Debug.Print("treeview afterselect , set addr: {0}", path);
                     if (treeView == uiManager.LeftTree)
                         uiManager.LeftPathTextBox.SetAddress(path);
                     else
@@ -888,18 +889,21 @@ namespace WinFormsApp1
 			{
 				Debug.Print("FindTreeNode -> node: {0}, {1}", node.Text, node.FullPath);
 				//bug fix: node.fullpath=桌面\此电脑\system (C:)\aDrive, path=c:\\
-				var pidl = ((ShellItem)node.Tag).PIDL;
-				var pf = ((ShellItem)(node.Parent.Tag)).ShellFolder;
-				var p = w32.GetPathByIShell(pf, pidl);      ////子节点path -> 此电脑\\迅雷下载, c:\\
-				var n = w32.GetNameByIShell(pf, pidl);    //子节点name -> 迅雷下载, system (c:)
-				if (n.Equals(path, StringComparison.OrdinalIgnoreCase))
+				if (node.Parent != null && node.Tag != null)
 				{
-					return node;
+					var pidl = ((ShellItem)node.Tag).PIDL;
+					var pf = ((ShellItem)(node.Parent.Tag)).ShellFolder;
+					var p = w32.GetPathByIShell(pf, pidl);      ////子节点path -> 此电脑\\迅雷下载, c:\\
+					var n = w32.GetNameByIShell(pf, pidl);    //子节点name -> 迅雷下载, system (c:)
+					if (n.Equals(path, StringComparison.OrdinalIgnoreCase))
+					{
+						return node;
+					}
+				
+					if (!p.Contains(path))
+						continue;
 				}
-				//LoadSubDirectories(node);
-				if (!p.Contains(path))
-					continue;
-				//if(node.Text.Contains(path))
+				LoadSubDirectories(node);
 				node.Expand();//todo: 算法改进，这样效率太低，而且会展开之前所有的无关节点
 
 				TreeNode? foundNode = FindTreeNode(node.Nodes, path);

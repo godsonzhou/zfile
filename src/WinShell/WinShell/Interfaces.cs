@@ -16,7 +16,7 @@ namespace WinShell
 		void CreateViewObject(IntPtr hwndOwner, ref Guid riid, out IntPtr ppv);
 		void GetAttributesOf(uint cidl, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] IntPtr[] apidl, ref SFGAO rgfInOut);
 		IntPtr GetUIObjectOf(IntPtr hwndOwner, uint cidl, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] IntPtr[] apidl, ref Guid riid, IntPtr rgfReserved, out IntPtr ppv);
-		int GetDisplayNameOf(IntPtr pidl, SHGDN uFlags, out IntPtr pName);      //out STRRET pName);
+		int GetDisplayNameOf(IntPtr pidl, SHGDN uFlags, IntPtr pName);      //out STRRET pName);  //bugfix: remove 'out' prefix of pName parameter
 		void SetNameOf(IntPtr hwnd, IntPtr pidl, [MarshalAs(UnmanagedType.LPWStr)] string pszName, SHCONTF uFlags, out IntPtr ppidlOut);
 	}
 

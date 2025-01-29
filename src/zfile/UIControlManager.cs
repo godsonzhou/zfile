@@ -80,7 +80,7 @@ namespace WinFormsApp1
 
 		private void UpdateTreeViewSelection(TreeView treeView, string path)
 		{
-			TreeNode? node = FindTreeNodeByPath(treeView.Nodes, path);
+			TreeNode? node = form.FindTreeNode(treeView.Nodes, path);
 			if (node != null)
 			{
 				treeView.SelectedNode = node;
@@ -88,24 +88,7 @@ namespace WinFormsApp1
 			}
 		}
 
-		private TreeNode? FindTreeNodeByPath(TreeNodeCollection nodes, string path)
-		{
-			foreach (TreeNode node in nodes)
-			{
-				if (node.FullPath.Equals(path, StringComparison.OrdinalIgnoreCase))
-				{
-					return node;
-				}
-				form.LoadSubDirectories(node);
-				node.Expand();
-				TreeNode? foundNode = FindTreeNodeByPath(node.Nodes, path);
-				if (foundNode != null)
-				{
-					return foundNode;
-				}
-			}
-			return null;
-		}
+	
 		private void InitializeUI()
 		{
 			InitializeLayout();

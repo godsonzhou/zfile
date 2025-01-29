@@ -264,8 +264,7 @@ namespace WinFormsApp1
             {
                 // 得到 IContextMenu 接口
                 IntPtr iContextMenuPtr = IntPtr.Zero;
-                iContextMenuPtr = parentFolder.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length, pidls, ref Guids.IID_IContextMenu, IntPtr.Zero, out iContextMenuPtr);
-
+                iContextMenuPtr = parentFolder.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length, pidls, ref Guids.IID_IContextMenu, out iContextMenuPtr);
                 if (iContextMenuPtr == IntPtr.Zero)
                 {
                     MessageBox.Show("无法获取上下文菜单接口");
@@ -329,7 +328,7 @@ namespace WinFormsApp1
 
             //得到 IContextMenu 接口
             IntPtr iContextMenuPtr = IntPtr.Zero;
-            iContextMenuPtr = IParent.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length, pidls, ref Guids.IID_IContextMenu, IntPtr.Zero, out iContextMenuPtr);
+            iContextMenuPtr = IParent.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length, pidls, ref Guids.IID_IContextMenu, out iContextMenuPtr);
             IContextMenu iContextMenu = (IContextMenu)Marshal.GetObjectForIUnknown(iContextMenuPtr);
 
             //提供一个弹出式菜单的句柄
@@ -970,7 +969,7 @@ namespace WinFormsApp1
 
             try
             {
-                path = Helper.getFSpathbyList(path);
+                //path = Helper.getFSpathbyList(path);
                 var items = fsManager.GetDirectoryContents(path);
 
                 listView.BeginUpdate();

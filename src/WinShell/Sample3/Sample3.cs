@@ -31,7 +31,7 @@ namespace Sample3
         {
             //获得桌面 PIDL
             IntPtr deskTopPtr;
-            iDeskTop = API.GetDesktopFolder(out deskTopPtr);
+            iDeskTop = w32.GetDesktopFolder(out deskTopPtr);
 
             //添加 桌面 节点
             TreeNode tnDesktop = new TreeNode("桌面");
@@ -68,14 +68,14 @@ namespace Sample3
             IEnumIDList Enum = null;
             IntPtr EnumPtr = IntPtr.Zero;
             IntPtr pidlSub;
-            int celtFetched;
+            uint celtFetched;
 
-            if (root.EnumObjects(this.Handle, SHCONTF.FOLDERS, out EnumPtr) == API.S_OK)
+            if (root.EnumObjects(this.Handle, SHCONTF.FOLDERS, out EnumPtr) == w32.S_OK)
             {
                 Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
-                while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == API.S_FALSE)
+                while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == w32.S_FALSE)
                 {
-                    string name = API.GetNameByIShell(root, pidlSub);
+                    string name = w32.GetNameByIShell(root, pidlSub);
                     IShellFolder iSub;
                     root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);
                     
@@ -120,8 +120,8 @@ namespace Sample3
                     else
                     {
                         //桌面的真实路径的 PIDL
-                        string path = API.GetSpecialFolderPath(this.Handle, ShellSpecialFolders.DESKTOPDIRECTORY);
-                        API.GetShellFolder(iDeskTop, path, out PIDL);
+                        string path = w32.GetSpecialFolderPath(this.Handle, ShellSpecialFolders.DESKTOPDIRECTORY);
+                        w32.GetShellFolder(iDeskTop, path, out PIDL);
                     }
 
                     //存放 PIDL 的数组
@@ -137,14 +137,14 @@ namespace Sample3
                     //提供一个弹出式菜单的句柄
                     IntPtr contextMenu = API.CreatePopupMenu();
                     iContextMenu.QueryContextMenu(contextMenu, 0,
-                        API.CMD_FIRST, API.CMD_LAST, CMF.NORMAL | CMF.EXPLORE);
+                        w32.CMD_FIRST, w32.CMD_LAST, CMF.NORMAL | CMF.EXPLORE);
 
                     //弹出菜单
                     uint cmd = API.TrackPopupMenuEx(contextMenu,TPM.RETURNCMD,
                         MousePosition.X, MousePosition.Y, this.Handle, IntPtr.Zero);
 
                     //获取命令序号，执行菜单命令
-                    if (cmd >= API.CMD_FIRST)
+                    if (cmd >= w32.CMD_FIRST)
                     {
                         CMINVOKECOMMANDINFOEX invoke = new CMINVOKECOMMANDINFOEX();
                         invoke.cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX));

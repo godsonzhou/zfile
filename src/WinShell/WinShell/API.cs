@@ -3,10 +3,49 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
+using Microsoft.Win32;
 
 namespace WinShell
 {
 
+	public static class ContextMenuHandler
+	{
+		public static void InvokeComMethod(object comObject, string methodName, params object[] parameters)
+		{
+			Type comType = comObject.GetType();
+			var method = comType.GetMethod(methodName);
+			if (method != null)
+			{
+				method.Invoke(comObject, parameters);
+			}
+		}
+
+		public static object CreateComObject(Guid clsid)
+		{
+			Type comType = Type.GetTypeFromCLSID(clsid);
+			if (comType != null)
+			{
+				return Activator.CreateInstance(comType);
+			}
+			return null;
+		}
+
+		public static Guid? GetContextMenuHandlerGuid(string registryPath)
+		{
+			using (RegistryKey key = Registry.ClassesRoot.OpenSubKey(registryPath))
+			{
+				if (key != null)
+				{
+					string guidString = key.GetValue(null) as string;//todo: bugfix null->openwithsublimetext
+					if (Guid.TryParse(guidString, out Guid guid))
+					{
+						return guid;
+					}
+				}
+			}
+			return null;
+		}
+	}
 	public static class w32
 	{
 		public const int MAX_PATH = 260;

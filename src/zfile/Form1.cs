@@ -235,11 +235,17 @@ namespace WinFormsApp1
         }
         private void showCtxMenu(TreeNode parentNode, string path, Point location)
         {
-			Debug.Print("showctxmenu:");
+            Debug.Print("showctxmenu:");
             // 先获取路径的父目录
-            path = Helper.getFSpath(path);
+            //path = Helper.getFSpath(path);
 
-            var parentFolder = iDeskTop;
+            if (!File.Exists(path) && !Directory.Exists(path))
+            {
+                MessageBox.Show("文件或目录不存在: " + path);
+                return;
+            }
+			HandleRegistryContextMenuItems(path);
+			var parentFolder = iDeskTop;
             IntPtr pidl;
             if (Directory.Exists(path))
             {
@@ -254,7 +260,6 @@ namespace WinFormsApp1
                 parentFolder = w32.GetParentFolder(parentPath);
                 w32.GetShellFolder(parentFolder, fileName, out pidl, false);
             }
-            //}
 
             if (pidl == IntPtr.Zero)
             {
@@ -300,6 +305,10 @@ namespace WinFormsApp1
                     iContextMenu.InvokeCommand(ref invoke);
                 }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"执行命令时出错: {ex.Message}", "错误");
+            }
             finally
             {
                 if (pidl != IntPtr.Zero)
@@ -308,7 +317,32 @@ namespace WinFormsApp1
                 }
             }
         }
-        private void ShowContextMenu1(TreeNode node, Point location)
+		private void HandleRegistryContextMenuItems(string path)
+		{
+			string[] registryPaths = new[]
+			{
+				@"*\shellex\ContextMenuHandlers",
+				@"Directory\shell\",
+				@"Directory\shellex\ContextMenuHandlers",
+				@"Folder\shell",
+				@"Folder\shellex\ContextMenuHandlers"
+			};
+
+			foreach (string registryPath in registryPaths)
+			{
+				Guid? guid = ContextMenuHandler.GetContextMenuHandlerGuid(registryPath);
+				if (guid.HasValue)
+				{
+					object? comObject = ContextMenuHandler.CreateComObject(guid.Value);
+					if (comObject != null)
+					{
+						ContextMenuHandler.InvokeComMethod(comObject, "InvokeCommand", path);
+					}
+				}
+			}
+		}
+
+		private void ShowContextMenu1(TreeNode node, Point location)
         {
 			Debug.Print("showcontextmenu1:{0}", node.Text);
             //获得当前节点的 PIDL

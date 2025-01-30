@@ -657,7 +657,7 @@ namespace WinFormsApp1
 							var zhdesc = form.cmdProcessor.cmdTable.GetByCmdName(cmd)?.ZhDesc ?? "";
 							ToolStripButton button = new ToolStripButton
 							{
-								Text = menuText,
+								Text = "",	//menuText,
 								ToolTipText = zhdesc,
 								Image = iconManager.LoadIcon(buttonIcon),
 								Tag = cmd
@@ -668,7 +668,7 @@ namespace WinFormsApp1
 								string dropdownFilePath = cmd.Substring("openbar ".Length);
 								ToolStripDropDownButton dropdownButton = new ToolStripDropDownButton
 								{
-									Text = menuText,
+									Text = "", //menuText,
 									ToolTipText = menuText,
 									Image = iconManager.LoadIcon(buttonIcon)
 								};

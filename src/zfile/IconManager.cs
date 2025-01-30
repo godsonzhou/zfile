@@ -1,7 +1,24 @@
+using System.Runtime.InteropServices;
 using WinShell;
 
 namespace WinFormsApp1
 {
+
+	public static class IconExtractor
+	{
+		[DllImport("shell32.dll", CharSet = CharSet.Auto)]
+		private static extern IntPtr ExtractIcon(IntPtr hInst, string lpszExeFileName, int nIconIndex);
+
+		public static Icon ExtractIconFromFile(string file, int iconIndex)
+		{
+			IntPtr hIcon = ExtractIcon(IntPtr.Zero, file, iconIndex);
+			if (hIcon == IntPtr.Zero)
+				return null;
+
+			Icon icon = Icon.FromHandle(hIcon);
+			return icon;
+		}
+	}
 	public class IconManager
     {
         public ImageList LoadIconsFromFile(string path)

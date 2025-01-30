@@ -1,6 +1,6 @@
 using Sheng.Winform.Controls;
 using System.Text;
-
+using WinShell;
 namespace WinFormsApp1
 {
 	public class UIControlManager
@@ -63,7 +63,7 @@ namespace WinFormsApp1
 			treeViewImageList = new ImageList();
 			treeViewImageList.ImageSize = new Size(16, 16);
 			InitializeUI(); // 初始化界面
-			// 添加PathTextBox路径变化事件处理程序
+							// 添加PathTextBox路径变化事件处理程序
 			LeftPathTextBox.SelectionChange += LeftPathTextBox_PathChanged;
 			RightPathTextBox.SelectionChange += RightPathTextBox_PathChanged;
 		}
@@ -88,7 +88,7 @@ namespace WinFormsApp1
 			}
 		}
 
-	
+
 		private void InitializeUI()
 		{
 			InitializeLayout();
@@ -266,14 +266,93 @@ namespace WinFormsApp1
 
 		public void InitializeTreeViewIcons()
 		{
+			treeViewImageList.ColorDepth = ColorDepth.Depth32Bit;
+			treeViewImageList.ImageSize = new Size(16, 16);
+
+			InitializeSystemIcons();
+
+			// 为两个TreeView设置ImageList
+			LeftTree.ImageList = treeViewImageList;
+			RightTree.ImageList = treeViewImageList;
+		}
+
+		private void InitializeSystemIcons()
+		{
+			var imageresPath = Path.Combine(Environment.SystemDirectory, "imageres.dll");
+			var iconManager = form.iconManager; // 使用form中的IconManager实例
+
+			// 使用IconManager加载系统图标
+			var imageList = iconManager.LoadIconsFromFile(imageresPath);
+
+			// 添加系统图标到treeViewImageList
+			treeViewImageList.Images.Add("desktop", iconManager.LoadIcon($"{imageresPath},174")); // 桌面
+			treeViewImageList.Images.Add("computer", iconManager.LoadIcon($"{imageresPath},104")); // 此电脑
+			treeViewImageList.Images.Add("network", iconManager.LoadIcon($"{imageresPath},20")); // 网上邻居
+			treeViewImageList.Images.Add("controlPanel", iconManager.LoadIcon($"{imageresPath},22")); // 控制面板
+			treeViewImageList.Images.Add("recyclebin", iconManager.LoadIcon($"{imageresPath},49")); // 回收站49,empty recyclebin=50
+			treeViewImageList.Images.Add("documents", iconManager.LoadIcon($"{imageresPath},107")); // 文档
+			treeViewImageList.Images.Add("drives", iconManager.LoadIcon($"{imageresPath},27")); // 磁盘驱动器
+			treeViewImageList.Images.Add("linux", iconManager.LoadIcon($"{imageresPath},27")); // 
+			treeViewImageList.Images.Add("downloads", iconManager.LoadIcon($"{imageresPath},175")); // 
+			treeViewImageList.Images.Add("music", iconManager.LoadIcon($"{imageresPath},103")); // 
+			treeViewImageList.Images.Add("pictures", iconManager.LoadIcon($"{imageresPath},108")); // 
+			treeViewImageList.Images.Add("videos", iconManager.LoadIcon($"{imageresPath},178")); // 
+			treeViewImageList.Images.Add("home", iconManager.LoadIcon($"{imageresPath},83")); // 
+
+			// 添加默认文件夹图标
 			Icon folderIcon = Helper.GetIconByFileType("folder", false);
 			if (folderIcon != null)
 			{
 				treeViewImageList.Images.Add("folder", folderIcon);
 			}
+		}
 
-			ConfigureTreeView(LeftTree);
-			ConfigureTreeView(RightTree);
+		private string GetNodeIconKey(TreeNode node)
+		{
+			// 基于节点文本和属性确定图标键值
+			if (node.Text.Equals("桌面", StringComparison.OrdinalIgnoreCase)) return "desktop";
+			if (node.Text.Equals("此电脑", StringComparison.OrdinalIgnoreCase)) return "computer";
+			if (node.Text.Equals("网络", StringComparison.OrdinalIgnoreCase)) return "network";
+			if (node.Text.Equals("控制面板", StringComparison.OrdinalIgnoreCase)) return "controlPanel";
+			if (node.Text.Equals("回收站", StringComparison.OrdinalIgnoreCase)) return "recyclebin";
+			if (node.Text.Contains("文档", StringComparison.OrdinalIgnoreCase)) return "documents";
+			if (node.Text.Contains("Linux", StringComparison.OrdinalIgnoreCase)) return "linux";
+			if (node.Text.Contains("下载", StringComparison.OrdinalIgnoreCase)) return "downloads";
+			if (node.Text.Contains("音乐", StringComparison.OrdinalIgnoreCase)) return "music";
+			if (node.Text.Contains("图片", StringComparison.OrdinalIgnoreCase)) return "pictures";
+			if (node.Text.Contains("视频", StringComparison.OrdinalIgnoreCase)) return "videos";
+			if (node.Text.Contains("主文件夹", StringComparison.OrdinalIgnoreCase)) return "home";
+
+			// 检查是否为驱动器
+			if (node.Text.Contains(":")) return "drives";
+
+			// 如果节点包含Tag并且是ShellItem类型，可以进一步判断
+			if (node.Tag is ShellItem shellItem)
+			{
+				SFGAO attributes = SFGAO.FOLDER;
+				if ((attributes & SFGAO.FILESYSTEM) != 0)
+				{
+					return "folder";
+				}
+			}
+
+			return "folder"; // 默认返回文件夹图标
+		}
+
+		private void UpdateNodeIcon(TreeNode node)
+		{
+			string iconKey = GetNodeIconKey(node);
+			node.ImageKey = iconKey;
+			node.SelectedImageKey = iconKey; // 确保选中状态使用相同图标
+
+			// 递归更新所有子节点
+			foreach (TreeNode childNode in node.Nodes)
+			{
+				if (childNode.Text != "...")
+				{
+					UpdateNodeIcon(childNode);
+				}
+			}
 		}
 
 		public void ConfigureTreeView(TreeView treeView)
@@ -295,6 +374,15 @@ namespace WinFormsApp1
 			treeView.NodeMouseClick += form.TreeView_NodeMouseClick;
 			treeView.BeforeExpand += form.TreeView_BeforeExpand;
 			treeView.MouseDown += form.TreeView_MouseDown;
+			treeView.AfterExpand += (s, e) => UpdateNodeIcon(e.Node);
+			treeView.BeforeExpand += (s, e) =>
+			{
+				if (e.Node.Nodes.Count == 1 && e.Node.Nodes[0].Text == "...")
+				{
+					form.LoadSubDirectories(e.Node);
+					UpdateNodeIcon(e.Node);
+				}
+			};
 		}
 
 		public void InitializeListViews()
@@ -670,4 +758,7 @@ namespace WinFormsApp1
 			}
 		}
 	}
+
+	
+	
 }

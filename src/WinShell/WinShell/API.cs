@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace WinShell
 {
+
 	public static class w32
 	{
 		public const int MAX_PATH = 260;
@@ -189,4 +190,3 @@ namespace WinShell
 
 	}
 }
-

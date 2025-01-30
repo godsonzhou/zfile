@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices; // Add this namespace
 using System.Windows.Forms;
 using WinShell;
+//using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Keys = System.Windows.Forms.Keys;//引入CmdProcessor命名空间
 
 namespace WinFormsApp1
@@ -579,7 +580,8 @@ namespace WinFormsApp1
                         nodeSub.SelectedImageKey = "drive";
                     }
 
-                    nodeSub.Nodes.Add("...");
+					if(IsChildrenExist(nodeSub))
+						nodeSub.Nodes.Add("...");
                     parentNode.Nodes.Add(nodeSub);
                 }
             }
@@ -962,8 +964,31 @@ namespace WinFormsApp1
             uint celtFetched;
             listView.BeginUpdate();
             listView.Items.Clear();
-
-            var flag = includefile ? SHCONTF.FOLDERS | SHCONTF.NONFOLDERS : SHCONTF.FOLDERS;
+			// 根据项类型设置图标
+			//SFGAO attributes = SFGAO.FOLDER;
+			//root.GetAttributesOf(1, new IntPtr[] { pidlSub }, ref attributes);
+			//if ((attributes & SFGAO.FILESYSTEM) != 0)
+			//{
+			//	node.ImageKey = "file";
+			//	node.SelectedImageKey = "file";
+			//}
+			//else if ((attributes & SFGAO.FOLDER) != 0)
+			//{
+			//	node.ImageKey = "folder";
+			//	node.SelectedImageKey = "folder";
+			//}
+			//else if ((attributes & SFGAO.STORAGE) != 0)
+			//{
+			//	node.ImageKey = "storage";
+			//	node.SelectedImageKey = "storage";
+			//}
+			//else
+			//{
+			//	node.ImageKey = "drive";
+			//	node.SelectedImageKey = "drive";
+			//}
+			//Debug.Print("node.text={0}, nodetype={1}", node.Text, node.ImageKey);
+			var flag = includefile ? SHCONTF.FOLDERS | SHCONTF.NONFOLDERS : SHCONTF.FOLDERS;
             // 加载文件夹和文件
             if (root.EnumObjects(this.Handle, flag, out EnumPtr) == w32.S_OK)
             {
@@ -972,29 +997,71 @@ namespace WinFormsApp1
                 {
                     string name = w32.GetNameByIShell(root, pidlSub);
                     string pth = w32.GetPathByIShell(root, pidlSub);
-					//Debug.Print(pth);
+					Debug.Print(pth);
                     IShellFolder iSub;
                     root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);
 					//TODO: 目录的图标不正确 bug
                     //Icon icon = IconHelper.GetIconByFileType(name.Contains(':') ? "folder" : Path.GetExtension(name), false);
                     var fiwi = new FileInfoWithIcon(name);
-                    var icon = fiwi.smallIcon != null ? fiwi.smallIcon : Helper.GetIconByFileName("FILE", name);
-                    int iconIndex = listView.SmallImageList.Images.Count;
-                    listView.SmallImageList.Images.Add(icon);
+                    //var icon = fiwi.smallIcon != null ? fiwi.smallIcon : Helper.GetIconByFileName("FILE", name);
+                    //int iconIndex = listView.SmallImageList.Images.Count;
+                    //listView.SmallImageList.Images.Add(icon);
 
                     string[] s = { "", name, "", name.Contains(':') ? "本地磁盘" : "<DIR>", "" };
                     var i = new ListViewItem(s);
-                    i.ImageIndex = iconIndex;
-                    i.Text = name;
+                    //i.ImageIndex = iconIndex;
+					i.ImageKey = uiManager.GetIconKey(name);
+					i.Text = name;
                     listView.Items.Add(i);
                 }
             }
 
             listView.EndUpdate();
         }
+		private bool IsChildrenExist(TreeNode node, bool includefile = false)
+		{
+			//Debug.Print("IsChildrenExist");
+			ShellItem sItem = (ShellItem)node.Tag;
+			IShellFolder root = sItem.ShellFolder;
 
-        // 加载文件列表
-        private void LoadListViewByFilesystem(string path, ListView listView)
+			// 循环查找子项
+			IEnumIDList Enum = null;
+			IntPtr EnumPtr = IntPtr.Zero;
+			IntPtr pidlSub;
+			uint celtFetched;
+		
+
+			var flag = includefile ? SHCONTF.FOLDERS | SHCONTF.NONFOLDERS : SHCONTF.FOLDERS;
+			// 加载文件夹和文件
+			if (root.EnumObjects(this.Handle, flag, out EnumPtr) == w32.S_OK)
+			{
+				Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
+				while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == w32.S_FALSE)
+				{
+					//string name = w32.GetNameByIShell(root, pidlSub);
+					//string pth = w32.GetPathByIShell(root, pidlSub);
+					//Debug.Print(pth);
+					//IShellFolder iSub;
+					//root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);
+					//TODO: 目录的图标不正确 bug
+					//Icon icon = IconHelper.GetIconByFileType(name.Contains(':') ? "folder" : Path.GetExtension(name), false);
+					//var fiwi = new FileInfoWithIcon(name);
+					//var icon = fiwi.smallIcon != null ? fiwi.smallIcon : Helper.GetIconByFileName("FILE", name);
+					//int iconIndex = listView.SmallImageList.Images.Count;
+					//listView.SmallImageList.Images.Add(icon);
+
+					//string[] s = { "", name, "", name.Contains(':') ? "本地磁盘" : "<DIR>", "" };
+					//var i = new ListViewItem(s);
+					////i.ImageIndex = iconIndex;
+					//i.ImageKey = uiManager.GetIconKey(name);
+					//i.Text = name;
+					return true;
+				}
+			}
+			return false;
+		}
+		// 加载文件列表
+		private void LoadListViewByFilesystem(string path, ListView listView)
         {
 			Debug.Print("LoadListViewByFilesystem:{0}",path);
 			if (string.IsNullOrEmpty(path)) return;
@@ -1015,10 +1082,11 @@ namespace WinFormsApp1
                 {
                     if ((item.Attributes & FileAttributes.Hidden) != 0) continue;
 
-                    var lvItem = CreateListViewItem(item);
+                    var lvItem = CreateListViewItem(item);//TODO: ADD ICON
                     if (lvItem != null)
                     {
-                        listView.Items.Add(lvItem);
+						lvItem.ImageKey = lvItem.SubItems[3].Text.Equals("<DIR>") ? "folder" : "";
+						listView.Items.Add(lvItem);
                     }
                 }
                 listView.EndUpdate();

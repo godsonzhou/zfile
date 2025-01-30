@@ -297,7 +297,7 @@ namespace WinFormsApp1
 			Icon folderIcon = Helper.GetIconByFileType("folder", false);
 			if (folderIcon != null)
 			{
-				treeViewImageList.Images.Add("folder", folderIcon);
+				listViewImageList.Images.Add("folder", folderIcon);
 			}
 			LeftList.SmallImageList = listViewImageList;
 			RightList.SmallImageList = listViewImageList;
@@ -344,25 +344,44 @@ namespace WinFormsApp1
 				treeViewImageList.Images.Add("folder", folderIcon);
 			}
 		}
-
+		public string GetIconKey(string Text)
+		{
+			// 基于节点文本和属性确定图标键值
+			if (Text.Equals("桌面", StringComparison.OrdinalIgnoreCase)) return "desktop";
+			if (Text.Equals("此电脑", StringComparison.OrdinalIgnoreCase)) return "computer";
+			if (Text.Equals("网络", StringComparison.OrdinalIgnoreCase)) return "network";
+			if (Text.Equals("控制面板", StringComparison.OrdinalIgnoreCase)) return "controlPanel";
+			if (Text.Equals("回收站", StringComparison.OrdinalIgnoreCase)) return "recyclebin";
+			if (Text.Contains("文档", StringComparison.OrdinalIgnoreCase)) return "documents";
+			if (Text.Contains("Linux", StringComparison.OrdinalIgnoreCase)) return "linux";
+			if (Text.Contains("下载", StringComparison.OrdinalIgnoreCase)) return "downloads";
+			if (Text.Contains("音乐", StringComparison.OrdinalIgnoreCase)) return "music";
+			if (Text.Contains("图片", StringComparison.OrdinalIgnoreCase)) return "pictures";
+			if (Text.Contains("视频", StringComparison.OrdinalIgnoreCase)) return "videos";
+			if (Text.Contains("主文件夹", StringComparison.OrdinalIgnoreCase)) return "home";
+			// 检查是否为驱动器
+			if (Text.Contains(":")) return "drives";
+			return "folder"; // 默认返回文件夹图标
+		}
 		private string GetNodeIconKey(TreeNode node)
 		{
 			// 基于节点文本和属性确定图标键值
-			if (node.Text.Equals("桌面", StringComparison.OrdinalIgnoreCase)) return "desktop";
-			if (node.Text.Equals("此电脑", StringComparison.OrdinalIgnoreCase)) return "computer";
-			if (node.Text.Equals("网络", StringComparison.OrdinalIgnoreCase)) return "network";
-			if (node.Text.Equals("控制面板", StringComparison.OrdinalIgnoreCase)) return "controlPanel";
-			if (node.Text.Equals("回收站", StringComparison.OrdinalIgnoreCase)) return "recyclebin";
-			if (node.Text.Contains("文档", StringComparison.OrdinalIgnoreCase)) return "documents";
-			if (node.Text.Contains("Linux", StringComparison.OrdinalIgnoreCase)) return "linux";
-			if (node.Text.Contains("下载", StringComparison.OrdinalIgnoreCase)) return "downloads";
-			if (node.Text.Contains("音乐", StringComparison.OrdinalIgnoreCase)) return "music";
-			if (node.Text.Contains("图片", StringComparison.OrdinalIgnoreCase)) return "pictures";
-			if (node.Text.Contains("视频", StringComparison.OrdinalIgnoreCase)) return "videos";
-			if (node.Text.Contains("主文件夹", StringComparison.OrdinalIgnoreCase)) return "home";
+			//if (node.Text.Equals("桌面", StringComparison.OrdinalIgnoreCase)) return "desktop";
+			//if (node.Text.Equals("此电脑", StringComparison.OrdinalIgnoreCase)) return "computer";
+			//if (node.Text.Equals("网络", StringComparison.OrdinalIgnoreCase)) return "network";
+			//if (node.Text.Equals("控制面板", StringComparison.OrdinalIgnoreCase)) return "controlPanel";
+			//if (node.Text.Equals("回收站", StringComparison.OrdinalIgnoreCase)) return "recyclebin";
+			//if (node.Text.Contains("文档", StringComparison.OrdinalIgnoreCase)) return "documents";
+			//if (node.Text.Contains("Linux", StringComparison.OrdinalIgnoreCase)) return "linux";
+			//if (node.Text.Contains("下载", StringComparison.OrdinalIgnoreCase)) return "downloads";
+			//if (node.Text.Contains("音乐", StringComparison.OrdinalIgnoreCase)) return "music";
+			//if (node.Text.Contains("图片", StringComparison.OrdinalIgnoreCase)) return "pictures";
+			//if (node.Text.Contains("视频", StringComparison.OrdinalIgnoreCase)) return "videos";
+			//if (node.Text.Contains("主文件夹", StringComparison.OrdinalIgnoreCase)) return "home";
 
-			// 检查是否为驱动器
-			if (node.Text.Contains(":")) return "drives";
+			//// 检查是否为驱动器
+			//if (node.Text.Contains(":")) return "drives";
+			return GetIconKey(node.Text);
 
 			// 如果节点包含Tag并且是ShellItem类型，可以进一步判断
 			if (node.Tag is ShellItem shellItem)

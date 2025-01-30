@@ -7,6 +7,7 @@ namespace WinFormsApp1
 	{
 		private readonly Form1 form;
 		private readonly ImageList treeViewImageList;
+		private readonly ImageList listViewImageList;
 
 		#region Container Controls
 		public SplitContainer MainContainer { get; } = new();
@@ -62,6 +63,8 @@ namespace WinFormsApp1
 			this.form = form;
 			treeViewImageList = new ImageList();
 			treeViewImageList.ImageSize = new Size(16, 16);
+			listViewImageList = new ImageList();
+			listViewImageList.ImageSize = new Size(16, 16);
 			InitializeUI(); // 初始化界面
 							// 添加PathTextBox路径变化事件处理程序
 			LeftPathTextBox.SelectionChange += LeftPathTextBox_PathChanged;
@@ -264,6 +267,41 @@ namespace WinFormsApp1
 			};
 		}
 
+		// 为两个ListView设置ImageList
+		public void InitializeListViewIcons()
+		{
+			listViewImageList.ColorDepth = ColorDepth.Depth32Bit;
+			listViewImageList.ImageSize = new Size(16, 16);
+			var imageresPath = Path.Combine(Environment.SystemDirectory, "imageres.dll");
+			var iconManager = form.iconManager; // 使用form中的IconManager实例
+
+			// 使用IconManager加载系统图标
+			var imageList = iconManager.LoadIconsFromFile(imageresPath);
+
+			// 添加系统图标到treeViewImageList
+			listViewImageList.Images.Add("desktop", iconManager.LoadIcon($"{imageresPath},174")); // 桌面
+			listViewImageList.Images.Add("computer", iconManager.LoadIcon($"{imageresPath},104")); // 此电脑
+			listViewImageList.Images.Add("network", iconManager.LoadIcon($"{imageresPath},20")); // 网上邻居
+			listViewImageList.Images.Add("controlPanel", iconManager.LoadIcon($"{imageresPath},22")); // 控制面板
+			listViewImageList.Images.Add("recyclebin", iconManager.LoadIcon($"{imageresPath},49")); // 回收站49,empty recyclebin=50
+			listViewImageList.Images.Add("documents", iconManager.LoadIcon($"{imageresPath},107")); // 文档
+			listViewImageList.Images.Add("drives", iconManager.LoadIcon($"{imageresPath},27")); // 磁盘驱动器
+			listViewImageList.Images.Add("linux", iconManager.LoadIcon($"{imageresPath},27")); // 
+			listViewImageList.Images.Add("downloads", iconManager.LoadIcon($"{imageresPath},175")); // 
+			listViewImageList.Images.Add("music", iconManager.LoadIcon($"{imageresPath},103")); // 
+			listViewImageList.Images.Add("pictures", iconManager.LoadIcon($"{imageresPath},108")); // 
+			listViewImageList.Images.Add("videos", iconManager.LoadIcon($"{imageresPath},178")); // 
+			listViewImageList.Images.Add("home", iconManager.LoadIcon($"{imageresPath},83")); // 
+
+			// 添加默认文件夹图标
+			Icon folderIcon = Helper.GetIconByFileType("folder", false);
+			if (folderIcon != null)
+			{
+				treeViewImageList.Images.Add("folder", folderIcon);
+			}
+			LeftList.SmallImageList = listViewImageList;
+			RightList.SmallImageList = listViewImageList;
+		}
 		public void InitializeTreeViewIcons()
 		{
 			treeViewImageList.ColorDepth = ColorDepth.Depth32Bit;
@@ -389,6 +427,7 @@ namespace WinFormsApp1
 		{
 			ConfigureListView(LeftList, LeftTreeListSplitter.Panel2);
 			ConfigureListView(RightList, RightTreeListSplitter.Panel2);
+			InitializeListViewIcons();
 		}
 
 		private void ConfigureListView(ListView listView, Control parent)
@@ -408,7 +447,9 @@ namespace WinFormsApp1
 			listView.Columns.Add("大小", 100);
 			listView.Columns.Add("类型", 80);
 			listView.Columns.Add("修改日期", 150);
-			// 添加双击事件
+			listView.SmallImageList = listViewImageList; // 设置ListView的ImageList
+
+														 // 添加双击事件
 			listView.MouseDoubleClick += form.ListView_MouseDoubleClick;
 			listView.ColumnClick += form.ListView_ColumnClick;
 			listView.SelectedIndexChanged += form.ListView_SelectedIndexChanged;

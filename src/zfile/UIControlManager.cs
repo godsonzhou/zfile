@@ -80,7 +80,7 @@ namespace WinFormsApp1
 
 		private void RightPathTextBox_PathChanged(object? sender, EventArgs e)
 		{
-			UpdateTreeViewSelection(RightTree, RightPathTextBox.CurrentNode.ToString());
+			UpdateTreeViewSelection(RightTree, RightPathTextBox.CurrentNode.UniqueID);
 		}
 
 		private void UpdateTreeViewSelection(TreeView treeView, string path)

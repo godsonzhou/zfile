@@ -681,7 +681,7 @@ namespace WinFormsApp1
                         string iPath = Path.Combine(currentDirectory, item.Text);
 
                         // Get corresponding TreeNode for this path
-                        TreeNode? targetNode = FindTreeNode(node.Nodes, iPath);
+                        TreeNode? targetNode = FindTreeNode(node.Nodes, item.Text);
                         if (targetNode != null)
                         {
                             // Show context menu for this node
@@ -712,7 +712,8 @@ namespace WinFormsApp1
                     // 获取关联的TreeView
                     TreeView treeView = listView == uiManager.LeftList ? uiManager.LeftTree : uiManager.RightTree;
 
-                    // 查找并选择对应的TreeNode
+					// 查找并选择对应的TreeNode
+					treeView.SelectedNode.Expand();
                     TreeNode? node = FindTreeNode(treeView.SelectedNode.Nodes, selectedItem.Text);
 					//TreeNode? node = (TreeNode)selectedItem.Tag;
                     if (node != null)
@@ -806,7 +807,7 @@ namespace WinFormsApp1
                     TreeView treeView = listView == uiManager.LeftList ? uiManager.LeftTree : uiManager.RightTree;
 
                     // 查找并选择对应的 TreeNode
-                    TreeNode? node = FindTreeNode(treeView.Nodes, itemPath);
+                    TreeNode? node = FindTreeNode(treeView.Nodes, selectedItem.Text);
                     if (node != null)
                     {
                         // 设置选中状态并高亮显示
@@ -864,7 +865,7 @@ namespace WinFormsApp1
             }
         }
 
-		//private TreeNode? FindTreeNode(TreeNodeCollection nodes, string fullPath)
+		//private TreeNode? FindTreeNodeDeep(TreeNodeCollection nodes, string fullPath)
 		//{
 		//    foreach (TreeNode node in nodes)
 		//    {
@@ -887,13 +888,15 @@ namespace WinFormsApp1
 		//    }
 		//    return null;
 		//}
-		public TreeNode? FindTreeNode(TreeNodeCollection nodes, string path)
+		public TreeNode? FindTreeNode(TreeNodeCollection nodes, string path, bool deepSearch = false)
 		{
 			Debug.Print("FindTreeNode -> {0}", path);
 			foreach (TreeNode node in nodes)
 			{
 				Debug.Print("FindTreeNode -> node: {0}, {1}", node.Text, node.FullPath);
 				//bug fix: node.fullpath=桌面\此电脑\system (C:)\aDrive, path=c:\\
+				if (path.Equals(node.Text, StringComparison.OrdinalIgnoreCase)) return node;
+				if (!deepSearch) continue;
 				if (node.Parent != null && node.Tag != null)
 				{
 					var pidl = ((ShellItem)node.Tag).PIDL;
@@ -901,9 +904,7 @@ namespace WinFormsApp1
 					var p = w32.GetPathByIShell(pf, pidl);      ////子节点path -> 此电脑\\迅雷下载, c:\\
 					var n = w32.GetNameByIShell(pf, pidl);    //子节点name -> 迅雷下载, system (c:)
 					if (n.Equals(path, StringComparison.OrdinalIgnoreCase))
-					{
 						return node;
-					}
 				
 					if (!p.Contains(path))
 						continue;

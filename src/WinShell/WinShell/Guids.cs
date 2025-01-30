@@ -29,7 +29,7 @@ namespace WinShell
         public static Guid IID_IStream = new Guid("{0000000c-0000-0000-c000-000000000046}");
         public static Guid IID_IStorage = new Guid("{0000000B-0000-0000-C000-000000000046}");
 
-
+		public static Guid DownloadFolderGuid = new Guid("374DE290-123F-4565-9164-39C4925E467B");
 
 	}
 }

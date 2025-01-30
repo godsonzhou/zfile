@@ -31,8 +31,9 @@ namespace WinFormsApp1
         private readonly ContextMenuStrip contextMenuStrip = new();
         public CmdProc cmdProcessor;
         private IShellFolder iDeskTop;
+		private Dictionary<string, string> specFolderPaths = new();
 
-        public Form1()
+		public Form1()
         {
             InitializeComponent();
             this.Size = new Size(1200, 800);
@@ -64,7 +65,8 @@ namespace WinFormsApp1
                 uiManager.LeftStatusStrip,
                 uiManager.RightStatusStrip
             );
-        }
+			specFolderPaths = Helper.GetSpecFolderPaths();
+		}
         private void InitializeHotkeys()
         {
             hotkeyMappings = new Dictionary<Keys, string>
@@ -474,7 +476,7 @@ namespace WinFormsApp1
                     //var path = GetFullPath(e.Node);	//bugfix: d:资料->d:\"my document", convert some display name to real path
                     var path = Helper.getFSpathbyTree(e.Node);
                     if (string.IsNullOrEmpty(path)) return;
-                    LoadListViewByFilesystem(path, listView);
+                    LoadListViewByFilesystem(path, listView, e.Node);
                     currentDirectory = path;
                     selectedNode = e.Node;
 
@@ -580,8 +582,8 @@ namespace WinFormsApp1
                         nodeSub.SelectedImageKey = "drive";
                     }
 
-					if(IsChildrenExist(nodeSub))
-						nodeSub.Nodes.Add("...");
+					//if(IsChildrenExist(nodeSub))
+					nodeSub.Nodes.Add("...");
                     parentNode.Nodes.Add(nodeSub);
                 }
             }
@@ -679,7 +681,7 @@ namespace WinFormsApp1
                         string iPath = Path.Combine(currentDirectory, item.Text);
 
                         // Get corresponding TreeNode for this path
-                        TreeNode? targetNode = FindTreeNode(tree1.Nodes, iPath);
+                        TreeNode? targetNode = FindTreeNode(node.Nodes, iPath);
                         if (targetNode != null)
                         {
                             // Show context menu for this node
@@ -687,8 +689,8 @@ namespace WinFormsApp1
                         }
                         else
                         {
-                            // If no corresponding node found, use path to show context menu
-                            TreeNode? parentNode = FindTreeNode(tree1.Nodes, currentDirectory);
+							// If no corresponding node found, use path to show context menu
+							TreeNode? parentNode = (TreeNode)item.Tag;	//bugfix: 普通文件找不到， 直接使用tag // FindTreeNode(node.Nodes, currentDirectory);
                             showCtxMenu(parentNode, iPath, e.Location);
                         }
                     }
@@ -712,6 +714,7 @@ namespace WinFormsApp1
 
                     // 查找并选择对应的TreeNode
                     TreeNode? node = FindTreeNode(treeView.SelectedNode.Nodes, selectedItem.Text);
+					//TreeNode? node = (TreeNode)selectedItem.Tag;
                     if (node != null)
                     {
                         // 设置选中状态并高亮显示
@@ -824,7 +827,7 @@ namespace WinFormsApp1
                     {
                         // 如果在树中找不到节点，直接更新 ListView
                         currentDirectory = itemPath;
-                        LoadListViewByFilesystem(itemPath, listView);
+                        LoadListViewByFilesystem(itemPath, listView, selectedNode);
                     }
 
                     // 更新监视器
@@ -1010,9 +1013,12 @@ namespace WinFormsApp1
                     string[] s = { "", name, "", name.Contains(':') ? "本地磁盘" : "<DIR>", "" };
                     var i = new ListViewItem(s);
                     //i.ImageIndex = iconIndex;
-					i.ImageKey = uiManager.GetIconKey(name);
+					var ico = uiManager.GetIconKey(name);
+					Debug.Print("search ico list{0} - > {1}", name, ico);
+					i.ImageKey = ico;
 					i.Text = name;
-                    listView.Items.Add(i);
+					i.Tag = node;   //tag存放父节点
+					listView.Items.Add(i);
                 }
             }
 
@@ -1023,7 +1029,10 @@ namespace WinFormsApp1
 			//Debug.Print("IsChildrenExist");
 			ShellItem sItem = (ShellItem)node.Tag;
 			IShellFolder root = sItem.ShellFolder;
-
+			//IntPtr pidl = sItem.PIDL;
+			//specFolderPaths.TryGetValue(node.Text, out string path);
+			//if (string.IsNullOrEmpty(path))
+			//	return false;
 			// 循环查找子项
 			IEnumIDList Enum = null;
 			IntPtr EnumPtr = IntPtr.Zero;
@@ -1061,7 +1070,7 @@ namespace WinFormsApp1
 			return false;
 		}
 		// 加载文件列表
-		private void LoadListViewByFilesystem(string path, ListView listView)
+		private void LoadListViewByFilesystem(string path, ListView listView, TreeNode parentnode)
         {
 			Debug.Print("LoadListViewByFilesystem:{0}",path);
 			if (string.IsNullOrEmpty(path)) return;
@@ -1086,6 +1095,8 @@ namespace WinFormsApp1
                     if (lvItem != null)
                     {
 						lvItem.ImageKey = lvItem.SubItems[3].Text.Equals("<DIR>") ? "folder" : "";
+						Debug.Print("file add to listview ：{0}", item.FullName);
+						lvItem.Tag = parentnode;
 						listView.Items.Add(lvItem);
                     }
                 }
@@ -1494,7 +1505,7 @@ namespace WinFormsApp1
                 selectedNode.Expand();
             }
             LoadListView(selectedNode, listView);
-            LoadListViewByFilesystem(path, listView);
+            LoadListViewByFilesystem(path, listView, selectedNode);
         }
 
         public void TerminalButton_Click(object? sender, EventArgs e)

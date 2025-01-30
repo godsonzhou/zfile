@@ -159,6 +159,9 @@ namespace WinShell
 		[DllImport("shell32.dll")]
 		public static extern int SHGetSpecialFolderLocation(IntPtr handle, CSIDL nFolder, out IntPtr ppidl);
 
+		[DllImport("shell32.dll", CharSet = CharSet.Auto)]
+		private static extern bool SHGetPathFromIDList(IntPtr pidl, StringBuilder pszPath);
+
 		[DllImport("shell32", EntryPoint = "SHGetFileInfo", ExactSpelling = false, CharSet = CharSet.Auto, SetLastError = true)]
 		public static extern IntPtr SHGetFileInfo(
 			IntPtr ppidl,
@@ -187,6 +190,7 @@ namespace WinShell
 			bool fCreate);
 
 		#endregion
-
+		[DllImport("shell32.dll", CharSet = CharSet.Unicode, ExactSpelling = true, PreserveSig = false)]
+		public static extern string SHGetKnownFolderPath([MarshalAs(UnmanagedType.LPStruct)] Guid id, int flags, IntPtr token);
 	}
 }

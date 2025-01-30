@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using System.Collections;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using WinShell;
@@ -8,7 +9,21 @@ namespace WinFormsApp1
 {
 	internal static class Helper
 	{
-
+		public static Dictionary<string,string> GetSpecFolderPaths()
+		{
+			//遍历ShellSpecialFolders枚举值，获取对应的路径并存入一个列表
+			Dictionary<string, string> specFolderPaths = new Dictionary<string, string>();
+			foreach (ShellSpecialFolders folder in Enum.GetValues(typeof(ShellSpecialFolders)))
+			{
+				string path = w32.GetSpecialFolderPath(IntPtr.Zero, folder);
+				specFolderPaths[folder.ToString()] = path;
+				Debug.Print("{0}={1}", folder, path);
+			}
+			//download path need to be processed by special method GUID
+			string downloadPath = API.SHGetKnownFolderPath(Guids.DownloadFolderGuid, 0, IntPtr.Zero);
+			specFolderPaths["迅雷下载"] = (downloadPath);
+			return specFolderPaths;
+		}
 		public static void GetSpecPathFromReg()
 		{
 			RegistryKey folders;

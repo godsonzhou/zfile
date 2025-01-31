@@ -958,7 +958,9 @@ namespace WinFormsApp1
 
 		private void Watcher_Changed(object sender, FileSystemEventArgs e)
         {
-            var selectedDrive = uiManager.LeftDriveBox.SelectedItem?.ToString();
+			Control.CheckForIllegalCrossThreadCalls = false;//设置该属性 为false
+
+			var selectedDrive = uiManager.LeftDriveBox.SelectedItem?.ToString();
             var listView = selectedDrive != null && watcher.Path.StartsWith(selectedDrive) ? uiManager.LeftList : uiManager.RightList;
             //LoadListView(watcher.Path, listView);
         }

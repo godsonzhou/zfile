@@ -499,9 +499,9 @@ namespace WinFormsApp1
             }
         }
 
-        public void myShellExe()
+        public void myShellExe(string path = "c:\\windows\\system32")
         {
-            API.ShellExecute(IntPtr.Zero, "open", "cmd.exe", "", "", (int)SW.SHOWNORMAL);
+            API.ShellExecute(IntPtr.Zero, "open", "cmd.exe", "", path, (int)SW.SHOWNORMAL);
             //Window wnd = Window.GetWindow(this); //获取当前窗口
             //var wih = new WindowInteropHelper(wnd); //该类支持获取hWnd
             //IntPtr hWnd = wih.Handle;    //获取窗口句柄

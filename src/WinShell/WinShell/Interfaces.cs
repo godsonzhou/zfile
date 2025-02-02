@@ -4,6 +4,13 @@ using System.Text;
 
 namespace WinShell
 {
+	[ComImport]
+	[Guid("000214E5-0000-0000-C000-000000000046")]
+	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+	public interface IShellExtInit
+	{
+		void Initialize([MarshalAs(UnmanagedType.LPStr)] string pszFile);
+	}
 	[ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("000214E6-0000-0000-C000-000000000046")]
 	public interface IShellFolder
 	{

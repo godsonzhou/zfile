@@ -4,12 +4,243 @@ using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
-
+using System.Diagnostics;
+using System.Windows.Forms;
 namespace WinShell
 {
 
 	public static class ContextMenuHandler
 	{
+		//static void Main1(string[] args)
+		//{
+		//	// 获取所有用户上下文菜单项
+		//	IntPtr hwnd = IntPtr.Zero;
+		//	Guid riid = new Guid("000214E5-0000-0000-C000-000000000046");
+		//	int hr = API.SHGetAllUserShellContextMenus(out hwnd, ref riid);
+
+		//	if (hr != 0)
+		//	{
+		//		Console.WriteLine("Failed to get context menus.");
+		//		return;
+		//	}
+
+		//	// 遍历所有菜单项并调用
+		//	IShellExtInit shellExt = null;
+		//	foreach (string file in args) // 假设 args 是文件路径列表
+		//	{
+		//		try
+		//		{
+		//			shellExt = (IShellExtInit)hwnd;
+		//			shellExt.Initialize(file);
+
+		//			// 获取命令并执行
+		//			string command = GetCommandFromRegistry(file);
+		//			if (!string.IsNullOrEmpty(command))
+		//			{
+		//				Process.Start(command);
+		//			}
+		//		}
+		//		catch (Exception ex)
+		//		{
+		//			Console.WriteLine($"Error: {ex.Message}");
+		//		}
+		//	}
+
+		//	Marshal.ReleaseComObject(hwnd);
+		//}
+		static string GetCommandFromRegistry(string file)
+		{
+			// 从注册表中获取命令
+			using (RegistryKey key = Registry.ClassesRoot.OpenSubKey($@"{file}\shell"))
+			{
+				if (key != null)
+				{
+					foreach (string subKeyName in key.GetSubKeyNames())
+					{
+						using (RegistryKey subKey = key.OpenSubKey(subKeyName))
+						{
+							object value = subKey.GetValue("command");
+							if (value != null)
+							{
+								return value.ToString();
+							}
+						}
+					}
+				}
+
+				// 如果未找到命令，尝试从 shellex 获取
+				using (RegistryKey keyShellex = Registry.ClassesRoot.OpenSubKey($@"{file}\shellex"))
+				{
+					if (keyShellex != null)
+					{
+						foreach (string subKeyName in keyShellex.GetSubKeyNames())
+						{
+							using (RegistryKey subKeyShellex = keyShellex.OpenSubKey(subKeyName))
+							{
+								object value = subKeyShellex.GetValue("command");
+								if (value != null)
+								{
+									return value.ToString();
+								}
+							}
+						}
+					}
+				}
+
+				return null;
+			}
+		}
+		//this is my invokecommand implementation
+		public static void InvokeCmd(IContextMenu iContextMenu, uint cmd, POINT MousePosition)
+		{
+			var invoke = new CMINVOKECOMMANDINFOEX();
+			invoke.cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX));
+			invoke.lpVerb = (IntPtr)(cmd - 1);
+			Debug.Print(invoke.lpVerb.ToString());
+			invoke.lpDirectory = string.Empty;
+			invoke.fMask = 0;
+			invoke.ptInvoke = MousePosition;// new POINT(MousePosition.X, MousePosition.Y);
+			invoke.nShow = 1;
+			iContextMenu.InvokeCommand(ref invoke);
+		}
+		//注：本文中的IContextMenu.InvokeCommand方法示例由纯净天空整理自Github/MSDocs等开源代码及文档管理平台，相关代码片段筛选自各路编程大神贡献的开源项目，源码版权归原作者所有，传播和使用请参考对应项目的License；未经允许，请勿转载。
+		public static void InvokeCommand(IContextMenu oContextMenu, uint nCmd, string strFolder, POINT pointInvoke)
+		{
+			CMINVOKECOMMANDINFOEX invoke = new CMINVOKECOMMANDINFOEX();
+			invoke.cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX));//cbInvokeCommand;
+			invoke.lpVerb = (IntPtr)(nCmd - w32.CMD_FIRST);
+			invoke.lpDirectory = strFolder;
+			invoke.lpVerbW = (IntPtr)(nCmd - w32.CMD_FIRST);
+			invoke.lpDirectoryW = strFolder;
+			invoke.fMask = (uint)(CMIC.UNICODE | CMIC.PTINVOKE |
+				((Control.ModifierKeys & Keys.Control) != 0 ? CMIC.CONTROL_DOWN : 0) |
+				((Control.ModifierKeys & Keys.Shift) != 0 ? CMIC.SHIFT_DOWN : 0));
+			invoke.ptInvoke = pointInvoke;// new POINT(pointInvoke.X, pointInvoke.Y);
+			invoke.nShow = (int)SW.SHOWNORMAL;
+
+			oContextMenu.InvokeCommand(ref invoke);
+		}
+		/// <summary>
+		/// Invokes a specific command from an IContextMenu
+		/// </summary>
+		/// <param name="iContextMenu">the IContextMenu containing the item</param>
+		/// <param name="cmdA">the Ansi execute string to invoke</param>
+		/// <param name="cmdW">the Unicode execute string to invoke</param>
+		/// <param name="parentDir">the parent directory from where to invoke</param>
+		/// <param name="ptInvoke">the point (in screen coördinates) from which to invoke</param>
+		public static void InvokeCommand(IContextMenu iContextMenu, string cmd, string parentDir, POINT ptInvoke)
+		{
+			CMINVOKECOMMANDINFOEX invoke = new CMINVOKECOMMANDINFOEX();
+			invoke.cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX));// ShellAPI.cbInvokeCommand;
+			invoke.lpVerb = Marshal.StringToHGlobalAnsi(cmd);
+			invoke.lpDirectory = parentDir;
+			invoke.lpVerbW = Marshal.StringToHGlobalUni(cmd);
+			invoke.lpDirectoryW = parentDir;
+			invoke.fMask = (uint)(CMIC.UNICODE | CMIC.PTINVOKE |
+				((Control.ModifierKeys & Keys.Control) != 0 ? CMIC.CONTROL_DOWN : 0) |
+				((Control.ModifierKeys & Keys.Shift) != 0 ? CMIC.SHIFT_DOWN : 0));
+			invoke.ptInvoke = ptInvoke;// new POINT(ptInvoke.X, ptInvoke.Y);
+			invoke.nShow = (int)SW.SHOWNORMAL;
+
+			iContextMenu.InvokeCommand(ref invoke);
+		}
+		/// <summary>
+		/// Invokes a specific command from an IContextMenu
+		/// </summary>
+		/// <param name="iContextMenu">the IContextMenu containing the item</param>
+		/// <param name="cmd">the execute string to invoke</param>
+		/// <param name="parentDir">the parent node from where to invoke</param>
+		/// <param name="ptInvoke">the point (in screen coцrdinates) from which to invoke</param>
+		public static void InvokeCommand1(IContextMenu iContextMenu, string cmd, string parentDir, POINT ptInvoke)
+		{
+			CMINVOKECOMMANDINFOEX invoke = new CMINVOKECOMMANDINFOEX();
+			invoke.cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX));
+			invoke.lpVerb = Marshal.StringToHGlobalAnsi(cmd);
+			invoke.lpDirectory = parentDir;
+			invoke.lpVerbW = Marshal.StringToHGlobalUni(cmd);
+			invoke.lpDirectoryW = parentDir;
+			invoke.fMask = (uint)(CMIC.UNICODE | CMIC.PTINVOKE |
+				((Control.ModifierKeys & Keys.Control) != 0 ? CMIC.CONTROL_DOWN : 0) |
+				((Control.ModifierKeys & Keys.Shift) != 0 ? CMIC.SHIFT_DOWN : 0));
+			invoke.ptInvoke = ptInvoke;// new POINT(ptInvoke);
+			invoke.nShow = (int)SW.SHOWNORMAL;
+
+			iContextMenu.InvokeCommand(ref invoke);
+		}
+		private static void InvokeCommand1(IContextMenu oContextMenu, uint nCmd, string strFolder, POINT pointInvoke)
+		{
+			var invoke = new CMINVOKECOMMANDINFOEX
+			{
+				cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX)),//CbInvokeCommand,
+				lpVerb = (IntPtr)(nCmd - w32.CMD_FIRST),
+				lpDirectory = strFolder,
+				lpVerbW = (IntPtr)(nCmd - w32.CMD_FIRST),
+				lpDirectoryW = strFolder,
+				fMask = (uint)(CMIC.UNICODE | CMIC.PTINVOKE | ((Control.ModifierKeys & Keys.Control) != 0 ? CMIC.CONTROL_DOWN : 0) | ((Control.ModifierKeys & Keys.Shift) != 0 ? CMIC.SHIFT_DOWN : 0)),
+				ptInvoke = pointInvoke,
+				nShow = (int)SW.SHOWNORMAL
+			};
+			oContextMenu.InvokeCommand(ref invoke);
+		}
+		public static bool ExecuteVerb(IWin32Window owner, string verb, string parentName, IContextMenu contextMenu)
+		{
+			if (contextMenu == null)
+			{
+				return false;
+			}
+			CMINVOKECOMMANDINFOEX structure = new CMINVOKECOMMANDINFOEX();
+			try
+			{
+				structure.cbSize = Marshal.SizeOf(structure);
+				if (verb != null)
+				{
+					structure.lpVerb = Marshal.StringToHGlobalAnsi(verb);
+					structure.lpVerbW = Marshal.StringToHGlobalUni(verb);
+				}
+				if (!string.IsNullOrEmpty(parentName))
+				{
+					structure.lpDirectory = parentName;
+					structure.lpDirectoryW = parentName;
+				}
+				if (owner != null)
+				{
+					structure.hwnd = owner.Handle;
+				}
+				structure.fMask = (uint)((CMIC.UNICODE | (((Control.ModifierKeys & Keys.Control) > Keys.None) ? CMIC.CONTROL_DOWN : ((CMIC)0))) | (((Control.ModifierKeys & Keys.Shift) > Keys.None) ? CMIC.SHIFT_DOWN : ((CMIC)0)));
+				structure.nShow = (int)SW.SHOWNORMAL;
+				contextMenu.InvokeCommand(ref structure);
+				Marshal.ReleaseComObject(contextMenu);
+			}
+			finally
+			{
+				Marshal.FreeHGlobal(structure.lpVerb);
+				Marshal.FreeHGlobal(structure.lpVerbW);
+			}
+			return true;
+		}
+		/// <summary>
+		/// Invokes a specific command from an IContextMenu
+		/// </summary>
+		/// <param name="iContextMenu">the IContextMenu containing the item</param>
+		/// <param name="cmd">the index of the command to invoke</param>
+		/// <param name="parentDir">the parent directory from where to invoke</param>
+		/// <param name="ptInvoke">the point (in screen coördinates) from which to invoke</param>
+		public static void InvokeCommand2(IContextMenu iContextMenu, uint cmd, string parentDir, POINT ptInvoke)
+		{
+			CMINVOKECOMMANDINFOEX invoke = new CMINVOKECOMMANDINFOEX();
+			invoke.cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX));// NativeShellAPI.cbInvokeCommand;
+			invoke.lpVerb = (IntPtr)cmd;
+			invoke.lpDirectory = parentDir;
+			invoke.lpVerbW = (IntPtr)cmd;
+			invoke.lpDirectoryW = parentDir;
+			invoke.fMask = (uint)(CMIC.UNICODE | CMIC.PTINVOKE |
+				((Control.ModifierKeys & Keys.Control) != 0 ? CMIC.CONTROL_DOWN : 0) |
+				((Control.ModifierKeys & Keys.Shift) != 0 ? CMIC.SHIFT_DOWN : 0));
+			invoke.ptInvoke = ptInvoke;
+			invoke.nShow = (int)SW.SHOWNORMAL;
+
+			iContextMenu.InvokeCommand(ref invoke);
+		}
 		public static void InvokeComMethod(object comObject, string methodName, params object[] parameters)
 		{
 			Type comType = comObject.GetType();
@@ -135,6 +366,10 @@ namespace WinShell
 	}
 	public class API
 	{
+		[DllImport("shell32.dll")]
+		public static extern int SHGetAllUserShellContextMenus(out IntPtr hwnd, ref Guid riid);
+
+	
 		[DllImport("shell32.dll")]
 		public static extern IntPtr ShellExecute(IntPtr hwnd, //窗口句柄
 			string lpOperation, //指定要进行的操作

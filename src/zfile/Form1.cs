@@ -6,7 +6,7 @@ using System.Windows.Forms;
 using WinShell;
 //using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Keys = System.Windows.Forms.Keys;//引入CmdProcessor命名空间
-
+using System.Text;
 namespace WinFormsApp1
 {
     public partial class Form1 : Form
@@ -233,7 +233,104 @@ namespace WinFormsApp1
                 }
             }
         }
-        private void showCtxMenu(TreeNode parentNode, string path, Point location)
+		//private void showCtxMenu(TreeNode parentNode, string path, Point location)
+		//{
+		//	const uint CMIC_MASK_UNICODE = 0x00004000;
+		//	const int MAX_PATH = 260;
+		//	const int GCS_VERBW = 0x0004;  // 获取 Unicode 动词
+
+		//	if (!File.Exists(path) && !Directory.Exists(path))
+		//	{
+		//		MessageBox.Show("文件或目录不存在: " + path);
+		//		return;
+		//	}
+
+		//	IntPtr pidl = IntPtr.Zero;
+		//	IShellFolder parentFolder = iDeskTop;
+
+		//	try
+		//	{
+		//		if (Directory.Exists(path))
+		//		{
+		//			pidl = API.ILCreateFromPath(path);
+		//		}
+		//		else
+		//		{
+		//			string parentPath = Path.GetDirectoryName(path);
+		//			string fileName = Path.GetFileName(path);
+		//			parentFolder = w32.GetParentFolder(parentPath);
+		//			w32.GetShellFolder(parentFolder, fileName, out pidl, false);
+		//		}
+
+		//		if (pidl == IntPtr.Zero) return;
+
+		//		IntPtr[] pidls = { pidl };
+		//		IntPtr iContextMenuPtr = parentFolder.GetUIObjectOf(
+		//			IntPtr.Zero, (uint)pidls.Length, pidls, ref Guids.IID_IContextMenu, out _);
+
+		//		if (iContextMenuPtr == IntPtr.Zero) return;
+
+		//		try
+		//		{
+		//			IContextMenu iContextMenu = (IContextMenu)Marshal.GetObjectForIUnknown(iContextMenuPtr);
+		//			IntPtr contextMenu = API.CreatePopupMenu();
+
+		//			iContextMenu.QueryContextMenu(
+		//				contextMenu, 0, w32.CMD_FIRST, w32.CMD_LAST,
+		//				CMF.NORMAL | CMF.EXPLORE | CMF.ITEMMENU);
+
+		//			uint cmd = API.TrackPopupMenuEx(
+		//				contextMenu,
+		//				TPM.RETURNCMD | TPM.LEFTALIGN | TPM.RIGHTBUTTON,
+		//				location.X, location.Y, this.Handle, IntPtr.Zero);
+
+		//			if (cmd != 0 && cmd >= w32.CMD_FIRST)
+		//			{
+		//				StringBuilder verb = new StringBuilder(MAX_PATH);
+		//				Debug.Print(verb.ToString());
+		//				iContextMenu.GetCommandString(
+		//					(cmd - w32.CMD_FIRST),
+		//					//GCS_VERBW,
+		//					GetCommandStringInformations.VERB,
+		//					IntPtr.Zero,
+		//					verb,
+		//					MAX_PATH);
+
+		//				CMINVOKECOMMANDINFOEX invoke = new CMINVOKECOMMANDINFOEX
+		//				{
+		//					cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX)),
+		//					fMask = CMIC_MASK_UNICODE,
+		//					lpVerbW = Marshal.StringToHGlobalUni(verb.ToString()),
+		//					nShow = 1,
+		//					ptInvoke = new POINT(location.X, location.Y)
+		//				};
+
+		//				try
+		//				{
+		//					iContextMenu.InvokeCommand(ref invoke);
+		//				}
+		//				finally
+		//				{
+		//					Marshal.FreeHGlobal(invoke.lpVerbW);
+		//				}
+		//			}
+		//		}
+		//		finally
+		//		{
+		//			Marshal.Release(iContextMenuPtr);
+		//		}
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		MessageBox.Show($"执行命令时出错: {ex.Message}");
+		//	}
+		//	finally
+		//	{
+		//		if (pidl != IntPtr.Zero) API.ILFree(pidl);
+		//	}
+		//}
+
+		private void showCtxMenu(TreeNode parentNode, string path, Point location)
         {
             Debug.Print("showctxmenu:");
             // 先获取路径的父目录
@@ -247,11 +344,13 @@ namespace WinFormsApp1
 			HandleRegistryContextMenuItems(path);
 			var parentFolder = iDeskTop;
             IntPtr pidl;
+			var strpath = string.Empty;
             if (Directory.Exists(path))
             {
                 // 如果是文件夹,直接获取其 PIDL
                 pidl = API.ILCreateFromPath(path);
-            }
+				strpath = path;
+			}
             else
             {
                 // 如果是文件,先获取其父文件夹
@@ -259,7 +358,8 @@ namespace WinFormsApp1
                 var fileName = Path.GetFileName(path);
                 parentFolder = w32.GetParentFolder(parentPath);
                 w32.GetShellFolder(parentFolder, fileName, out pidl, false);
-            }
+				strpath = parentPath;
+			}
 
             if (pidl == IntPtr.Zero)
             {
@@ -287,23 +387,30 @@ namespace WinFormsApp1
                 IntPtr contextMenu = API.CreatePopupMenu();
                 iContextMenu.QueryContextMenu(contextMenu, 0,
                     w32.CMD_FIRST, w32.CMD_LAST, CMF.NORMAL | CMF.EXPLORE);
-
-                // 弹出菜单
-                uint cmd = API.TrackPopupMenuEx(contextMenu, TPM.RETURNCMD,
+				//var str = new StringBuilder(256);
+				//iContextMenu.GetCommandString(w32.CMD_FIRST, GetCommandStringInformations.VERB, IntPtr.Zero, str, 0);
+				//Debug.Print("cmdstr:{0}", str);
+				// 弹出菜单
+				uint cmd = API.TrackPopupMenuEx(contextMenu, TPM.RETURNCMD,
                     MousePosition.X, MousePosition.Y, this.Handle, IntPtr.Zero);
 
                 // 获取命令序号,执行菜单命令
                 if (cmd >= w32.CMD_FIRST)
                 {
-                    var invoke = new CMINVOKECOMMANDINFOEX();
-                    invoke.cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX));
-                    invoke.lpVerb = (IntPtr)(cmd - 1);
-                    invoke.lpDirectory = string.Empty;
-                    invoke.fMask = 0;
-                    invoke.ptInvoke = new POINT(MousePosition.X, MousePosition.Y);
-                    invoke.nShow = 1;
-                    iContextMenu.InvokeCommand(ref invoke);
-                }
+					//               var invoke = new CMINVOKECOMMANDINFOEX();
+					//               invoke.cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX));
+					//               invoke.lpVerb = (IntPtr)(cmd - 1);
+					//Debug.Print(invoke.lpVerb.ToString());
+					//               invoke.lpDirectory = string.Empty;
+					//               invoke.fMask = 0;
+					//               invoke.ptInvoke = new POINT(MousePosition.X, MousePosition.Y);
+					//               invoke.nShow = 1;
+					//               iContextMenu.InvokeCommand(ref invoke);
+					/////
+					///
+					//ContextMenuHandler.InvokeCmd(iContextMenu, cmd, new POINT(MousePosition.X, MousePosition.Y));
+					ContextMenuHandler.InvokeCommand(iContextMenu, cmd, strpath, new POINT(MousePosition.X, MousePosition.Y));
+				}
             }
             catch (Exception ex)
             {
@@ -394,7 +501,7 @@ namespace WinFormsApp1
 
         public void myShellExe()
         {
-            API.ShellExecute(IntPtr.Zero, "open", "cmd.exe", "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
+            API.ShellExecute(IntPtr.Zero, "open", "cmd.exe", "", "", (int)SW.SHOWNORMAL);
             //Window wnd = Window.GetWindow(this); //获取当前窗口
             //var wih = new WindowInteropHelper(wnd); //该类支持获取hWnd
             //IntPtr hWnd = wih.Handle;    //获取窗口句柄

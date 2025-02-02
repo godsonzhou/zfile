@@ -745,18 +745,18 @@ namespace WinFormsApp1
 			var type = string.Empty;
 			if (node.Tag is ShellItem shellItem)
 			{
-				SFGAO attributes = SFGAO.FOLDER | SFGAO.FILESYSTEM;
-				shellItem.ShellFolder.GetAttributesOf(1, new[] { shellItem.PIDL }, ref attributes);
+				//SFGAO attributes = SFGAO.FOLDER | SFGAO.FILESYSTEM;
+				//shellItem.ShellFolder.GetAttributesOf(1, new[] { shellItem.PIDL }, ref attributes);
 
-				if ((attributes & SFGAO.FILESYSTEM) != 0)
-					type += "drives";
-				if ((attributes & SFGAO.FOLDER) != 0)
-					type += "folder";
-				if ((attributes & SFGAO.LINK) != 0)
-					type += "link";
-				if ((attributes & SFGAO.STORAGE) != 0)
-					type += "storage";
-				type += ((uint)attributes).ToString();
+				//if ((attributes & SFGAO.FILESYSTEM) != 0)
+				//	type += "drives";
+				//if ((attributes & SFGAO.FOLDER) != 0)
+				//	type += "folder";
+				//if ((attributes & SFGAO.LINK) != 0)
+				//	type += "link";
+				//if ((attributes & SFGAO.STORAGE) != 0)
+				//	type += "storage";
+				//type += ((uint)attributes).ToString();
 
 			}
 			return type;

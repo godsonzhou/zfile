@@ -581,7 +581,8 @@ namespace WinFormsApp1
                 }
                 else
                 {
-                    //如果不是文件夹，而是比如我的电脑/网上邻居等，则通过其他方式打开
+					//如果不是文件夹，而是比如我的电脑/网上邻居/控制面板等，则通过其他方式打开
+					Debug.Print(GetNodeType(e.Node));
                 }
             }
             catch (Exception ex)
@@ -684,7 +685,11 @@ namespace WinFormsApp1
             uint celtFetched;
             if (root.EnumObjects(this.Handle, SHCONTF.FOLDERS, out EnumPtr) == w32.S_OK)    // 循环查找子项
             {
-                Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
+				if(EnumPtr == IntPtr.Zero)  //如果node=程序和功能,则EnumPtr=0，直接返回
+				{
+					return;
+				}
+				Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
                 while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == w32.S_FALSE)
                 {
                     string name = w32.GetNameByIShell(root, pidlSub);   //子节点name -> 迅雷下载, system (c:)
@@ -729,8 +734,34 @@ namespace WinFormsApp1
                 }
             }
         }
+		private void printattr(SFGAO attr)
+		{
+			//根据attr的枚举类型,强制转换成整形数，再转换成2进制，最后返回字符串类型
+			//
+			
+		}
+		private string GetNodeType(TreeNode node)
+		{
+			var type = string.Empty;
+			if (node.Tag is ShellItem shellItem)
+			{
+				SFGAO attributes = SFGAO.FOLDER | SFGAO.FILESYSTEM;
+				shellItem.ShellFolder.GetAttributesOf(1, new[] { shellItem.PIDL }, ref attributes);
 
-        public void LoadDriveIntoTree(TreeView treeView, string drivePath)
+				if ((attributes & SFGAO.FILESYSTEM) != 0)
+					type += "drives";
+				if ((attributes & SFGAO.FOLDER) != 0)
+					type += "folder";
+				if ((attributes & SFGAO.LINK) != 0)
+					type += "link";
+				if ((attributes & SFGAO.STORAGE) != 0)
+					type += "storage";
+				type += ((uint)attributes).ToString();
+
+			}
+			return type;
+		}
+		public void LoadDriveIntoTree(TreeView treeView, string drivePath)
         {
             Debug.Print("LoadDriveIntoTree");
             try

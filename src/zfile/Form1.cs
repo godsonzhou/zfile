@@ -1043,17 +1043,20 @@ namespace WinFormsApp1
 					var pidl = ((ShellItem)node.Tag).PIDL;
 					var pf = ((ShellItem)(node.Parent.Tag)).ShellFolder;
 					var p = w32.GetPathByIShell(pf, pidl);      ////子节点path -> 此电脑\\迅雷下载, c:\\
-					var n = w32.GetNameByIShell(pf, pidl);    //子节点name -> 迅雷下载, system (c:)
-					if (n.Equals(path, StringComparison.OrdinalIgnoreCase))
+					//var n = w32.GetNameByIShell(pf, pidl);    //子节点name -> 迅雷下载, system (c:)
+					if (p.Equals(path, StringComparison.OrdinalIgnoreCase))
 						return node;
-				
-					if (!p.Contains(path))
-						continue;
+
+					if (!(p.Equals("此电脑") && path.Contains(":")))
+					{
+						if (!path.Contains(p))
+							continue;
+					}
 				}
 				LoadSubDirectories(node);
 				node.Expand();//todo: 算法改进，这样效率太低，而且会展开之前所有的无关节点
 
-				TreeNode? foundNode = FindTreeNode(node.Nodes, path);
+				TreeNode? foundNode = FindTreeNode(node.Nodes, path, deepSearch);
 				if (foundNode != null)
 				{
 					Debug.Print("FindTreeNode -> foundNode: {0}", foundNode.Text);

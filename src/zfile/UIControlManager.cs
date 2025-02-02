@@ -85,7 +85,7 @@ namespace WinFormsApp1
 
 		private void UpdateTreeViewSelection(TreeView treeView, string path)
 		{
-			TreeNode? node = form.FindTreeNode(treeView.Nodes, path);
+			TreeNode? node = form.FindTreeNode(treeView.Nodes, path, true);
 			if (node != null)
 			{
 				treeView.SelectedNode = node;

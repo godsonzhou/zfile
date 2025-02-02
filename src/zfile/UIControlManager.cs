@@ -268,95 +268,27 @@ namespace WinFormsApp1
 				}
 			};
 		}
-		public void InitializeIcons(ImageList l)
-		{
-			l.ColorDepth = ColorDepth.Depth32Bit;
-			l.ImageSize = new Size(16, 16);
-			var imageresPath = Path.Combine(Environment.SystemDirectory, "imageres.dll");
-			var iconManager = form.iconManager; // 使用form中的IconManager实例
-
-			// 使用IconManager加载系统图标
-			var imageList = iconManager.LoadIconsFromFile(imageresPath);
-
-			// 添加系统图标到treeViewImageList
-			l.Images.Add("desktop", iconManager.LoadIcon($"{imageresPath},174")); // 桌面
-			l.Images.Add("computer", iconManager.LoadIcon($"{imageresPath},104")); // 此电脑
-			l.Images.Add("network", iconManager.LoadIcon($"{imageresPath},20")); // 网上邻居
-			l.Images.Add("controlPanel", iconManager.LoadIcon($"{imageresPath},22")); // 控制面板
-			l.Images.Add("recyclebin", iconManager.LoadIcon($"{imageresPath},49")); // 回收站49,empty recyclebin=50
-			l.Images.Add("documents", iconManager.LoadIcon($"{imageresPath},107")); // 文档
-			l.Images.Add("drives", iconManager.LoadIcon($"{imageresPath},27")); // 磁盘驱动器
-			l.Images.Add("linux", iconManager.LoadIcon($"{imageresPath},27")); // 
-			l.Images.Add("downloads", iconManager.LoadIcon($"{imageresPath},175")); // 
-			l.Images.Add("music", iconManager.LoadIcon($"{imageresPath},103")); // 
-			l.Images.Add("pictures", iconManager.LoadIcon($"{imageresPath},108")); // 
-			l.Images.Add("videos", iconManager.LoadIcon($"{imageresPath},178")); // 
-			l.Images.Add("home", iconManager.LoadIcon($"{imageresPath},83")); // 
-
-			// 添加默认文件夹图标
-			Icon folderIcon = Helper.GetIconByFileType("folder", false);
-			if (folderIcon != null)
-			{
-				l.Images.Add("folder", folderIcon);
-			}
-		}
+	
 		// 为两个ListView设置ImageList
 		public void InitializeListViewIcons()
 		{
-			InitializeIcons(listViewImageList);
+			IconManager.InitializeIcons(listViewImageList);
 			LeftList.SmallImageList = listViewImageList;
 			RightList.SmallImageList = listViewImageList;
 		}
 
 		public void InitializeTreeViewIcons()
 		{
-			InitializeIcons(treeViewImageList);
+			IconManager.InitializeIcons(treeViewImageList);
 			// 为两个TreeView设置ImageList
 			LeftTree.ImageList = treeViewImageList;
 			RightTree.ImageList = treeViewImageList;
 		}
-
-		public string GetIconKey(string Text)
-		{
-			// 基于节点文本和属性确定图标键值
-			if (Text.Equals("桌面", StringComparison.OrdinalIgnoreCase)) return "desktop";
-			if (Text.Equals("此电脑", StringComparison.OrdinalIgnoreCase)) return "computer";
-			if (Text.Equals("网络", StringComparison.OrdinalIgnoreCase)) return "network";
-			if (Text.Equals("控制面板", StringComparison.OrdinalIgnoreCase)) return "controlPanel";
-			if (Text.Equals("回收站", StringComparison.OrdinalIgnoreCase)) return "recyclebin";
-			if (Text.Contains("文档", StringComparison.OrdinalIgnoreCase)) return "documents";
-			if (Text.Contains("Linux", StringComparison.OrdinalIgnoreCase)) return "linux";
-			if (Text.Contains("下载", StringComparison.OrdinalIgnoreCase)) return "downloads";
-			if (Text.Contains("音乐", StringComparison.OrdinalIgnoreCase)) return "music";
-			if (Text.Contains("图片", StringComparison.OrdinalIgnoreCase)) return "pictures";
-			if (Text.Contains("视频", StringComparison.OrdinalIgnoreCase)) return "videos";
-			if (Text.Contains("主文件夹", StringComparison.OrdinalIgnoreCase)) return "home";
-			// 检查是否为驱动器
-			if (Text.Contains(":")) return "drives";
-			return "folder"; // 默认返回文件夹图标
-		}
-		private string GetNodeIconKey(TreeNode node)
-		{
-			var ico = GetIconKey(node.Text);
-			Debug.Print("search icon tree key {0} -> {1}", node.Text, ico);
-			return ico;
-
-			// 如果节点包含Tag并且是ShellItem类型，可以进一步判断
-			if (node.Tag is ShellItem shellItem)
-			{
-				SFGAO attributes = SFGAO.FOLDER;
-				if ((attributes & SFGAO.FILESYSTEM) != 0)
-				{
-					return "folder";
-				}
-			}
-
-			return "folder"; // 默认返回文件夹图标
-		}
+	
 
 		private void UpdateNodeIcon(TreeNode node)
 		{
-			string iconKey = GetNodeIconKey(node);
+			string iconKey = IconManager.GetNodeIconKey(node);
 			node.ImageKey = iconKey;
 			node.SelectedImageKey = iconKey; // 确保选中状态使用相同图标
 
@@ -426,7 +358,7 @@ namespace WinFormsApp1
 			listView.Columns.Add("修改日期", 150);
 			listView.SmallImageList = listViewImageList; // 设置ListView的ImageList
 
-														 // 添加双击事件
+			// 添加双击事件
 			listView.MouseDoubleClick += form.ListView_MouseDoubleClick;
 			listView.ColumnClick += form.ListView_ColumnClick;
 			listView.SelectedIndexChanged += form.ListView_SelectedIndexChanged;
@@ -588,8 +520,8 @@ namespace WinFormsApp1
 			}
 
 			var zfile_path = Path.Combine(Constants.ZfilePath, "WCMIcon3.dll");
-			var iconManager = form.iconManager;
-			var iconList = iconManager.LoadIconsFromFile(zfile_path);
+			//var iconManager = form.iconManager;
+			var iconList = IconManager.LoadIconsFromFile(zfile_path);
 			var fileInfoList = new FileInfoList(new string[] { zfile_path });
 
 			using (StreamReader reader = new StreamReader(toolbarFilePath, Encoding.GetEncoding("GB2312")))
@@ -657,9 +589,9 @@ namespace WinFormsApp1
 							var zhdesc = form.cmdProcessor.cmdTable.GetByCmdName(cmd)?.ZhDesc ?? "";
 							ToolStripButton button = new ToolStripButton
 							{
-								Text = "",	//menuText,
+								Text = "",  //menuText,
 								ToolTipText = zhdesc,
-								Image = iconManager.LoadIcon(buttonIcon),
+								Image = IconManager.LoadIcon(buttonIcon),
 								Tag = cmd
 							};
 
@@ -670,7 +602,7 @@ namespace WinFormsApp1
 								{
 									Text = "", //menuText,
 									ToolTipText = menuText,
-									Image = iconManager.LoadIcon(buttonIcon)
+									Image = IconManager.LoadIcon(buttonIcon)
 								};
 								InitializeDropdownMenu(dropdownButton, dropdownFilePath);
 								dynamicToolStrip.Items.Add(dropdownButton);
@@ -777,6 +709,6 @@ namespace WinFormsApp1
 		}
 	}
 
-	
-	
+
+
 }

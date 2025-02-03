@@ -142,8 +142,10 @@ namespace WinFormsApp1
 				if (!targetPath.Equals(string.Empty)) Debug.Print("targetpath : {0}", targetPath);
 				bool isValid = Helper.IsValidFileSystemPath(targetPath);
 				e.Effect = isValid ? DragDropEffects.Copy : DragDropEffects.None;
+				return;
 			}
 			e.Effect = DragDropEffects.None;
+			//Debug.Print(e.Effect.ToString());
 		}
 		//public void TreeView_DragOver(object? sender, DragEventArgs e)
 		//{
@@ -158,6 +160,7 @@ namespace WinFormsApp1
 		//}
 		public void TreeView_DragDrop(object? sender, DragEventArgs e)
 		{
+			Debug.Print("treeview_dragdrop");
 			//var treeView = sender as TreeView;
 			//var targetNode = treeView?.GetNodeAtPoint(treeView.PointToClient(new Point(e.X, e.Y)));
 			//var targetPath = GetTreeNodePath(targetNode);
@@ -187,8 +190,13 @@ namespace WinFormsApp1
 			var treeView = sender as TreeView;
 			var clientPoint = treeView.PointToClient(new Point(e.X, e.Y));
 			var targetNode = treeView.GetNodeAt(clientPoint);
+			if (targetNode == null ) return;
 			var targetPath = GetTreeNodePath(targetNode);
-
+			if (targetNode == null || !Helper.IsValidFileSystemPath(targetPath)) return;
+			if (!e.Data.GetDataPresent(DataFormats.FileDrop))
+			{
+				draggedItems = e.Data.GetData(DataFormats.FileDrop) as string[];
+			}
 			if (draggedItems == null || !Helper.IsValidFileSystemPath(targetPath)) return;
 
 			// 复制文件/目录到目标路径

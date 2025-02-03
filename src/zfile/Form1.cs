@@ -496,9 +496,9 @@ namespace WinFormsApp1
                 //invoke.ptInvoke = new POINT(MousePosition.X, MousePosition.Y);
                 //invoke.nShow = 1;
                 //iContextMenu.InvokeCommand(ref invoke);
-				var strpath = Helper.getFSpathbyTree(node);
-				ContextMenuHandler.InvokeCommand(iContextMenu, cmd, strpath, new POINT(MousePosition.X, MousePosition.Y));
-			}
+                var strpath = Helper.getFSpathbyTree(node);
+                ContextMenuHandler.InvokeCommand(iContextMenu, cmd, strpath, new POINT(MousePosition.X, MousePosition.Y));
+            }
         }
 
         public void myShellExe(string path = "c:\\windows\\system32")
@@ -583,8 +583,8 @@ namespace WinFormsApp1
                 }
                 else
                 {
-					//如果不是文件夹，而是比如我的电脑/网上邻居/控制面板等，则通过其他方式打开
-					Debug.Print(GetNodeType(e.Node));
+                    //如果不是文件夹，而是比如我的电脑/网上邻居/控制面板等，则通过其他方式打开
+                    Debug.Print(GetNodeType(e.Node));
                 }
             }
             catch (Exception ex)
@@ -687,11 +687,11 @@ namespace WinFormsApp1
             uint celtFetched;
             if (root.EnumObjects(this.Handle, SHCONTF.FOLDERS, out EnumPtr) == w32.S_OK)    // 循环查找子项
             {
-				if(EnumPtr == IntPtr.Zero)  //如果node=程序和功能,则EnumPtr=0，直接返回
-				{
-					return;
-				}
-				Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
+                if (EnumPtr == IntPtr.Zero)  //如果node=程序和功能,则EnumPtr=0，直接返回
+                {
+                    return;
+                }
+                Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
                 while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == w32.S_FALSE)
                 {
                     string name = w32.GetNameByIShell(root, pidlSub);   //子节点name -> 迅雷下载, system (c:)
@@ -736,34 +736,34 @@ namespace WinFormsApp1
                 }
             }
         }
-		private void printattr(SFGAO attr)
-		{
-			//根据attr的枚举类型,强制转换成整形数，再转换成2进制，最后返回字符串类型
-			//
-			
-		}
-		private string GetNodeType(TreeNode node)
-		{
-			var type = string.Empty;
-			if (node.Tag is ShellItem shellItem)
-			{
-				//SFGAO attributes = SFGAO.FOLDER | SFGAO.FILESYSTEM;
-				//shellItem.ShellFolder.GetAttributesOf(1, new[] { shellItem.PIDL }, ref attributes);
+        private void printattr(SFGAO attr)
+        {
+            //根据attr的枚举类型,强制转换成整形数，再转换成2进制，最后返回字符串类型
+            //
 
-				//if ((attributes & SFGAO.FILESYSTEM) != 0)
-				//	type += "drives";
-				//if ((attributes & SFGAO.FOLDER) != 0)
-				//	type += "folder";
-				//if ((attributes & SFGAO.LINK) != 0)
-				//	type += "link";
-				//if ((attributes & SFGAO.STORAGE) != 0)
-				//	type += "storage";
-				//type += ((uint)attributes).ToString();
+        }
+        private string GetNodeType(TreeNode node)
+        {
+            var type = string.Empty;
+            if (node.Tag is ShellItem shellItem)
+            {
+                //SFGAO attributes = SFGAO.FOLDER | SFGAO.FILESYSTEM;
+                //shellItem.ShellFolder.GetAttributesOf(1, new[] { shellItem.PIDL }, ref attributes);
 
-			}
-			return type;
-		}
-		public void LoadDriveIntoTree(TreeView treeView, string drivePath)
+                //if ((attributes & SFGAO.FILESYSTEM) != 0)
+                //	type += "drives";
+                //if ((attributes & SFGAO.FOLDER) != 0)
+                //	type += "folder";
+                //if ((attributes & SFGAO.LINK) != 0)
+                //	type += "link";
+                //if ((attributes & SFGAO.STORAGE) != 0)
+                //	type += "storage";
+                //type += ((uint)attributes).ToString();
+
+            }
+            return type;
+        }
+        public void LoadDriveIntoTree(TreeView treeView, string drivePath)
         {
             Debug.Print("LoadDriveIntoTree");
             try
@@ -823,7 +823,7 @@ namespace WinFormsApp1
         }
         public void ListView_MouseUp(object sender, MouseEventArgs e)
         {
-            //Debug.Print("listview_mouseup:");
+            Debug.Print("listview_mouseup:");
             if (isSelecting)
             {
                 isSelecting = false;
@@ -873,10 +873,39 @@ namespace WinFormsApp1
                 return;
             }
 
-            if (listView.SelectedItems.Count == 0) return;
+
+        }
+        private void SelectItemsInRectangle(ListView listView, Rectangle rect)
+        {
+            foreach (ListViewItem item in listView.Items)
+            {
+                if (item.Bounds.IntersectsWith(rect))
+                {
+                    item.Selected = true;
+                }
+            }
+        }
+
+        private void ListView_DrawItem(object sender, DrawListViewItemEventArgs e)
+        {
+            if (isSelecting && e.Bounds.IntersectsWith(selectionRectangle))
+            {
+                e.Graphics.FillRectangle(Brushes.LightBlue, e.Bounds);
+            }
+            e.DrawDefault = true;
+        }
+     
+        public void ListView_MouseDoubleClick(object? sender, MouseEventArgs e)
+        {
+            if (sender is not ListView listView)
+                return;
+			ListViewItem item = listView.GetItemAt(e.X, e.Y);
+			if (item != null)
+				item.Selected = true;
+			if (listView.SelectedItems.Count == 0) return;
 
             ListViewItem selectedItem = listView.SelectedItems[0];
-            Debug.Print("listview_mouseup:{0}, currentDir={1}", selectedItem.Text, currentDirectory);
+            Debug.Print("listview_mousedoubleclick:{0}, currentDir={1}", selectedItem.Text, currentDirectory);
             string itemPath = Path.Combine(currentDirectory, selectedItem.Text);
 
             if (selectedItem.SubItems[3].Text.Equals("<DIR>") || selectedItem.SubItems[3].Text == "本地磁盘")  //|| selectedItem.SubItems[2].Text.Contains(":")
@@ -944,101 +973,6 @@ namespace WinFormsApp1
                 }
             }
         }
-        private void SelectItemsInRectangle(ListView listView, Rectangle rect)
-        {
-            foreach (ListViewItem item in listView.Items)
-            {
-                if (item.Bounds.IntersectsWith(rect))
-                {
-                    item.Selected = true;
-                }
-            }
-        }
-
-        private void ListView_DrawItem(object sender, DrawListViewItemEventArgs e)
-        {
-            if (isSelecting && e.Bounds.IntersectsWith(selectionRectangle))
-            {
-                e.Graphics.FillRectangle(Brushes.LightBlue, e.Bounds);
-            }
-            e.DrawDefault = true;
-        }
-        public void ListView_MouseDoubleClick(object? sender, MouseEventArgs e)
-        {
-            Debug.Print("listview_mouseDoubleClick:");
-            if (sender is not ListView listView) return;
-
-            if (listView.SelectedItems.Count == 0) return;
-
-            ListViewItem selectedItem = listView.SelectedItems[0];
-            string itemPath = Path.Combine(currentDirectory, selectedItem.Text);
-
-            if (Directory.Exists(itemPath))
-            {
-                try
-                {
-                    // 获取关联的 TreeView
-                    TreeView treeView = listView == uiManager.LeftList ? uiManager.LeftTree : uiManager.RightTree;
-
-                    // 查找并选择对应的 TreeNode
-                    TreeNode? node = FindTreeNode(treeView.Nodes, selectedItem.Text);
-                    if (node != null)
-                    {
-                        // 设置选中状态并高亮显示
-                        treeView.SelectedNode = node;
-                        ClearTreeViewHighlight(treeView);
-                        node.BackColor = SystemColors.Highlight;
-                        node.ForeColor = SystemColors.HighlightText;
-                        treeView.Refresh(); // 强制重绘
-                        node.EnsureVisible(); // 确保节点可见
-                        node.Expand();
-
-                        // 更新当前目录和 ListView
-                        currentDirectory = itemPath;
-                        selectedNode = node;
-                        RefreshTreeViewAndListView(treeView, listView, itemPath);
-                    }
-                    else
-                    {
-                        // 如果在树中找不到节点，直接更新 ListView
-                        currentDirectory = itemPath;
-                        LoadListViewByFilesystem(itemPath, listView, selectedNode);
-                    }
-
-                    // 更新监视器
-                    if (Directory.Exists(itemPath))
-                    {
-                        watcher.Path = itemPath;
-                        watcher.EnableRaisingEvents = true;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"访问文件夹失败: {ex.Message}", "错误");
-                }
-            }
-            else if (File.Exists(itemPath))
-            {
-                try
-                {
-                    // 如果是可执行文件，直接执行
-                    if (Path.GetExtension(itemPath).Equals(".exe", StringComparison.OrdinalIgnoreCase))
-                    {
-                        Process.Start(itemPath);
-                    }
-                    else
-                    {
-                        // 使用系统默认关联程序打开文件
-                        Process.Start(new ProcessStartInfo(itemPath) { UseShellExecute = true });
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"无法打开文件: {ex.Message}", "错误");
-                }
-            }
-        }
-
         //private TreeNode? FindTreeNodeDeep(TreeNodeCollection nodes, string fullPath)
         //{
         //    foreach (TreeNode node in nodes)

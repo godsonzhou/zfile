@@ -115,13 +115,14 @@ namespace WinFormsApp1
 		// 在Form1类中添加获取节点路径的方法
 		private string GetTreeNodePath(TreeNode node)
 		{
-			if (node?.Tag is ShellItem shellItem)
-			{
-				return w32.GetPathByIShell(iDeskTop, shellItem.PIDL);
-			}
-			return string.Empty;
+			//if (node?.Tag is ShellItem shellItem)
+			//{
+			//	return w32.GetPathByIShell(iDeskTop, shellItem.PIDL);
+			//}
+			//return string.Empty;
+			return Helper.getFSpathbyTree(node);
 		}
-		public void TreeView_DragEnter(object? sender, DragEventArgs e)
+		public void TreeView_DragOver(object? sender, DragEventArgs e)
 		{
 			// 检查目标是否为有效文件系统路径
 			//var targetPath = GetTreeNodePath((sender as TreeView)?.GetNodeAtPoint((sender as TreeView).PointToClient(new Point(e.X, e.Y))));
@@ -129,17 +130,32 @@ namespace WinFormsApp1
 
 			//e.Effect = isValid ? DragDropEffects.Copy : DragDropEffects.None;
 			var treeView = sender as TreeView;
+			treeView.Update();
 			// 将屏幕坐标转换为 TreeView 控件内的坐标
 			var clientPoint = treeView.PointToClient(new Point(e.X, e.Y));
 			// 使用 GetNodeAt 获取目标节点
 			var targetNode = treeView.GetNodeAt(clientPoint);
-			if (targetNode != null) Debug.Print("target node :{0} ", targetNode.FullPath);
-			var targetPath = GetTreeNodePath(targetNode);
-			if (!targetPath.Equals(string.Empty)) Debug.Print("targetpath : {0}", targetPath);
-			bool isValid = Helper.IsValidFileSystemPath(targetPath);
-			e.Effect = isValid ? DragDropEffects.Copy : DragDropEffects.None;
+			if (targetNode != null)
+			{
+				Debug.Print("target node :{0} ", targetNode.FullPath);
+				var targetPath = GetTreeNodePath(targetNode);
+				if (!targetPath.Equals(string.Empty)) Debug.Print("targetpath : {0}", targetPath);
+				bool isValid = Helper.IsValidFileSystemPath(targetPath);
+				e.Effect = isValid ? DragDropEffects.Copy : DragDropEffects.None;
+			}
+			e.Effect = DragDropEffects.None;
 		}
-
+		//public void TreeView_DragOver(object? sender, DragEventArgs e)
+		//{
+		//	var treeView = sender as TreeView;
+		//	var clientPoint = treeView.PointToClient(new Point(e.X, e.Y));
+		//	var targetNode = treeView.GetNodeAt(clientPoint);
+		//	if (targetNode != null) Debug.Print("target node :{0} ", targetNode.FullPath);
+		//	var targetPath = GetTreeNodePath(targetNode);
+		//	if (!targetPath.Equals(string.Empty)) Debug.Print("targetpath : {0}", targetPath);
+		//	bool isValid = Helper.IsValidFileSystemPath(targetPath);
+		//	e.Effect = isValid ? DragDropEffects.Copy : DragDropEffects.None;
+		//}
 		public void TreeView_DragDrop(object? sender, DragEventArgs e)
 		{
 			//var treeView = sender as TreeView;

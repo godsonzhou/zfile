@@ -315,7 +315,8 @@ namespace WinFormsApp1
 			treeView.DrawMode = TreeViewDrawMode.OwnerDrawText;
 			treeView.ImageList = treeViewImageList;
 			treeView.AllowDrop = true;
-			treeView.DragEnter += form.TreeView_DragEnter;
+			//treeView.DragEnter += form.TreeView_DragEnter;
+			treeView.DragOver += form.TreeView_DragOver;
 			treeView.DragDrop += form.TreeView_DragDrop;
 			treeView.DrawNode += form.TreeView_DrawNode;
 			treeView.MouseUp += form.TreeView_MouseUp;

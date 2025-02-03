@@ -1,17 +1,14 @@
 using CmdProcessor;
-using Sheng.Winform.Controls;
 using System.Diagnostics;
-using System.Runtime.InteropServices; // Add this namespace
-using System.Windows.Forms;
+using System.Runtime.InteropServices; 
 using WinShell;
-//using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using Keys = System.Windows.Forms.Keys;//引入CmdProcessor命名空间
-using System.Text;
+using Keys = System.Windows.Forms.Keys;
+
 namespace WinFormsApp1
 {
-    public partial class Form1 : Form
+	public partial class Form1 : Form
     {
-        //public readonly IconManager iconManager = new();
+        
         private readonly ThemeManager themeManager;
         private readonly FilePreviewManager previewManager = new();
         private readonly FileSystemManager fsManager = new();
@@ -116,7 +113,7 @@ namespace WinFormsApp1
                 bookmarkLabel.MouseClick += BookmarkLabel_MouseClick;
 
                 bookmarkPanel.Controls.Add(bookmarkLabel);
-                bookmarkPanel.Refresh(); // 确保控件刷新
+                bookmarkPanel.Refresh(); 
             }
         }
 
@@ -149,17 +146,7 @@ namespace WinFormsApp1
             }
         }
 
-        // private void InitializeTreeViewIcons()
-        // {
-        //     treeViewImageList = new ImageList();
-        //     treeViewImageList.ImageSize = new Size(16, 16);
-
-        //     Icon folderIcon = Helper.GetIconByFileType("folder", false);
-        //     if (folderIcon != null)
-        //     {
-        //         treeViewImageList.Images.Add("folder", folderIcon);
-        //     }
-        // }
+        
         private void InitializeContextMenu()
         {
             // 初始化ContextMenuStrip
@@ -179,7 +166,6 @@ namespace WinFormsApp1
         //         InitListView();
         //     }
         // }
-
         // private void InitListView()
         // {
         //     activeListView.Items.Clear();

@@ -546,8 +546,10 @@ namespace Sheng.Winform.Controls
 					pth = pth + pathArray[i];
 				else
 					pth = pth + "\\" + pathArray[i];
-				
-                foreach (IShengAddressNode node in _currentNode.Children)
+
+				_currentNode.CreateChildNodes();	// 确保当前节点的子节点已加载
+
+				foreach (IShengAddressNode node in _currentNode.Children)
                 {
                     if (node.UniqueID == pth)
                     {

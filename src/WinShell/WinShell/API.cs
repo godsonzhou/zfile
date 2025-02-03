@@ -103,7 +103,7 @@ namespace WinShell
 			invoke.nShow = 1;
 			iContextMenu.InvokeCommand(ref invoke);
 		}
-		//注：本文中的IContextMenu.InvokeCommand方法示例由纯净天空整理自Github/MSDocs等开源代码及文档管理平台，相关代码片段筛选自各路编程大神贡献的开源项目，源码版权归原作者所有，传播和使用请参考对应项目的License；未经允许，请勿转载。
+		//this is a complete invokecommand implementation version to fully support file / folder context menu operation
 		public static void InvokeCommand(IContextMenu oContextMenu, uint nCmd, string strFolder, POINT pointInvoke)
 		{
 			CMINVOKECOMMANDINFOEX invoke = new CMINVOKECOMMANDINFOEX();

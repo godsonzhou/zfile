@@ -341,7 +341,7 @@ namespace WinFormsApp1
                 MessageBox.Show("文件或目录不存在: " + path);
                 return;
             }
-            HandleRegistryContextMenuItems(path);
+            //HandleRegistryContextMenuItems(path);
             var parentFolder = iDeskTop;
             IntPtr pidl;
             var strpath = string.Empty;
@@ -488,15 +488,17 @@ namespace WinFormsApp1
             //获取命令序号，执行菜单命令
             if (cmd >= w32.CMD_FIRST)
             {
-                var invoke = new CMINVOKECOMMANDINFOEX();
-                invoke.cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX));
-                invoke.lpVerb = (IntPtr)(cmd - 1);
-                invoke.lpDirectory = string.Empty;
-                invoke.fMask = 0;
-                invoke.ptInvoke = new POINT(MousePosition.X, MousePosition.Y);
-                invoke.nShow = 1;
-                iContextMenu.InvokeCommand(ref invoke);
-            }
+                //var invoke = new CMINVOKECOMMANDINFOEX();
+                //invoke.cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFOEX));
+                //invoke.lpVerb = (IntPtr)(cmd - 1);
+                //invoke.lpDirectory = string.Empty;
+                //invoke.fMask = 0;
+                //invoke.ptInvoke = new POINT(MousePosition.X, MousePosition.Y);
+                //invoke.nShow = 1;
+                //iContextMenu.InvokeCommand(ref invoke);
+				var strpath = Helper.getFSpathbyTree(node);
+				ContextMenuHandler.InvokeCommand(iContextMenu, cmd, strpath, new POINT(MousePosition.X, MousePosition.Y));
+			}
         }
 
         public void myShellExe(string path = "c:\\windows\\system32")

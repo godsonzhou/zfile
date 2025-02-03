@@ -9,6 +9,18 @@ namespace WinFormsApp1
 {
 	internal static class Helper
 	{
+		public static bool IsValidFileSystemPath(string path)
+		{
+			try
+			{
+				return Directory.Exists(path) || File.Exists(path);
+			}
+			catch
+			{
+				return false;
+			}
+		}
+
 		public static Dictionary<string,string> GetSpecFolderPaths()
 		{
 			//遍历ShellSpecialFolders枚举值，获取对应的路径并存入一个列表

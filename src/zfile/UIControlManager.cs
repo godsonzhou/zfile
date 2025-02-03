@@ -314,7 +314,9 @@ namespace WinFormsApp1
 			treeView.ItemHeight = 20;
 			treeView.DrawMode = TreeViewDrawMode.OwnerDrawText;
 			treeView.ImageList = treeViewImageList;
-
+			treeView.AllowDrop = true;
+			treeView.DragEnter += form.TreeView_DragEnter;
+			treeView.DragDrop += form.TreeView_DragDrop;
 			treeView.DrawNode += form.TreeView_DrawNode;
 			treeView.MouseUp += form.TreeView_MouseUp;
 			treeView.AfterSelect += form.TreeView_AfterSelect;
@@ -357,7 +359,8 @@ namespace WinFormsApp1
 			listView.Columns.Add("类型", 80);
 			listView.Columns.Add("修改日期", 150);
 			listView.SmallImageList = listViewImageList; // 设置ListView的ImageList
-
+			listView.AllowDrop = true;
+			listView.ItemDrag += form.ListView_ItemDrag;
 			// 添加双击事件
 			listView.MouseDoubleClick += form.ListView_MouseDoubleClick;
 			listView.ColumnClick += form.ListView_ColumnClick;

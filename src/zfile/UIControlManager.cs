@@ -43,6 +43,7 @@ namespace WinFormsApp1
 			
 			if (isVertical)
 			{
+				dynamicToolStrip.Dock = DockStyle.Left;
 				dynamicToolStrip.LayoutStyle = ToolStripLayoutStyle.VerticalStackWithOverflow;
 				//form.uiManager.MainContainer.Panel2.Controls.Add(dynamicToolStrip);
 				//将vertical dynamictoolstrip移动到rightuppanel的左边
@@ -105,7 +106,7 @@ namespace WinFormsApp1
 		{
 			// 遍历toolbarButtons列表，为每个按钮创建ToolStripButton或ToolStripDropDownButton，并添加到dynamicToolStrip中
 			// 如果按钮的cmd属性以"openbar "开头，则创建ToolStripDropDownButton，并调用InitializeDropdownMenu方法初始化下拉菜单
-
+			dynamicToolStrip.Items.Clear();
 			for (int i = 0; i < toolbarButtons.Count; i++)
 			{
 				ToolbarButton b = toolbarButtons[i];
@@ -136,6 +137,7 @@ namespace WinFormsApp1
 					dynamicToolStrip.Items.Add(button);
 				}
 			}
+			dynamicToolStrip.Refresh();
 			
 		}
 

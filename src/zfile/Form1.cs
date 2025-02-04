@@ -40,9 +40,10 @@ namespace WinFormsApp1
 
             // 创建UIManager并初始化
             uiManager = new UIControlManager(this);
+			uiManager.InitializeUI();
 
-            // 设置活动视图
-            activeListView = uiManager.LeftList;
+			// 设置活动视图
+			activeListView = uiManager.LeftList;
             activeTreeview = uiManager.LeftTree;
 
             // 其他初始化

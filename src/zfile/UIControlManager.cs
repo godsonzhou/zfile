@@ -13,14 +13,14 @@ namespace WinFormsApp1
 		public string path;
 		public string param;
 		public string iconic;
-		public ToolbarButton(string name, string cmd, string icon, string path, string param, string iconic)
+		public ToolbarButton(string _name, string _cmd, string _icon, string _path, string _param, string _iconic)
 		{
-			name = name;
-			cmd = cmd;
-			icon = icon;
-			path = path;
-			param = param;
-			iconic = iconic;
+			name = _name;
+			cmd = _cmd;
+			icon = _icon;
+			path = _path;
+			param = _param;
+			iconic = _iconic;
 		}
 	}
 	public class ToolbarManager
@@ -297,8 +297,8 @@ namespace WinFormsApp1
 			treeViewImageList.ImageSize = new Size(16, 16);
 			listViewImageList = new ImageList();
 			listViewImageList.ImageSize = new Size(16, 16);
-			InitializeUI(); // 初始化界面
-							// 添加PathTextBox路径变化事件处理程序
+			//InitializeUI(); // 初始化界面//bugfix: 不能在构造函数中调用，因为InitializeUI中会调用form.uimanager的方法，而此时uimanager还未完成构造
+			// 添加PathTextBox路径变化事件处理程序
 			LeftPathTextBox.SelectionChange += LeftPathTextBox_PathChanged;
 			RightPathTextBox.SelectionChange += RightPathTextBox_PathChanged;
 		}
@@ -324,7 +324,7 @@ namespace WinFormsApp1
 		}
 
 
-		private void InitializeUI()
+		public void InitializeUI()
 		{
 			InitializeLayout();
 			InitializeDriveComboBoxes();
@@ -750,8 +750,6 @@ namespace WinFormsApp1
 		{
 			toolbarManager = new ToolbarManager(form, "DEFAULT.BAR");
 			vtoolbarManager = new ToolbarManager(form, "VERTICAL.BAR");
-
-
 		}
 		public void InitializeDynamicMenu()
 		{

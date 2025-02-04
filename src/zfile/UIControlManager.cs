@@ -26,13 +26,13 @@ namespace WinFormsApp1
 	public class ToolbarManager
 	{
 		private Form1 form;
-		private UIControlManager uiControlManager;
+		//private UIControlManager uiControlManager;
 
 		private ToolStrip dynamicToolStrip;
 		public List<ToolbarButton> toolbarButtons = new List<ToolbarButton>();
 		public int ButtonCount => toolbarButtons.Count;
 		private string configfile;
-		public ToolbarManager(Form1 form, string configfile)
+		public ToolbarManager(Form1 form, string configfile, bool isVertical)
 		{
 			// 加载配置文件中的工具栏按钮信息并初始化控件,实现逻辑参照 initializeDynamicToolbar
 			dynamicToolStrip = new ToolStrip();
@@ -40,6 +40,21 @@ namespace WinFormsApp1
 			this.configfile = configfile;
 			Init(configfile);
 			GenerateDynamicToolbar();
+			
+			if (isVertical)
+			{
+				dynamicToolStrip.LayoutStyle = ToolStripLayoutStyle.VerticalStackWithOverflow;
+				//form.uiManager.MainContainer.Panel2.Controls.Add(dynamicToolStrip);
+				//将vertical dynamictoolstrip移动到rightuppanel的左边
+				form.uiManager.RightUpperPanel.Controls.Add(dynamicToolStrip);
+			}
+			else
+			{
+				form.Controls.Add(dynamicToolStrip);
+			}
+			dynamicToolStrip.AllowDrop = true;
+			dynamicToolStrip.DragEnter += form.ToolbarButton_DragEnter;
+			dynamicToolStrip.DragDrop += form.ToolbarButton_DragDrop;
 		}
 		public void AddButton(string name, string cmd, string icon, string path, string param, string iconic)
 		{
@@ -121,9 +136,7 @@ namespace WinFormsApp1
 					dynamicToolStrip.Items.Add(button);
 				}
 			}
-			form.Controls.Add(dynamicToolStrip);
-			dynamicToolStrip.DragEnter += form.ToolbarButton_DragEnter;
-			dynamicToolStrip.DragDrop += form.ToolbarButton_DragDrop;
+			
 		}
 
 		public void Init(string path)
@@ -748,8 +761,8 @@ namespace WinFormsApp1
 		}
 		public void InitializeDynamicToolbar()
 		{
-			toolbarManager = new ToolbarManager(form, "DEFAULT.BAR");
-			vtoolbarManager = new ToolbarManager(form, "VERTICAL.BAR");
+			toolbarManager = new ToolbarManager(form, "DEFAULT.BAR", false);
+			vtoolbarManager = new ToolbarManager(form, "VERTICAL.BAR", true);
 		}
 		public void InitializeDynamicMenu()
 		{

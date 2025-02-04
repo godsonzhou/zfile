@@ -1024,8 +1024,7 @@ namespace WinFormsApp1
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-                var button = sender as ToolStripButton;
-                
+                var button = sender as ToolStrip;//文件可以拖动到按钮上
                 if (button != null && uiManager != null)
                 {
                     foreach (string file in files)
@@ -1070,8 +1069,15 @@ namespace WinFormsApp1
                     // 刷新工具栏
                     uiManager.toolbarManager.GenerateDynamicToolbar();
                     uiManager.dynamicToolStrip.Invalidate();
+					return;
                 }
-            }
+				var button1 = sender as ToolStripButton;//文件可以拖动到按钮上
+				if (button1 != null && uiManager != null) 
+				{
+					//拖到了一个按钮上，执行用这个按钮的CMD 并将选中的文件作为参数传入的逻辑 TODO
+
+				}
+			}
         }
 
         //private void ExecuteToolbarCommand(string filePath)

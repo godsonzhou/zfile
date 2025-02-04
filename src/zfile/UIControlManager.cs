@@ -58,7 +58,7 @@ namespace WinFormsApp1
 		}
 		public void saveToconfig()
 		{
-			//将当前的所有button信息写入配置文件中，配置文件格式为：
+			//将当前的所有button信息写入配置文件configfile中，配置文件格式为：
 			// [Buttonbar]
 			// Buttoncount=按钮总数量
 			// button1=图标文件名称,图标序号
@@ -758,8 +758,8 @@ namespace WinFormsApp1
 		}
 		public void InitializeDynamicToolbar()
 		{
-			toolbarManager = new ToolbarManager(form);
-			vtoolbarManager = new ToolbarManager(form);
+			toolbarManager = new ToolbarManager(form, "DEFAULT.BAR");
+			vtoolbarManager = new ToolbarManager(form, "VERTICAL.BAR");
 			// for (int i = 0; i < toolbarManager.toolbarButtons.Count; i++)
 			// {
 			// 	ToolbarButton b = toolbarManager.toolbarButtons[i];

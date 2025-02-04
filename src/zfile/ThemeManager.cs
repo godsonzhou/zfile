@@ -4,7 +4,8 @@ namespace WinFormsApp1
     {
         private readonly Form mainForm;
         private readonly ToolStrip toolStrip;
-        private readonly MenuStrip menuStrip;
+		private readonly ToolStrip vtoolStrip;
+		private readonly MenuStrip menuStrip;
         private readonly TreeView leftTree;
         private readonly TreeView rightTree;
         private readonly ListView leftList;
@@ -14,7 +15,7 @@ namespace WinFormsApp1
         private readonly StatusStrip leftStatusStrip;
         private readonly StatusStrip rightStatusStrip;
 
-        public ThemeManager(Form form, ToolStrip toolStrip, MenuStrip menuStrip,
+        public ThemeManager(Form form, ToolStrip toolStrip, ToolStrip vtoolStrip, MenuStrip menuStrip,
             TreeView leftTree, TreeView rightTree,
             ListView leftList, ListView rightList,
             TextBox leftPreview, TextBox rightPreview,
@@ -22,6 +23,7 @@ namespace WinFormsApp1
         {
             this.mainForm = form;
             this.toolStrip = toolStrip;
+			this.vtoolStrip = vtoolStrip;
             this.menuStrip = menuStrip;
             this.leftTree = leftTree;
             this.rightTree = rightTree;

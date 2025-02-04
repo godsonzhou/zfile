@@ -29,6 +29,7 @@ namespace WinFormsApp1
 		//private UIControlManager uiControlManager;
 
 		private ToolStrip dynamicToolStrip;
+		public ToolStrip DynamicToolStrip => dynamicToolStrip;
 		public List<ToolbarButton> toolbarButtons = new List<ToolbarButton>();
 		public int ButtonCount => toolbarButtons.Count;
 		private string configfile;
@@ -40,7 +41,7 @@ namespace WinFormsApp1
 			this.configfile = configfile;
 			Init(configfile);
 			GenerateDynamicToolbar();
-			
+
 			if (isVertical)
 			{
 				dynamicToolStrip.Dock = DockStyle.Left;
@@ -134,11 +135,12 @@ namespace WinFormsApp1
 				else
 				{
 					button.Click += form.uiManager.ToolbarButton_Click;
+					
 					dynamicToolStrip.Items.Add(button);
 				}
 			}
 			dynamicToolStrip.Refresh();
-			
+
 		}
 
 		public void Init(string path)
@@ -300,7 +302,7 @@ namespace WinFormsApp1
 
 		#region Menu Controls
 		public MenuStrip dynamicMenuStrip = new();
-		public ToolStrip dynamicToolStrip = new();
+		//public ToolStrip dynamicToolStrip = new();
 		#endregion
 		public ToolbarManager toolbarManager;
 		public ToolbarManager vtoolbarManager;

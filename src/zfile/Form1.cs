@@ -40,10 +40,10 @@ namespace WinFormsApp1
 
             // 创建UIManager并初始化
             uiManager = new UIControlManager(this);
-			uiManager.InitializeUI();
+            uiManager.InitializeUI();
 
-			// 设置活动视图
-			activeListView = uiManager.LeftList;
+            // 设置活动视图
+            activeListView = uiManager.LeftList;
             activeTreeview = uiManager.LeftTree;
 
             // 其他初始化
@@ -53,8 +53,9 @@ namespace WinFormsApp1
             // 初始化主题管理器
             themeManager = new ThemeManager(
                 this,
-                uiManager.dynamicToolStrip,
-                uiManager.dynamicMenuStrip,
+                uiManager.toolbarManager.DynamicToolStrip,
+				uiManager.vtoolbarManager.DynamicToolStrip,
+				uiManager.dynamicMenuStrip,
                 uiManager.LeftTree,
                 uiManager.RightTree,
                 uiManager.LeftList,
@@ -1024,9 +1025,12 @@ namespace WinFormsApp1
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-                var button = sender as ToolStrip;//文件可以拖动到按钮上
-                if (button != null && uiManager != null)
+                var strip = sender as ToolStrip;//文件可以拖动到按钮上
+                if (strip != null && uiManager != null)
                 {
+                    var bar = strip?.LayoutStyle == ToolStripLayoutStyle.VerticalStackWithOverflow
+                                ? uiManager.vtoolbarManager
+                                : uiManager.toolbarManager;
                     foreach (string file in files)
                     {
                         try
@@ -1034,7 +1038,7 @@ namespace WinFormsApp1
                             FileInfo fi = new FileInfo(file);
                             // 获取文件显示名称
                             string displayName = Path.GetFileNameWithoutExtension(file);
-                            
+
                             // 设置按钮参数
                             //var buttonParams = new Dictionary<string, object>
                             //{
@@ -1044,17 +1048,18 @@ namespace WinFormsApp1
                             //    {"Icon", Icon.ExtractAssociatedIcon(file)?.ToBitmap()}
                             //};
 
-							// 添加或更新工具栏按钮
-							//uiManager.toolbarManager.AddButton(
-							//    displayName,
-							//    buttonParams,
-							//    (s, args) => ExecuteToolbarCommand(file)
-							//);
+                            // 添加或更新工具栏按钮
+                            //uiManager.toolbarManager.AddButton(
+                            //    displayName,
+                            //    buttonParams,
+                            //    (s, args) => ExecuteToolbarCommand(file)
+                            //);
 
-							//TODO: 如何判定当前是toolbarmanager还是vtoolbarmanager?
-
-							uiManager.toolbarManager.AddButton(displayName, file, file+",0", "", "", "0");
+                            //TODO: 如何判定当前是toolbarmanager还是vtoolbarmanager?
+                            // 通过工具栏的停靠方向判断是水平还是垂直工具栏
                             
+                            bar.AddButton(displayName, file, file + ",0", "", "", "0");
+
                             // 设置按钮显示属性
                             //button.Text = displayName;
                             //button.ToolTipText = $"启动 {displayName}";
@@ -1068,19 +1073,20 @@ namespace WinFormsApp1
                             Debug.Print($"添加工具栏按钮失败: {ex.Message}");
                         }
                     }
-                    
-                    // 刷新工具栏
-                    uiManager.toolbarManager.GenerateDynamicToolbar();
-                    uiManager.dynamicToolStrip.Invalidate();
-					return;
-                }
-				var button1 = sender as ToolStripButton;//文件可以拖动到按钮上
-				if (button1 != null && uiManager != null) 
-				{
-					//拖到了一个按钮上，执行用这个按钮的CMD 并将选中的文件作为参数传入的逻辑 TODO
 
-				}
-			}
+                    // 刷新工具栏
+                    //uiManager.toolbarManager.GenerateDynamicToolbar();
+                    bar.GenerateDynamicToolbar();
+                    //uiManager.dynamicToolStrip.Invalidate();
+                    return;
+                }
+                var button1 = sender as ToolStripButton;//文件可以拖动到按钮上
+                if (button1 != null && uiManager != null)
+                {
+                    //拖到了一个按钮上，执行用这个按钮的CMD 并将选中的文件作为参数传入的逻辑 TODO
+
+                }
+            }
         }
 
         //private void ExecuteToolbarCommand(string filePath)
@@ -1507,7 +1513,7 @@ namespace WinFormsApp1
                 DisplayStyle = ToolStripItemDisplayStyle.Text
             };
             themeToggleButton.Click += ThemeToggleButton_Click;
-            uiManager.dynamicToolStrip.Items.Add(themeToggleButton);
+            uiManager.toolbarManager.DynamicToolStrip.Items.Add(themeToggleButton);
         }
 
         private void ThemeToggleButton_Click(object? sender, EventArgs e)

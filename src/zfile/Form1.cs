@@ -1050,6 +1050,9 @@ namespace WinFormsApp1
 							//    buttonParams,
 							//    (s, args) => ExecuteToolbarCommand(file)
 							//);
+
+							//TODO: 如何判定当前是toolbarmanager还是vtoolbarmanager?
+
 							uiManager.toolbarManager.AddButton(displayName, file, file+",0", "", "", "0");
                             
                             // 设置按钮显示属性

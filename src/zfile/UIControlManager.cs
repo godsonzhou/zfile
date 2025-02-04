@@ -362,6 +362,8 @@ namespace WinFormsApp1
 			listView.SmallImageList = listViewImageList; // 设置ListView的ImageList
 			listView.AllowDrop = true;
 			listView.ItemDrag += form.ListView_ItemDrag;
+			listView.DragOver += form.ListView_DragOver;
+			listView.DragDrop += form.ListView_DragDrop;
 			// 添加双击事件
 			listView.MouseDoubleClick += form.ListView_MouseDoubleClick;
 			listView.ColumnClick += form.ListView_ColumnClick;

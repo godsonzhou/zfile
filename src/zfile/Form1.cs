@@ -112,23 +112,14 @@ namespace WinFormsApp1
 			// 启动拖拽操作
 			listView.DoDragDrop(new DataObject(DataFormats.FileDrop, draggedItems), DragDropEffects.Copy);
 		}
-		// 在Form1类中添加获取节点路径的方法
+		
 		private string GetTreeNodePath(TreeNode node)
 		{
-			//if (node?.Tag is ShellItem shellItem)
-			//{
-			//	return w32.GetPathByIShell(iDeskTop, shellItem.PIDL);
-			//}
-			//return string.Empty;
 			return Helper.getFSpathbyTree(node);
 		}
 		public void TreeView_DragOver(object? sender, DragEventArgs e)
 		{
 			// 检查目标是否为有效文件系统路径
-			//var targetPath = GetTreeNodePath((sender as TreeView)?.GetNodeAtPoint((sender as TreeView).PointToClient(new Point(e.X, e.Y))));
-			//bool isValid = Helper.IsValidFileSystemPath(targetPath);
-
-			//e.Effect = isValid ? DragDropEffects.Copy : DragDropEffects.None;
 			var treeView = sender as TreeView;
 			treeView.Update();
 			// 将屏幕坐标转换为 TreeView 控件内的坐标
@@ -145,48 +136,38 @@ namespace WinFormsApp1
 				return;
 			}
 			e.Effect = DragDropEffects.None;
-			//Debug.Print(e.Effect.ToString());
 		}
-		//public void TreeView_DragOver(object? sender, DragEventArgs e)
-		//{
-		//	var treeView = sender as TreeView;
-		//	var clientPoint = treeView.PointToClient(new Point(e.X, e.Y));
-		//	var targetNode = treeView.GetNodeAt(clientPoint);
-		//	if (targetNode != null) Debug.Print("target node :{0} ", targetNode.FullPath);
-		//	var targetPath = GetTreeNodePath(targetNode);
-		//	if (!targetPath.Equals(string.Empty)) Debug.Print("targetpath : {0}", targetPath);
-		//	bool isValid = Helper.IsValidFileSystemPath(targetPath);
-		//	e.Effect = isValid ? DragDropEffects.Copy : DragDropEffects.None;
-		//}
+		private string GetListItemPath(ListViewItem item)
+		{
+			var path = Path.Combine(currentDirectory, item.Text);      //todo: debug it
+			Debug.Print(path);
+			return path;
+		}
+		public void ListView_DragOver(object? sender, DragEventArgs e)
+		{
+			// 检查目标是否为有效文件系统路径
+			var listView = sender as ListView;
+			listView.Update();
+			// 将屏幕坐标转换为 TreeView 控件内的坐标
+			var clientPoint = listView.PointToClient(new Point(e.X, e.Y));
+			// 使用 GetNodeAt 获取目标节点
+			var targetItem = listView.GetItemAt(clientPoint.X, clientPoint.Y);
+			if (targetItem != null)
+			{
+				//Debug.Print("target node :{0} ", targetItem.FullPath);
+				var targetPath = GetListItemPath(targetItem);
+				if (!targetPath.Equals(string.Empty)) Debug.Print("targetpath : {0}", targetPath);
+				bool isValid = Helper.IsValidFileSystemPath(targetPath);
+				e.Effect = isValid ? DragDropEffects.Copy : DragDropEffects.None;
+				return;
+			}
+			e.Effect = DragDropEffects.None;
+		}
+		
 		public void TreeView_DragDrop(object? sender, DragEventArgs e)
 		{
 			Debug.Print("treeview_dragdrop");
-			//var treeView = sender as TreeView;
-			//var targetNode = treeView?.GetNodeAtPoint(treeView.PointToClient(new Point(e.X, e.Y)));
-			//var targetPath = GetTreeNodePath(targetNode);
-
-			//if (draggedItems == null || !Helper.IsValidFileSystemPath(targetPath)) return;
-
-			//// 复制文件/目录
-			//foreach (var sourcePath in draggedItems)
-			//{
-			//	try
-			//	{
-			//		var destPath = Path.Combine(targetPath, Path.GetFileName(sourcePath));
-			//		if (Directory.Exists(sourcePath))
-			//			fsManager.CopyDirectory(sourcePath, destPath);
-			//		else
-			//			File.Copy(sourcePath, destPath, true);
-			//	}
-			//	catch (Exception ex)
-			//	{
-			//		MessageBox.Show($"复制失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-			//	}
-			//}
-
-			//// 刷新目标视图
-			//var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
-			//LoadListView(targetNode, listView);
+		
 			var treeView = sender as TreeView;
 			var clientPoint = treeView.PointToClient(new Point(e.X, e.Y));
 			var targetNode = treeView.GetNodeAt(clientPoint);
@@ -219,6 +200,44 @@ namespace WinFormsApp1
 			// 刷新目标视图
 			var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
 			LoadListView(targetNode, listView);
+		}
+		public void ListView_DragDrop(object? sender, DragEventArgs e)
+		{
+			Debug.Print("listview_dragdrop");
+
+			var listView = sender as ListView;
+			var clientPoint = listView.PointToClient(new Point(e.X, e.Y));
+			var targetItem = listView.GetItemAt(clientPoint.X, clientPoint.Y);
+			if (targetItem == null) return;
+			var targetPath = GetListItemPath(targetItem);
+			if (targetItem == null || !Helper.IsValidFileSystemPath(targetPath)) return;
+			//if (!e.Data.GetDataPresent(DataFormats.FileDrop))
+			//{
+			//	draggedItems = e.Data.GetData(DataFormats.FileDrop) as string[];
+			//}
+			if (draggedItems == null || !Helper.IsValidFileSystemPath(targetPath)) return;
+
+			// 复制文件/目录到目标路径
+			foreach (var sourcePath in draggedItems)
+			{
+				try
+				{
+					var destPath = Path.Combine(targetPath, Path.GetFileName(sourcePath));
+					if (Directory.Exists(sourcePath))
+						fsManager.CopyDirectory(sourcePath, destPath);
+					else
+						File.Copy(sourcePath, destPath, true);
+				}
+				catch (Exception ex)
+				{
+					MessageBox.Show($"复制失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			}
+
+			// 刷新目标视图
+			//var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
+			//LoadListView(targetNode, listView);
+			listView.Refresh();
 		}
 		private void AddCurrentPathToBookmarks()
         {

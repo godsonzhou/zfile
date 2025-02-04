@@ -96,11 +96,7 @@ namespace WinFormsApp1
 				Console.WriteLine("(0}\t=\t{(1}", environmentKey, environment[environmentKey].ToString());
 			}
 		}
-		/// <summary>
-		/// ////
-		/// </summary>
-		/// <param name="path"></param>
-		/// <returns></returns>
+	
 		public static async Task<List<FileSystemInfo>> GetDirectoryContentsAsync(string path)
 		{
 			return await Task.Run(() => GetDirectoryContents(path));
@@ -198,12 +194,7 @@ namespace WinFormsApp1
 
 			return imageList;
 		}
-		/// <summary>
-		/// 依据文件名读取图标，若指定文件不存在，则返回空值。  
-		/// </summary>
-		/// <param name="fileName">文件路径</param>
-		/// <param name="isLarge">是否返回大图标</param>
-		/// <returns></returns>
+	
 		public static Icon GetIconByFileName(string fileName, bool isLarge = true)
 		{
 			IntPtr[] phiconLarge = new IntPtr[1];

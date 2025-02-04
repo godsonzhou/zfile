@@ -1018,7 +1018,8 @@ namespace WinFormsApp1
                 foreach (string file in files)
                 {
                     Debug.Print("ToolbarButton_DragDrop: {0}", file);
-                    //根据文件将文件相关信息（文件名，文件路径）写入到配置文件DEFAULT.BAR中，然后根据配置文件中的信息，重新调用InitializeDynamicToolbar刷新工具栏按钮中
+                    //根据当前所选择的文件，将文件相关信息（文件名，文件路径等）用addbutton方法更新到toolbarmanager类中，
+                    //然后将toolbarmanager类中的信息通过savetoconfig方法写入配置文件中，最后根据配置文件中的信息，重新调用generateDynamicToolbar刷新当前工具栏按钮
                     //配置文件的格式为：
                     // [Buttonbar]
                     // Buttoncount=按钮总数量
@@ -1028,7 +1029,7 @@ namespace WinFormsApp1
                     // menu1=按钮提示文本
                     // path1=路径
                     // param1=参数
-                    // 以上的1是按钮编号，依次为1/2/3/4.../Buttoncount
+                    // 以上的1是按钮编号，依次为1/2/3/4...直到Buttoncount
 
 
 

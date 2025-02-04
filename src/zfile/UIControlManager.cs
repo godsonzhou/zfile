@@ -67,7 +67,7 @@ namespace WinFormsApp1
 			// menu1=按钮提示文本
 			// path1=启动路径
 			// param1=参数
-			// 以上的1是按钮编号，依次为1/2/3/4.../Buttoncount
+			// 以上的1是按钮编号，依次为1/2/3/4...直到Buttoncount
 
 		}
 		public void generateDynamicToolbar()

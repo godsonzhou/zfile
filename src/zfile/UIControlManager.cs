@@ -38,25 +38,25 @@ namespace WinFormsApp1
 			dynamicToolStrip = new ToolStrip();
 			this.form = form;
 			this.configfile = configfile;
-			init(configfile);
-			generateDynamicToolbar();
+			Init(configfile);
+			GenerateDynamicToolbar();
 		}
 		public void AddButton(string name, string cmd, string icon, string path, string param, string iconic)
 		{
 			toolbarButtons.Add(new ToolbarButton(name, cmd, icon, path, param, iconic));
 		}
-		public void removeButton(int index)
+		public void RemoveButton(int index)
 		{
 			toolbarButtons.RemoveAt(index);
 		}
-		public void removeButton(string name)
+		public void RemoveButton(string name)
 		{
 			if (string.IsNullOrEmpty(name)) return;
 
 			// 删除指定名称的所有工具栏按钮
 			toolbarButtons.RemoveAll(b => b.name == name);
 		}
-		public void saveToconfig()
+		public void SaveToconfig()
 		{
 			try
 			{
@@ -86,7 +86,7 @@ namespace WinFormsApp1
 					MessageBoxButtons.OK, MessageBoxIcon.Error);
 			}
 		}
-		public void generateDynamicToolbar()
+		public void GenerateDynamicToolbar()
 		{
 			// 遍历toolbarButtons列表，为每个按钮创建ToolStripButton或ToolStripDropDownButton，并添加到dynamicToolStrip中
 			// 如果按钮的cmd属性以"openbar "开头，则创建ToolStripDropDownButton，并调用InitializeDropdownMenu方法初始化下拉菜单
@@ -126,7 +126,7 @@ namespace WinFormsApp1
 			dynamicToolStrip.DragDrop += form.ToolbarButton_DragDrop;
 		}
 
-		public void init(string path)
+		public void Init(string path)
 		{
 			//load from config file
 			string toolbarFilePath = Path.Combine(Constants.ZfilePath, path);

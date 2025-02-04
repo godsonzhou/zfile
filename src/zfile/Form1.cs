@@ -1007,26 +1007,96 @@ namespace WinFormsApp1
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                e.Effect = DragDropEffects.Copy;
+                var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                // 只允许可执行文件或目录
+                if (files.Any(f => File.Exists(f) && (Path.GetExtension(f).Equals(".exe", StringComparison.OrdinalIgnoreCase) || Directory.Exists(f))))
+                {
+                    e.Effect = DragDropEffects.Copy;
+                    return;
+                }
             }
+            e.Effect = DragDropEffects.None;
         }
+
         public void ToolbarButton_DragDrop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-                foreach (string file in files)
+                var button = sender as ToolStripButton;
+                
+                if (button != null && uiManager != null)
                 {
-                    Debug.Print("ToolbarButton_DragDrop: {0}", file);
-                    //根据当前所选择的文件，将文件相关信息（文件名，文件路径等）用addbutton方法更新到toolbarmanager类中，
-                    //重新调用generateDynamicToolbar刷新当前工具栏按钮
+                    foreach (string file in files)
+                    {
+                        try
+                        {
+                            FileInfo fi = new FileInfo(file);
+                            // 获取文件显示名称
+                            string displayName = Path.GetFileNameWithoutExtension(file);
+                            
+                            // 设置按钮参数
+                            //var buttonParams = new Dictionary<string, object>
+                            //{
+                            //    {"Command", "Execute"},
+                            //    {"Path", file},
+                            //    {"WorkingDirectory", fi.DirectoryName},
+                            //    {"Icon", Icon.ExtractAssociatedIcon(file)?.ToBitmap()}
+                            //};
 
-
-
-
+							// 添加或更新工具栏按钮
+							//uiManager.toolbarManager.AddButton(
+							//    displayName,
+							//    buttonParams,
+							//    (s, args) => ExecuteToolbarCommand(file)
+							//);
+							uiManager.toolbarManager.AddButton(displayName, file, file+",0", "", "", "0");
+                            
+                            // 设置按钮显示属性
+                            //button.Text = displayName;
+                            //button.ToolTipText = $"启动 {displayName}";
+                            //if (buttonParams["Icon"] is Image icon)
+                            //{
+                            //    button.Image = icon;
+                            //}
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.Print($"添加工具栏按钮失败: {ex.Message}");
+                        }
+                    }
+                    
+                    // 刷新工具栏
+                    uiManager.toolbarManager.GenerateDynamicToolbar();
+                    uiManager.dynamicToolStrip.Invalidate();
                 }
             }
         }
+
+        //private void ExecuteToolbarCommand(string filePath)
+        //{
+        //    try
+        //    {
+        //        if (Directory.Exists(filePath))
+        //        {
+        //            Process.Start("explorer.exe", filePath);
+        //        }
+        //        else if (File.Exists(filePath))
+        //        {
+        //            Process.Start(new ProcessStartInfo(filePath)
+        //            {
+        //                UseShellExecute = true,
+        //                WorkingDirectory = Path.GetDirectoryName(filePath)
+        //            });
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show($"执行失败: {ex.Message}", "错误",
+        //            MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //    }
+        //}
+        //}
 
 
 

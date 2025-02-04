@@ -1019,17 +1019,7 @@ namespace WinFormsApp1
                 {
                     Debug.Print("ToolbarButton_DragDrop: {0}", file);
                     //根据当前所选择的文件，将文件相关信息（文件名，文件路径等）用addbutton方法更新到toolbarmanager类中，
-                    //然后将toolbarmanager类中的信息通过savetoconfig方法写入配置文件中，最后根据配置文件中的信息，重新调用generateDynamicToolbar刷新当前工具栏按钮
-                    //配置文件的格式为：
-                    // [Buttonbar]
-                    // Buttoncount=按钮总数量
-                    // button1=图标文件名称,图标序号
-                    // cmd1=内部命令名称，如cm_SwitchSeparateTree，也可以是某个文件的绝对路径，比如c:\windows\system32\notepad.exe
-                    // iconic1=0
-                    // menu1=按钮提示文本
-                    // path1=路径
-                    // param1=参数
-                    // 以上的1是按钮编号，依次为1/2/3/4...直到Buttoncount
+                    //重新调用generateDynamicToolbar刷新当前工具栏按钮
 
 
 
@@ -1038,23 +1028,7 @@ namespace WinFormsApp1
             }
         }
 
-        private void WriteButtonbarConfig(string file, string buttonName, string cmd, string menu, string path, string param)
-        {
-            // 读取配置文件
-            string config = File.ReadAllText(file);
-            // 替换按钮配置
-            config = config.Replace($"button{buttonName}=,", $"button{buttonName}={buttonName},{cmd},{menu},{path},{param}");
-        }
-        //dynamictoolbar中增加一个button
-        private void dynamicToolbarAddButton(string buttonName, string cmd, string menu, string path, string param)
-        {
 
-        }
-        //dynamictoolbar总删除一个button
-        private void dynamicToolbarRemoveButton(int index)
-        {
-
-        }
 
         public void ExitApp()
         {

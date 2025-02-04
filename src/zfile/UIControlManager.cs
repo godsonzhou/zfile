@@ -58,17 +58,33 @@ namespace WinFormsApp1
 		}
 		public void saveToconfig()
 		{
-			//将当前的所有button信息写入配置文件configfile中，配置文件格式为：
-			// [Buttonbar]
-			// Buttoncount=按钮总数量
-			// button1=图标文件名称,图标序号
-			// cmd1=内部命令名称，如cm_SwitchSeparateTree或者需要打开的某个文件名称（包括路径），比如c:\tools\notepad.exe
-			// iconic1=0
-			// menu1=按钮提示文本
-			// path1=启动路径
-			// param1=参数
-			// 以上的1是按钮编号，依次为1/2/3/4...直到Buttoncount
+			try
+			{
+				string configPath = Path.Combine(Constants.ZfilePath, configfile);
+				using (StreamWriter writer = new StreamWriter(configPath, false, Encoding.GetEncoding("GB2312")))
+				{
+					writer.WriteLine("[Buttonbar]");
+					writer.WriteLine($"Buttoncount={toolbarButtons.Count}");
 
+					for (int i = 0; i < toolbarButtons.Count; i++)
+					{
+						int buttonNumber = i + 1;
+						ToolbarButton button = toolbarButtons[i];
+
+						writer.WriteLine($"button{buttonNumber}={button.icon}");
+						writer.WriteLine($"cmd{buttonNumber}={button.cmd}");
+						writer.WriteLine($"iconic{buttonNumber}={button.iconic}");
+						writer.WriteLine($"menu{buttonNumber}={button.name}");
+						writer.WriteLine($"path{buttonNumber}={button.path}");
+						writer.WriteLine($"param{buttonNumber}={button.param}");
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"保存工具栏配置失败：{ex.Message}", "错误",
+					MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
 		}
 		public void generateDynamicToolbar()
 		{
@@ -189,31 +205,7 @@ namespace WinFormsApp1
 						{
 							var zhdesc = form.cmdProcessor.cmdTable.GetByCmdName(cmd)?.ZhDesc ?? "";
 
-							// ToolStripButton button = new ToolStripButton
-							// {
-							// 	Text = "",  //menuText,
-							// 	ToolTipText = zhdesc,
-							// 	Image = IconManager.LoadIcon(buttonIcon),
-							// 	Tag = cmd
-							// };
 
-							// if (cmd.StartsWith("openbar"))
-							// {
-							// 	string dropdownFilePath = cmd.Substring("openbar ".Length);
-							// ToolStripDropDownButton dropdownButton = new ToolStripDropDownButton
-							// {
-							// 	Text = "", //menuText,
-							// 	ToolTipText = menuText,
-							// 	Image = IconManager.LoadIcon(buttonIcon)
-							// };
-							// InitializeDropdownMenu(dropdownButton, dropdownFilePath);
-							// dynamicToolStrip.Items.Add(dropdownButton);
-							// }
-							// else
-							// {
-							// 	button.Click += ToolbarButton_Click;
-							// 	dynamicToolStrip.Items.Add(button);
-							// }
 							AddButton(menuText, cmd, buttonIcon, pathText, paramText, iconic);
 
 
@@ -235,11 +227,9 @@ namespace WinFormsApp1
 					}
 				}
 
-				// form.Controls.Add(dynamicToolStrip);
+
 			}
-			//为dynamicToolStrip添加拖拽事件，允许将listview的文件拖拽到工具栏按钮上
-			// dynamicToolStrip.DragEnter += form.ToolbarButton_DragEnter;
-			// dynamicToolStrip.DragDrop += form.ToolbarButton_DragDrop;
+
 		}
 	}
 
@@ -760,162 +750,7 @@ namespace WinFormsApp1
 		{
 			toolbarManager = new ToolbarManager(form, "DEFAULT.BAR");
 			vtoolbarManager = new ToolbarManager(form, "VERTICAL.BAR");
-			// for (int i = 0; i < toolbarManager.toolbarButtons.Count; i++)
-			// {
-			// 	ToolbarButton b = toolbarManager.toolbarButtons[i];
-			// 	// var zhdesc = form.cmdProcessor.cmdTable.GetByCmdName(cmd)?.ZhDesc ?? "";
-			// 	ToolStripButton button = new ToolStripButton
-			// 	{
-			// 		Text = "",  //menuText,
-			// 		ToolTipText = b.name,
-			// 		Image = IconManager.LoadIcon(b.icon),
-			// 		Tag = b.cmd
-			// 	};
 
-			// 	if (b.cmd.StartsWith("openbar"))
-			// 	{
-			// 		string dropdownFilePath = b.cmd.Substring("openbar ".Length);
-			// 		ToolStripDropDownButton dropdownButton = new ToolStripDropDownButton
-			// 		{
-			// 			Text = "", //menuText,
-			// 			ToolTipText = b.name,
-			// 			Image = IconManager.LoadIcon(b.icon)
-			// 		};
-			// 		InitializeDropdownMenu(dropdownButton, dropdownFilePath);
-			// 		dynamicToolStrip.Items.Add(dropdownButton);
-			// 	}
-			// 	else
-			// 	{
-			// 		button.Click += ToolbarButton_Click;
-			// 		dynamicToolStrip.Items.Add(button);
-			// 	}
-			// }
-			// form.Controls.Add(dynamicToolStrip);
-			// dynamicToolStrip.DragEnter += form.ToolbarButton_DragEnter;
-			// dynamicToolStrip.DragDrop += form.ToolbarButton_DragDrop;
-			// string toolbarFilePath = Path.Combine(Constants.ZfilePath, "DEFAULT.BAR");
-			// if (!File.Exists(toolbarFilePath))
-			// {
-			// 	MessageBox.Show("工具栏配置文件不存在" + toolbarFilePath, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-			// 	return;
-			// }
-
-			// var zfile_path = Path.Combine(Constants.ZfilePath, "WCMIcon3.dll");
-			// //var iconManager = form.iconManager;
-			// var iconList = IconManager.LoadIconsFromFile(zfile_path);
-			// var fileInfoList = new FileInfoList(new string[] { zfile_path });
-
-			// using (StreamReader reader = new StreamReader(toolbarFilePath, Encoding.GetEncoding("GB2312")))
-			// {
-			// 	dynamicToolStrip = new ToolStrip();
-			// 	string? line;
-			// 	int buttonCount = 0;
-			// 	int buttonIndex;
-			// 	string buttonIcon = "";
-			// 	string cmd = "";
-			// 	string menuText = "";
-			// 	string pathText = "";
-			// 	string iconic = "";
-			// 	string paramText = "";
-			// 	List<int> emptybuttons = new List<int>();
-
-			// 	while ((line = reader.ReadLine()) != null)
-			// 	{
-			// 		line = line.Trim();
-			// 		if (line.StartsWith("Buttoncount="))
-			// 		{
-			// 			buttonCount = int.Parse(line.Substring("Buttoncount=".Length));
-			// 			continue;
-			// 		}
-			// 		else if (line.StartsWith("iconic"))
-			// 		{
-			// 			var _buttonIndex = int.Parse(line.Substring(6, line.IndexOf('=') - 6));
-			// 			if (emptybuttons.Contains(_buttonIndex))  //如果emptybuttons中存在_buttonIndex，则跳过
-			// 				continue;
-			// 			iconic = line.Substring(line.IndexOf('=') + 1);
-			// 		}
-			// 		else if (line.StartsWith("cmd"))
-			// 		{
-			// 			int _buttonIndex = int.Parse(line.Substring(3, line.IndexOf('=') - 3));
-			// 			if (emptybuttons.Contains(_buttonIndex))
-			// 				continue;
-
-			// 			cmd = line.Substring(line.IndexOf('=') + 1);
-			// 		}
-			// 		else if (line.StartsWith("menu"))
-			// 		{
-			// 			int _buttonIndex = int.Parse(line.Substring(4, line.IndexOf('=') - 4));
-			// 			if (emptybuttons.Contains(_buttonIndex))
-			// 				continue;
-			// 			menuText = line.Substring(line.IndexOf('=') + 1);
-			// 		}
-			// 		else if (line.StartsWith("path"))
-			// 		{
-			// 			int _buttonIndex = int.Parse(line.Substring(4, line.IndexOf('=') - 4));
-			// 			if (emptybuttons.Contains(_buttonIndex))
-			// 				continue;
-			// 			pathText = line.Substring(line.IndexOf('=') + 1);
-			// 		}
-			// 		else if (line.StartsWith("param"))
-			// 		{
-			// 			int _buttonIndex = int.Parse(line.Substring(5, line.IndexOf('=') - 5));
-			// 			if (emptybuttons.Contains(_buttonIndex))
-			// 				continue;
-			// 			paramText = line.Substring(line.IndexOf('=') + 1);
-			// 		}
-			// 		else if (line.StartsWith("button"))
-			// 		{
-			// 			if (!cmd.Equals(""))
-			// 			{
-			// 				var zhdesc = form.cmdProcessor.cmdTable.GetByCmdName(cmd)?.ZhDesc ?? "";
-			// 				ToolStripButton button = new ToolStripButton
-			// 				{
-			// 					Text = "",  //menuText,
-			// 					ToolTipText = zhdesc,
-			// 					Image = IconManager.LoadIcon(buttonIcon),
-			// 					Tag = cmd
-			// 				};
-
-			// 				if (cmd.StartsWith("openbar"))
-			// 				{
-			// 					string dropdownFilePath = cmd.Substring("openbar ".Length);
-			// 					ToolStripDropDownButton dropdownButton = new ToolStripDropDownButton
-			// 					{
-			// 						Text = "", //menuText,
-			// 						ToolTipText = menuText,
-			// 						Image = IconManager.LoadIcon(buttonIcon)
-			// 					};
-			// 					InitializeDropdownMenu(dropdownButton, dropdownFilePath);
-			// 					dynamicToolStrip.Items.Add(dropdownButton);
-			// 				}
-			// 				else
-			// 				{
-			// 					button.Click += ToolbarButton_Click;
-			// 					dynamicToolStrip.Items.Add(button);
-			// 				}
-			// 				menuText = "";
-			// 				pathText = "";
-			// 				cmd = "";
-			// 				iconic = "";
-			// 				paramText = "";
-			// 			}
-
-			// 			buttonIndex = int.Parse(line.Substring(6, line.IndexOf('=') - 6));
-			// 			buttonIcon = line.Substring(line.IndexOf('=') + 1);
-			// 			//如果buttonIcon为空，则读取下一行，并记录当前buttonIndex,忽略下面所有编号为buttonIndex的行
-			// 			if (string.IsNullOrEmpty(buttonIcon))
-			// 			{
-			// 				emptybuttons.Add(buttonIndex);
-			// 				continue;
-			// 			}
-			// 		}
-			// 	}
-
-			// 	form.Controls.Add(dynamicToolStrip);
-			// }
-			// //为dynamicToolStrip添加拖拽事件，允许将listview的文件拖拽到工具栏按钮上
-			// dynamicToolStrip.DragEnter += form.ToolbarButton_DragEnter;
-			// dynamicToolStrip.DragDrop += form.ToolbarButton_DragDrop;
 
 		}
 		public void InitializeDynamicMenu()

@@ -175,14 +175,14 @@ namespace WinFormsApp1
 		public FileInfoWithIcon(string path)
 		{
 			fileInfo = new FileInfo(path);
-			largeIcon = Helper.GetIconByFileName(path, true);
+			largeIcon = IconManager.GetIconByFileName(path, true);
 			if (largeIcon == null)
-				largeIcon = Helper.GetIconByFileType(Path.GetExtension(path), true);
+				largeIcon = IconManager.GetIconByFileType(Path.GetExtension(path), true);
 
 
-			smallIcon = Helper.GetIconByFileName(path, false);
+			smallIcon = IconManager.GetIconByFileName(path, false);
 			if (smallIcon == null)
-				smallIcon = Helper.GetIconByFileType(Path.GetExtension(path), false);
+				smallIcon = IconManager.GetIconByFileType(Path.GetExtension(path), false);
 		}
 	}
 } 

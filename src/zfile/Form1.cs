@@ -276,37 +276,37 @@ namespace WinFormsApp1
         {
             // 在这里可以添加自定义的菜单项
         }
-        // private void 加载文件ToolStripMenuItem_Click(object sender, EventArgs e)
-        // {
-        //     FolderBrowserDialog dlg = new FolderBrowserDialog();
-        //     //if (dlg.ShowDialog() == DialogResult.OK)
-        //     {
-        //         string[] filespath = Directory.GetFiles(dlg.SelectedPath);
-        //         fileList = new FileInfoList(filespath);
-        //         InitListView();
-        //     }
-        // }
-        // private void InitListView()
-        // {
-        //     activeListView.Items.Clear();
-        //     this.activeListView.BeginUpdate();
-        //     foreach (FileInfoWithIcon file in fileList.list)
-        //     {
-        //         ListViewItem item = new ListViewItem();
-        //         item.Text = file.fileInfo.Name.Split('.')[0];
-        //         item.ImageIndex = file.iconIndex;
-        //         item.SubItems.Add(file.fileInfo.LastWriteTime.ToString());
-        //         item.SubItems.Add(file.fileInfo.Extension.Replace(".", ""));
-        //         item.SubItems.Add(string.Format(("{0:N0}"), file.fileInfo.Length));
-        //         activeListView.Items.Add(item);
-        //     }
-        //     activeListView.LargeImageList = fileList.imageListLargeIcon;
-        //     activeListView.SmallImageList = fileList.imageListSmallIcon;
-        //     activeListView.Show();
-        //     this.activeListView.EndUpdate();
-        // }
+		private void 加载文件ToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			FolderBrowserDialog dlg = new FolderBrowserDialog();
+			//if (dlg.ShowDialog() == DialogResult.OK)
+			{
+				string[] filespath = Directory.GetFiles(dlg.SelectedPath);
+				var fileList = new FileInfoList(filespath);
+				InitListView(fileList);
+			}
+		}
+		private void InitListView(FileInfoList fileList)
+		{
+			activeListView.Items.Clear();
+			this.activeListView.BeginUpdate();
+			foreach (FileInfoWithIcon file in fileList.list)
+			{
+				ListViewItem item = new ListViewItem();
+				item.Text = file.fileInfo.Name.Split('.')[0];
+				item.ImageIndex = file.iconIndex;
+				item.SubItems.Add(file.fileInfo.LastWriteTime.ToString());
+				item.SubItems.Add(file.fileInfo.Extension.Replace(".", ""));
+				item.SubItems.Add(string.Format(("{0:N0}"), file.fileInfo.Length));
+				activeListView.Items.Add(item);
+			}
+			activeListView.LargeImageList = fileList.imageListLargeIcon;
+			activeListView.SmallImageList = fileList.imageListSmallIcon;
+			activeListView.Show();
+			this.activeListView.EndUpdate();
+		}
 
-        public interface IActiveListViewChangeable
+		public interface IActiveListViewChangeable
         {
             void ActiveListViewChange(View view);
         }
@@ -1217,11 +1217,11 @@ namespace WinFormsApp1
                     var lvItem = CreateListViewItem(item);//TODO: ADD ICON
                     if (lvItem != null)
                     {
-						var ico = IconManager.ExtractIconFromFile(item.FullName, 0);
+						var ico = IconManager.GetIconByFileNameEx("FILE", item.FullName);	//ExtractIconFromFile(item.FullName, 0);
 						if (ico != null)
 						{
-							lvItem.ImageList.Images.Add(ico);//bugfix: imagelist为null
-							lvItem.ImageIndex = lvItem.ImageList.Images.Count - 1;
+							listView.SmallImageList.Images.Add(ico);
+							lvItem.ImageIndex = listView.SmallImageList.Images.Count - 1;
 						}
 						else
 							lvItem.ImageKey = lvItem.SubItems[3].Text.Equals("<DIR>") ? "folder" : "";

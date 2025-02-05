@@ -33,13 +33,17 @@ namespace WinFormsApp1
 			};
 			if (islarge)
 			{
-				imageList.Images.AddRange((islarge ? phiconLarge : phiconSmall).Select(x => Icon.FromHandle(x).ToBitmap()).ToArray());
-				//imageList.Images.AddRange(phiconLarge.Select(x => Icon.FromHandle(x).ToBitmap()).ToArray());
-				(islarge ? phiconLarge : phiconSmall).ToList().ForEach(x => API.DestroyIcon(x));
+				imageList.Images.AddRange(phiconLarge.Select(x => Icon.FromHandle(x).ToBitmap()).ToArray());
+				phiconLarge.ToList().ForEach(x => API.DestroyIcon(x));
+			}
+			else
+			{
+				imageList.Images.AddRange(phiconSmall.Select(x => Icon.FromHandle(x).ToBitmap()).ToArray());
+				phiconSmall.ToList().ForEach(x => API.DestroyIcon(x));
 			}
 			return imageList;
 		}
-		public static ImageList LoadLargeIconsFromFile(string path)
+		public static ImageList LoadIconsFromFile(string path)
 		{
 			var count = API.ExtractIconEx(path, -1, null, null, 0);
 			var phiconLarge = new IntPtr[count];

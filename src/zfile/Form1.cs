@@ -1217,14 +1217,18 @@ namespace WinFormsApp1
                     var lvItem = CreateListViewItem(item);//TODO: ADD ICON
                     if (lvItem != null)
                     {
-						var ico = IconManager.GetIconByFileNameEx("FILE", item.FullName);	//ExtractIconFromFile(item.FullName, 0);
-						if (ico != null)
-						{
-							listView.SmallImageList.Images.Add(ico);
-							lvItem.ImageIndex = listView.SmallImageList.Images.Count - 1;
-						}
+						if (lvItem.SubItems[3].Text.Equals("<DIR>"))
+							lvItem.ImageKey = "folder";
 						else
-							lvItem.ImageKey = lvItem.SubItems[3].Text.Equals("<DIR>") ? "folder" : "";
+						{
+							var ico = IconManager.GetIconByFileNameEx("FILE", item.FullName);   //ExtractIconFromFile(item.FullName, 0);
+							if (ico != null)
+							{
+								listView.SmallImageList.Images.Add(ico);
+								lvItem.ImageIndex = listView.SmallImageList.Images.Count - 1;
+							}
+						}
+							
                         Debug.Print("file add to listview ：{0}", item.FullName);
                         lvItem.Tag = parentnode;
                         listView.Items.Add(lvItem);

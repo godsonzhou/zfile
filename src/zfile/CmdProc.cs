@@ -102,8 +102,8 @@ namespace CmdProcessor
 		private Dictionary<string, string> keymap = new Dictionary<string, string>();
 		public KeyMgr()
 		{
-			loadFromConfig("wincmd.ini", "[Shortcuts]");
-			loadFromConfig("wincmd.ini", "[ShortcutsWin]");
+			loadFromConfig("wincmd.ini", "Shortcuts");
+			loadFromConfig("wincmd.ini", "ShortcutsWin");
 		}
 		public void Add(string key, string value)
 		{
@@ -115,7 +115,9 @@ namespace CmdProcessor
 		}
 		public string Get(string key)
 		{
-			return keymap[key];
+			if (keymap.TryGetValue(key, out _)) 
+				return keymap[key];
+			return string.Empty;
 		}
 		public bool Contains(string key)
 		{
@@ -144,7 +146,7 @@ namespace CmdProcessor
 			// cm_copy=Ctrl+C
 			// [ShortcutsWin]
 			// em_py=Ctrl+Insert
-			var cfg = Helper.ReadSectionContent(path, section);
+			var cfg = Helper.ReadSectionContent(Constants.ZfilePath + path, section);
 			foreach (var line in cfg)
 			{
 				if (line.Contains('='))

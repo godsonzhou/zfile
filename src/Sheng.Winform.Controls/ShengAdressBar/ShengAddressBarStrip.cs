@@ -5,6 +5,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Drawing;
 using System.ComponentModel;
+using System.Diagnostics;
 
 namespace Sheng.Winform.Controls
 {
@@ -531,6 +532,7 @@ namespace Sheng.Winform.Controls
 
             //解释path找到当前节点，然后调用RestBar方法就可以了
             string[] pathArray = path.Split('\\');  //bugfix: '/' -> '\\' for windows, '/' is not a valid path separator
+			var tmpnode = _currentNode;		//record the original value
 			_currentNode =  _rootNode;
 			string pth = "";
             for (int i = 0; i < pathArray.Length; i++)
@@ -554,7 +556,16 @@ namespace Sheng.Winform.Controls
                     if (node.UniqueID == pth)
                     {
                         _currentNode = node;
-                        break;
+						//if (tmpnode != node)
+						//{
+						//	Debug.Print("//fire the node change event");
+						//	if (SelectionChange != null)
+						//	{
+						//		NodeChangedArgs nca = new NodeChangedArgs(_currentNode.UniqueID);
+						//		SelectionChange(this, nca);
+						//	}
+						//}
+						break;
                     }
                 }
             }
@@ -563,6 +574,7 @@ namespace Sheng.Winform.Controls
 
         public void SetAddress(IShengAddressNode addressNode)
         {
+			
             _currentNode = addressNode;
             ResetBar();
         }

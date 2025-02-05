@@ -41,9 +41,11 @@ namespace WinFormsApp1
             // 创建UIManager并初始化
             uiManager = new UIControlManager(this);
             uiManager.InitializeUI();
+			// 创建默认书签
+			uiManager.BookmarkManager.CreateDefaultBookmarks();
 
-            // 设置活动视图
-            activeListView = uiManager.LeftList;
+			// 设置活动视图
+			activeListView = uiManager.LeftList;
             activeTreeview = uiManager.LeftTree;
 
             // 其他初始化
@@ -242,40 +244,8 @@ namespace WinFormsApp1
         private void AddCurrentPathToBookmarks()
         {
             if (string.IsNullOrEmpty(currentDirectory)) return;
-            var bookmarkPanel = activeTreeview == uiManager.LeftTree ? uiManager.leftBookmarkPanel : uiManager.rightBookmarkPanel;
-
-            if (!bookmarkPanel.Controls.OfType<Label>().Any(label => label.Text == currentDirectory))
-            {
-                var bookmarkLabel = new Label
-                {
-                    Text = currentDirectory,
-                    AutoSize = true,
-                    Padding = new Padding(2),
-                    BorderStyle = BorderStyle.FixedSingle
-                };
-                bookmarkLabel.MouseClick += BookmarkLabel_MouseClick;
-
-                bookmarkPanel.Controls.Add(bookmarkLabel);
-                bookmarkPanel.Refresh();
-            }
-        }
-
-        private void BookmarkLabel_MouseClick(object? sender, MouseEventArgs e)
-        {
-            if (sender is Label bookmarkLabel)
-            {
-                if (e.Button == MouseButtons.Left)
-                {
-                    // 左键点击 - 处理书签点击事件
-                    MessageBox.Show($"书签点击: {bookmarkLabel.Text}", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                else if (e.Button == MouseButtons.Right)
-                {
-                    // 右键点击 - 删除书签
-                    var bookmarkPanel = bookmarkLabel.Parent as FlowLayoutPanel;
-                    bookmarkPanel?.Controls.Remove(bookmarkLabel);
-                }
-            }
+            var isLeft = activeTreeview == uiManager.LeftTree;
+            uiManager.BookmarkManager.AddBookmark(currentDirectory, selectedNode, isLeft);
         }
 
         public void OpenOptions()

@@ -298,11 +298,11 @@ namespace WinFormsApp1
 		#region Bookmark Controls
 		public readonly FlowLayoutPanel leftBookmarkPanel = new();
 		public readonly FlowLayoutPanel rightBookmarkPanel = new();
+		public BookmarkManager BookmarkManager { get; private set; }
 		#endregion
 
 		#region Menu Controls
 		public MenuStrip dynamicMenuStrip = new();
-		//public ToolStrip dynamicToolStrip = new();
 		#endregion
 		public ToolbarManager toolbarManager;
 		public ToolbarManager vtoolbarManager;
@@ -314,8 +314,8 @@ namespace WinFormsApp1
 			treeViewImageList.ImageSize = new Size(16, 16);
 			listViewImageList = new ImageList();
 			listViewImageList.ImageSize = new Size(16, 16);
-			//InitializeUI(); // 初始化界面//bugfix: 不能在构造函数中调用，因为InitializeUI中会调用form.uimanager的方法，而此时uimanager还未完成构造
-			// 添加PathTextBox路径变化事件处理程序
+			BookmarkManager = new BookmarkManager(form, leftBookmarkPanel, rightBookmarkPanel);
+			
 			LeftPathTextBox.SelectionChange += LeftPathTextBox_PathChanged;
 			RightPathTextBox.SelectionChange += RightPathTextBox_PathChanged;
 		}
@@ -323,11 +323,19 @@ namespace WinFormsApp1
 		private void LeftPathTextBox_PathChanged(object? sender, EventArgs e)
 		{
 			UpdateTreeViewSelection(LeftTree, LeftPathTextBox.CurrentNode.UniqueID);
+			if (LeftTree.SelectedNode != null)
+			{
+				BookmarkManager.UpdateActiveBookmark(LeftPathTextBox.CurrentNode.UniqueID, LeftTree.SelectedNode, true);
+			}
 		}
 
 		private void RightPathTextBox_PathChanged(object? sender, EventArgs e)
 		{
 			UpdateTreeViewSelection(RightTree, RightPathTextBox.CurrentNode.UniqueID);
+			if (RightTree.SelectedNode != null)
+			{
+				BookmarkManager.UpdateActiveBookmark(RightPathTextBox.CurrentNode.UniqueID, RightTree.SelectedNode, false);
+			}
 		}
 
 		private void UpdateTreeViewSelection(TreeView treeView, string path)
@@ -679,16 +687,12 @@ namespace WinFormsApp1
 		{
 			// 初始化左侧书签Panel
 			leftBookmarkPanel.Dock = DockStyle.Top;
-			leftBookmarkPanel.FlowDirection = FlowDirection.LeftToRight;
-			leftBookmarkPanel.WrapContents = false;
-			leftBookmarkPanel.AutoScroll = true;
+			leftBookmarkPanel.Height = 30;
 			LeftPanel.Panel2.Controls.Add(leftBookmarkPanel);
 
 			// 初始化右侧书签Panel
 			rightBookmarkPanel.Dock = DockStyle.Top;
-			rightBookmarkPanel.FlowDirection = FlowDirection.LeftToRight;
-			rightBookmarkPanel.WrapContents = false;
-			rightBookmarkPanel.AutoScroll = true;
+			rightBookmarkPanel.Height = 30;
 			RightPanel.Panel2.Controls.Add(rightBookmarkPanel);
 
 			// 调整布局顺序

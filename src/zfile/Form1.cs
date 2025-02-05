@@ -27,6 +27,7 @@ namespace WinFormsApp1
         private SortOrder sortOrder = SortOrder.None;
         private readonly ContextMenuStrip contextMenuStrip = new();
         public CmdProc cmdProcessor;
+		public KeyMgr keyManager;
         private IShellFolder iDeskTop;
         private Dictionary<string, string> specFolderPaths = new();
         private string[] draggedItems;
@@ -38,7 +39,7 @@ namespace WinFormsApp1
             this.Size = new Size(1200, 800);
 
             cmdProcessor = new CmdProc(this);
-
+			keyManager = new KeyMgr();
             // 创建UIManager并初始化
             uiManager = new UIControlManager(this);
             uiManager.InitializeUI();
@@ -96,14 +97,18 @@ namespace WinFormsApp1
             if (hotkeyMappings.TryGetValue(e.KeyData, out string cmdName))
             {
                 cmdProcessor.processCmdByName(cmdName);
-                e.Handled = true;
             }
             else if (e.KeyCode == Keys.T)
             {
                 AddCurrentPathToBookmarks();
-                e.Handled = true;
             }
-        }
+			else
+			{
+				var cmd = keyManager.GetByKeyCode(e.KeyCode);
+				cmdProcessor.processCmdByName(cmd);
+			}
+			e.Handled = true;
+		}
         public void ListView_ItemDrag(object? sender, ItemDragEventArgs e)
         {
             var listView = sender as ListView;
@@ -243,7 +248,7 @@ namespace WinFormsApp1
             // 刷新目标视图
             listView.Refresh();
         }
-        private void AddCurrentPathToBookmarks()
+        public void AddCurrentPathToBookmarks()
         {
             if (string.IsNullOrEmpty(currentDirectory)) return;
             //var isLeft = activeTreeview == uiManager.LeftTree;

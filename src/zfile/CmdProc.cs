@@ -97,7 +97,67 @@ namespace CmdProcessor
             return zhDescDict;
         }
     }
-
+	public class KeyMgr
+	{
+		private Dictionary<string, string> keymap = new Dictionary<string, string>();
+		public KeyMgr()
+		{
+			loadFromConfig("wincmd.ini", "[Shortcuts]");
+			loadFromConfig("wincmd.ini", "[ShortcutsWin]");
+		}
+		public void Add(string key, string value)
+		{
+			keymap[key] = value;
+		}
+		public string GetByKeyCode(System.Windows.Forms.Keys k)
+		{
+			return Get(k.ToString());
+		}
+		public string Get(string key)
+		{
+			return keymap[key];
+		}
+		public bool Contains(string key)
+		{
+			return keymap.ContainsKey(key);
+		}
+		public void Remove(string key)
+		{
+			keymap.Remove(key);
+		}
+		public void Clear()
+		{
+			keymap.Clear();
+		}
+		public int Count()
+		{
+			return keymap.Count;
+		}
+		public string[] GetKeys()
+		{
+			return keymap.Keys.ToArray();
+		}
+		private void loadFromConfig(string path, string section)
+		{
+			// 读取配置文件中的快捷键映射，位于section段内
+			// 例如：[Shortcuts]
+			// cm_copy=Ctrl+C
+			// [ShortcutsWin]
+			// em_py=Ctrl+Insert
+			var cfg = Helper.ReadSectionContent(path, section);
+			foreach (var line in cfg)
+			{
+				if (line.Contains('='))
+				{
+					var parts = line.Split('=');
+					if (parts.Length == 2)
+					{
+						Add(parts[0], parts[1]);
+					}
+				}
+			}
+		}
+	}
     public class CmdProc
     {
         public CmdTable cmdTable;
@@ -178,6 +238,9 @@ namespace CmdProcessor
 					case 2950:
                         owner.ThemeToggle();
                         break;
+					case 3001:  //add new bookmark
+						owner.AddCurrentPathToBookmarks();
+						break;
 					case 3012:  //lock the bookmark
 						owner.uiManager.BookmarkManager.ToggleCurrentBookmarkLock(owner.uiManager.isleft);
 						break;

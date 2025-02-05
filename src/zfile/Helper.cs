@@ -9,6 +9,51 @@ namespace WinFormsApp1
 {
 	internal static class Helper
 	{
+		public static List<string> ReadSectionContent(string filePath, string targetSection)
+		{
+			List<string> sectionContent = new List<string>();
+			bool isInTargetSection = false;
+
+			try
+			{
+				// 打开文件并逐行读取
+				using (StreamReader reader = new StreamReader(filePath, Encoding.GetEncoding("GB2312")))
+				{
+					string line;
+					while ((line = reader.ReadLine()) != null)
+					{
+						// 检查是否为节的起始行
+						if (line.StartsWith("[") && line.EndsWith("]"))
+						{
+							string currentSection = line.Substring(1, line.Length - 2);
+							if (currentSection == targetSection)
+							{
+								isInTargetSection = true;
+							}
+							else
+							{
+								if (isInTargetSection)
+								{
+									// 遇到下一个节，停止收集内容
+									break;
+								}
+							}
+						}
+						else if (isInTargetSection)
+						{
+							// 收集目标节内的内容
+							sectionContent.Add(line);
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"读取文件时发生错误: {ex.Message}");
+			}
+
+			return sectionContent;
+		}
 		public static bool IsValidFileSystemPath(string path)
 		{
 			try

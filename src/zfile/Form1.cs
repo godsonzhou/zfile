@@ -19,9 +19,9 @@ namespace WinFormsApp1
         private Point selectionStart;
         private Rectangle selectionRectangle;
         private ListView activeListView { get => (uiManager.isleft ? uiManager.LeftList : uiManager.RightList); }
-        private TreeView activeTreeview { get => (uiManager.isleft ? uiManager.LeftTree : uiManager.RightTree); }
+        public TreeView activeTreeview { get => (uiManager.isleft ? uiManager.LeftTree : uiManager.RightTree); }
         private readonly FileSystemWatcher watcher = new();
-        private string currentDirectory = "";
+        public string currentDirectory = "";
         private TreeNode? selectedNode = null;
         private int sortColumn = -1;
         private SortOrder sortOrder = SortOrder.None;

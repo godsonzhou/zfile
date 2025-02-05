@@ -221,11 +221,7 @@ namespace WinFormsApp1
 						if (!cmd.Equals(""))
 						{
 							var zhdesc = form.cmdProcessor.cmdTable.GetByCmdName(cmd)?.ZhDesc ?? "";
-
-
 							AddButton(menuText, cmd, buttonIcon, pathText, paramText, iconic);
-
-
 							menuText = "";
 							pathText = "";
 							cmd = "";
@@ -243,10 +239,7 @@ namespace WinFormsApp1
 						}
 					}
 				}
-
-
 			}
-
 		}
 	}
 
@@ -689,11 +682,13 @@ namespace WinFormsApp1
 			// 初始化左侧书签Panel
 			leftBookmarkPanel.Dock = DockStyle.Top;
 			leftBookmarkPanel.Height = 30;
+			leftBookmarkPanel.DoubleClick += BookmarkPanel_DoubleClick;
 			LeftPanel.Panel2.Controls.Add(leftBookmarkPanel);
 
 			// 初始化右侧书签Panel
 			rightBookmarkPanel.Dock = DockStyle.Top;
 			rightBookmarkPanel.Height = 30;
+			rightBookmarkPanel.DoubleClick += BookmarkPanel_DoubleClick;
 			RightPanel.Panel2.Controls.Add(rightBookmarkPanel);
 
 			// 调整布局顺序
@@ -701,6 +696,12 @@ namespace WinFormsApp1
 			LeftPanel.Panel2.Controls.SetChildIndex(LeftPreview, 1);
 			RightPanel.Panel2.Controls.SetChildIndex(rightBookmarkPanel, 0);
 			RightPanel.Panel2.Controls.SetChildIndex(RightPreview, 1);
+		}
+		private void BookmarkPanel_DoubleClick(object? sender,  EventArgs e)
+		{
+			var s = sender as FlowLayoutPanel;
+			isleft = s == leftBookmarkPanel;
+			BookmarkManager.AddBookmark(form.currentDirectory, form.activeTreeview.SelectedNode, isleft);
 		}
 		//从环境变量获取%COMMANDER_PATH%
 		private string GetCommanderPath()

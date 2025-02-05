@@ -178,9 +178,16 @@ namespace CmdProcessor
 					case 2950:
                         owner.ThemeToggle();
                         break;
+					case 3012:  //lock the bookmark
+						owner.uiManager.BookmarkManager.ToggleCurrentBookmarkLock(owner.uiManager.isleft);
+						break;
                     case 24340:
                         owner.ExitApp();
                         break;
+					//∑Ò‘Údo nothing
+					default:
+						MessageBox.Show("cmd id = {0} has not been implemented yet", cmdId.ToString());
+						break;
                 }
             }
             else

@@ -18,8 +18,8 @@ namespace WinFormsApp1
         private bool isSelecting = false;
         private Point selectionStart;
         private Rectangle selectionRectangle;
-        private ListView activeListView;
-        private TreeView activeTreeview;
+        private ListView activeListView { get => (uiManager.isleft ? uiManager.LeftList : uiManager.RightList); }
+        private TreeView activeTreeview { get => (uiManager.isleft ? uiManager.LeftTree : uiManager.RightTree); }
         private readonly FileSystemWatcher watcher = new();
         private string currentDirectory = "";
         private TreeNode? selectedNode = null;
@@ -30,6 +30,7 @@ namespace WinFormsApp1
         private IShellFolder iDeskTop;
         private Dictionary<string, string> specFolderPaths = new();
         private string[] draggedItems;
+
 
         public Form1()
         {
@@ -45,8 +46,9 @@ namespace WinFormsApp1
 			uiManager.BookmarkManager.CreateDefaultBookmarks();
 
 			// 设置活动视图
-			activeListView = uiManager.LeftList;
-            activeTreeview = uiManager.LeftTree;
+			//activeListView = uiManager.LeftList;
+			//activeTreeview = uiManager.LeftTree;
+			uiManager.isleft = true;
 
             // 其他初始化
             InitializeFileSystemWatcher();
@@ -244,8 +246,8 @@ namespace WinFormsApp1
         private void AddCurrentPathToBookmarks()
         {
             if (string.IsNullOrEmpty(currentDirectory)) return;
-            var isLeft = activeTreeview == uiManager.LeftTree;
-            uiManager.BookmarkManager.AddBookmark(currentDirectory, selectedNode, isLeft);
+            //var isLeft = activeTreeview == uiManager.LeftTree;
+            uiManager.BookmarkManager.AddBookmark(currentDirectory, selectedNode, uiManager.isleft);
         }
 
         public void OpenOptions()
@@ -597,13 +599,14 @@ namespace WinFormsApp1
                     e.Node.BackColor = SystemColors.Highlight;
                     e.Node.ForeColor = SystemColors.HighlightText;
                     treeView.Refresh(); // 强制重绘
+					uiManager.isleft = treeView == uiManager.LeftTree;
 
-                    var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
-                    LoadListView(e.Node, listView);
+					//var listView = uiManager.isleft ? uiManager.LeftList : uiManager.RightList;
+                    LoadListView(e.Node, activeListView);
                     //var path = GetFullPath(e.Node);	//bugfix: d:资料->d:\"my document", convert some display name to real path
                     var path = Helper.getFSpathbyTree(e.Node);
                     if (string.IsNullOrEmpty(path)) return;
-                    LoadListViewByFilesystem(path, listView, e.Node);
+                    LoadListViewByFilesystem(path, activeListView, e.Node);
                     currentDirectory = path;
                     selectedNode = e.Node;
 
@@ -616,8 +619,9 @@ namespace WinFormsApp1
 
                     // 调用leftpathtextbox的setaddress方法来更新路径
                     Debug.Print("treeview afterselect , set addr: {0}", path);
-                    if (treeView == uiManager.LeftTree)
-                        uiManager.LeftPathTextBox.SetAddress(path);
+					//if (treeView == uiManager.LeftTree)
+					if (uiManager.isleft)
+						uiManager.LeftPathTextBox.SetAddress(path);
                     else
                         uiManager.RightPathTextBox.SetAddress(path);
                 }
@@ -756,12 +760,13 @@ namespace WinFormsApp1
             {
                 isSelecting = true;
                 selectionStart = e.Location;
-                activeListView = sender as ListView;
-                activeListView.SelectedItems.Clear();
-                if (activeListView == uiManager.LeftList)
-                    activeTreeview = uiManager.LeftTree;
-                else
-                    activeTreeview = uiManager.RightTree;
+				var v = sender as ListView;
+				uiManager.isleft = v == uiManager.LeftList;
+                v?.SelectedItems.Clear();
+                //if (activeListView == uiManager.LeftList)
+                //    activeTreeview = uiManager.LeftTree;
+                //else
+                //    activeTreeview = uiManager.RightTree;
             }
         }
 

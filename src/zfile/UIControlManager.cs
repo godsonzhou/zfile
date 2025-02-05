@@ -306,6 +306,7 @@ namespace WinFormsApp1
 		#endregion
 		public ToolbarManager toolbarManager;
 		public ToolbarManager vtoolbarManager;
+		public bool isleft;
 
 		public UIControlManager(Form1 form)
 		{

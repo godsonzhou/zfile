@@ -36,21 +36,11 @@ namespace WinFormsApp1
 
         public void UpdateStyle()
         {
-            if (IsActive)
-            {
-                Control.BackColor = Color.LightBlue;
-                Control.ForeColor = Color.Black;
-            }
-            else if (IsLocked)
-            {
-                Control.BackColor = Color.LightGray;
-                Control.ForeColor = Color.Black;
-            }
-            else
-            {
-                Control.BackColor = SystemColors.Control;
-                Control.ForeColor = SystemColors.ControlText;
-            }
+            Control.BackColor = IsActive ? Color.LightBlue : Color.LightGray;
+            Control.ForeColor = Color.Black;
+			Control.BorderStyle = IsLocked ? BorderStyle.FixedSingle : BorderStyle.None;
+            //Control.BackColor = SystemColors.Control;
+            //Control.ForeColor = SystemColors.ControlText;
         }
     }
 
@@ -76,10 +66,8 @@ namespace WinFormsApp1
         {
             // 配置左侧书签面板
             ConfigureBookmarkPanel(leftBookmarkPanel);
-            
             // 配置右侧书签面板
             ConfigureBookmarkPanel(rightBookmarkPanel);
-           
         }
 
         private void ConfigureBookmarkPanel(FlowLayoutPanel panel)
@@ -169,11 +157,19 @@ namespace WinFormsApp1
             menu.Show(bookmark.Control, new Point(0, bookmark.Control.Height));
         }
 
-        private void ToggleBookmarkLock(Bookmark bookmark)
+        public void ToggleBookmarkLock(Bookmark bookmark)
         {
             bookmark.IsLocked = !bookmark.IsLocked;
             bookmark.UpdateStyle();
         }
+		public void ToggleCurrentBookmarkLock(bool isLeft)
+		{
+			Bookmark bookmark = isLeft ? activeLeftBookmark : activeRightBookmark;
+			if (bookmark != null)
+			{
+				ToggleBookmarkLock(bookmark);
+			}
+		}
 
         private void RemoveAllUnlockedBookmarks(bool isLeft)
         {

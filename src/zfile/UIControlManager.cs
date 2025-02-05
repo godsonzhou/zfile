@@ -341,8 +341,6 @@ namespace WinFormsApp1
 				node.EnsureVisible();
 			}
 		}
-
-
 		public void InitializeUI()
 		{
 			InitializeLayout();

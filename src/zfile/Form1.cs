@@ -1217,7 +1217,14 @@ namespace WinFormsApp1
                     var lvItem = CreateListViewItem(item);//TODO: ADD ICON
                     if (lvItem != null)
                     {
-                        lvItem.ImageKey = lvItem.SubItems[3].Text.Equals("<DIR>") ? "folder" : "";
+						var ico = IconManager.ExtractIconFromFile(item.FullName, 0);
+						if (ico != null)
+						{
+							lvItem.ImageList.Images.Add(ico);//bugfix: imagelist为null
+							lvItem.ImageIndex = lvItem.ImageList.Images.Count - 1;
+						}
+						else
+							lvItem.ImageKey = lvItem.SubItems[3].Text.Equals("<DIR>") ? "folder" : "";
                         Debug.Print("file add to listview ：{0}", item.FullName);
                         lvItem.Tag = parentnode;
                         listView.Items.Add(lvItem);
@@ -1296,8 +1303,9 @@ namespace WinFormsApp1
                 {
                     return null;
                 }
-
-                return new ListViewItem(itemData);
+				var i = new ListViewItem(itemData);
+				//i.ImageList = new ImageList();
+				return i;
             }
             catch
             {

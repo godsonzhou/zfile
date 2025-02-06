@@ -31,7 +31,7 @@ namespace WinFormsApp1
         private IShellFolder iDeskTop;
         private Dictionary<string, string> specFolderPaths = new();
         private string[] draggedItems;
-
+		private TreeNode rightClickBegin;
         public Form1()
         {
             InitializeComponent();
@@ -316,7 +316,9 @@ namespace WinFormsApp1
             if (e.Button == MouseButtons.Right)
             {
                 TreeView Tree1 = sender as TreeView;
-                Tree1.SelectedNode = Tree1.GetNodeAt(e.X, e.Y);
+                rightClickBegin = Tree1.GetNodeAt(e.X, e.Y);
+				if (Tree1.SelectedNode != rightClickBegin)
+					Tree1.SelectedNode = rightClickBegin;
             }
         }
 
@@ -324,10 +326,10 @@ namespace WinFormsApp1
         {
             if (e.Button == MouseButtons.Right)
             {
-                Debug.Print("treeview_right mouse button up:");
+                //Debug.Print("treeview_right mouse button up:");
                 TreeView treeView = sender as TreeView;
                 TreeNode node = treeView.GetNodeAt(e.X, e.Y);
-                if (node != null)
+                if (node != null && node == rightClickBegin)
                 {
                     treeView.SelectedNode = node;
                     //ShowContextMenu(treeView, node.Tag.ToString(), e.Location);
@@ -541,10 +543,10 @@ namespace WinFormsApp1
             //try
             {
                 string path = e.Node.Text ?? string.Empty;
-                Debug.Print("TreeView_NodeMouseClick：{0}", path);
                 if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
                 {
-                    // 如果path是文件夹，则加载子目录
+					Debug.Print("TreeView_NodeMouseClick：{0}", path);
+					// 如果path是文件夹，则加载子目录
 					var treeView = sender as TreeView;
                     var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
                     LoadSubDirectories(e.Node, listView);   // 更新ListView显示
@@ -569,9 +571,11 @@ namespace WinFormsApp1
         }
         public void TreeView_BeforeExpand(object sender, TreeViewCancelEventArgs e)
         {
-            Debug.Print("TreeView_BeforeExpand");
-            if (e.Node.Nodes.Count == 1 && e.Node.FirstNode.Text == "...")
-                LoadSubDirectories(e.Node);
+			if (e.Node.Nodes.Count == 1 && e.Node.FirstNode.Text == "...")
+			{
+				LoadSubDirectories(e.Node);
+				Debug.Print("TreeView_BeforeExpand");
+			}
         }
         public void TreeView_AfterSelect(object? sender, TreeViewEventArgs e)
         {
@@ -891,7 +895,7 @@ namespace WinFormsApp1
                 }
                 LoadSubDirectories(node);
                 node.Expand();//todo: 算法改进，这样效率太低，而且会展开之前所有的无关节点
-
+				
                 TreeNode? foundNode = FindTreeNode(node.Nodes, path, deepSearch);
                 if (foundNode != null)
                 {
@@ -1025,6 +1029,7 @@ namespace WinFormsApp1
         }
 		public void LoadSubDirectories(TreeNode node, ListView? lv = null)
 		{
+			Debug.Print("load sub dir for node {0}", node.Text);
 			if (lv != null)
 			{
 				lv.SmallImageList ??= new ImageList();
@@ -1056,6 +1061,7 @@ namespace WinFormsApp1
 						Tag = new ShellItem(pidlSub, iSub) //子节点的tag存放pidl和ishellfolder接口
 					};
 					nodeSub.ImageKey = IconManager.GetNodeIconKey(nodeSub);
+					nodeSub.SelectedImageKey = nodeSub.ImageKey;
 					//if(IsChildrenExist(nodeSub))
 					nodeSub.Nodes.Add("...");
 					node.Nodes.Add(nodeSub);

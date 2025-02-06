@@ -563,15 +563,16 @@ namespace WinFormsApp1
 			treeView.NodeMouseClick += form.TreeView_NodeMouseClick;
 			treeView.BeforeExpand += form.TreeView_BeforeExpand;
 			treeView.MouseDown += form.TreeView_MouseDown;
+			
 			treeView.AfterExpand += (s, e) => UpdateNodeIcon(e.Node);
-			treeView.BeforeExpand += (s, e) =>
-			{
-				if (e.Node.Nodes.Count == 1 && e.Node.Nodes[0].Text == "...")
-				{
-					form.LoadSubDirectories(e.Node);
-					UpdateNodeIcon(e.Node);
-				}
-			};
+			//treeView.BeforeExpand += (s, e) =>
+			//{
+			//	if (e.Node.Nodes.Count == 1 && e.Node.Nodes[0].Text == "...")
+			//	{
+			//		form.LoadSubDirectories(e.Node);
+			//		UpdateNodeIcon(e.Node);
+			//	}
+			//};
 		}
 
 		public void InitializeListViews()

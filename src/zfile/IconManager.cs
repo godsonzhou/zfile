@@ -278,7 +278,7 @@ namespace WinFormsApp1
 		public static string GetNodeIconKey(TreeNode node)
 		{
 			var ico = GetIconKey(node.Text);
-			Debug.Print("search icon tree key {0} -> {1}", node.Text, ico);
+			//Debug.Print("search icon tree key {0} -> {1}", node.Text, ico);
 			return ico;
 
 			// 如果节点包含Tag并且是ShellItem类型，可以进一步判断

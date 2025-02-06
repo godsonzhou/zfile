@@ -317,19 +317,11 @@ namespace WinFormsApp1
 		private void LeftPathTextBox_PathChanged(object? sender, EventArgs e)
 		{
 			UpdateTreeViewSelection(LeftTree, LeftPathTextBox.CurrentNode.UniqueID);
-			if (LeftTree.SelectedNode != null)
-			{
-				BookmarkManager.UpdateActiveBookmark(LeftPathTextBox.CurrentNode.UniqueID, LeftTree.SelectedNode, true);
-			}
 		}
 
 		private void RightPathTextBox_PathChanged(object? sender, EventArgs e)
 		{
 			UpdateTreeViewSelection(RightTree, RightPathTextBox.CurrentNode.UniqueID);
-			if (RightTree.SelectedNode != null)
-			{
-				BookmarkManager.UpdateActiveBookmark(RightPathTextBox.CurrentNode.UniqueID, RightTree.SelectedNode, false);
-			}
 		}
 
 		private void UpdateTreeViewSelection(TreeView treeView, string path)

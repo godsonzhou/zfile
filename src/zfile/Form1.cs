@@ -575,7 +575,6 @@ namespace WinFormsApp1
         }
         public void TreeView_AfterSelect(object? sender, TreeViewEventArgs e)
         {
-            Debug.Print("TreeView_AfterSelect");
             if (e.Node?.Tag == null) return;
 
             try
@@ -584,18 +583,15 @@ namespace WinFormsApp1
                 {
                     // 清除所有节点的高亮状态
                     ClearTreeViewHighlight(treeView);
-
-                    // 设置当前节点的高亮状态
                     e.Node.BackColor = SystemColors.Highlight;
                     e.Node.ForeColor = SystemColors.HighlightText;
                     treeView.Refresh(); // 强制重绘
 					uiManager.isleft = treeView == uiManager.LeftTree;
-					//var listView = uiManager.isleft ? uiManager.LeftList : uiManager.RightList;
                     LoadSubDirectories(e.Node, activeListView);
-                    //var path = GetFullPath(e.Node);	//bugfix: d:资料->d:\"my document", convert some display name to real path
+                    
                     var path = Helper.getFSpathbyTree(e.Node);
                     if (string.IsNullOrEmpty(path)) return;
-                    LoadListViewByFilesystem(path, activeListView, e.Node);
+                    LoadListViewByFilesystem(path, activeListView, e.Node);//todo: this step will clear the previous loadsubdirectories,!!!
                     currentDirectory = path;
                     selectedNode = e.Node;
                     if (Directory.Exists(path))
@@ -603,15 +599,14 @@ namespace WinFormsApp1
                         watcher.Path = path;
                         watcher.EnableRaisingEvents = true;
                     }
-
                     // 调用leftpathtextbox的setaddress方法来更新路径
                     Debug.Print("treeview afterselect , set addr: {0}", path);
-					//if (treeView == uiManager.LeftTree)
 					if (uiManager.isleft)
 						uiManager.LeftPathTextBox.SetAddress(path);
                     else
                         uiManager.RightPathTextBox.SetAddress(path);
-                }
+					uiManager.BookmarkManager.UpdateActiveBookmark(path, selectedNode, uiManager.isleft);
+				}
             }
             catch (Exception ex)
             {
@@ -884,7 +879,7 @@ namespace WinFormsApp1
                     var pidl = ((ShellItem)node.Tag).PIDL;
                     var pf = ((ShellItem)(node.Parent.Tag)).ShellFolder;
                     var p = w32.GetPathByIShell(pf, pidl);      ////子节点path -> 此电脑\\迅雷下载, c:\\
-                                                                //var n = w32.GetNameByIShell(pf, pidl);    //子节点name -> 迅雷下载, system (c:)
+					//var n = w32.GetNameByIShell(pf, pidl);    //子节点name -> 迅雷下载, system (c:)
                     if (p.Equals(path, StringComparison.OrdinalIgnoreCase))
                         return node;
 
@@ -1139,7 +1134,7 @@ namespace WinFormsApp1
 							}
 						}
 							
-                        Debug.Print("file add to listview ：{0}", item.FullName);
+                        //Debug.Print("file add to listview ：{0}", item.FullName);
                         lvItem.Tag = parentnode;
                         listView.Items.Add(lvItem);
                     }

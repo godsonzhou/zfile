@@ -32,7 +32,7 @@ namespace CmdProcessor
 
         public CmdTableItem? GetByCmdName(string cmdName)
         {
-            return _cmdNameDict.TryGetValue(cmdName, out var item) ? item : null;
+            return _cmdNameDict.TryGetValue(cmdName.ToLower(), out var item) ? item : null;
         }
 
         public CmdTableItem? GetByCmdId(int cmdId)

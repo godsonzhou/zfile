@@ -539,7 +539,8 @@ namespace WinFormsApp1
 
         public void TreeView_NodeMouseClick(object? sender, TreeNodeMouseClickEventArgs e)
         {
-            if (e.Node?.Tag == null) return;
+			//Debug.WriteLine($"TreeView_NodeMouseClick 被触发，控件名称: {((TreeView)sender).Name}");
+			if (e.Node?.Tag == null) return;
             //try
             {
                 string path = e.Node.Text ?? string.Empty;
@@ -549,14 +550,14 @@ namespace WinFormsApp1
 					// 如果path是文件夹，则加载子目录
 					var treeView = sender as TreeView;
                     var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
-                    LoadSubDirectories(e.Node, listView);   // 更新ListView显示
-					LoadListViewByFilesystem(path, listView, e.Node);
+                    ///////LoadSubDirectories(e.Node, listView);   // 更新ListView显示
+					///////LoadListViewByFilesystem(path, listView, e.Node);
 					currentDirectory = path;
                     selectedNode = e.Node;
                     // 更新监视器
                     watcher.Path = path;
                     watcher.EnableRaisingEvents = true;
-                    e.Node.Expand();
+                    //e.Node.Expand();
                 }
                 else
                 {
@@ -592,7 +593,7 @@ namespace WinFormsApp1
                     treeView.Refresh(); // 强制重绘
 					uiManager.isleft = treeView == uiManager.LeftTree;
                     LoadSubDirectories(e.Node, activeListView);
-                    
+					e.Node.Expand();
                     var path = Helper.getFSpathbyTree(e.Node);
                     if (string.IsNullOrEmpty(path)) return;
                     LoadListViewByFilesystem(path, activeListView, e.Node);//todo: this step will clear the previous loadsubdirectories,!!!
@@ -681,9 +682,10 @@ namespace WinFormsApp1
                 treeView.Nodes.Add(rootNode);
                 // 加载并展开根目录
                 LoadSubDirectories(rootNode);
-                rootNode.Expand();
+                //rootNode.Expand();
 				var node = FindTreeNode(rootNode.Nodes, drivepath, true);
-				node?.Expand();
+				treeView.SelectedNode = node;
+				//node?.Expand();
 				treeView.EndUpdate();
             }
             catch (Exception ex)

@@ -563,7 +563,6 @@ namespace WinFormsApp1
 			treeView.NodeMouseClick += form.TreeView_NodeMouseClick;
 			treeView.BeforeExpand += form.TreeView_BeforeExpand;
 			treeView.MouseDown += form.TreeView_MouseDown;
-			
 			treeView.AfterExpand += (s, e) => UpdateNodeIcon(e.Node);
 			//treeView.BeforeExpand += (s, e) =>
 			//{
@@ -843,7 +842,4 @@ namespace WinFormsApp1
 			}
 		}
 	}
-
-
-
 }

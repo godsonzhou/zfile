@@ -10,12 +10,10 @@ namespace WinFormsApp1
 {
     public partial class Form1 : Form
     {
-
         private readonly ThemeManager themeManager;
         private readonly FilePreviewManager previewManager = new();
         private readonly FileSystemManager fsManager = new();
         public readonly UIControlManager uiManager;
-
         private Dictionary<Keys, string> hotkeyMappings;
         private bool isSelecting = false;
         private Point selectionStart;
@@ -33,7 +31,6 @@ namespace WinFormsApp1
         private IShellFolder iDeskTop;
         private Dictionary<string, string> specFolderPaths = new();
         private string[] draggedItems;
-
 
         public Form1()
         {
@@ -339,13 +336,10 @@ namespace WinFormsApp1
             }
         }
 
-
         private void showCtxMenu(TreeNode parentNode, string path, Point location)
         {
-            Debug.Print("showctxmenu:");
+            //Debug.Print("showctxmenu:");
             // 先获取路径的父目录
-            //path = Helper.getFSpath(path);
-
             if (!File.Exists(path) && !Directory.Exists(path))
             {
                 MessageBox.Show("文件或目录不存在: " + path);
@@ -403,11 +397,9 @@ namespace WinFormsApp1
                 // 弹出菜单
                 uint cmd = API.TrackPopupMenuEx(contextMenu, TPM.RETURNCMD,
                     MousePosition.X, MousePosition.Y, this.Handle, IntPtr.Zero);
-
                 // 获取命令序号,执行菜单命令
                 if (cmd >= w32.CMD_FIRST)
                     ContextMenuHandler.InvokeCommand(iContextMenu, cmd, strpath, new POINT(MousePosition.X, MousePosition.Y));
-
             }
             catch (Exception ex)
             {
@@ -545,9 +537,7 @@ namespace WinFormsApp1
 
         public void TreeView_NodeMouseClick(object? sender, TreeNodeMouseClickEventArgs e)
         {
-
             if (e.Node?.Tag == null) return;
-
             //try
             {
                 string path = e.Node.Text ?? string.Empty;
@@ -555,20 +545,15 @@ namespace WinFormsApp1
                 if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
                 {
                     // 如果path是文件夹，则加载子目录
-                    LoadSubDirectories(e.Node);
-
-                    // 更新ListView显示
-                    if (sender is TreeView treeView)
-                    {
-                        var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
-                        LoadSubDirectories(e.Node, listView);
-						LoadListViewByFilesystem(path, listView, e.Node);
-						currentDirectory = path;
-                        selectedNode = e.Node;
-                        // 更新监视器
-                        watcher.Path = path;
-                        watcher.EnableRaisingEvents = true;
-                    }
+					var treeView = sender as TreeView;
+                    var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
+                    LoadSubDirectories(e.Node, listView);   // 更新ListView显示
+					LoadListViewByFilesystem(path, listView, e.Node);
+					currentDirectory = path;
+                    selectedNode = e.Node;
+                    // 更新监视器
+                    watcher.Path = path;
+                    watcher.EnableRaisingEvents = true;
                     e.Node.Expand();
                 }
                 else
@@ -605,7 +590,6 @@ namespace WinFormsApp1
                     e.Node.ForeColor = SystemColors.HighlightText;
                     treeView.Refresh(); // 强制重绘
 					uiManager.isleft = treeView == uiManager.LeftTree;
-
 					//var listView = uiManager.isleft ? uiManager.LeftList : uiManager.RightList;
                     LoadSubDirectories(e.Node, activeListView);
                     //var path = GetFullPath(e.Node);	//bugfix: d:资料->d:\"my document", convert some display name to real path
@@ -614,8 +598,6 @@ namespace WinFormsApp1
                     LoadListViewByFilesystem(path, activeListView, e.Node);
                     currentDirectory = path;
                     selectedNode = e.Node;
-
-                    // 更新监视器
                     if (Directory.Exists(path))
                     {
                         watcher.Path = path;
@@ -636,7 +618,6 @@ namespace WinFormsApp1
                 MessageBox.Show($"TreeView_AfterSelect加载目录失败: {ex.Message}", "错误");
             }
         }
-	
 		private string GetFullPath(TreeNode node)
         {
             List<string> pathParts = new List<string>();
@@ -677,7 +658,6 @@ namespace WinFormsApp1
                 //if ((attributes & SFGAO.STORAGE) != 0)
                 //	type += "storage";
                 //type += ((uint)attributes).ToString();
-
             }
             return type;
         }
@@ -703,7 +683,7 @@ namespace WinFormsApp1
                 // 加载并展开根目录
                 LoadSubDirectories(rootNode);
                 rootNode.Expand();
-				var node = FindTreeNode(rootNode.Nodes, drivepath);
+				var node = FindTreeNode(rootNode.Nodes, drivepath, true);
 				node?.Expand();
 				treeView.EndUpdate();
             }
@@ -722,10 +702,6 @@ namespace WinFormsApp1
 				var v = sender as ListView;
 				uiManager.isleft = v == uiManager.LeftList;
                 v?.SelectedItems.Clear();
-                //if (activeListView == uiManager.LeftList)
-                //    activeTreeview = uiManager.LeftTree;
-                //else
-                //    activeTreeview = uiManager.RightTree;
             }
         }
 
@@ -896,10 +872,10 @@ namespace WinFormsApp1
 
         public TreeNode? FindTreeNode(TreeNodeCollection nodes, string path, bool deepSearch = false)
         {
-            Debug.Print("FindTreeNode -> {0}", path);
+            //Debug.Print("FindTreeNode -> {0}", path);
             foreach (TreeNode node in nodes)
             {
-                Debug.Print("FindTreeNode -> node: {0}, {1}", node.Text, node.FullPath);
+                //Debug.Print("FindTreeNode -> node: {0}, {1}", node.Text, node.FullPath);
                 //bug fix: node.fullpath=桌面\此电脑\system (C:)\aDrive, path=c:\\
                 if (path.Equals(node.Text, StringComparison.OrdinalIgnoreCase)) return node;
                 if (!deepSearch) continue;
@@ -912,7 +888,7 @@ namespace WinFormsApp1
                     if (p.Equals(path, StringComparison.OrdinalIgnoreCase))
                         return node;
 
-                    if (!(p.Equals("此电脑") && path.Contains(":")))
+                    if (!(p.Equals("此电脑") && path.Contains(':')))
                     {
                         if (!path.Contains(p))
                             continue;
@@ -924,7 +900,7 @@ namespace WinFormsApp1
                 TreeNode? foundNode = FindTreeNode(node.Nodes, path, deepSearch);
                 if (foundNode != null)
                 {
-                    Debug.Print("FindTreeNode -> foundNode: {0}", foundNode.Text);
+                    //Debug.Print("FindTreeNode -> foundNode: {0}", foundNode.Text);
                     return foundNode;
                 }
             }

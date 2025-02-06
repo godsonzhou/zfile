@@ -252,7 +252,7 @@ namespace CmdProcessor
 						owner.uiManager.BookmarkManager.ToggleCurrentBookmarkLock(owner.uiManager.isleft);
 						break;
                     case 24340:
-                        owner.ExitApp();
+                        Form1.ExitApp();
                         break;
 					//∑Ò‘Údo nothing
 					default:

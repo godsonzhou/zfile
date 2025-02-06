@@ -28,8 +28,8 @@ namespace WinFormsApp1
                 MessageBox.Show($"复制目录失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
-        public List<FileSystemInfo> GetDirectoryContents(string path)
+		
+        public List<FileSystemInfo> GetDirectoryContents(string path, WinShell.ReadDirContentsMode readmode = WinShell.ReadDirContentsMode.Both)
         {
             var currentTime = DateTime.Now;
             var needsUpdate = !_directoryCache.ContainsKey(path) ||
@@ -42,22 +42,26 @@ namespace WinFormsApp1
 
                 try
                 {
-                    foreach (var dir in directoryInfo.GetDirectories())
-                    {
-                        if ((dir.Attributes & FileAttributes.Hidden) == 0)
-                        {
-                            items.Add(dir);
-                        }
-                    }
-
-                    foreach (var file in directoryInfo.GetFiles())
-                    {
-                        if ((file.Attributes & FileAttributes.Hidden) == 0)
-                        {
-                            items.Add(file);
-                        }
-                    }
-
+					if ((readmode & WinShell.ReadDirContentsMode.Folder) != 0)
+					{
+						foreach (var dir in directoryInfo.GetDirectories())
+						{
+							if ((dir.Attributes & FileAttributes.Hidden) == 0)
+							{
+								items.Add(dir);
+							}
+						}
+					}
+					if ((readmode & WinShell.ReadDirContentsMode.File) != 0)
+					{
+						foreach (var file in directoryInfo.GetFiles())
+						{
+							if ((file.Attributes & FileAttributes.Hidden) == 0)
+							{
+								items.Add(file);
+							}
+						}
+					}
                     _directoryCache[path] = items;
                     _lastCacheUpdate = currentTime;
                 }

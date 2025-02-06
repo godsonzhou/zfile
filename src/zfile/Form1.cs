@@ -1,6 +1,8 @@
 using CmdProcessor;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using WinShell;
 using Keys = System.Windows.Forms.Keys;
 
@@ -210,7 +212,7 @@ namespace WinFormsApp1
 
             // 刷新目标视图
             var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
-            LoadListView(targetNode, listView);
+            LoadSubDirectories(targetNode, listView);
         }
         public void ListView_DragDrop(object? sender, DragEventArgs e)
         {
@@ -546,7 +548,7 @@ namespace WinFormsApp1
 
             if (e.Node?.Tag == null) return;
 
-            try
+            //try
             {
                 string path = e.Node.Text ?? string.Empty;
                 Debug.Print("TreeView_NodeMouseClick：{0}", path);
@@ -559,8 +561,9 @@ namespace WinFormsApp1
                     if (sender is TreeView treeView)
                     {
                         var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
-                        LoadListView(e.Node, listView, true);
-                        currentDirectory = path;
+                        LoadSubDirectories(e.Node, listView);
+						LoadListViewByFilesystem(path, listView, e.Node);
+						currentDirectory = path;
                         selectedNode = e.Node;
                         // 更新监视器
                         watcher.Path = path;
@@ -574,10 +577,10 @@ namespace WinFormsApp1
                     Debug.Print(GetNodeType(e.Node));
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"TreeView_NodeMouseClick加载目录失败: {ex.Message}", "错误");
-            }
+            //catch (Exception ex)
+            //{
+            //    MessageBox.Show($"TreeView_NodeMouseClick加载目录失败: {ex.Message}", "错误");
+            //}
         }
         public void TreeView_BeforeExpand(object sender, TreeViewCancelEventArgs e)
         {
@@ -604,7 +607,7 @@ namespace WinFormsApp1
 					uiManager.isleft = treeView == uiManager.LeftTree;
 
 					//var listView = uiManager.isleft ? uiManager.LeftList : uiManager.RightList;
-                    LoadListView(e.Node, activeListView);
+                    LoadSubDirectories(e.Node, activeListView);
                     //var path = GetFullPath(e.Node);	//bugfix: d:资料->d:\"my document", convert some display name to real path
                     var path = Helper.getFSpathbyTree(e.Node);
                     if (string.IsNullOrEmpty(path)) return;
@@ -633,8 +636,8 @@ namespace WinFormsApp1
                 MessageBox.Show($"TreeView_AfterSelect加载目录失败: {ex.Message}", "错误");
             }
         }
-
-        private string GetFullPath(TreeNode node)
+	
+		private string GetFullPath(TreeNode node)
         {
             List<string> pathParts = new List<string>();
             while (node != null)
@@ -656,55 +659,7 @@ namespace WinFormsApp1
             foreach (TreeNode childNode in node.Nodes)
                 ClearNodeHighlight(childNode);
         }
-        public void LoadSubDirectories(TreeNode parentNode)
-        {
-            Debug.Print("LoadSubDirectories:{0}", parentNode.Text);
-            ShellItem sItem = (ShellItem)parentNode.Tag;
-            if (sItem == null) return;
-            IShellFolder root = sItem.ShellFolder;  //需要加载子目录的treenode的ishellfoler接口，用于enumobjects其所有下层子目录和文件
-                                                    //bug to be fixed: 增加root是否为正常的folder, 比如 root=迅雷下载时，系统会报异常
-            if (root == null || parentNode.Text.Equals("迅雷下载")) return;
-            //var p = w32.GetPathByIShell(iDeskTop, sItem.PIDL);
-            //var n = w32.GetNameByIShell(iDeskTop, sItem.PIDL);
-
-            // 清除现有子节点，避免重复添加
-            parentNode.Nodes.Clear();
-
-            IEnumIDList Enum = null;
-            IntPtr EnumPtr = IntPtr.Zero;
-            IntPtr pidlSub;		//子节点的pidl
-            uint celtFetched;
-            if (root.EnumObjects(this.Handle, SHCONTF.FOLDERS, out EnumPtr) == w32.S_OK)    // 循环查找子项
-            {
-                if (EnumPtr == IntPtr.Zero)  //如果node=程序和功能,则EnumPtr=0，直接返回
-                {
-                    return;
-                }
-                Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
-                while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == w32.S_FALSE)
-                {
-                    string name = w32.GetNameByIShell(root, pidlSub);   //子节点name -> 迅雷下载, system (c:)
-                    string path = w32.GetPathByIShell(root, pidlSub);   //子节点path -> 此电脑\\迅雷下载, c:\\
-                                                                        //Debug.Print(path);
-                    IShellFolder iSub;//子节点的ishellfolder接口
-                    root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);
-
-                    TreeNode nodeSub = new TreeNode(name);
-                    nodeSub.Tag = new ShellItem(pidlSub, iSub); //子节点的tag存放pidl和ishellfolder接口
-                    nodeSub.ImageKey = IconManager.GetNodeIconKey(nodeSub);
-
-                    //if(IsChildrenExist(nodeSub))
-                    nodeSub.Nodes.Add("...");
-                    parentNode.Nodes.Add(nodeSub);
-                }
-            }
-        }
-        private void printattr(SFGAO attr)
-        {
-            //根据attr的枚举类型,强制转换成整形数，再转换成2进制，最后返回字符串类型
-            //
-
-        }
+       
         private string GetNodeType(TreeNode node)
         {
             var type = string.Empty;
@@ -726,7 +681,7 @@ namespace WinFormsApp1
             }
             return type;
         }
-        public void LoadDriveIntoTree(TreeView treeView, string drivePath)
+        public void LoadDriveIntoTree(TreeView treeView, string drivepath)
         {
             Debug.Print("LoadDriveIntoTree");
             try
@@ -748,7 +703,9 @@ namespace WinFormsApp1
                 // 加载并展开根目录
                 LoadSubDirectories(rootNode);
                 rootNode.Expand();
-                treeView.EndUpdate();
+				var node = FindTreeNode(rootNode.Nodes, drivepath);
+				node?.Expand();
+				treeView.EndUpdate();
             }
             catch (Exception ex)
             {
@@ -1091,81 +1048,163 @@ namespace WinFormsApp1
         //}
         //}
 
-
-
         public void ExitApp()
         {
             Application.Exit();
         }
+		public void LoadSubDirectories(TreeNode node, ListView lv = null)
+		{
+			if (lv != null)
+			{
+				if (lv.SmallImageList == null)
+					lv.SmallImageList = new ImageList();
+				lv.BeginUpdate();
+				lv.Items.Clear();
+			}
+			ShellItem sItem = (ShellItem)node.Tag;
+			if (sItem == null) return;
+			IShellFolder root = sItem.ShellFolder;
+			if (root == null || node.Text.Equals("迅雷下载")) return;
+			// 清除现有子节点，避免重复添加
+			node.Nodes.Clear();
+			IEnumIDList Enum = null;
+			IntPtr EnumPtr = IntPtr.Zero;
+			IntPtr pidlSub;     //子节点的pidl
+			uint celtFetched;
+			if (root.EnumObjects(this.Handle, SHCONTF.FOLDERS, out EnumPtr) == w32.S_OK)    // 循环查找子项
+			{
+				if (EnumPtr == IntPtr.Zero)  //如果node=程序和功能,则EnumPtr=0，直接返回
+					return;
 
+				Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
+				while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == w32.S_FALSE)
+				{
+					string name;// = w32.GetNameByIShell(root, pidlSub);   //子节点name -> 迅雷下载, system (c:)
+					string path = w32.GetPathByIShell(root, pidlSub);   //子节点path -> 此电脑\\迅雷下载, c:\\
+																		//Debug.Print(path);
+					IShellFolder iSub;//子节点的ishellfolder接口
+					root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);
 
-        // 驱动器选择变更事件处理
-        private void DriveComboBox_SelectedIndexChanged(object? sender, EventArgs e)
-        {
-            if (sender is not ComboBox comboBox) return;
+					var pathPart = path.Split('\\');
+					name = !pathPart[pathPart.Length - 1].Equals(string.Empty) ? pathPart[pathPart.Length - 1] : pathPart[pathPart.Length - 2];
+					TreeNode nodeSub = new TreeNode(name);
+					nodeSub.Tag = new ShellItem(pidlSub, iSub); //子节点的tag存放pidl和ishellfolder接口
+					nodeSub.ImageKey = IconManager.GetNodeIconKey(nodeSub);
 
-            var treeView = comboBox == uiManager.LeftDriveBox ? uiManager.LeftTree : uiManager.RightTree;
-            var listView = comboBox == uiManager.LeftDriveBox ? uiManager.LeftList : uiManager.RightList;
+					//if(IsChildrenExist(nodeSub))
+					nodeSub.Nodes.Add("...");
+					node.Nodes.Add(nodeSub);
 
-            if (comboBox.SelectedItem is string drivePath)
-            {
-                LoadDriveIntoTree(treeView, drivePath);
-                //LoadListView(drivePath, listView);
-            }
-        }
-        //加载选定树节点的子文件夹和文件到listview中
-        private void LoadListView(TreeNode node, ListView listView, bool includefile = false)
-        {
-            Debug.Print("LoadListView");
-            if (listView == null) return;
-            if (listView.SmallImageList == null)
-            {
-                listView.SmallImageList = new ImageList();
-            }
-            ShellItem sItem = (ShellItem)node.Tag;
-            IShellFolder root = sItem.ShellFolder;
+					if (lv != null)
+					{
+						string[] s = { "", name, "", name.Contains(':') ? "本地磁盘" : "<DIR>", "" };
+						var i = new ListViewItem(s);
+						//i.ImageIndex = iconIndex;
+						var ico = IconManager.GetIconKey(name);
+						//Debug.Print("search ico list{0} - > {1}", name, ico);
+						i.ImageKey = ico;
+						i.Text = name;
+						i.Tag = node;   //tag存放父节点
+						lv.Items.Add(i);
+					}
+				}
+				lv?.EndUpdate();
+			}
+		}
+		//public void LoadSubDirectories(TreeNode parentNode)
+		//{
+		//	Debug.Print("LoadSubDirectories:{0}", parentNode.Text);
+		//	ShellItem sItem = (ShellItem)parentNode.Tag;
+		//	if (sItem == null) return;
+		//	IShellFolder root = sItem.ShellFolder;  //需要加载子目录的treenode的ishellfoler接口，用于enumobjects其所有下层子目录和文件
+		//											//bug to be fixed: 增加root是否为正常的folder, 比如 root=迅雷下载时，系统会报异常
+		//	if (root == null || parentNode.Text.Equals("迅雷下载")) return;
 
-            // 循环查找子项
-            IEnumIDList Enum = null;
-            IntPtr EnumPtr = IntPtr.Zero;
-            IntPtr pidlSub;
-            uint celtFetched;
-            listView.BeginUpdate();
-            listView.Items.Clear();
+		//	// 清除现有子节点，避免重复添加
+		//	parentNode.Nodes.Clear();
 
-            var flag = includefile ? SHCONTF.FOLDERS | SHCONTF.NONFOLDERS : SHCONTF.FOLDERS;
-            // 加载文件夹和文件
-            if (root.EnumObjects(this.Handle, flag, out EnumPtr) == w32.S_OK)
-            {
-                Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
-                while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == w32.S_FALSE)
-                {
-                    string name = w32.GetNameByIShell(root, pidlSub);
-                    string pth = w32.GetPathByIShell(root, pidlSub);
-                    Debug.Print(pth);
-                    IShellFolder iSub;
-                    root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);
-                    //TODO: 目录的图标不正确 bug
-                    //Icon icon = IconHelper.GetIconByFileType(name.Contains(':') ? "folder" : Path.GetExtension(name), false);
-                    var fiwi = new FileInfoWithIcon(name);
-                    //var icon = fiwi.smallIcon != null ? fiwi.smallIcon : Helper.GetIconByFileName("FILE", name);
-                    //int iconIndex = listView.SmallImageList.Images.Count;
-                    //listView.SmallImageList.Images.Add(icon);
+		//	IEnumIDList Enum = null;
+		//	IntPtr EnumPtr = IntPtr.Zero;
+		//	IntPtr pidlSub;     //子节点的pidl
+		//	uint celtFetched;
+		//	if (root.EnumObjects(this.Handle, SHCONTF.FOLDERS, out EnumPtr) == w32.S_OK)    // 循环查找子项
+		//	{
+		//		if (EnumPtr == IntPtr.Zero)  //如果node=程序和功能,则EnumPtr=0，直接返回
+		//			return;
+				
+		//		Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
+		//		while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == w32.S_FALSE)
+		//		{
+		//			string name;// = w32.GetNameByIShell(root, pidlSub);   //子节点name -> 迅雷下载, system (c:)
+		//			string path = w32.GetPathByIShell(root, pidlSub);   //子节点path -> 此电脑\\迅雷下载, c:\\
+		//																//Debug.Print(path);
+		//			IShellFolder iSub;//子节点的ishellfolder接口
+		//			root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);
+				
+		//			var pathPart = path.Split('\\');
+		//			name = !pathPart[pathPart.Length - 1].Equals(string.Empty) ? pathPart[pathPart.Length - 1] : pathPart[pathPart.Length - 2];
+		//			TreeNode nodeSub = new TreeNode(name);
+		//			nodeSub.Tag = new ShellItem(pidlSub, iSub); //子节点的tag存放pidl和ishellfolder接口
+		//			nodeSub.ImageKey = IconManager.GetNodeIconKey(nodeSub);
 
-                    string[] s = { "", name, "", name.Contains(':') ? "本地磁盘" : "<DIR>", "" };
-                    var i = new ListViewItem(s);
-                    //i.ImageIndex = iconIndex;
-                    var ico = IconManager.GetIconKey(name);
-                    Debug.Print("search ico list{0} - > {1}", name, ico);
-                    i.ImageKey = ico;
-                    i.Text = name;
-                    i.Tag = node;   //tag存放父节点
-                    listView.Items.Add(i);
-                }
-            }
+		//			//if(IsChildrenExist(nodeSub))
+		//			nodeSub.Nodes.Add("...");
+		//			parentNode.Nodes.Add(nodeSub);
+		//		}
+		//	}
+		//}
+		////加载选定树节点的子文件夹和文件到listview中
+		//private void LoadListView(TreeNode node, ListView listView)
+  //      {
+  //          Debug.Print("LoadListView");
+  //          if (listView == null) return;
+  //          if (listView.SmallImageList == null)
+  //          {
+  //              listView.SmallImageList = new ImageList();
+  //          }
+  //          ShellItem sItem = (ShellItem)node.Tag;
+  //          IShellFolder root = sItem.ShellFolder;
 
-            listView.EndUpdate();
-        }
+  //          // 循环查找子项
+  //          IEnumIDList Enum = null;
+  //          IntPtr EnumPtr = IntPtr.Zero;
+  //          IntPtr pidlSub;
+  //          uint celtFetched;
+  //          listView.BeginUpdate();
+  //          listView.Items.Clear();
+
+  //          // 加载文件夹和文件
+  //          if (root.EnumObjects(this.Handle, SHCONTF.FOLDERS, out EnumPtr) == w32.S_OK)
+  //          {
+  //              Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
+  //              while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == w32.S_FALSE)
+  //              {
+		//			string name;// = w32.GetNameByIShell(root, pidlSub);
+  //                  string path = w32.GetPathByIShell(root, pidlSub);
+  //                  Debug.Print(">>>>>>>>>>>"+path);
+  //                  IShellFolder iSub;
+  //                  root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out iSub);
+		//			//Icon icon = IconHelper.GetIconByFileType(name.Contains(':') ? "folder" : Path.GetExtension(name), false);
+		//			//var fiwi = new FileInfoWithIcon(name);
+		//			//var icon = fiwi.smallIcon != null ? fiwi.smallIcon : Helper.GetIconByFileName("FILE", name);
+		//			//int iconIndex = listView.SmallImageList.Images.Count;
+		//			//listView.SmallImageList.Images.Add(icon);
+		//			var pathPart = path.Split('\\');
+		//			name = !pathPart[pathPart.Length - 1].Equals(string.Empty) ? pathPart[pathPart.Length - 1] : pathPart[pathPart.Length - 2];
+		//			string[] s = { "", name, "", name.Contains(':') ? "本地磁盘" : "<DIR>", "" };
+  //                  var i = new ListViewItem(s);
+  //                  //i.ImageIndex = iconIndex;
+  //                  var ico = IconManager.GetIconKey(name);
+  //                  Debug.Print("search ico list{0} - > {1}", name, ico);
+  //                  i.ImageKey = ico;
+  //                  i.Text = name;
+  //                  i.Tag = node;   //tag存放父节点
+  //                  listView.Items.Add(i);
+  //              }
+  //          }
+
+  //          listView.EndUpdate();
+  //      }
         private bool IsChildrenExist(TreeNode node, bool includefile = false)
         {
             ShellItem sItem = (ShellItem)node.Tag;
@@ -1196,12 +1235,10 @@ namespace WinFormsApp1
             if (string.IsNullOrEmpty(path)) return;
             if (!path.Contains(':')) return;
             path = Helper.getFSpath(path);
-            if (path.EndsWith(':'))
-                path += "\\";
+            if (path.EndsWith(':')) path += "\\";
 
             try
             {
-                //path = Helper.getFSpathbyList(path);
                 var items = fsManager.GetDirectoryContents(path);
 
                 listView.BeginUpdate();
@@ -1211,14 +1248,14 @@ namespace WinFormsApp1
                 {
                     if ((item.Attributes & FileAttributes.Hidden) != 0) continue;
 
-                    var lvItem = CreateListViewItem(item);//TODO: ADD ICON
+                    var lvItem = CreateListViewItem(item);
                     if (lvItem != null)
                     {
 						if (lvItem.SubItems[3].Text.Equals("<DIR>"))
 							lvItem.ImageKey = "folder";
 						else
 						{
-							var ico = IconManager.GetIconByFileNameEx("FILE", item.FullName);   //ExtractIconFromFile(item.FullName, 0);
+							var ico = IconManager.GetIconByFileNameEx("FILE", item.FullName);  
 							if (ico != null)
 							{
 								listView.SmallImageList.Images.Add(ico);
@@ -1636,7 +1673,7 @@ namespace WinFormsApp1
                 LoadSubDirectories(selectedNode);
                 selectedNode.Expand();
             }
-            LoadListView(selectedNode, listView);
+            LoadSubDirectories(selectedNode, listView);
             LoadListViewByFilesystem(path, listView, selectedNode);
         }
 

@@ -434,7 +434,7 @@ namespace WinShell
 		public static extern int SHGetSpecialFolderLocation(IntPtr handle, CSIDL nFolder, out IntPtr ppidl);
 
 		[DllImport("shell32.dll", CharSet = CharSet.Auto)]
-		private static extern bool SHGetPathFromIDList(IntPtr pidl, StringBuilder pszPath);
+		public static extern bool SHGetPathFromIDList(IntPtr pidl, StringBuilder pszPath);
 
 		[DllImport("shell32", EntryPoint = "SHGetFileInfo", ExactSpelling = false, CharSet = CharSet.Auto, SetLastError = true)]
 		public static extern IntPtr SHGetFileInfo(

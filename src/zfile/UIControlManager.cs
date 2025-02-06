@@ -679,13 +679,17 @@ namespace WinFormsApp1
 		{
 			// 初始化左侧书签Panel
 			leftBookmarkPanel.Dock = DockStyle.Top;
-			leftBookmarkPanel.Height = 30;
+			var leftlines = Helper.GetFlowLayoutPanelLineCount(leftBookmarkPanel);
+			leftBookmarkPanel.Height = 30 * leftlines;
+			leftBookmarkPanel.WrapContents = true;
 			leftBookmarkPanel.DoubleClick += BookmarkPanel_DoubleClick;
 			LeftPanel.Panel2.Controls.Add(leftBookmarkPanel);
 
 			// 初始化右侧书签Panel
+			var rightlines = Helper.GetFlowLayoutPanelLineCount(rightBookmarkPanel);
 			rightBookmarkPanel.Dock = DockStyle.Top;
-			rightBookmarkPanel.Height = 30;
+			rightBookmarkPanel.Height = 30 * rightlines;
+			rightBookmarkPanel.WrapContents = true;
 			rightBookmarkPanel.DoubleClick += BookmarkPanel_DoubleClick;
 			RightPanel.Panel2.Controls.Add(rightBookmarkPanel);
 

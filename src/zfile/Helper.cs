@@ -15,6 +15,29 @@ namespace WinFormsApp1
 	}
 	internal static class Helper
 	{
+		public static int GetFlowLayoutPanelLineCount(FlowLayoutPanel panel)
+		{
+			if (panel.Controls.Count == 0)
+			{
+				return 0;
+			}
+
+			int rowCount = 1;
+			int currentMaxY = panel.Controls[0].Top;
+
+			// 遍历所有子控件
+			foreach (Control control in panel.Controls)
+			{
+				if (control.Top > currentMaxY)
+				{
+					// 如果当前控件的 Y 坐标大于之前记录的最大 Y 坐标，说明进入了新的一行
+					rowCount++;
+					currentMaxY = control.Top;
+				}
+			}
+
+			return rowCount;
+		}
 		public static List<string> ReadSectionContent(string filePath, string targetSection)
 		{
 			List<string> sectionContent = new List<string>();

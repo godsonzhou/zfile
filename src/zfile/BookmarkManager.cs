@@ -80,8 +80,13 @@ namespace WinFormsApp1
             panel.DragEnter += BookmarkPanel_DragEnter;
             panel.DragDrop += BookmarkPanel_DragDrop;
         }
-
-        public void CreateDefaultBookmarks()
+		private void Refresh(FlowLayoutPanel panel)
+		{
+			var l = Helper.GetFlowLayoutPanelLineCount(panel);
+			panel.Height = l * 30;
+			panel.Refresh();
+		}
+		public void CreateDefaultBookmarks()
         {
             if (leftBookmarks.Count == 0)
             {
@@ -115,6 +120,7 @@ namespace WinFormsApp1
 
             panel.Controls.Add(bookmark.Control);
             SetActiveBookmark(bookmark, isLeft);
+			Refresh(panel);
         }
 
         private void BookmarkLabel_MouseClick(Bookmark bookmark, MouseEventArgs e, bool isLeft)
@@ -222,7 +228,7 @@ namespace WinFormsApp1
 
             bookmarkList.Remove(bookmark);
             panel.Controls.Remove(bookmark.Control);
-
+			Refresh(panel);
             // 如果删除的是活动书签，设置新的活动书签
             if (isLeft && activeLeftBookmark == bookmark)
             {
@@ -294,7 +300,7 @@ namespace WinFormsApp1
                 AddBookmark(newPath, newNode, isLeft);
             }
         }
-
+		
         private void BookmarkPanel_DragEnter(object? sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(typeof(Bookmark)))

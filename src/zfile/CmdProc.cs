@@ -60,8 +60,8 @@ namespace CmdProcessor
                         var cmdParts = parts[0].Split('=');
                         if (cmdParts.Length == 2 && int.TryParse(cmdParts[1], out var cmdId))
                         {
-                            var cmdName = cmdParts[0];
-                            var description = parts.Length > 1 ? parts[1] : string.Empty;
+                            var cmdName = cmdParts[0].ToLower();//bugfix: cm_SrcThumbs in cfgfile， but in toolbarstrip, the button trigger cmd is cm_srcthumbs, so we need to convert cm_SrcThumbs to cm_srcthumbs
+							var description = parts.Length > 1 ? parts[1] : string.Empty;
                             var zhDesc = zhDescDict.TryGetValue(cmdId, out var desc) ? desc : string.Empty;
                             var cmdItem = new CmdTableItem(cmdName, cmdId, description, zhDesc);
                             cmdTable.Add(cmdItem);
@@ -179,7 +179,9 @@ namespace CmdProcessor
 
         public CmdTableItem? GetCmdByName(string cmdName)
         {
-            return cmdTable.GetByCmdName(cmdName);
+			//if (cmdName[0] == '"') 
+			//	cmdName = cmdName.TrimStart('"').TrimEnd('"');
+			return cmdTable.GetByCmdName(cmdName);
         }
 
         public CmdTableItem? GetCmdById(int cmdId)
@@ -187,7 +189,7 @@ namespace CmdProcessor
             return cmdTable.GetByCmdId(cmdId);
         }
         // 处理由菜单栏和工具栏发起的动作
-        public void processCmdByName(string cmdName)
+        public void ExecCmdByName(string cmdName)
         {
             if (cmdName.StartsWith("cm_"))
             {
@@ -196,7 +198,7 @@ namespace CmdProcessor
                 {
                     Console.WriteLine($"Processing command: {cmdItem}");
 					// 在这里添加处理命令的逻辑
-					processCmdByID(cmdItem.Value.CmdId);
+					ExecCmdByID(cmdItem.Value.CmdId);
                 }
                 else
                 {
@@ -208,11 +210,11 @@ namespace CmdProcessor
                 var parts = cmdName.Split(',');
                 if (parts.Length == 2 && int.TryParse(parts[1], out var cmdId))
                 {
-                    processCmdByID(cmdId);
+                    ExecCmdByID(cmdId);
                 }
             }
         }
-        public void processCmdByID(int cmdId)
+        public void ExecCmdByID(int cmdId)
         {
             if (cmdTable.GetByCmdId(cmdId) != null)
             {
@@ -220,13 +222,16 @@ namespace CmdProcessor
                 // 在这里添加处理命令的逻辑
                 switch (cmdId)
                 {
-                    case 301:
+					case 269:   //cm_srcthumbs
+						owner.SetViewMode(View.Tile);
+						break;
+					case 301:
                         // 若owner是IActiveListViewChangeable的实例，则调用activeListViewChange方法
                         //if (owner is IActiveListViewChangeable changeableOwner)
-                        owner.ActiveListViewChange(View.List);
+                        owner.SetViewMode(View.List);
                         break;
                     case 302:
-                        owner.ActiveListViewChange(View.Details);
+                        owner.SetViewMode(View.Details);
                         break;
                     case 490:
                         owner.OpenOptions();

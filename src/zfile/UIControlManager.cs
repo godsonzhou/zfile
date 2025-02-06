@@ -725,7 +725,8 @@ namespace WinFormsApp1
 		{
 			if (sender is ToolStripItem item && item.Tag is string cmd)
 			{
-				MessageBox.Show($"执行命令: {cmd}", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				Debug.Print($"执行命令: {cmd} <信息");
+				form.cmdProcessor.ExecCmdByName(cmd);
 			}
 		}
 		public void InitializeDropdownMenu(ToolStripDropDownButton dropdownButton, string dropdownFilePath)

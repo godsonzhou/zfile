@@ -96,7 +96,7 @@ namespace WinFormsApp1
         {
             if (hotkeyMappings.TryGetValue(e.KeyData, out string cmdName))
             {
-                cmdProcessor.processCmdByName(cmdName);
+                cmdProcessor.ExecCmdByName(cmdName);
             }
             else if (e.KeyCode == Keys.T)
             {
@@ -105,7 +105,7 @@ namespace WinFormsApp1
 			else
 			{
 				var cmd = keyManager.GetByKeyCode(e.KeyCode);
-				cmdProcessor.processCmdByName(cmd);
+				cmdProcessor.ExecCmdByName(cmd);
 			}
 			e.Handled = true;
 		}
@@ -310,10 +310,7 @@ namespace WinFormsApp1
         {
             void ActiveListViewChange(View view);
         }
-        public void ActiveListViewChange(View v)
-        {
-            activeListView.View = v; // View.LargeIcon;
-        }
+     
 
         public void TreeView_MouseDown(object sender, MouseEventArgs e)
         {
@@ -1674,10 +1671,14 @@ namespace WinFormsApp1
         {
             if (sender is ToolStripMenuItem menuItem)
             {
-                MessageBox.Show($"点击了菜单项: {menuItem.Text}", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                cmdProcessor.processCmdByName(menuItem.Text);
+                Debug.Print($"点击了菜单项: {menuItem.Text}");
+                cmdProcessor.ExecCmdByName(menuItem.Text);
             }
         }
-
+		
+		public void SetViewMode(View viewMode)
+		{
+			activeListView.View = viewMode;
+		}
     }
 }

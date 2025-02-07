@@ -239,8 +239,11 @@ namespace CmdProcessor
 					case 511: // 添加对 cmdID 为 511 的处理
 						owner.OpenCommandPrompt();
 						break;
-					case 903:
+					case 903: //cm_list
 						owner.do_cm_list();
+						break;
+					case 904: //cm_edit
+						owner.do_cm_edit();
 						break;
 					case 2950:
                         owner.ThemeToggle();

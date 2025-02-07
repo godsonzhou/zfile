@@ -1464,11 +1464,32 @@ namespace WinFormsApp1
                 viewerForm.Show();
             }
         }
+		public void do_cm_edit()
+		{
+			// 编辑按钮点击处理逻辑
+			// OPEN VIEWERFORM
+			var listView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
+			if (listView.SelectedItems.Count == 0) return;
+			var selectedItem = listView.SelectedItems[0];
+			var filePath = Helper.getFSpath(Path.Combine(currentDirectory, selectedItem.Text));
 
+			if (File.Exists(filePath))
+			{
+				Form viewerForm = new ViewerForm
+				{
+					Text = $"查看文件 - {selectedItem.Text}",
+					Size = new Size(800, 600)
+				};
+
+				//Control viewerControl = previewManager.CreatePreviewControl(filePath);
+				//viewerForm.Controls.Add(viewerControl);
+				viewerForm.Show();
+			}
+		}
         public void EditButton_Click(object? sender, EventArgs e)
         {
-            // 编辑按钮点击处理逻辑
-        }
+			do_cm_edit();
+		}
 
         public void CopyButton_Click(object? sender, EventArgs e)
         {

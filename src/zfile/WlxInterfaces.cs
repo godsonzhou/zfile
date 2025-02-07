@@ -358,7 +358,7 @@ namespace WinFormsApp1
 		{
 			if (!Directory.Exists(directory)) return;
 
-			foreach (var file in Directory.GetFiles(directory, "*.wlx"))
+			foreach (var file in Directory.GetFiles(directory, "*.wlx64"))
 			{
 				try
 				{

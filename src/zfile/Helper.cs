@@ -15,6 +15,24 @@ namespace WinFormsApp1
 	}
 	internal static class Helper
 	{
+		public static string[] RemoveQuotes(string[] originalList)
+		{
+			List<string> resultList = new List<string>();
+			foreach (string item in originalList)
+			{
+				if (item.StartsWith("\"") && item.EndsWith("\""))
+				{
+					// Remove the leading and trailing double - quotes
+					resultList.Add(item.Substring(1, item.Length - 2));
+				}
+				else
+				{
+					resultList.Add(item);
+				}
+			}
+			return resultList.ToArray();
+		}
+
 		public static int GetFlowLayoutPanelLineCount(FlowLayoutPanel panel)
 		{
 			if (panel.Controls.Count == 0)

@@ -1475,7 +1475,7 @@ namespace WinFormsApp1
 
 			if (File.Exists(filePath))
 			{
-				Form viewerForm = new ViewerForm
+				Form viewerForm = new ViewerForm(filePath)
 				{
 					Text = $"查看文件 - {selectedItem.Text}",
 					Size = new Size(800, 600)

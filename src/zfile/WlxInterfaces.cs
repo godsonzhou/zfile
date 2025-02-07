@@ -338,13 +338,15 @@ namespace WinFormsApp1
 			if (string.IsNullOrEmpty(module.DetectString)) return false;
 
 			// 解析检测字符串
-			var detectParts = module.DetectString.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+			var detectParts = module.DetectString.ToLower().Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
 			foreach (var part in detectParts)
 			{
-				if (part.StartsWith("EXT="))
+				if (part.StartsWith("ext="))
 				{
 					var extensions = part.Substring(4).Split(',');
-					var fileExt = Path.GetExtension(fileName);
+					//if necessary, remove the leading " and trailing " for each extensions item
+					extensions = Helper.RemoveQuotes(extensions);
+					var fileExt = Path.GetExtension(fileName).ToLower().Trim('.');
 					if (extensions.Any(ext => fileExt.Equals(ext, StringComparison.OrdinalIgnoreCase)))
 						return true;
 				}

@@ -58,13 +58,28 @@ namespace WinFormsApp1
         #region 构造函数和初始化
         public ViewerForm()
         {
-            InitializeComponent();
-            InitializePlugins();
-            InitializeFileList();
-            SetupEventHandlers();
+			init();
         }
+		public ViewerForm(string fileName)
+		{
+			init();
+			FileName = fileName;
+		}
+		public ViewerForm(List<string> files)
+		{
+			init();
+			_fileList.AddRange(files);
+			FileName = _fileList[0];
+		}
+		private void init()
+		{
+			InitializeComponent();
+			InitializePlugins();
+			InitializeFileList();
+			SetupEventHandlers();
+		}
 
-        private void InitializeComponent()
+		private void InitializeComponent()
         {
             // 设置窗体属性
             this.Text = "文件查看器";

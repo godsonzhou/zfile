@@ -1,0 +1,196 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>高级软件开发助手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script>
+        tailwind.config = {
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <link rel="shortcut icon" href="https://chatboxai.app/icon.png">
+</head>
+<body class='bg-slate-100'>
+    <div class='mx-auto max-w-5xl shadow-md prose bg-white px-2 py-4'>
+        <h1 class='flex flex-row justify-between items-center my-4 h-8'>
+            <span>高级软件开发助手</span>
+            <a href="https://chatboxai.app" target="_blank" >
+                <img src='https://chatboxai.app/icon.png' class="w-12">
+            </a>
+        </h1>
+        <hr />
+        <div class="prose-sm">
+<h2>1. 
+
+解决问题</h2>
+<div class="mb-4">
+<p class="text-green-500 text-lg"><b>SYSTEM: </b></p>
+<div class="break-words "><p>你是一个高级软件开发助手，你的角色设定如下：<br/>
+职责范围：<br/>
+需求分析与设计：深入理解业务需求并转化为高质量的系统架构和详细设计文档。<br/>
+代码实现：主导或参与核心系统的编码工作，确保代码质量、可维护性和高性能。<br/>
+测试与调试：独立完成功能测试、性能测试和单元测试，并协助Bug修复。<br/>
+文档编写：撰写技术文档（如API文档、设计文档）、用户手册等，确保清晰易懂。</p>
+<p>系统架构理解：熟悉企业级系统的架构设计原则，能够独立完成系统模块的设计与实现。<br/>
+项目管理：具备基本的项目管理知识和工具使用能力，能够优化代码质量和团队效率。<br/>
+测试技能：了解自动化测试框架（如Jenkins、pytest）及其应用。<br/>
+持续集成/持续交付：熟悉CI/CD流程，能够使用TFS、GitHub等平台推动代码部署。<br/>
+个人特质：<br/>
+耐心与细致：具备高度的责任心和细心，能够处理复杂的代码逻辑和技术问题。<br/>
+主动学习：对新技术保持开放的心态，能够快速学习新工具、新技术并应用到工作中。<br/>
+沟通能力：能够清晰表达技术观点并倾听他人的反馈。<br/>
+条理分明：具备良好的工作规划和执行能力，在复杂项目中保持冷静且高效。</p>
+<p>善于发现问题，并提出有效的解决方案。</p></div></div>
+<div class="mb-4">
+<p class="text-green-500 text-lg"><b>USER: </b></p>
+<div class="break-words "><p>分析这2个程序，说明其功能</p></div></div>
+<div class="mb-4">
+<p class="text-blue-500 text-lg"><b>ASSISTANT: </b></p>
+<div class="break-words "><p>这两个 Pascal 文件共同实现了 <strong>WLX 插件系统</strong>，主要用于为文件管理器 (如 Double Commander) 提供文件内容预览功能。以下是详细分析：</p>
+<hr/>
+<h3><strong>File 1: uwlxprototypes.pas</strong></h3>
+<p><strong>功能</strong>: 定义 WLX 插件接口的函数原型。</p>
+<ol>
+<li>
+<p><strong>核心作用</strong>：</p>
+<ul>
+<li>声明了 WLX 插件标准接口的函数类型，对应 Total Commander 的 Lister 插件规范。</li>
+<li>包含 <strong>Mandatory (必需)</strong> 和 <strong>Optional (可选)</strong> 的函数指针类型定义。</li>
+</ul>
+</li>
+<li>
+<p><strong>关键函数类型</strong>：</p>
+<ul>
+<li><strong>TListLoad</strong>: 加载文件并创建预览窗口。</li>
+<li><strong>TListLoadNext</strong>: 在同一窗口预览下一个文件。</li>
+<li><strong>TListCloseWindow</strong>: 关闭预览窗口。</li>
+<li><strong>TListGetDetectString</strong>: 返回插件支持的文件类型检测字符串。</li>
+<li><strong>Unicode 版本函数</strong> (如 <code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">TListLoadW</code>): 支持宽字符的文件路径。</li>
+</ul>
+</li>
+<li>
+<p><strong>跨平台兼容</strong>：</p>
+<ul>
+<li>通过 <code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">{$IFDEF MSWINDOWS}</code> 区分 Windows 的标准调用约定 (<code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">STDCALL</code>) 和其他平台的 <code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">CDECL</code>。</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h3><strong>File 2: uwlxmodule.pas</strong></h3>
+<p><strong>功能</strong>: 实现 WLX 插件的动态加载、管理和调用。</p>
+<ol>
+<li>
+<p><strong>核心类 <code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">TWlxModule</code></strong>：</p>
+<ul>
+<li><strong>插件加载与卸载</strong>:
+<ul>
+<li><code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">LoadModule</code>: 动态加载插件 DLL/SO，获取函数地址（如 <code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">ListLoadW</code>）。</li>
+<li><code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">UnloadModule</code>: 释放插件资源。</li>
+</ul>
+</li>
+<li><strong>功能调用封装</strong>:
+<ul>
+<li><code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">CallListLoad</code>/<code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">CallListLoadNext</code>: 调用插件加载文件，处理 Unicode/ANSI 路径。</li>
+<li><code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">CallListSearchText</code>/<code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">CallListPrint</code>: 调用插件的搜索、打印功能。</li>
+</ul>
+</li>
+<li><strong>窗口管理</strong>:
+<ul>
+<li><code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">ResizeWindow</code>: 调整插件预览窗口尺寸（跨平台适配 Windows、GTK、Qt）。</li>
+<li><code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">SetFocus</code>: 控制插件窗口焦点。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>插件管理类 <code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">TWLXModuleList</code></strong>：</p>
+<ul>
+<li><strong>插件列表管理</strong>:
+<ul>
+<li>加载/保存插件配置（XML），增删改查插件项。</li>
+<li>通过 <code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">DetectStr</code> 匹配文件类型与插件。</li>
+</ul>
+</li>
+<li><strong>跨平台支持</strong>:
+<ul>
+<li>处理不同 GUI 框架（Windows API、GTK、Qt、Cocoa）的窗口句柄和事件。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>关键逻辑</strong>：</p>
+<ul>
+<li><strong>文件类型检测</strong>：通过 <code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">DetectStr</code>（如 <code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">EXT=&quot;TXT&quot;</code>）决定是否用插件打开文件。</li>
+<li><strong>错误处理</strong>：检查函数指针是否存在，避免调用未实现的插件功能。</li>
+<li><strong>Unicode 支持</strong>：优先调用 WideChar 版本的插件函数（如 <code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">ListLoadW</code>）。</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h3><strong>协作关系</strong></h3>
+<ol>
+<li>
+<p><strong>接口定义与实现分离</strong>：</p>
+<ul>
+<li><code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">uwlxprototypes.pas</code> 提供标准函数类型，确保插件与主程序接口一致。</li>
+<li><code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">uwlxmodule.pas</code> 基于这些类型实现插件的加载和调用。</li>
+</ul>
+</li>
+<li>
+<p><strong>多平台适配</strong>：</p>
+<ul>
+<li>条件编译 (<code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">{$IFDEF MSWINDOWS}</code>) 处理不同操作系统的窗口系统差异。</li>
+<li>Qt/GTK 的控件操作与 Windows API 兼容。</li>
+</ul>
+</li>
+<li>
+<p><strong>插件生命周期管理</strong>：</p>
+<ul>
+<li>从配置加载插件列表 → 动态加载插件 → 调用功能 → 释放资源。</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h3><strong>典型流程</strong></h3>
+<ol>
+<li><strong>用户尝试预览文件</strong>：
+<ul>
+<li><code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">TWLXModuleList</code> 根据 <code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">DetectStr</code> 查找匹配插件。</li>
+<li>加载插件 (<code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">TWlxModule.LoadModule</code>)。</li>
+<li>调用 <code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">ListLoadW</code> 创建预览窗口。</li>
+</ul>
+</li>
+<li><strong>用户切换文件</strong>：
+<ul>
+<li>调用 <code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">ListLoadNextW</code> 更新预览内容。</li>
+</ul>
+</li>
+<li><strong>关闭预览</strong>：
+<ul>
+<li>调用 <code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">ListCloseWindow</code> 释放插件窗口。</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h3><strong>设计亮点</strong></h3>
+<ul>
+<li><strong>松耦合</strong>：通过函数指针动态绑定插件功能，无需静态依赖。</li>
+<li><strong>扩展性</strong>：通过 <code style="background-color:#f1f1f1;padding:2px 4px;margin:0 4px;border-radius:4px;border:1px solid;border-color:#ddd">DetectStr</code> 支持自定义文件类型检测规则。</li>
+<li></li>
+</ul></div></div>
+<hr />
+</div>
+
+        <hr />
+        <a href="https://chatboxai.app" style="display: flex; align-items: center;" class="text-sky-500" target="_blank">
+            <img src='https://chatboxai.app/icon.png' class="w-12 pr-2">
+            <b style='font-size:30px'>Chatbox AI</b>
+        </a>
+        <p><a a href="https://chatboxai.app" target="_blank">https://chatboxai.app</a></p>
+    </div>
+</body>
+</html>

@@ -16,7 +16,7 @@ namespace WinFormsApp1
         #region 字段和属性
         private string _fileName;
         private bool _isModified;
-        private Encoding _currentEncoding;
+        private Encoding _currentEncoding = Encoding.Default;
         private string _originalText;
         private List<UndoRedoItem> _undoStack;
         private List<UndoRedoItem> _redoStack;
@@ -99,9 +99,6 @@ namespace WinFormsApp1
             // 创建工具栏
             CreateToolStrip();
 
-            // 创建状态栏
-            CreateStatusStrip();
-
             // 创建编辑器
             _editor = new RichTextBox
             {
@@ -112,9 +109,9 @@ namespace WinFormsApp1
                 ScrollBars = RichTextBoxScrollBars.Both,
                 DetectUrls = true
             };
-
-            // 创建行号面板
-            _lineNumberPanel = new Panel
+			
+			// 创建行号面板
+			_lineNumberPanel = new Panel
             {
                 Dock = DockStyle.Left,
                 Width = 40,
@@ -140,8 +137,11 @@ namespace WinFormsApp1
             _searchHistory = new List<string>();
             _replaceHistory = new List<string>();
 
-            // 添加控件到窗体
-            var container = new Panel { Dock = DockStyle.Fill };
+			// 创建状态栏
+			CreateStatusStrip();
+
+			// 添加控件到窗体
+			var container = new Panel { Dock = DockStyle.Fill };
             container.Controls.Add(_editor);
             container.Controls.Add(_lineNumberPanel);
 

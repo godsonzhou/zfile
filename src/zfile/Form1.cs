@@ -1443,7 +1443,7 @@ namespace WinFormsApp1
             do_cm_list();
         }
 
-        public void do_cm_list()
+        public void do_cm_edit()
         {
             var listView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
             if (listView.SelectedItems.Count == 0) return;
@@ -1453,18 +1453,24 @@ namespace WinFormsApp1
 
             if (File.Exists(filePath))
             {
-                Form viewerForm = new Form
-                {
-                    Text = $"查看文件 - {selectedItem.Text}",
-                    Size = new Size(800, 600)
-                };
+				//Form viewerForm = new Form
+				//{
+				//    Text = $"查看文件 - {selectedItem.Text}",
+				//    Size = new Size(800, 600)
+				//};
 
-                Control viewerControl = previewManager.CreatePreviewControl(filePath);
-                viewerForm.Controls.Add(viewerControl);
-                viewerForm.Show();
-            }
+				//Control viewerControl = previewManager.CreatePreviewControl(filePath);
+				//viewerForm.Controls.Add(viewerControl);
+				//viewerForm.Show();
+				var editorForm = new EditorForm(filePath)
+				{
+					Text = $"编辑文件 - {selectedItem.Text}",
+					Size = new Size(800, 600)
+				};
+				editorForm.Show();
+			}
         }
-		public void do_cm_edit()
+		public void do_cm_list()
 		{
 			// 编辑按钮点击处理逻辑
 			// OPEN VIEWERFORM

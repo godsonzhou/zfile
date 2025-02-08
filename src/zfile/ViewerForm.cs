@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using System.Threading.Tasks;
 using System.Drawing.Imaging;
 using Timer = System.Windows.Forms.Timer;
+using System.Runtime.InteropServices;
 
 namespace WinFormsApp1
 {
@@ -147,7 +148,7 @@ namespace WinFormsApp1
         private void InitializePlugins()
         {
             _pluginList = new WlxModuleList();
-            string pluginPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
+            string pluginPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins\\wlx");
             if (Directory.Exists(pluginPath))
             {
                 _pluginList.LoadModulesFromDirectory(pluginPath);
@@ -216,15 +217,44 @@ namespace WinFormsApp1
         private void LoadWithPlugin()
         {
             _isPlugin = true;
-            _pluginWindow = _currentPlugin.CallListLoad(this.Handle, _fileName, WlxConstants.LISTPLUGIN_SHOW);
+			// 创建隐藏的容器面板
+			var container = new Panel
+			{
+				Dock = DockStyle.Fill,
+				Visible = false
+				
+			};
+			_mainPanel.Controls.Add(container);
+			container.SetBounds(_mainPanel.Bounds.X, _mainPanel.Bounds.Y, _mainPanel.Bounds.Width, _mainPanel.Bounds.Height);
+			// 传递容器面板的句柄作为父窗口
+			_pluginWindow = _currentPlugin.CallListLoad(container.Handle, _fileName, WlxConstants.LISTPLUGIN_SHOW);
+			//_pluginWindow = _currentPlugin.CallListLoad(this.Handle, _fileName, WlxConstants.LISTPLUGIN_SHOW);
             if (_pluginWindow != IntPtr.Zero)
             {
-                // 设置插件窗口位置和大小
-                SetPluginWindowBounds();
+				// 设置窗口样式为子窗口
+				NativeMethods.SetParent(_pluginWindow, container.Handle);
+				NativeMethods.SetWindowLong(_pluginWindow, NativeMethods.GWL_STYLE,
+					NativeMethods.WS_VISIBLE | NativeMethods.WS_CHILD);
+
+				// 调整窗口位置和大小
+				SetPluginWindowBounds(container);
+				container.Visible = true;
+				// 设置插件窗口位置和大小
+				//SetPluginWindowBounds();
             }
         }
-
-        private void LoadImage()
+		// 在窗体Resize事件中更新位置
+		protected override void OnResize(EventArgs e)
+		{
+			base.OnResize(e);
+			if (_pluginWindow != IntPtr.Zero)
+			{
+				//var container = _mainPanel.Controls.OfType<Panel>().FirstOrDefault();
+				foreach(var container in _mainPanel.Controls.OfType<Panel>())
+					SetPluginWindowBounds(container);
+			}
+		}
+		private void LoadImage()
         {
             _isImage = true;
             _imagePanel.Visible = true;
@@ -486,8 +516,17 @@ namespace WinFormsApp1
             }
             return string.Format("{0:n1} {1}", number, suffixes[counter]);
         }
-
-        private void SetPluginWindowBounds()
+		private void SetPluginWindowBounds(Panel container)
+		{
+			if (_pluginWindow != IntPtr.Zero && container != null)
+			{
+				var bounds = container.ClientRectangle;
+				NativeMethods.SetWindowPos(_pluginWindow, IntPtr.Zero,
+					0, 0, bounds.Width, bounds.Height,
+					NativeMethods.SWP_NOZORDER | NativeMethods.SWP_NOACTIVATE);
+			}
+		}
+		private void SetPluginWindowBounds()
         {
             if (_pluginWindow != IntPtr.Zero)
             {
@@ -620,8 +659,18 @@ namespace WinFormsApp1
     internal static class NativeMethods
     {
         public const int SWP_NOZORDER = 0x0004;
+		public const int SWP_NOACTIVATE = 0x0010;       
+		// 新增窗口样式常量
+		public const int GWL_STYLE = -16;
+		public const int WS_CHILD = 0x40000000;
+		public const int WS_VISIBLE = 0x10000000;
 
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
+		[DllImport("user32.dll")]
+		public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+		[DllImport("user32.dll", SetLastError = true)]
+		public static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
+		[DllImport("user32.dll")]
         public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter,
             int x, int y, int cx, int cy, int flags);
     }

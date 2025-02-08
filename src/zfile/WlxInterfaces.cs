@@ -204,9 +204,21 @@ namespace WinFormsApp1
 
 		public IntPtr CallListLoad(IntPtr parentWin, string fileToLoad, int showFlags)
 		{
-			if (_listLoadW != null)
-				return _listLoadW(parentWin, fileToLoad, showFlags);
-			return _listLoad != null ? _listLoad(parentWin, fileToLoad, showFlags) : IntPtr.Zero;
+			try
+			{
+				if (_listLoadW != null)
+					return _listLoadW(parentWin, fileToLoad, showFlags);
+				return _listLoad?.Invoke(parentWin, fileToLoad, showFlags) ?? IntPtr.Zero;
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"ListLoad error: {ex.Message}");
+				return IntPtr.Zero;
+			}
+			
+			//if (_listLoadW != null)
+			//	return _listLoadW(parentWin, fileToLoad, showFlags);
+			//return _listLoad != null ? _listLoad(parentWin, fileToLoad, showFlags) : IntPtr.Zero;
 		}
 
 		public int CallListLoadNext(IntPtr parentWin, IntPtr pluginWin, string fileToLoad, int showFlags)

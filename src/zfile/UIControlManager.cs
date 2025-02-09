@@ -248,6 +248,7 @@ namespace WinFormsApp1
 		private readonly Form1 form;
 		private readonly ImageList treeViewImageList;
 		private readonly ImageList listViewImageList;
+		private readonly ImageList thumbnailImageList;
 
 		#region Container Controls
 		public SplitContainer MainContainer { get; } = new();
@@ -308,6 +309,8 @@ namespace WinFormsApp1
 			treeViewImageList.ImageSize = new Size(16, 16);
 			listViewImageList = new ImageList();
 			listViewImageList.ImageSize = new Size(16, 16);
+			thumbnailImageList = new ImageList();
+			thumbnailImageList.ImageSize = new Size(64, 64);
 			BookmarkManager = new BookmarkManager(form, leftBookmarkPanel, rightBookmarkPanel);
 			
 			LeftPathTextBox.SelectionChange += LeftPathTextBox_PathChanged;
@@ -599,6 +602,7 @@ namespace WinFormsApp1
 			listView.Columns.Add("类型", 80);
 			listView.Columns.Add("修改日期", 150);
 			listView.SmallImageList = listViewImageList; // 设置ListView的ImageList
+			listView.LargeImageList = thumbnailImageList;
 			listView.AllowDrop = true;
 			listView.ItemDrag += form.ListView_ItemDrag;
 			listView.DragOver += form.ListView_DragOver;

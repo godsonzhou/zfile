@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using WinShell;
+using zfile;
 using Keys = System.Windows.Forms.Keys;
 
 namespace WinFormsApp1
@@ -14,6 +15,7 @@ namespace WinFormsApp1
         private readonly FilePreviewManager previewManager = new();
         private readonly FileSystemManager fsManager = new();
         public readonly UIControlManager uiManager;
+        public readonly ThumbnailManager thumbnailManager= new(Constants.ZfilePath+"\\cache", new Size(64,64));
         private Dictionary<Keys, string> hotkeyMappings;
         private bool isSelecting = false;
         private Point selectionStart;
@@ -49,7 +51,8 @@ namespace WinFormsApp1
 			//activeListView = uiManager.LeftList;
 			//activeTreeview = uiManager.LeftTree;
 			uiManager.isleft = true;
-
+            thumbnailManager.RegisterProvider(ThumbnailGenerator.GetThumbnail);
+    
             // 其他初始化
             InitializeFileSystemWatcher();
             InitializeHotkeys();
@@ -1138,6 +1141,11 @@ namespace WinFormsApp1
 							if (ico != null)
 							{
 								listView.SmallImageList.Images.Add(ico);
+								var thumb = thumbnailManager.CreatePreview(item.FullName);
+								if(thumb != null)
+									listView.LargeImageList.Images.Add(thumb);
+								else
+									listView.LargeImageList.Images.Add(ico);
 								lvItem.ImageIndex = listView.SmallImageList.Images.Count - 1;
 							}
 						}

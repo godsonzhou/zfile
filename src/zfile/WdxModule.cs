@@ -258,7 +258,41 @@ namespace WinFormsApp1
         #endregion
 
         #region 公共方法
-        public string GetValue(string fileName, int fieldIndex, int unitIndex = 0)
+		public string GetDetectString()
+		{
+			if (_contentGetDetectString == null) return string.Empty;
+			try
+			{
+				var sb = new StringBuilder(2048);
+				_contentGetDetectString(sb, sb.Capacity);
+				return sb.ToString();
+			}
+			catch
+			{
+				return string.Empty;
+			}
+		}
+		public int GetSupportedFieldFlags(int fieldIndex)
+		{
+			return _contentGetSupportedFieldFlags?.Invoke(fieldIndex) ?? 0;
+		}
+		public int EditValue(IntPtr handle, int fieldIndex, int unitIndex, int fieldType, StringBuilder fieldValue, int maxLen, int flags, string langIdentifier)
+		{
+			return _contentEditValue?.Invoke(handle, fieldIndex, unitIndex, fieldType, fieldValue, maxLen, flags, langIdentifier) ?? WdxConstants.WDX_ERROR;
+		}
+		public void SendStateInformation(int state, string path)
+		{
+			if (_isUnicode)
+			{
+				_contentSendStateInformationW?.Invoke(state, path);
+			}
+			else
+			{
+				_contentSendStateInformation?.Invoke(state, path);
+			}
+		}
+
+		public string GetValue(string fileName, int fieldIndex, int unitIndex = 0)
         {
             if (!IsLoaded || fieldIndex < 0 || fieldIndex >= _fields.Count)
                 return string.Empty;
@@ -294,7 +328,15 @@ namespace WinFormsApp1
 
         public void StopGetValue(string fileName)
         {
-            _contentStopGetValue?.Invoke(fileName);
+			if(_isUnicode)
+			{
+				_contentStopGetValueW?.Invoke(fileName);
+			}
+			else
+			{
+				_contentStopGetValue?.Invoke(fileName);
+			}
+			
         }
 
         public int GetDefaultSortOrder(int fieldIndex)
@@ -302,19 +344,27 @@ namespace WinFormsApp1
             return _contentGetDefaultSortOrder?.Invoke(fieldIndex) ?? 1;
         }
 
-        public bool SetValue(string fileName, int fieldIndex, int unitIndex, string value)
+        public bool SetValue(string fileName, int fieldIndex, int unitIndex, string value, IntPtr vptr, int vallen)
         {
-            if (_contentSetValue == null) return false;
+			if (_contentSetValue == null) return false;
 
-            try
-            {
-                return _contentSetValue(fileName, fieldIndex, unitIndex, value, 0) == WdxConstants.WDX_SUCCESS;
-            }
-            catch
-            {
-                return false;
-            }
-        }
+			try
+			{
+				if (_isUnicode)
+				{
+					return _contentSetValueW(fileName, fieldIndex, unitIndex, vallen, vptr, 0) == WdxConstants.WDX_SUCCESS;
+				}
+				else
+				{
+					return _contentSetValue(fileName, fieldIndex, unitIndex, value, 0) == WdxConstants.WDX_SUCCESS;
+				}
+			}
+			catch
+			{
+				return false;
+			}
+
+		}
 
         public void LoadTranslations(string languageFile)
         {

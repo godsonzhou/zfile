@@ -149,10 +149,11 @@ namespace WinFormsApp1
         {
             _pluginList = new WlxModuleList();
             string pluginPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins\\wlx");
-            if (Directory.Exists(pluginPath))
-            {
-                _pluginList.LoadModulesFromDirectory(pluginPath);
-            }
+            //读取pluginpath目录下所有子目录的plugins
+			var subdirs = Directory.GetDirectories(pluginPath, "*", SearchOption.AllDirectories);
+			foreach (var subdir in subdirs) {
+				_pluginList.LoadModulesFromDirectory(subdir);
+			}
         }
 
         private void InitializeFileList()

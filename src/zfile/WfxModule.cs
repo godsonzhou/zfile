@@ -221,14 +221,15 @@ namespace WinFormsApp1
 
                 // 加载必需的函数
                 _fsInit = GetFunction<FsInit>("FsInit");
-                if (_fsInit == null)
+				_fsInitW = GetFunction<FsInitW>("FsInitW");
+				if (_fsInit == null && _fsInitW == null)
                 {
                     UnloadModule();
                     return false;
                 }
-
-                // 尝试加载Unicode版本函数
-                try
+				_isUnicode = _fsInit == null;
+				// 尝试加载Unicode版本函数
+				try
                 {
                     _fsFindFirstW = GetFunction<FsFindFirstW>("FsFindFirstW");
                     _fsFindNextW = GetFunction<FsFindNextW>("FsFindNextW");
@@ -239,8 +240,18 @@ namespace WinFormsApp1
                     _fsMkDirW = GetFunction<FsMkDirW>("FsMkDirW");
                     _fsExecuteFileW = GetFunction<FsExecuteFileW>("FsExecuteFileW");
                     _fsRenMovFileW = GetFunction<FsRenMovFileW>("FsRenMovFileW");
-                    _isUnicode = true;
-                }
+					_fsStatusInfoW = GetFunction<FsStatusInfoW>("FsStatusInfoW");
+					_fsSetDefaultParams = GetFunction<FsSetDefaultParams>("FsSetDefaultParams");
+					_fsGetDefRootName = GetFunction<FsGetDefRootName>("FsGetDefRootName");
+					_fsSetAttrW = GetFunction<FsSetAttrW>("FsSetAttrW");
+					_fsSetTimeW = GetFunction<FsSetTimeW>("FsSetTimeW");
+					_fsExtractCustomIconW = GetFunction<FsExtractCustomIconW>("FsExtractCustomIconW");
+					_fsDisconnectW = GetFunction<FsDisconnectW>("FsDisconnectW");
+					_fsLinksToLocalFiles = GetFunction<FsLinksToLocalFiles>("FsLinksToLocalFiles");
+					_fsGetLocalNameW = GetFunction<FsGetLocalNameW>("FsGetLocalNameW");
+
+
+				}
                 catch
                 {
                     // Unicode函数加载失败，尝试加载ANSI版本
@@ -253,8 +264,16 @@ namespace WinFormsApp1
                     _fsMkDir = GetFunction<FsMkDir>("FsMkDir");
                     _fsExecuteFile = GetFunction<FsExecuteFile>("FsExecuteFile");
                     _fsRenMovFile = GetFunction<FsRenMovFile>("FsRenMovFile");
-                    _isUnicode = false;
-                }
+					_fsStatusInfo = GetFunction<FsStatusInfo>("FsStatusInfo");
+					_fsSetDefaultParams = GetFunction<FsSetDefaultParams>("FsSetDefaultParams");
+					_fsGetDefRootName = GetFunction<FsGetDefRootName>("FsGetDefRootName");
+					_fsSetAttr = GetFunction<FsSetAttr>("FsSetAttr");
+					_fsSetTime = GetFunction<FsSetTime>("FsSetTime");
+					_fsExtractCustomIcon = GetFunction<FsExtractCustomIcon>("FsExtractCustomIcon");
+					_fsDisconnect = GetFunction<FsDisconnect>("FsDisconnect");
+					_fsLinksToLocalFiles = GetFunction<FsLinksToLocalFiles>("FsLinksToLocalFiles");
+					_fsGetLocalName = GetFunction<FsGetLocalName>("FsGetLocalName");
+				}
 
                 _fsFindClose = GetFunction<FsFindClose>("FsFindClose");
 
@@ -311,8 +330,68 @@ namespace WinFormsApp1
                 _fsFindClose(handle);
             }
         }
+		public bool SetAttr(string remoteName, int newAttr)
+		{
+			return _isUnicode ? _fsSetAttrW(remoteName, newAttr) : _fsSetAttr(remoteName, newAttr);
+		}
+		public bool SetTime(string remoteName, IntPtr creationTime, IntPtr lastAccessTime, IntPtr lastWriteTime)
+		{
+			return _isUnicode ? _fsSetTimeW(remoteName, creationTime, lastAccessTime, lastWriteTime) : _fsSetTime(remoteName, creationTime, lastAccessTime, lastWriteTime);
+		}
+		public int ExtractCustomIcon(string remoteName, int extractFlags, out IntPtr theIcon)
+		{
+			return _isUnicode ? _fsExtractCustomIconW(remoteName, extractFlags, out theIcon) : _fsExtractCustomIcon(remoteName, extractFlags, out theIcon);
+		}
+		public bool Disconnect(string disconnectRoot)
+		{
+			return _isUnicode ? _fsDisconnectW(disconnectRoot) : _fsDisconnect(disconnectRoot);
+		}
+		public bool LinksToLocalFiles()
+		{
+			return _isUnicode ? _fsLinksToLocalFiles() : false;
+		}
+		public bool GetLocalName(string remoteName, int maxLen)
+		{
+			return _isUnicode ? _fsGetLocalNameW(remoteName, maxLen) : false;
+		}
+		public void setStatusInfo(string remoteDir, int infoStartEnd, int infoOperation)
+		{
+			if (_isUnicode)
+				_fsStatusInfoW(remoteDir, infoStartEnd, infoOperation);
+			else
+				_fsStatusInfo(remoteDir, infoStartEnd, infoOperation);
+		}
+		public void setCrypCallback(IntPtr cryptProc, int cryptoNr, int flags)
+		{
+			if (_isUnicode)
+				_fsSetCryptCallbackW(cryptProc, cryptoNr, flags);
+			else
+				_fsSetCryptCallback(cryptProc, cryptoNr, flags);
+		}
+		public void setDefaultParams(IntPtr defaultParamStruct)
+		{
+			_fsSetDefaultParams(defaultParamStruct);
+		}
+		public void getDefRootName(StringBuilder defRootName, int maxLen)
+		{
+			_fsGetDefRootName(defRootName, maxLen);
+		}
+		public string getlocalname(string remoteName)
+		{
+			StringBuilder sb = new StringBuilder(260);
+			if (_isUnicode)
+			{
+				_fsGetLocalNameW(remoteName, 260);
+			}
+			else
+			{
+				_fsGetLocalName(remoteName, 260);
+			}
+			return sb.ToString();
+		}
 
-        public bool DeleteFile(string remoteName)
+
+		public bool DeleteFile(string remoteName)
         {
             return _isUnicode ? _fsDeleteFileW(remoteName) : _fsDeleteFile(remoteName);
         }

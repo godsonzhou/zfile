@@ -222,12 +222,40 @@ namespace CmdProcessor
                 // 在这里添加处理命令的逻辑
                 switch (cmdId)
                 {
-					case 269:   //cm_srcthumbs
-						owner.SetViewMode(View.Tile);
-						break;
-					case 301:
-                        // 若owner是IActiveListViewChangeable的实例，则调用activeListViewChange方法
-                        //if (owner is IActiveListViewChangeable changeableOwner)
+                    case 101: // cm_copy
+                        CopySelectedFiles();
+                        break;
+                    case 102: // cm_move
+                        MoveSelectedFiles();
+                        break;
+                    case 103: // cm_delete
+                        DeleteSelectedFiles();
+                        break;
+                    case 104: // cm_newfolder
+                        CreateNewFolder();
+                        break;
+                    case 105: // cm_rename
+                        RenameSelected();
+                        break;
+                    case 106: // cm_search
+                        SearchFiles();
+                        break;
+                    case 107: // cm_properties
+                        ShowFileProperties();
+                        break;
+                    case 108: // cm_compare
+                        CompareFiles();
+                        break;
+                    case 109: // cm_pack
+                        PackFiles();
+                        break;
+                    case 110: // cm_unpack
+                        UnpackFiles();
+                        break;
+                    case 269:   //cm_srcthumbs
+                        owner.SetViewMode(View.Tile);
+                        break;
+                    case 301:
                         owner.SetViewMode(View.List);
                         break;
                     case 302:
@@ -236,36 +264,460 @@ namespace CmdProcessor
                     case 490:
                         owner.OpenOptions();
                         break;
-					case 511: // 添加对 cmdID 为 511 的处理
-						owner.OpenCommandPrompt();
-						break;
-					case 903: //cm_list
-						owner.do_cm_list();
-						break;
-					case 904: //cm_edit
-						owner.do_cm_edit();
-						break;
-					case 2950:
+                    case 511: // cm_executedos
+                        owner.OpenCommandPrompt();
+                        break;
+                    case 903: //cm_list
+                        owner.do_cm_list();
+                        break;
+                    case 904: //cm_edit
+                        owner.do_cm_edit();
+                        break;
+                    case 2950:
                         owner.ThemeToggle();
                         break;
-					case 3001:  //add new bookmark
-						owner.AddCurrentPathToBookmarks();
-						break;
-					case 3012:  //lock the bookmark
-						owner.uiManager.BookmarkManager.ToggleCurrentBookmarkLock(owner.uiManager.isleft);
-						break;
+                    case 3001:  //add new bookmark
+                        owner.AddCurrentPathToBookmarks();
+                        break;
+                    case 3012:  //lock the bookmark
+                        owner.uiManager.BookmarkManager.ToggleCurrentBookmarkLock(owner.uiManager.isleft);
+                        break;
                     case 24340:
                         Form1.ExitApp();
                         break;
-					//否则do nothing
-					default:
-						MessageBox.Show("cmd id = {0} has not been implemented yet", cmdId.ToString());
-						break;
+                    default:
+                        MessageBox.Show($"命令ID = {cmdId} 尚未实现", "提示");
+                        break;
                 }
             }
             else
             {
-                throw new KeyNotFoundException("Command ID does not exist.");
+                throw new KeyNotFoundException("命令ID不存在");
+            }
+        }
+
+        // 复制选中的文件
+        private void CopySelectedFiles()
+        {
+            var listView = owner.activeListView;
+            if (listView == null || listView.SelectedItems.Count <= 0) return;
+
+            var sourceFiles = listView.SelectedItems.Cast<ListViewItem>()
+                .Select(item => Path.Combine(owner.currentDirectory, item.Text))
+                .ToArray();
+
+            // TODO: 显示复制对话框，让用户选择目标路径
+            var targetPath = owner.uiManager.isleft ? owner.uiManager.RightList.Tag?.ToString() : owner.uiManager.LeftList.Tag?.ToString();
+            if (string.IsNullOrEmpty(targetPath))
+            {
+                MessageBox.Show("请先选择目标路径", "提示");
+                return;
+            }
+
+            try
+            {
+                foreach (var file in sourceFiles)
+                {
+                    var fileName = Path.GetFileName(file);
+                    var targetFile = Path.Combine(targetPath, fileName);
+                    File.Copy(file, targetFile, true);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"复制文件失败: {ex.Message}", "错误");
+            }
+        }
+
+        // 移动选中的文件
+        private void MoveSelectedFiles()
+        {
+            var listView = owner.activeListView;
+            if (listView == null || listView.SelectedItems.Count <= 0) return;
+
+            var sourceFiles = listView.SelectedItems.Cast<ListViewItem>()
+                .Select(item => Path.Combine(owner.currentDirectory, item.Text))
+                .ToArray();
+
+            var targetPath = owner.uiManager.isleft ? owner.uiManager.RightList.Tag?.ToString() : owner.uiManager.LeftList.Tag?.ToString();
+            if (string.IsNullOrEmpty(targetPath))
+            {
+                MessageBox.Show("请先选择目标路径", "提示");
+                return;
+            }
+
+            try
+            {
+                foreach (var file in sourceFiles)
+                {
+                    var fileName = Path.GetFileName(file);
+                    var targetFile = Path.Combine(targetPath, fileName);
+                    File.Move(file, targetFile, true);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"移动文件失败: {ex.Message}", "错误");
+            }
+        }
+
+        // 删除选中的文件
+        private void DeleteSelectedFiles()
+        {
+            var listView = owner.activeListView;
+            if (listView == null || listView.SelectedItems.Count <= 0) return;
+
+            var files = listView.SelectedItems.Cast<ListViewItem>()
+                .Select(item => Path.Combine(owner.currentDirectory, item.Text))
+                .ToArray();
+
+            var result = MessageBox.Show(
+                $"确定要删除选中的 {files.Length} 个文件吗？",
+                "确认删除",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
+
+            if (result == DialogResult.Yes)
+            {
+                try
+                {
+                    foreach (var file in files)
+                    {
+                        if (File.Exists(file))
+                            File.Delete(file);
+                        else if (Directory.Exists(file))
+                            Directory.Delete(file, true);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"删除文件失败: {ex.Message}", "错误");
+                }
+            }
+        }
+
+        // 创建新文件夹
+        private void CreateNewFolder()
+        {
+            var folderName = "新建文件夹";
+            var path = owner.currentDirectory;
+            var newFolderPath = Path.Combine(path, folderName);
+            var counter = 1;
+
+            while (Directory.Exists(newFolderPath))
+            {
+                folderName = $"新建文件夹 ({counter})";
+                newFolderPath = Path.Combine(path, folderName);
+                counter++;
+            }
+
+            try
+            {
+                Directory.CreateDirectory(newFolderPath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"创建文件夹失败: {ex.Message}", "错误");
+            }
+        }
+
+        // 重命名选中的文件或文件夹
+        private void RenameSelected()
+        {
+            var listView = owner.activeListView;
+            if (listView == null || listView.SelectedItems.Count <= 0) return;
+
+            var selectedItem = listView.SelectedItems[0];
+            var oldPath = Path.Combine(owner.currentDirectory, selectedItem.Text);
+
+            // 启用编辑模式
+            selectedItem.BeginEdit();
+        }
+
+        // 搜索文件
+        private void SearchFiles()
+        {
+            var searchForm = new Form
+            {
+                Text = "搜索文件",
+                Size = new Size(400, 200),
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                StartPosition = FormStartPosition.CenterParent,
+                MaximizeBox = false,
+                MinimizeBox = false
+            };
+
+            var searchBox = new TextBox
+            {
+                Location = new Point(10, 10),
+                Size = new Size(360, 20),
+                PlaceholderText = "输入搜索关键词"
+            };
+
+            var searchButton = new Button
+            {
+                Text = "搜索",
+                Location = new Point(150, 100),
+                DialogResult = DialogResult.OK
+            };
+
+            searchForm.Controls.AddRange(new Control[] { searchBox, searchButton });
+            searchForm.AcceptButton = searchButton;
+
+            if (searchForm.ShowDialog() == DialogResult.OK && !string.IsNullOrWhiteSpace(searchBox.Text))
+            {
+                var searchPattern = searchBox.Text;
+                var searchPath = owner.currentDirectory;
+
+                try
+                {
+                    var files = Directory.GetFiles(searchPath, $"*{searchPattern}*", SearchOption.AllDirectories);
+                    var results = new Form
+                    {
+                        Text = "搜索结果",
+                        Size = new Size(600, 400),
+                        StartPosition = FormStartPosition.CenterParent
+                    };
+
+                    var resultList = new ListView
+                    {
+                        Dock = DockStyle.Fill,
+                        View = View.Details
+                    };
+
+                    resultList.Columns.Add("文件名", 200);
+                    resultList.Columns.Add("路径", 350);
+
+                    foreach (var file in files)
+                    {
+                        var item = new ListViewItem(Path.GetFileName(file));
+                        item.SubItems.Add(Path.GetDirectoryName(file));
+                        resultList.Items.Add(item);
+                    }
+
+                    results.Controls.Add(resultList);
+                    results.Show();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"搜索文件时出错: {ex.Message}", "错误");
+                }
+            }
+        }
+
+        // 显示文件属性
+        private void ShowFileProperties()
+        {
+            var listView = owner.activeListView;
+            if (listView == null || listView.SelectedItems.Count <= 0) return;
+
+            var selectedItem = listView.SelectedItems[0];
+            var filePath = Path.Combine(owner.currentDirectory, selectedItem.Text);
+
+            try
+            {
+                var info = new FileInfo(filePath);
+                var sb = new StringBuilder();
+                sb.AppendLine($"名称: {info.Name}");
+                sb.AppendLine($"类型: {(info.Attributes.HasFlag(FileAttributes.Directory) ? "文件夹" : "文件")}");
+                sb.AppendLine($"位置: {info.DirectoryName}");
+                sb.AppendLine($"大小: {FormatFileSize(info.Length)}");
+                sb.AppendLine($"创建时间: {info.CreationTime}");
+                sb.AppendLine($"修改时间: {info.LastWriteTime}");
+                sb.AppendLine($"访问时间: {info.LastAccessTime}");
+                sb.AppendLine($"属性: {info.Attributes}");
+
+                MessageBox.Show(sb.ToString(), "文件属性", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"无法获取文件属性: {ex.Message}", "错误");
+            }
+        }
+
+        // 格式化文件大小
+        private string FormatFileSize(long bytes)
+        {
+            string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+            int order = 0;
+            double size = bytes;
+            while (size >= 1024 && order < sizes.Length - 1)
+            {
+                order++;
+                size = size / 1024;
+            }
+            return $"{size:0.##} {sizes[order]}";
+        }
+
+        // 比较文件
+        private void CompareFiles()
+        {
+            var listView = owner.activeListView;
+            if (listView == null || listView.SelectedItems.Count != 2)
+            {
+                MessageBox.Show("请选择两个文件进行比较", "提示");
+                return;
+            }
+
+            var file1 = Path.Combine(owner.currentDirectory, listView.SelectedItems[0].Text);
+            var file2 = Path.Combine(owner.currentDirectory, listView.SelectedItems[1].Text);
+
+            try
+            {
+                if (!File.Exists(file1) || !File.Exists(file2))
+                {
+                    MessageBox.Show("所选文件不存在", "错误");
+                    return;
+                }
+
+                var form = new Form
+                {
+                    Text = "文件比较",
+                    Size = new Size(800, 600),
+                    StartPosition = FormStartPosition.CenterScreen
+                };
+
+                var splitContainer = new SplitContainer
+                {
+                    Dock = DockStyle.Fill,
+                    Orientation = Orientation.Horizontal
+                };
+
+                var textBox1 = new RichTextBox
+                {
+                    Dock = DockStyle.Fill,
+                    ReadOnly = true,
+                    Font = new Font("Consolas", 10)
+                };
+
+                var textBox2 = new RichTextBox
+                {
+                    Dock = DockStyle.Fill,
+                    ReadOnly = true,
+                    Font = new Font("Consolas", 10)
+                };
+
+                splitContainer.Panel1.Controls.Add(textBox1);
+                splitContainer.Panel2.Controls.Add(textBox2);
+                form.Controls.Add(splitContainer);
+
+                // 读取文件内容
+                textBox1.Text = File.ReadAllText(file1);
+                textBox2.Text = File.ReadAllText(file2);
+
+                // 高亮显示差异
+                HighlightDifferences(textBox1, textBox2);
+
+                form.Show();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"比较文件时出错: {ex.Message}", "错误");
+            }
+        }
+
+        // 高亮显示文本差异
+        private void HighlightDifferences(RichTextBox box1, RichTextBox box2)
+        {
+            var lines1 = box1.Text.Split('\n');
+            var lines2 = box2.Text.Split('\n');
+
+            box1.Text = "";
+            box2.Text = "";
+
+            for (int i = 0; i < Math.Max(lines1.Length, lines2.Length); i++)
+            {
+                var line1 = i < lines1.Length ? lines1[i] : "";
+                var line2 = i < lines2.Length ? lines2[i] : "";
+
+                if (line1 != line2)
+                {
+                    box1.SelectionBackColor = Color.LightPink;
+                    box2.SelectionBackColor = Color.LightPink;
+                }
+                else
+                {
+                    box1.SelectionBackColor = Color.White;
+                    box2.SelectionBackColor = Color.White;
+                }
+
+                box1.AppendText(line1 + "\n");
+                box2.AppendText(line2 + "\n");
+            }
+        }
+
+        // 打包文件
+        private void PackFiles()
+        {
+            var listView = owner.activeListView;
+            if (listView == null || listView.SelectedItems.Count == 0) return;
+
+            var saveDialog = new SaveFileDialog
+            {
+                Filter = "ZIP 文件|*.zip|所有文件|*.*",
+                Title = "选择保存位置"
+            };
+
+            if (saveDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    var files = listView.SelectedItems.Cast<ListViewItem>()
+                        .Select(item => Path.Combine(owner.currentDirectory, item.Text))
+                        .ToArray();
+
+                    System.IO.Compression.ZipFile.CreateFromDirectory(
+                        owner.currentDirectory,
+                        saveDialog.FileName,
+                        System.IO.Compression.CompressionLevel.Optimal,
+                        true);
+
+                    MessageBox.Show("文件打包完成", "提示");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"打包文件时出错: {ex.Message}", "错误");
+                }
+            }
+        }
+
+        // 解压文件
+        private void UnpackFiles()
+        {
+            var listView = owner.activeListView;
+            if (listView == null || listView.SelectedItems.Count == 0) return;
+
+            var selectedItem = listView.SelectedItems[0];
+            var zipPath = Path.Combine(owner.currentDirectory, selectedItem.Text);
+
+            if (!zipPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+            {
+                MessageBox.Show("请选择 ZIP 文件", "提示");
+                return;
+            }
+
+            var folderDialog = new FolderBrowserDialog
+            {
+                Description = "选择解压目标文件夹"
+            };
+
+            if (folderDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    System.IO.Compression.ZipFile.ExtractToDirectory(
+                        zipPath,
+                        folderDialog.SelectedPath,
+                        System.Text.Encoding.GetEncoding("GB2312"),
+                        true);
+
+                    MessageBox.Show("文件解压完成", "提示");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"解压文件时出错: {ex.Message}", "错误");
+                }
             }
         }
     }

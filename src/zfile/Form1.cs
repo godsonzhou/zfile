@@ -20,7 +20,7 @@ namespace WinFormsApp1
         private bool isSelecting = false;
         private Point selectionStart;
         private Rectangle selectionRectangle;
-        private ListView activeListView { get => (uiManager.isleft ? uiManager.LeftList : uiManager.RightList); }
+        public ListView activeListView { get => (uiManager.isleft ? uiManager.LeftList : uiManager.RightList); }
         public TreeView activeTreeview { get => (uiManager.isleft ? uiManager.LeftTree : uiManager.RightTree); }
         private readonly FileSystemWatcher watcher = new();
         public string currentDirectory = "";

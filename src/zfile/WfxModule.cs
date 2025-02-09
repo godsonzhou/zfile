@@ -99,24 +99,46 @@ namespace WinFormsApp1
     public delegate int FsFindClose(IntPtr Handle);
     
     // 可选的函数
+    public delegate void FsSetCryptCallback(IntPtr CryptProc, int CryptoNr, int Flags);
     public delegate int FsGetFile(string RemoteName, string LocalName, int CopyFlags, RemoteInfo RemoteInfo);
     public delegate int FsPutFile(string LocalName, string RemoteName, int CopyFlags);
     public delegate bool FsDeleteFile(string RemoteName);
     public delegate bool FsRemoveDir(string RemoteName);
     public delegate bool FsMkDir(string Path);
+    public delegate void FsStatusInfo(string RemoteDir, int InfoStartEnd, int InfoOperation);
+    public delegate void FsSetDefaultParams(IntPtr DefaultParamStruct);
     public delegate int FsExecuteFile(IntPtr MainWin, string RemoteName, string Verb);
+    public delegate void FsGetDefRootName(StringBuilder DefRootName, int MaxLen);
+    public delegate bool FsSetAttr(string RemoteName, int NewAttr);
+    public delegate bool FsSetTime(string RemoteName, IntPtr CreationTime, IntPtr LastAccessTime, IntPtr LastWriteTime);
+    public delegate int FsExtractCustomIcon(string RemoteName, int ExtractFlags, out IntPtr TheIcon);
     public delegate int FsRenMovFile(string OldName, string NewName, bool Move, bool OverWrite, RemoteInfo RemoteInfo);
+    public delegate bool FsDisconnect(string DisconnectRoot);
+    public delegate int FsGetPreviewBitmap(string RemoteName, int Width, int Height, IntPtr ReturnedBitmap);
+    public delegate bool FsLinksToLocalFiles();
+    public delegate bool FsGetLocalName(string RemoteName, int MaxLen);
+    public delegate int FsGetBackgroundFlags();
+    public delegate void FsContentPluginUnloading();
     
     // Unicode版本
+    public delegate int FsInitW(int PluginNr, IntPtr ProgressProcW, IntPtr LogProcW, IntPtr RequestProcW);
     public delegate IntPtr FsFindFirstW(string Path, out WfxFindData FindData);
     public delegate bool FsFindNextW(IntPtr Handle, out WfxFindData FindData);
+    public delegate void FsSetCryptCallbackW(IntPtr CryptProcW, int CryptoNr, int Flags);
+    public delegate bool FsMkDirW(string Path);
+    public delegate int FsExecuteFileW(IntPtr MainWin, string RemoteName, string Verb);
+    public delegate int FsRenMovFileW(string OldName, string NewName, bool Move, bool OverWrite, RemoteInfo RemoteInfo);
     public delegate int FsGetFileW(string RemoteName, string LocalName, int CopyFlags, RemoteInfo RemoteInfo);
     public delegate int FsPutFileW(string LocalName, string RemoteName, int CopyFlags);
     public delegate bool FsDeleteFileW(string RemoteName);
     public delegate bool FsRemoveDirW(string RemoteName);
-    public delegate bool FsMkDirW(string Path);
-    public delegate int FsExecuteFileW(IntPtr MainWin, string RemoteName, string Verb);
-    public delegate int FsRenMovFileW(string OldName, string NewName, bool Move, bool OverWrite, RemoteInfo RemoteInfo);
+    public delegate bool FsDisconnectW(string DisconnectRoot);
+    public delegate bool FsSetAttrW(string RemoteName, int NewAttr);
+    public delegate bool FsSetTimeW(string RemoteName, IntPtr CreationTime, IntPtr LastAccessTime, IntPtr LastWriteTime);
+    public delegate void FsStatusInfoW(string RemoteDir, int InfoStartEnd, int InfoOperation);
+    public delegate int FsExtractCustomIconW(string RemoteName, int ExtractFlags, out IntPtr TheIcon);
+    public delegate int FsGetPreviewBitmapW(string RemoteName, int Width, int Height, IntPtr ReturnedBitmap);
+    public delegate bool FsGetLocalNameW(string RemoteName, int MaxLen);
     #endregion
 
     public class WfxModule : IDisposable
@@ -133,9 +155,29 @@ namespace WinFormsApp1
         private FsFindNext _fsFindNext;
         private FsFindClose _fsFindClose;
 
+        // 可选的函数指针
+        private FsSetCryptCallback _fsSetCryptCallback;
+        private FsStatusInfo _fsStatusInfo;
+        private FsSetDefaultParams _fsSetDefaultParams;
+        private FsGetDefRootName _fsGetDefRootName;
+        private FsSetAttr _fsSetAttr;
+        private FsSetTime _fsSetTime;
+        private FsExtractCustomIcon _fsExtractCustomIcon;
+        private FsDisconnect _fsDisconnect;
+        private FsLinksToLocalFiles _fsLinksToLocalFiles;
+        private FsGetLocalName _fsGetLocalName;
+
         // Unicode版本函数指针
+        private FsInitW _fsInitW;
         private FsFindFirstW _fsFindFirstW;
         private FsFindNextW _fsFindNextW;
+        private FsSetCryptCallbackW _fsSetCryptCallbackW;
+        private FsStatusInfoW _fsStatusInfoW;
+        private FsSetAttrW _fsSetAttrW;
+        private FsSetTimeW _fsSetTimeW;
+        private FsExtractCustomIconW _fsExtractCustomIconW;
+        private FsDisconnectW _fsDisconnectW;
+        private FsGetLocalNameW _fsGetLocalNameW;
         private FsGetFileW _fsGetFileW;
         private FsPutFileW _fsPutFileW;
         private FsDeleteFileW _fsDeleteFileW;

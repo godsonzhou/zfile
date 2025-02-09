@@ -65,6 +65,17 @@ namespace WinFormsApp1
     public delegate void ContentStopGetValue(string FileName);
     public delegate int ContentGetDefaultSortOrder(int FieldIndex);
     public delegate int ContentSetValue(string FileName, int FieldIndex, int UnitIndex, string FieldValue, int Flags);
+
+    // 新增可选函数
+    public delegate void ContentGetDetectString(StringBuilder DetectString, int MaxLen);
+    public delegate int ContentGetSupportedFieldFlags(int FieldIndex);
+    public delegate int ContentEditValue(IntPtr Handle, int FieldIndex, int UnitIndex, int FieldType, StringBuilder FieldValue, int MaxLen, int Flags, string LangIdentifier);
+    public delegate void ContentSendStateInformation(int State, string Path);
+    
+    // 新增Unicode版本的可选函数
+    public delegate void ContentStopGetValueW(string FileName);
+    public delegate int ContentSetValueW(string FileName, int FieldIndex, int UnitIndex, int FieldType, IntPtr FieldValue, int Flags);
+    public delegate void ContentSendStateInformationW(int State, string Path);
     #endregion
 
     public class WdxModule : IDisposable
@@ -88,6 +99,17 @@ namespace WinFormsApp1
         private ContentStopGetValue _contentStopGetValue;
         private ContentGetDefaultSortOrder _contentGetDefaultSortOrder;
         private ContentSetValue _contentSetValue;
+
+        // 新增可选函数指针
+        private ContentGetDetectString _contentGetDetectString;
+        private ContentGetSupportedFieldFlags _contentGetSupportedFieldFlags;
+        private ContentEditValue _contentEditValue;
+        private ContentSendStateInformation _contentSendStateInformation;
+
+        // 新增Unicode版本的可选函数指针
+        private ContentStopGetValueW _contentStopGetValueW;
+        private ContentSetValueW _contentSetValueW;
+        private ContentSendStateInformationW _contentSendStateInformationW;
         #endregion
 
         #region 属性
@@ -147,6 +169,20 @@ namespace WinFormsApp1
                 _contentStopGetValue = GetFunction<ContentStopGetValue>("ContentStopGetValue");
                 _contentGetDefaultSortOrder = GetFunction<ContentGetDefaultSortOrder>("ContentGetDefaultSortOrder");
                 _contentSetValue = GetFunction<ContentSetValue>("ContentSetValue");
+
+                // 加载新增可选函数
+                _contentGetDetectString = GetFunction<ContentGetDetectString>("ContentGetDetectString");
+                _contentGetSupportedFieldFlags = GetFunction<ContentGetSupportedFieldFlags>("ContentGetSupportedFieldFlags");
+                _contentEditValue = GetFunction<ContentEditValue>("ContentEditValue");
+                _contentSendStateInformation = GetFunction<ContentSendStateInformation>("ContentSendStateInformation");
+
+                // 加载新增Unicode版本的可选函数
+                if (_isUnicode)
+                {
+                    _contentStopGetValueW = GetFunction<ContentStopGetValueW>("ContentStopGetValueW");
+                    _contentSetValueW = GetFunction<ContentSetValueW>("ContentSetValueW");
+                    _contentSendStateInformationW = GetFunction<ContentSendStateInformationW>("ContentSendStateInformationW");
+                }
 
                 // 初始化插件
                 var defaultParams = new ContentDefaultParamStruct
@@ -334,6 +370,17 @@ namespace WinFormsApp1
             _contentStopGetValue = null;
             _contentGetDefaultSortOrder = null;
             _contentSetValue = null;
+
+            // 清除新增函数指针
+            _contentGetDetectString = null;
+            _contentGetSupportedFieldFlags = null;
+            _contentEditValue = null;
+            _contentSendStateInformation = null;
+
+            // 清除新增Unicode版本函数指针
+            _contentStopGetValueW = null;
+            _contentSetValueW = null;
+            _contentSendStateInformationW = null;
 
             // 清除字段列表
             _fields.Clear();

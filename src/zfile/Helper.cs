@@ -15,6 +15,58 @@ namespace WinFormsApp1
 	}
 	internal static class Helper
 	{
+		public static void CopyFilesAndDirectories(string[] sourcePaths, string destinationDirectory)
+		{
+			foreach (string sourcePath in sourcePaths)
+			{
+				if (File.Exists(sourcePath))
+				{
+					CopyFile(sourcePath, destinationDirectory);
+				}
+				else if (Directory.Exists(sourcePath))
+				{
+					CopyDirectory(sourcePath, destinationDirectory);
+				}
+				else
+				{
+					throw new ArgumentException($"Source path '{sourcePath}' does not exist.");
+				}
+			}
+		}
+
+		private static void CopyFile(string sourceFile, string destinationDirectory)
+		{
+			string fileName = Path.GetFileName(sourceFile);
+			string destFile = Path.Combine(destinationDirectory, fileName);
+
+			Directory.CreateDirectory(destinationDirectory);
+			File.Copy(sourceFile, destFile, overwrite: true);
+		}
+
+		private static void CopyDirectory(string sourceDir, string destinationDirectory)
+		{
+			DirectoryInfo sourceDirInfo = new DirectoryInfo(sourceDir);
+			string dirName = sourceDirInfo.Name;
+
+			if (string.IsNullOrEmpty(dirName))
+			{
+				throw new ArgumentException("Source directory is a root directory and cannot be copied.");
+			}
+
+			string destDir = Path.Combine(destinationDirectory, dirName);
+			Directory.CreateDirectory(destDir);
+
+			foreach (FileInfo file in sourceDirInfo.GetFiles())
+			{
+				string destFile = Path.Combine(destDir, file.Name);
+				file.CopyTo(destFile, overwrite: true);
+			}
+
+			foreach (DirectoryInfo subDir in sourceDirInfo.GetDirectories())
+			{
+				CopyDirectory(subDir.FullName, destDir);
+			}
+		}
 		public static void CopyFilesAndDirectories(string sourcePath, string destinationFolder)
 		{
 			if (File.Exists(sourcePath))

@@ -316,26 +316,27 @@ namespace CmdProcessor
 			var targetlist = owner.uiManager.isleft ? owner.uiManager.RightList : owner.uiManager.LeftList;
 			try
             {
-                foreach (var file in sourceFiles)
-                {
-					if (Directory.Exists(file)) {
-						Helper.CopyFilesAndDirectories(file, targetPath);
-					}
-					else
-					{
-						var fileName = Path.GetFileName(file);
-						if (isSamePath) fileName = "copy of " + fileName;
-						var targetFile = Path.Combine(targetPath, fileName);
-						if (!File.Exists(targetFile))
-							File.Copy(file, targetFile, true);
-						else
-						{
-							var result = MessageBox.Show("file already exist, overwrite it ?", "warning");
-							if (result == DialogResult.OK)
-								File.Copy(file, targetFile, true);
-						}
-					}
-                }
+				//           foreach (var file in sourceFiles)
+				//           {
+				//if (Directory.Exists(file)) {
+				//	Helper.CopyFilesAndDirectories(file, targetPath);
+				//}
+				//else
+				//{
+				//	var fileName = Path.GetFileName(file);
+				//	if (isSamePath) fileName = "copy of " + fileName;
+				//	var targetFile = Path.Combine(targetPath, fileName);
+				//	if (!File.Exists(targetFile))
+				//		File.Copy(file, targetFile, true);
+				//	else
+				//	{
+				//		var result = MessageBox.Show("file already exist, overwrite it ?", "warning");
+				//		if (result == DialogResult.OK)
+				//			File.Copy(file, targetFile, true);
+				//	}
+				//}
+				//           }
+				Helper.CopyFilesAndDirectories(sourceFiles, targetPath);
 				owner.RefreshTreeViewAndListView(targetTree, targetlist, targetPath);
             }
             catch (Exception ex)

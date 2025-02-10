@@ -73,8 +73,8 @@ namespace WinFormsApp1
                 uiManager.RightStatusStrip
             );
             specFolderPaths = Helper.GetSpecFolderPaths();
-            uiManager.LeftList.ItemDrag += ListView_ItemDrag;
-            uiManager.RightList.ItemDrag += ListView_ItemDrag;
+            //uiManager.LeftList.ItemDrag += ListView_ItemDrag;
+            //uiManager.RightList.ItemDrag += ListView_ItemDrag;
         }
         private void InitializeHotkeys()
         {
@@ -121,7 +121,7 @@ namespace WinFormsApp1
                 .Cast<ListViewItem>()
                 .Select(item => Path.Combine(currentDirectory, item.Text))
                 .ToArray();
-
+			Debug.Print(draggedItems.Length.ToString());
             // 启动拖拽操作
             listView.DoDragDrop(new DataObject(DataFormats.FileDrop, draggedItems), DragDropEffects.Copy);
         }
@@ -152,7 +152,7 @@ namespace WinFormsApp1
         }
         private string GetListItemPath(ListViewItem item)
         {
-            var path = Path.Combine(currentDirectory, item.Text);      //todo: debug it
+            var path = Path.Combine(currentDirectory, item.Text);      //todo: debug it！！！
             Debug.Print(path);
             return path;
         }
@@ -169,7 +169,8 @@ namespace WinFormsApp1
             {
                 //Debug.Print("target node :{0} ", targetItem.FullPath);
                 var targetPath = GetListItemPath(targetItem);
-                if (!targetPath.Equals(string.Empty)) Debug.Print("targetpath : {0}", targetPath);
+                if (!targetPath.Equals(string.Empty)) 
+					Debug.Print("targetpath : {0} <<< {1} items dragged!", targetPath, draggedItems.Length.ToString());
                 bool isValid = Helper.IsValidFileSystemPath(targetPath);
                 e.Effect = isValid ? DragDropEffects.Copy : DragDropEffects.None;
                 return;
@@ -705,7 +706,7 @@ namespace WinFormsApp1
                 selectionStart = e.Location;
 				var v = sender as ListView;
 				uiManager.isleft = v == uiManager.LeftList;
-                v?.SelectedItems.Clear();
+                //v?.SelectedItems.Clear();
             }
         }
 

@@ -273,10 +273,10 @@ namespace WinFormsApp1
 		#endregion
 
 		#region View Controls
-		public TreeView LeftTree { get; } = new();
-		public TreeView RightTree { get; } = new();
-		public ListView LeftList { get; } = new();
-		public ListView RightList { get; } = new();
+		public TreeView LeftTree { get; } = new() { Name = "LeftTree"};
+		public TreeView RightTree { get; } = new() { Name = "RightTree"};
+		public ListView LeftList { get; } = new() { Name = "LeftList"};
+		public ListView RightList { get; } = new() { Name = "RightList" };
 		#endregion
 
 		#region Preview Controls
@@ -591,7 +591,7 @@ namespace WinFormsApp1
 		{
 			listView.Dock = DockStyle.Fill;
 			listView.View = View.Details;
-			listView.FullRowSelect = true;
+			listView.FullRowSelect = false;
 			listView.GridLines = true;
 			listView.AllowColumnReorder = true;
 			listView.LabelEdit = true;

@@ -297,10 +297,10 @@ namespace CmdProcessor
         }
 
         // 复制选中的文件
-        private void CopySelectedFiles()
+        private bool CopySelectedFiles()
         {
             var listView = owner.activeListView;
-            if (listView == null || listView.SelectedItems.Count <= 0) return;
+            if (listView == null || listView.SelectedItems.Count <= 0) return false;
 
 			var srcPath = Helper.getFSpath(!owner.uiManager.isleft ? owner.uiManager.RightTree.SelectedNode.FullPath : owner.uiManager.LeftTree.SelectedNode.FullPath);
 
@@ -338,11 +338,13 @@ namespace CmdProcessor
 				//           }
 				Helper.CopyFilesAndDirectories(sourceFiles, targetPath);
 				owner.RefreshTreeViewAndListView(targetTree, targetlist, targetPath);
+				return true;
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"复制文件失败: {ex.Message}", "错误");
-            }
+				return false;
+			}
         }
 	
         // 移动选中的文件
@@ -351,25 +353,33 @@ namespace CmdProcessor
             var listView = owner.activeListView;
             if (listView == null || listView.SelectedItems.Count <= 0) return;
 
-            var sourceFiles = listView.SelectedItems.Cast<ListViewItem>()
-                .Select(item => Path.Combine(owner.currentDirectory, item.Text))
+			var srcpath = Helper.getFSpath(owner.activeTreeview.SelectedNode.FullPath);
+			var sourceFiles = listView.SelectedItems.Cast<ListViewItem>()
+                .Select(item => Path.Combine(srcpath, item.Text))
                 .ToArray();
 
-            var targetPath = owner.uiManager.isleft ? owner.uiManager.RightList.Tag?.ToString() : owner.uiManager.LeftList.Tag?.ToString();
+            var targettree = owner.uiManager.isleft ? owner.uiManager.RightTree : owner.uiManager.LeftTree;
+			var targetPath = Helper.getFSpath(targettree.SelectedNode.FullPath);
             if (string.IsNullOrEmpty(targetPath))
             {
-                MessageBox.Show("请先选择目标路径", "提示");
+                MessageBox.Show("无效的目标路径", "错误");
                 return;
             }
+			if(srcpath.Equals(targetPath))
+			{
+				return;		//if srcpath eq targetpath, do not need move, do rename 
+			}
 
             try
             {
-                foreach (var file in sourceFiles)
-                {
-                    var fileName = Path.GetFileName(file);
-                    var targetFile = Path.Combine(targetPath, fileName);
-                    File.Move(file, targetFile, true);
-                }
+				//foreach (var file in sourceFiles)
+				//{
+				//    var fileName = Path.GetFileName(file);
+				//    var targetFile = Path.Combine(targetPath, fileName);
+				//    File.Move(file, targetFile, true);
+				//}
+				if(CopySelectedFiles())
+					DeleteSelectedFiles(false);
             }
             catch (Exception ex)
             {
@@ -378,7 +388,7 @@ namespace CmdProcessor
         }
 
         // 删除选中的文件
-        private void DeleteSelectedFiles()
+        private void DeleteSelectedFiles(bool needConfirm = true)
         {
             var listView = owner.activeListView;
             if (listView == null || listView.SelectedItems.Count <= 0) return;
@@ -386,14 +396,16 @@ namespace CmdProcessor
             var files = listView.SelectedItems.Cast<ListViewItem>()
                 .Select(item => Path.Combine(owner.currentDirectory, item.Text))
                 .ToArray();
-
-            var result = MessageBox.Show(
-                $"确定要删除选中的 {files.Length} 个文件吗？",
-                "确认删除",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question
-            );
-
+			var result = DialogResult.Yes;
+			if (needConfirm)
+			{
+				result = MessageBox.Show(
+					$"确定要删除选中的 {files.Length} 个文件吗？",
+					"确认删除",
+					MessageBoxButtons.YesNo,
+					MessageBoxIcon.Question
+				);
+			}
             if (result == DialogResult.Yes)
             {
                 try

@@ -83,7 +83,7 @@ namespace WinFormsApp1
                 { Keys.F3, "cm_List" },
                 { Keys.F4, "cm_Edit" },
                 { Keys.F5, "cm_Copy" },
-                { Keys.F6, "cm_Move" },
+                { Keys.F6, "cm_renmov" },
                 { Keys.F7, "cm_mkdir" },
                 { Keys.F8, "cm_Delete" },
                 { Keys.F9, "cm_ExecuteDOS" },

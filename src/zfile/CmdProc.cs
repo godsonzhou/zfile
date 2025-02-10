@@ -222,46 +222,46 @@ namespace CmdProcessor
                 // 在这里添加处理命令的逻辑
                 switch (cmdId)
                 {
-                    case 101: // cm_copy
+                    case 905: // cm_copy
                         CopySelectedFiles();
                         break;
-                    case 102: // cm_move
+                    case 906: // cm_renmov
                         MoveSelectedFiles();
                         break;
-                    case 103: // cm_delete
+                    case 908: // cm_delete
                         DeleteSelectedFiles();
                         break;
-                    case 104: // cm_newfolder
+                    case 907: // cm_mkdir
                         CreateNewFolder();
                         break;
-                    case 105: // cm_rename
+                    case 9061: // cm_rename??todo: same as 906?
                         RenameSelected();
                         break;
-                    case 106: // cm_search
+                    case 501: // cm_searchfor
                         SearchFiles();
                         break;
-                    case 107: // cm_properties
+                    case 1003: // cm_properties
                         ShowFileProperties();
                         break;
-                    case 108: // cm_compare
+                    case 2040: // cm_intcomparefilesbycontent
                         CompareFiles();
                         break;
-                    case 109: // cm_pack
+                    case 508: // cm_packfiles
                         PackFiles();
                         break;
-                    case 110: // cm_unpack
+                    case 509: // cm_unpackfiles
                         UnpackFiles();
                         break;
                     case 269:   //cm_srcthumbs
                         owner.SetViewMode(View.Tile);
                         break;
-                    case 301:
+                    case 301:	//cm_srcshort
                         owner.SetViewMode(View.List);
                         break;
-                    case 302:
+                    case 302:	//cm_srclong
                         owner.SetViewMode(View.Details);
                         break;
-                    case 490:
+                    case 490:	//cm_config
                         owner.OpenOptions();
                         break;
                     case 511: // cm_executedos

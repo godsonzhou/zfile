@@ -515,8 +515,11 @@ namespace WinFormsApp1
 		public void InitializeListViewIcons()
 		{
 			IconManager.InitializeIcons(listViewImageList);
+			IconManager.InitializeIcons(thumbnailImageList, true);
 			LeftList.SmallImageList = listViewImageList;
 			RightList.SmallImageList = listViewImageList;
+			LeftList.LargeImageList = thumbnailImageList;
+			RightList.LargeImageList = thumbnailImageList;
 		}
 
 		public void InitializeTreeViewIcons()

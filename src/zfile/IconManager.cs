@@ -27,28 +27,27 @@ namespace WinFormsApp1
 			var phiconSmall = new IntPtr[count];
 			var result = API.ExtractIconEx(path, 0, phiconLarge, phiconSmall, count);
 
-			ImageList imageList = new()
-			{
-				ImageSize = SystemInformation.IconSize
-			};
+			ImageList imageList = new();
 			if (islarge)
 			{
+				imageList.ImageSize = new Size(64, 64);//SystemInformation.IconSize;
 				imageList.Images.AddRange(phiconLarge.Select(x => Icon.FromHandle(x).ToBitmap()).ToArray());
-				phiconLarge.ToList().ForEach(x => API.DestroyIcon(x));
 			}
 			else
 			{
+				imageList.ImageSize = new Size(16, 16);
 				imageList.Images.AddRange(phiconSmall.Select(x => Icon.FromHandle(x).ToBitmap()).ToArray());
-				phiconSmall.ToList().ForEach(x => API.DestroyIcon(x));
 			}
+			phiconLarge.ToList().ForEach(x => API.DestroyIcon(x));
+			phiconSmall.ToList().ForEach(x => API.DestroyIcon(x));
 			return imageList;
 		}
-		public static ImageList LoadIconsFromFile(string path)
+		public static ImageList LoadIconsFromFile1(string path)
 		{
 			var count = API.ExtractIconEx(path, -1, null, null, 0);
 			var phiconLarge = new IntPtr[count];
 			var phiconSmall = new IntPtr[count];
-			API.ExtractIconEx(path, 0, phiconLarge, null, count);
+			API.ExtractIconEx(path, 0, phiconLarge, phiconSmall, count);
 
 			var imageList = new ImageList
 			{
@@ -56,7 +55,7 @@ namespace WinFormsApp1
 			};
 			imageList.Images.AddRange(phiconLarge.Select(x => Icon.FromHandle(x).ToBitmap()).ToArray());
 			phiconLarge.ToList().ForEach(x => API.DestroyIcon(x));
-
+			phiconSmall.ToList().ForEach(x => API.DestroyIcon(x));
 			return imageList;
 		}
 
@@ -225,29 +224,47 @@ namespace WinFormsApp1
 
 			return ico;
 		}
-		public static void InitializeIcons(ImageList l)
+		public static void InitializeIcons(ImageList l, bool islarge = false)
 		{
-			l.ColorDepth = ColorDepth.Depth32Bit;
-			l.ImageSize = new Size(16, 16);
 			var imageresPath = Path.Combine(Environment.SystemDirectory, "imageres.dll");
+			l.ColorDepth = ColorDepth.Depth32Bit;
+			if (islarge) 
+			{ 
+				l.ImageSize = new Size(64, 64);
+			}
+			else 
+				{ l.ImageSize = new Size(16, 16); }
 
 			// 使用IconManager加载系统图标
-			var imageList = LoadIconsFromFile(imageresPath);
+			var imageList = LoadIconsFromFile(imageresPath, islarge);
 
 			// 添加系统图标到treeViewImageList
-			l.Images.Add("desktop", LoadIcon($"{imageresPath},174")); // 桌面
-			l.Images.Add("computer", LoadIcon($"{imageresPath},104")); // 此电脑
-			l.Images.Add("network", LoadIcon($"{imageresPath},20")); // 网上邻居
-			l.Images.Add("controlPanel", LoadIcon($"{imageresPath},22")); // 控制面板
-			l.Images.Add("recyclebin", LoadIcon($"{imageresPath},49")); // 回收站49,empty recyclebin=50
-			l.Images.Add("documents", LoadIcon($"{imageresPath},107")); // 文档
-			l.Images.Add("drives", LoadIcon($"{imageresPath},27")); // 磁盘驱动器
-			l.Images.Add("linux", LoadIcon($"{imageresPath},27")); // 
-			l.Images.Add("downloads", LoadIcon($"{imageresPath},175")); // 
-			l.Images.Add("music", LoadIcon($"{imageresPath},103")); // 
-			l.Images.Add("pictures", LoadIcon($"{imageresPath},108")); // 
-			l.Images.Add("videos", LoadIcon($"{imageresPath},178")); // 
-			l.Images.Add("home", LoadIcon($"{imageresPath},83")); // 
+			//l.Images.Add("desktop", LoadIcon($"{imageresPath},174")); // 桌面
+			//l.Images.Add("computer", LoadIcon($"{imageresPath},104")); // 此电脑
+			//l.Images.Add("network", LoadIcon($"{imageresPath},20")); // 网上邻居
+			//l.Images.Add("controlPanel", LoadIcon($"{imageresPath},22")); // 控制面板
+			//l.Images.Add("recyclebin", LoadIcon($"{imageresPath},49")); // 回收站49,empty recyclebin=50
+			//l.Images.Add("documents", LoadIcon($"{imageresPath},107")); // 文档
+			//l.Images.Add("drives", LoadIcon($"{imageresPath},27")); // 磁盘驱动器
+			//l.Images.Add("linux", LoadIcon($"{imageresPath},27")); // 
+			//l.Images.Add("downloads", LoadIcon($"{imageresPath},175")); // 
+			//l.Images.Add("music", LoadIcon($"{imageresPath},103")); // 
+			//l.Images.Add("pictures", LoadIcon($"{imageresPath},108")); // 
+			//l.Images.Add("videos", LoadIcon($"{imageresPath},178")); // 
+			//l.Images.Add("home", LoadIcon($"{imageresPath},83")); // 
+			l.Images.Add("desktop", imageList.Images[174]); // 桌面
+			l.Images.Add("computer", imageList.Images[104]); // 此电脑
+			l.Images.Add("network", imageList.Images[20]); // 网上邻居
+			l.Images.Add("controlPanel", imageList.Images[22]); // 控制面板
+			l.Images.Add("recyclebin", imageList.Images[49]); // 回收站49,empty recyclebin=50
+			l.Images.Add("documents", imageList.Images[107]); // 文档
+			l.Images.Add("drives", imageList.Images[27]); // 磁盘驱动器
+			l.Images.Add("linux", imageList.Images[27]); // 
+			l.Images.Add("downloads", imageList.Images[175]); // 
+			l.Images.Add("music", imageList.Images[103]); // 
+			l.Images.Add("pictures", imageList.Images[108]); // 
+			l.Images.Add("videos", imageList.Images[178]); // 
+			l.Images.Add("home", imageList.Images[83]); // 
 
 			// 添加默认文件夹图标
 			Icon folderIcon = GetIconByFileType("folder", false);
@@ -319,7 +336,7 @@ namespace WinFormsApp1
                     return icon?.ToBitmap();
                 }
             }
-            else if (System.IO.File.Exists(iconPath))
+            else if (File.Exists(iconPath))
             {
                 return GetIconByFilenameAndIndex(iconPath, 0);
             }

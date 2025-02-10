@@ -13,7 +13,7 @@ namespace WinFormsApp1
     {
         private readonly ThemeManager themeManager;
         private readonly FilePreviewManager previewManager = new();
-        private readonly FileSystemManager fsManager = new();
+        public readonly FileSystemManager fsManager = new();
         public readonly UIControlManager uiManager;
         public readonly ThumbnailManager thumbnailManager = new("d:\\temp\\cache", new Size(64,64));
         private Dictionary<Keys, string> hotkeyMappings;
@@ -1539,29 +1539,28 @@ namespace WinFormsApp1
         }
         public void DeleteButton_Click(object? sender, EventArgs e)
         {
-            var listView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
-            if (listView.SelectedItems.Count == 0) return;
+			cmdProcessor.ExecCmdByName("cm_delete");
+            //var listView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
+            //if (listView.SelectedItems.Count == 0) return;
 
-            var selectedItem = listView.SelectedItems[0];
-            var itemPath = Path.Combine(currentDirectory, selectedItem.Text);
+            //var selectedItem = listView.SelectedItems[0];
+            //var itemPath = Path.Combine(currentDirectory, selectedItem.Text);
 
-            fsManager.DeleteFile(itemPath);
-            listView.Items.Remove(selectedItem);
+            //fsManager.DeleteFile(itemPath);
+            //listView.Items.Remove(selectedItem);
         }
 
         public void FolderButton_Click(object? sender, EventArgs e)
         {
-            var listView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
-            var treeView = uiManager.LeftList.Focused ? uiManager.LeftTree : uiManager.RightTree;
-
-            if (selectedNode == null) return;
-
-            string input = Microsoft.VisualBasic.Interaction.InputBox("请输入新文件夹名称:", "新建文件夹", "新文件夹");
+            string input = Microsoft.VisualBasic.Interaction.InputBox("请输入新文件夹名称: eg. dir1,dir2\\dir3", "新建文件夹", "新建文件夹");
             if (string.IsNullOrWhiteSpace(input)) return;
-
-            string newFolderPath = Path.Combine(currentDirectory, input);
-            fsManager.CreateDirectory(newFolderPath);
-            RefreshTreeViewAndListView(treeView, listView, currentDirectory);
+			var dirs = input.Split(',');
+			foreach(var dir in dirs)
+			{
+				string newFolderPath = Path.Combine(currentDirectory, dir);
+				fsManager.CreateDirectory(newFolderPath);
+			}
+			RefreshTreeViewAndListView(activeTreeview, activeListView, currentDirectory);
         }
 
         public void MoveButton_Click(object? sender, EventArgs e)

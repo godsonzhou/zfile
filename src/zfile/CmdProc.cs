@@ -400,11 +400,13 @@ namespace CmdProcessor
                 {
                     foreach (var file in files)
                     {
-                        if (File.Exists(file))
-                            File.Delete(file);
-                        else if (Directory.Exists(file))
-                            Directory.Delete(file, true);
+						//if (File.Exists(file))
+						//    File.Delete(file);
+						//else if (Directory.Exists(file))
+						//    Directory.Delete(file, true);
+						owner.fsManager.DeleteFile(file);
                     }
+					owner.RefreshTreeViewAndListView(owner.activeTreeview, owner.activeListView, owner.currentDirectory);
                 }
                 catch (Exception ex)
                 {
@@ -418,24 +420,27 @@ namespace CmdProcessor
         {
             var path = owner.currentDirectory;
             var newFolderPath = Path.Combine(path, folderName);
-            var counter = 1;
+    //        var counter = 1;
 
-            while (Directory.Exists(newFolderPath))
-            {
-                folderName = $"新建文件夹 ({counter})";
-                newFolderPath = Path.Combine(path, folderName);
-                counter++;
-            }
+    //        while (Directory.Exists(newFolderPath))
+    //        {
+    //            folderName = $"新建文件夹 ({counter})";
+    //            newFolderPath = Path.Combine(path, folderName);
+    //            counter++;
+    //        }
 
-            try
-            {
-                Directory.CreateDirectory(newFolderPath);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"创建文件夹失败: {ex.Message}", "错误");
-            }
-        }
+    //        try
+    //        {
+    //            Directory.CreateDirectory(newFolderPath);
+				//owner.RefreshTreeViewAndListView(owner.activeTreeview, owner.activeListView, path);
+    //        }
+    //        catch (Exception ex)
+    //        {
+    //            MessageBox.Show($"创建文件夹失败: {ex.Message}", "错误");
+    //        }
+			owner.fsManager.CreateDirectory(newFolderPath);
+			owner.RefreshTreeViewAndListView(owner.activeTreeview, owner.activeListView, path);
+		}
 
         // 重命名选中的文件或文件夹
         private void RenameSelected()

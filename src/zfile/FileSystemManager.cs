@@ -115,8 +115,15 @@ namespace WinFormsApp1
         {
             try
             {
-                Directory.CreateDirectory(path);
-            }
+				var counter = 1;
+				var newpath = path;
+				while (Directory.Exists(newpath))
+				{
+					newpath = $"{path} ({counter})";
+					counter++;
+				}
+				Directory.CreateDirectory(newpath);
+			}
             catch (Exception ex)
             {
                 MessageBox.Show($"创建目录失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);

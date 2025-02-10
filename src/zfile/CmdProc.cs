@@ -302,33 +302,48 @@ namespace CmdProcessor
             var listView = owner.activeListView;
             if (listView == null || listView.SelectedItems.Count <= 0) return;
 
-            var sourceFiles = listView.SelectedItems.Cast<ListViewItem>()
-                .Select(item => Path.Combine(owner.currentDirectory, item.Text))
+			var srcPath = Helper.getFSpath(!owner.uiManager.isleft ? owner.uiManager.RightTree.SelectedNode.FullPath : owner.uiManager.LeftTree.SelectedNode.FullPath);
+
+			var sourceFiles = listView.SelectedItems.Cast<ListViewItem>()
+                .Select(item => Path.Combine(srcPath, item.Text))
                 .ToArray();
 
             // TODO: 显示复制对话框，让用户选择目标路径
-            var targetPath = owner.uiManager.isleft ? owner.uiManager.RightList.Tag?.ToString() : owner.uiManager.LeftList.Tag?.ToString();
-            if (string.IsNullOrEmpty(targetPath))
-            {
-                MessageBox.Show("请先选择目标路径", "提示");
-                return;
-            }
+			var targetTree = owner.uiManager.isleft ? owner.uiManager.RightTree : owner.uiManager.LeftTree;
+			var targetPath = Helper.getFSpath(targetTree.SelectedNode.FullPath);
+			var isSamePath = targetPath.Equals(srcPath);    
 
-            try
+			var targetlist = owner.uiManager.isleft ? owner.uiManager.RightList : owner.uiManager.LeftList;
+			try
             {
                 foreach (var file in sourceFiles)
                 {
-                    var fileName = Path.GetFileName(file);
-                    var targetFile = Path.Combine(targetPath, fileName);
-                    File.Copy(file, targetFile, true);
+					if (Directory.Exists(file)) {
+						Helper.CopyFilesAndDirectories(file, targetPath);
+					}
+					else
+					{
+						var fileName = Path.GetFileName(file);
+						if (isSamePath) fileName = "copy of " + fileName;
+						var targetFile = Path.Combine(targetPath, fileName);
+						if (!File.Exists(targetFile))
+							File.Copy(file, targetFile, true);
+						else
+						{
+							var result = MessageBox.Show("file already exist, overwrite it ?", "warning");
+							if (result == DialogResult.OK)
+								File.Copy(file, targetFile, true);
+						}
+					}
                 }
+				owner.RefreshTreeViewAndListView(targetTree, targetlist, targetPath);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"复制文件失败: {ex.Message}", "错误");
             }
         }
-
+	
         // 移动选中的文件
         private void MoveSelectedFiles()
         {
@@ -398,9 +413,8 @@ namespace CmdProcessor
         }
 
         // 创建新文件夹
-        private void CreateNewFolder()
+        private void CreateNewFolder(string folderName = "新建文件夹")
         {
-            var folderName = "新建文件夹";
             var path = owner.currentDirectory;
             var newFolderPath = Path.Combine(path, folderName);
             var counter = 1;

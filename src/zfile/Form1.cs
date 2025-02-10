@@ -15,7 +15,7 @@ namespace WinFormsApp1
         private readonly FilePreviewManager previewManager = new();
         private readonly FileSystemManager fsManager = new();
         public readonly UIControlManager uiManager;
-        public readonly ThumbnailManager thumbnailManager= new(Constants.ZfilePath+"\\cache", new Size(64,64));
+        public readonly ThumbnailManager thumbnailManager = new("d:\\temp\\cache", new Size(64,64));
         private Dictionary<Keys, string> hotkeyMappings;
         private bool isSelecting = false;
         private Point selectionStart;
@@ -84,7 +84,7 @@ namespace WinFormsApp1
                 { Keys.F4, "cm_Edit" },
                 { Keys.F5, "cm_Copy" },
                 { Keys.F6, "cm_Move" },
-                { Keys.F7, "cm_NewFolder" },
+                { Keys.F7, "cm_mkdir" },
                 { Keys.F8, "cm_Delete" },
                 { Keys.F9, "cm_ExecuteDOS" },
                 { Keys.Alt | Keys.X, "cm_Exit" }
@@ -676,7 +676,7 @@ namespace WinFormsApp1
                 IntPtr deskTopPtr;
                 iDeskTop = w32.GetDesktopFolder(out deskTopPtr);
 
-                TreeNode rootNode = new TreeNode("桌面")
+                TreeNode rootNode = new ("桌面")
                 {
                     Tag = new ShellItem(deskTopPtr, iDeskTop),
                     ImageKey = "desktop", // 设置图标
@@ -1507,34 +1507,35 @@ namespace WinFormsApp1
 
         public void CopyButton_Click(object? sender, EventArgs e)
         {
-            var sourceListView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
-            var targetTreeView = uiManager.LeftList.Focused ? uiManager.RightTree : uiManager.LeftTree;
-            var targetListView = uiManager.LeftList.Focused ? uiManager.RightList : uiManager.LeftList;
+			cmdProcessor.ExecCmdByName("cm_copy");
+            //var sourceListView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
+            //var targetTreeView = uiManager.LeftList.Focused ? uiManager.RightTree : uiManager.LeftTree;
+            //var targetListView = uiManager.LeftList.Focused ? uiManager.RightList : uiManager.LeftList;
 
-            if (sourceListView.SelectedItems.Count == 0 || targetTreeView.SelectedNode == null) return;
+            //if (sourceListView.SelectedItems.Count == 0 || targetTreeView.SelectedNode == null) return;
 
-            var selectedItem = sourceListView.SelectedItems[0];
-            var sourcePath = Path.Combine(currentDirectory, selectedItem.Text);
-            var targetPath = Path.Combine(targetTreeView.SelectedNode.Tag.ToString() ?? string.Empty, selectedItem.Text);
+            //var selectedItem = sourceListView.SelectedItems[0];
+            //var sourcePath = Path.Combine(currentDirectory, selectedItem.Text);
+            //var targetPath = Path.Combine(targetTreeView.SelectedNode.Tag.ToString() ?? string.Empty, selectedItem.Text);
 
-            try
-            {
-                if (selectedItem.SubItems[3].Text == "<DIR>")
-                {
-                    fsManager.CopyDirectory(sourcePath, targetPath);
-                }
-                else
-                {
-                    File.Copy(sourcePath, targetPath);
-                }
+            //try
+            //{
+            //    if (selectedItem.SubItems[3].Text == "<DIR>")
+            //    {
+            //        fsManager.CopyDirectory(sourcePath, targetPath);
+            //    }
+            //    else
+            //    {
+            //        File.Copy(sourcePath, targetPath);
+            //    }
 
-                RefreshTreeViewAndListView(uiManager.LeftTree, uiManager.LeftList, uiManager.LeftDriveBox.SelectedItem?.ToString() ?? string.Empty);
-                RefreshTreeViewAndListView(uiManager.RightTree, uiManager.RightList, uiManager.RightDriveBox.SelectedItem?.ToString() ?? string.Empty);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"复制失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            //    RefreshTreeViewAndListView(uiManager.LeftTree, uiManager.LeftList, uiManager.LeftDriveBox.SelectedItem?.ToString() ?? string.Empty);
+            //    RefreshTreeViewAndListView(uiManager.RightTree, uiManager.RightList, uiManager.RightDriveBox.SelectedItem?.ToString() ?? string.Empty);
+            //}
+            //catch (Exception ex)
+            //{
+            //    MessageBox.Show($"复制失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            //}
         }
         public void DeleteButton_Click(object? sender, EventArgs e)
         {
@@ -1579,7 +1580,7 @@ namespace WinFormsApp1
             RefreshTreeViewAndListView(uiManager.RightTree, uiManager.RightList, uiManager.RightDriveBox.SelectedItem?.ToString() ?? string.Empty);
         }
 
-        private void RefreshTreeViewAndListView(TreeView treeView, ListView listView, string path)
+        public void RefreshTreeViewAndListView(TreeView treeView, ListView listView, string path)
         {
             Debug.Print("RefreshTreeViewAndListView:{0}", path);
             if (selectedNode != null)

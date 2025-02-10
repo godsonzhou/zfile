@@ -15,7 +15,45 @@ namespace WinFormsApp1
 	}
 	internal static class Helper
 	{
-
+		public static void CopyFilesAndDirectories(string sourcePath, string destinationFolder)
+		{
+			if (File.Exists(sourcePath))
+			{
+				// 如果是文件，直接复制
+				string destinationFilePath = Path.Combine(destinationFolder, Path.GetFileName(sourcePath));
+				string destinationFileDirectory = Path.GetDirectoryName(destinationFilePath);
+				// 创建目标文件所在的目录
+				if (!Directory.Exists(destinationFileDirectory))
+				{
+					Directory.CreateDirectory(destinationFileDirectory);
+				}
+				File.Copy(sourcePath, destinationFilePath, true);
+			}
+			else if (Directory.Exists(sourcePath))
+			{
+				// 如果是目录，递归复制
+				string relativePath = Path.GetRelativePath(Path.GetDirectoryName(sourcePath), sourcePath);
+				string destinationDirectory = Path.Combine(destinationFolder, relativePath);
+				// 创建目标目录
+				if (!Directory.Exists(destinationDirectory))
+				{
+					Directory.CreateDirectory(destinationDirectory);
+				}
+				// 复制目录中的所有文件
+				string[] files = Directory.GetFiles(sourcePath);
+				foreach (string file in files)
+				{
+					string destinationFilePath = Path.Combine(destinationDirectory, Path.GetFileName(file));
+					File.Copy(file, destinationFilePath, true);
+				}
+				// 递归复制子目录
+				string[] subDirectories = Directory.GetDirectories(sourcePath);
+				foreach (string subDirectory in subDirectories)
+				{
+					CopyFilesAndDirectories(subDirectory, destinationFolder);
+				}
+			}
+		}
 		public static string[] RemoveQuotes(string[] originalList)
 		{
 			List<string> resultList = new();

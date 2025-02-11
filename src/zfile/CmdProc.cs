@@ -244,7 +244,7 @@ namespace CmdProcessor
 					case 1003: // cm_properties
                         ShowFileProperties();
                         break;
-                    case 2040: // cm_intcomparefilesbycontent
+                    case 2022: // cm_comparefilesbycontent
                         CompareFiles();
                         break;
                     case 508: // cm_packfiles
@@ -685,14 +685,22 @@ namespace CmdProcessor
         {
             var listView = owner.activeListView;
             if (listView == null || listView.SelectedItems.Count == 0) return;
+			var targetfile = Path.Combine(owner.currentDirectory, listView.SelectedItems[0].Text) + ".zip";
+			if (File.Exists(targetfile))
+			{
+				if(MessageBox.Show($"{targetfile} 已存在，是否替换？", "Warning", MessageBoxButtons.YesNo) != DialogResult.Yes)
+					return;
+				else
+					File.Delete(targetfile);    //delete the old zip file
+			}
+			//var saveDialog = new SaveFileDialog
+			//{
+			//    Filter = "ZIP 文件|*.zip|所有文件|*.*",
+			//    Title = "选择保存位置"
+			//};
 
-            var saveDialog = new SaveFileDialog
-            {
-                Filter = "ZIP 文件|*.zip|所有文件|*.*",
-                Title = "选择保存位置"
-            };
-
-            if (saveDialog.ShowDialog() == DialogResult.OK)
+			//if (saveDialog.ShowDialog() == DialogResult.OK)
+			//File.Delete(targetfile);	//delete the old zip file
             {
                 try
                 {
@@ -702,7 +710,8 @@ namespace CmdProcessor
 
                     System.IO.Compression.ZipFile.CreateFromDirectory(
                         owner.currentDirectory,
-                        saveDialog.FileName,
+                        //saveDialog.FileName,
+						targetfile,
                         System.IO.Compression.CompressionLevel.Optimal,
                         true);
 
@@ -713,6 +722,7 @@ namespace CmdProcessor
                     MessageBox.Show($"打包文件时出错: {ex.Message}", "错误");
                 }
             }
+			owner.RefreshTreeViewAndListView(owner.activeTreeview, owner.activeListView, owner.currentDirectory);
         }
 
         // 解压文件
@@ -724,7 +734,7 @@ namespace CmdProcessor
             var selectedItem = listView.SelectedItems[0];
             var zipPath = Path.Combine(owner.currentDirectory, selectedItem.Text);
 
-            if (!zipPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+            if (!zipPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))		//TODO:其他压缩格式的支持，使用插件
             {
                 MessageBox.Show("请选择 ZIP 文件", "提示");
                 return;

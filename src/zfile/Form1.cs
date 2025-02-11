@@ -166,17 +166,22 @@ namespace WinFormsApp1
             var clientPoint = listView.PointToClient(new Point(e.X, e.Y));
             // 使用 GetNodeAt 获取目标节点
             var targetItem = listView.GetItemAt(clientPoint.X, clientPoint.Y);
+			string targetpath;
             if (targetItem != null)
             {
                 //Debug.Print("target node :{0} ", targetItem.FullPath);
-                var targetPath = GetListItemPath(targetItem);
+                targetpath = GetListItemPath(targetItem);
      //           if (!targetPath.Equals(string.Empty)) 
 					//Debug.Print("targetpath : {0} <<< {1} items dragged!", targetPath, draggedItems.Length.ToString());
-                bool isValid = Helper.IsValidFileSystemPath(targetPath);
-                e.Effect = isValid ? DragDropEffects.Copy : DragDropEffects.None;
-                return;
             }
-            e.Effect = DragDropEffects.None;
+			else
+			{
+				var targettree = listView == uiManager.LeftList ? uiManager.LeftTree : uiManager.RightTree;
+				targetpath = Helper.getFSpathbyTree(targettree.SelectedNode);
+			}
+			bool isValid = Helper.IsValidFileSystemPath(targetpath);
+			e.Effect = isValid ? DragDropEffects.Copy : DragDropEffects.None;
+			return;
         }
 
         public void TreeView_DragDrop(object? sender, DragEventArgs e)
@@ -217,19 +222,22 @@ namespace WinFormsApp1
         }
         public void ListView_DragDrop(object? sender, DragEventArgs e)
         {
-            //Debug.Print("listview_dragdrop");
-            var listView = sender as ListView;
-            var clientPoint = listView.PointToClient(new Point(e.X, e.Y));
+			//Debug.Print("listview_dragdrop");
+			if (draggedItems == null) return;
+			var listView = sender as ListView;
+			var targetTree = (listView == uiManager.LeftList) ? uiManager.LeftTree : uiManager.RightTree;
+			var clientPoint = listView.PointToClient(new Point(e.X, e.Y));
             var targetItem = listView.GetItemAt(clientPoint.X, clientPoint.Y);
-            if (targetItem == null) return;
-            var targetPath = GetListItemPath(targetItem);
-            if (targetItem == null || !Helper.IsValidFileSystemPath(targetPath)) return;
+			string targetPath;
+			if (targetItem != null)
+				targetPath = GetListItemPath(targetItem);
+			else
+				targetPath = Helper.getFSpathbyTree(targetTree.SelectedNode);
+            if (!Helper.IsValidFileSystemPath(targetPath)) return;
             //if (!e.Data.GetDataPresent(DataFormats.FileDrop))
             //{
             //	draggedItems = e.Data.GetData(DataFormats.FileDrop) as string[];
             //}
-            if (draggedItems == null || !Helper.IsValidFileSystemPath(targetPath)) return;
-			var targetTree = (listView == uiManager.LeftList) ? uiManager.LeftTree : uiManager.RightTree;
 			// 复制文件/目录到目标路径
             foreach (var sourcePath in draggedItems)
             {
@@ -709,8 +717,8 @@ namespace WinFormsApp1
         {
             if (e.Button == MouseButtons.Left)
             {
-                isSelecting = true;
-                selectionStart = e.Location;
+                //isSelecting = true;
+                //selectionStart = e.Location;
 				var v = sender as ListView;
 				uiManager.isleft = v == uiManager.LeftList;
                 //v?.SelectedItems.Clear();
@@ -719,28 +727,28 @@ namespace WinFormsApp1
 
         public void ListView_MouseMove(object sender, MouseEventArgs e)
         {
-            if (isSelecting)
-            {
-                selectionRectangle = new Rectangle(
-                    Math.Min(selectionStart.X, e.X),
-                    Math.Min(selectionStart.Y, e.Y),
-                    Math.Abs(selectionStart.X - e.X),
-                    Math.Abs(selectionStart.Y - e.Y));
+            //if (isSelecting)
+            //{
+            //    selectionRectangle = new Rectangle(
+            //        Math.Min(selectionStart.X, e.X),
+            //        Math.Min(selectionStart.Y, e.Y),
+            //        Math.Abs(selectionStart.X - e.X),
+            //        Math.Abs(selectionStart.Y - e.Y));
 
-                activeListView.Invalidate();
-            }
+            //    activeListView.Invalidate();
+            //}
         }
         public void ListView_MouseUp(object sender, MouseEventArgs e)
         {
-            Debug.Print("listview_mouseup:");
-            if (isSelecting)
-            {
-                isSelecting = false;
-                if (selectionRectangle.Width > 0 && selectionRectangle.Height > 0)
-                    SelectItemsInRectangle(activeListView, selectionRectangle);
-                activeListView.Invalidate();
-                selectionRectangle = Rectangle.Empty;
-            }
+            //Debug.Print("listview_mouseup:");
+            //if (isSelecting)
+            //{
+            //    isSelecting = false;
+            //    if (selectionRectangle.Width > 0 && selectionRectangle.Height > 0)
+            //        SelectItemsInRectangle(activeListView, selectionRectangle);
+            //    activeListView.Invalidate();
+            //    selectionRectangle = Rectangle.Empty;
+            //}
 
             if (sender is not ListView listView)
                 return;

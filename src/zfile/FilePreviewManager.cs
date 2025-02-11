@@ -1,14 +1,114 @@
 using CSCore;
+using CSCore.MediaFoundation;
 using CSCore.SoundOut;
 using LibVLCSharp.Shared;
 using SharpCompress.Archives;
+using System.Diagnostics;
 using System.Text;
-
+//using MF.Core;
+//using MF.MediaFoundation;
 namespace WinFormsApp1
 {
 	public class FilePreviewManager
     {
-        public Control CreatePreviewControl(string filePath)
+		//public static void getPreview(string videoFilePath, string thumbnailPath)
+		//{
+		//	// 视频文件路径
+		//	//string videoFilePath = @"C:\path\to\your\video.mp4";
+		//	// 缩略图保存路径
+		//	//string thumbnailPath = @"C:\path\to\save\thumbnail.jpg";
+		//	try
+		//	{
+		//		// 创建 LibVLC 实例
+		//		using (var libVLC = new LibVLC())
+		//		{
+		//			// 创建媒体播放器实例
+		//			using (var mediaPlayer = new MediaPlayer(libVLC))
+		//			{
+		//				// 创建媒体实例
+		//				using (var media = new Media(libVLC, new FileInfo(videoFilePath)))
+		//				{
+		//					// 将媒体加载到播放器中
+		//					mediaPlayer.Media = media;
+		//					// 打开媒体但不播放
+		//					mediaPlayer.Open();
+		//					// 等待一段时间，让媒体准备好
+		//					Thread.Sleep(1000);
+		//					// 抓屏获取缩略图
+		//					using (var snapshot = mediaPlayer.TakeSnapshot(0, 0, 0, 0))
+		//					{
+		//						if (snapshot != null)
+		//						{
+		//							// 将缩略图保存为 JPEG 格式
+		//							snapshot.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Jpeg);
+		//							Console.WriteLine("缩略图已成功保存到: " + thumbnailPath);
+		//						}
+		//						else
+		//						{
+		//							Console.WriteLine("无法获取缩略图。");
+		//						}
+		//					}
+		//				}
+		//			}
+		//		}
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		Console.WriteLine("发生错误: " + ex.Message);
+		//	}
+		//}
+		//public void GetThumbnailWithWMF(string videoPath, string outputPath)
+		//{
+		//	// 初始化COM组件
+		//	MFStartup(MF_VERSION.MF_VERSION);
+
+		//	// 创建SourceReader
+		//	IMFSourceReader reader;
+		//	MFCreateSourceReaderFromURL(videoPath, null, out reader);
+
+		//	// 设置输出格式为RGB32
+		//	reader.SetCurrentMediaType(MF_SOURCE_READER.FirstVideoStream,
+		//		IntPtr.Zero, new IMFMediaType());
+
+		//	// 读取第一帧
+		//	reader.ReadSample(MF_SOURCE_READER.FirstVideoStream, 0,
+		//		out _, out _, out _, out IMFSample sample);
+
+		//	// 将帧转换为图像并保存
+		//	// （需进一步处理IMFSample，此处省略具体转换代码）
+		//}
+		public void GetThumbnailWithFFmpeg(string videoPath, string outputPath)
+		{
+			var startInfo = new ProcessStartInfo
+			{
+				FileName = "ffmpeg.exe",
+				Arguments = $"-i \"{videoPath}\" -ss 00:00:01 -vframes 1 -vf \"scale=320:-1\" -q:v 2 \"{outputPath}\"",
+				UseShellExecute = false,
+				CreateNoWindow = true,
+				RedirectStandardError = true
+			};
+
+			using var process = new Process { StartInfo = startInfo };
+			process.Start();
+			process.WaitForExit();
+		}
+		public void GetThumbnail(string videoPath, string outputPath)
+		{
+			using var libVLC = new LibVLC();
+			using var media = new Media(libVLC, videoPath);
+			using var mediaPlayer = new MediaPlayer(media);
+
+			mediaPlayer.Play();
+
+			// 等待视频初始化（实际需更稳健的同步机制）
+			Thread.Sleep(1000);
+
+			// 截取当前帧（可能需要调整尺寸）
+			mediaPlayer.TakeSnapshot(0, outputPath, 0, 0);
+			mediaPlayer.Stop();
+		}
+
+		public Control CreatePreviewControl(string filePath)
         {
             if (!File.Exists(filePath))
             {
@@ -107,7 +207,7 @@ namespace WinFormsApp1
             using var libVLC = new LibVLC();
             var mediaPlayer = new MediaPlayer(libVLC);
             mediaPlayer.Play(new Media(libVLC, filePath, FromType.FromPath));
-
+			
             var videoView = new LibVLCSharp.WinForms.VideoView
             {
                 MediaPlayer = mediaPlayer,

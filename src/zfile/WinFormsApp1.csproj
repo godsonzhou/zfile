@@ -16,6 +16,7 @@
     <PackageReference Include="CSCore" Version="1.2.1.2" />
     <PackageReference Include="LibVLCSharp" Version="3.9.2" />
     <PackageReference Include="LibVLCSharp.WinForms" Version="3.9.2" />
+    <PackageReference Include="Microsoft.WindowsAPICodePack.Shell" Version="1.1.0" />
     <PackageReference Include="SharpCompress" Version="0.39.0" />
   </ItemGroup>
 

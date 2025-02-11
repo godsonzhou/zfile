@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 //using iTextSharp.text.pdf;
@@ -6,10 +8,179 @@ using System.IO;
 //using Microsoft.WindowsAPICodePack.Shell;
 //using OpenQA.Selenium;
 //using OpenQA.Selenium.Chrome;
-
+using Microsoft.WindowsAPICodePack.Shell;
+using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
 public class ThumbnailGenerator
 {
-    public static bool GetThumbnail(string filePath, out Image image)
+	private static string BuildFFmpegArgs(string input, string output)
+	{
+		return string.Format(
+			"-y -loglevel error " +
+			"-hwaccel auto " +          // 启用自动硬件加速
+			"-ss 00:01:00 " +      // 定位到0.5秒（更接近关键帧）
+			"-i \"{0}\" " +
+			"-vf \"scale=320:-1:flags=fast_bilinear\" " + // 快速缩放算法
+			"-vframes 1 " +
+			"-q:v 31 " +               // 适当降低质量2-31， try 2-5 for thumbnails
+			"-f image2 \"{1}\"",       // 强制输出为图片格式
+			input, output);
+	}
+	private static int RunFFmpegCommand(string input, string output)
+	{
+		var args = BuildFFmpegArgs(input, output);//$"-y -loglevel error -i \"{input}\" -ss 00:01:10 -vframes 1 -vf \"scale=320:-1\" -q:v 2 \"{output}\"";
+
+		using var process = new Process
+		{
+			StartInfo = new ProcessStartInfo
+			{
+				FileName = "ffmpeg.exe",
+				Arguments = args,
+				UseShellExecute = false,
+				CreateNoWindow = true,
+				RedirectStandardError = true
+			},
+			EnableRaisingEvents = true
+		};
+
+		process.Start();
+		process.WaitForExit(5000); // 5秒超时
+
+		if (!process.HasExited)
+		{
+			process.Kill();
+			return -1;
+		}
+
+		return process.ExitCode;
+	}
+	// 内存缓存（线程安全）
+	private static readonly ConcurrentDictionary<string, Lazy<Task<Image>>> _thumbnailCache
+		= new ConcurrentDictionary<string, Lazy<Task<Image>>>();
+
+	public static Task<Image> GetThumbnailAsync(string filePath)
+	{
+		return _thumbnailCache.GetOrAdd(filePath, key =>
+			new Lazy<Task<Image>>(() => GenerateThumbnailAsync(key))).Value;
+	}
+
+	private static async Task<Image> GenerateThumbnailAsync(string filePath)
+	{
+		string tempFile = Path.GetTempFileName();
+
+		try
+		{
+			// 异步执行FFmpeg
+			var exitCode = await RunFFmpegAsync(filePath, tempFile);
+			if (exitCode != 0) return null;
+
+			// 异步读取文件
+			using var fs = new FileStream(tempFile, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous);
+			var buffer = new byte[fs.Length];
+			await fs.ReadAsync(buffer, 0, buffer.Length);
+
+			return Image.FromStream(new MemoryStream(buffer));
+		}
+		finally
+		{
+			SafeDelete(tempFile);
+		}
+	}
+	// 增强的文件删除方法
+	private static void SafeDelete(string path)
+	{
+		const int maxRetry = 3;
+		for (var i = 0; i < maxRetry; i++)
+		{
+			try
+			{
+				if (File.Exists(path))
+					File.Delete(path);
+				return;
+			}
+			catch (IOException)
+			{
+				if (i == maxRetry - 1) throw;
+				Thread.Sleep(100 * (i + 1)); // 递增等待
+			}
+			catch { throw; }
+		}
+	}
+
+	private static Task<int> RunFFmpegAsync(string input, string output)
+	{
+		var args = BuildFFmpegArgs(input, output);
+
+		var tcs = new TaskCompletionSource<int>();
+		var process = new Process
+		{
+			StartInfo = new ProcessStartInfo
+			{
+				FileName = "ffmpeg.exe",
+				Arguments = args,
+				UseShellExecute = false,
+				CreateNoWindow = true,
+				RedirectStandardError = true
+			},
+			EnableRaisingEvents = true
+		};
+
+		process.Exited += (sender, e) =>
+		{
+			tcs.TrySetResult(process.ExitCode);
+			process.Dispose();
+		};
+
+		process.Start();
+		return tcs.Task;
+	}
+
+	public static bool GetThumbnailWithWMF(string filePath, out Image image)
+	{
+		image = null;
+		try
+		{
+			var shellFile = ShellFile.FromFilePath(filePath);
+			var thumbnail = shellFile.Thumbnail.ExtraLargeBitmap;
+			image = new Bitmap(thumbnail);
+			return true;
+		}
+		catch
+		{
+			return false;
+		}
+	}
+	public static bool GetThumbnailForVideo(string filePath, out Image image)
+	{
+		if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+		{
+			return GetThumbnailWithWMF(filePath, out image);
+		}
+		else
+		{
+			return GetThumbnailWithFFmpeg(filePath, out image);
+		}
+	}
+	public static bool GetThumbnailWithFFmpeg(string filePath, out Image image)
+	{
+		try
+		{
+			// 同步获取异步结果（适用于无法改造调用方的情况）
+			var task = GetThumbnailAsync(filePath);
+			if (task.Wait(TimeSpan.FromSeconds(3))) // 设置合理超时
+			{
+				image = task.Result;
+				return true;
+			}
+			image = null;
+			return false;
+		}
+		catch
+		{
+			image = null;
+			return false;
+		}
+	}
+	public static bool GetThumbnail(string filePath, out Image image)
     {
         try
         {
@@ -32,8 +203,32 @@ public class ThumbnailGenerator
 				//    image = shellObject.Thumbnail.SmallBitmap;
 				//    return true;
 				//}
-				image = null;
-				return false;
+				//string tempFile = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.jpg");
+				//image = null;
+				//try
+				//{
+				//	// 同步执行FFmpeg命令
+				//	var exitCode = RunFFmpegCommand(filePath, tempFile);
+				//	if (exitCode != 0 || !File.Exists(tempFile))
+				//		return false;
+
+				//	// 使用文件流确保完全写入
+				//	using var fs = new FileStream(tempFile, FileMode.Open, FileAccess.Read);
+				//	image = Image.FromStream(fs);
+				//	return true;
+				//}
+				//catch (Exception ex)
+				//{
+				//	Debug.WriteLine($"生成缩略图失败: {ex.Message}");
+				//	return false;
+				//}
+				//finally
+				//{
+				//	// 清理临时文件
+				//	//if (File.Exists(tempFile))
+				//	//	File.Delete(tempFile);
+				//}
+				return GetThumbnailForVideo(filePath, out image);
 			}
             else if (IsPDFFile(extension))
             {
@@ -72,13 +267,13 @@ public class ThumbnailGenerator
 
     private static bool IsImageFile(string extension)
     {
-        string[] imageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
+        string[] imageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tif" };
         return Array.IndexOf(imageExtensions, extension) >= 0;
     }
 
     private static bool IsVideoFile(string extension)
     {
-        string[] videoExtensions = { ".mp4", ".avi", ".mov", ".wmv" };
+        string[] videoExtensions = { ".mp4", ".avi", ".mov", ".wmv", ".mkv", ".rmvb", ".rm", ".mpg", ".mpeg" };
         return Array.IndexOf(videoExtensions, extension) >= 0;
     }
 

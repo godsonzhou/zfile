@@ -234,13 +234,14 @@ namespace CmdProcessor
                     case 907: // cm_mkdir
                         CreateNewFolder();
                         break;
-                    case 9061: // cm_rename??todo: same as 906?
-                        RenameSelected();
-                        break;
+                    
                     case 501: // cm_searchfor
                         SearchFiles();
                         break;
-                    case 1003: // cm_properties
+					case 1002: // cm_renameonly
+						RenameSelected();
+						break;
+					case 1003: // cm_properties
                         ShowFileProperties();
                         break;
                     case 2040: // cm_intcomparefilesbycontent
@@ -348,7 +349,7 @@ namespace CmdProcessor
         }
 	
         // 移动选中的文件
-        private void MoveSelectedFiles()
+        public void MoveSelectedFiles()
         {
             var listView = owner.activeListView;
             if (listView == null || listView.SelectedItems.Count <= 0) return;
@@ -461,7 +462,7 @@ namespace CmdProcessor
             if (listView == null || listView.SelectedItems.Count <= 0) return;
 
             var selectedItem = listView.SelectedItems[0];
-            var oldPath = Path.Combine(owner.currentDirectory, selectedItem.Text);
+            //var oldPath = Path.Combine(owner.currentDirectory, selectedItem.Text);
 
             // 启用编辑模式
             selectedItem.BeginEdit();

@@ -617,6 +617,8 @@ namespace WinFormsApp1
 			listView.MouseUp += form.ListView_MouseUp;
 			listView.MouseDown += form.ListView_MouseDown;
 			listView.MouseMove += form.ListView_MouseMove;
+			listView.BeforeLabelEdit += form.ListView_BeforeLabelEdit;
+			listView.AfterLabelEdit += form.ListView_AfterLabelEdit;
 			parent.Controls.Add(listView);
 			listView.BringToFront();
 		}

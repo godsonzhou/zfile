@@ -34,6 +34,7 @@ namespace WinFormsApp1
         private Dictionary<string, string> specFolderPaths = new();
         private string[] draggedItems;
 		private TreeNode rightClickBegin;
+		private string oldname;
         public Form1()
         {
             InitializeComponent();
@@ -80,7 +81,8 @@ namespace WinFormsApp1
         {
             hotkeyMappings = new Dictionary<Keys, string>
             {
-                { Keys.F3, "cm_List" },
+				{ Keys.F2, "cm_RenameOnly" },
+				{ Keys.F3, "cm_List" },
                 { Keys.F4, "cm_Edit" },
                 { Keys.F5, "cm_Copy" },
                 { Keys.F6, "cm_renmov" },
@@ -724,8 +726,64 @@ namespace WinFormsApp1
                 //v?.SelectedItems.Clear();
             }
         }
+		public void ListView_BeforeLabelEdit(object sender, EventArgs e)
+		{
+			ListView listView = sender as ListView;
+			if (listView.SelectedItems.Count == 0) return;
+			ListViewItem item = listView.SelectedItems[0];
+			if (item.SubItems[3].Text == "本地磁盘")
+			{
+				MessageBox.Show("不能重命名本地磁盘");
+				e = null;
+				return;
+			}
+			oldname = item.Text;
+		}
 
-        public void ListView_MouseMove(object sender, MouseEventArgs e)
+		public void ListView_AfterLabelEdit(object sender, EventArgs e)
+		{
+			ListView listView = sender as ListView;
+			if (listView.SelectedItems.Count == 0) return;
+			ListViewItem item = listView.SelectedItems[0];
+			string oldName = oldname;
+			var labeleditEvent = e as LabelEditEventArgs;
+			if (labeleditEvent.CancelEdit) return;
+			//string newName = item.Text;
+			string newName = labeleditEvent.Label;
+			if (string.IsNullOrEmpty(newName))
+			{
+				MessageBox.Show("文件名不能为空");
+				item.Text = oldName;
+				return;
+			}
+			string oldPath = Path.Combine(currentDirectory, oldName);
+			string newPath = Path.Combine(currentDirectory, newName);
+			if (oldPath == newPath) return;
+			if (File.Exists(newPath) || Directory.Exists(newPath))
+			{
+				MessageBox.Show("文件已存在");
+				item.Text = oldName;
+				return;
+			}
+			try
+			{
+				if (File.Exists(oldPath))
+				{
+					File.Move(oldPath, newPath);
+				}
+				else
+				{
+					Directory.Move(oldPath, newPath);
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"重命名失败: {ex.Message}", "错误");
+				item.Text = oldName;
+			}
+			RefreshTreeViewAndListView(activeTreeview, listView, currentDirectory);
+		}
+		public void ListView_MouseMove(object sender, MouseEventArgs e)
         {
             //if (isSelecting)
             //{
@@ -1581,18 +1639,19 @@ namespace WinFormsApp1
 
         public void MoveButton_Click(object? sender, EventArgs e)
         {
-            var sourceListView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
-            var targetTreeView = uiManager.LeftList.Focused ? uiManager.RightTree : uiManager.LeftTree;
+			cmdProcessor.ExecCmdByName("cm_renmov");
+            //var sourceListView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
+            //var targetTreeView = uiManager.LeftList.Focused ? uiManager.RightTree : uiManager.LeftTree;
 
-            if (sourceListView.SelectedItems.Count == 0 || targetTreeView.SelectedNode == null) return;
+            //if (sourceListView.SelectedItems.Count == 0 || targetTreeView.SelectedNode == null) return;
 
-            var selectedItem = sourceListView.SelectedItems[0];
-            var sourcePath = Path.Combine(currentDirectory, selectedItem.Text);
-            var targetPath = Path.Combine(targetTreeView.SelectedNode.Tag.ToString() ?? string.Empty, selectedItem.Text);
+            //var selectedItem = sourceListView.SelectedItems[0];
+            //var sourcePath = Path.Combine(currentDirectory, selectedItem.Text);
+            //var targetPath = Path.Combine(targetTreeView.SelectedNode.Tag.ToString() ?? string.Empty, selectedItem.Text);
 
-            fsManager.MoveFileOrDirectory(sourcePath, targetPath);
-            RefreshTreeViewAndListView(uiManager.LeftTree, uiManager.LeftList, uiManager.LeftDriveBox.SelectedItem?.ToString() ?? string.Empty);
-            RefreshTreeViewAndListView(uiManager.RightTree, uiManager.RightList, uiManager.RightDriveBox.SelectedItem?.ToString() ?? string.Empty);
+            //fsManager.MoveFileOrDirectory(sourcePath, targetPath);
+            //RefreshTreeViewAndListView(uiManager.LeftTree, uiManager.LeftList, uiManager.LeftDriveBox.SelectedItem?.ToString() ?? string.Empty);
+            //RefreshTreeViewAndListView(uiManager.RightTree, uiManager.RightList, uiManager.RightDriveBox.SelectedItem?.ToString() ?? string.Empty);
         }
 
         public void RefreshTreeViewAndListView(TreeView treeView, ListView listView, string path)

@@ -119,9 +119,9 @@ namespace WinFormsApp1
             // 收集拖拽项路径
             draggedItems = listView.SelectedItems
                 .Cast<ListViewItem>()
-                .Select(item => Path.Combine(currentDirectory, item.Text))
+                .Select(item => GetListItemPath(item))
                 .ToArray();
-			Debug.Print(draggedItems.Length.ToString());
+			//Debug.Print(draggedItems[0].ToString());
             // 启动拖拽操作
             listView.DoDragDrop(new DataObject(DataFormats.FileDrop, draggedItems), DragDropEffects.Copy);
         }
@@ -141,9 +141,10 @@ namespace WinFormsApp1
             var targetNode = treeView.GetNodeAt(clientPoint);
             if (targetNode != null)
             {
-                Debug.Print("target node :{0} ", targetNode.FullPath);
+                //Debug.Print("target node :{0} ", targetNode.FullPath);
                 var targetPath = GetTreeNodePath(targetNode);
-                if (!targetPath.Equals(string.Empty)) Debug.Print("targetpath : {0}", targetPath);
+     //           if (!targetPath.Equals(string.Empty)) 
+					//Debug.Print("targetpath : {0}, target node : {1}", targetPath, targetNode.FullPath);
                 bool isValid = Helper.IsValidFileSystemPath(targetPath);
                 e.Effect = isValid ? DragDropEffects.Copy : DragDropEffects.None;
                 return;
@@ -180,8 +181,7 @@ namespace WinFormsApp1
 
         public void TreeView_DragDrop(object? sender, DragEventArgs e)
         {
-            Debug.Print("treeview_dragdrop");
-
+            //Debug.Print("treeview_dragdrop");
             var treeView = sender as TreeView;
             var clientPoint = treeView.PointToClient(new Point(e.X, e.Y));
             var targetNode = treeView.GetNodeAt(clientPoint);
@@ -217,8 +217,7 @@ namespace WinFormsApp1
         }
         public void ListView_DragDrop(object? sender, DragEventArgs e)
         {
-            Debug.Print("listview_dragdrop");
-
+            //Debug.Print("listview_dragdrop");
             var listView = sender as ListView;
             var clientPoint = listView.PointToClient(new Point(e.X, e.Y));
             var targetItem = listView.GetItemAt(clientPoint.X, clientPoint.Y);
@@ -230,26 +229,34 @@ namespace WinFormsApp1
             //	draggedItems = e.Data.GetData(DataFormats.FileDrop) as string[];
             //}
             if (draggedItems == null || !Helper.IsValidFileSystemPath(targetPath)) return;
-
-            // 复制文件/目录到目标路径
+			var targetTree = (listView == uiManager.LeftList) ? uiManager.LeftTree : uiManager.RightTree;
+			// 复制文件/目录到目标路径
             foreach (var sourcePath in draggedItems)
             {
-                try
-                {
-                    var destPath = Path.Combine(targetPath, Path.GetFileName(sourcePath));
-                    if (Directory.Exists(sourcePath))
-                        fsManager.CopyDirectory(sourcePath, destPath);
-                    else
-                        File.Copy(sourcePath, destPath, true);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"复制失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+				Helper.CopyFilesAndDirectories(sourcePath, targetPath);
+				//try
+    //            {
+    //                //var destPath = Path.Combine(targetPath, Path.GetFileName(sourcePath));
+				//	if (Directory.Exists(sourcePath))
+				//	{
+				//		var destPath = Path.Combine(targetPath, Path.GetFileName(sourcePath));
+				//		fsManager.CopyDirectory(sourcePath, destPath);
+				//	}
+				//	else
+				//	{
+				//		var destPath = Path.Combine(targetPath, Path.GetFileName(sourcePath));
+				//		File.Copy(sourcePath, destPath, true);
+				//	}
+    //            }
+    //            catch (Exception ex)
+    //            {
+    //                MessageBox.Show($"复制失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+    //            }
             }
 
             // 刷新目标视图
             listView.Refresh();
+			RefreshTreeViewAndListView(targetTree, listView, targetPath);
         }
         public void AddCurrentPathToBookmarks()
         {

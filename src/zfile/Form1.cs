@@ -152,9 +152,9 @@ namespace WinFormsApp1
         }
         private string GetListItemPath(ListViewItem item)
         {
-            var path = Path.Combine(currentDirectory, item.Text);      //todo: debug it！！！
-            Debug.Print(path);
-            return path;
+			TreeNode node = (TreeNode)item.Tag;
+			var path = Helper.getFSpath(node.FullPath);
+            return Path.Combine(path, item.Text);
         }
         public void ListView_DragOver(object? sender, DragEventArgs e)
         {
@@ -169,8 +169,8 @@ namespace WinFormsApp1
             {
                 //Debug.Print("target node :{0} ", targetItem.FullPath);
                 var targetPath = GetListItemPath(targetItem);
-                if (!targetPath.Equals(string.Empty)) 
-					Debug.Print("targetpath : {0} <<< {1} items dragged!", targetPath, draggedItems.Length.ToString());
+     //           if (!targetPath.Equals(string.Empty)) 
+					//Debug.Print("targetpath : {0} <<< {1} items dragged!", targetPath, draggedItems.Length.ToString());
                 bool isValid = Helper.IsValidFileSystemPath(targetPath);
                 e.Effect = isValid ? DragDropEffects.Copy : DragDropEffects.None;
                 return;

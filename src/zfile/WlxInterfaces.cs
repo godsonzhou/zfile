@@ -324,12 +324,14 @@ namespace WinFormsApp1
 	public class WlxModuleList
 	{
 		private List<string> _config;
+		private Dictionary<string, string> _configDict;
 		private List<WlxModule> _modules = new List<WlxModule>();
 
 		public List<WlxModule> Modules { get { return _modules; } }
 		public WlxModuleList()
 		{
-			_config = Helper.ReadSectionContent("wincmd.ini", "ListerPlugins");
+			_config = Helper.ReadSectionContent(Constants.ZfilePath+"wincmd.ini", "ListerPlugins");
+			_configDict = Helper.ParseConfig(_config);
 		}
 		public void AddModule(WlxModule module)
 		{
@@ -351,18 +353,31 @@ namespace WinFormsApp1
 
 		public WlxModule FindModuleForFile(string fileName)
 		{
-			return _modules.FirstOrDefault(m => IsModuleSupported(m, fileName));
+			return _modules.FirstOrDefault(m => IsModuleSupported(m, fileName));//TODO BUGFIX: 应该按照configdict的配置次序依次查找， 而不是_modules的次序（文件系统的顺序）
 		}
 
 		private bool IsModuleSupported(WlxModule module, string fileName)
 		{
-			if (string.IsNullOrEmpty(module.DetectString)) return false;
+			if (string.IsNullOrEmpty(module.DetectString))
+			{
+				//return false;
+				if(_configDict.TryGetValue(module.Name.ToUpper(), out string val))
+					return isModuleSupport(val, fileName);
+				else
+					return false;
+			}
 
+			return isModuleSupport(module.DetectString, fileName);
+		}
+		private bool isModuleSupport(string DetectString, string fileName)
+		{
+			// 删除MULTIMEDIA FORCE ( ) & 空格
+			DetectString = DetectString.Replace("MULTIMEDIA", "").Replace("FORCE", "").Replace("(", "").Replace(")", "").Replace("&", "").Replace(" ", "");
 			// 解析检测字符串
-			var detectParts = module.DetectString.ToLower().Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+			var detectParts = DetectString.ToLower().Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
 			foreach (var part in detectParts)
 			{
-				if (part.StartsWith("ext="))
+				if (part.StartsWith("ext="))    //TODO BUGFIX: 遇到MULTIMEDIA|ext=avi,mpg,mpeg,mp3,mp4,flv,wmv,rm,rmvb,3gp,ogg,webm,flac,wav,ape,alac,aac,ac3,amr,ape,au,awb,caf,dts,flac,m4a,mka,mlp,mp2,mpa,mpc,ofr,ofs,oga特殊处理
 				{
 					var extensions = part.Substring(4).Split(',');
 					//if necessary, remove the leading " and trailing " for each extensions item

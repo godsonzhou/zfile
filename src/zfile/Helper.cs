@@ -3,6 +3,7 @@ using System.Collections;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using WinShell;
 
 namespace WinFormsApp1
@@ -15,6 +16,69 @@ namespace WinFormsApp1
 	}
 	internal static class Helper
 	{
+		public static Dictionary<string, string> ParseConfig(List<string> config)
+		{
+			/*
+			 * [ListerPlugins]
+				0=%COMMANDER_PATH%\Plugins\Wlx\AKFont\AKFont.wlx64
+				0_detect=FORCE | EXT="TTF" | EXT="PFM" | EXT="OTF" | EXT="TTC" | EXT="FON" | EXT="PFB"
+				1=%COMMANDER_PATH%\Plugins\Wlx\LinkInfo\LinkInfo.wlx
+				1_detect=force | (ext="LNK")
+				2=%COMMANDER_PATH%\Plugins\Wlx\IniEd\IniEd.wlx64
+				2_detect=EXT="INI"|EXT="INF"|EXT="REG"|EXT="URL"
+				3=%COMMANDER_PATH%\Plugins\Wlx\Fileinfo\Fileinfo.wlx64
+				4=%COMMANDER_PATH%\Plugins\Wlx\HTMLView\HTMLView.wlx64
+				5=%COMMANDER_PATH%\Plugins\Wlx\ICLView\ICLView.wlx64
+				5_detect=MULTIMEDIA & (ext="DLL" | ext="EXE" | ext="ICL" | ext="ICL32" | ext="ICO" | size=0 | force)
+				6=%COMMANDER_PATH%\Plugins\Wlx\sLister\sLister.wlx64
+				6_detect=MULTIMEDIA & (EXT="PDF" | EXT="DJVU" | EXT="DJV"| EXT="XPS" | EXT="CBZ" | EXT="CBR" | EXT="EPUB" | EXT="MOBI" | EXT="AZW" | EXT="AZW3")
+				7=%COMMANDER_PATH%\Plugins\Wlx\SWFView\SWFView.wlx64
+				7_detect=MULTIMEDIA & EXT="SWF" | (([0]="F" & [1]="W" & [2]="S")|([0]="C" & [1]="W" & [2]="S") & FORCE)
+				8=%COMMANDER_PATH%\Plugins\Wlx\SQLiteViewer\SQLiteViewer.wlx
+				8_detect=MULTIMEDIA & ext="DB"|ext="DB3"|ext="SQLITE"|ext="SQLITE3"|ext="FOSSIL"
+				9=%COMMANDER_PATH%\Plugins\Wlx\Imagine\Imagine.wlx64
+				9_detect=MULTIMEDIA
+				10=%COMMANDER_PATH%\Plugins\Wlx\MMedia\MMedia.wlx64
+				10_detect=MULTIMEDIA
+				11=%COMMANDER_PATH%\Plugins\Wlx\MarkdownView\MarkdownView.wlx
+				12=%COMMANDER_PATH%\Plugins\Wlx\CudaLister\cudalister.wlx
+				13=%COMMANDER_PATH%\Plugins\Wlx\uLister\uLister.wlx64
+			 */
+			Dictionary<string, string> result = new Dictionary<string, string>();
+			//string[] lines = configText.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+			Dictionary<int, string> pathMap = new Dictionary<int, string>();
+			Dictionary<int, string> detectMap = new Dictionary<int, string>();
+			// 首先解析路径和检测规则
+			foreach (string line in config)
+			{
+				Match pathMatch = Regex.Match(line, @"^(\d+)=.*\\([^\\]+)\.wlx(?:64)?$");
+				if (pathMatch.Success)
+				{
+					int index = int.Parse(pathMatch.Groups[1].Value);
+					string pluginName = pathMatch.Groups[2].Value;
+					pathMap[index] = pluginName;
+				}
+				Match detectMatch = Regex.Match(line, @"^(\d+)_detect=(.*)$");
+				if (detectMatch.Success)
+				{
+					int index = int.Parse(detectMatch.Groups[1].Value);
+					string detectRule = detectMatch.Groups[2].Value;
+					detectMap[index] = detectRule;
+				}
+			}
+			// 将有检测规则的插件添加到结果字典中
+			foreach (var kvp in detectMap)
+			{
+				int index = kvp.Key;
+				if (pathMap.ContainsKey(index))
+				{
+					string pluginName = pathMap[index];
+					string detectRule = kvp.Value;
+					result[pluginName.ToUpper()] = detectRule;
+				}
+			}
+			return result;
+		}
 		public static void CopyFilesAndDirectories(string[] sourcePaths, string destinationDirectory)
 		{
 			foreach (string sourcePath in sourcePaths)

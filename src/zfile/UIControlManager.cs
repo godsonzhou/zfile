@@ -311,6 +311,7 @@ namespace WinFormsApp1
 			listViewImageList.ImageSize = new Size(16, 16);
 			thumbnailImageList = new ImageList();
 			thumbnailImageList.ImageSize = new Size(64, 64);
+			thumbnailImageList.ColorDepth = ColorDepth.Depth32Bit;
 			BookmarkManager = new BookmarkManager(form, leftBookmarkPanel, rightBookmarkPanel);
 			
 			LeftPathTextBox.SelectionChange += LeftPathTextBox_PathChanged;

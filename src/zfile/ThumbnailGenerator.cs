@@ -10,8 +10,71 @@ using System.IO;
 //using OpenQA.Selenium.Chrome;
 using Microsoft.WindowsAPICodePack.Shell;
 using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
+using System;
+using System.Drawing;
+using System.Drawing.Imaging;
+using PdfiumViewer;
+using Ghostscript.NET.Rasterizer;
+
 public class ThumbnailGenerator
 {
+	public static Image GeneratePDFThumbnailByGhostscript(string pdfPath, int width = 200)
+	{
+		using (var rasterizer = new GhostscriptRasterizer())
+		{
+			rasterizer.Open(pdfPath);
+			var img = rasterizer.GetPage(300, 0); // 300 DPI，第0页
+			string outputPath = Path.GetTempFileName();
+			img.Save(outputPath, ImageFormat.Jpeg);
+			return img;
+		}
+	}
+	//private static Image GeneratePDFThumbnail(string filePath)
+	//{
+	//	//using (PdfReader reader = new PdfReader(filePath))
+	//	//{
+	//	//    using (System.Drawing.Bitmap pageImage = iTextSharp.text.pdf.parser.PdfImageObject.GetImage(reader.GetPageN(1)))
+	//	//    {
+	//	//        int thumbnailWidth = 100;
+	//	//        int thumbnailHeight = 100;
+	//	//        return pageImage.GetThumbnailImage(thumbnailWidth, thumbnailHeight, null, IntPtr.Zero);
+	//	//    }
+	//	//}
+	//	return null;
+	//}
+	public static Image GeneratePDFThumbnailByPDFium(string pdfPath, int thumbnailWidth = 64)
+	{
+		// 加载 PDF 文件
+		using (var document = PdfDocument.Load(pdfPath))
+		{
+			// 获取第一页的尺寸（以点为单位）
+			var pageSize = document.PageSizes[0];
+
+			// 计算缩略图的高度（保持宽高比）
+			float scale = thumbnailWidth / pageSize.Width;
+			int thumbnailHeight = (int)(pageSize.Height * scale);
+			if (thumbnailHeight > 64) 
+				thumbnailHeight = 64;
+			// 创建位图并渲染 PDF 页面
+			using (var bitmap = new Bitmap(thumbnailWidth, thumbnailHeight))
+			{
+				using (var graphics = Graphics.FromImage(bitmap))
+				{
+					graphics.Clear(Color.White); // 设置背景为白色
+					document.Render(
+						page: 0,
+						graphics: graphics,
+						dpiX: 96 * scale, // 根据缩放调整 DPI
+						dpiY: 96 * scale,
+						bounds: new Rectangle(0, 0, thumbnailWidth, thumbnailHeight),
+						flags: PdfRenderFlags.ForPrinting
+					);
+				}
+
+				return new Bitmap(bitmap);
+			}
+		}		
+	}
 	private static string BuildFFmpegArgs(string input, string output)
 	{
 		return string.Format(
@@ -232,7 +295,7 @@ public class ThumbnailGenerator
 			}
             else if (IsPDFFile(extension))
             {
-                image = GeneratePDFThumbnail(filePath);
+                image = GeneratePDFThumbnailByPDFium(filePath);
                 return true;
             }
             else if (IsAudioFile(extension))
@@ -300,19 +363,7 @@ public class ThumbnailGenerator
         return Array.IndexOf(htmlMdExtensions, extension) >= 0;
     }
 
-    private static Image GeneratePDFThumbnail(string filePath)
-    {
-        //using (PdfReader reader = new PdfReader(filePath))
-        //{
-        //    using (System.Drawing.Bitmap pageImage = iTextSharp.text.pdf.parser.PdfImageObject.GetImage(reader.GetPageN(1)))
-        //    {
-        //        int thumbnailWidth = 100;
-        //        int thumbnailHeight = 100;
-        //        return pageImage.GetThumbnailImage(thumbnailWidth, thumbnailHeight, null, IntPtr.Zero);
-        //    }
-        //}
-		return null;
-	}
+  
 
     private static Image GetDefaultAudioThumbnail()
     {

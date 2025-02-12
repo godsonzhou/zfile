@@ -1,8 +1,11 @@
 using CmdProcessor;
 using System.Diagnostics;
+using System.Drawing.Imaging;
+using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Windows.Forms;
 using WinShell;
 using zfile;
 using Keys = System.Windows.Forms.Keys;
@@ -1193,7 +1196,7 @@ namespace WinFormsApp1
             path = Helper.getFSpath(path);
             if (path.EndsWith(':')) path += "\\";
 
-            try
+            //try
             {
                 var items = fsManager.GetDirectoryContents(path);
 
@@ -1216,8 +1219,10 @@ namespace WinFormsApp1
 							{
 								listView.SmallImageList.Images.Add(ico);
 								var thumb = thumbnailManager.CreatePreview(item.FullName);
-								if(thumb != null)
+								if (thumb != null)
+								{
 									listView.LargeImageList.Images.Add(thumb);
+								}
 								else
 									listView.LargeImageList.Images.Add(ico);
 								lvItem.ImageIndex = listView.SmallImageList.Images.Count - 1;
@@ -1231,11 +1236,11 @@ namespace WinFormsApp1
                 }
                 listView.EndUpdate();
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"加载文件列表失败: {ex.Message}", "错误",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            //catch (Exception ex)
+            //{
+            //    MessageBox.Show($"加载文件列表失败: {ex.Message}", "错误",
+            //        MessageBoxButtons.OK, MessageBoxIcon.Error);
+            //}
         }
         private async Task LoadListViewByFilesystemAsync(string path, ListView listView)
         {

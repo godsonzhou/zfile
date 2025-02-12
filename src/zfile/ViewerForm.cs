@@ -74,8 +74,8 @@ namespace WinFormsApp1
 		}
 		private void init()
 		{
+			InitializePlugins();        //load all wlx plugins
 			InitializeComponent();
-			InitializePlugins();
 			InitializeFileList();
 			SetupEventHandlers();
 		}
@@ -218,12 +218,19 @@ namespace WinFormsApp1
         private void LoadWithPlugin()
         {
             _isPlugin = true;
+			// HIDE ALL SUBPANEL IF SWITCH PLUG
+			foreach (var p in _mainPanel.Controls)
+			{
+				if (p is Panel)
+				{
+					((Panel)p).Visible = false;
+				}
+			}
 			// 创建隐藏的容器面板
 			var container = new Panel
 			{
 				Dock = DockStyle.Fill,
 				Visible = false
-				
 			};
 			_mainPanel.Controls.Add(container);
 			container.SetBounds(_mainPanel.Bounds.X, _mainPanel.Bounds.Y, _mainPanel.Bounds.Width, _mainPanel.Bounds.Height);
@@ -373,7 +380,18 @@ namespace WinFormsApp1
                 encodingMenu.DropDownItems.Add(menuItem);
             }
 
-            _menuStrip.Items.AddRange(new ToolStripItem[] { fileMenu, viewMenu, encodingMenu });
+			// plugin menu
+			var pluginMenu = new ToolStripMenuItem("插件(&P)");
+			foreach(var plug in _pluginList.Modules)
+			{
+				var item = new ToolStripMenuItem(plug.Name, null, (s, e) =>
+				{
+					_currentPlugin = plug;
+					LoadWithPlugin();
+				});
+				pluginMenu.DropDownItems.Add(item);
+			}
+            _menuStrip.Items.AddRange(new ToolStripItem[] { fileMenu, viewMenu, encodingMenu, pluginMenu });
         }
 
         private void CreateStatusStrip()

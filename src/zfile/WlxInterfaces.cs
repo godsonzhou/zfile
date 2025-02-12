@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.IO;
+using Microsoft.WindowsAPICodePack.Dialogs.Controls;
 /*
 ********************************************************************
 *这个实现提供了：
@@ -111,6 +112,7 @@ namespace WinFormsApp1
 			Name = string.Empty;
 			FilePath = string.Empty;
 			DetectString = string.Empty;
+			
 		}
 
 		public bool LoadModule()
@@ -186,6 +188,7 @@ namespace WinFormsApp1
 			StringBuilder detectStr = new StringBuilder(1024);
 			_listGetDetectString(detectStr, detectStr.Capacity);
 			DetectString = detectStr.ToString();
+
 		}
 
 		private void CallListSetDefaultParams()
@@ -320,8 +323,14 @@ namespace WinFormsApp1
 
 	public class WlxModuleList
 	{
+		private List<string> _config;
 		private List<WlxModule> _modules = new List<WlxModule>();
 
+		public List<WlxModule> Modules { get { return _modules; } }
+		public WlxModuleList()
+		{
+			_config = Helper.ReadSectionContent("wincmd.ini", "ListerPlugins");
+		}
 		public void AddModule(WlxModule module)
 		{
 			if (!_modules.Any(m => m.FilePath.Equals(module.FilePath, StringComparison.OrdinalIgnoreCase)))

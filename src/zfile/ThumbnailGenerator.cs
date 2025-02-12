@@ -15,6 +15,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using PdfiumViewer;
 using Ghostscript.NET.Rasterizer;
+using System.Drawing.Drawing2D;
 
 public class ThumbnailGenerator
 {
@@ -44,6 +45,62 @@ public class ThumbnailGenerator
 	//}
 	public static Image GeneratePDFThumbnailByPDFium(string pdfPath, int thumbnailWidth = 64)
 	{
+		using (var document = PdfDocument.Load(pdfPath))
+		{
+			// 获取页面原始尺寸（单位：点）
+			var pageSize = document.PageSizes[0];
+			float pageWidth = pageSize.Width;  // 例如 595 点（A4 宽度）
+			float pageHeight = pageSize.Height; // 例如 842 点（A4 高度）
+
+			// 计算缩放比例（基于宽度或高度中更小的一侧）
+			float scale = Math.Min(
+				thumbnailWidth / pageWidth,
+				64 / pageHeight // 如果固定最大高度为64
+			);
+
+			// 计算缩略图实际尺寸
+			int thumbnailHeight = (int)(pageHeight * scale);
+
+			// 创建目标位图
+			using (var bitmap = new Bitmap(thumbnailWidth, thumbnailHeight))
+			{
+				using (var graphics = Graphics.FromImage(bitmap))
+				{
+					graphics.Clear(Color.White);
+					graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+					graphics.SmoothingMode = SmoothingMode.HighQuality;
+
+					// 计算实际渲染尺寸（可能小于缩略图尺寸）
+					int renderWidth = (int)(pageWidth * scale);
+					int renderHeight = (int)(pageHeight * scale);
+
+					// 居中渲染区域
+					int offsetX = (thumbnailWidth - renderWidth) / 2;
+					int offsetY = (thumbnailHeight - renderHeight) / 2;
+
+					// 渲染完整页面到居中位置
+					document.Render(
+						page: 0,
+						graphics: graphics,
+						dpiX: 96, // / scale, // 根据缩放调整 DPI
+						dpiY: 96, // / scale,
+						bounds: new Rectangle(
+							x: offsetX,
+							y: offsetY,
+							width: renderWidth,
+							height: renderHeight
+						),
+						flags: PdfRenderFlags.ForPrinting
+					);
+				}
+
+				// 返回深拷贝
+				return new Bitmap(bitmap);
+			}
+		}
+	}
+	public static Image GeneratePDFThumbnailByPDFiumbak(string pdfPath, int thumbnailWidth = 64)
+	{
 		// 加载 PDF 文件
 		using (var document = PdfDocument.Load(pdfPath))
 		{
@@ -66,7 +123,8 @@ public class ThumbnailGenerator
 						graphics: graphics,
 						dpiX: 96 * scale, // 根据缩放调整 DPI
 						dpiY: 96 * scale,
-						bounds: new Rectangle(0, 0, thumbnailWidth, thumbnailHeight),
+						//bounds: new Rectangle(0, 0, thumbnailWidth, thumbnailHeight),
+						bounds: new Rectangle(0, 0, (int)pageSize.Width, (int)pageSize.Height),
 						flags: PdfRenderFlags.ForPrinting
 					);
 				}

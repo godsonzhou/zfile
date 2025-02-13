@@ -44,7 +44,7 @@ namespace WinFormsApp1
         }
     }
 
-    public class BookmarkManager
+    public class BookmarkManager : IDisposable
     {
         private readonly Form1 form;
         private readonly FlowLayoutPanel leftBookmarkPanel;
@@ -53,6 +53,7 @@ namespace WinFormsApp1
         private readonly List<Bookmark> rightBookmarks = new();
         private Bookmark? activeLeftBookmark;
         private Bookmark? activeRightBookmark;
+		private bool disposed = false;
 
         public BookmarkManager(Form1 form, FlowLayoutPanel leftPanel, FlowLayoutPanel rightPanel)
         {
@@ -61,8 +62,32 @@ namespace WinFormsApp1
             this.rightBookmarkPanel = rightPanel;
             InitializeBookmarkPanels();
         }
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
 
-        private void InitializeBookmarkPanels()
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!disposed)
+			{
+				if (disposing)
+				{
+					// 释放托管资源
+					// 这里不需要释放控件，因为它们是由 Form 管理的
+				}
+
+				// 释放非托管资源
+				disposed = true;
+			}
+		}
+
+		~BookmarkManager()
+		{
+			Dispose(false);
+		}
+		private void InitializeBookmarkPanels()
         {
             // 配置左侧书签面板
             ConfigureBookmarkPanel(leftBookmarkPanel);

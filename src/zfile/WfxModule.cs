@@ -446,6 +446,7 @@ namespace WinFormsApp1
 
             // 清除所有函数指针
             _fsInit = null;
+            _fsInitW = null;
             _fsFindFirst = null;
             _fsFindNext = null;
             _fsFindClose = null;
@@ -465,6 +466,23 @@ namespace WinFormsApp1
             _fsExecuteFileW = null;
             _fsRenMovFile = null;
             _fsRenMovFileW = null;
+            _fsSetCryptCallback = null;
+            _fsSetCryptCallbackW = null;
+            _fsStatusInfo = null;
+            _fsStatusInfoW = null;
+            _fsSetDefaultParams = null;
+            _fsGetDefRootName = null;
+            _fsSetAttr = null;
+            _fsSetAttrW = null;
+            _fsSetTime = null;
+            _fsSetTimeW = null;
+            _fsExtractCustomIcon = null;
+            _fsExtractCustomIconW = null;
+            _fsDisconnect = null;
+            _fsDisconnectW = null;
+            _fsLinksToLocalFiles = null;
+            _fsGetLocalName = null;
+            _fsGetLocalNameW = null;
         }
 
         public void Dispose()

@@ -154,7 +154,7 @@ namespace WinFormsApp1
 	public delegate void TPkSetCryptCallbackW(IntPtr cryptProc, int cryptoNr, int flags);
 	public delegate int TGetBackgroundFlags();
 
-	internal class WcxModule
+	public class WcxModule
 	{
 		// 常量定义
 		public const int PK_OK = 0;
@@ -528,6 +528,20 @@ namespace WinFormsApp1
 					}
 				}
 			}
+		}
+		public WcxModule? GetModuleByExt(string ext)
+		{
+			if (string.IsNullOrEmpty(ext))
+				return null;
+
+			ext = ext.ToLower();
+			if (!ext.StartsWith("."))
+				ext = "." + ext;
+
+			if (_exts.TryGetValue(ext, out var module))
+				return module;
+
+			return null;
 		}
 	}
 }

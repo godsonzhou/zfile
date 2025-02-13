@@ -107,7 +107,7 @@ namespace WinFormsApp1
 			File.Copy(sourceFile, destFile, overwrite: true);
 		}
 
-		private static void CopyDirectory(string sourceDir, string destinationDirectory)
+		public static void CopyDirectory(string sourceDir, string destinationDir)
 		{
 			DirectoryInfo sourceDirInfo = new DirectoryInfo(sourceDir);
 			string dirName = sourceDirInfo.Name;
@@ -117,7 +117,7 @@ namespace WinFormsApp1
 				throw new ArgumentException("Source directory is a root directory and cannot be copied.");
 			}
 
-			string destDir = Path.Combine(destinationDirectory, dirName);
+			string destDir = Path.Combine(destinationDir, dirName);
 			Directory.CreateDirectory(destDir);
 
 			foreach (FileInfo file in sourceDirInfo.GetFiles())

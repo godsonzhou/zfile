@@ -23,7 +23,7 @@ namespace WinFormsApp1
 			iconic = _iconic;
 		}
 	}
-	public class ToolbarManager
+	public class ToolbarManager : IDisposable
 	{
 		private Form1 form;
 		//private UIControlManager uiControlManager;
@@ -33,6 +33,7 @@ namespace WinFormsApp1
 		public List<ToolbarButton> toolbarButtons = new List<ToolbarButton>();
 		public int ButtonCount => toolbarButtons.Count;
 		private string configfile;
+		private bool disposed = false;
 		public ToolbarManager(Form1 form, string configfile, bool isVertical)
 		{
 			// 加载配置文件中的工具栏按钮信息并初始化控件,实现逻辑参照 initializeDynamicToolbar
@@ -57,6 +58,31 @@ namespace WinFormsApp1
 			dynamicToolStrip.AllowDrop = true;
 			dynamicToolStrip.DragEnter += form.ToolbarButton_DragEnter;
 			dynamicToolStrip.DragDrop += form.ToolbarButton_DragDrop;
+		}
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!disposed)
+			{
+				if (disposing)
+				{
+					// 释放托管资源
+					// 这里不需要释放控件，因为它们是由 Form 管理的
+				}
+
+				// 释放非托管资源
+				disposed = true;
+			}
+		}
+
+		~ToolbarManager()
+		{
+			Dispose(false);
 		}
 		public void AddButton(string name, string cmd, string icon, string path, string param, string iconic)
 		{
@@ -243,7 +269,7 @@ namespace WinFormsApp1
 		}
 	}
 
-	public class UIControlManager
+	public class UIControlManager : IDisposable
 	{
 		private readonly Form1 form;
 		private readonly ImageList treeViewImageList;
@@ -301,6 +327,8 @@ namespace WinFormsApp1
 		public ToolbarManager toolbarManager;
 		public ToolbarManager vtoolbarManager;
 		public bool isleft;
+
+		private bool disposed = false;
 
 		public UIControlManager(Form1 form)
 		{
@@ -850,6 +878,43 @@ namespace WinFormsApp1
 			{
 				MessageBox.Show($"加载菜单失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
 			}
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!disposed)
+			{
+				if (disposing)
+				{
+					// 释放托管资源
+					LeftList?.Dispose();
+					RightList?.Dispose();
+					LeftTree?.Dispose();
+					RightTree?.Dispose();
+					LeftPreview?.Dispose();
+					RightPreview?.Dispose();
+					LeftStatusStrip?.Dispose();
+					RightStatusStrip?.Dispose();
+					toolbarManager?.Dispose();
+					vtoolbarManager?.Dispose();
+					dynamicMenuStrip?.Dispose();
+					BookmarkManager?.Dispose();
+				}
+
+				// 释放非托管资源
+				disposed = true;
+			}
+		}
+
+		~UIControlManager()
+		{
+			Dispose(false);
 		}
 	}
 }

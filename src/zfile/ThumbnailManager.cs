@@ -64,11 +64,12 @@ namespace zfile
     /// <summary>
     /// 缩略图管理器类，负责生成、缓存和管理文件缩略图
     /// </summary>
-    public class ThumbnailManager
+    public class ThumbnailManager : IDisposable
     {
         // 缩略图生成处理器委托
         public delegate bool TCreatePreviewHandler(string filePath, out Image thumbnail);
 
+        private bool disposed = false;
         private readonly List<TCreatePreviewHandler> previewProviders;
         private readonly Dictionary<string, Image> thumbnailCache;
         private readonly Size defaultThumbnailSize;
@@ -363,6 +364,39 @@ namespace zfile
         {
             string ext = Path.GetExtension(filePath).ToLower();
             return new[] { ".txt", ".log", ".ini", ".xml", ".json", ".cs", ".js", ".html", ".css" }.Contains(ext);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    // 释放托管资源
+                    foreach (var bitmap in thumbnailCache.Values)
+                    {
+                        if (bitmap is Bitmap)
+                        {
+                            ((Bitmap)bitmap).Dispose();
+                        }
+                    }
+                    thumbnailCache.Clear();
+                }
+
+                // 释放非托管资源
+                disposed = true;
+            }
+        }
+
+        ~ThumbnailManager()
+        {
+            Dispose(false);
         }
     }
 } 

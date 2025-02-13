@@ -9,8 +9,10 @@ using System.Text;
 //using MF.MediaFoundation;
 namespace WinFormsApp1
 {
-	public class FilePreviewManager
-    {
+	public class FilePreviewManager : IDisposable
+	{
+		private bool disposed = false;
+
 		//public static void getPreview(string videoFilePath, string thumbnailPath)
 		//{
 		//	// 视频文件路径
@@ -252,6 +254,31 @@ namespace WinFormsApp1
             }
 
             return textBox;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    // 释放托管资源
+                }
+
+                // 释放非托管资源
+                disposed = true;
+            }
+        }
+
+        ~FilePreviewManager()
+        {
+            Dispose(false);
         }
     }
 } 

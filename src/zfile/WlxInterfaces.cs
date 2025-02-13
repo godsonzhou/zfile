@@ -125,40 +125,43 @@ namespace WinFormsApp1
 				if (_moduleHandle == IntPtr.Zero) return false;
 
 				// 加载必需的函数
-				_listLoad = GetFunction<ListLoad>("ListLoad");
+				var flg = false;
+				try { _listLoad = GetFunction<ListLoad>("ListLoad"); } catch { flg = true; }
+				try { _listLoadW = GetFunction<ListLoadW>("ListLoadW"); } catch { flg = true; }
+				if (!flg)
+					throw new Exception("required listload can not be found!");
 
-				// 加载可选函数
-				try
-				{
-					_listLoadNext = GetFunction<ListLoadNext>("ListLoadNext");
-					_listCloseWindow = GetFunction<ListCloseWindow>("ListCloseWindow");
-					_listGetDetectString = GetFunction<ListGetDetectString>("ListGetDetectString");
-					_listSearchText = GetFunction<ListSearchText>("ListSearchText");
-					_listSearchDialog = GetFunction<ListSearchDialog>("ListSearchDialog");
-					_listSendCommand = GetFunction<ListSendCommand>("ListSendCommand");
-					_listPrint = GetFunction<ListPrint>("ListPrint");
-					_listNotificationReceived = GetFunction<ListNotificationReceived>("ListNotificationReceived");
-					_listSetDefaultParams = GetFunction<ListSetDefaultParams>("ListSetDefaultParams");
-					_listGetPreviewBitmap = GetFunction<ListGetPreviewBitmap>("ListGetPreviewBitmap");
-				}
-				catch
-				{
-					// 可选函数加载失败不影响插件使用
-				}
+				// 加载可选函数 // 可选函数加载失败不影响插件使用
+				try { _listLoadNext = GetFunction<ListLoadNext>("ListLoadNext"); }
+				catch { }
+				// 加载Unicode版本函数 // Unicode函数加载失败不影响插件使用
+				try { _listLoadNextW = GetFunction<ListLoadNextW>("ListLoadNextW"); }
+				catch { }
+				try { _listSearchText = GetFunction<ListSearchText>("ListSearchText"); }
+				catch { }
+				try { _listSearchTextW = GetFunction<ListSearchTextW>("ListSearchTextW"); }
+				catch { }
+				try { _listPrint = GetFunction<ListPrint>("ListPrint"); }
+				catch { }
+				try { _listPrintW = GetFunction<ListPrintW>("ListPrintW"); }
+				catch { }
+				try { _listGetPreviewBitmap = GetFunction<ListGetPreviewBitmap>("ListGetPreviewBitmap"); }
+				catch { }
+				try { _listGetPreviewBitmapW = GetFunction<ListGetPreviewBitmapW>("ListGetPreviewBitmapW"); }
+				catch { }
 
-				// 加载Unicode版本函数
-				try
-				{
-					_listLoadW = GetFunction<ListLoadW>("ListLoadW");
-					_listLoadNextW = GetFunction<ListLoadNextW>("ListLoadNextW");
-					_listSearchTextW = GetFunction<ListSearchTextW>("ListSearchTextW");
-					_listPrintW = GetFunction<ListPrintW>("ListPrintW");
-					_listGetPreviewBitmapW = GetFunction<ListGetPreviewBitmapW>("ListGetPreviewBitmapW");
-				}
-				catch
-				{
-					// Unicode函数加载失败不影响插件使用
-				}
+				try { _listCloseWindow = GetFunction<ListCloseWindow>("ListCloseWindow"); }
+				catch { }
+				try { _listGetDetectString = GetFunction<ListGetDetectString>("ListGetDetectString"); }
+				catch { }
+				try { _listSearchDialog = GetFunction<ListSearchDialog>("ListSearchDialog"); }
+				catch { }
+				try { _listSendCommand = GetFunction<ListSendCommand>("ListSendCommand"); }
+				catch { }
+				try { _listNotificationReceived = GetFunction<ListNotificationReceived>("ListNotificationReceived");}
+				catch { }
+				try { _listSetDefaultParams = GetFunction<ListSetDefaultParams>("ListSetDefaultParams"); }
+				catch { }
 
 				// 初始化插件
 				CallListSetDefaultParams();

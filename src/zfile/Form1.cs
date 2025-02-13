@@ -928,6 +928,7 @@ namespace WinFormsApp1
             string path = Path.Combine(currentDirectory, selectedItem.Text);
 			if (IsArchiveFile(path))
 			{
+				
 				if (OpenArchive(path))
 				{
 					archivePaths[path] = currentDirectory;
@@ -935,8 +936,8 @@ namespace WinFormsApp1
 					listView.Items.Clear();
 					listView.Items.AddRange(items.ToArray());
 					currentDirectory = path;
+					return;
 				}
-				return;
 			}
 			if (selectedItem.SubItems[3].Text.Equals("<DIR>") || selectedItem.SubItems[3].Text == "本地磁盘")
             {
@@ -1790,7 +1791,8 @@ namespace WinFormsApp1
 			var wcxModule = wcxModuleList.GetModuleByExt(ext);
 			if (wcxModule == null)
 				return false;
-
+			if(!wcxModule.CanYouHandleThisFile(archivePath))
+				return false;
 			IntPtr handle = wcxModule.OpenArchive(archivePath, 0);
 			if (handle == IntPtr.Zero)
 				return false;

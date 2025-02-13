@@ -195,10 +195,19 @@ namespace WinFormsApp1
 		private IntPtr _moduleHandle;
 		private bool _isUnicode;
 		private string _modulePath;
+		
+		public string Name { get;  set; }
+		public string FilePath { get => _modulePath; set => _modulePath = value; }
+		public List<string> DetectStrings = new();
 
-		public WcxModule(string modulePath)
+		public WcxModule()
 		{
-			_modulePath = modulePath;
+			
+		}
+		public WcxModule(string name, string path)
+		{
+			Name = name;
+			_modulePath = path;
 		}
 
 		public bool LoadModule()
@@ -479,7 +488,65 @@ namespace WinFormsApp1
 			public static extern IntPtr GetProcAddress(IntPtr hModule, string lpProcName);
 		}
 	}
-	/*
+	
+	public class WcxModuleList
+	{
+		List<WcxModule> _modules = new List<WcxModule>();
+		List<string> _cfg = new List<string>();
+		Dictionary<string, WcxModule> _exts = new Dictionary<string, WcxModule>();
+		public WcxModuleList()
+		{
+			LoadConfiguration();
+			//string pluginPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins\\wcx");
+			//读取pluginpath目录下所有子目录的plugins
+			//var subdirs = Directory.GetDirectories(pluginPath, "*", SearchOption.AllDirectories);
+			//foreach (var subdir in subdirs)
+			//{
+			//	LoadModulesFromDirectory(subdir);
+			//}
+		}
+		public WcxModule? FindModuleByName(string name)
+		{
+			return _modules.FirstOrDefault(m => m.Name.Equals(name));
+		}
+		public bool AddModule(WcxModule module)
+		{
+			if (!_modules.Any(m => m.Name.Equals(module.Name, StringComparison.OrdinalIgnoreCase)))
+			{
+				_modules.Add(module);
+				return true;
+			}
+			return false;
+		}
+		public void LoadModulesFromDirectory(string directory)
+		{
+			if (!Directory.Exists(directory)) return;
+
+			foreach (var file in Directory.GetFiles(directory, "*.wcx64"))
+			{
+				try
+				{
+					var module = new WcxModule
+					{
+						FilePath = file,
+						Name = Path.GetFileNameWithoutExtension(file)
+					};
+
+					if (module.LoadModule())
+					{
+						if(AddModule(module))
+							_exts[module.Name.ToLower()] = module;//TODO BUGFIX: HOW TO GET THE DETECTSTRING FOR WCX MODULE FILE
+					}
+				}
+				catch
+				{
+					// 加载失败的模块直接跳过
+				}
+			}
+		}
+		public void LoadConfiguration()
+		{
+			/*
 		 * [PackerPlugins]
 			lst=21,%COMMANDER_PATH%\Plugins\Wcx\DiskDir\DiskDir.wcx64
 			ico=327,%COMMANDER_PATH%\Plugins\Wlx\Imagine\Imagine.wcx64
@@ -498,32 +565,41 @@ namespace WinFormsApp1
 			7zip=735,%COMMANDER_PATH%\Plugins\Wcx\Total7Zip\Total7Zip.wcx64
 			rsz=21,%COMMANDER_PATH%\Plugins\Wcx\TotalRSZ\TotalRSZ.wcx64
 		 */
-	public class WcxModuleList
-	{
-		List<WcxModule> _modules = new List<WcxModule>();
-		List<string> _cfg = new List<string>();
-		Dictionary<string, WcxModule> _exts = new Dictionary<string, WcxModule>();
-		public WcxModuleList()
-		{
-			LoadConfiguration();
-		}
-		public void LoadConfiguration()
-		{
 			_cfg = Helper.ReadSectionContent(Constants.ZfilePath + "wincmd.ini", "PackerPlugins");
 			foreach (var line in _cfg)
 			{
 				var parts = line.Split('=');
 				if (parts.Length == 2)
 				{
-					var modulePath = parts[1].Trim();
-					var modulefilename = modulePath.Split('\\')[^1];
-					if (File.Exists(modulePath))
+					var detectstring = parts[0].Trim().ToLower();
+					var part1 = parts[1].Trim();
+					var path = part1.Split(',')[^1];
+					path = path.Replace("%COMMANDER_PATH%", Constants.ZfilePath+ "..\\src\\zfile\\bin\\Debug\\");
+					if (File.Exists(path))
 					{
-						var module = new WcxModule(modulePath);
-						if (module.LoadModule())
+						var name = Path.GetFileNameWithoutExtension(path);
+						//try to find module in wcxmodulelist by name
+						var module = FindModuleByName(name);
+						if (module == null)
 						{
-							_modules.Add(module);
-							_exts[parts[0].Trim()] = module;
+							module = new WcxModule(name, path);
+							if (module.LoadModule())
+							{
+								if (!module.DetectStrings.Contains(detectstring))
+								{
+									module.DetectStrings.Add(detectstring);
+								}
+								if(AddModule(module))
+									_exts[parts[0].Trim()] = module;
+							}
+						}
+						else
+						{
+							if (!module.DetectStrings.Contains(detectstring))
+							{
+								module.DetectStrings.Add(detectstring);
+								_exts[parts[0].Trim()] = module;
+							}
 						}
 					}
 				}
@@ -535,8 +611,8 @@ namespace WinFormsApp1
 				return null;
 
 			ext = ext.ToLower();
-			if (!ext.StartsWith("."))
-				ext = "." + ext;
+			if (ext.StartsWith('.'))
+				ext = ext.TrimStart('.');
 
 			if (_exts.TryGetValue(ext, out var module))
 				return module;

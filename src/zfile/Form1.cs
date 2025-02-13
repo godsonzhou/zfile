@@ -925,9 +925,20 @@ namespace WinFormsApp1
 
             ListViewItem selectedItem = listView.SelectedItems[0];
             Debug.Print("listview_mousedoubleclick:{0}, currentDir={1}", selectedItem.Text, currentDirectory);
-            string itemPath = Path.Combine(currentDirectory, selectedItem.Text);
-
-            if (selectedItem.SubItems[3].Text.Equals("<DIR>") || selectedItem.SubItems[3].Text == "本地磁盘")
+            string path = Path.Combine(currentDirectory, selectedItem.Text);
+			if (IsArchiveFile(path))
+			{
+				if (OpenArchive(path))
+				{
+					archivePaths[path] = currentDirectory;
+					var items = LoadArchiveContents(path);
+					listView.Items.Clear();
+					listView.Items.AddRange(items.ToArray());
+					currentDirectory = path;
+				}
+				return;
+			}
+			if (selectedItem.SubItems[3].Text.Equals("<DIR>") || selectedItem.SubItems[3].Text == "本地磁盘")
             {
                 //try
                 {
@@ -951,14 +962,14 @@ namespace WinFormsApp1
 
                         // 更新当前目录和ListView
                         selectedNode = node;
-                        RefreshTreeViewAndListView(treeView, listView, itemPath);
+                        RefreshTreeViewAndListView(treeView, listView, path);
                     }
 
                     // 更新监视器
-                    if (Directory.Exists(itemPath))
+                    if (Directory.Exists(path))
                     {
-                        currentDirectory = itemPath;    //IF ITEMPATH IS DIR, UPDATE CURRENTDIRECTORY, ELSE NOT
-                        watcher.Path = itemPath;
+                        currentDirectory = path;    //IF ITEMPATH IS DIR, UPDATE CURRENTDIRECTORY, ELSE NOT
+                        watcher.Path = path;
                         watcher.EnableRaisingEvents = true;
                     }
                 }
@@ -969,20 +980,20 @@ namespace WinFormsApp1
             }
             else // 处理文件
             {
-                itemPath = Helper.getFSpath(itemPath);
-                if (File.Exists(itemPath))
+                path = Helper.getFSpath(path);
+                if (File.Exists(path))
                 {
                     try
                     {
                         // 如果是可执行文件，直接执行
-                        if (Path.GetExtension(itemPath).Equals(".exe", StringComparison.OrdinalIgnoreCase))
+                        if (Path.GetExtension(path).Equals(".exe", StringComparison.OrdinalIgnoreCase))
                         {
-                            Process.Start(itemPath);
+                            Process.Start(path);
                         }
                         else
                         {
                             // 使用系统默认关联程序打开文件
-                            Process.Start(new ProcessStartInfo(itemPath) { UseShellExecute = true });
+                            Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
                         }
                     }
                     catch (Exception ex)
@@ -1237,9 +1248,20 @@ namespace WinFormsApp1
             if (!path.Contains(':')) return;
             path = Helper.getFSpath(path);
             if (path.EndsWith(':')) path += "\\";
-
-            //try
-            {
+			if (IsArchiveFile(path))
+			{
+				if (OpenArchive(path))
+				{
+					archivePaths[path] = currentDirectory;
+					var items = LoadArchiveContents(path);
+					listView.Items.Clear();
+					listView.Items.AddRange(items.ToArray());
+					currentDirectory = path;
+				}
+				return;
+			}
+			//try
+			{
                 var items = fsManager.GetDirectoryContents(path);
 
                 listView.BeginUpdate();
@@ -1753,7 +1775,7 @@ namespace WinFormsApp1
 		{
 			activeListView.View = viewMode;
 		}
-		private bool IsArchiveFile(string filePath)
+		public bool IsArchiveFile(string filePath)
 		{
 			string ext = Path.GetExtension(filePath).ToLower();
 			return wcxModuleList.GetModuleByExt(ext) != null;
@@ -1792,7 +1814,7 @@ namespace WinFormsApp1
 			}
 		}
 
-		private List<ListViewItem> LoadArchiveContents(string archivePath)
+		public List<ListViewItem> LoadArchiveContents(string archivePath)
 		{
 			List<ListViewItem> items = new List<ListViewItem>();
 			string ext = Path.GetExtension(archivePath).ToLower();
@@ -1817,7 +1839,7 @@ namespace WinFormsApp1
 			return items;
 		}
 
-		private bool ExtractArchiveFile(string archivePath, string fileName, string destPath)
+		public bool ExtractArchiveFile(string archivePath, string fileName, string destPath)
 		{
 			string ext = Path.GetExtension(archivePath).ToLower();
 			var wcxModule = wcxModuleList.GetModuleByExt(ext);
@@ -1839,7 +1861,7 @@ namespace WinFormsApp1
 			return false;
 		}
 
-		private bool AddToArchive(string archivePath, string[] files)
+		public bool AddToArchive(string archivePath, string[] files)
 		{
 			string ext = Path.GetExtension(archivePath).ToLower();
 			var wcxModule = wcxModuleList.GetModuleByExt(ext);
@@ -1850,7 +1872,7 @@ namespace WinFormsApp1
 			return wcxModule.PackFiles(archivePath, "", Path.GetDirectoryName(files[0]), fileList, 0) == 0;
 		}
 
-		private bool DeleteFromArchive(string archivePath, string[] files)
+		public bool DeleteFromArchive(string archivePath, string[] files)
 		{
 			string ext = Path.GetExtension(archivePath).ToLower();
 			var wcxModule = wcxModuleList.GetModuleByExt(ext);

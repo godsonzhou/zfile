@@ -317,6 +317,25 @@ namespace CmdProcessor
 			var targetlist = owner.uiManager.isleft ? owner.uiManager.RightList : owner.uiManager.LeftList;
 			try
             {
+				if (owner.IsArchiveFile(srcPath))
+				{
+					foreach (string fileName in sourceFiles)
+					{
+						owner.ExtractArchiveFile(srcPath, fileName, targetPath);
+					}
+					return true;
+				}
+
+				if (owner.IsArchiveFile(targetPath))
+				{
+					string[] files = sourceFiles.Select(f => Path.Combine(srcPath, f)).ToArray();
+					owner.AddToArchive(targetPath, files);
+					var items = owner.LoadArchiveContents(targetPath);
+					var targetListView = (owner.uiManager.isleft ? owner.uiManager.RightList : owner.uiManager.LeftList);
+					targetListView.Items.Clear();
+					targetListView.Items.AddRange(items.ToArray());
+					return true;
+				}
 				//           foreach (var file in sourceFiles)
 				//           {
 				//if (Directory.Exists(file)) {
@@ -411,7 +430,17 @@ namespace CmdProcessor
             {
                 try
                 {
-                    foreach (var file in files)
+					if (owner.IsArchiveFile(owner.currentDirectory))
+					{
+						if (owner.DeleteFromArchive(owner.currentDirectory, files.ToArray()))
+						{
+							var items = owner.LoadArchiveContents(owner.currentDirectory);
+							owner.activeListView.Items.Clear();
+							owner.activeListView.Items.AddRange(items.ToArray());
+						}
+						return;
+					}
+					foreach (var file in files)
                     {
 						//if (File.Exists(file))
 						//    File.Delete(file);

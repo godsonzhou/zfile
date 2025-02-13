@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
+using System.Reflection;
 /*
 主要功能：
 基础结构定义：
@@ -476,6 +477,57 @@ namespace WinFormsApp1
 
 			[DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
 			public static extern IntPtr GetProcAddress(IntPtr hModule, string lpProcName);
+		}
+	}
+	/*
+		 * [PackerPlugins]
+			lst=21,%COMMANDER_PATH%\Plugins\Wcx\DiskDir\DiskDir.wcx64
+			ico=327,%COMMANDER_PATH%\Plugins\Wlx\Imagine\Imagine.wcx64
+			gif=327,%COMMANDER_PATH%\Plugins\Wlx\Imagine\Imagine.wcx64
+			ani=327,%COMMANDER_PATH%\Plugins\Wlx\Imagine\Imagine.wcx64
+			bin=192,%COMMANDER_PATH%\Plugins\Wcx\ISO\Iso.wcx64
+			c2d=192,%COMMANDER_PATH%\Plugins\Wcx\ISO\Iso.wcx64
+			ima=192,%COMMANDER_PATH%\Plugins\Wcx\ISO\Iso.wcx64
+			img=192,%COMMANDER_PATH%\Plugins\Wcx\ISO\Iso.wcx64
+			iso=192,%COMMANDER_PATH%\Plugins\Wcx\ISO\Iso.wcx64
+			nrg=192,%COMMANDER_PATH%\Plugins\Wcx\ISO\Iso.wcx64
+			svcd=192,%COMMANDER_PATH%\Plugins\Wcx\ISO\Iso.wcx64
+			vcd=192,%COMMANDER_PATH%\Plugins\Wcx\ISO\Iso.wcx64
+			xcd=192,%COMMANDER_PATH%\Plugins\Wcx\ISO\Iso.wcx64
+			7z=735,%COMMANDER_PATH%\Plugins\Wcx\Total7Zip\Total7Zip.wcx64
+			7zip=735,%COMMANDER_PATH%\Plugins\Wcx\Total7Zip\Total7Zip.wcx64
+			rsz=21,%COMMANDER_PATH%\Plugins\Wcx\TotalRSZ\TotalRSZ.wcx64
+		 */
+	public class WcxModuleList
+	{
+		List<WcxModule> _modules = new List<WcxModule>();
+		List<string> _cfg = new List<string>();
+		Dictionary<string, WcxModule> _exts = new Dictionary<string, WcxModule>();
+		public WcxModuleList()
+		{
+			LoadConfiguration();
+		}
+		public void LoadConfiguration()
+		{
+			_cfg = Helper.ReadSectionContent(Constants.ZfilePath + "wincmd.ini", "PackerPlugins");
+			foreach (var line in _cfg)
+			{
+				var parts = line.Split('=');
+				if (parts.Length == 2)
+				{
+					var modulePath = parts[1].Trim();
+					var modulefilename = modulePath.Split('\\')[^1];
+					if (File.Exists(modulePath))
+					{
+						var module = new WcxModule(modulePath);
+						if (module.LoadModule())
+						{
+							_modules.Add(module);
+							_exts[parts[0].Trim()] = module;
+						}
+					}
+				}
+			}
 		}
 	}
 }

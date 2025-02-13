@@ -79,7 +79,10 @@ namespace WinFormsApp1
             specFolderPaths = Helper.GetSpecFolderPaths();
             //uiManager.LeftList.ItemDrag += ListView_ItemDrag;
             //uiManager.RightList.ItemDrag += ListView_ItemDrag;
-        }
+			WdxModuleList wdxModuleList = new WdxModuleList("");
+			WfxModuleList wfxModuleList = new WfxModuleList("");
+			WcxModuleList wcxModuleList = new WcxModuleList();
+		}
         private void InitializeHotkeys()
         {
             hotkeyMappings = new Dictionary<Keys, string>

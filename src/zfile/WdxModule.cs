@@ -459,8 +459,9 @@ namespace WinFormsApp1
             _configPath = configPath;
             LoadConfiguration();
         }
+		
 
-        public void LoadConfiguration()
+		public void LoadConfiguration()
         {
             if (!File.Exists(_configPath)) return;
 

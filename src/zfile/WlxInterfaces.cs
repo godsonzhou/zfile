@@ -385,11 +385,12 @@ namespace WinFormsApp1
 		}
 		private bool isModuleSupport(string DetectString, string fileName)
 		{
+			DetectString = DetectString.ToLower();
 			var isMultimedia = (DetectString.Contains("multimedia",StringComparison.OrdinalIgnoreCase));
 			// 删除MULTIMEDIA FORCE ( ) & 空格
-			DetectString = DetectString.Replace("MULTIMEDIA", "").Replace("FORCE", "").Replace("(", "").Replace(")", "").Replace("&", "").Replace(" ", "");
+			DetectString = DetectString.Replace("multimedia", "").Replace("force", "").Replace("(", "").Replace(")", "").Replace("&", "").Replace(" ", "");
 			// 解析检测字符串
-			var detectParts = DetectString.ToLower().Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+			var detectParts = DetectString.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
 			var fileExt = Path.GetExtension(fileName).ToLower().Trim('.');
 			foreach (var part in detectParts)
 			{

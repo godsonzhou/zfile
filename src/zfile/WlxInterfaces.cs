@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.IO;
 using Microsoft.WindowsAPICodePack.Dialogs.Controls;
+using static System.Net.Mime.MediaTypeNames;
+using System.Net;
+using WinShell;
 /*
 ********************************************************************
 *这个实现提供了：
@@ -125,10 +128,10 @@ namespace WinFormsApp1
 				if (_moduleHandle == IntPtr.Zero) return false;
 
 				// 加载必需的函数
-				var flg = false;
-				try { _listLoad = GetFunction<ListLoad>("ListLoad"); } catch { flg = true; }
-				try { _listLoadW = GetFunction<ListLoadW>("ListLoadW"); } catch { flg = true; }
-				if (!flg)
+				int flg = 0;
+				try { _listLoad = GetFunction<ListLoad>("ListLoad"); } catch { flg++;  }
+				try { _listLoadW = GetFunction<ListLoadW>("ListLoadW"); } catch { flg++; }
+				if ( flg == 2)
 					throw new Exception("required listload can not be found!");
 
 				// 加载可选函数 // 可选函数加载失败不影响插件使用
@@ -356,7 +359,15 @@ namespace WinFormsApp1
 
 		public WlxModule FindModuleForFile(string fileName)
 		{
-			return _modules.FirstOrDefault(m => IsModuleSupported(m, fileName));//TODO BUGFIX: 应该按照configdict的配置次序依次查找， 而不是_modules的次序（文件系统的顺序）
+			foreach(var module in _modules)
+			{
+				if (IsModuleSupported(module, fileName))
+				{
+					return module;
+				}
+			}
+			return null;
+			//return _modules.FirstOrDefault(m => IsModuleSupported(m, fileName));//TODO BUGFIX: 应该按照configdict的配置次序依次查找， 而不是_modules的次序（文件系统的顺序）
 		}
 
 		private bool IsModuleSupported(WlxModule module, string fileName)
@@ -374,31 +385,36 @@ namespace WinFormsApp1
 		}
 		private bool isModuleSupport(string DetectString, string fileName)
 		{
+			var isMultimedia = (DetectString.Contains("multimedia",StringComparison.OrdinalIgnoreCase));
 			// 删除MULTIMEDIA FORCE ( ) & 空格
 			DetectString = DetectString.Replace("MULTIMEDIA", "").Replace("FORCE", "").Replace("(", "").Replace(")", "").Replace("&", "").Replace(" ", "");
 			// 解析检测字符串
 			var detectParts = DetectString.ToLower().Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+			var fileExt = Path.GetExtension(fileName).ToLower().Trim('.');
 			foreach (var part in detectParts)
 			{
-				if (part.StartsWith("ext="))    //TODO BUGFIX: 遇到MULTIMEDIA|ext=avi,mpg,mpeg,mp3,mp4,flv,wmv,rm,rmvb,3gp,ogg,webm,flac,wav,ape,alac,aac,ac3,amr,ape,au,awb,caf,dts,flac,m4a,mka,mlp,mp2,mpa,mpc,ofr,ofs,oga特殊处理
+				if (part.StartsWith("ext="))    
 				{
 					var extensions = part.Substring(4).Split(',');
 					//if necessary, remove the leading " and trailing " for each extensions item
 					extensions = Helper.RemoveQuotes(extensions);
-					var fileExt = Path.GetExtension(fileName).ToLower().Trim('.');
 					if (extensions.Any(ext => fileExt.Equals(ext, StringComparison.OrdinalIgnoreCase)))
 						return true;
 				}
 				// 可以添加其他检测规则的支持
 			}
-
+			//TODO BUGFIX: 遇到MULTIMEDIA|特殊处理
+			if (isMultimedia)
+			{
+				var mexts = "avi,mpg,mpeg,mp3,mp4,flv,wmv,rm,rmvb,3gp,ogg,webm,flac,wav,ape,alac,aac,ac3,amr,ape,au,awb,caf,dts,flac,m4a,mka,mlp,mp2,mpa,mpc,ofr,ofs,oga".Split(',');
+				if (mexts.Any(ext => fileExt.Equals(ext, StringComparison.OrdinalIgnoreCase)))
+					return true;
+			}
 			return false;
 		}
-
 		public void LoadModulesFromDirectory(string directory)
 		{
 			if (!Directory.Exists(directory)) return;
-
 			foreach (var file in Directory.GetFiles(directory, "*.wlx64"))
 			{
 				try
@@ -408,7 +424,6 @@ namespace WinFormsApp1
 						FilePath = file,
 						Name = Path.GetFileNameWithoutExtension(file)
 					};
-
 					if (module.LoadModule())
 					{
 						AddModule(module);

@@ -38,7 +38,10 @@ namespace WinFormsApp1
         private string[] draggedItems;
 		private TreeNode rightClickBegin;
 		private string oldname;
-        public Form1()
+		private WcxModuleList wcxModuleList;
+		private Dictionary<string, IntPtr> openArchives = new Dictionary<string, IntPtr>();
+		private Dictionary<string, string> archivePaths = new Dictionary<string, string>();
+		public Form1()
         {
             InitializeComponent();
             this.Size = new Size(1200, 800);
@@ -81,9 +84,45 @@ namespace WinFormsApp1
             //uiManager.RightList.ItemDrag += ListView_ItemDrag;
 			WdxModuleList wdxModuleList = new WdxModuleList("");
 			WfxModuleList wfxModuleList = new WfxModuleList("");
-			WcxModuleList wcxModuleList = new WcxModuleList();
+			//WcxModuleList wcxModuleList = new WcxModuleList();
+			wcxModuleList = new WcxModuleList();
+			wcxModuleList.LoadConfiguration();
 		}
-        private void InitializeHotkeys()
+		/// <summary>
+		///  Clean up any resources being used.
+		/// </summary>
+		/// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+
+		protected override void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				// 释放托管资源
+				if (components != null)
+				{
+					components.Dispose();
+				}
+
+				// 释放打开的压缩文件句柄
+				foreach (var archive in openArchives)
+				{
+					CloseArchive(archive.Key);
+				}
+				openArchives.Clear();
+				archivePaths.Clear();
+
+				// 释放其他资源
+				watcher.Dispose();
+				previewManager.Dispose();
+				thumbnailManager.Dispose();
+				uiManager.Dispose();
+				themeManager.Dispose();
+				contextMenuStrip.Dispose();
+			}
+			base.Dispose(disposing);
+		}
+
+		private void InitializeHotkeys()
         {
             hotkeyMappings = new Dictionary<Keys, string>
             {
@@ -1714,5 +1753,112 @@ namespace WinFormsApp1
 		{
 			activeListView.View = viewMode;
 		}
-    }
+		private bool IsArchiveFile(string filePath)
+		{
+			string ext = Path.GetExtension(filePath).ToLower();
+			return wcxModuleList.GetModuleByExt(ext) != null;
+		}
+
+		private bool OpenArchive(string archivePath)
+		{
+			if (openArchives.ContainsKey(archivePath))
+				return true;
+
+			string ext = Path.GetExtension(archivePath).ToLower();
+			var wcxModule = wcxModuleList.GetModuleByExt(ext);
+			if (wcxModule == null)
+				return false;
+
+			IntPtr handle = wcxModule.OpenArchive(archivePath, 0);
+			if (handle == IntPtr.Zero)
+				return false;
+
+			openArchives[archivePath] = handle;
+			return true;
+		}
+
+		private void CloseArchive(string archivePath)
+		{
+			if (!openArchives.ContainsKey(archivePath))
+				return;
+
+			string ext = Path.GetExtension(archivePath).ToLower();
+			var wcxModule = wcxModuleList.GetModuleByExt(ext);
+			if (wcxModule != null)
+			{
+				wcxModule.CloseArchive(openArchives[archivePath]);
+				openArchives.Remove(archivePath);
+				archivePaths.Remove(archivePath);
+			}
+		}
+
+		private List<ListViewItem> LoadArchiveContents(string archivePath)
+		{
+			List<ListViewItem> items = new List<ListViewItem>();
+			string ext = Path.GetExtension(archivePath).ToLower();
+			var wcxModule = wcxModuleList.GetModuleByExt(ext);
+			if (wcxModule == null || !openArchives.ContainsKey(archivePath))
+				return items;
+
+			IntPtr handle = openArchives[archivePath];
+			THeaderDataExW headerData = new THeaderDataExW();
+
+			while (wcxModule.ReadHeader(handle, out headerData))
+			{
+				var item = new ListViewItem(headerData.FileName);
+				item.SubItems.Add(headerData.UnpSize.ToString());
+				item.SubItems.Add(DateTime.FromFileTime(headerData.FileTime).ToString());
+				item.SubItems.Add(headerData.Method.ToString());
+				items.Add(item);
+
+				wcxModule.ProcessFile(handle, 0, "", ""); // Skip file
+			}
+
+			return items;
+		}
+
+		private bool ExtractArchiveFile(string archivePath, string fileName, string destPath)
+		{
+			string ext = Path.GetExtension(archivePath).ToLower();
+			var wcxModule = wcxModuleList.GetModuleByExt(ext);
+			if (wcxModule == null || !openArchives.ContainsKey(archivePath))
+				return false;
+
+			IntPtr handle = openArchives[archivePath];
+			THeaderDataExW headerData = new THeaderDataExW();
+
+			while (wcxModule.ReadHeader(handle, out headerData))
+			{
+				if (headerData.FileName == fileName)
+				{
+					return wcxModule.ProcessFile(handle, 1, destPath, fileName) == 0;
+				}
+				wcxModule.ProcessFile(handle, 0, "", ""); // Skip file
+			}
+
+			return false;
+		}
+
+		private bool AddToArchive(string archivePath, string[] files)
+		{
+			string ext = Path.GetExtension(archivePath).ToLower();
+			var wcxModule = wcxModuleList.GetModuleByExt(ext);
+			if (wcxModule == null)
+				return false;
+
+			string fileList = string.Join("\n", files);
+			return wcxModule.PackFiles(archivePath, "", Path.GetDirectoryName(files[0]), fileList, 0) == 0;
+		}
+
+		private bool DeleteFromArchive(string archivePath, string[] files)
+		{
+			string ext = Path.GetExtension(archivePath).ToLower();
+			var wcxModule = wcxModuleList.GetModuleByExt(ext);
+			if (wcxModule == null)
+				return false;
+
+			string fileList = string.Join("\n", files);
+			return wcxModule.DeleteFiles(archivePath, fileList) == 0;
+		}
+	}
 }

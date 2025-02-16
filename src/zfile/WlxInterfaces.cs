@@ -108,6 +108,7 @@ namespace WinFormsApp1
 		public string Name { get; set; }
 		public string FilePath { get; set; }
 		public string DetectString { get; set; }
+		public bool IsMultimedia { get; set; }
 		public bool IsLoaded => _moduleHandle != IntPtr.Zero;
 
 		public WlxModule()
@@ -115,7 +116,6 @@ namespace WinFormsApp1
 			Name = string.Empty;
 			FilePath = string.Empty;
 			DetectString = string.Empty;
-			
 		}
 
 		public bool LoadModule()
@@ -194,7 +194,7 @@ namespace WinFormsApp1
 			StringBuilder detectStr = new StringBuilder(1024);
 			_listGetDetectString(detectStr, detectStr.Capacity);
 			DetectString = detectStr.ToString();
-
+			IsMultimedia = DetectString.Contains("multimedia", StringComparison.OrdinalIgnoreCase);
 		}
 
 		private void CallListSetDefaultParams()

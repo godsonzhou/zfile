@@ -368,15 +368,15 @@ namespace WinFormsApp1
 		public void InitializeUI()
 		{
 			InitializeLayout();
-			InitializeDriveComboBoxes();
 			InitializeTreeViews();
+			InitializeTreeViewIcons();
 			InitializeListViews();
+			InitializeDriveComboBoxes();
 			InitializePreviewPanels();
 			InitializeStatusStrips();
 			InitializeToolStrip();
 			InitializeDynamicMenu();
 			InitializeDynamicToolbar();
-			InitializeTreeViewIcons();
 			InitializeBookmarkLists();
 		}
 		public void InitializeLayout()
@@ -553,6 +553,7 @@ namespace WinFormsApp1
 
 		public void InitializeTreeViewIcons()
 		{
+			treeViewImageList.ColorDepth = ColorDepth.Depth32Bit;
 			IconManager.InitializeIcons(treeViewImageList);
 			// 为两个TreeView设置ImageList
 			LeftTree.ImageList = treeViewImageList;

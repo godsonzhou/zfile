@@ -2,6 +2,7 @@ using Microsoft.Win32;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using WinShell;
+using System.Collections.Generic;
 
 namespace WinFormsApp1
 {
@@ -10,6 +11,8 @@ namespace WinFormsApp1
 	{
 		[DllImport("shell32.dll", CharSet = CharSet.Auto)]
 		private static extern IntPtr ExtractIcon(IntPtr hInst, string lpszExeFileName, int nIconIndex);
+
+		private static readonly Dictionary<string, Icon> iconCache = new Dictionary<string, Icon>();
 
 		public static Icon ExtractIconFromFile(string file, int iconIndex)
 		{
@@ -352,6 +355,19 @@ namespace WinFormsApp1
                 return images.Images[index];
             }
             return null;
+        }
+
+        public static bool HasIconKey(string key)
+        {
+            return iconCache.ContainsKey(key);
+        }
+
+        public static void AddIcon(string key, Icon icon)
+        {
+            if (!iconCache.ContainsKey(key))
+            {
+                iconCache[key] = icon.Clone() as Icon;
+            }
         }
     }
 } 

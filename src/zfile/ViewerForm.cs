@@ -136,8 +136,8 @@ namespace WinFormsApp1
             _mainPanel.Controls.Add(_imagePanel);
             _mainPanel.Controls.Add(_textPanel);
             this.Controls.Add(_mainPanel);
-            this.Controls.Add(_toolStrip);
-            this.Controls.Add(_menuStrip);
+			this.Controls.Add(_menuStrip);
+			this.Controls.Add(_toolStrip);
             this.Controls.Add(_statusStrip);
 
             // 初始化计时器
@@ -236,8 +236,11 @@ namespace WinFormsApp1
 			container.SetBounds(_mainPanel.Bounds.X, _mainPanel.Bounds.Y, _mainPanel.Bounds.Width, _mainPanel.Bounds.Height);
 			// 传递容器面板的句柄作为父窗口
 			_pluginWindow = _currentPlugin.CallListLoad(container.Handle, _fileName, WlxConstants.LISTPLUGIN_SHOW);
+			//IntPtr bmp = IntPtr.Zero;
+			//if(_pluginWindow == IntPtr.Zero)
+			//	_pluginWindow = _currentPlugin.CallListGetPreviewBitmap(_fileName, _mainPanel.Bounds.Width, _mainPanel.Bounds.Height, bmp);
 			//_pluginWindow = _currentPlugin.CallListLoad(this.Handle, _fileName, WlxConstants.LISTPLUGIN_SHOW);
-            if (_pluginWindow != IntPtr.Zero)
+			if (_pluginWindow != IntPtr.Zero)
             {
 				// 设置窗口样式为子窗口
 				NativeMethods.SetParent(_pluginWindow, container.Handle);

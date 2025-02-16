@@ -1169,7 +1169,7 @@ namespace WinFormsApp1
 			ShellItem sItem = (ShellItem)node.Tag;
 			if (sItem == null) return;
 			IShellFolder root = sItem.ShellFolder;
-			if (root == null || node.Text.Equals("迅雷下载")) return;
+			if (root == null ) return;//|| node.Text.Equals("迅雷下载")
 			node.Nodes.Clear();
 			IEnumIDList Enum;
 			
@@ -1224,12 +1224,8 @@ namespace WinFormsApp1
                         var shellInfo = new SHFILEINFO();
 						//IntPtr hSysImageList = API.SHGetFileInfo(pidlSub, 0, ref shellInfo, (uint)Marshal.SizeOf(shellInfo), (uint)(SHGFI.SYSICONINDEX | SHGFI.SMALLICON));
 						// 首先获取系统图标索引
-						var result = API.SHGetFileInfo(
-                            pidlSub,
-                            0,
-                            ref shellInfo,
-                            Marshal.SizeOf(typeof(SHFILEINFO)),
-                            SHGFI.SYSICONINDEX | SHGFI.SMALLICON | SHGFI.ICON);
+						var result = API.SHGetFileInfo(subItem.parsepath, 0, ref shellInfo,Marshal.SizeOf(typeof(SHFILEINFO)),
+                            (SHGFI.SYSICONINDEX | SHGFI.SMALLICON | SHGFI.ICON));
 						Debug.Print($"Virtual folder icon - Path: {subItem.parsepath}, SysIconIndex: {shellInfo.iIcon}");
 						if (result != IntPtr.Zero)
                         {

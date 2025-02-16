@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Tab;
 
 namespace WinShell
 {
@@ -89,9 +90,10 @@ namespace WinShell
 		}
 		public SHFILEINFO GetIcon(bool smallIcon = true)
 		{
-			var flags = (SHGFI.PIDL | SHGFI.SYSICONINDEX | (smallIcon ? SHGFI.SMALLICON : SHGFI.LARGEICON));
 			SHFILEINFO shfi = new SHFILEINFO();
-			IntPtr hIcon = API.SHGetFileInfo(PIDL, 0, ref shfi, Marshal.SizeOf(shfi), flags);
+			var flags = (SHGFI.PIDL | SHGFI.SYSICONINDEX | (smallIcon ? SHGFI.SMALLICON : SHGFI.LARGEICON));
+			API.SHGetFileInfo(PIDL, 0, ref shfi, Marshal.SizeOf(shfi), flags);
+			//IntPtr hIcon = API.SHGetFileInfo(PIDL, 0, ref shfi, Marshal.SizeOf(shfi), flags);
 			return shfi;
 		}
 		public SFGAO GetAttributes()

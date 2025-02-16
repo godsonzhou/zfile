@@ -410,8 +410,7 @@ namespace WinShell
 		[DllImport("shell32.dll", SetLastError = true)]
 		public static extern int SHGetDesktopFolder(out IShellFolder ppshf);
 
-		[DllImport("shell32.dll", CharSet = CharSet.Auto)]
-		public static extern IntPtr SHGetFileInfo(string pszPath, uint dwFileAttributes, ref SHFILEINFO psfi, uint cbFileInfo, uint uFlags);
+		
 
 		[DllImport("user32.dll", SetLastError = true)]
 		public static extern bool DestroyIcon(IntPtr hIcon);
@@ -434,7 +433,10 @@ namespace WinShell
 
 		[DllImport("shell32.dll", CharSet = CharSet.Auto)]
 		public static extern bool SHGetPathFromIDList(IntPtr pidl, StringBuilder pszPath);
-
+		
+		[DllImport("shell32.dll", CharSet = CharSet.Auto)]
+		public static extern IntPtr SHGetFileInfoByPath(string pszPath, uint dwFileAttributes, ref SHFILEINFO psfi, uint cbFileInfo, uint uFlags);
+		
 		[DllImport("shell32", EntryPoint = "SHGetFileInfo", ExactSpelling = false, CharSet = CharSet.Auto, SetLastError = true)]
 		public static extern IntPtr SHGetFileInfo(
 			IntPtr ppidl,

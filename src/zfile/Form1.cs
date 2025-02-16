@@ -742,7 +742,7 @@ namespace WinFormsApp1
 
                 TreeNode rootNode = new ("桌面")
                 {
-                    Tag = new ShellItem(deskTopPtr, iDeskTop),
+                    Tag = new ShellItem(deskTopPtr, iDeskTop, null),
                     ImageKey = "desktop", // 设置图标
                     SelectedImageKey = "desktop" // 设置选中图标
                 };
@@ -1181,44 +1181,45 @@ namespace WinFormsApp1
                 Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
                 while (Enum.Next(1, out nint pidlSub, out uint celtFetched) == 0 && celtFetched == w32.S_FALSE) //获取子节点的pidl
                 {
-                    string name;
-                    string path = w32.GetPathByIShell(root, pidlSub);   //子节点path -> 此电脑\\迅雷下载, c:\\
                     root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out IShellFolder iSub); //获取子节点的ishellfolder接口
-                    var pathPart = path.Split('\\');
+					string name;
+					string path = w32.GetPathByIShell(root, pidlSub);   //子节点path -> 此电脑\\迅雷下载, c:\\
+					var pathPart = path.Split('\\');
                     name = !pathPart[^1].Equals(string.Empty) ? pathPart[^1] : pathPart[^2];
-                    TreeNode nodeSub = new(name)
+					var subItem = new ShellItem(pidlSub, iSub, root); //子节点的tag存放pidl和ishellfolder接口
+					TreeNode nodeSub = new(name)
                     {
-                        Tag = new ShellItem(pidlSub, iSub) //子节点的tag存放pidl和ishellfolder接口
+                        Tag = subItem
                     };
 
                     // 获取节点的SFGAO属性
-                    SFGAO attributes = SFGAO.FOLDER | SFGAO.FILESYSTEM;
-                    root.GetAttributesOf(1, new[] { pidlSub }, ref attributes);
+                    //SFGAO attributes = SFGAO.FOLDER | SFGAO.FILESYSTEM;
+                    //root.GetAttributesOf(1, new[] { pidlSub }, ref attributes);
 
                     // 获取CLSID并检查是否为虚拟文件夹
-                    bool isVirtualFolder = false;
-                    string parsedPath = string.Empty;
-                    try 
-                    {
-                        IntPtr strr = Marshal.AllocCoTaskMem(w32.MAX_PATH * 2 + 4);
-                        Marshal.WriteInt32(strr, 0, 0);
-                        StringBuilder buf = new StringBuilder(w32.MAX_PATH);
-                        if (root.GetDisplayNameOf(pidlSub, SHGDN.FORPARSING, strr) == w32.S_OK)
-                        {
-                            API.StrRetToBuf(strr, pidlSub, buf, w32.MAX_PATH);
-                            parsedPath = buf.ToString();
-							Debug.Print("{0} {1}", name, parsedPath);
-                            isVirtualFolder = parsedPath.Contains("::{");
-                        }
-                        Marshal.FreeCoTaskMem(strr);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.Print($"获取解析路径失败: {ex.Message}");
-                    }
+                    //bool isVirtualFolder = false;
+       //             string parsedPath = string.Empty;
+       //             try 
+       //             {
+       //                 IntPtr strr = Marshal.AllocCoTaskMem(w32.MAX_PATH * 2 + 4);
+       //                 Marshal.WriteInt32(strr, 0, 0);
+       //                 StringBuilder buf = new StringBuilder(w32.MAX_PATH);
+       //                 if (root.GetDisplayNameOf(pidlSub, SHGDN.FORPARSING, strr) == w32.S_OK)
+       //                 {
+       //                     API.StrRetToBuf(strr, pidlSub, buf, w32.MAX_PATH);
+       //                     parsedPath = buf.ToString();
+							//Debug.Print("{0} {1}", name, parsedPath);
+       //                     isVirtualFolder = parsedPath.Contains("::{");
+       //                 }
+       //                 Marshal.FreeCoTaskMem(strr);
+       //             }
+       //             catch (Exception ex)
+       //             {
+       //                 Debug.Print($"获取解析路径失败: {ex.Message}");
+       //             }
 
                     // 为虚拟文件夹或非文件系统项设置特定图标
-                    if (isVirtualFolder || (attributes & SFGAO.FILESYSTEM) == 0)
+                    if (subItem.IsVirtual || (subItem.GetAttributes() & SFGAO.FILESYSTEM) == 0)
                     {
                         var shellInfo = new SHFILEINFO();
 						//IntPtr hSysImageList = API.SHGetFileInfo(pidlSub, 0, ref shellInfo, (uint)Marshal.SizeOf(shellInfo), (uint)(SHGFI.SYSICONINDEX | SHGFI.SMALLICON));
@@ -1228,20 +1229,20 @@ namespace WinFormsApp1
                             0,
                             ref shellInfo,
                             Marshal.SizeOf(typeof(SHFILEINFO)),
-                            SHGFI.SYSICONINDEX | SHGFI.SMALLICON );
-                        
-                        if (result != IntPtr.Zero)
+                            SHGFI.SYSICONINDEX | SHGFI.SMALLICON | SHGFI.ICON);
+						Debug.Print($"Virtual folder icon - Path: {subItem.parsepath}, SysIconIndex: {shellInfo.iIcon}");
+						if (result != IntPtr.Zero)
                         {
                             // 使用系统图标索引作为键值
                             string iconKey = $"sysicon_{shellInfo.iIcon}";
-                            Debug.Print($"Virtual folder icon - Path: {parsedPath}, SysIconIndex: {shellInfo.iIcon}");
+                            
 							// Retrieve the icon from the system image list
 							//IntPtr hIcon = API.ImageList_GetIcon(hSysImageList, shellInfo.iIcon, ILD_TRANSPARENT);
 							if (!IconManager.HasIconKey(iconKey))
                             {       
                                 if (shellInfo.hIcon != IntPtr.Zero)
                                 {
-                                    Debug.Print($"Got icon handle for system icon {shellInfo.iIcon}: {shellInfo.hIcon}");
+                                    //Debug.Print($"Got icon handle for system icon {shellInfo.iIcon}: {shellInfo.hIcon}");
                                     using (Icon icon = Icon.FromHandle(shellInfo.hIcon))
                                     {
                                         IconManager.AddIcon(iconKey, icon);   
@@ -1268,8 +1269,8 @@ namespace WinFormsApp1
                         nodeSub.ImageKey = IconManager.GetNodeIconKey(nodeSub);
                         nodeSub.SelectedImageKey = nodeSub.ImageKey;
                     }
-
-                    nodeSub.Nodes.Add("...");
+					if(subItem.hasChildren) 
+						nodeSub.Nodes.Add("...");
                     node.Nodes.Add(nodeSub);
                     if (lv != null)
                     {

@@ -886,13 +886,24 @@ namespace WinFormsApp1
 			Dispose(true);
 			GC.SuppressFinalize(this);
 		}
-
+		private void ReleaseTreeNodes(TreeNodeCollection nodes)
+		{
+			foreach (TreeNode node in nodes)
+			{
+				if (node.Tag is ShellItem shellItem)
+					shellItem.Dispose();
+				ReleaseTreeNodes(node.Nodes);
+			}
+		}
 		protected virtual void Dispose(bool disposing)
 		{
 			if (!disposed)
 			{
 				if (disposing)
 				{
+					// 释放所有 TreeView 节点中的 ShellItem
+					ReleaseTreeNodes(LeftTree.Nodes);
+					ReleaseTreeNodes(RightTree.Nodes);
 					// 释放托管资源
 					LeftList?.Dispose();
 					RightList?.Dispose();

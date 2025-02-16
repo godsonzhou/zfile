@@ -7,15 +7,15 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.Tab;
 
 namespace WinShell
 {
-	public class ShellItem
+	public class ShellItem : IDisposable
 	{
-		
+		private bool _disposed = false;
 		public IntPtr PIDL { get; }
 		public IShellFolder ShellFolder { get; }
 		public IShellFolder ParentShellFolder { get; }
 		public string parsepath = string.Empty;
 		public bool IsVirtual = false;
-		
+		public string Name;
 		public ShellItem(IntPtr PIDL, IShellFolder ShellFolder, IShellFolder ParentShellFolder)
 		{
 			this.PIDL = PIDL;
@@ -27,14 +27,38 @@ namespace WinShell
 			//else
 			this.ParentShellFolder = ParentShellFolder;
 			IsVirtual = IsVirtualPath(ref parsepath);
+			Name = w32.GetNameByIShell(ParentShellFolder,PIDL);
+			var name1 = w32.GetNameByPIDL(PIDL);
 		}
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposed)
+			{
+				API.ILFree(PIDL);
+				Marshal.ReleaseComObject(ShellFolder);
+				Marshal.ReleaseComObject(ParentShellFolder);
+				// 释放子 PIDL 列表
+				foreach (var pidl in GetChildPIDLs())
+				{
+					API.ILFree(pidl);
+				}
+				_disposed = true;
+			}
+		}
+
+		~ShellItem() => Dispose(false);
 		public IntPtr[] GetChildPIDLs(SHCONTF shcontf = SHCONTF.FOLDERS)
 		{
 			List<IntPtr> pidls = new List<IntPtr>();
-		
-			if (ParentShellFolder != null)
+			if (ShellFolder != null)
 			{
-				if (ParentShellFolder.EnumObjects(IntPtr.Zero, shcontf, out IntPtr pEnumIDList) == w32.S_OK)
+				if (ShellFolder.EnumObjects(IntPtr.Zero, shcontf, out IntPtr pEnumIDList) == w32.S_OK)
 				{
 					if (pEnumIDList != IntPtr.Zero)
 					{
@@ -43,9 +67,13 @@ namespace WinShell
 						{
 							pidls.Add(pidlSub);
 						}
+						//API.ILFree(pEnumIDList);
+						Marshal.ReleaseComObject(e);
+						Marshal.Release(pEnumIDList);  // 或使用 API.ILFree 如果适用
 					}
 				}
 			}
+
 			return pidls.ToArray();
 		}
 		public bool hasChildren {  

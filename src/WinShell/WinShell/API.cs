@@ -309,8 +309,10 @@ namespace WinShell
 			IntPtr strr = Marshal.AllocCoTaskMem(MAX_PATH * 2 + 4);
 			Marshal.WriteInt32(strr, 0, 0);
 			StringBuilder buf = new StringBuilder(MAX_PATH);
-			if (Root.GetDisplayNameOf(pidlSub, SHGDN.INFOLDER, strr) == S_OK)
+			if (Root?.GetDisplayNameOf(pidlSub, SHGDN.INFOLDER, strr) == S_OK)
 				API.StrRetToBuf(strr, pidlSub, buf, MAX_PATH);
+			else
+				buf.Append("desktop");
 			Marshal.FreeCoTaskMem(strr);
 			return buf.ToString();
 		}

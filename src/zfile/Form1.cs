@@ -98,6 +98,7 @@ namespace WinFormsApp1
 		{
 			if (disposing)
 			{
+				Marshal.ReleaseComObject(iDeskTop);
 				// 释放托管资源
 				if (components != null)
 				{
@@ -456,19 +457,28 @@ namespace WinFormsApp1
                 }
 
                 IContextMenu iContextMenu = (IContextMenu)Marshal.GetObjectForIUnknown(iContextMenuPtr);
-                // 提供一个弹出式菜单的句柄
-                IntPtr contextMenu = API.CreatePopupMenu();
-                iContextMenu.QueryContextMenu(contextMenu, 0,
-                    w32.CMD_FIRST, w32.CMD_LAST, CMF.NORMAL | CMF.EXPLORE);
-                //var str = new StringBuilder(256);
-                //iContextMenu.GetCommandString(w32.CMD_FIRST, GetCommandStringInformations.VERB, IntPtr.Zero, str, 0);
-                //Debug.Print("cmdstr:{0}", str);
-                // 弹出菜单
-                uint cmd = API.TrackPopupMenuEx(contextMenu, TPM.RETURNCMD,
-                    MousePosition.X, MousePosition.Y, this.Handle, IntPtr.Zero);
-                // 获取命令序号,执行菜单命令
-                if (cmd >= w32.CMD_FIRST)
-                    ContextMenuHandler.InvokeCommand(iContextMenu, cmd, strpath, new POINT(MousePosition.X, MousePosition.Y));
+				try
+				{
+					// 提供一个弹出式菜单的句柄
+					IntPtr contextMenu = API.CreatePopupMenu();
+					iContextMenu.QueryContextMenu(contextMenu, 0,
+						w32.CMD_FIRST, w32.CMD_LAST, CMF.NORMAL | CMF.EXPLORE);
+					//var str = new StringBuilder(256);
+					//iContextMenu.GetCommandString(w32.CMD_FIRST, GetCommandStringInformations.VERB, IntPtr.Zero, str, 0);
+					//Debug.Print("cmdstr:{0}", str);
+					// 弹出菜单
+					uint cmd = API.TrackPopupMenuEx(contextMenu, TPM.RETURNCMD,
+						MousePosition.X, MousePosition.Y, this.Handle, IntPtr.Zero);
+					// 获取命令序号,执行菜单命令
+					if (cmd >= w32.CMD_FIRST)
+						ContextMenuHandler.InvokeCommand(iContextMenu, cmd, strpath, new POINT(MousePosition.X, MousePosition.Y));
+				}
+				finally
+				{
+					Marshal.ReleaseComObject(iContextMenu);
+					if (iContextMenuPtr != IntPtr.Zero)
+						Marshal.Release(iContextMenuPtr);
+				}
             }
             catch (Exception ex)
             {
@@ -509,9 +519,9 @@ namespace WinFormsApp1
 
         private void ShowContextMenu1(TreeNode node, Point location)
         {
-            Debug.Print("showcontextmenu1:{0}", node.Text);
-            //获得当前节点的 PIDL
-            ShellItem sItem = (ShellItem)node.Tag;
+            //Debug.Print("showcontextmenu1:{0}", node.Text);
+			//获得当前节点的 PIDL
+			ShellItem sItem = (ShellItem)node.Tag;
             IntPtr PIDL = sItem.PIDL;
 
             //获得父节点的 IShellFolder 接口
@@ -535,20 +545,28 @@ namespace WinFormsApp1
             IntPtr iContextMenuPtr = IntPtr.Zero;
             iContextMenuPtr = IParent.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length, pidls, ref Guids.IID_IContextMenu, out iContextMenuPtr);
             IContextMenu iContextMenu = (IContextMenu)Marshal.GetObjectForIUnknown(iContextMenuPtr);
+			try
+			{
+				//提供一个弹出式菜单的句柄
+				IntPtr contextMenu = API.CreatePopupMenu();
+				iContextMenu.QueryContextMenu(contextMenu, 0, w32.CMD_FIRST, w32.CMD_LAST, CMF.NORMAL | CMF.EXPLORE);
 
-            //提供一个弹出式菜单的句柄
-            IntPtr contextMenu = API.CreatePopupMenu();
-            iContextMenu.QueryContextMenu(contextMenu, 0, w32.CMD_FIRST, w32.CMD_LAST, CMF.NORMAL | CMF.EXPLORE);
+				//弹出菜单
+				uint cmd = API.TrackPopupMenuEx(contextMenu, TPM.RETURNCMD, MousePosition.X, MousePosition.Y, this.Handle, IntPtr.Zero);
 
-            //弹出菜单
-            uint cmd = API.TrackPopupMenuEx(contextMenu, TPM.RETURNCMD, MousePosition.X, MousePosition.Y, this.Handle, IntPtr.Zero);
-
-            //获取命令序号，执行菜单命令
-            if (cmd >= w32.CMD_FIRST)
-            {
-                var strpath = Helper.getFSpathbyTree(node);
-                ContextMenuHandler.InvokeCommand(iContextMenu, cmd, strpath, new POINT(MousePosition.X, MousePosition.Y));
-            }
+				//获取命令序号，执行菜单命令
+				if (cmd >= w32.CMD_FIRST)
+				{
+					var strpath = Helper.getFSpathbyTree(node);
+					ContextMenuHandler.InvokeCommand(iContextMenu, cmd, strpath, new POINT(MousePosition.X, MousePosition.Y));
+				}
+			}
+			finally
+			{
+				Marshal.ReleaseComObject(iContextMenu);
+				if (iContextMenuPtr != IntPtr.Zero)
+					Marshal.Release(iContextMenuPtr);
+			}
         }
 
         public void myShellExe(string path = "c:\\windows\\system32")
@@ -1177,109 +1195,123 @@ namespace WinFormsApp1
 			{
 				if (EnumPtr == IntPtr.Zero)  //如果node=程序和功能,则EnumPtr=0，直接返回
 					return;
+				try
+				{
+					Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
+					while (Enum.Next(1, out nint pidlSub, out uint celtFetched) == 0 && celtFetched == w32.S_FALSE) //获取子节点的pidl
+					{
+						root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out IShellFolder iSub); //获取子节点的ishellfolder接口
+						string name;
+						string path = w32.GetPathByIShell(root, pidlSub);   //子节点path -> 此电脑\\迅雷下载, c:\\
+						var pathPart = path.Split('\\');
+						name = !pathPart[^1].Equals(string.Empty) ? pathPart[^1] : pathPart[^2];
+						var subItem = new ShellItem(pidlSub, iSub, root); //子节点的tag存放pidl和ishellfolder接口
+						TreeNode nodeSub = new(name)
+						{
+							Tag = subItem
+						};
 
-                Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
-                while (Enum.Next(1, out nint pidlSub, out uint celtFetched) == 0 && celtFetched == w32.S_FALSE) //获取子节点的pidl
-                {
-                    root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out IShellFolder iSub); //获取子节点的ishellfolder接口
-					string name;
-					string path = w32.GetPathByIShell(root, pidlSub);   //子节点path -> 此电脑\\迅雷下载, c:\\
-					var pathPart = path.Split('\\');
-                    name = !pathPart[^1].Equals(string.Empty) ? pathPart[^1] : pathPart[^2];
-					var subItem = new ShellItem(pidlSub, iSub, root); //子节点的tag存放pidl和ishellfolder接口
-					TreeNode nodeSub = new(name)
-                    {
-                        Tag = subItem
-                    };
+						// 获取节点的SFGAO属性
+						//SFGAO attributes = SFGAO.FOLDER | SFGAO.FILESYSTEM;
+						//root.GetAttributesOf(1, new[] { pidlSub }, ref attributes);
 
-                    // 获取节点的SFGAO属性
-                    //SFGAO attributes = SFGAO.FOLDER | SFGAO.FILESYSTEM;
-                    //root.GetAttributesOf(1, new[] { pidlSub }, ref attributes);
+						// 获取CLSID并检查是否为虚拟文件夹
+						//bool isVirtualFolder = false;
+						//             string parsedPath = string.Empty;
+						//             try 
+						//             {
+						//                 IntPtr strr = Marshal.AllocCoTaskMem(w32.MAX_PATH * 2 + 4);
+						//                 Marshal.WriteInt32(strr, 0, 0);
+						//                 StringBuilder buf = new StringBuilder(w32.MAX_PATH);
+						//                 if (root.GetDisplayNameOf(pidlSub, SHGDN.FORPARSING, strr) == w32.S_OK)
+						//                 {
+						//                     API.StrRetToBuf(strr, pidlSub, buf, w32.MAX_PATH);
+						//                     parsedPath = buf.ToString();
+						//Debug.Print("{0} {1}", name, parsedPath);
+						//                     isVirtualFolder = parsedPath.Contains("::{");
+						//                 }
+						//                 Marshal.FreeCoTaskMem(strr);
+						//             }
+						//             catch (Exception ex)
+						//             {
+						//                 Debug.Print($"获取解析路径失败: {ex.Message}");
+						//             }
 
-                    // 获取CLSID并检查是否为虚拟文件夹
-                    //bool isVirtualFolder = false;
-       //             string parsedPath = string.Empty;
-       //             try 
-       //             {
-       //                 IntPtr strr = Marshal.AllocCoTaskMem(w32.MAX_PATH * 2 + 4);
-       //                 Marshal.WriteInt32(strr, 0, 0);
-       //                 StringBuilder buf = new StringBuilder(w32.MAX_PATH);
-       //                 if (root.GetDisplayNameOf(pidlSub, SHGDN.FORPARSING, strr) == w32.S_OK)
-       //                 {
-       //                     API.StrRetToBuf(strr, pidlSub, buf, w32.MAX_PATH);
-       //                     parsedPath = buf.ToString();
-							//Debug.Print("{0} {1}", name, parsedPath);
-       //                     isVirtualFolder = parsedPath.Contains("::{");
-       //                 }
-       //                 Marshal.FreeCoTaskMem(strr);
-       //             }
-       //             catch (Exception ex)
-       //             {
-       //                 Debug.Print($"获取解析路径失败: {ex.Message}");
-       //             }
+						// 为虚拟文件夹或非文件系统项设置特定图标
+						if (subItem.IsVirtual || (subItem.GetAttributes() & SFGAO.FILESYSTEM) == 0)
+						{
+							var shellInfo = new SHFILEINFO();
+							//IntPtr hSysImageList = API.SHGetFileInfo(pidlSub, 0, ref shellInfo, (uint)Marshal.SizeOf(shellInfo), (uint)(SHGFI.SYSICONINDEX | SHGFI.SMALLICON));
+							// 首先获取系统图标索引
+							var result = API.SHGetFileInfo(subItem.parsepath, 0, ref shellInfo, Marshal.SizeOf(typeof(SHFILEINFO)),
+								(SHGFI.SYSICONINDEX | SHGFI.SMALLICON | SHGFI.ICON));
+							Debug.Print($"Virtual folder icon - Path: {subItem.parsepath}, SysIconIndex: {shellInfo.iIcon}");
+							if (result != IntPtr.Zero)
+							{
+								// 使用系统图标索引作为键值
+								string iconKey = $"sysicon_{shellInfo.iIcon}";
 
-                    // 为虚拟文件夹或非文件系统项设置特定图标
-                    if (subItem.IsVirtual || (subItem.GetAttributes() & SFGAO.FILESYSTEM) == 0)
-                    {
-                        var shellInfo = new SHFILEINFO();
-						//IntPtr hSysImageList = API.SHGetFileInfo(pidlSub, 0, ref shellInfo, (uint)Marshal.SizeOf(shellInfo), (uint)(SHGFI.SYSICONINDEX | SHGFI.SMALLICON));
-						// 首先获取系统图标索引
-						var result = API.SHGetFileInfo(subItem.parsepath, 0, ref shellInfo,Marshal.SizeOf(typeof(SHFILEINFO)),
-                            (SHGFI.SYSICONINDEX | SHGFI.SMALLICON | SHGFI.ICON));
-						Debug.Print($"Virtual folder icon - Path: {subItem.parsepath}, SysIconIndex: {shellInfo.iIcon}");
-						if (result != IntPtr.Zero)
-                        {
-                            // 使用系统图标索引作为键值
-                            string iconKey = $"sysicon_{shellInfo.iIcon}";
-                            
-							// Retrieve the icon from the system image list
-							//IntPtr hIcon = API.ImageList_GetIcon(hSysImageList, shellInfo.iIcon, ILD_TRANSPARENT);
-							if (!IconManager.HasIconKey(iconKey))
-                            {       
-                                if (shellInfo.hIcon != IntPtr.Zero)
-                                {
-                                    //Debug.Print($"Got icon handle for system icon {shellInfo.iIcon}: {shellInfo.hIcon}");
-                                    using (Icon icon = Icon.FromHandle(shellInfo.hIcon))
-                                    {
-                                        IconManager.AddIcon(iconKey, icon);   
-                                        var bitmap = icon.ToBitmap();
-                                        if (!uiManager.LeftTree.ImageList.Images.ContainsKey(iconKey))
-                                        {
-                                            uiManager.LeftTree.ImageList.Images.Add(iconKey, bitmap);
-                                        }
-                                        if (!uiManager.RightTree.ImageList.Images.ContainsKey(iconKey))
-                                        {
-                                            uiManager.RightTree.ImageList.Images.Add(iconKey, bitmap);
-                                        }
-                                    }
-                                    API.DestroyIcon(shellInfo.hIcon);
-                                }
-                            }
-                            
-                            nodeSub.ImageKey = iconKey;
-                            nodeSub.SelectedImageKey = iconKey;
-                        }
-                    }
-                    else
-                    {
-                        nodeSub.ImageKey = IconManager.GetNodeIconKey(nodeSub);
-                        nodeSub.SelectedImageKey = nodeSub.ImageKey;
-                    }
-					if(subItem.hasChildren) 
+								// Retrieve the icon from the system image list
+								//IntPtr hIcon = API.ImageList_GetIcon(hSysImageList, shellInfo.iIcon, ILD_TRANSPARENT);
+								if (!IconManager.HasIconKey(iconKey))
+								{
+									if (shellInfo.hIcon != IntPtr.Zero)
+									{
+										try
+										{
+											//Debug.Print($"Got icon handle for system icon {shellInfo.iIcon}: {shellInfo.hIcon}");
+											using (Icon icon = Icon.FromHandle(shellInfo.hIcon))
+											{
+												IconManager.AddIcon(iconKey, icon);
+												var bitmap = icon.ToBitmap();
+												if (!uiManager.LeftTree.ImageList.Images.ContainsKey(iconKey))
+												{
+													uiManager.LeftTree.ImageList.Images.Add(iconKey, bitmap);
+												}
+												if (!uiManager.RightTree.ImageList.Images.ContainsKey(iconKey))
+												{
+													uiManager.RightTree.ImageList.Images.Add(iconKey, bitmap);
+												}
+											}
+										}
+										finally
+										{
+											API.DestroyIcon(shellInfo.hIcon);
+										}
+									}
+								}
+
+								nodeSub.ImageKey = iconKey;
+								nodeSub.SelectedImageKey = iconKey;
+							}
+						}
+						else
+						{
+							nodeSub.ImageKey = IconManager.GetNodeIconKey(nodeSub);
+							nodeSub.SelectedImageKey = nodeSub.ImageKey;
+						}
+						//if(subItem.hasChildren) 
 						nodeSub.Nodes.Add("...");
-                    node.Nodes.Add(nodeSub);
-                    if (lv != null)
-                    {
-                        string[] s = ["", name, "", name.Contains(':') ? "本地磁盘" : "<DIR>", ""];
-                        var i = new ListViewItem(s);
-                        var ico = IconManager.GetIconKey(name);
-                        i.ImageKey = ico;
-                        i.Text = name;
-                        i.Tag = node;   //tag存放父节点
-                        lv.Items.Add(i);
-                    }
-                }
-                lv?.EndUpdate();
+						node.Nodes.Add(nodeSub);
+						if (lv != null)
+						{
+							string[] s = ["", name, "", name.Contains(':') ? "本地磁盘" : "<DIR>", ""];
+							var i = new ListViewItem(s);
+							var ico = IconManager.GetIconKey(name);
+							i.ImageKey = ico;
+							i.Text = name;
+							i.Tag = node;   //tag存放父节点
+							lv.Items.Add(i);
+						}
+					}
+					lv?.EndUpdate();
+					//API.ILFree(EnumPtr);
+				}
+				finally
+				{
+					if (EnumPtr != IntPtr.Zero)
+						Marshal.Release(EnumPtr);
+				}
             }
         }
        
@@ -1865,7 +1897,13 @@ namespace WinFormsApp1
 			openArchives[archivePath] = handle;
 			return true;
 		}
-
+		public void CloseAllArchives()
+		{
+			foreach (var archive in openArchives.Keys.ToList())
+			{
+				CloseArchive(archive);
+			}
+		}
 		private void CloseArchive(string archivePath)
 		{
 			if (!openArchives.ContainsKey(archivePath))

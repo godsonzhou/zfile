@@ -538,11 +538,10 @@ namespace WinFormsApp1
             }
 
             //存放 PIDL 的数组
-            IntPtr[] pidls = new IntPtr[1];
-            pidls[0] = PIDL;
+            IntPtr[] pidls = [PIDL];
 
-            //得到 IContextMenu 接口
-            IntPtr iContextMenuPtr = IntPtr.Zero;
+			//得到 IContextMenu 接口
+			IntPtr iContextMenuPtr = IntPtr.Zero;
             iContextMenuPtr = IParent.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length, pidls, ref Guids.IID_IContextMenu, out iContextMenuPtr);
             IContextMenu iContextMenu = (IContextMenu)Marshal.GetObjectForIUnknown(iContextMenuPtr);
 			try
@@ -631,7 +630,7 @@ namespace WinFormsApp1
                 string path = e.Node.Text ?? string.Empty;
                 if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
                 {
-					Debug.Print("TreeView_NodeMouseClick：{0}", path);
+					//Debug.Print("TreeView_NodeMouseClick：{0}", path);
 					// 如果path是文件夹，则加载子目录
 					var treeView = sender as TreeView;
                     var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
@@ -647,7 +646,7 @@ namespace WinFormsApp1
                 else
                 {
                     //如果不是文件夹，而是比如我的电脑/网上邻居/控制面板等，则通过其他方式打开
-                    Debug.Print(GetNodeType(e.Node));
+                    //Debug.Print(GetNodeType(e.Node));
                 }
             }
             //catch (Exception ex)
@@ -660,7 +659,7 @@ namespace WinFormsApp1
 			if (e.Node.Nodes.Count == 1 && e.Node.FirstNode.Text == "...")
 			{
 				LoadSubDirectories(e.Node);
-				Debug.Print("TreeView_BeforeExpand");
+				//Debug.Print("TreeView_BeforeExpand");
 			}
         }
         public void TreeView_AfterSelect(object? sender, TreeViewEventArgs e)
@@ -677,7 +676,21 @@ namespace WinFormsApp1
                     e.Node.ForeColor = SystemColors.HighlightText;
                     treeView.Refresh(); // 强制重绘
 					uiManager.isleft = treeView == uiManager.LeftTree;
-                    LoadSubDirectories(e.Node, activeListView);
+
+					// 获取节点属性
+					var shellItem = (ShellItem)e.Node.Tag;
+					SFGAO attributes = shellItem.GetAttributes();
+
+					// 如果是末梢节点且不是文件系统对象
+					if (e.Node.Nodes.Count == 0 && !attributes.HasFlag(SFGAO.FILESYSTEM))
+					{
+						// 直接执行打开操作
+						//string path = Helper.getFSpathbyTree(e.Node);
+						Process.Start(new ProcessStartInfo(shellItem.parsepath) { UseShellExecute = true });
+						return;
+					}
+
+					LoadSubDirectories(e.Node, activeListView);
 					e.Node.Expand();
                     var path = Helper.getFSpathbyTree(e.Node);
                     if (string.IsNullOrEmpty(path)) return;
@@ -1284,15 +1297,28 @@ namespace WinFormsApp1
 								nodeSub.ImageKey = iconKey;
 								nodeSub.SelectedImageKey = iconKey;
 							}
+							//if(subItem.hasChildren) 
+							SFGAO subattr = subItem.GetAttributes();    // 如果是文件夹且不是虚拟文件夹，则添加"..."节点
+							if (subattr.HasFlag(SFGAO.FOLDER))
+								nodeSub.Nodes.Add("...");
 						}
 						else
 						{
 							nodeSub.ImageKey = IconManager.GetNodeIconKey(nodeSub);
 							nodeSub.SelectedImageKey = nodeSub.ImageKey;
+							// 如果有子文件夹，则添加"..."节点
+							if (Directory.Exists(path))
+							{
+								var dirinfo = new DirectoryInfo(path);  //压缩文件处理到此处引发异常
+								var subdir = dirinfo.GetDirectories();
+								if (subdir.Length != 0)
+									nodeSub.Nodes.Add("...");
+							}
 						}
-						//if(subItem.hasChildren) 
-						nodeSub.Nodes.Add("...");
+						
+
 						node.Nodes.Add(nodeSub);
+
 						if (lv != null)
 						{
 							string[] s = ["", name, "", name.Contains(':') ? "本地磁盘" : "<DIR>", ""];
@@ -1315,28 +1341,14 @@ namespace WinFormsApp1
             }
         }
        
-        private bool IsChildrenExist(TreeNode node, bool includefile = false)
+        private static bool IsChildrenExist(TreeNode node, bool includefile = false)
         {
             ShellItem sItem = (ShellItem)node.Tag;
-            IShellFolder root = sItem.ShellFolder;
-
-            // 循环查找子项
-            IEnumIDList Enum = null;
-            IntPtr EnumPtr = IntPtr.Zero;
-            IntPtr pidlSub;
-            uint celtFetched;
-
-            var flag = includefile ? SHCONTF.FOLDERS | SHCONTF.NONFOLDERS : SHCONTF.FOLDERS;
-            // 加载文件夹和文件
-            if (root.EnumObjects(this.Handle, flag, out EnumPtr) == w32.S_OK)
-            {
-                Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
-                while (Enum.Next(1, out pidlSub, out celtFetched) == 0 && celtFetched == w32.S_FALSE)
-                {
-                    return true;
-                }
-            }
-            return false;
+			if (sItem != null)
+			{
+				return sItem.IsChildrenExist();
+			}
+			return false;
         }
         // 加载文件列表
         private void LoadListViewByFilesystem(string path, ListView listView, TreeNode parentnode)

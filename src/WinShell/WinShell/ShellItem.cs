@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Tab;
 
 namespace WinShell
@@ -40,14 +41,14 @@ namespace WinShell
 		{
 			if (!_disposed)
 			{
-				API.ILFree(PIDL);
-				Marshal.ReleaseComObject(ShellFolder);
-				Marshal.ReleaseComObject(ParentShellFolder);
 				// 释放子 PIDL 列表
 				foreach (var pidl in GetChildPIDLs())
 				{
 					API.ILFree(pidl);
 				}
+				API.ILFree(PIDL);
+				Marshal.ReleaseComObject(ShellFolder);
+				Marshal.ReleaseComObject(ParentShellFolder);
 				_disposed = true;
 			}
 		}
@@ -76,10 +77,25 @@ namespace WinShell
 
 			return pidls.ToArray();
 		}
-		public bool hasChildren {  
-			get { return GetChildPIDLs().Length != 0; } 
+		public bool IsDir {  
+			get {
+				var attr = GetAttributes();
+				return (attr.HasFlag(SFGAO.FOLDER));
+			} 
 		}
-		
+		public int ChildCount()
+		{
+			return GetChildPIDLs().Length; 
+		}
+		public bool IsChildrenExist(bool includefile = false)
+		{
+			// 循环查找子项
+			var flag = includefile ? SHCONTF.FOLDERS | SHCONTF.NONFOLDERS : SHCONTF.FOLDERS;
+			// 加载文件夹和文件
+			if (ShellFolder.EnumObjects(IntPtr.Zero, flag, out IntPtr EnumPtr) == w32.S_OK)
+				return (EnumPtr != IntPtr.Zero);
+			return false;
+		}
 		public string GetParsePath()
 		{
 			// 获取CLSID并检查是否为虚拟文件夹
@@ -95,7 +111,7 @@ namespace WinShell
 					{
 						API.StrRetToBuf(strr, PIDL, buf, w32.MAX_PATH);
 						parsedPath = buf.ToString();
-						Debug.Print("{0} ", parsedPath);
+						//Debug.Print("{0} ", parsedPath);
 					}
 					Marshal.FreeCoTaskMem(strr);
 				}

@@ -333,8 +333,6 @@ namespace WinFormsApp1
                 hotkeyMappings = optionsForm.commandHotkeys.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
             }
         }
-
-
         private void InitializeContextMenu()
         {
             // 初始化ContextMenuStrip
@@ -684,13 +682,13 @@ namespace WinFormsApp1
 
 					// 如果是末梢节点且不是文件系统对象
 					//if (!attributes.HasFlag(SFGAO.FILESYSTEM))
-					if(shellItem.IsVirtual)
-					{
-						// 直接执行打开操作
-						//string path = Helper.getFSpathbyTree(e.Node);
-						Process.Start(new ProcessStartInfo(shellItem.parsepath) { UseShellExecute = true });
-						//return;
-					}
+					//if(shellItem.IsVirtual)
+					//{
+					//	// 直接执行打开操作
+					//	//string path = Helper.getFSpathbyTree(e.Node);
+					//	Process.Start(new ProcessStartInfo(shellItem.parsepath) { UseShellExecute = true });
+					//	//return;
+					//}
 
 					LoadSubDirectories(e.Node, activeListView);
 					e.Node.Expand();
@@ -705,7 +703,7 @@ namespace WinFormsApp1
                         watcher.EnableRaisingEvents = true;
                     }
                     // 调用leftpathtextbox的setaddress方法来更新路径
-                    Debug.Print("treeview afterselect , set addr: {0}", path);
+                    //Debug.Print("treeview afterselect , set addr: {0}", path);
 					if (uiManager.isleft)
 						uiManager.LeftPathTextBox.SetAddress(path);
                     else
@@ -763,7 +761,7 @@ namespace WinFormsApp1
         }
         public void LoadDriveIntoTree(TreeView treeView, string drivepath)
         {
-            Debug.Print("LoadDriveIntoTree");
+            //Debug.Print("LoadDriveIntoTree");
             try
             {
                 treeView.BeginUpdate();
@@ -922,11 +920,8 @@ namespace WinFormsApp1
                         }
                     }
                 }
-
                 return;
             }
-
-
         }
         private void SelectItemsInRectangle(ListView listView, Rectangle rect)
         {
@@ -1360,13 +1355,12 @@ namespace WinFormsApp1
         // 加载文件列表
         private void LoadListViewByFilesystem(string path, ListView listView, TreeNode parentnode)
         {
-            Debug.Print("LoadListViewByFilesystem:{0}", path);
 			var sitem = (ShellItem)parentnode.Tag;
-			if (!sitem.GetAttributes().HasFlag(SFGAO.FILESYSTEM))
-				return;
+			if (sitem.IsVirtual) return;
             if (string.IsNullOrEmpty(path)) return;
             if (!path.Contains(':')) return;
-            path = Helper.getFSpath(path);
+			Debug.Print("LoadListViewByFilesystem:{0}", path);
+			path = Helper.getFSpath(path);
             if (path.EndsWith(':')) path += "\\";
 			if (IsArchiveFile(path))
 			{

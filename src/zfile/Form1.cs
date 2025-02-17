@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using WinShell;
 using zfile;
 using Keys = System.Windows.Forms.Keys;
+//using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace WinFormsApp1
 {
@@ -666,7 +667,7 @@ namespace WinFormsApp1
         {
             if (e.Node?.Tag == null) return;
 
-            try
+            //try
             {
                 if (sender is TreeView treeView)
                 {
@@ -682,12 +683,13 @@ namespace WinFormsApp1
 					SFGAO attributes = shellItem.GetAttributes();
 
 					// 如果是末梢节点且不是文件系统对象
-					if (e.Node.Nodes.Count == 0 && !attributes.HasFlag(SFGAO.FILESYSTEM))
+					//if (!attributes.HasFlag(SFGAO.FILESYSTEM))
+					if(shellItem.IsVirtual)
 					{
 						// 直接执行打开操作
 						//string path = Helper.getFSpathbyTree(e.Node);
 						Process.Start(new ProcessStartInfo(shellItem.parsepath) { UseShellExecute = true });
-						return;
+						//return;
 					}
 
 					LoadSubDirectories(e.Node, activeListView);
@@ -711,10 +713,10 @@ namespace WinFormsApp1
 					uiManager.BookmarkManager.UpdateActiveBookmark(path, selectedNode, uiManager.isleft);
 				}
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"TreeView_AfterSelect加载目录失败: {ex.Message}", "错误");
-            }
+            //catch (Exception ex)
+            //{
+            //    MessageBox.Show($"TreeView_AfterSelect加载目录失败: {ex.Message}", "错误");
+            //}
         }
 		private string GetFullPath(TreeNode node)
         {
@@ -960,7 +962,6 @@ namespace WinFormsApp1
             string path = Path.Combine(currentDirectory, selectedItem.Text);
 			if (IsArchiveFile(path))
 			{
-				
 				if (OpenArchive(path))
 				{
 					archivePaths[path] = currentDirectory;
@@ -971,13 +972,12 @@ namespace WinFormsApp1
 					return;
 				}
 			}
+			// 获取关联的TreeView
+			TreeView treeView = listView == uiManager.LeftList ? uiManager.LeftTree : uiManager.RightTree;
 			if (selectedItem.SubItems[3].Text.Equals("<DIR>") || selectedItem.SubItems[3].Text == "本地磁盘")
             {
                 //try
                 {
-                    // 获取关联的TreeView
-                    TreeView treeView = listView == uiManager.LeftList ? uiManager.LeftTree : uiManager.RightTree;
-
                     // 查找并选择对应的TreeNode
                     treeView.SelectedNode.Expand();
                     TreeNode? node = FindTreeNode(treeView.SelectedNode.Nodes, selectedItem.Text);
@@ -1033,7 +1033,14 @@ namespace WinFormsApp1
                     {
                         MessageBox.Show($"无法打开文件: {ex.Message}", "错误");
                     }
-                }
+				}
+				else
+				{
+					//is virtual node open
+					treeView.SelectedNode.Expand();
+					TreeNode? node = FindTreeNode(treeView.SelectedNode.Nodes, selectedItem.Text);
+					Process.Start(new ProcessStartInfo(((ShellItem)node.Tag).parsepath) { UseShellExecute = true });
+				}
             }
         }
 
@@ -1190,7 +1197,7 @@ namespace WinFormsApp1
         }
 		public void LoadSubDirectories(TreeNode node, ListView? lv = null)
 		{
-			Debug.Print("load sub dir for node {0}", node.Text);
+			//Debug.Print("load sub dir for node {0}", node.Text);
 			if (lv != null)
 			{
 				lv.SmallImageList ??= new ImageList();
@@ -1321,7 +1328,7 @@ namespace WinFormsApp1
 
 						if (lv != null)
 						{
-							string[] s = ["", name, "", name.Contains(':') ? "本地磁盘" : "<DIR>", ""];
+							string[] s = ["", name, "", name.Contains(':') ? "本地磁盘" : "<CLS>", ""];
 							var i = new ListViewItem(s);
 							var ico = IconManager.GetIconKey(name);
 							i.ImageKey = ico;
@@ -1354,6 +1361,9 @@ namespace WinFormsApp1
         private void LoadListViewByFilesystem(string path, ListView listView, TreeNode parentnode)
         {
             Debug.Print("LoadListViewByFilesystem:{0}", path);
+			var sitem = (ShellItem)parentnode.Tag;
+			if (!sitem.GetAttributes().HasFlag(SFGAO.FILESYSTEM))
+				return;
             if (string.IsNullOrEmpty(path)) return;
             if (!path.Contains(':')) return;
             path = Helper.getFSpath(path);
@@ -1835,12 +1845,12 @@ namespace WinFormsApp1
 
         public void RefreshTreeViewAndListView(TreeView treeView, ListView listView, string path)
         {
-            Debug.Print("RefreshTreeViewAndListView:{0}", path);
-            if (selectedNode != null)
-            {
-                LoadSubDirectories(selectedNode);
-                selectedNode.Expand();
-            }
+            //Debug.Print("RefreshTreeViewAndListView:{0}", path);
+            //if (selectedNode != null)
+            //{
+            //    LoadSubDirectories(selectedNode);
+            //    selectedNode.Expand();
+            //}
             LoadSubDirectories(selectedNode, listView);
             LoadListViewByFilesystem(path, listView, selectedNode);
         }

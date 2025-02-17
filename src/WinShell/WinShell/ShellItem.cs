@@ -29,7 +29,7 @@ namespace WinShell
 			this.ParentShellFolder = ParentShellFolder;
 			IsVirtual = IsVirtualPath(ref parsepath);
 			Name = w32.GetNameByIShell(ParentShellFolder,PIDL);
-			var name1 = w32.GetNameByPIDL(PIDL);
+			//var name1 = w32.GetNameByPIDL(PIDL);
 		}
 		public void Dispose()
 		{

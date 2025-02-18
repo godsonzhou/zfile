@@ -48,7 +48,7 @@ namespace WinShell
 				}
 				API.ILFree(PIDL);
 				Marshal.ReleaseComObject(ShellFolder);
-				Marshal.ReleaseComObject(ParentShellFolder);
+				//Marshal.ReleaseComObject(ParentShellFolder);
 				_disposed = true;
 			}
 		}

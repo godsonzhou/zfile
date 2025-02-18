@@ -71,8 +71,25 @@ namespace WinFormsApp1
 			{
 				if (disposing)
 				{
+					// 取消事件订阅
+					dynamicToolStrip.DragEnter -= form.ToolbarButton_DragEnter;
+					dynamicToolStrip.DragDrop -= form.ToolbarButton_DragDrop;
+					// 释放所有 TreeView 节点中的 ShellItem
+					ReleaseTreeNodes(LeftTree.Nodes);
+					ReleaseTreeNodes(RightTree.Nodes);
 					// 释放托管资源
-					// 这里不需要释放控件，因为它们是由 Form 管理的
+					LeftList?.Dispose();
+					RightList?.Dispose();
+					LeftTree?.Dispose();
+					RightTree?.Dispose();
+					LeftPreview?.Dispose();
+					RightPreview?.Dispose();
+					LeftStatusStrip?.Dispose();
+					RightStatusStrip?.Dispose();
+					toolbarManager?.Dispose();
+					vtoolbarManager?.Dispose();
+					dynamicMenuStrip?.Dispose();
+					BookmarkManager?.Dispose();
 				}
 
 				// 释放非托管资源
@@ -609,7 +626,18 @@ namespace WinFormsApp1
 			//	}
 			//};
 		}
-
+		private void UnregisterTreeViewEvents(TreeView treeView)
+		{
+			treeView.DragDrop -= form.TreeView_DragDrop;
+			treeView.DrawNode -= form.TreeView_DrawNode;
+			treeView.MouseUp -= form.TreeView_MouseUp;
+			treeView.AfterSelect -= form.TreeView_AfterSelect;
+			treeView.NodeMouseClick -= form.TreeView_NodeMouseClick;
+			treeView.BeforeExpand -= form.TreeView_BeforeExpand;
+			treeView.MouseDown -= form.TreeView_MouseDown;
+			treeView.AfterExpand -= (s, e) => UpdateNodeIcon(e.Node);
+			treeView.BeforeExpand -= form.TreeView_BeforeExpand;
+		}
 		public void InitializeListViews()
 		{
 			ConfigureListView(LeftList, LeftTreeListSplitter.Panel2);
@@ -651,6 +679,20 @@ namespace WinFormsApp1
 			listView.AfterLabelEdit += form.ListView_AfterLabelEdit;
 			parent.Controls.Add(listView);
 			listView.BringToFront();
+		}
+		private void UnregisterListViewEvents(ListView listView){
+			listView.ItemDrag -= form.ListView_ItemDrag;
+			listView.DragOver -= form.ListView_DragOver;
+			listView.DragDrop -= form.ListView_DragDrop;
+			// 添加双击事件
+			listView.MouseDoubleClick -= form.ListView_MouseDoubleClick;
+			listView.ColumnClick -= form.ListView_ColumnClick;
+			listView.SelectedIndexChanged -= form.ListView_SelectedIndexChanged;
+			listView.MouseUp -= form.ListView_MouseUp;
+			listView.MouseDown -= form.ListView_MouseDown;
+			listView.MouseMove -= form.ListView_MouseMove;
+			listView.BeforeLabelEdit -= form.ListView_BeforeLabelEdit;
+			listView.AfterLabelEdit -= form.ListView_AfterLabelEdit;
 		}
 
 		public void InitializePreviewPanels()
@@ -901,6 +943,14 @@ namespace WinFormsApp1
 			{
 				if (disposing)
 				{
+					// 取消事件订阅
+					LeftPathTextBox.SelectionChange -= LeftPathTextBox_PathChanged;
+					RightPathTextBox.SelectionChange -= RightPathTextBox_PathChanged;
+					MainContainer.SplitterMoved -= MainContainer_SplitterMoved;
+					unregisterTreeViewEvents(LeftTree);
+					unregisterTreeViewEvents(RightTree);
+					unregisterListViewEvents(LeftList);
+					unregisterListViewEvents(RightList);
 					// 释放所有 TreeView 节点中的 ShellItem
 					ReleaseTreeNodes(LeftTree.Nodes);
 					ReleaseTreeNodes(RightTree.Nodes);

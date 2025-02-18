@@ -47,7 +47,8 @@ namespace WinFormsApp1
         {
             InitializeComponent();
             this.Size = new Size(1200, 800);
-
+            // 初始化COM组件
+            InitializeCOMComponents();
             cmdProcessor = new CmdProc(this);
 			keyManager = new KeyMgr();
             // 创建UIManager并初始化
@@ -90,6 +91,17 @@ namespace WinFormsApp1
 			wcxModuleList = new WcxModuleList();
 			wcxModuleList.LoadConfiguration();
 		}
+         private void InitializeCOMComponents()
+        {
+            // 初始化COM组件
+            IntPtr deskTopPtr;
+            w32.InitializeCOM();
+            iDeskTop = w32.GetDesktopFolder(out deskTopPtr);
+            if (iDeskTop == null)
+            {
+                throw new Exception("无法初始化桌面Shell接口");
+            }
+        }
 		/// <summary>
 		///  Clean up any resources being used.
 		/// </summary>
@@ -99,21 +111,6 @@ namespace WinFormsApp1
 		{
 			if (disposing)
 			{
-				Marshal.ReleaseComObject(iDeskTop);
-				// 释放托管资源
-				if (components != null)
-				{
-					components.Dispose();
-				}
-
-				// 释放打开的压缩文件句柄
-				foreach (var archive in openArchives)
-				{
-					CloseArchive(archive.Key);
-				}
-				openArchives.Clear();
-				archivePaths.Clear();
-
 				// 释放其他资源
 				watcher.Dispose();
 				previewManager.Dispose();
@@ -121,6 +118,27 @@ namespace WinFormsApp1
 				uiManager.Dispose();
 				themeManager.Dispose();
 				contextMenuStrip.Dispose();
+
+                // 释放打开的压缩文件句柄
+				foreach (var archive in openArchives)
+				{
+					CloseArchive(archive.Key);
+				}
+				openArchives.Clear();
+				archivePaths.Clear();
+
+                // 释放托管资源
+				if (components != null)
+				{
+					components.Dispose();
+				}
+                 if (iDeskTop != null)
+                {
+                    Marshal.ReleaseComObject(iDeskTop);
+                    iDeskTop = null;
+                }
+                
+                w32.UninitializeCOM();
 			}
 			base.Dispose(disposing);
 		}

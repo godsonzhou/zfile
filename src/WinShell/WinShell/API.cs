@@ -286,6 +286,23 @@ namespace WinShell
 		public const int SW_SHOWNORMAL = 1;
 		public const uint SHGFI_ICON = 0x000000100;
 		public const uint SHGFI_SMALLICON = 0x000000001;
+		// 添加COM初始化相关常量
+        public const int COINIT_APARTMENTTHREADED = 0x2;
+        public const int COINIT_MULTITHREADED = 0x0;
+        public const int COINIT_DISABLE_OLE1DDE = 0x4;
+        public const int COINIT_SPEED_OVER_MEMORY = 0x8;
+
+        // 添加COM初始化方法
+        public static bool InitializeCOM(int coinit = COINIT_APARTMENTTHREADED)
+        {
+            int hr = API.CoInitializeEx(IntPtr.Zero, coinit);
+            return hr == S_OK || hr == S_FALSE;
+        }
+
+        public static void UninitializeCOM()
+        {
+            API.CoUninitialize();
+        }
 		public static IShellFolder GetDesktopFolder(out IntPtr ppshf)
 		{
 			API.SHGetDesktopFolder(out ppshf);
@@ -367,6 +384,12 @@ namespace WinShell
 	}
 	public class API
 	{
+		[DllImport("ole32.dll")]
+        public static extern int CoInitializeEx(IntPtr pvReserved, int dwCoInit);
+
+        [DllImport("ole32.dll")]
+        public static extern void CoUninitialize();
+
 		[DllImport("shell32.dll")]
 		public static extern int SHGetAllUserShellContextMenus(out IntPtr hwnd, ref Guid riid);
 

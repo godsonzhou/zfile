@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace WinFormsApp1
 {
 	public class FileSystemManager
@@ -64,14 +66,19 @@ namespace WinFormsApp1
 					}
                     _directoryCache[path] = items;
                     _lastCacheUpdate = currentTime;
+					Debug.Print("dir cache updated {0}, {1} >", currentTime, _lastCacheUpdate);
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show($"读取目录内容失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
+			else
+			{
+				Debug.Print("dir cache used!!!!!! {0}, {1} >", currentTime, _lastCacheUpdate);
+			}
 
-            return _directoryCache[path];
+			return _directoryCache[path];
         }
 
         public string FormatFileSize(long bytes)

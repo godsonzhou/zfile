@@ -1895,10 +1895,12 @@ namespace WinFormsApp1
 			{
 				//RefreshTreeViewAndListView(uiManager.LeftTree, uiManager.LeftList, ((ShellItem)uiManager.LeftTree.SelectedNode.Tag).parsepath);
 				RefreshTreeViewAndListView(uiManager.LeftList, uiManager.LeftPathTextBox.CurrentNode.UniqueID);
+				Debug.Print("refresh left panel");
 			}
 			if (mode.HasFlag(RefreshPanelMode.Right))
 			{
 				RefreshTreeViewAndListView(uiManager.RightList, ((ShellItem)uiManager.RightTree.SelectedNode.Tag).parsepath);
+				Debug.Print("refresh right panel");
 			}
 		}
         public void TerminalButton_Click(object? sender, EventArgs e)

@@ -74,6 +74,17 @@ namespace WinFormsApp1
 					// 取消事件订阅
 					dynamicToolStrip.DragEnter -= form.ToolbarButton_DragEnter;
 					dynamicToolStrip.DragDrop -= form.ToolbarButton_DragDrop;
+					
+					// 取消DriveBox事件订阅
+					LeftDriveBox.SelectedIndexChanged -= DriveComboBox_SelectedIndexChanged;
+					RightDriveBox.SelectedIndexChanged -= DriveComboBox_SelectedIndexChanged;
+					
+					// 取消书签面板事件订阅
+					if (leftBookmarkPanel != null)
+						leftBookmarkPanel.DoubleClick -= BookmarkPanel_DoubleClick;
+					if (rightBookmarkPanel != null)
+						rightBookmarkPanel.DoubleClick -= BookmarkPanel_DoubleClick;
+					
 					// 释放所有 TreeView 节点中的 ShellItem
 					ReleaseTreeNodes(LeftTree.Nodes);
 					ReleaseTreeNodes(RightTree.Nodes);

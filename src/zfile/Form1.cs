@@ -1351,12 +1351,14 @@ namespace WinFormsApp1
 						}
 					}
 					lv?.EndUpdate();
-					//API.ILFree(EnumPtr);
+					//Marshal.ReleaseComObject(Enum);
+                    //API.ILFree(EnumPtr);
 				}
 				finally
 				{
-					if (EnumPtr != IntPtr.Zero)
-						Marshal.Release(EnumPtr);
+					//if (EnumPtr != IntPtr.Zero)
+					//	 Marshal.ReleaseComObject(EnumPtr);
+                        //API.ILFree(EnumPtr);
 				}
             }
         }

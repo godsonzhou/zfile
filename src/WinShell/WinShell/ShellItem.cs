@@ -69,8 +69,9 @@ namespace WinShell
 							pidls.Add(pidlSub);
 						}
 						//API.ILFree(pEnumIDList);
-						Marshal.ReleaseComObject(e);
-						Marshal.Release(pEnumIDList);  // 或使用 API.ILFree 如果适用
+						//Marshal.ReleaseComObject(e);
+						// Marshal.ReleaseComObject(pEnumIDList);  // 或使用 API.ILFree 如果适用
+						//API.ILFree(pEnumIDList);
 					}
 				}
 			}

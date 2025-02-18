@@ -332,7 +332,8 @@ namespace WinFormsApp1
 
             // 刷新目标视图
             listView.Refresh();
-			RefreshTreeViewAndListView(targetTree, listView, targetPath);
+			//RefreshTreeViewAndListView(listView, targetPath);
+			RefreshPanel(listView);
         }
         public void AddCurrentPathToBookmarks()
         {
@@ -876,7 +877,8 @@ namespace WinFormsApp1
 				MessageBox.Show($"重命名失败: {ex.Message}", "错误");
 				item.Text = oldName;
 			}
-			RefreshTreeViewAndListView(activeTreeview, listView, currentDirectory);
+			//RefreshTreeViewAndListView(listView, currentDirectory);
+			RefreshPanel(listView);
 		}
 		public void ListView_MouseMove(object sender, MouseEventArgs e)
         {
@@ -1008,7 +1010,8 @@ namespace WinFormsApp1
 
                         // 更新当前目录和ListView
                         selectedNode = node;
-                        RefreshTreeViewAndListView(treeView, listView, path);
+						//RefreshTreeViewAndListView(listView, path);
+						RefreshPanel(listView);
                     }
 
                     // 更新监视器
@@ -1214,6 +1217,7 @@ namespace WinFormsApp1
 			if (lv != null)
 			{
 				lv.SmallImageList ??= new ImageList();
+				lv.LargeImageList ??= new ImageList();
 				lv.BeginUpdate();
 				lv.Items.Clear();
 			}
@@ -1837,7 +1841,8 @@ namespace WinFormsApp1
 				string newFolderPath = Path.Combine(currentDirectory, dir);
 				fsManager.CreateDirectory(newFolderPath);
 			}
-			RefreshTreeViewAndListView(activeTreeview, activeListView, currentDirectory);
+			//RefreshTreeViewAndListView(activeListView, currentDirectory);
+			RefreshPanel(activeListView);
         }
 
         public void MoveButton_Click(object? sender, EventArgs e)
@@ -1857,18 +1862,45 @@ namespace WinFormsApp1
             //RefreshTreeViewAndListView(uiManager.RightTree, uiManager.RightList, uiManager.RightDriveBox.SelectedItem?.ToString() ?? string.Empty);
         }
 
-        public void RefreshTreeViewAndListView(TreeView treeView, ListView listView, string path)
+        public void RefreshTreeViewAndListView(ListView listView, string path)
         {
-            //Debug.Print("RefreshTreeViewAndListView:{0}", path);
-            //if (selectedNode != null)
-            //{
-            //    LoadSubDirectories(selectedNode);
-            //    selectedNode.Expand();
-            //}
-            LoadSubDirectories(selectedNode, listView);
-            LoadListViewByFilesystem(path, listView, selectedNode);
+			if(listView == null) return;
+			
+			var node = listView == uiManager.LeftList ? uiManager.LeftTree.SelectedNode : uiManager.RightTree.SelectedNode;
+			
+            LoadSubDirectories(node, listView);
+            LoadListViewByFilesystem(path, listView, node);
         }
-
+		public void RefreshPanel(TreeView treeView)
+		{
+			if (treeView == null) return;
+			RefreshPanel(treeView==uiManager.LeftTree? RefreshPanelMode.Left: RefreshPanelMode.Right);
+		}
+		public void RefreshPanel(ListView listView)
+		{
+			if (listView == null) return;
+			RefreshPanel(listView == uiManager.LeftList ? RefreshPanelMode.Left : RefreshPanelMode.Right);
+		}
+		public void RefreshPanel()
+		{
+			RefreshPanel(uiManager.isleft);
+		}
+		public void RefreshPanel(bool isleft)
+		{
+			RefreshPanel(isleft? RefreshPanelMode.Left: RefreshPanelMode.Right);
+		}
+		public void RefreshPanel(RefreshPanelMode mode)
+		{
+			if (mode.HasFlag(RefreshPanelMode.Left)) 
+			{
+				//RefreshTreeViewAndListView(uiManager.LeftTree, uiManager.LeftList, ((ShellItem)uiManager.LeftTree.SelectedNode.Tag).parsepath);
+				RefreshTreeViewAndListView(uiManager.LeftList, uiManager.LeftPathTextBox.CurrentNode.UniqueID);
+			}
+			if (mode.HasFlag(RefreshPanelMode.Right))
+			{
+				RefreshTreeViewAndListView(uiManager.RightList, ((ShellItem)uiManager.RightTree.SelectedNode.Tag).parsepath);
+			}
+		}
         public void TerminalButton_Click(object? sender, EventArgs e)
         {
             // 终端按钮点击处理逻辑

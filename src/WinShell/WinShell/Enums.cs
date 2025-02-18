@@ -4,8 +4,18 @@ using System.Text;
 
 namespace WinShell
 {
-	
-	public enum ReadDirContentsMode { Folder = 1, File = 2, Both = 3 }
+	public enum RefreshPanelMode
+	{
+		Left = 1,
+		Right = 2,
+		Both = 3
+	}
+	public enum ReadDirContentsMode 
+	{ 
+		Folder = 1, 
+		File = 2, 
+		Both = 3 
+	}
 	[Flags]
 	public enum MIIM : uint
 	{

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using WinFormsApp1;
 
@@ -356,7 +357,8 @@ namespace CmdProcessor
 				//}
 				//           }
 				Helper.CopyFilesAndDirectories(sourceFiles, targetPath);
-				owner.RefreshTreeViewAndListView(targetTree, targetlist, targetPath);
+				//owner.RefreshTreeViewAndListView(targetlist, targetPath);
+				owner.RefreshPanel(targetlist);
 				return true;
             }
             catch (Exception ex)
@@ -409,6 +411,7 @@ namespace CmdProcessor
         // 删除选中的文件
         private void DeleteSelectedFiles(bool needConfirm = true)
         {
+			Debug.Print("Delete files : >>");
             var listView = owner.activeListView;
             if (listView == null || listView.SelectedItems.Count <= 0) return;
 
@@ -447,7 +450,8 @@ namespace CmdProcessor
 						//    Directory.Delete(file, true);
 						owner.fsManager.DeleteFile(file);
                     }
-					owner.RefreshTreeViewAndListView(owner.activeTreeview, owner.activeListView, owner.currentDirectory);
+					//owner.RefreshTreeViewAndListView(owner.activeListView, owner.currentDirectory);
+					owner.RefreshPanel(listView);
                 }
                 catch (Exception ex)
                 {
@@ -480,7 +484,8 @@ namespace CmdProcessor
     //            MessageBox.Show($"创建文件夹失败: {ex.Message}", "错误");
     //        }
 			owner.fsManager.CreateDirectory(newFolderPath);
-			owner.RefreshTreeViewAndListView(owner.activeTreeview, owner.activeListView, path);
+			//owner.RefreshTreeViewAndListView(owner.activeListView, path);
+			owner.RefreshPanel(owner.activeListView);
 		}
 
         // 重命名选中的文件或文件夹
@@ -750,7 +755,8 @@ namespace CmdProcessor
                     MessageBox.Show($"打包文件时出错: {ex.Message}", "错误");
                 }
             }
-			owner.RefreshTreeViewAndListView(owner.activeTreeview, owner.activeListView, owner.currentDirectory);
+			//owner.RefreshTreeViewAndListView(owner.activeListView, owner.currentDirectory);
+			owner.RefreshPanel(listView);
         }
 
         // 解压文件

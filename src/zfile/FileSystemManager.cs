@@ -33,12 +33,12 @@ namespace WinFormsApp1
 		
         public List<FileSystemInfo> GetDirectoryContents(string path, WinShell.ReadDirContentsMode readmode = WinShell.ReadDirContentsMode.Both)
         {
-            var currentTime = DateTime.Now;
-            var needsUpdate = !_directoryCache.ContainsKey(path) ||
-                            (currentTime - _lastCacheUpdate[path]).TotalMilliseconds > Constants.CacheTimeout;
+            //var currentTime = DateTime.Now;
+            //var needsUpdate = !_directoryCache.ContainsKey(path) ||
+            //                (currentTime - _lastCacheUpdate[path]).TotalMilliseconds > Constants.CacheTimeout;
 
-            if (needsUpdate)
-            {
+            //if (needsUpdate)
+            //{
                 var items = new List<FileSystemInfo>();
                 var directoryInfo = new DirectoryInfo(path);
 
@@ -65,18 +65,18 @@ namespace WinFormsApp1
 						}
 					}
                     _directoryCache[path] = items;
-					_lastCacheUpdate[path] = currentTime;
-					Debug.Print("dir cache updated {0}, {1} >", currentTime, _lastCacheUpdate);
+					//_lastCacheUpdate[path] = currentTime;
+					//Debug.Print("dir cache updated {0} >", currentTime);
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show($"读取目录内容失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-            }
-			else
-			{
-				Debug.Print("dir cache used!!!!!! {0}, {1} >", currentTime, _lastCacheUpdate);
-			}
+   //         }
+			//else
+			//{
+			//	Debug.Print("dir cache used!!!!!! {0}, {1} >", currentTime, _lastCacheUpdate[path]);
+			//}
 
 			return _directoryCache[path];
         }
@@ -171,7 +171,7 @@ namespace WinFormsApp1
 		{
 			list = new List<FileInfoWithIcon>();
 			imageListLargeIcon = new ImageList();
-			imageListLargeIcon.ImageSize = new Size(32, 32);
+			imageListLargeIcon.ImageSize = new Size(64, 64);
 			imageListSmallIcon = new ImageList();
 			imageListSmallIcon.ImageSize = new Size(16, 16);
 			foreach (string path in filespath)

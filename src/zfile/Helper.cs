@@ -86,6 +86,7 @@ namespace WinFormsApp1
 				if (File.Exists(sourcePath))
 				{
 					CopyFile(sourcePath, destinationDirectory);
+					Debug.Print("file [{0}] copyed to [{1}]", sourcePath, destinationDirectory);
 				}
 				else if (Directory.Exists(sourcePath))
 				{

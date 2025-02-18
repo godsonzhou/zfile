@@ -1897,7 +1897,7 @@ namespace WinFormsApp1
 				RefreshTreeViewAndListView(uiManager.LeftList, uiManager.LeftPathTextBox.CurrentNode.UniqueID);
 				Debug.Print("refresh left panel");
 			}
-			if (mode.HasFlag(RefreshPanelMode.Right))
+			if (mode.HasFlag(RefreshPanelMode.Right))	
 			{
 				RefreshTreeViewAndListView(uiManager.RightList, ((ShellItem)uiManager.RightTree.SelectedNode.Tag).parsepath);
 				Debug.Print("refresh right panel");

@@ -1,3 +1,4 @@
+using SharpCompress.Compressors.Explode;
 using Sheng.Winform.Controls;
 using System.Diagnostics;
 using System.Text;
@@ -74,33 +75,7 @@ namespace WinFormsApp1
 					// 取消事件订阅
 					dynamicToolStrip.DragEnter -= form.ToolbarButton_DragEnter;
 					dynamicToolStrip.DragDrop -= form.ToolbarButton_DragDrop;
-					
 					// 取消DriveBox事件订阅
-					LeftDriveBox.SelectedIndexChanged -= DriveComboBox_SelectedIndexChanged;
-					RightDriveBox.SelectedIndexChanged -= DriveComboBox_SelectedIndexChanged;
-					
-					// 取消书签面板事件订阅
-					if (leftBookmarkPanel != null)
-						leftBookmarkPanel.DoubleClick -= BookmarkPanel_DoubleClick;
-					if (rightBookmarkPanel != null)
-						rightBookmarkPanel.DoubleClick -= BookmarkPanel_DoubleClick;
-					
-					// 释放所有 TreeView 节点中的 ShellItem
-					ReleaseTreeNodes(LeftTree.Nodes);
-					ReleaseTreeNodes(RightTree.Nodes);
-					// 释放托管资源
-					LeftList?.Dispose();
-					RightList?.Dispose();
-					LeftTree?.Dispose();
-					RightTree?.Dispose();
-					LeftPreview?.Dispose();
-					RightPreview?.Dispose();
-					LeftStatusStrip?.Dispose();
-					RightStatusStrip?.Dispose();
-					toolbarManager?.Dispose();
-					vtoolbarManager?.Dispose();
-					dynamicMenuStrip?.Dispose();
-					BookmarkManager?.Dispose();
 				}
 
 				// 释放非托管资源
@@ -958,10 +933,18 @@ namespace WinFormsApp1
 					LeftPathTextBox.SelectionChange -= LeftPathTextBox_PathChanged;
 					RightPathTextBox.SelectionChange -= RightPathTextBox_PathChanged;
 					MainContainer.SplitterMoved -= MainContainer_SplitterMoved;
-					unregisterTreeViewEvents(LeftTree);
-					unregisterTreeViewEvents(RightTree);
-					unregisterListViewEvents(LeftList);
-					unregisterListViewEvents(RightList);
+					LeftDriveBox.SelectedIndexChanged -= DriveComboBox_SelectedIndexChanged;
+					RightDriveBox.SelectedIndexChanged -= DriveComboBox_SelectedIndexChanged;
+
+					// 取消书签面板事件订阅
+					if (leftBookmarkPanel != null)
+						leftBookmarkPanel.DoubleClick -= BookmarkPanel_DoubleClick;
+					if (rightBookmarkPanel != null)
+						rightBookmarkPanel.DoubleClick -= BookmarkPanel_DoubleClick;
+					UnregisterTreeViewEvents(LeftTree);
+					UnregisterTreeViewEvents(RightTree);
+					UnregisterListViewEvents(LeftList);
+					UnregisterListViewEvents(RightList);
 					// 释放所有 TreeView 节点中的 ShellItem
 					ReleaseTreeNodes(LeftTree.Nodes);
 					ReleaseTreeNodes(RightTree.Nodes);

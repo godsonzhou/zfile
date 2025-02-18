@@ -234,7 +234,6 @@ namespace CmdProcessor
                     case 907: // cm_mkdir
                         CreateNewFolder();
                         break;
-                    
                     case 501: // cm_searchfor
                         SearchFiles();
                         break;

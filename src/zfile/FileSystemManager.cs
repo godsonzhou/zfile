@@ -5,7 +5,7 @@ namespace WinFormsApp1
 	public class FileSystemManager
     {
         private readonly Dictionary<string, List<FileSystemInfo>> _directoryCache = new();
-        private DateTime _lastCacheUpdate = DateTime.MinValue;
+		private Dictionary<string, DateTime> _lastCacheUpdate = new();
 
         public void CopyDirectory(string sourceDir, string targetDir)
         {
@@ -35,7 +35,7 @@ namespace WinFormsApp1
         {
             var currentTime = DateTime.Now;
             var needsUpdate = !_directoryCache.ContainsKey(path) ||
-                            (currentTime - _lastCacheUpdate).TotalMilliseconds > Constants.CacheTimeout;
+                            (currentTime - _lastCacheUpdate[path]).TotalMilliseconds > Constants.CacheTimeout;
 
             if (needsUpdate)
             {
@@ -65,7 +65,7 @@ namespace WinFormsApp1
 						}
 					}
                     _directoryCache[path] = items;
-                    _lastCacheUpdate = currentTime;
+					_lastCacheUpdate[path] = currentTime;
 					Debug.Print("dir cache updated {0}, {1} >", currentTime, _lastCacheUpdate);
                 }
                 catch (Exception ex)

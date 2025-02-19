@@ -1,15 +1,9 @@
 using CmdProcessor;
 using System.Diagnostics;
-using System.Drawing.Imaging;
-using System.Drawing;
-using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Windows.Forms;
 using WinShell;
 using zfile;
 using Keys = System.Windows.Forms.Keys;
-//using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace WinFormsApp1
 {
@@ -23,7 +17,6 @@ namespace WinFormsApp1
         public readonly ThumbnailManager thumbnailManager = new("d:\\temp\\cache", new Size(64,64));
         private Dictionary<Keys, string> hotkeyMappings;
         private bool isSelecting = false;
-        private Point selectionStart;
         private Rectangle selectionRectangle;
         public ListView activeListView { get => (uiManager.isleft ? uiManager.LeftList : uiManager.RightList); }
         public TreeView activeTreeview { get => (uiManager.isleft ? uiManager.LeftTree : uiManager.RightTree); }
@@ -97,10 +90,6 @@ namespace WinFormsApp1
                 throw new Exception("无法初始化桌面Shell接口");
             }
         }
-		/// <summary>
-		///  Clean up any resources being used.
-		/// </summary>
-		/// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
 
 		protected override void Dispose(bool disposing)
 		{
@@ -184,7 +173,6 @@ namespace WinFormsApp1
                 .Cast<ListViewItem>()
                 .Select(item => Helper.GetListItemPath(item))
                 .ToArray();
-			//Debug.Print(draggedItems[0].ToString());
             // 启动拖拽操作
             listView.DoDragDrop(new DataObject(DataFormats.FileDrop, draggedItems), DragDropEffects.Copy);
         }
@@ -266,7 +254,6 @@ namespace WinFormsApp1
 		}
 		public void ListView_DragDrop(object? sender, DragEventArgs e)
         {
-			//Debug.Print("listview_dragdrop");
 			if (draggedItems == null) return;
 			var listView = sender as ListView;
 			if (!IsValidTarget(listView, e, out string targetPath)) return;
@@ -276,37 +263,15 @@ namespace WinFormsApp1
 			//}
 			// 复制文件/目录到目标路径
 			foreach (var sourcePath in draggedItems)
-            {
 				FileSystemManager.CopyFilesAndDirectories(sourcePath, targetPath);
-				//try
-    //            {
-    //                //var destPath = Path.Combine(targetPath, Path.GetFileName(sourcePath));
-				//	if (Directory.Exists(sourcePath))
-				//	{
-				//		var destPath = Path.Combine(targetPath, Path.GetFileName(sourcePath));
-				//		fsManager.CopyDirectory(sourcePath, destPath);
-				//	}
-				//	else
-				//	{
-				//		var destPath = Path.Combine(targetPath, Path.GetFileName(sourcePath));
-				//		File.Copy(sourcePath, destPath, true);
-				//	}
-    //            }
-    //            catch (Exception ex)
-    //            {
-    //                MessageBox.Show($"复制失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-    //            }
-            }
 
             // 刷新目标视图
             listView.Refresh();
-			//RefreshTreeViewAndListView(listView, targetPath);
 			RefreshPanel(listView);
         }
         public void AddCurrentPathToBookmarks()
         {
             if (string.IsNullOrEmpty(currentDirectory)) return;
-            //var isLeft = activeTreeview == uiManager.LeftTree;
             uiManager.BookmarkManager.AddBookmark(currentDirectory, selectedNode, uiManager.isleft);
         }
 
@@ -363,8 +328,6 @@ namespace WinFormsApp1
         {
             void ActiveListViewChange(View view);
         }
-     
-
         public void TreeView_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right)
@@ -380,13 +343,11 @@ namespace WinFormsApp1
         {
             if (e.Button == MouseButtons.Right)
             {
-                //Debug.Print("treeview_right mouse button up:");
                 TreeView treeView = sender as TreeView;
                 TreeNode node = treeView.GetNodeAt(e.X, e.Y);
                 if (node != null && node == rightClickBegin)
                 {
                     treeView.SelectedNode = node;
-                    //ShowContextMenu(treeView, node.Tag.ToString(), e.Location);
                     ShowContextMenu1(node, e.Location);
                 }
             }
@@ -394,7 +355,6 @@ namespace WinFormsApp1
 
         private void showCtxMenu(TreeNode parentNode, string path, Point location)
         {
-            //Debug.Print("showctxmenu:");
             // 先获取路径的父目录
             if (!File.Exists(path) && !Directory.Exists(path))
             {
@@ -505,7 +465,6 @@ namespace WinFormsApp1
 
         private void ShowContextMenu1(TreeNode node, Point location)
         {
-            //Debug.Print("showcontextmenu1:{0}", node.Text);
 			//获得当前节点的 PIDL
 			ShellItem sItem = (ShellItem)node.Tag;
             IntPtr PIDL = sItem.PIDL;
@@ -620,14 +579,11 @@ namespace WinFormsApp1
 					// 如果path是文件夹，则加载子目录
 					var treeView = sender as TreeView;
                     var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
-                    ///////LoadSubDirectories(e.Node, listView);   // 更新ListView显示
-					///////LoadListViewByFilesystem(path, listView, e.Node);
 					currentDirectory = path;
                     selectedNode = e.Node;
                     // 更新监视器
                     watcher.Path = path;
                     watcher.EnableRaisingEvents = true;
-                    //e.Node.Expand();
                 }
                 else
                 {
@@ -708,7 +664,6 @@ namespace WinFormsApp1
        
         public void LoadDriveIntoTree(TreeView treeView, string drivepath)
         {
-            //Debug.Print("LoadDriveIntoTree");
             try
             {
                 treeView.BeginUpdate();
@@ -1090,9 +1045,7 @@ namespace WinFormsApp1
                     }
 
                     // 刷新工具栏
-                    //uiManager.toolbarManager.GenerateDynamicToolbar();
                     bar.GenerateDynamicToolbar();
-                    //uiManager.dynamicToolStrip.Invalidate();
                     return;
                 }
                 var button1 = sender as ToolStripButton;//文件可以拖动到按钮上
@@ -1135,7 +1088,6 @@ namespace WinFormsApp1
         }
 		public void LoadSubDirectories(TreeNode node, ListView? lv = null)
 		{
-			//Debug.Print("load sub dir for node {0}", node.Text);
 			if (lv != null)
 			{
 				lv.SmallImageList ??= new ImageList();
@@ -1146,7 +1098,7 @@ namespace WinFormsApp1
 			ShellItem sItem = (ShellItem)node.Tag;
 			if (sItem == null) return;
 			IShellFolder root = sItem.ShellFolder;
-			if (root == null ) return;//|| node.Text.Equals("迅雷下载")
+			if (root == null ) return;
 			node.Nodes.Clear();
 			IEnumIDList Enum;
 			

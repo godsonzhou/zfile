@@ -48,6 +48,26 @@ namespace WinFormsApp1
 		}
 		public static void CopyFilesAndDirectories(string[] sourcePaths, string destinationDirectory)
 		{
+			//           foreach (var file in sourceFiles)
+			//           {
+			//if (Directory.Exists(file)) {
+			//	Helper.CopyFilesAndDirectories(file, targetPath);
+			//}
+			//else
+			//{
+			//	var fileName = Path.GetFileName(file);
+			//	if (isSamePath) fileName = "copy of " + fileName;
+			//	var targetFile = Path.Combine(targetPath, fileName);
+			//	if (!File.Exists(targetFile))
+			//		File.Copy(file, targetFile, true);
+			//	else
+			//	{
+			//		var result = MessageBox.Show("file already exist, overwrite it ?", "warning");
+			//		if (result == DialogResult.OK)
+			//			File.Copy(file, targetFile, true);
+			//	}
+			//}
+			//           }
 			foreach (string sourcePath in sourcePaths)
 			{
 				if (File.Exists(sourcePath))

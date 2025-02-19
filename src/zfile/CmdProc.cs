@@ -296,7 +296,7 @@ namespace CmdProcessor
 			var srcPath = Helper.getFSpath(!owner.uiManager.isleft ? owner.uiManager.RightTree.SelectedNode.FullPath : owner.uiManager.LeftTree.SelectedNode.FullPath);
 
 			var sourceFiles = listView.SelectedItems.Cast<ListViewItem>()
-                .Select(item => Path.Combine(srcPath, item.Text))
+                .Select(item => Helper.GetListItemPath(item))
                 .ToArray();
 
             // TODO: 显示复制对话框，让用户选择目标路径
@@ -326,28 +326,9 @@ namespace CmdProcessor
 					targetListView.Items.AddRange(items.ToArray());
 					return true;
 				}
-				//           foreach (var file in sourceFiles)
-				//           {
-				//if (Directory.Exists(file)) {
-				//	Helper.CopyFilesAndDirectories(file, targetPath);
-				//}
-				//else
-				//{
-				//	var fileName = Path.GetFileName(file);
-				//	if (isSamePath) fileName = "copy of " + fileName;
-				//	var targetFile = Path.Combine(targetPath, fileName);
-				//	if (!File.Exists(targetFile))
-				//		File.Copy(file, targetFile, true);
-				//	else
-				//	{
-				//		var result = MessageBox.Show("file already exist, overwrite it ?", "warning");
-				//		if (result == DialogResult.OK)
-				//			File.Copy(file, targetFile, true);
-				//	}
-				//}
-				//           }
+				
 				FileSystemManager.CopyFilesAndDirectories(sourceFiles, targetPath);
-				//owner.RefreshTreeViewAndListView(targetlist, targetPath);
+				
 				owner.RefreshPanel(targetlist);
 				return true;
             }
@@ -366,7 +347,7 @@ namespace CmdProcessor
 
 			var srcpath = Helper.getFSpath(owner.activeTreeview.SelectedNode.FullPath);
 			var sourceFiles = listView.SelectedItems.Cast<ListViewItem>()
-                .Select(item => Path.Combine(srcpath, item.Text))
+                .Select(item => Helper.GetListItemPath(item))
                 .ToArray();
 
             var targettree = owner.uiManager.isleft ? owner.uiManager.RightTree : owner.uiManager.LeftTree;
@@ -383,12 +364,6 @@ namespace CmdProcessor
 
             try
             {
-				//foreach (var file in sourceFiles)
-				//{
-				//    var fileName = Path.GetFileName(file);
-				//    var targetFile = Path.Combine(targetPath, fileName);
-				//    File.Move(file, targetFile, true);
-				//}
 				if(CopySelectedFiles())
 					DeleteSelectedFiles(false);
             }
@@ -406,7 +381,7 @@ namespace CmdProcessor
             if (listView == null || listView.SelectedItems.Count <= 0) return;
 
             var files = listView.SelectedItems.Cast<ListViewItem>()
-                .Select(item => Path.Combine(owner.currentDirectory, item.Text))
+                .Select(item => Helper.GetListItemPath(item))
                 .ToArray();
 			var result = DialogResult.Yes;
 			if (needConfirm)

@@ -23,7 +23,7 @@ namespace WinShell
 			this.ShellFolder = ShellFolder;
 			this.ParentShellFolder = ParentShellFolder;
 			IsVirtual = IsVirtualPath(ref parsepath);
-			Name = w32.GetNameByIShell(ParentShellFolder,PIDL);
+			Name = w32.GetNameByIShell(ParentShellFolder, PIDL);
 		}
 		public void Dispose()
 		{
@@ -68,15 +68,17 @@ namespace WinShell
 
 			return pidls.ToArray();
 		}
-		public bool IsDir {  
-			get {
+		public bool IsDir
+		{
+			get
+			{
 				var attr = GetAttributes();
 				return (attr.HasFlag(SFGAO.FOLDER));
-			} 
+			}
 		}
 		public int ChildCount()
 		{
-			return GetChildPIDLs().Length; 
+			return GetChildPIDLs().Length;
 		}
 		public bool IsChildrenExist(bool includefile = false)
 		{
@@ -106,7 +108,7 @@ namespace WinShell
 					Marshal.FreeCoTaskMem(strr);
 				}
 				else
-					parsedPath = "::{00021400-0000-0000-C000-000000000046}";	// return desktop GUID
+					parsedPath = "::{00021400-0000-0000-C000-000000000046}";    // return desktop GUID
 			}
 			catch (Exception ex)
 			{
@@ -133,5 +135,5 @@ namespace WinShell
 			ParentShellFolder?.GetAttributesOf(1, new[] { PIDL }, ref attributes);
 			return attributes;
 		}
-	}				
+	}
 }

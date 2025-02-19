@@ -3,10 +3,10 @@ using System.Diagnostics;
 namespace WinFormsApp1
 {
 	public class FileSystemManager
-    {
-        private readonly Dictionary<string, List<FileSystemInfo>> _directoryCache = new();
+	{
+		private readonly Dictionary<string, List<FileSystemInfo>> _directoryCache = new();
 		private Dictionary<string, DateTime> _lastCacheUpdate = new();
-		
+
 		public static void CopyFilesAndDirectories(string sourcePath, string destinationFolder)
 		{
 			if (File.Exists(sourcePath))
@@ -120,28 +120,28 @@ namespace WinFormsApp1
 			}
 		}
 		public static void CopyDirectory1(string sourceDir, string targetDir)
-        {
-            try
-            {
-                Directory.CreateDirectory(targetDir);
+		{
+			try
+			{
+				Directory.CreateDirectory(targetDir);
 
-                foreach (var file in Directory.GetFiles(sourceDir))
-                {
-                    var targetFilePath = Path.Combine(targetDir, Path.GetFileName(file));
-                    File.Copy(file, targetFilePath);
-                }
+				foreach (var file in Directory.GetFiles(sourceDir))
+				{
+					var targetFilePath = Path.Combine(targetDir, Path.GetFileName(file));
+					File.Copy(file, targetFilePath);
+				}
 
-                foreach (var directory in Directory.GetDirectories(sourceDir))
-                {
-                    var targetDirectoryPath = Path.Combine(targetDir, Path.GetFileName(directory));
-                    CopyDirectory1(directory, targetDirectoryPath);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"复制目录失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
+				foreach (var directory in Directory.GetDirectories(sourceDir))
+				{
+					var targetDirectoryPath = Path.Combine(targetDir, Path.GetFileName(directory));
+					CopyDirectory1(directory, targetDirectoryPath);
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"复制目录失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
 		public static void DeleteFile(string path)
 		{
 			try
@@ -152,6 +152,20 @@ namespace WinFormsApp1
 				}
 				else if (File.Exists(path))
 				{
+					// 创建 FileInfo 对象
+					// FileInfo fileInfo = new FileInfo(path);
+					// // 去除只读属性
+					// if (fileInfo.IsReadOnly)
+					// 	fileInfo.IsReadOnly = false;
+					//fileInfo.Delete();
+
+					// 去除只读属性
+					FileAttributes attributes = File.GetAttributes(path);
+					if ((attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
+					{
+						attributes &= ~FileAttributes.ReadOnly;
+						File.SetAttributes(path, attributes);
+					}
 					File.Delete(path);
 				}
 			}
@@ -228,54 +242,54 @@ namespace WinFormsApp1
 			return result;
 		}
 		public List<FileSystemInfo> GetDirectoryContents(string path, WinShell.ReadDirContentsMode readmode = WinShell.ReadDirContentsMode.Both)
-        {
-            //var currentTime = DateTime.Now;
-            //var needsUpdate = !_directoryCache.ContainsKey(path) ||
-            //                (currentTime - _lastCacheUpdate[path]).TotalMilliseconds > Constants.CacheTimeout;
+		{
+			//var currentTime = DateTime.Now;
+			//var needsUpdate = !_directoryCache.ContainsKey(path) ||
+			//                (currentTime - _lastCacheUpdate[path]).TotalMilliseconds > Constants.CacheTimeout;
 
-            //if (needsUpdate)
-            //{
-                var items = new List<FileSystemInfo>();
-                var directoryInfo = new DirectoryInfo(path);
+			//if (needsUpdate)
+			//{
+			var items = new List<FileSystemInfo>();
+			var directoryInfo = new DirectoryInfo(path);
 
-                try
-                {
-					if ((readmode & WinShell.ReadDirContentsMode.Folder) != 0)
+			try
+			{
+				if ((readmode & WinShell.ReadDirContentsMode.Folder) != 0)
+				{
+					foreach (var dir in directoryInfo.GetDirectories())
 					{
-						foreach (var dir in directoryInfo.GetDirectories())
+						if ((dir.Attributes & FileAttributes.Hidden) == 0)
 						{
-							if ((dir.Attributes & FileAttributes.Hidden) == 0)
-							{
-								items.Add(dir);
-							}
+							items.Add(dir);
 						}
 					}
-					if ((readmode & WinShell.ReadDirContentsMode.File) != 0)
+				}
+				if ((readmode & WinShell.ReadDirContentsMode.File) != 0)
+				{
+					foreach (var file in directoryInfo.GetFiles())
 					{
-						foreach (var file in directoryInfo.GetFiles())
+						if ((file.Attributes & FileAttributes.Hidden) == 0)
 						{
-							if ((file.Attributes & FileAttributes.Hidden) == 0)
-							{
-								items.Add(file);
-							}
+							items.Add(file);
 						}
 					}
-                    _directoryCache[path] = items;
-					//_lastCacheUpdate[path] = currentTime;
-					//Debug.Print("dir cache updated {0} >", currentTime);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"读取目录内容失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-   //         }
+				}
+				_directoryCache[path] = items;
+				//_lastCacheUpdate[path] = currentTime;
+				//Debug.Print("dir cache updated {0} >", currentTime);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"读取目录内容失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+			//         }
 			//else
 			//{
 			//	Debug.Print("dir cache used!!!!!! {0}, {1} >", currentTime, _lastCacheUpdate[path]);
 			//}
 
 			return _directoryCache[path];
-        }
+		}
 		public static string FormatFileSize(long bytes)
 		{
 			string[] sizes = { "B", "KB", "MB", "GB", "TB" };
@@ -290,9 +304,9 @@ namespace WinFormsApp1
 		}
 		// 判断文件是否为文本文件
 		public static bool IsTextFile(string extension)
-        {
-            return Constants.TextFileExtensions.Contains(extension.ToLower());
-        }
+		{
+			return Constants.TextFileExtensions.Contains(extension.ToLower());
+		}
 		public static bool IsValidFileSystemPath(string path)
 		{
 			try
@@ -304,7 +318,7 @@ namespace WinFormsApp1
 				return false;
 			}
 		}
-	
+
 	}
 
 	class FileInfoList
@@ -353,4 +367,4 @@ namespace WinFormsApp1
 				smallIcon = IconManager.GetIconByFileType(Path.GetExtension(path), false);
 		}
 	}
-} 
+}

@@ -231,12 +231,12 @@ namespace WinFormsApp1
 		{
 			var imageresPath = Path.Combine(Environment.SystemDirectory, "imageres.dll");
 			l.ColorDepth = ColorDepth.Depth32Bit;
-			if (islarge) 
-			{ 
+			if (islarge)
+			{
 				l.ImageSize = new Size(64, 64);
 			}
-			else 
-				{ l.ImageSize = new Size(16, 16); }
+			else
+			{ l.ImageSize = new Size(16, 16); }
 
 			// 使用IconManager加载系统图标
 			var imageList = LoadIconsFromFile(imageresPath, islarge);
@@ -314,60 +314,60 @@ namespace WinFormsApp1
 			return "folder"; // 默认返回文件夹图标
 		}
 
-        public static Image? LoadIcon(string iconPath)
-        {
-            if (string.IsNullOrEmpty(iconPath))
-            {
-                return null;
-            }
+		public static Image? LoadIcon(string iconPath)
+		{
+			if (string.IsNullOrEmpty(iconPath))
+			{
+				return null;
+			}
 
-            if (iconPath.ToLower().StartsWith("wcmicon"))
-            {
-                iconPath = Constants.ZfilePath + iconPath;
-            }
+			if (iconPath.ToLower().StartsWith("wcmicon"))
+			{
+				iconPath = Constants.ZfilePath + iconPath;
+			}
 
-            if (iconPath.Contains(","))
-            {
-                string[] parts = iconPath.Split(',');
-                if (parts.Length == 2 && int.TryParse(parts[1], out int iconIndex))
-                {
-                    return GetIconByFilenameAndIndex(parts[0], iconIndex);
-                }
-                else if (parts.Length == 1)
-                {
-                    using var icon = Icon.ExtractAssociatedIcon(parts[0]);
-                    return icon?.ToBitmap();
-                }
-            }
-            else if (File.Exists(iconPath))
-            {
-                return GetIconByFilenameAndIndex(iconPath, 0);
-            }
+			if (iconPath.Contains(","))
+			{
+				string[] parts = iconPath.Split(',');
+				if (parts.Length == 2 && int.TryParse(parts[1], out int iconIndex))
+				{
+					return GetIconByFilenameAndIndex(parts[0], iconIndex);
+				}
+				else if (parts.Length == 1)
+				{
+					using var icon = Icon.ExtractAssociatedIcon(parts[0]);
+					return icon?.ToBitmap();
+				}
+			}
+			else if (File.Exists(iconPath))
+			{
+				return GetIconByFilenameAndIndex(iconPath, 0);
+			}
 
-            return null;
-        }
+			return null;
+		}
 
-        private static Image? GetIconByFilenameAndIndex(string path, int index)
-        {
-            ImageList images = LoadIconsFromFile(path);
-            if (images != null && index < images.Images.Count)
-            {
-                return images.Images[index];
-            }
-            return null;
-        }
+		private static Image? GetIconByFilenameAndIndex(string path, int index)
+		{
+			ImageList images = LoadIconsFromFile(path);
+			if (images != null && index < images.Images.Count)
+			{
+				return images.Images[index];
+			}
+			return null;
+		}
 
-        public static bool HasIconKey(string key)
-        {
-            return iconCache.ContainsKey(key);
-        }
+		public static bool HasIconKey(string key)
+		{
+			return iconCache.ContainsKey(key);
+		}
 
-        public static void AddIcon(string key, Icon icon)
-        {
-            if (!iconCache.ContainsKey(key))
-            {
-                iconCache[key] = icon.Clone() as Icon;
-            }
-        }
-    }
-} 
+		public static void AddIcon(string key, Icon icon)
+		{
+			if (!iconCache.ContainsKey(key))
+			{
+				iconCache[key] = icon.Clone() as Icon;
+			}
+		}
+	}
+}

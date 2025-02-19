@@ -4,15 +4,15 @@ using WinFormsApp1;
 
 namespace CmdProcessor
 {
-	public struct CmdTableItem(string cmdName, int cmdId, string description, string zhDesc)
-	{
+    public struct CmdTableItem(string cmdName, int cmdId, string description, string zhDesc)
+    {
         public string CmdName = cmdName;
         public int CmdId = cmdId;
         public string Description = description;
         public string ZhDesc = zhDesc;
-	}
+    }
 
-	public class CmdTable
+    public class CmdTable
     {
         private readonly Dictionary<string, CmdTableItem> _cmdNameDict = new();
         private readonly Dictionary<int, CmdTableItem> _cmdIdDict = new();
@@ -54,7 +54,7 @@ namespace CmdProcessor
                         if (cmdParts.Length == 2 && int.TryParse(cmdParts[1], out var cmdId))
                         {
                             var cmdName = cmdParts[0].ToLower();//bugfix: cm_SrcThumbs in cfgfile， but in toolbarstrip, the button trigger cmd is cm_srcthumbs, so we need to convert cm_SrcThumbs to cm_srcthumbs
-							var description = parts.Length > 1 ? parts[1] : string.Empty;
+                            var description = parts.Length > 1 ? parts[1] : string.Empty;
                             var zhDesc = zhDescDict.TryGetValue(cmdId, out var desc) ? desc : string.Empty;
                             var cmdItem = new CmdTableItem(cmdName, cmdId, description, zhDesc);
                             cmdTable.Add(cmdItem);
@@ -90,69 +90,69 @@ namespace CmdProcessor
             return zhDescDict;
         }
     }
-	public class KeyMgr
-	{
-		private Dictionary<string, string> keymap = new Dictionary<string, string>();
-		public KeyMgr()
-		{
-			loadFromConfig("wincmd.ini", "Shortcuts");
-			loadFromConfig("wincmd.ini", "ShortcutsWin");
-		}
-		public void Add(string key, string value)
-		{
-			keymap[key] = value;
-		}
-		public string GetByKeyCode(System.Windows.Forms.Keys k)
-		{
-			return Get(k.ToString());
-		}
-		public string Get(string key)
-		{
-			if (keymap.TryGetValue(key, out _)) 
-				return keymap[key];
-			return string.Empty;
-		}
-		public bool Contains(string key)
-		{
-			return keymap.ContainsKey(key);
-		}
-		public void Remove(string key)
-		{
-			keymap.Remove(key);
-		}
-		public void Clear()
-		{
-			keymap.Clear();
-		}
-		public int Count()
-		{
-			return keymap.Count;
-		}
-		public string[] GetKeys()
-		{
-			return keymap.Keys.ToArray();
-		}
-		private void loadFromConfig(string path, string section)
-		{
-			// 读取配置文件中的快捷键映射，位于section段内
-			// 例如：[Shortcuts]
-			// cm_copy=Ctrl+C
-			// [ShortcutsWin]
-			// em_py=Ctrl+Insert
-			var cfg = Helper.ReadSectionContent(Constants.ZfilePath + path, section);
-			foreach (var line in cfg)
-			{
-				if (line.Contains('='))
-				{
-					var parts = line.Split('=');
-					if (parts.Length == 2)
-					{
-						Add(parts[0], parts[1]);
-					}
-				}
-			}
-		}
-	}
+    public class KeyMgr
+    {
+        private Dictionary<string, string> keymap = new Dictionary<string, string>();
+        public KeyMgr()
+        {
+            loadFromConfig("wincmd.ini", "Shortcuts");
+            loadFromConfig("wincmd.ini", "ShortcutsWin");
+        }
+        public void Add(string key, string value)
+        {
+            keymap[key] = value;
+        }
+        public string GetByKeyCode(System.Windows.Forms.Keys k)
+        {
+            return Get(k.ToString());
+        }
+        public string Get(string key)
+        {
+            if (keymap.TryGetValue(key, out _))
+                return keymap[key];
+            return string.Empty;
+        }
+        public bool Contains(string key)
+        {
+            return keymap.ContainsKey(key);
+        }
+        public void Remove(string key)
+        {
+            keymap.Remove(key);
+        }
+        public void Clear()
+        {
+            keymap.Clear();
+        }
+        public int Count()
+        {
+            return keymap.Count;
+        }
+        public string[] GetKeys()
+        {
+            return keymap.Keys.ToArray();
+        }
+        private void loadFromConfig(string path, string section)
+        {
+            // 读取配置文件中的快捷键映射，位于section段内
+            // 例如：[Shortcuts]
+            // cm_copy=Ctrl+C
+            // [ShortcutsWin]
+            // em_py=Ctrl+Insert
+            var cfg = Helper.ReadSectionContent(Constants.ZfilePath + path, section);
+            foreach (var line in cfg)
+            {
+                if (line.Contains('='))
+                {
+                    var parts = line.Split('=');
+                    if (parts.Length == 2)
+                    {
+                        Add(parts[0], parts[1]);
+                    }
+                }
+            }
+        }
+    }
     public class CmdProc
     {
         public CmdTable cmdTable;
@@ -161,7 +161,7 @@ namespace CmdProcessor
         public CmdProc(Form1 owner)
         {
             cmdTable = new CmdTable();
-            InitializeCmdTable(Constants.ZfilePath + "TOTALCMD.INC", Constants.ZfilePath+"WCMD_CHN.INC");
+            InitializeCmdTable(Constants.ZfilePath + "TOTALCMD.INC", Constants.ZfilePath + "WCMD_CHN.INC");
             this.owner = owner;
         }
 
@@ -172,7 +172,7 @@ namespace CmdProcessor
 
         public CmdTableItem? GetCmdByName(string cmdName)
         {
-			return cmdTable.GetByCmdName(cmdName);
+            return cmdTable.GetByCmdName(cmdName);
         }
 
         public CmdTableItem? GetCmdById(int cmdId)
@@ -188,8 +188,8 @@ namespace CmdProcessor
                 if (cmdItem != null)
                 {
                     Console.WriteLine($"Processing command: {cmdItem}");
-					// 在这里添加处理命令的逻辑
-					ExecCmdByID(cmdItem.Value.CmdId);
+                    // 在这里添加处理命令的逻辑
+                    ExecCmdByID(cmdItem.Value.CmdId);
                 }
                 else
                 {
@@ -228,10 +228,10 @@ namespace CmdProcessor
                     case 501: // cm_searchfor
                         SearchFiles();
                         break;
-					case 1002: // cm_renameonly
-						RenameSelected();
-						break;
-					case 1003: // cm_properties
+                    case 1002: // cm_renameonly
+                        RenameSelected();
+                        break;
+                    case 1003: // cm_properties
                         ShowFileProperties();
                         break;
                     case 2022: // cm_comparefilesbycontent
@@ -293,79 +293,79 @@ namespace CmdProcessor
             var listView = owner.activeListView;
             if (listView == null || listView.SelectedItems.Count <= 0) return false;
 
-			var srcPath = Helper.getFSpath(!owner.uiManager.isleft ? owner.uiManager.RightTree.SelectedNode.FullPath : owner.uiManager.LeftTree.SelectedNode.FullPath);
+            var srcPath = Helper.getFSpath(!owner.uiManager.isleft ? owner.uiManager.RightTree.SelectedNode.FullPath : owner.uiManager.LeftTree.SelectedNode.FullPath);
 
-			var sourceFiles = listView.SelectedItems.Cast<ListViewItem>()
+            var sourceFiles = listView.SelectedItems.Cast<ListViewItem>()
                 .Select(item => Helper.GetListItemPath(item))
                 .ToArray();
 
             // TODO: 显示复制对话框，让用户选择目标路径
-			var targetTree = owner.uiManager.isleft ? owner.uiManager.RightTree : owner.uiManager.LeftTree;
-			var targetPath = Helper.getFSpath(targetTree.SelectedNode.FullPath);
-			var isSamePath = targetPath.Equals(srcPath);    
+            var targetTree = owner.uiManager.isleft ? owner.uiManager.RightTree : owner.uiManager.LeftTree;
+            var targetPath = Helper.getFSpath(targetTree.SelectedNode.FullPath);
+            var isSamePath = targetPath.Equals(srcPath);
 
-			var targetlist = owner.uiManager.isleft ? owner.uiManager.RightList : owner.uiManager.LeftList;
-			try
+            var targetlist = owner.uiManager.isleft ? owner.uiManager.RightList : owner.uiManager.LeftList;
+            try
             {
-				if (owner.IsArchiveFile(srcPath))
-				{
-					foreach (string fileName in sourceFiles)
-					{
-						owner.ExtractArchiveFile(srcPath, fileName, targetPath);
-					}
-					return true;
-				}
+                if (owner.IsArchiveFile(srcPath))
+                {
+                    foreach (string fileName in sourceFiles)
+                    {
+                        owner.ExtractArchiveFile(srcPath, fileName, targetPath);
+                    }
+                    return true;
+                }
 
-				if (owner.IsArchiveFile(targetPath))
-				{
-					string[] files = sourceFiles.Select(f => Path.Combine(srcPath, f)).ToArray();
-					owner.AddToArchive(targetPath, files);
-					var items = owner.LoadArchiveContents(targetPath);
-					var targetListView = (owner.uiManager.isleft ? owner.uiManager.RightList : owner.uiManager.LeftList);
-					targetListView.Items.Clear();
-					targetListView.Items.AddRange(items.ToArray());
-					return true;
-				}
-				
-				FileSystemManager.CopyFilesAndDirectories(sourceFiles, targetPath);
-				
-				owner.RefreshPanel(targetlist);
-				return true;
+                if (owner.IsArchiveFile(targetPath))
+                {
+                    string[] files = sourceFiles.Select(f => Path.Combine(srcPath, f)).ToArray();
+                    owner.AddToArchive(targetPath, files);
+                    var items = owner.LoadArchiveContents(targetPath);
+                    var targetListView = (owner.uiManager.isleft ? owner.uiManager.RightList : owner.uiManager.LeftList);
+                    targetListView.Items.Clear();
+                    targetListView.Items.AddRange(items.ToArray());
+                    return true;
+                }
+
+                FileSystemManager.CopyFilesAndDirectories(sourceFiles, targetPath);
+
+                owner.RefreshPanel(targetlist);
+                return true;
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"复制文件失败: {ex.Message}", "错误");
-				return false;
-			}
+                return false;
+            }
         }
-	
+
         // 移动选中的文件
         public void MoveSelectedFiles()
         {
             var listView = owner.activeListView;
             if (listView == null || listView.SelectedItems.Count <= 0) return;
 
-			var srcpath = Helper.getFSpath(owner.activeTreeview.SelectedNode.FullPath);
-			var sourceFiles = listView.SelectedItems.Cast<ListViewItem>()
+            var srcpath = Helper.getFSpath(owner.activeTreeview.SelectedNode.FullPath);
+            var sourceFiles = listView.SelectedItems.Cast<ListViewItem>()
                 .Select(item => Helper.GetListItemPath(item))
                 .ToArray();
 
             var targettree = owner.uiManager.isleft ? owner.uiManager.RightTree : owner.uiManager.LeftTree;
-			var targetPath = Helper.getFSpath(targettree.SelectedNode.FullPath);
+            var targetPath = Helper.getFSpath(targettree.SelectedNode.FullPath);
             if (string.IsNullOrEmpty(targetPath))
             {
                 MessageBox.Show("无效的目标路径", "错误");
                 return;
             }
-			if(srcpath.Equals(targetPath))
-			{
-				return;		//if srcpath eq targetpath, do not need move, do rename 
-			}
+            if (srcpath.Equals(targetPath))
+            {
+                return;     //if srcpath eq targetpath, do not need move, do rename 
+            }
 
             try
             {
-				if(CopySelectedFiles())
-					DeleteSelectedFiles(false);
+                if (CopySelectedFiles())
+                    DeleteSelectedFiles(false);
             }
             catch (Exception ex)
             {
@@ -376,42 +376,42 @@ namespace CmdProcessor
         // 删除选中的文件
         private void DeleteSelectedFiles(bool needConfirm = true)
         {
-			Debug.Print("Delete files : >>");
+            Debug.Print("Delete files : >>");
             var listView = owner.activeListView;
             if (listView == null || listView.SelectedItems.Count <= 0) return;
 
             var files = listView.SelectedItems.Cast<ListViewItem>()
                 .Select(item => Helper.GetListItemPath(item))
                 .ToArray();
-			var result = DialogResult.Yes;
-			if (needConfirm)
-			{
-				result = MessageBox.Show(
-					$"确定要删除选中的 {files.Length} 个文件吗？",
-					"确认删除",
-					MessageBoxButtons.YesNo,
-					MessageBoxIcon.Question
-				);
-			}
+            var result = DialogResult.Yes;
+            if (needConfirm)
+            {
+                result = MessageBox.Show(
+                    $"确定要删除选中的 {files.Length} 个文件吗？",
+                    "确认删除",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question
+                );
+            }
             if (result == DialogResult.Yes)
             {
                 try
                 {
-					if (owner.IsArchiveFile(owner.currentDirectory))
-					{
-						if (owner.DeleteFromArchive(owner.currentDirectory, files.ToArray()))
-						{
-							var items = owner.LoadArchiveContents(owner.currentDirectory);
-							owner.activeListView.Items.Clear();
-							owner.activeListView.Items.AddRange(items.ToArray());
-						}
-						return;
-					}
-					foreach (var file in files)
+                    if (owner.IsArchiveFile(owner.currentDirectory))
                     {
-						FileSystemManager.DeleteFile(file);
+                        if (owner.DeleteFromArchive(owner.currentDirectory, files.ToArray()))
+                        {
+                            var items = owner.LoadArchiveContents(owner.currentDirectory);
+                            owner.activeListView.Items.Clear();
+                            owner.activeListView.Items.AddRange(items.ToArray());
+                        }
+                        return;
                     }
-					owner.RefreshPanel(listView);
+                    foreach (var file in files)
+                    {
+                        FileSystemManager.DeleteFile(file);
+                    }
+                    owner.RefreshPanel(listView);
                 }
                 catch (Exception ex)
                 {
@@ -426,9 +426,9 @@ namespace CmdProcessor
             var path = owner.currentDirectory;
             var newFolderPath = Path.Combine(path, folderName);
 
-			FileSystemManager.CreateDirectory(newFolderPath);
-			owner.RefreshPanel(owner.activeListView);
-		}
+            FileSystemManager.CreateDirectory(newFolderPath);
+            owner.RefreshPanel(owner.activeListView);
+        }
 
         // 重命名选中的文件或文件夹
         private void RenameSelected()
@@ -659,22 +659,22 @@ namespace CmdProcessor
         {
             var listView = owner.activeListView;
             if (listView == null || listView.SelectedItems.Count == 0) return;
-			var targetfile = Path.Combine(owner.currentDirectory, listView.SelectedItems[0].Text) + ".zip";
-			if (File.Exists(targetfile))
-			{
-				if(MessageBox.Show($"{targetfile} 已存在，是否替换？", "Warning", MessageBoxButtons.YesNo) != DialogResult.Yes)
-					return;
-				else
-					File.Delete(targetfile);    //delete the old zip file
-			}
-			//var saveDialog = new SaveFileDialog
-			//{
-			//    Filter = "ZIP 文件|*.zip|所有文件|*.*",
-			//    Title = "选择保存位置"
-			//};
+            var targetfile = Path.Combine(owner.currentDirectory, listView.SelectedItems[0].Text) + ".zip";
+            if (File.Exists(targetfile))
+            {
+                if (MessageBox.Show($"{targetfile} 已存在，是否替换？", "Warning", MessageBoxButtons.YesNo) != DialogResult.Yes)
+                    return;
+                else
+                    File.Delete(targetfile);    //delete the old zip file
+            }
+            //var saveDialog = new SaveFileDialog
+            //{
+            //    Filter = "ZIP 文件|*.zip|所有文件|*.*",
+            //    Title = "选择保存位置"
+            //};
 
-			//if (saveDialog.ShowDialog() == DialogResult.OK)
-			//File.Delete(targetfile);	//delete the old zip file
+            //if (saveDialog.ShowDialog() == DialogResult.OK)
+            //File.Delete(targetfile);	//delete the old zip file
             {
                 try
                 {
@@ -685,7 +685,7 @@ namespace CmdProcessor
                     System.IO.Compression.ZipFile.CreateFromDirectory(
                         owner.currentDirectory,
                         //saveDialog.FileName,
-						targetfile,
+                        targetfile,
                         System.IO.Compression.CompressionLevel.Optimal,
                         true);
 
@@ -696,7 +696,7 @@ namespace CmdProcessor
                     MessageBox.Show($"打包文件时出错: {ex.Message}", "错误");
                 }
             }
-			owner.RefreshPanel(listView);
+            owner.RefreshPanel(listView);
         }
 
         // 解压文件

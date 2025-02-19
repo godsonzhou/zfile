@@ -21,15 +21,9 @@ namespace WinShell
 		{
 			this.PIDL = PIDL;
 			this.ShellFolder = ShellFolder;
-			//if (ParentShellFolder == null)
-			//{
-			//	this.ParentShellFolder = w32.GetDesktopFolder(out IntPtr desktopPtr);
-			//}
-			//else
 			this.ParentShellFolder = ParentShellFolder;
 			IsVirtual = IsVirtualPath(ref parsepath);
 			Name = w32.GetNameByIShell(ParentShellFolder,PIDL);
-			//var name1 = w32.GetNameByPIDL(PIDL);
 		}
 		public void Dispose()
 		{
@@ -68,10 +62,6 @@ namespace WinShell
 						{
 							pidls.Add(pidlSub);
 						}
-						//API.ILFree(pEnumIDList);
-						//Marshal.ReleaseComObject(e);
-						// Marshal.ReleaseComObject(pEnumIDList);  // 或使用 API.ILFree 如果适用
-						//API.ILFree(pEnumIDList);
 					}
 				}
 			}
@@ -112,15 +102,11 @@ namespace WinShell
 					{
 						API.StrRetToBuf(strr, PIDL, buf, w32.MAX_PATH);
 						parsedPath = buf.ToString();
-						//Debug.Print("{0} ", parsedPath);
 					}
 					Marshal.FreeCoTaskMem(strr);
 				}
 				else
-				{
-					//is top node : desktop
 					parsedPath = "::{00021400-0000-0000-C000-000000000046}";	// return desktop GUID
-				}
 			}
 			catch (Exception ex)
 			{

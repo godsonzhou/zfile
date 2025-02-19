@@ -1216,32 +1216,6 @@ namespace WinFormsApp1
 							Tag = subItem
 						};
 
-						// 获取节点的SFGAO属性
-						//SFGAO attributes = SFGAO.FOLDER | SFGAO.FILESYSTEM;
-						//root.GetAttributesOf(1, new[] { pidlSub }, ref attributes);
-
-						// 获取CLSID并检查是否为虚拟文件夹
-						//bool isVirtualFolder = false;
-						//             string parsedPath = string.Empty;
-						//             try 
-						//             {
-						//                 IntPtr strr = Marshal.AllocCoTaskMem(w32.MAX_PATH * 2 + 4);
-						//                 Marshal.WriteInt32(strr, 0, 0);
-						//                 StringBuilder buf = new StringBuilder(w32.MAX_PATH);
-						//                 if (root.GetDisplayNameOf(pidlSub, SHGDN.FORPARSING, strr) == w32.S_OK)
-						//                 {
-						//                     API.StrRetToBuf(strr, pidlSub, buf, w32.MAX_PATH);
-						//                     parsedPath = buf.ToString();
-						//Debug.Print("{0} {1}", name, parsedPath);
-						//                     isVirtualFolder = parsedPath.Contains("::{");
-						//                 }
-						//                 Marshal.FreeCoTaskMem(strr);
-						//             }
-						//             catch (Exception ex)
-						//             {
-						//                 Debug.Print($"获取解析路径失败: {ex.Message}");
-						//             }
-
 						// 为虚拟文件夹或非文件系统项设置特定图标
 						if (subItem.IsVirtual || (subItem.GetAttributes() & SFGAO.FILESYSTEM) == 0)
 						{
@@ -1270,13 +1244,9 @@ namespace WinFormsApp1
 												IconManager.AddIcon(iconKey, icon);
 												var bitmap = icon.ToBitmap();
 												if (!uiManager.LeftTree.ImageList.Images.ContainsKey(iconKey))
-												{
 													uiManager.LeftTree.ImageList.Images.Add(iconKey, bitmap);
-												}
 												if (!uiManager.RightTree.ImageList.Images.ContainsKey(iconKey))
-												{
 													uiManager.RightTree.ImageList.Images.Add(iconKey, bitmap);
-												}
 											}
 										}
 										finally
@@ -1323,14 +1293,9 @@ namespace WinFormsApp1
 						}
 					}
 					lv?.EndUpdate();
-					//Marshal.ReleaseComObject(Enum);
-                    //API.ILFree(EnumPtr);
 				}
 				finally
 				{
-					//if (EnumPtr != IntPtr.Zero)
-					//	 Marshal.ReleaseComObject(EnumPtr);
-                        //API.ILFree(EnumPtr);
 				}
             }
         }
@@ -1478,7 +1443,6 @@ namespace WinFormsApp1
                     return null;
                 }
 				var i = new ListViewItem(itemData);
-				//i.ImageList = new ImageList();
 				return i;
             }
             catch
@@ -1678,13 +1642,9 @@ namespace WinFormsApp1
         public void ThemeToggle()
         {
             if (BackColor == SystemColors.Control)
-            {
                 themeManager.ApplyDarkTheme();
-            }
             else
-            {
                 themeManager.ApplyLightTheme();
-            }
         }
 
         // 查看按钮点击处理逻辑
@@ -1975,7 +1935,7 @@ namespace WinFormsApp1
 
             var selectedDrive = uiManager.LeftDriveBox.SelectedItem?.ToString();
             var listView = selectedDrive != null && watcher.Path.StartsWith(selectedDrive) ? uiManager.LeftList : uiManager.RightList;
-            //LoadListView(watcher.Path, listView);
+			RefreshPanel(listView);
         }
     }
 }

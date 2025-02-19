@@ -679,7 +679,7 @@ namespace CmdProcessor
                 try
                 {
                     var files = listView.SelectedItems.Cast<ListViewItem>()
-                        .Select(item => Path.Combine(owner.currentDirectory, item.Text))
+                        .Select(item => Helper.GetListItemPath(item))
                         .ToArray();
 
                     System.IO.Compression.ZipFile.CreateFromDirectory(

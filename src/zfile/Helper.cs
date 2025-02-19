@@ -79,98 +79,7 @@ namespace WinFormsApp1
 			}
 			return result;
 		}
-		public static void CopyFilesAndDirectories(string[] sourcePaths, string destinationDirectory)
-		{
-			foreach (string sourcePath in sourcePaths)
-			{
-				if (File.Exists(sourcePath))
-				{
-					CopyFile(sourcePath, destinationDirectory);
-					Debug.Print("file [{0}] copyed to [{1}]", sourcePath, destinationDirectory);
-				}
-				else if (Directory.Exists(sourcePath))
-				{
-					CopyDirectory(sourcePath, destinationDirectory);
-				}
-				else
-				{
-					throw new ArgumentException($"Source path '{sourcePath}' does not exist.");
-				}
-			}
-		}
-
-		private static void CopyFile(string sourceFile, string destinationDirectory)
-		{
-			string fileName = Path.GetFileName(sourceFile);
-			string destFile = Path.Combine(destinationDirectory, fileName);
-
-			Directory.CreateDirectory(destinationDirectory);
-			File.Copy(sourceFile, destFile, overwrite: true);
-		}
-
-		public static void CopyDirectory(string sourceDir, string destinationDir)
-		{
-			DirectoryInfo sourceDirInfo = new DirectoryInfo(sourceDir);
-			string dirName = sourceDirInfo.Name;
-
-			if (string.IsNullOrEmpty(dirName))
-			{
-				throw new ArgumentException("Source directory is a root directory and cannot be copied.");
-			}
-
-			string destDir = Path.Combine(destinationDir, dirName);
-			Directory.CreateDirectory(destDir);
-
-			foreach (FileInfo file in sourceDirInfo.GetFiles())
-			{
-				string destFile = Path.Combine(destDir, file.Name);
-				file.CopyTo(destFile, overwrite: true);
-			}
-
-			foreach (DirectoryInfo subDir in sourceDirInfo.GetDirectories())
-			{
-				CopyDirectory(subDir.FullName, destDir);
-			}
-		}
-		public static void CopyFilesAndDirectories(string sourcePath, string destinationFolder)
-		{
-			if (File.Exists(sourcePath))
-			{
-				// 如果是文件，直接复制
-				string destinationFilePath = Path.Combine(destinationFolder, Path.GetFileName(sourcePath));
-				string destinationFileDirectory = Path.GetDirectoryName(destinationFilePath);
-				// 创建目标文件所在的目录
-				if (!Directory.Exists(destinationFileDirectory))
-				{
-					Directory.CreateDirectory(destinationFileDirectory);
-				}
-				File.Copy(sourcePath, destinationFilePath, true);
-			}
-			else if (Directory.Exists(sourcePath))
-			{
-				// 如果是目录，递归复制
-				string relativePath = Path.GetRelativePath(Path.GetDirectoryName(sourcePath), sourcePath);
-				string destinationDirectory = Path.Combine(destinationFolder, relativePath);
-				// 创建目标目录
-				if (!Directory.Exists(destinationDirectory))
-				{
-					Directory.CreateDirectory(destinationDirectory);
-				}
-				// 复制目录中的所有文件
-				string[] files = Directory.GetFiles(sourcePath);
-				foreach (string file in files)
-				{
-					string destinationFilePath = Path.Combine(destinationDirectory, Path.GetFileName(file));
-					File.Copy(file, destinationFilePath, true);
-				}
-				// 递归复制子目录
-				string[] subDirectories = Directory.GetDirectories(sourcePath);
-				foreach (string subDirectory in subDirectories)
-				{
-					CopyFilesAndDirectories(subDirectory, destinationFolder);
-				}
-			}
-		}
+		
 		public static string[] RemoveQuotes(string[] originalList)
 		{
 			List<string> resultList = new();
@@ -257,17 +166,7 @@ namespace WinFormsApp1
 
 			return sectionContent;
 		}
-		public static bool IsValidFileSystemPath(string path)
-		{
-			try
-			{
-				return Directory.Exists(path) || File.Exists(path);
-			}
-			catch
-			{
-				return false;
-			}
-		}
+	
 
 		public static Dictionary<string,string> GetSpecFolderPaths()
 		{
@@ -345,51 +244,10 @@ namespace WinFormsApp1
 			}
 		}
 	
-		public static async Task<List<FileSystemInfo>> GetDirectoryContentsAsync(string path)
-		{
-			return await Task.Run(() => GetDirectoryContents(path));
-		}
-		public static List<FileSystemInfo> GetDirectoryContents(string path, bool includeFolder = false)
-		{
-			var result = new List<FileSystemInfo>();
-			if (!Directory.Exists(path)) return result;
-
-			try
-			{
-				var dirInfo = new DirectoryInfo(path);
-				if (includeFolder)
-				{
-					var directories = dirInfo.GetDirectories()
-						.Where(d => (d.Attributes & FileAttributes.Hidden) == 0);
-					result.AddRange(directories);
-				}
-				var files = dirInfo.GetFiles()
-						.Where(f => (f.Attributes & FileAttributes.Hidden) == 0);
-				result.AddRange(files);
-			}
-			catch (UnauthorizedAccessException)
-			{
-				// 忽略访问受限的目录
-			}
-			return result;
-		}
-
-		public static string FormatFileSize(long bytes)
-		{
-			string[] sizes = { "B", "KB", "MB", "GB", "TB" };
-			int order = 0;
-			double size = bytes;
-			while (size >= 1024 && order < sizes.Length - 1)
-			{
-				order++;
-				size = size / 1024;
-			}
-			return $"{size:0.##} {sizes[order]}";
-		}
 		public static string GetListItemPath(ListViewItem item)
 		{
 			TreeNode node = (TreeNode)item.Tag;
-			var path = Helper.getFSpath(node.FullPath);
+			var path = getFSpath(node.FullPath);
 			var return1 = Path.Combine(path, item.Text);
 			var sitem = (ShellItem)node.Tag;
 			var return2 = sitem.parsepath;
@@ -438,7 +296,5 @@ namespace WinFormsApp1
 			gb = Encoding.Convert(gb2312, utf8, gb);
 			return utf8.GetString(gb);
 		}
-		
 	}
-
 }

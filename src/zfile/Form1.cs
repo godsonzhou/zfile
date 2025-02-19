@@ -58,8 +58,6 @@ namespace WinFormsApp1
 			uiManager.BookmarkManager.CreateDefaultBookmarks();
 
 			// 设置活动视图
-			//activeListView = uiManager.LeftList;
-			//activeTreeview = uiManager.LeftTree;
 			uiManager.isleft = true;
             thumbnailManager.RegisterProvider(ThumbnailGenerator.GetThumbnail);
     
@@ -83,11 +81,8 @@ namespace WinFormsApp1
                 uiManager.RightStatusStrip
             );
             specFolderPaths = Helper.GetSpecFolderPaths();
-            //uiManager.LeftList.ItemDrag += ListView_ItemDrag;
-            //uiManager.RightList.ItemDrag += ListView_ItemDrag;
 			WdxModuleList wdxModuleList = new WdxModuleList("");
 			WfxModuleList wfxModuleList = new WfxModuleList("");
-			//WcxModuleList wcxModuleList = new WcxModuleList();
 			wcxModuleList = new WcxModuleList();
 			wcxModuleList.LoadConfiguration();
 		}
@@ -208,7 +203,7 @@ namespace WinFormsApp1
 			var targetNode = treeView.GetNodeAt(clientPoint);
 			if (targetNode == null) {  return false; }
 			targetPath = GetTreeNodePath(targetNode);
-			return Helper.IsValidFileSystemPath(targetPath);
+			return FileSystemManager.IsValidFileSystemPath(targetPath);
 		}
         public void TreeView_DragOver(object? sender, DragEventArgs e)
         {
@@ -234,7 +229,7 @@ namespace WinFormsApp1
                 {
                     var destPath = Path.Combine(targetPath, Path.GetFileName(sourcePath));
                     if (Directory.Exists(sourcePath))
-                        fsManager.CopyDirectory(sourcePath, destPath);
+                        FileSystemManager.CopyDirectory(sourcePath, destPath);
                     else
                         File.Copy(sourcePath, destPath, true);
                 }
@@ -244,8 +239,6 @@ namespace WinFormsApp1
                 }
             }
             // 刷新目标视图
-            //var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
-            //LoadSubDirectories(targetNode, listView);
 			RefreshPanel(treeView);
         }
 		public void ListView_DragOver(object? sender, DragEventArgs e)
@@ -269,7 +262,7 @@ namespace WinFormsApp1
 				var targetTree = (listView == uiManager.LeftList) ? uiManager.LeftTree : uiManager.RightTree;
 				targetPath = Helper.getFSpathbyTree(targetTree.SelectedNode);
 			}
-			return Helper.IsValidFileSystemPath(targetPath);
+			return FileSystemManager.IsValidFileSystemPath(targetPath);
 		}
 		public void ListView_DragDrop(object? sender, DragEventArgs e)
         {
@@ -284,7 +277,7 @@ namespace WinFormsApp1
 			// 复制文件/目录到目标路径
 			foreach (var sourcePath in draggedItems)
             {
-				Helper.CopyFilesAndDirectories(sourcePath, targetPath);
+				FileSystemManager.CopyFilesAndDirectories(sourcePath, targetPath);
 				//try
     //            {
     //                //var destPath = Path.Combine(targetPath, Path.GetFileName(sourcePath));
@@ -1475,7 +1468,7 @@ namespace WinFormsApp1
                     {
                         item.Name,
                         "",
-                        fsManager.FormatFileSize(fileInfo.Length),
+                        FileSystemManager.FormatFileSize(fileInfo.Length),
                         fileInfo.Extension.ToUpperInvariant(),
                         item.LastWriteTime.ToString("yyyy-MM-dd HH:mm")
                     };
@@ -1505,7 +1498,7 @@ namespace WinFormsApp1
 
             try
             {
-                if (IsTextFile(Path.GetExtension(filePath)))
+                if (FileSystemManager.IsTextFile(Path.GetExtension(filePath)))
                 {
                     using var stream = new StreamReader(filePath);
                     // 仅读取前1MB内容
@@ -1652,15 +1645,8 @@ namespace WinFormsApp1
             }
         }
 
-        // 判断文件是否为文本文件
-        private bool IsTextFile(string extension)
-        {
-            string[] textFileExtensions = { ".txt", ".cs", ".html", ".htm", ".xml", ".json", ".css", ".js", ".md" };
-            return textFileExtensions.Contains(extension.ToLower());
-        }
-
-        // 优化文件系统监视器配置
-        private void InitializeFileSystemWatcher()
+		// 优化文件系统监视器配置
+		private void InitializeFileSystemWatcher()
         {
             watcher.NotifyFilter = NotifyFilters.DirectoryName
                                  | NotifyFilters.FileName
@@ -1764,46 +1750,10 @@ namespace WinFormsApp1
         public void CopyButton_Click(object? sender, EventArgs e)
         {
 			cmdProcessor.ExecCmdByName("cm_copy");
-            //var sourceListView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
-            //var targetTreeView = uiManager.LeftList.Focused ? uiManager.RightTree : uiManager.LeftTree;
-            //var targetListView = uiManager.LeftList.Focused ? uiManager.RightList : uiManager.LeftList;
-
-            //if (sourceListView.SelectedItems.Count == 0 || targetTreeView.SelectedNode == null) return;
-
-            //var selectedItem = sourceListView.SelectedItems[0];
-            //var sourcePath = Path.Combine(currentDirectory, selectedItem.Text);
-            //var targetPath = Path.Combine(targetTreeView.SelectedNode.Tag.ToString() ?? string.Empty, selectedItem.Text);
-
-            //try
-            //{
-            //    if (selectedItem.SubItems[3].Text == "<DIR>")
-            //    {
-            //        fsManager.CopyDirectory(sourcePath, targetPath);
-            //    }
-            //    else
-            //    {
-            //        File.Copy(sourcePath, targetPath);
-            //    }
-
-            //    RefreshTreeViewAndListView(uiManager.LeftTree, uiManager.LeftList, uiManager.LeftDriveBox.SelectedItem?.ToString() ?? string.Empty);
-            //    RefreshTreeViewAndListView(uiManager.RightTree, uiManager.RightList, uiManager.RightDriveBox.SelectedItem?.ToString() ?? string.Empty);
-            //}
-            //catch (Exception ex)
-            //{
-            //    MessageBox.Show($"复制失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            //}
         }
         public void DeleteButton_Click(object? sender, EventArgs e)
         {
 			cmdProcessor.ExecCmdByName("cm_delete");
-            //var listView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
-            //if (listView.SelectedItems.Count == 0) return;
-
-            //var selectedItem = listView.SelectedItems[0];
-            //var itemPath = Path.Combine(currentDirectory, selectedItem.Text);
-
-            //fsManager.DeleteFile(itemPath);
-            //listView.Items.Remove(selectedItem);
         }
 
         public void FolderButton_Click(object? sender, EventArgs e)
@@ -1814,27 +1764,14 @@ namespace WinFormsApp1
 			foreach(var dir in dirs)
 			{
 				string newFolderPath = Path.Combine(currentDirectory, dir);
-				fsManager.CreateDirectory(newFolderPath);
+				FileSystemManager.CreateDirectory(newFolderPath);
 			}
-			//RefreshTreeViewAndListView(activeListView, currentDirectory);
 			RefreshPanel(activeListView);
         }
 
         public void MoveButton_Click(object? sender, EventArgs e)
         {
 			cmdProcessor.ExecCmdByName("cm_renmov");
-            //var sourceListView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
-            //var targetTreeView = uiManager.LeftList.Focused ? uiManager.RightTree : uiManager.LeftTree;
-
-            //if (sourceListView.SelectedItems.Count == 0 || targetTreeView.SelectedNode == null) return;
-
-            //var selectedItem = sourceListView.SelectedItems[0];
-            //var sourcePath = Path.Combine(currentDirectory, selectedItem.Text);
-            //var targetPath = Path.Combine(targetTreeView.SelectedNode.Tag.ToString() ?? string.Empty, selectedItem.Text);
-
-            //fsManager.MoveFileOrDirectory(sourcePath, targetPath);
-            //RefreshTreeViewAndListView(uiManager.LeftTree, uiManager.LeftList, uiManager.LeftDriveBox.SelectedItem?.ToString() ?? string.Empty);
-            //RefreshTreeViewAndListView(uiManager.RightTree, uiManager.RightList, uiManager.RightDriveBox.SelectedItem?.ToString() ?? string.Empty);
         }
 
         public void RefreshTreeViewAndListView(ListView listView, string path)
@@ -1868,7 +1805,6 @@ namespace WinFormsApp1
 		{
 			if (mode.HasFlag(RefreshPanelMode.Left)) 
 			{
-				//RefreshTreeViewAndListView(uiManager.LeftTree, uiManager.LeftList, ((ShellItem)uiManager.LeftTree.SelectedNode.Tag).parsepath);
 				RefreshTreeViewAndListView(uiManager.LeftList, uiManager.LeftPathTextBox.CurrentNode.UniqueID);
 				Debug.Print("refresh left panel");
 			}

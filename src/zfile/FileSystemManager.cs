@@ -6,8 +6,100 @@ namespace WinFormsApp1
     {
         private readonly Dictionary<string, List<FileSystemInfo>> _directoryCache = new();
 		private Dictionary<string, DateTime> _lastCacheUpdate = new();
+		
+		public static void CopyFilesAndDirectories(string sourcePath, string destinationFolder)
+		{
+			if (File.Exists(sourcePath))
+			{
+				// 如果是文件，直接复制
+				string destinationFilePath = Path.Combine(destinationFolder, Path.GetFileName(sourcePath));
+				string destinationFileDirectory = Path.GetDirectoryName(destinationFilePath);
+				// 创建目标文件所在的目录
+				if (!Directory.Exists(destinationFileDirectory))
+				{
+					Directory.CreateDirectory(destinationFileDirectory);
+				}
+				File.Copy(sourcePath, destinationFilePath, true);
+			}
+			else if (Directory.Exists(sourcePath))
+			{
+				// 如果是目录，递归复制
+				string relativePath = Path.GetRelativePath(Path.GetDirectoryName(sourcePath), sourcePath);
+				string destinationDirectory = Path.Combine(destinationFolder, relativePath);
+				// 创建目标目录
+				if (!Directory.Exists(destinationDirectory))
+				{
+					Directory.CreateDirectory(destinationDirectory);
+				}
+				// 复制目录中的所有文件
+				string[] files = Directory.GetFiles(sourcePath);
+				foreach (string file in files)
+				{
+					string destinationFilePath = Path.Combine(destinationDirectory, Path.GetFileName(file));
+					File.Copy(file, destinationFilePath, true);
+				}
+				// 递归复制子目录
+				string[] subDirectories = Directory.GetDirectories(sourcePath);
+				foreach (string subDirectory in subDirectories)
+				{
+					CopyFilesAndDirectories(subDirectory, destinationFolder);
+				}
+			}
+		}
+		public static void CopyFilesAndDirectories(string[] sourcePaths, string destinationDirectory)
+		{
+			foreach (string sourcePath in sourcePaths)
+			{
+				if (File.Exists(sourcePath))
+				{
+					CopyFile(sourcePath, destinationDirectory);
+					Debug.Print("file [{0}] copyed to [{1}]", sourcePath, destinationDirectory);
+				}
+				else if (Directory.Exists(sourcePath))
+				{
+					CopyDirectory(sourcePath, destinationDirectory);
+				}
+				else
+				{
+					throw new ArgumentException($"Source path '{sourcePath}' does not exist.");
+				}
+			}
+		}
 
-        public void CopyDirectory(string sourceDir, string targetDir)
+		private static void CopyFile(string sourceFile, string destinationDirectory)
+		{
+			string fileName = Path.GetFileName(sourceFile);
+			string destFile = Path.Combine(destinationDirectory, fileName);
+
+			Directory.CreateDirectory(destinationDirectory);
+			File.Copy(sourceFile, destFile, overwrite: true);
+		}
+
+		public static void CopyDirectory(string sourceDir, string destinationDir)
+		{
+			DirectoryInfo sourceDirInfo = new DirectoryInfo(sourceDir);
+			string dirName = sourceDirInfo.Name;
+
+			if (string.IsNullOrEmpty(dirName))
+			{
+				throw new ArgumentException("Source directory is a root directory and cannot be copied.");
+			}
+
+			string destDir = Path.Combine(destinationDir, dirName);
+			Directory.CreateDirectory(destDir);
+
+			foreach (FileInfo file in sourceDirInfo.GetFiles())
+			{
+				string destFile = Path.Combine(destDir, file.Name);
+				file.CopyTo(destFile, overwrite: true);
+			}
+
+			foreach (DirectoryInfo subDir in sourceDirInfo.GetDirectories())
+			{
+				CopyDirectory(subDir.FullName, destDir);
+			}
+		}
+		public static void CopyDirectory1(string sourceDir, string targetDir)
         {
             try
             {
@@ -22,7 +114,7 @@ namespace WinFormsApp1
                 foreach (var directory in Directory.GetDirectories(sourceDir))
                 {
                     var targetDirectoryPath = Path.Combine(targetDir, Path.GetFileName(directory));
-                    CopyDirectory(directory, targetDirectoryPath);
+                    CopyDirectory1(directory, targetDirectoryPath);
                 }
             }
             catch (Exception ex)
@@ -30,8 +122,92 @@ namespace WinFormsApp1
                 MessageBox.Show($"复制目录失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-		
-        public List<FileSystemInfo> GetDirectoryContents(string path, WinShell.ReadDirContentsMode readmode = WinShell.ReadDirContentsMode.Both)
+		public static void DeleteFile(string path)
+		{
+			try
+			{
+				if (Directory.Exists(path))
+				{
+					Directory.Delete(path, true);
+				}
+				else if (File.Exists(path))
+				{
+					File.Delete(path);
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"删除失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+
+		public static void CreateDirectory(string path)
+		{
+			try
+			{
+				var counter = 1;
+				var newpath = path;
+				while (Directory.Exists(newpath))
+				{
+					newpath = $"{path} ({counter})";
+					counter++;
+				}
+				Directory.CreateDirectory(newpath);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"创建目录失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+
+		public static void MoveFileOrDirectory(string sourcePath, string targetPath)
+		{
+			try
+			{
+				if (Directory.Exists(sourcePath))
+				{
+					Directory.Move(sourcePath, targetPath);
+				}
+				else if (File.Exists(sourcePath))
+				{
+					File.Move(sourcePath, targetPath);
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"移动失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+
+		public static async Task<List<FileSystemInfo>> GetDirectoryContentsAsync(string path)
+		{
+			return await Task.Run(() => GetDirectoryContents(path));
+		}
+		public static List<FileSystemInfo> GetDirectoryContents(string path, bool includeFolder = false)
+		{
+			var result = new List<FileSystemInfo>();
+			if (!Directory.Exists(path)) return result;
+
+			try
+			{
+				var dirInfo = new DirectoryInfo(path);
+				if (includeFolder)
+				{
+					var directories = dirInfo.GetDirectories()
+						.Where(d => (d.Attributes & FileAttributes.Hidden) == 0);
+					result.AddRange(directories);
+				}
+				var files = dirInfo.GetFiles()
+						.Where(f => (f.Attributes & FileAttributes.Hidden) == 0);
+				result.AddRange(files);
+			}
+			catch (UnauthorizedAccessException)
+			{
+				// 忽略访问受限的目录
+			}
+			return result;
+		}
+		public List<FileSystemInfo> GetDirectoryContents(string path, WinShell.ReadDirContentsMode readmode = WinShell.ReadDirContentsMode.Both)
         {
             //var currentTime = DateTime.Now;
             //var needsUpdate = !_directoryCache.ContainsKey(path) ||
@@ -80,82 +256,36 @@ namespace WinFormsApp1
 
 			return _directoryCache[path];
         }
-
-        public string FormatFileSize(long bytes)
-        {
-            string[] sizes = { "B", "KB", "MB", "GB", "TB" };
-            int order = 0;
-            double len = bytes;
-            while (len >= 1024 && order < sizes.Length - 1)
-            {
-                order++;
-                len = len / 1024;
-            }
-            return $"{len:0.##} {sizes[order]}";
-        }
-
-        public bool IsTextFile(string extension)
+		public static string FormatFileSize(long bytes)
+		{
+			string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+			int order = 0;
+			double size = bytes;
+			while (size >= 1024 && order < sizes.Length - 1)
+			{
+				order++;
+				size = size / 1024;
+			}
+			return $"{size:0.##} {sizes[order]}";
+		}
+		// 判断文件是否为文本文件
+		public static bool IsTextFile(string extension)
         {
             return Constants.TextFileExtensions.Contains(extension.ToLower());
         }
-
-        public void DeleteFile(string path)
-        {
-            try
-            {
-                if (Directory.Exists(path))
-                {
-                    Directory.Delete(path, true);
-                }
-                else if (File.Exists(path))
-                {
-                    File.Delete(path);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"删除失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        public void CreateDirectory(string path)
-        {
-            try
-            {
-				var counter = 1;
-				var newpath = path;
-				while (Directory.Exists(newpath))
-				{
-					newpath = $"{path} ({counter})";
-					counter++;
-				}
-				Directory.CreateDirectory(newpath);
+		public static bool IsValidFileSystemPath(string path)
+		{
+			try
+			{
+				return Directory.Exists(path) || File.Exists(path);
 			}
-            catch (Exception ex)
-            {
-                MessageBox.Show($"创建目录失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        public void MoveFileOrDirectory(string sourcePath, string targetPath)
-        {
-            try
-            {
-                if (Directory.Exists(sourcePath))
-                {
-                    Directory.Move(sourcePath, targetPath);
-                }
-                else if (File.Exists(sourcePath))
-                {
-                    File.Move(sourcePath, targetPath);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"移动失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-    }
+			catch
+			{
+				return false;
+			}
+		}
+	
+	}
 
 	class FileInfoList
 	{

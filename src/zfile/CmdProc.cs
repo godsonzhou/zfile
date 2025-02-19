@@ -4,23 +4,15 @@ using WinFormsApp1;
 
 namespace CmdProcessor
 {
-	public struct CmdTableItem
-    {
-        public string CmdName;
-        public int CmdId;
-        public string Description;
-        public string ZhDesc;
+	public struct CmdTableItem(string cmdName, int cmdId, string description, string zhDesc)
+	{
+        public string CmdName = cmdName;
+        public int CmdId = cmdId;
+        public string Description = description;
+        public string ZhDesc = zhDesc;
+	}
 
-        public CmdTableItem(string cmdName, int cmdId, string description, string zhDesc)
-        {
-            CmdName = cmdName;
-            CmdId = cmdId;
-            Description = description;
-            ZhDesc = zhDesc;
-        }
-    }
-
-    public class CmdTable
+	public class CmdTable
     {
         private readonly Dictionary<string, CmdTableItem> _cmdNameDict = new();
         private readonly Dictionary<int, CmdTableItem> _cmdIdDict = new();
@@ -180,8 +172,6 @@ namespace CmdProcessor
 
         public CmdTableItem? GetCmdByName(string cmdName)
         {
-			//if (cmdName[0] == '"') 
-			//	cmdName = cmdName.TrimStart('"').TrimEnd('"');
 			return cmdTable.GetByCmdName(cmdName);
         }
 
@@ -356,7 +346,7 @@ namespace CmdProcessor
 				//	}
 				//}
 				//           }
-				Helper.CopyFilesAndDirectories(sourceFiles, targetPath);
+				FileSystemManager.CopyFilesAndDirectories(sourceFiles, targetPath);
 				//owner.RefreshTreeViewAndListView(targetlist, targetPath);
 				owner.RefreshPanel(targetlist);
 				return true;
@@ -444,13 +434,8 @@ namespace CmdProcessor
 					}
 					foreach (var file in files)
                     {
-						//if (File.Exists(file))
-						//    File.Delete(file);
-						//else if (Directory.Exists(file))
-						//    Directory.Delete(file, true);
-						owner.fsManager.DeleteFile(file);
+						FileSystemManager.DeleteFile(file);
                     }
-					//owner.RefreshTreeViewAndListView(owner.activeListView, owner.currentDirectory);
 					owner.RefreshPanel(listView);
                 }
                 catch (Exception ex)
@@ -465,26 +450,8 @@ namespace CmdProcessor
         {
             var path = owner.currentDirectory;
             var newFolderPath = Path.Combine(path, folderName);
-    //        var counter = 1;
 
-    //        while (Directory.Exists(newFolderPath))
-    //        {
-    //            folderName = $"新建文件夹 ({counter})";
-    //            newFolderPath = Path.Combine(path, folderName);
-    //            counter++;
-    //        }
-
-    //        try
-    //        {
-    //            Directory.CreateDirectory(newFolderPath);
-				//owner.RefreshTreeViewAndListView(owner.activeTreeview, owner.activeListView, path);
-    //        }
-    //        catch (Exception ex)
-    //        {
-    //            MessageBox.Show($"创建文件夹失败: {ex.Message}", "错误");
-    //        }
-			owner.fsManager.CreateDirectory(newFolderPath);
-			//owner.RefreshTreeViewAndListView(owner.activeListView, path);
+			FileSystemManager.CreateDirectory(newFolderPath);
 			owner.RefreshPanel(owner.activeListView);
 		}
 
@@ -495,7 +462,6 @@ namespace CmdProcessor
             if (listView == null || listView.SelectedItems.Count <= 0) return;
 
             var selectedItem = listView.SelectedItems[0];
-            //var oldPath = Path.Combine(owner.currentDirectory, selectedItem.Text);
 
             // 启用编辑模式
             selectedItem.BeginEdit();
@@ -755,7 +721,6 @@ namespace CmdProcessor
                     MessageBox.Show($"打包文件时出错: {ex.Message}", "错误");
                 }
             }
-			//owner.RefreshTreeViewAndListView(owner.activeListView, owner.currentDirectory);
 			owner.RefreshPanel(listView);
         }
 
@@ -786,7 +751,7 @@ namespace CmdProcessor
                     System.IO.Compression.ZipFile.ExtractToDirectory(
                         zipPath,
                         folderDialog.SelectedPath,
-                        System.Text.Encoding.GetEncoding("GB2312"),
+                        Encoding.GetEncoding("GB2312"),
                         true);
 
                     MessageBox.Show("文件解压完成", "提示");

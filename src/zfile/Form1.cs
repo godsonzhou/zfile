@@ -1841,7 +1841,7 @@ namespace WinFormsApp1
 
             var selectedDrive = uiManager.LeftDriveBox.SelectedItem?.ToString();
             var listView = selectedDrive != null && watcher.Path.StartsWith(selectedDrive) ? uiManager.LeftList : uiManager.RightList;
-			RefreshPanel(listView);
+			//RefreshPanel(listView);//TODO:BUGFIX 线程异常操作，
         }
     }
 }

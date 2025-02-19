@@ -386,7 +386,19 @@ namespace WinFormsApp1
 			}
 			return $"{size:0.##} {sizes[order]}";
 		}
-
+		public static string GetListItemPath(ListViewItem item)
+		{
+			TreeNode node = (TreeNode)item.Tag;
+			var path = Helper.getFSpath(node.FullPath);
+			var return1 = Path.Combine(path, item.Text);
+			var sitem = (ShellItem)node.Tag;
+			var return2 = sitem.parsepath;
+			if (return1 != return2)
+			{
+				Debug.Print($"get listitem path diff >>> getfspath:{return1}, sitem.parsepath:{return2}");
+			}
+			return return1;
+		}
 		public static string getFSpath(string path)
 		{
 			if (path.Contains(':'))

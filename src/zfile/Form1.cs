@@ -187,7 +187,7 @@ namespace WinFormsApp1
             // 收集拖拽项路径
             draggedItems = listView.SelectedItems
                 .Cast<ListViewItem>()
-                .Select(item => GetListItemPath(item))
+                .Select(item => Helper.GetListItemPath(item))
                 .ToArray();
 			//Debug.Print(draggedItems[0].ToString());
             // 启动拖拽操作
@@ -198,75 +198,35 @@ namespace WinFormsApp1
         {
             return Helper.getFSpathbyTree(node);
         }
+		private bool IsValidTarget(TreeView treeView, DragEventArgs e, out string targetPath)
+		{
+			targetPath = string.Empty;
+			if (treeView == null) return false;
+			// 将屏幕坐标转换为 TreeView 控件内的坐标
+			var clientPoint = treeView.PointToClient(new Point(e.X, e.Y));
+			// 使用 GetNodeAt 获取目标节点
+			var targetNode = treeView.GetNodeAt(clientPoint);
+			if (targetNode == null) {  return false; }
+			targetPath = GetTreeNodePath(targetNode);
+			return Helper.IsValidFileSystemPath(targetPath);
+		}
         public void TreeView_DragOver(object? sender, DragEventArgs e)
         {
             // 检查目标是否为有效文件系统路径
             var treeView = sender as TreeView;
-            treeView.Update();
-            // 将屏幕坐标转换为 TreeView 控件内的坐标
-            var clientPoint = treeView.PointToClient(new Point(e.X, e.Y));
-            // 使用 GetNodeAt 获取目标节点
-            var targetNode = treeView.GetNodeAt(clientPoint);
-            if (targetNode != null)
-            {
-                //Debug.Print("target node :{0} ", targetNode.FullPath);
-                var targetPath = GetTreeNodePath(targetNode);
-     //           if (!targetPath.Equals(string.Empty)) 
-					//Debug.Print("targetpath : {0}, target node : {1}", targetPath, targetNode.FullPath);
-                bool isValid = Helper.IsValidFileSystemPath(targetPath);
-                e.Effect = isValid ? DragDropEffects.Copy : DragDropEffects.None;
-                return;
-            }
-            e.Effect = DragDropEffects.None;
+            treeView?.Update();
+            e.Effect = IsValidTarget(treeView, e, out _) ? DragDropEffects.Copy : DragDropEffects.None;
+            return;
         }
-        private string GetListItemPath(ListViewItem item)
-        {
-			TreeNode node = (TreeNode)item.Tag;
-			var path = Helper.getFSpath(node.FullPath);
-            return Path.Combine(path, item.Text);
-        }
-        public void ListView_DragOver(object? sender, DragEventArgs e)
-        {
-            // 检查目标是否为有效文件系统路径
-            var listView = sender as ListView;
-            listView.Update();
-            // 将屏幕坐标转换为 TreeView 控件内的坐标
-            var clientPoint = listView.PointToClient(new Point(e.X, e.Y));
-            // 使用 GetNodeAt 获取目标节点
-            var targetItem = listView.GetItemAt(clientPoint.X, clientPoint.Y);
-			string targetpath;
-            if (targetItem != null)
-            {
-                //Debug.Print("target node :{0} ", targetItem.FullPath);
-                targetpath = GetListItemPath(targetItem);
-     //           if (!targetPath.Equals(string.Empty)) 
-					//Debug.Print("targetpath : {0} <<< {1} items dragged!", targetPath, draggedItems.Length.ToString());
-            }
-			else
-			{
-				var targettree = listView == uiManager.LeftList ? uiManager.LeftTree : uiManager.RightTree;
-				targetpath = Helper.getFSpathbyTree(targettree.SelectedNode);
-			}
-			bool isValid = Helper.IsValidFileSystemPath(targetpath);
-			e.Effect = isValid ? DragDropEffects.Copy : DragDropEffects.None;
-			return;
-        }
-
         public void TreeView_DragDrop(object? sender, DragEventArgs e)
         {
-            //Debug.Print("treeview_dragdrop");
-            var treeView = sender as TreeView;
-            var clientPoint = treeView.PointToClient(new Point(e.X, e.Y));
-            var targetNode = treeView.GetNodeAt(clientPoint);
-            if (targetNode == null) return;
-            var targetPath = GetTreeNodePath(targetNode);
-            if (targetNode == null || !Helper.IsValidFileSystemPath(targetPath)) return;
-            if (!e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                draggedItems = e.Data.GetData(DataFormats.FileDrop) as string[];
-            }
-            if (draggedItems == null || !Helper.IsValidFileSystemPath(targetPath)) return;
-
+            var treeView = sender as TreeView;     
+			if (treeView == null) { return; }
+            //if (!e.Data.GetDataPresent(DataFormats.FileDrop))
+            //{
+            //    draggedItems = e.Data.GetData(DataFormats.FileDrop) as string[];
+            //}
+            if (draggedItems == null || !IsValidTarget(treeView, e, out string targetPath)) return;
             // 复制文件/目录到目标路径
             foreach (var sourcePath in draggedItems)
             {
@@ -283,31 +243,46 @@ namespace WinFormsApp1
                     MessageBox.Show($"复制失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-
             // 刷新目标视图
-            var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
-            LoadSubDirectories(targetNode, listView);
+            //var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
+            //LoadSubDirectories(targetNode, listView);
+			RefreshPanel(treeView);
         }
-        public void ListView_DragDrop(object? sender, DragEventArgs e)
+		public void ListView_DragOver(object? sender, DragEventArgs e)
+		{
+			// 检查目标是否为有效文件系统路径
+			var listView = sender as ListView;
+			listView.Update();
+			e.Effect = IsValidTarget(listView, e, out _) ? DragDropEffects.Copy : DragDropEffects.None;
+			return;
+		}
+		private bool IsValidTarget(ListView listView, DragEventArgs e, out string targetPath)
+		{
+			// 将屏幕坐标转换为 TreeView 控件内的坐标
+			var clientPoint = listView.PointToClient(new Point(e.X, e.Y));
+			// 使用 GetNodeAt 获取目标节点
+			var targetItem = listView.GetItemAt(clientPoint.X, clientPoint.Y);
+			if (targetItem != null)
+				targetPath = Helper.GetListItemPath(targetItem);
+			else
+			{
+				var targetTree = (listView == uiManager.LeftList) ? uiManager.LeftTree : uiManager.RightTree;
+				targetPath = Helper.getFSpathbyTree(targetTree.SelectedNode);
+			}
+			return Helper.IsValidFileSystemPath(targetPath);
+		}
+		public void ListView_DragDrop(object? sender, DragEventArgs e)
         {
 			//Debug.Print("listview_dragdrop");
 			if (draggedItems == null) return;
 			var listView = sender as ListView;
-			var targetTree = (listView == uiManager.LeftList) ? uiManager.LeftTree : uiManager.RightTree;
-			var clientPoint = listView.PointToClient(new Point(e.X, e.Y));
-            var targetItem = listView.GetItemAt(clientPoint.X, clientPoint.Y);
-			string targetPath;
-			if (targetItem != null)
-				targetPath = GetListItemPath(targetItem);
-			else
-				targetPath = Helper.getFSpathbyTree(targetTree.SelectedNode);
-            if (!Helper.IsValidFileSystemPath(targetPath)) return;
-            //if (!e.Data.GetDataPresent(DataFormats.FileDrop))
-            //{
-            //	draggedItems = e.Data.GetData(DataFormats.FileDrop) as string[];
-            //}
+			if (!IsValidTarget(listView, e, out string targetPath)) return;
+			//if (!e.Data.GetDataPresent(DataFormats.FileDrop))
+			//{
+			//	draggedItems = e.Data.GetData(DataFormats.FileDrop) as string[];
+			//}
 			// 复制文件/目录到目标路径
-            foreach (var sourcePath in draggedItems)
+			foreach (var sourcePath in draggedItems)
             {
 				Helper.CopyFilesAndDirectories(sourcePath, targetPath);
 				//try

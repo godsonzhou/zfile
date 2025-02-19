@@ -667,16 +667,6 @@ namespace WinFormsApp1
 					var shellItem = (ShellItem)e.Node.Tag;
 					SFGAO attributes = shellItem.GetAttributes();
 
-					// 如果是末梢节点且不是文件系统对象
-					//if (!attributes.HasFlag(SFGAO.FILESYSTEM))
-					//if(shellItem.IsVirtual)
-					//{
-					//	// 直接执行打开操作
-					//	//string path = Helper.getFSpathbyTree(e.Node);
-					//	Process.Start(new ProcessStartInfo(shellItem.parsepath) { UseShellExecute = true });
-					//	//return;
-					//}
-
 					LoadSubDirectories(e.Node, activeListView);
 					e.Node.Expand();
                     var path = Helper.getFSpathbyTree(e.Node);
@@ -690,7 +680,6 @@ namespace WinFormsApp1
                         watcher.EnableRaisingEvents = true;
                     }
                     // 调用leftpathtextbox的setaddress方法来更新路径
-                    //Debug.Print("treeview afterselect , set addr: {0}", path);
 					if (uiManager.isleft)
 						uiManager.LeftPathTextBox.SetAddress(path);
                     else
@@ -703,16 +692,7 @@ namespace WinFormsApp1
             //    MessageBox.Show($"TreeView_AfterSelect加载目录失败: {ex.Message}", "错误");
             //}
         }
-		private string GetFullPath(TreeNode node)
-        {
-            List<string> pathParts = new List<string>();
-            while (node != null)
-            {
-                pathParts.Insert(0, node.Text);
-                node = node.Parent;
-            }
-            return Path.Combine(pathParts.ToArray());
-        }
+		
         private void ClearTreeViewHighlight(TreeView treeView)
         {
             foreach (TreeNode node in treeView.Nodes)
@@ -726,26 +706,6 @@ namespace WinFormsApp1
                 ClearNodeHighlight(childNode);
         }
        
-        private string GetNodeType(TreeNode node)
-        {
-            var type = string.Empty;
-            if (node.Tag is ShellItem shellItem)
-            {
-                //SFGAO attributes = SFGAO.FOLDER | SFGAO.FILESYSTEM;
-                //shellItem.ShellFolder.GetAttributesOf(1, new[] { shellItem.PIDL }, ref attributes);
-
-                //if ((attributes & SFGAO.FILESYSTEM) != 0)
-                //	type += "drives";
-                //if ((attributes & SFGAO.FOLDER) != 0)
-                //	type += "folder";
-                //if ((attributes & SFGAO.LINK) != 0)
-                //	type += "link";
-                //if ((attributes & SFGAO.STORAGE) != 0)
-                //	type += "storage";
-                //type += ((uint)attributes).ToString();
-            }
-            return type;
-        }
         public void LoadDriveIntoTree(TreeView treeView, string drivepath)
         {
             //Debug.Print("LoadDriveIntoTree");
@@ -767,10 +727,8 @@ namespace WinFormsApp1
                 treeView.Nodes.Add(rootNode);
                 // 加载并展开根目录
                 LoadSubDirectories(rootNode);
-                //rootNode.Expand();
 				var node = FindTreeNode(rootNode.Nodes, drivepath, true);
 				treeView.SelectedNode = node;
-				//node?.Expand();
 				treeView.EndUpdate();
             }
             catch (Exception ex)
@@ -783,11 +741,8 @@ namespace WinFormsApp1
         {
             if (e.Button == MouseButtons.Left)
             {
-                //isSelecting = true;
-                //selectionStart = e.Location;
 				var v = sender as ListView;
 				uiManager.isleft = v == uiManager.LeftList;
-                //v?.SelectedItems.Clear();
             }
         }
 		public void ListView_BeforeLabelEdit(object sender, EventArgs e)
@@ -845,7 +800,6 @@ namespace WinFormsApp1
 				MessageBox.Show($"重命名失败: {ex.Message}", "错误");
 				item.Text = oldName;
 			}
-			//RefreshTreeViewAndListView(listView, currentDirectory);
 			RefreshPanel(listView);
 		}
 		public void ListView_MouseMove(object sender, MouseEventArgs e)
@@ -1053,7 +1007,7 @@ namespace WinFormsApp1
                     }
                 }
                 LoadSubDirectories(node);
-                node.Expand();//todo: 算法改进，这样效率太低，而且会展开之前所有的无关节点
+                node.Expand();
 				
                 TreeNode? foundNode = FindTreeNode(node.Nodes, path, deepSearch);
                 if (foundNode != null)

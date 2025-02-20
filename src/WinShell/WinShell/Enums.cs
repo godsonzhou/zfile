@@ -4,6 +4,17 @@ using System.Text;
 
 namespace WinShell
 {
+    // 定义 SHIL 枚举，用于指定图像列表的大小
+    public enum SHIL : int
+    {
+        SHIL_LARGE = 0,
+        SHIL_SMALL = 1,
+        SHIL_EXTRALARGE = 2,
+        SHIL_SYSSMALL = 3,
+        SHIL_JUMBO = 4,
+        SHIL_LAST = 4
+    }
+
 	public enum RefreshPanelMode
 	{
 		Left = 1,

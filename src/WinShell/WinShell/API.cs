@@ -384,6 +384,10 @@ namespace WinShell
 	}
 	public class API
 	{
+		// 引入 SHGetImageList 函数
+		[DllImport("shell32.dll", CharSet = CharSet.Auto)]
+		public static extern int SHGetImageList(SHIL iImageList, ref Guid riid, ref IImageList ppv);
+		
 		[DllImport("ole32.dll")]
         public static extern int CoInitializeEx(IntPtr pvReserved, int dwCoInit);
 

@@ -1149,25 +1149,36 @@ namespace WinFormsApp1
 							}
 							else
 							{
-								IntPtr hSysImageList = API.SHGetFileInfo(subItem.PIDL, 0, ref shellInfo, Marshal.SizeOf(shellInfo), (SHGFI.SYSICONINDEX | SHGFI.SMALLICON | SHGFI.ICON ));
-								Debug.Print($"Virtual folder：result={hSysImageList} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}");
-								if (hSysImageList != IntPtr.Zero)
+								// 1. 首先尝试获取系统图标列表
+								var IID_IImageList = new Guid("46EB5926-582E-4017-9FDF-E8998DAA0950");
+								int SHIL_SMALL = 1;
+								IImageList hImageList = null;
+								API.SHGetImageList(SHIL.SHIL_SMALL, ref IID_IImageList, ref hImageList);
+								if (hImageList != null)
 								{
-									if (!IconManager.HasIconKey(iconKey))
+									// 2. 获取图标索引
+									shellInfo = new SHFILEINFO();
+									API.SHGetFileInfo(subItem.PIDL, 0, ref shellInfo, Marshal.SizeOf(shellInfo),
+									SHGFI.SYSICONINDEX | SHGFI.PIDL | SHGFI.USEFILEATTRIBUTES);
+									if (shellInfo.iIcon > 0)
 									{
-										// Retrieve the icon from the system image list
-										IntPtr hIcon = API.ImageList_GetIcon(hSysImageList, shellInfo.iIcon, 0);
+										// 3. 从系统图标列表中提取图标
+										// IntPtr hIcon = API.ImageList_GetIcon(hImageList, shellInfo.iIcon, 0);
+										IntPtr hIcon = IntPtr.Zero;
+										hImageList.GetIcon(0, 0, ref hIcon);
 										if (hIcon != IntPtr.Zero)
 										{
 											try
 											{
-												Debug.Print($"Got icon handle for system icon {iconKey},  handler:{hIcon}");
 												using (Icon icon = Icon.FromHandle(hIcon))
 												{
+													iconKey = $"{subItem.PIDL}{shellInfo.iIcon}S".ToLower();
 													IconManager.AddIcon(iconKey, icon);
 													var bitmap = icon.ToBitmap();
 													if (!activeTreeview.ImageList.Images.ContainsKey(iconKey))
 														activeTreeview.ImageList.Images.Add(iconKey, bitmap);
+													nodeSub.ImageKey = iconKey;
+													nodeSub.SelectedImageKey = iconKey;
 												}
 											}
 											finally
@@ -1176,9 +1187,37 @@ namespace WinFormsApp1
 											}
 										}
 									}
-									else
-										IconManager.LoadIconFromCacheByKey(iconKey, activeTreeview.ImageList);
 								}
+								// IntPtr hSysImageList = API.SHGetFileInfo(subItem.PIDL, 0, ref shellInfo, Marshal.SizeOf(shellInfo), (SHGFI.SYSICONINDEX | SHGFI.SMALLICON | SHGFI.ICON ));
+								// Debug.Print($"Virtual folder：result={hSysImageList} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}");
+								// if (hSysImageList != IntPtr.Zero)
+								// {
+								// 	if (!IconManager.HasIconKey(iconKey))
+								// 	{
+								// 		// Retrieve the icon from the system image list
+								// 		IntPtr hIcon = API.ImageList_GetIcon(hSysImageList, shellInfo.iIcon, 0);
+								// 		if (hIcon != IntPtr.Zero)
+								// 		{
+								// 			try
+								// 			{
+								// 				Debug.Print($"Got icon handle for system icon {iconKey},  handler:{hIcon}");
+								// 				using (Icon icon = Icon.FromHandle(hIcon))
+								// 				{
+								// 					IconManager.AddIcon(iconKey, icon);
+								// 					var bitmap = icon.ToBitmap();
+								// 					if (!activeTreeview.ImageList.Images.ContainsKey(iconKey))
+								// 						activeTreeview.ImageList.Images.Add(iconKey, bitmap);
+								// 				}
+								// 			}
+								// 			finally
+								// 			{
+								// 				API.DestroyIcon(hIcon);
+								// 			}
+								// 		}
+								// 	}
+								// 	else
+								// 		IconManager.LoadIconFromCacheByKey(iconKey, activeTreeview.ImageList);
+								// }
 								else
 								{
 									result = API.SHGetFileInfo(subItem.PIDL, 0, ref shellInfo, Marshal.SizeOf(typeof(SHFILEINFO)),

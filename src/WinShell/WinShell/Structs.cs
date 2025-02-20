@@ -2,9 +2,43 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
+using System.Drawing;
 
 namespace WinShell
 {
+    // 定义 IMAGELISTDRAWPARAMS 结构体
+    [StructLayout(LayoutKind.Sequential)]
+    public struct IMAGELISTDRAWPARAMS
+    {
+        public int cbSize;
+        public IntPtr himl;
+        public int i;
+        public IntPtr hdcDst;
+        public int x;
+        public int y;
+        public int cx;
+        public int cy;
+        public int xBitmap;
+        public int yBitmap;
+        public int rgbBk;
+        public int rgbFg;
+        public int fStyle;
+        public int dwRop;
+        public int fState;
+        public int Frame;
+        public int crEffect;
+    }
+    // 定义 IMAGEINFO 结构体，用于获取图像信息
+    [StructLayout(LayoutKind.Sequential)]
+    public struct IMAGEINFO
+    {
+        public IntPtr hbmImage;
+        public IntPtr hbmMask;
+        public int Unused1;
+        public int Unused2;
+        public Rectangle rcImage;
+    }
+
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
 	public struct STRRET
 	{

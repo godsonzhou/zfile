@@ -563,7 +563,6 @@ namespace WinFormsApp1
 			RightTree.ImageList = treeViewImageList;
 		}
 
-
 		private void UpdateNodeIcon(TreeNode node)
 		{
 			string iconKey = IconManager.GetNodeIconKey(node);

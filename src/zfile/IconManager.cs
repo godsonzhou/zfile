@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using WinShell;
 using System.Collections.Generic;
+using System.Reflection.Metadata.Ecma335;
 
 namespace WinFormsApp1
 {
@@ -227,91 +228,69 @@ namespace WinFormsApp1
 
 			return ico;
 		}
+		private static Icon ConvertImageToIcon(Image image)
+		{
+			using (Bitmap bmp = new Bitmap(image))
+			{
+				IntPtr hIcon = bmp.GetHicon();
+				try
+				{
+					return Icon.FromHandle(hIcon);
+				}
+				finally
+				{
+					API.DestroyIcon(hIcon);
+				}
+			}
+		}
+		public static void LoadIconFromCacheByKey(string key, ImageList l)
+		{
+			if (HasIconKey(key) && !l.Images.ContainsKey(key)) { 
+				l.Images.Add(key, iconCache[key]);
+			}
+		}
 		public static void InitializeIcons(ImageList l, bool islarge = false)
 		{
-			var imageresPath = Path.Combine(Environment.SystemDirectory, "imageres.dll");
+			// 添加系统图标到treeViewImageList
 			l.ColorDepth = ColorDepth.Depth32Bit;
 			if (islarge)
-			{
 				l.ImageSize = new Size(64, 64);
-			}
 			else
 			{ l.ImageSize = new Size(16, 16); }
 
-			// 使用IconManager加载系统图标
+			var imageresPath = Path.Combine(Environment.SystemDirectory, "imageres.dll");
 			var imageList = LoadIconsFromFile(imageresPath, islarge);
-
-			// 添加系统图标到treeViewImageList
-			//l.Images.Add("desktop", LoadIcon($"{imageresPath},174")); // 桌面
-			//l.Images.Add("computer", LoadIcon($"{imageresPath},104")); // 此电脑
-			//l.Images.Add("network", LoadIcon($"{imageresPath},20")); // 网上邻居
-			//l.Images.Add("controlPanel", LoadIcon($"{imageresPath},22")); // 控制面板
-			//l.Images.Add("recyclebin", LoadIcon($"{imageresPath},49")); // 回收站49,empty recyclebin=50
-			//l.Images.Add("documents", LoadIcon($"{imageresPath},107")); // 文档
-			//l.Images.Add("drives", LoadIcon($"{imageresPath},27")); // 磁盘驱动器
-			//l.Images.Add("linux", LoadIcon($"{imageresPath},27")); // 
-			//l.Images.Add("downloads", LoadIcon($"{imageresPath},175")); // 
-			//l.Images.Add("music", LoadIcon($"{imageresPath},103")); // 
-			//l.Images.Add("pictures", LoadIcon($"{imageresPath},108")); // 
-			//l.Images.Add("videos", LoadIcon($"{imageresPath},178")); // 
-			//l.Images.Add("home", LoadIcon($"{imageresPath},83")); // 
-			l.Images.Add("desktop", imageList.Images[174]); // 桌面
-			l.Images.Add("computer", imageList.Images[104]); // 此电脑
-			l.Images.Add("network", imageList.Images[20]); // 网上邻居
-			l.Images.Add("controlPanel", imageList.Images[22]); // 控制面板
-			l.Images.Add("recyclebin", imageList.Images[49]); // 回收站49,empty recyclebin=50
-			l.Images.Add("documents", imageList.Images[107]); // 文档
 			l.Images.Add("drives", imageList.Images[27]); // 磁盘驱动器
-			l.Images.Add("linux", imageList.Images[27]); // 
-			l.Images.Add("downloads", imageList.Images[175]); // 
-			l.Images.Add("music", imageList.Images[103]); // 
-			l.Images.Add("pictures", imageList.Images[108]); // 
-			l.Images.Add("videos", imageList.Images[178]); // 
-			l.Images.Add("home", imageList.Images[83]); // 
+			l.Images.Add("folder", imageList.Images[3]);
+			l.Images.Add("桌面", imageList.Images[174]); // 桌面
+			if (HasIconKey($"{imageresPath}_0" + (islarge ? 'L' : 'S')))
+				return;
 
-			// 添加默认文件夹图标
-			Icon folderIcon = GetIconByFileType("folder", false);
-			if (folderIcon != null)
+			var idx = 0;
+			foreach (Image image in imageList.Images) 
 			{
-				l.Images.Add("folder", folderIcon);
+				AddIcon(($"{imageresPath}_{idx}") + (islarge ? 'L' : 'S'), ConvertImageToIcon(image));
+				idx ++;
+			}
+
+		}
+		public static string GetIconKey(ShellItem item)
+		{
+			if (item.IsVirtual || !item.GetAttributes().HasFlag(SFGAO.FILESYSTEM)) 
+				return item.IconKey;
+			else
+			{
+				if (item.Name.Contains(':'))
+					return "drives";
+				return "folder";
 			}
 		}
-		public static string GetIconKey(string Text)
-		{
-			// 基于节点文本和属性确定图标键值
-			if (Text.Equals("桌面", StringComparison.OrdinalIgnoreCase)) return "desktop";
-			if (Text.Equals("此电脑", StringComparison.OrdinalIgnoreCase)) return "computer";
-			if (Text.Equals("网络", StringComparison.OrdinalIgnoreCase)) return "network";
-			if (Text.Equals("控制面板", StringComparison.OrdinalIgnoreCase)) return "controlPanel";
-			if (Text.Equals("回收站", StringComparison.OrdinalIgnoreCase)) return "recyclebin";
-			if (Text.Contains("文档", StringComparison.OrdinalIgnoreCase)) return "documents";
-			if (Text.Contains("Linux", StringComparison.OrdinalIgnoreCase)) return "linux";
-			if (Text.Contains("下载", StringComparison.OrdinalIgnoreCase)) return "downloads";
-			if (Text.Contains("音乐", StringComparison.OrdinalIgnoreCase)) return "music";
-			if (Text.Contains("图片", StringComparison.OrdinalIgnoreCase)) return "pictures";
-			if (Text.Contains("视频", StringComparison.OrdinalIgnoreCase)) return "videos";
-			if (Text.Contains("主文件夹", StringComparison.OrdinalIgnoreCase)) return "home";
-			// 检查是否为驱动器
-			if (Text.Contains(":")) return "drives";
-			return "folder"; // 默认返回文件夹图标
-		}
+		
 		public static string GetNodeIconKey(TreeNode node)
 		{
-			var ico = GetIconKey(node.Text);
-			//Debug.Print("search icon tree key {0} -> {1}", node.Text, ico);
+			var ico = GetIconKey((ShellItem)node.Tag);	
+			Debug.Print("search icon tree key {0} -> {1}", node.Text, ico);
 			return ico;
-
-			// 如果节点包含Tag并且是ShellItem类型，可以进一步判断
-			if (node.Tag is ShellItem shellItem)
-			{
-				SFGAO attributes = SFGAO.FOLDER;
-				if ((attributes & SFGAO.FILESYSTEM) != 0)
-				{
-					return "folder";
-				}
-			}
-
-			return "folder"; // 默认返回文件夹图标
 		}
 
 		public static Image? LoadIcon(string iconPath)
@@ -359,15 +338,20 @@ namespace WinFormsApp1
 
 		public static bool HasIconKey(string key)
 		{
-			return iconCache.ContainsKey(key);
+			return iconCache.ContainsKey(key.ToLower());
 		}
 
 		public static void AddIcon(string key, Icon icon)
 		{
+			key = key.ToLower();
 			if (!iconCache.ContainsKey(key))
 			{
 				iconCache[key] = icon.Clone() as Icon;
 			}
+		}
+		public static Icon GetIcon(string key)
+		{
+			return iconCache[key.ToLower()];
 		}
 	}
 }

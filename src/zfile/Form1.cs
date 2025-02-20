@@ -1,5 +1,6 @@
 using CmdProcessor;
 using System.Diagnostics;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using WinShell;
 using zfile;
@@ -675,10 +676,10 @@ namespace WinFormsApp1
 
                 TreeNode rootNode = new ("桌面")
                 {
-                    Tag = new ShellItem(deskTopPtr, iDeskTop, null),
-                    ImageKey = "desktop", // 设置图标
-                    SelectedImageKey = "desktop" // 设置选中图标
-                };
+                    Tag = new ShellItem(deskTopPtr, iDeskTop, null) { IconKey = "桌面"},
+                    ImageKey = "桌面", // 设置图标
+                    SelectedImageKey = "桌面" // 设置选中图标
+				};
                 treeView.Nodes.Add(rootNode);
                 // 加载并展开根目录
                 LoadSubDirectories(rootNode);
@@ -1126,64 +1127,102 @@ namespace WinFormsApp1
 						if (subItem.IsVirtual || (subItem.GetAttributes() & SFGAO.FILESYSTEM) == 0)
 						{
 							var shellInfo = new SHFILEINFO();
-							//IntPtr hSysImageList = API.SHGetFileInfo(pidlSub, 0, ref shellInfo, (uint)Marshal.SizeOf(shellInfo), (uint)(SHGFI.SYSICONINDEX | SHGFI.SMALLICON));
+							
 							// 首先获取系统图标索引
-							var result = API.SHGetFileInfo(subItem.parsepath, 0, ref shellInfo, Marshal.SizeOf(typeof(SHFILEINFO)),
-								(SHGFI.SYSICONINDEX | SHGFI.SMALLICON | SHGFI.ICON));
-							Debug.Print($"Virtual folder icon - Path: {subItem.parsepath}, SysIconIndex: {shellInfo.iIcon}");
-							if (result != IntPtr.Zero)
-							{
-								// 使用系统图标索引作为键值
-								string iconKey = $"sysicon_{shellInfo.iIcon}";
+							var result = API.SHGetFileInfo(subItem.PIDL, 0, ref shellInfo, Marshal.SizeOf(typeof(SHFILEINFO)),
+								(SHGFI.SMALLICON | SHGFI.ICON | SHGFI.PIDL));
+							Debug.Print($"Virtual folder：result={result} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}");
+							// 使用系统图标索引作为键值
+							string iconKey = $"{subItem.PIDL}_{shellInfo.iIcon}S".ToLower();
+							subItem.IconKey = iconKey;
 
-								// Retrieve the icon from the system image list
-								//IntPtr hIcon = API.ImageList_GetIcon(hSysImageList, shellInfo.iIcon, ILD_TRANSPARENT);
-								if (!IconManager.HasIconKey(iconKey))
+							if (shellInfo.hIcon != IntPtr.Zero && shellInfo.iIcon != 0)
+							{
+								using (Icon icon = Icon.FromHandle(shellInfo.hIcon))
 								{
-									if (shellInfo.hIcon != IntPtr.Zero)
+									IconManager.AddIcon(iconKey, icon);
+									var bitmap = icon.ToBitmap();
+									if (!activeTreeview.ImageList.Images.ContainsKey(iconKey))
+										activeTreeview.ImageList.Images.Add(iconKey, bitmap);
+								}
+								API.DestroyIcon(shellInfo.hIcon);
+							}
+							else
+							{
+								IntPtr hSysImageList = API.SHGetFileInfo(subItem.PIDL, 0, ref shellInfo, Marshal.SizeOf(shellInfo), (SHGFI.SYSICONINDEX | SHGFI.SMALLICON | SHGFI.ICON ));
+								Debug.Print($"Virtual folder：result={hSysImageList} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}");
+								if (hSysImageList != IntPtr.Zero)
+								{
+									if (!IconManager.HasIconKey(iconKey))
 									{
-										try
+										// Retrieve the icon from the system image list
+										IntPtr hIcon = API.ImageList_GetIcon(hSysImageList, shellInfo.iIcon, 0);
+										if (hIcon != IntPtr.Zero)
 										{
-											//Debug.Print($"Got icon handle for system icon {shellInfo.iIcon}: {shellInfo.hIcon}");
-											using (Icon icon = Icon.FromHandle(shellInfo.hIcon))
+											try
 											{
-												IconManager.AddIcon(iconKey, icon);
-												var bitmap = icon.ToBitmap();
-												if (!uiManager.LeftTree.ImageList.Images.ContainsKey(iconKey))
-													uiManager.LeftTree.ImageList.Images.Add(iconKey, bitmap);
-												if (!uiManager.RightTree.ImageList.Images.ContainsKey(iconKey))
-													uiManager.RightTree.ImageList.Images.Add(iconKey, bitmap);
+												Debug.Print($"Got icon handle for system icon {iconKey},  handler:{hIcon}");
+												using (Icon icon = Icon.FromHandle(hIcon))
+												{
+													IconManager.AddIcon(iconKey, icon);
+													var bitmap = icon.ToBitmap();
+													if (!activeTreeview.ImageList.Images.ContainsKey(iconKey))
+														activeTreeview.ImageList.Images.Add(iconKey, bitmap);
+												}
+											}
+											finally
+											{
+												API.DestroyIcon(hIcon);
 											}
 										}
-										finally
+									}
+									else
+										IconManager.LoadIconFromCacheByKey(iconKey, activeTreeview.ImageList);
+								}
+								else
+								{
+									result = API.SHGetFileInfo(subItem.PIDL, 0, ref shellInfo, Marshal.SizeOf(typeof(SHFILEINFO)),
+									(SHGFI.SMALLICON | SHGFI.ICON | SHGFI.PIDL | SHGFI.ICONLOCATION));
+									Debug.Print($"Virtual folder：result={result} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}, location:{shellInfo.szDisplayName}");
+									if (shellInfo.szDisplayName != string.Empty)
+									{
+										iconKey = ($"{shellInfo.szTypeName}_{shellInfo.iIcon}S").ToLower();
+										if (!IconManager.HasIconKey(iconKey))
 										{
-											API.DestroyIcon(shellInfo.hIcon);
+											var icon = IconManager.ExtractIconFromFile(shellInfo.szTypeName, shellInfo.iIcon);
+											IconManager.AddIcon(iconKey, icon);
 										}
+										IconManager.LoadIconFromCacheByKey(iconKey, activeTreeview.ImageList);
 									}
 								}
-
-								nodeSub.ImageKey = iconKey;
-								nodeSub.SelectedImageKey = iconKey;
 							}
+							nodeSub.ImageKey = iconKey;
+							nodeSub.SelectedImageKey = iconKey;
 							//if(subItem.hasChildren) 
 							SFGAO subattr = subItem.GetAttributes();    // 如果是文件夹且不是虚拟文件夹，则添加"..."节点
+							//Debug.Print("has subdir>"+subattr.HasFlag(SFGAO.HASSUBFOLDER).ToString());
 							if (subattr.HasFlag(SFGAO.FOLDER))
 								nodeSub.Nodes.Add("...");
 						}
 						else
 						{
-							nodeSub.ImageKey = IconManager.GetNodeIconKey(nodeSub);
+							var iconKey = IconManager.GetNodeIconKey(nodeSub);
+							IconManager.LoadIconFromCacheByKey(iconKey, activeTreeview.ImageList);
+							nodeSub.ImageKey = iconKey;
 							nodeSub.SelectedImageKey = nodeSub.ImageKey;
 							// 如果有子文件夹，则添加"..."节点
 							if (Directory.Exists(path))
 							{
-								var dirinfo = new DirectoryInfo(path);  //压缩文件处理到此处引发异常
-								var subdir = dirinfo.GetDirectories();
-								if (subdir.Length != 0)
-									nodeSub.Nodes.Add("...");
+								try
+								{
+									var dirinfo = new DirectoryInfo(path);  //压缩文件处理到此处引发异常
+									var subdir = dirinfo.GetDirectories();	//windows目录CSC无权限异常
+									if (subdir.Length != 0)
+										nodeSub.Nodes.Add("...");
+								}
+								catch { }
 							}
 						}
-						
 
 						node.Nodes.Add(nodeSub);
 
@@ -1191,7 +1230,7 @@ namespace WinFormsApp1
 						{
 							string[] s = ["", name, "", name.Contains(':') ? "本地磁盘" : "<CLS>", ""];
 							var i = new ListViewItem(s);
-							var ico = IconManager.GetIconKey(name);
+							var ico = IconManager.GetIconKey(subItem);
 							i.ImageKey = ico;
 							i.Text = name;
 							i.Tag = node;   //tag存放父节点

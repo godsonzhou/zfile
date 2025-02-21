@@ -1131,7 +1131,7 @@ namespace WinFormsApp1
 							// 首先获取系统图标索引
 							var result = API.SHGetFileInfo(subItem.PIDL, 0, ref shellInfo, Marshal.SizeOf(typeof(SHFILEINFO)),
 								(SHGFI.SMALLICON | SHGFI.ICON | SHGFI.PIDL));
-							Debug.Print($"Virtual folder：result={result} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}");
+							Debug.Print($"Virtual 1folder：result={result} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}");
 							// 使用系统图标索引作为键值
 							var iconKey = $"{subItem.parsepath}_S".ToLower();
 							subItem.IconKey = iconKey;
@@ -1161,8 +1161,8 @@ namespace WinFormsApp1
 									// 2. 获取图标索引
 									shellInfo = new SHFILEINFO();
 									var r = API.SHGetFileInfo(subItem.parsepath, 0, ref shellInfo, Marshal.SizeOf(shellInfo),
-									SHGFI.SYSICONINDEX | SHGFI.SMALLICON | SHGFI.ICON);
-									Debug.Print($"Virtual folder：result={r} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}");
+									SHGFI.SYSICONINDEX  | SHGFI.SMALLICON);
+									Debug.Print($"Virtual 2folder：result={r} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}");
 									if (shellInfo.iIcon > 0)
 									{
 										// 使用系统图标索引作为键值
@@ -1195,9 +1195,9 @@ namespace WinFormsApp1
 									}
 									else
 									{
-										result = API.SHGetFileInfo(subItem.parsepath, 0, ref shellInfo, Marshal.SizeOf(typeof(SHFILEINFO)),
-										(SHGFI.SMALLICON | SHGFI.ICONLOCATION | SHGFI.SYSICONINDEX ));
-										Debug.Print($"Virtual folder：result={result} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}, location:{shellInfo.szDisplayName}");
+                                        //使用shgfi.iconlocation获取图标文件名和图标索引
+										result = API.SHGetFileInfo(subItem.parsepath, 0, ref shellInfo, Marshal.SizeOf(typeof(SHFILEINFO)),(SHGFI.SMALLICON | SHGFI.ICONLOCATION | SHGFI.ATTRIBUTES));
+										Debug.Print($"Virtual 3folder：result={result} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}, location:{shellInfo.szDisplayName}");
 										if (shellInfo.szDisplayName != string.Empty)
 										{
 											iconKey = ($"{shellInfo.szTypeName}_{shellInfo.iIcon}S").ToLower();

@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using System.Drawing;
 using System.ComponentModel;
-using System.Diagnostics;
+using System.Drawing;
+using System.Windows.Forms;
 
 namespace Sheng.Winform.Controls
 {
-    /*
+	
+	/*
      * 在使用前一定要先初始化根节点
      * 然后如果设置当前路径的话，就设置一个由唯一ID组成的Path
      * 然后此方法内部解释这个Path。
@@ -17,7 +15,7 @@ namespace Sheng.Winform.Controls
      * 这样的坏处是会创建很多新的对象浪费资源，改成由根节点解释路径好些
      */
 
-    [ToolboxItem(false)]
+	[ToolboxItem(false)]
     public class ShengAddressBarStrip : ToolStrip
     {
         #region 公开事件
@@ -513,7 +511,12 @@ namespace Sheng.Winform.Controls
                 ResetBar();
             }
         }
-
+		public void SetAddress(TreeNode tnode)
+		{
+			var i = (WinShell.ShellItem)tnode.Tag;
+			SetAddress(i.parsepath);
+			_currentNode.tNode = tnode;
+		}
         /// <summary>
         /// 通过这种方式设置路径的前提是有（初始化过）根节点
         /// </summary>

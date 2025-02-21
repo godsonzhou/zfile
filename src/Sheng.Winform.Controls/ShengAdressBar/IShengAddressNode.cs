@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Drawing;
-
+using System.Windows.Forms;
 namespace Sheng.Winform.Controls
 {
     public interface IShengAddressNode
     {
-        /// <summary>
-        /// Gets/Sets the parent of this node
-        /// </summary>
-        IShengAddressNode Parent
+		TreeNode tNode { get; set; }
+		/// <summary>
+		/// Gets/Sets the parent of this node
+		/// </summary>
+		IShengAddressNode Parent
         {
             get;
             set;

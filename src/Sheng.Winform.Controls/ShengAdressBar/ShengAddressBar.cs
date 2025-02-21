@@ -75,7 +75,10 @@ namespace Sheng.Winform.Controls.SEAdressBar
         {
             addressBarStrip.SetAddress(addressNode);
         }
-
+		public void SetAddress(TreeNode tnode)
+		{
+			addressBarStrip.SetAddress(tnode);
+		}
         public void UpdateNode()
         {
             addressBarStrip.UpdateNode();

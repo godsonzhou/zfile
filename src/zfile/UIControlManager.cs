@@ -351,17 +351,34 @@ namespace WinFormsApp1
 
 		private void LeftPathTextBox_PathChanged(object? sender, EventArgs e)
 		{
-			UpdateTreeViewSelection(LeftTree, LeftPathTextBox.CurrentNode.UniqueID);
+			UpdateTreeViewSelection(LeftTree, LeftPathTextBox.CurrentNode);
 		}
 
 		private void RightPathTextBox_PathChanged(object? sender, EventArgs e)
 		{
-			UpdateTreeViewSelection(RightTree, RightPathTextBox.CurrentNode.UniqueID);
+			UpdateTreeViewSelection(RightTree, RightPathTextBox.CurrentNode);
 		}
 
-		private void UpdateTreeViewSelection(TreeView treeView, string path)
+		private void UpdateTreeViewSelection(TreeView treeView, IShengAddressNode snode)
 		{
-			TreeNode? node = form.FindTreeNode(treeView.Nodes, path, true);
+			Debug.Print($"update treeview sel: {snode.DisplayName}");
+			TreeNode? node = null;
+			if (snode.tNode != null)
+				node = snode.tNode;
+			else
+			{
+				//treeView.BeginUpdate();
+				var tmpnode = treeView.SelectedNode;
+				while (node == null && tmpnode != null)
+				{
+					var path = snode.DisplayName.Contains(':') ? snode.UniqueID.TrimEnd('\\') : snode.DisplayName;
+					node = form.FindTreeNode(tmpnode.Nodes, path);  //TODO: BUGFIX：应该用绝对路径查找，而不是相对路径，否则遇到相同名称的文件夫目录会出现问题
+					if (node != null)
+						break;
+					tmpnode = tmpnode.Parent;
+				}
+				//treeView.EndUpdate();
+			}
 			if (node != null)
 			{
 				treeView.SelectedNode = node;

@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Tab;
 
 namespace WinShell
 {
@@ -52,21 +50,23 @@ namespace WinShell
 		public IntPtr[] GetChildPIDLs(SHCONTF shcontf = SHCONTF.FOLDERS)
 		{
 			List<IntPtr> pidls = new List<IntPtr>();
-			if (ShellFolder != null)
+			try
 			{
-				if (ShellFolder.EnumObjects(IntPtr.Zero, shcontf, out IntPtr pEnumIDList) == w32.S_OK)
+				if (ShellFolder != null)
 				{
-					if (pEnumIDList != IntPtr.Zero)
+					if (ShellFolder.EnumObjects(IntPtr.Zero, shcontf, out IntPtr pEnumIDList) == w32.S_OK)
 					{
-						var e = (IEnumIDList)Marshal.GetObjectForIUnknown(pEnumIDList);
-						while (e.Next(1, out IntPtr pidlSub, out uint celtFetched) == 0 && celtFetched == w32.S_FALSE) //获取子节点的pidl
+						if (pEnumIDList != IntPtr.Zero)
 						{
-							pidls.Add(pidlSub);
+							var e = (IEnumIDList)Marshal.GetObjectForIUnknown(pEnumIDList);
+							while (e.Next(1, out IntPtr pidlSub, out uint celtFetched) == 0 && celtFetched == w32.S_FALSE) //获取子节点的pidl
+							{
+								pidls.Add(pidlSub);
+							}
 						}
 					}
 				}
-			}
-
+			} catch { }
 			return pidls.ToArray();
 		}
 		public bool IsDir

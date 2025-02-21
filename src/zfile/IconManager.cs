@@ -289,7 +289,7 @@ namespace WinFormsApp1
 		public static string GetNodeIconKey(TreeNode node)
 		{
 			var ico = GetIconKey((ShellItem)node.Tag);	
-			Debug.Print("search icon tree key {0} -> {1}", node.Text, ico);
+			//Debug.Print("search icon tree key {0} -> {1}", node.Text, ico);
 			return ico;
 		}
 

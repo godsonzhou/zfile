@@ -638,9 +638,9 @@ namespace WinFormsApp1
                     }
                     // 调用leftpathtextbox的setaddress方法来更新路径
 					if (uiManager.isleft)
-						uiManager.LeftPathTextBox.SetAddress(path);
+						uiManager.LeftPathTextBox.SetAddress(e.Node);
                     else
-                        uiManager.RightPathTextBox.SetAddress(path);
+                        uiManager.RightPathTextBox.SetAddress(e.Node);
 					uiManager.BookmarkManager.UpdateActiveBookmark(path, selectedNode, uiManager.isleft);
 				}
             }
@@ -940,8 +940,8 @@ namespace WinFormsApp1
 
         public TreeNode? FindTreeNode(TreeNodeCollection nodes, string path, bool deepSearch = false)
         {
-            //Debug.Print("FindTreeNode -> {0}", path);
-            foreach (TreeNode node in nodes)
+            Debug.Print("FindTreeNode -> {0}", path);
+			foreach (TreeNode node in nodes)
             {
                 //Debug.Print("FindTreeNode -> node: {0}, {1}", node.Text, node.FullPath);
                 //bug fix: node.fullpath=桌面\此电脑\system (C:)\aDrive, path=c:\\

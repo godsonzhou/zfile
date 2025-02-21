@@ -300,8 +300,9 @@ namespace WinFormsApp1
         private void NavigateToBookmark(Bookmark bookmark, bool isLeft)
         {
             var treeView = isLeft ? form.uiManager.LeftTree : form.uiManager.RightTree;
-            var node = form.FindTreeNode(treeView.Nodes, bookmark.Path, true);
-            if (node != null)
+            //var node = form.FindTreeNode(treeView.Nodes, bookmark.Path, true);
+			var node = bookmark.AssociatedNode;
+			if (node != null)
             {
                 treeView.SelectedNode = node;
                 node.EnsureVisible();

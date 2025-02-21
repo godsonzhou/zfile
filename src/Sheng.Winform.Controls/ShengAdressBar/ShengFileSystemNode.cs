@@ -3,6 +3,7 @@ using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using System.Windows.Forms;
 
 namespace Sheng.Winform.Controls
 {
@@ -97,15 +98,15 @@ namespace Sheng.Winform.Controls
         {
             get { return this.children; }
         }
+		private TreeNode _tNode;
+		#endregion
+		TreeNode IShengAddressNode.tNode { get => _tNode; set => _tNode = value; }
+		#region Constructor
 
-        #endregion
-
-        #region Constructor
-
-        /// <summary>
-        /// Basic Constructor, initializes this node to start at the root of the first drive found on the disk. ONLY USE THIS FOR ROOT NODES
-        /// </summary>
-        public ShengFileSystemNode()
+		/// <summary>
+		/// Basic Constructor, initializes this node to start at the root of the first drive found on the disk. ONLY USE THIS FOR ROOT NODES
+		/// </summary>
+		public ShengFileSystemNode()
         {
             GenerateRootNode();
         }

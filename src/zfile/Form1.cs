@@ -1161,7 +1161,7 @@ namespace WinFormsApp1
 									// 2. 获取图标索引
 									shellInfo = new SHFILEINFO();
 									var r = API.SHGetFileInfo(subItem.parsepath, 0, ref shellInfo, Marshal.SizeOf(shellInfo),
-									SHGFI.SYSICONINDEX | SHGFI.ATTRIBUTES | SHGFI.SMALLICON | SHGFI.ICON);
+									SHGFI.SYSICONINDEX | SHGFI.SMALLICON | SHGFI.ICON);
 									Debug.Print($"Virtual folder：result={r} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}");
 									if (shellInfo.iIcon > 0)
 									{
@@ -1171,7 +1171,7 @@ namespace WinFormsApp1
 										// 3. 从系统图标列表中提取图标
 										// IntPtr hIcon = API.ImageList_GetIcon(hImageList, shellInfo.iIcon, 0);
 										IntPtr hIcon = IntPtr.Zero;
-										hImageList.GetIcon(0, 0, ref hIcon);
+										hImageList.GetIcon(shellInfo.iIcon, 0, ref hIcon);
 										if (hIcon != IntPtr.Zero)
 										{
 											try
@@ -1196,7 +1196,7 @@ namespace WinFormsApp1
 									else
 									{
 										result = API.SHGetFileInfo(subItem.parsepath, 0, ref shellInfo, Marshal.SizeOf(typeof(SHFILEINFO)),
-										(SHGFI.SMALLICON |SHGFI.SYSICONINDEX | SHGFI.ICONLOCATION |SHGFI.USEFILEATTRIBUTES |SHGFI.ICON));
+										(SHGFI.SMALLICON | SHGFI.ICONLOCATION | SHGFI.SYSICONINDEX ));
 										Debug.Print($"Virtual folder：result={result} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}, location:{shellInfo.szDisplayName}");
 										if (shellInfo.szDisplayName != string.Empty)
 										{

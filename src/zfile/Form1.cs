@@ -1133,11 +1133,13 @@ namespace WinFormsApp1
 								(SHGFI.SMALLICON | SHGFI.ICON | SHGFI.PIDL));
 							Debug.Print($"Virtual folder：result={result} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}");
 							// 使用系统图标索引作为键值
-							string iconKey = $"{subItem.PIDL}_{shellInfo.iIcon}S".ToLower();
+							var iconKey = $"{subItem.parsepath}_S".ToLower();
 							subItem.IconKey = iconKey;
-
 							if (shellInfo.hIcon != IntPtr.Zero && shellInfo.iIcon != 0)
 							{
+								// 使用系统图标索引作为键值
+								iconKey = $"{subItem.PIDL}_{shellInfo.iIcon}S".ToLower();
+								subItem.IconKey = iconKey;
 								using (Icon icon = Icon.FromHandle(shellInfo.hIcon))
 								{
 									IconManager.AddIcon(iconKey, icon);
@@ -1158,10 +1160,14 @@ namespace WinFormsApp1
 								{
 									// 2. 获取图标索引
 									shellInfo = new SHFILEINFO();
-									API.SHGetFileInfo(subItem.PIDL, 0, ref shellInfo, Marshal.SizeOf(shellInfo),
-									SHGFI.SYSICONINDEX | SHGFI.PIDL | SHGFI.USEFILEATTRIBUTES);
+									var r = API.SHGetFileInfo(subItem.parsepath, 0, ref shellInfo, Marshal.SizeOf(shellInfo),
+									SHGFI.SYSICONINDEX | SHGFI.ATTRIBUTES | SHGFI.SMALLICON | SHGFI.ICON);
+									Debug.Print($"Virtual folder：result={r} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}");
 									if (shellInfo.iIcon > 0)
 									{
+										// 使用系统图标索引作为键值
+										iconKey = $"{subItem.PIDL}_{shellInfo.iIcon}S".ToLower();
+										subItem.IconKey = iconKey;
 										// 3. 从系统图标列表中提取图标
 										// IntPtr hIcon = API.ImageList_GetIcon(hImageList, shellInfo.iIcon, 0);
 										IntPtr hIcon = IntPtr.Zero;
@@ -1185,6 +1191,22 @@ namespace WinFormsApp1
 											{
 												API.DestroyIcon(hIcon);
 											}
+										}
+									}
+									else
+									{
+										result = API.SHGetFileInfo(subItem.parsepath, 0, ref shellInfo, Marshal.SizeOf(typeof(SHFILEINFO)),
+										(SHGFI.SMALLICON |SHGFI.SYSICONINDEX | SHGFI.ICONLOCATION |SHGFI.USEFILEATTRIBUTES |SHGFI.ICON));
+										Debug.Print($"Virtual folder：result={result} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}, location:{shellInfo.szDisplayName}");
+										if (shellInfo.szDisplayName != string.Empty)
+										{
+											iconKey = ($"{shellInfo.szTypeName}_{shellInfo.iIcon}S").ToLower();
+											if (!IconManager.HasIconKey(iconKey))
+											{
+												var icon = IconManager.ExtractIconFromFile(shellInfo.szTypeName, shellInfo.iIcon);
+												IconManager.AddIcon(iconKey, icon);
+											}
+											IconManager.LoadIconFromCacheByKey(iconKey, activeTreeview.ImageList);
 										}
 									}
 								}
@@ -1218,22 +1240,7 @@ namespace WinFormsApp1
 								// 	else
 								// 		IconManager.LoadIconFromCacheByKey(iconKey, activeTreeview.ImageList);
 								// }
-								else
-								{
-									result = API.SHGetFileInfo(subItem.PIDL, 0, ref shellInfo, Marshal.SizeOf(typeof(SHFILEINFO)),
-									(SHGFI.SMALLICON | SHGFI.ICON | SHGFI.PIDL | SHGFI.ICONLOCATION));
-									Debug.Print($"Virtual folder：result={result} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}, location:{shellInfo.szDisplayName}");
-									if (shellInfo.szDisplayName != string.Empty)
-									{
-										iconKey = ($"{shellInfo.szTypeName}_{shellInfo.iIcon}S").ToLower();
-										if (!IconManager.HasIconKey(iconKey))
-										{
-											var icon = IconManager.ExtractIconFromFile(shellInfo.szTypeName, shellInfo.iIcon);
-											IconManager.AddIcon(iconKey, icon);
-										}
-										IconManager.LoadIconFromCacheByKey(iconKey, activeTreeview.ImageList);
-									}
-								}
+								
 							}
 							nodeSub.ImageKey = iconKey;
 							nodeSub.SelectedImageKey = iconKey;

@@ -21,7 +21,7 @@ namespace WinFormsApp1
 		}
 		public void InitIconCache(bool islarge)
 		{
-			iconCache.Clear();
+			//iconCache.Clear();
 			var imageresPath = Path.Combine(Environment.SystemDirectory, "imageres.dll");
 			var imageList = LoadIconsFromFile(imageresPath, islarge);
 			AddIcon("drive" + (islarge ? 'l' : 's'), ConvertImageToIcon(imageList.Images[27]));

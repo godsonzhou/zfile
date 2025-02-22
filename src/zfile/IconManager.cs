@@ -8,12 +8,57 @@ using System.Reflection.Metadata.Ecma335;
 namespace WinFormsApp1
 {
 
-	public static class IconManager
+	public class IconManager
 	{
 		[DllImport("shell32.dll", CharSet = CharSet.Auto)]
 		private static extern IntPtr ExtractIcon(IntPtr hInst, string lpszExeFileName, int nIconIndex);
 
-		private static readonly Dictionary<string, Icon> iconCache = new Dictionary<string, Icon>();
+		private readonly Dictionary<string, Icon> iconCache = new Dictionary<string, Icon>();
+		public IconManager() 
+		{ 
+			InitIconCache(true);
+			InitIconCache(false);
+		}
+		public void InitIconCache(bool islarge)
+		{
+			iconCache.Clear();
+			var imageresPath = Path.Combine(Environment.SystemDirectory, "imageres.dll");
+			var imageList = LoadIconsFromFile(imageresPath, islarge);
+			AddIcon("drive" + (islarge ? 'l' : 's'), ConvertImageToIcon(imageList.Images[27]));
+			AddIcon("folder" + (islarge ? 'l' : 's'), ConvertImageToIcon(imageList.Images[3]));
+			AddIcon("桌面" + (islarge ? 'l' : 's'), ConvertImageToIcon(imageList.Images[174]));
+			//var idx = 0;
+			//foreach (Image image in imageList.Images) 
+			//{
+			//	AddIcon(($"{imageresPath}_{idx}") + (islarge ? 'L' : 'S'), ConvertImageToIcon(image));
+			//	idx ++;
+			//}
+		}
+
+		public bool HasIconKey(string key)
+		{
+			return iconCache.ContainsKey(key.ToLower());
+		}
+
+		public void AddIcon(string key, Icon icon)
+		{
+			key = key.ToLower();
+			if (!iconCache.ContainsKey(key))
+			{
+				iconCache[key] = icon.Clone() as Icon;
+			}
+		}
+		public Icon GetIcon(string key)
+		{
+			return iconCache[key.ToLower()];
+		}
+		public void LoadIconFromCacheByKey(string key, ImageList l)
+		{
+			if (HasIconKey(key) && !l.Images.ContainsKey(key))
+			{
+				l.Images.Add(key, iconCache[key]);
+			}
+		}
 
 		public static Icon ExtractIconFromFile(string file, int iconIndex)
 		{
@@ -243,12 +288,7 @@ namespace WinFormsApp1
 				}
 			}
 		}
-		public static void LoadIconFromCacheByKey(string key, ImageList l)
-		{
-			if (HasIconKey(key) && !l.Images.ContainsKey(key)) { 
-				l.Images.Add(key, iconCache[key]);
-			}
-		}
+	
 		public static void InitializeIcons(ImageList l, bool islarge = false)
 		{
 			// 添加系统图标到treeViewImageList
@@ -256,23 +296,7 @@ namespace WinFormsApp1
 			if (islarge)
 				l.ImageSize = new Size(64, 64);
 			else
-			{ l.ImageSize = new Size(16, 16); }
-
-			var imageresPath = Path.Combine(Environment.SystemDirectory, "imageres.dll");
-			var imageList = LoadIconsFromFile(imageresPath, islarge);
-			l.Images.Add("drives", imageList.Images[27]); // 磁盘驱动器
-			l.Images.Add("folder", imageList.Images[3]);
-			l.Images.Add("桌面", imageList.Images[174]); // 桌面
-			if (HasIconKey($"{imageresPath}_0" + (islarge ? 'L' : 'S')))
-				return;
-
-			var idx = 0;
-			foreach (Image image in imageList.Images) 
-			{
-				AddIcon(($"{imageresPath}_{idx}") + (islarge ? 'L' : 'S'), ConvertImageToIcon(image));
-				idx ++;
-			}
-
+				l.ImageSize = new Size(16, 16); 
 		}
 		public static string GetIconKey(ShellItem item)
 		{
@@ -281,16 +305,14 @@ namespace WinFormsApp1
 			else
 			{
 				if (item.Name.Contains(':'))
-					return "drives";
+					return "drive";
 				return "folder";
 			}
 		}
 		
 		public static string GetNodeIconKey(TreeNode node)
 		{
-			var ico = GetIconKey((ShellItem)node.Tag);	
-			//Debug.Print("search icon tree key {0} -> {1}", node.Text, ico);
-			return ico;
+			return GetIconKey((ShellItem)node.Tag) + "s";   //treenode icon key is always use small icon, so append 's' to the pure key
 		}
 
 		public static Image? LoadIcon(string iconPath)
@@ -336,22 +358,5 @@ namespace WinFormsApp1
 			return null;
 		}
 
-		public static bool HasIconKey(string key)
-		{
-			return iconCache.ContainsKey(key.ToLower());
-		}
-
-		public static void AddIcon(string key, Icon icon)
-		{
-			key = key.ToLower();
-			if (!iconCache.ContainsKey(key))
-			{
-				iconCache[key] = icon.Clone() as Icon;
-			}
-		}
-		public static Icon GetIcon(string key)
-		{
-			return iconCache[key.ToLower()];
-		}
 	}
 }

@@ -258,7 +258,36 @@ namespace CmdProcessor
                     case 511: // cm_executedos
                         owner.OpenCommandPrompt();
                         break;
-
+					case 523: // cm_SelectAll
+						do_cm_SelectAll();
+						break;
+					case 524: // cm_ClearAll  
+						do_cm_ClearAll();
+						break;
+					case 525: // cm_InvertSelection
+						do_cm_InvertSelection();
+						break;
+					case 527: // cm_SelectByExt
+						do_cm_SelectByExt();
+						break;
+					case 530: // cm_SaveSelection
+						do_cm_SaveSelection();
+						break;
+					case 529: // cm_RestoreSelection  
+						do_cm_RestoreSelection();
+						break;
+					case 2017: // cm_CopyNamesToClip
+						do_cm_CopyNamesToClip();
+						break;
+					case 2018: // cm_CopyFullNamesToClip 
+						do_cm_CopyFullNamesToClip();
+						break;
+					case 2036: // cm_CopyDetailsToClip
+						do_cm_CopyDetailsToClip();
+						break;
+					case 2037: // cm_CopyFullDetailsToClip
+						do_cm_CopyFullDetailsToClip();
+						break;
 					case 570:
 						do_cm_gotopreviousdir();
 						break;
@@ -297,6 +326,135 @@ namespace CmdProcessor
                 throw new KeyNotFoundException("命令ID不存在");
             }
         }
+
+		// 全选
+		private void do_cm_SelectAll()
+		{
+			var lv = owner.activeListView;
+			if (lv == null) return;
+			foreach (ListViewItem item in lv.Items)
+			{
+				item.Selected = true;
+			}
+		}
+
+		// 取消全选
+		private void do_cm_ClearAll()
+		{
+			var lv = owner.activeListView;
+			if (lv == null) return;
+			foreach (ListViewItem item in lv.Items)
+			{
+				item.Selected = false;
+			}
+		}
+
+		// 反选
+		private void do_cm_InvertSelection()
+		{
+			var lv = owner.activeListView;
+			if (lv == null) return;
+			foreach (ListViewItem item in lv.Items)
+			{
+				item.Selected = !item.Selected;
+			}
+		}
+
+		// 选择相同扩展名文件
+		private void do_cm_SelectByExt()
+		{
+			var lv = owner.activeListView;
+			if (lv == null || lv.SelectedItems.Count == 0) return;
+
+			var ext = Path.GetExtension(lv.SelectedItems[0].Text);
+			foreach (ListViewItem item in lv.Items)
+			{
+				if (Path.GetExtension(item.Text).Equals(ext, StringComparison.OrdinalIgnoreCase))
+				{
+					item.Selected = true;
+				}
+			}
+		}
+
+		// 存储的选择集合
+		private List<string> savedSelection = new();
+
+		// 保存选择
+		private void do_cm_SaveSelection()
+		{
+			var lv = owner.activeListView;
+			if (lv == null) return;
+
+			savedSelection.Clear();
+			foreach (ListViewItem item in lv.SelectedItems)
+			{
+				savedSelection.Add(item.Text);
+			}
+		}
+
+		// 恢复选择
+		private void do_cm_RestoreSelection()
+		{
+			var lv = owner.activeListView;
+			if (lv == null) return;
+
+			foreach (ListViewItem item in lv.Items)
+			{
+				item.Selected = savedSelection.Contains(item.Text);
+			}
+		}
+
+		// 复制文件名到剪贴板
+		private void do_cm_CopyNamesToClip()
+		{
+			var lv = owner.activeListView;
+			if (lv == null || lv.SelectedItems.Count == 0) return;
+
+			var names = string.Join(Environment.NewLine,
+				lv.SelectedItems.Cast<ListViewItem>().Select(i => i.Text));
+			Clipboard.SetText(names);
+		}
+
+		// 复制完整路径到剪贴板
+		private void do_cm_CopyFullNamesToClip()
+		{
+			var lv = owner.activeListView;
+			if (lv == null || lv.SelectedItems.Count == 0) return;
+
+			var paths = string.Join(Environment.NewLine,
+				lv.SelectedItems.Cast<ListViewItem>()
+					.Select(i => Path.Combine(owner.currentDirectory, i.Text)));
+			Clipboard.SetText(paths);
+		}
+
+		// 复制文件详细信息
+		private void do_cm_CopyDetailsToClip()
+		{
+			var lv = owner.activeListView;
+			if (lv == null || lv.SelectedItems.Count == 0) return;
+
+			var details = new StringBuilder();
+			foreach (ListViewItem item in lv.SelectedItems)
+			{
+				details.AppendLine(string.Join("\t", item.SubItems.Cast<ListViewItem.ListViewSubItem>().Select(si => si.Text)));
+			}
+			Clipboard.SetText(details.ToString());
+		}
+
+		// 复制文件详细信息及完整路径
+		private void do_cm_CopyFullDetailsToClip()
+		{
+			var lv = owner.activeListView;
+			if (lv == null || lv.SelectedItems.Count == 0) return;
+
+			var details = new StringBuilder();
+			foreach (ListViewItem item in lv.SelectedItems)
+			{
+				details.AppendLine(Path.Combine(owner.currentDirectory, item.Text) + "\t" +
+					string.Join("\t", item.SubItems.Cast<ListViewItem.ListViewSubItem>().Skip(1).Select(si => si.Text)));
+			}
+			Clipboard.SetText(details.ToString());
+		}
 		// 添加导航命令的实现
 		private void do_cm_gotopreviousdir()
 		{

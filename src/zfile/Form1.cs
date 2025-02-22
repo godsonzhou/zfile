@@ -1249,7 +1249,7 @@ namespace WinFormsApp1
 											{
 												using (Icon icon = Icon.FromHandle(hIcon))
 												{
-													iconKey = $"{subItem.PIDL}{shellInfo.iIcon}S".ToLower();
+													iconKey = $"{subItem.PIDL}_{shellInfo.iIcon}S".ToLower();
 													IconManager.AddIcon(iconKey, icon);
 													var bitmap = icon.ToBitmap();
 													if (!activeTreeview.ImageList.Images.ContainsKey(iconKey))
@@ -1272,6 +1272,7 @@ namespace WinFormsApp1
 										if (shellInfo.szDisplayName != string.Empty)
 										{
 											iconKey = ($"{shellInfo.szTypeName}_{shellInfo.iIcon}S").ToLower();
+											subItem.IconKey = iconKey;
 											if (!IconManager.HasIconKey(iconKey))
 											{
 												var icon = IconManager.ExtractIconFromFile(shellInfo.szTypeName, shellInfo.iIcon);
@@ -1357,6 +1358,7 @@ namespace WinFormsApp1
 							string[] s = ["", name, "", name.Contains(':') ? "本地磁盘" : "<CLS>", ""];
 							var i = new ListViewItem(s);
 							var ico = IconManager.GetIconKey(subItem);
+							IconManager.LoadIconFromCacheByKey(ico, lv.SmallImageList);
 							i.ImageKey = ico;
 							i.Text = name;
 							i.Tag = node;   //tag存放父节点

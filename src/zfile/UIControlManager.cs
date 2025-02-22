@@ -276,9 +276,11 @@ namespace WinFormsApp1
 	public class UIControlManager : IDisposable
 	{
 		private readonly Form1 form;
-		private readonly ImageList treeViewImageList;
-		private readonly ImageList listViewImageList;
-		private readonly ImageList thumbnailImageList;
+		//private readonly ImageList treeViewImageList;
+		private readonly ImageList listViewImageListL;
+		private readonly ImageList thumbnailImageListL;
+		private readonly ImageList listViewImageListR;
+		private readonly ImageList thumbnailImageListR;
 
 		#region Container Controls
 		public SplitContainer MainContainer { get; } = new();
@@ -337,13 +339,12 @@ namespace WinFormsApp1
 		public UIControlManager(Form1 form)
 		{
 			this.form = form;
-			treeViewImageList = new ImageList();
-			treeViewImageList.ImageSize = new Size(16, 16);
-			listViewImageList = new ImageList();
-			listViewImageList.ImageSize = new Size(16, 16);
-			thumbnailImageList = new ImageList();
-			thumbnailImageList.ImageSize = new Size(64, 64);
-			thumbnailImageList.ColorDepth = ColorDepth.Depth32Bit;
+			//treeViewImageList = new ImageList();
+			//treeViewImageList.ImageSize = new Size(16, 16);
+			listViewImageListL = new ImageList();
+			listViewImageListR = new ImageList();
+			thumbnailImageListL = new ImageList();
+			thumbnailImageListR = new ImageList();
 			BookmarkManager = new BookmarkManager(form, leftBookmarkPanel, rightBookmarkPanel);
 			
 			LeftPathTextBox.SelectionChange += LeftPathTextBox_PathChanged;
@@ -552,12 +553,14 @@ namespace WinFormsApp1
 		// 为两个ListView设置ImageList
 		public void InitializeListViewIcons()
 		{
-			IconManager.InitializeIcons(listViewImageList);
-			IconManager.InitializeIcons(thumbnailImageList, true);
-			LeftList.SmallImageList = listViewImageList;
-			RightList.SmallImageList = listViewImageList;
-			LeftList.LargeImageList = thumbnailImageList;
-			RightList.LargeImageList = thumbnailImageList;
+			IconManager.InitializeIcons(listViewImageListL);
+			IconManager.InitializeIcons(listViewImageListR);
+			IconManager.InitializeIcons(thumbnailImageListL, true);
+			IconManager.InitializeIcons(thumbnailImageListR, true);
+			LeftList.SmallImageList = listViewImageListL;
+			RightList.SmallImageList = listViewImageListR;
+			LeftList.LargeImageList = thumbnailImageListL;
+			RightList.LargeImageList = thumbnailImageListR;
 		}
 
 		public void InitializeTreeViewIcons()
@@ -649,7 +652,7 @@ namespace WinFormsApp1
 			treeView.FullRowSelect = true;
 			treeView.ItemHeight = 20;
 			treeView.DrawMode = TreeViewDrawMode.OwnerDrawText;
-			treeView.ImageList = treeViewImageList;
+			//treeView.ImageList = treeViewImageList;
 			treeView.AllowDrop = true;
 
 			treeView.DragOver += form.TreeView_DragOver;
@@ -706,8 +709,8 @@ namespace WinFormsApp1
 			listView.Columns.Add("大小", 100);
 			listView.Columns.Add("类型", 80);
 			listView.Columns.Add("修改日期", 150);
-			listView.SmallImageList = listViewImageList; // 设置ListView的ImageList
-			listView.LargeImageList = thumbnailImageList;
+			//listView.SmallImageList = listViewImageList; // 设置ListView的ImageList
+			//listView.LargeImageList = thumbnailImageList;
 			listView.AllowDrop = true;
 			listView.ItemDrag += form.ListView_ItemDrag;
 			listView.DragOver += form.ListView_DragOver;

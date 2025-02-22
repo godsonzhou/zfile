@@ -85,13 +85,11 @@ namespace WinFormsApp1
 
 		public void AddIcon(string key, Icon icon)
 		{
-		
 			if (icon == null) return;
 
 			key = key.ToLower();
 			if (!iconCache.ContainsKey(key))
 			{
-				Debug.Print("key: " + key);
 				try
 				{
 					// 使用Bitmap保持透明通道
@@ -151,7 +149,7 @@ namespace WinFormsApp1
 		private static Icon ConvertImageToIcon(Image image)
 		{
 			// 创建32位ARGB格式的Bitmap保持透明通道
-			Debug.Print(image.Width + " " + image.Height);
+			//Debug.Print(image.Width + " " + image.Height);
 			using (Bitmap srcBmp = new Bitmap(image))
 			using (Bitmap argbBmp = new Bitmap(srcBmp.Width, srcBmp.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb))
 			{

@@ -1395,7 +1395,7 @@ namespace WinFormsApp1
 			if (sitem.IsVirtual) return;
             if (string.IsNullOrEmpty(path)) return;
             if (!path.Contains(':')) return;
-			Debug.Print("LoadListViewByFilesystem:{0}", path);
+			//Debug.Print("LoadListViewByFilesystem:{0}", path);
 			path = Helper.getFSpath(path);
             if (path.EndsWith(':')) path += "\\";
 			if (IsArchiveFile(path))
@@ -1416,7 +1416,7 @@ namespace WinFormsApp1
 
                 listView.BeginUpdate();
                 listView.Items.Clear();
-
+				
                 foreach (var item in items)
                 {
                     if ((item.Attributes & FileAttributes.Hidden) != 0) continue;
@@ -1424,22 +1424,37 @@ namespace WinFormsApp1
                     var lvItem = CreateListViewItem(item);
                     if (lvItem != null)
                     {
+						var subkey = (listView.View == View.Details | listView.View == View.Tile ? "s" : "l");
 						if (lvItem.SubItems[3].Text.Equals("<DIR>"))
-							lvItem.ImageKey = "folder";
+						{
+							//todo: bugfix listview add small icon / large icon
+							iconManager.LoadIconFromCacheByKey("folders", listView.SmallImageList);
+							iconManager.LoadIconFromCacheByKey("folderl", listView.LargeImageList);
+							lvItem.ImageKey = "folder" + subkey ;
+						}
 						else
 						{
-							var ico = IconManager.GetIconByFileNameEx("FILE", item.FullName);  
+							var ico = IconManager.GetIconByFileNameEx("FILE", item.FullName);
+							var icol = IconManager.GetIconByFileNameEx("FILE", item.FullName, true);
 							if (ico != null)
 							{
-								listView.SmallImageList.Images.Add(ico);
+								var key = Path.GetExtension(item.FullName);
+								iconManager.AddIcon(key+"s", ico);
+								iconManager.AddIcon(key + "l", icol);
+								iconManager.LoadIconFromCacheByKey(key+"s", listView.SmallImageList);
+								
 								var thumb = thumbnailManager.CreatePreview(item.FullName);
 								if (thumb != null)
 								{
 									listView.LargeImageList.Images.Add(thumb);
+									lvItem.ImageIndex = listView.SmallImageList.Images.Count - 1;
 								}
 								else
-									listView.LargeImageList.Images.Add(ico);
-								lvItem.ImageIndex = listView.SmallImageList.Images.Count - 1;
+								{
+									lvItem.ImageKey = key + "l";
+									iconManager.LoadIconFromCacheByKey(key + "l", listView.LargeImageList);
+								}
+
 							}
 						}
 							

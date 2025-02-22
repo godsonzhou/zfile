@@ -29,7 +29,7 @@ namespace WinFormsApp1
 				if (disposing)
 				{
 					// 取消事件订阅
-				
+
 				}
 				// 释放图标缓存
 				ClearCache();
@@ -42,8 +42,8 @@ namespace WinFormsApp1
 		{
 			Dispose(false);
 		}
-		public IconManager() 
-		{ 
+		public IconManager()
+		{
 			InitIconCache(true);
 			InitIconCache(false);
 		}
@@ -52,9 +52,15 @@ namespace WinFormsApp1
 			//iconCache.Clear();
 			var imageresPath = Path.Combine(Environment.SystemDirectory, "imageres.dll");
 			var imageList = LoadIconsFromFile(imageresPath, islarge);
-			AddIcon("drive" + (islarge ? 'l' : 's'), ConvertImageToIcon(imageList.Images[27]));
-			AddIcon("folder" + (islarge ? 'l' : 's'), ConvertImageToIcon(imageList.Images[3]));
-			AddIcon("桌面" + (islarge ? 'l' : 's'), ConvertImageToIcon(imageList.Images[174]));
+			// 标准化图标尺寸
+			var targetSize = islarge ? new Size(64, 64) : new Size(16, 16);
+
+			AddIcon("drive" + (islarge ? 'l' : 's'),
+				ResizeIcon(ConvertImageToIcon(imageList.Images[27]), targetSize));
+			AddIcon("folder" + (islarge ? 'l' : 's'),
+				ResizeIcon(ConvertImageToIcon(imageList.Images[3]), targetSize));
+			AddIcon("桌面" + (islarge ? 'l' : 's'),
+				ResizeIcon(ConvertImageToIcon(imageList.Images[174]), targetSize));
 			//var idx = 0;
 			//foreach (Image image in imageList.Images) 
 			//{
@@ -79,20 +85,47 @@ namespace WinFormsApp1
 
 		public void AddIcon(string key, Icon icon)
 		{
+		
 			if (icon == null) return;
-			
+
 			key = key.ToLower();
 			if (!iconCache.ContainsKey(key))
 			{
-				// 创建完全独立的图标副本（增加异常处理）
-				//iconCache.Add(key, icon.Clone() as Icon);
+				Debug.Print("key: " + key);
 				try
 				{
-					using (var ms = new MemoryStream())
+					// 使用Bitmap保持透明通道
+					using (var bitmap = icon.ToBitmap())
 					{
-						icon.Save(ms);
-						ms.Position = 0;
-						iconCache[key] = new Icon(ms);
+						if (bitmap == null)
+						{
+							Debug.WriteLine("图标缓存失败: 无法将图标转换为Bitmap");
+							return;
+						}
+
+						// 检查Bitmap的像素格式
+						if (bitmap.PixelFormat != System.Drawing.Imaging.PixelFormat.Format32bppArgb)
+						{
+							Debug.WriteLine("图标缓存失败: Bitmap的像素格式无效");
+							return;
+						}
+
+						IntPtr hIcon = bitmap.GetHicon();
+						if (hIcon == IntPtr.Zero)
+						{
+							Debug.WriteLine("图标缓存失败: 无法从Bitmap获取图标句柄");
+							return;
+						}
+
+						Icon newIcon = Icon.FromHandle(hIcon);
+						if (newIcon == null)
+						{
+							Debug.WriteLine("图标缓存失败: 无法从句柄创建图标");
+							return;
+						}
+
+						iconCache[key] = (Icon)newIcon.Clone();
+						API.DestroyIcon(hIcon); // 确保销毁图标句柄
 					}
 				}
 				catch (Exception ex)
@@ -102,13 +135,11 @@ namespace WinFormsApp1
 			}
 		}
 
-	
 		public Icon GetIcon(string key)
 		{
 			return iconCache[key.ToLower()];
 		}
 
-	
 		public void LoadIconFromCacheByKey(string key, ImageList l)
 		{
 			if (HasIconKey(key) && !l.Images.ContainsKey(key))
@@ -116,7 +147,114 @@ namespace WinFormsApp1
 				l.Images.Add(key, iconCache[key]);
 			}
 		}
+	
+		private static Icon ConvertImageToIcon(Image image)
+		{
+			// 创建32位ARGB格式的Bitmap保持透明通道
+			Debug.Print(image.Width + " " + image.Height);
+			using (Bitmap srcBmp = new Bitmap(image))
+			using (Bitmap argbBmp = new Bitmap(srcBmp.Width, srcBmp.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb))
+			{
+				using (Graphics g = Graphics.FromImage(argbBmp))
+				{
+					g.DrawImage(srcBmp, new Rectangle(0, 0, argbBmp.Width, argbBmp.Height));
+				}
 
+				IntPtr hIcon = argbBmp.GetHicon();
+				try
+				{
+					return Icon.FromHandle(hIcon).Clone() as Icon;
+				}
+				finally
+				{
+					API.DestroyIcon(hIcon);
+				}
+			}
+		}
+
+		private static Icon ResizeIcon(Icon icon, Size targetSize)
+		{
+			if (icon.Size == targetSize)
+				return icon;
+
+			using (Bitmap bitmap = new Bitmap(targetSize.Width, targetSize.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb))
+			{
+				using (Graphics g = Graphics.FromImage(bitmap))
+				{
+					g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+					g.DrawImage(icon.ToBitmap(), new Rectangle(0, 0, targetSize.Width, targetSize.Height));
+				}
+
+				IntPtr hIcon = bitmap.GetHicon();
+				try
+				{
+					return Icon.FromHandle(hIcon).Clone() as Icon;
+				}
+				finally
+				{
+					API.DestroyIcon(hIcon);
+				}
+			}
+		}
+
+		public static void InitializeIcons(ImageList l, bool islarge = false)
+		{
+			// ����ϵͳͼ�굽treeViewImageList
+			l.ColorDepth = ColorDepth.Depth32Bit;
+			if (islarge)
+				l.ImageSize = new Size(64, 64);
+			else
+				l.ImageSize = new Size(16, 16);
+		}
+		public static string GetIconKey(ShellItem item)
+		{
+			if (item.IsVirtual || !item.GetAttributes().HasFlag(SFGAO.FILESYSTEM))
+				return item.IconKey;
+			else
+			{
+				if (item.Name.Contains(':'))
+					return "drive";
+				return "folder";
+			}
+		}
+
+		public static string GetNodeIconKey(TreeNode node)
+		{
+			return GetIconKey((ShellItem)node.Tag) + "s";   //treenode icon key is always use small icon, so append 's' to the pure key
+		}
+
+		public static Image? LoadIcon(string iconPath)
+		{
+			if (string.IsNullOrEmpty(iconPath))
+			{
+				return null;
+			}
+
+			if (iconPath.ToLower().StartsWith("wcmicon"))
+			{
+				iconPath = Constants.ZfilePath + iconPath;
+			}
+
+			if (iconPath.Contains(","))
+			{
+				string[] parts = iconPath.Split(',');
+				if (parts.Length == 2 && int.TryParse(parts[1], out int iconIndex))
+				{
+					return GetIconByFilenameAndIndex(parts[0], iconIndex);
+				}
+				else if (parts.Length == 1)
+				{
+					using var icon = Icon.ExtractAssociatedIcon(parts[0]);
+					return icon?.ToBitmap();
+				}
+			}
+			else if (File.Exists(iconPath))
+			{
+				return GetIconByFilenameAndIndex(iconPath, 0);
+			}
+
+			return null;
+		}
 		public static Icon ExtractIconFromFile(string file, int iconIndex)
 		{
 			IntPtr hIcon = ExtractIcon(IntPtr.Zero, file, iconIndex);
@@ -169,7 +307,6 @@ namespace WinFormsApp1
 		{
 			IntPtr[] phiconLarge = new IntPtr[1];
 			IntPtr[] phiconSmall = new IntPtr[1];
-			//�ļ��� ͼ������ 
 			API.ExtractIconEx(fileName, 0, phiconLarge, phiconSmall, 1);
 			IntPtr IconHnd = new IntPtr(isLarge ? phiconLarge[0] : phiconSmall[0]);
 
@@ -177,13 +314,7 @@ namespace WinFormsApp1
 				return null;
 			return Icon.FromHandle(IconHnd);
 		}
-		/// <summary>  
-		/// �����ļ���չ������:.*����������֮������ͼ�ꡣ
-		/// ������"."��ͷ�򷵻��ļ��е�ͼ�ꡣ  
-		/// </summary>  
-		/// <param name="fileType">�ļ���չ��</param>  
-		/// <param name="isLarge">�Ƿ񷵻ش�ͼ��</param>  
-		/// <returns></returns>  
+		
 		public static Icon GetIconByFileType(string fileType, bool isLarge)
 		{
 			if (fileType == null || fileType.Equals(string.Empty)) return null;
@@ -195,7 +326,6 @@ namespace WinFormsApp1
 
 			if (fileType[0] == '.')
 			{
-				//��ϵͳע������ļ�������Ϣ  
 				regVersion = Registry.ClassesRoot.OpenSubKey(fileType, false);
 				if (regVersion != null)
 				{
@@ -210,25 +340,21 @@ namespace WinFormsApp1
 				}
 				if (regIconString == null)
 				{
-					//û�ж�ȡ���ļ�����ע����Ϣ��ָ��Ϊδ֪�ļ����͵�ͼ��  
 					regIconString = systemDirectory + "shell32.dll,0";
 				}
 			}
 			else
 			{
-				//ֱ��ָ��Ϊ�ļ���ͼ��  
 				regIconString = systemDirectory + "shell32.dll,3";
 			}
 			string[] fileIcon = regIconString.Split(new char[] { ',' });
 			if (fileIcon.Length != 2)
 			{
-				//ϵͳע�����ע��ı�ͼ����ֱ����ȡ���򷵻ؿ�ִ���ļ���ͨ��ͼ��  
 				fileIcon = new string[] { systemDirectory + "shell32.dll", "2" };
 			}
 			Icon resultIcon = null;
 			try
 			{
-				//����API������ȡͼ��  
 				IntPtr[] phiconLarge = new IntPtr[1];
 				IntPtr[] phiconSmall = new IntPtr[1];
 				uint count = API.ExtractIconEx(fileIcon[0], Int32.Parse(fileIcon[1]), phiconLarge, phiconSmall, 1);
@@ -238,13 +364,7 @@ namespace WinFormsApp1
 			catch { }
 			return resultIcon;
 		}
-		/// <summary>
-		/// ͨ���ļ����ƻ�ȡ�ļ�ͼ��
-		/// </summary>
-		/// <param name="tcType">ָ������tcFullName������: FILE/DIR</param>
-		/// <param name="tcFullName">��Ҫ��ȡͼƬ��ȫ·���ļ���</param>
-		/// <param name="tlIsLarge">�Ƿ��ȡ��ͼ��(32*32)</param>
-		/// <returns></returns>
+		
 		public static Icon GetIconByFileNameEx(string tcType, string tcFullName, bool tlIsLarge = false)
 		{
 			Icon ico = null;
@@ -262,10 +382,8 @@ namespace WinFormsApp1
 
 			if (tcType == "FILE")
 			{
-				//��ͼ����ļ�������ʹ���ļ����Դ�ͼ��
 				if (".exe.ico".Contains(fileType))
 				{
-					//�ļ��� ͼ������
 					phiconLarge[0] = phiconSmall[0] = IntPtr.Zero;
 					rst = API.ExtractIconEx(tcFullName, 0, phiconLarge, phiconSmall, 1);
 					hIcon = tlIsLarge ? phiconLarge[0] : phiconSmall[0];
@@ -276,7 +394,6 @@ namespace WinFormsApp1
 						return ico;
 				}
 
-				//ͨ���ļ���չ����ȡͼ��
 				regVersion = Registry.ClassesRoot.OpenSubKey(fileType, false);
 				if (regVersion != null)
 				{
@@ -290,19 +407,14 @@ namespace WinFormsApp1
 					}
 				}
 				if (regIconString == null)
-				{
-					//û�ж�ȡ���ļ�����ע����Ϣ��ָ��Ϊδ֪�ļ����͵�ͼ��
 					regIconString = systemDirectory + "shell32.dll,0";
-				}
 			}
 			else
 			{
-				//ֱ��ָ��Ϊ�ļ���ͼ��
 				regIconString = systemDirectory + "shell32.dll,3";
 			}
 
 			string[] fileIcon = regIconString.Split(new char[] { ',' });
-			//ϵͳע�����ע��ı�ͼ����ֱ����ȡ���򷵻ؿ�ִ���ļ���ͨ��ͼ��
 			fileIcon = fileIcon.Length == 2 ? fileIcon : new string[] { systemDirectory + "shell32.dll", "2" };
 
 			phiconLarge[0] = phiconSmall[0] = IntPtr.Zero;
@@ -314,10 +426,8 @@ namespace WinFormsApp1
 			if (ico != null)
 				return ico;
 
-			// �����ļ��������ȡ�ļ�ͼ��ʧ�ܣ�������ʹ�ÿ�ִ���ļ�ͨ��ͼ��
 			if (tcType == "FILE")
 			{
-				//ϵͳע�����ע��ı�ͼ����ֱ����ȡ���򷵻ؿ�ִ���ļ���ͨ��ͼ��
 				fileIcon = new string[] { systemDirectory + "shell32.dll", "2" };
 				phiconLarge = new IntPtr[1];
 				phiconSmall = new IntPtr[1];
@@ -330,81 +440,6 @@ namespace WinFormsApp1
 
 			return ico;
 		}
-		private static Icon ConvertImageToIcon(Image image)
-		{
-			using (Bitmap bmp = new Bitmap(image))
-			{
-				IntPtr hIcon = bmp.GetHicon();
-				try
-				{
-					return Icon.FromHandle(hIcon);
-				}
-				finally
-				{
-					API.DestroyIcon(hIcon);
-				}
-			}
-		}
-	
-		public static void InitializeIcons(ImageList l, bool islarge = false)
-		{
-			// ����ϵͳͼ�굽treeViewImageList
-			l.ColorDepth = ColorDepth.Depth32Bit;
-			if (islarge)
-				l.ImageSize = new Size(64, 64);
-			else
-				l.ImageSize = new Size(16, 16); 
-		}
-		public static string GetIconKey(ShellItem item)
-		{
-			if (item.IsVirtual || !item.GetAttributes().HasFlag(SFGAO.FILESYSTEM)) 
-				return item.IconKey;
-			else
-			{
-				if (item.Name.Contains(':'))
-					return "drive";
-				return "folder";
-			}
-		}
-		
-		public static string GetNodeIconKey(TreeNode node)
-		{
-			return GetIconKey((ShellItem)node.Tag) + "s";   //treenode icon key is always use small icon, so append 's' to the pure key
-		}
-
-		public static Image? LoadIcon(string iconPath)
-		{
-			if (string.IsNullOrEmpty(iconPath))
-			{
-				return null;
-			}
-
-			if (iconPath.ToLower().StartsWith("wcmicon"))
-			{
-				iconPath = Constants.ZfilePath + iconPath;
-			}
-
-			if (iconPath.Contains(","))
-			{
-				string[] parts = iconPath.Split(',');
-				if (parts.Length == 2 && int.TryParse(parts[1], out int iconIndex))
-				{
-					return GetIconByFilenameAndIndex(parts[0], iconIndex);
-				}
-				else if (parts.Length == 1)
-				{
-					using var icon = Icon.ExtractAssociatedIcon(parts[0]);
-					return icon?.ToBitmap();
-				}
-			}
-			else if (File.Exists(iconPath))
-			{
-				return GetIconByFilenameAndIndex(iconPath, 0);
-			}
-
-			return null;
-		}
-
 		private static Image? GetIconByFilenameAndIndex(string path, int index)
 		{
 			ImageList images = LoadIconsFromFile(path);

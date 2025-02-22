@@ -35,31 +35,6 @@ namespace WinFormsApp1
 		public int ButtonCount => toolbarButtons.Count;
 		private string configfile;
 		private bool disposed = false;
-		public ToolbarManager(Form1 form, string configfile, bool isVertical)
-		{
-			// 加载配置文件中的工具栏按钮信息并初始化控件,实现逻辑参照 initializeDynamicToolbar
-			dynamicToolStrip = new ToolStrip();
-			this.form = form;
-			this.configfile = configfile;
-			Init(configfile);
-			GenerateDynamicToolbar();
-
-			if (isVertical)
-			{
-				dynamicToolStrip.Dock = DockStyle.Left;
-				dynamicToolStrip.LayoutStyle = ToolStripLayoutStyle.VerticalStackWithOverflow;
-				//form.uiManager.MainContainer.Panel2.Controls.Add(dynamicToolStrip);
-				//将vertical dynamictoolstrip移动到rightuppanel的左边
-				form.uiManager.RightUpperPanel.Controls.Add(dynamicToolStrip);
-			}
-			else
-			{
-				form.Controls.Add(dynamicToolStrip);
-			}
-			dynamicToolStrip.AllowDrop = true;
-			dynamicToolStrip.DragEnter += form.ToolbarButton_DragEnter;
-			dynamicToolStrip.DragDrop += form.ToolbarButton_DragDrop;
-		}
 		public void Dispose()
 		{
 			Dispose(true);
@@ -87,6 +62,32 @@ namespace WinFormsApp1
 		{
 			Dispose(false);
 		}
+		public ToolbarManager(Form1 form, string configfile, bool isVertical)
+		{
+			// 加载配置文件中的工具栏按钮信息并初始化控件,实现逻辑参照 initializeDynamicToolbar
+			dynamicToolStrip = new ToolStrip();
+			this.form = form;
+			this.configfile = configfile;
+			Init(configfile);
+			GenerateDynamicToolbar();
+
+			if (isVertical)
+			{
+				dynamicToolStrip.Dock = DockStyle.Left;
+				dynamicToolStrip.LayoutStyle = ToolStripLayoutStyle.VerticalStackWithOverflow;
+				//form.uiManager.MainContainer.Panel2.Controls.Add(dynamicToolStrip);
+				//将vertical dynamictoolstrip移动到rightuppanel的左边
+				form.uiManager.RightUpperPanel.Controls.Add(dynamicToolStrip);
+			}
+			else
+			{
+				form.Controls.Add(dynamicToolStrip);
+			}
+			dynamicToolStrip.AllowDrop = true;
+			dynamicToolStrip.DragEnter += form.ToolbarButton_DragEnter;
+			dynamicToolStrip.DragDrop += form.ToolbarButton_DragDrop;
+		}
+	
 		public void AddButton(string name, string cmd, string icon, string path, string param, string iconic)
 		{
 			toolbarButtons.Add(new ToolbarButton(name, cmd, icon, path, param, iconic));
@@ -561,11 +562,64 @@ namespace WinFormsApp1
 
 		public void InitializeTreeViewIcons()
 		{
-			treeViewImageList.ColorDepth = ColorDepth.Depth32Bit;
-			IconManager.InitializeIcons(treeViewImageList);
-			// 为两个TreeView设置ImageList
-			LeftTree.ImageList = treeViewImageList;
-			RightTree.ImageList = treeViewImageList;
+			// 确保先清理旧资源
+			CleanupTreeViewResources();
+
+			// 创建新的ImageList实例
+			LeftTree.ImageList = new ImageList {
+				ColorDepth = ColorDepth.Depth32Bit,
+				ImageSize = new Size(16, 16)
+			};
+			RightTree.ImageList = new ImageList {
+				ColorDepth = ColorDepth.Depth32Bit,
+				ImageSize = new Size(16, 16)
+			};
+
+			// 初始化图标时使用新的ImageList
+			//IconManager.InitializeIcons(LeftTree.ImageList);
+			//IconManager.InitializeIcons(RightTree.ImageList);
+
+			// 强制刷新所有节点图标
+			RefreshAllNodeIcons(LeftTree.Nodes);
+			RefreshAllNodeIcons(RightTree.Nodes);
+		}
+
+		private void RefreshAllNodeIcons(TreeNodeCollection nodes)
+		{
+			foreach (TreeNode node in nodes)
+			{
+				UpdateNodeIcon(node);
+				RefreshAllNodeIcons(node.Nodes);
+			}
+		}
+
+		public void CleanupTreeViewResources()
+		{
+			// 先清除节点图标引用
+			ClearAllNodeIcons(LeftTree.Nodes);
+			ClearAllNodeIcons(RightTree.Nodes);
+
+			// 释放ImageList资源
+			if (LeftTree.ImageList != null)
+			{
+				LeftTree.ImageList.Dispose();
+				LeftTree.ImageList = null;
+			}
+			if (RightTree.ImageList != null)
+			{
+				RightTree.ImageList.Dispose();
+				RightTree.ImageList = null;
+			}
+		}
+
+		private void ClearAllNodeIcons(TreeNodeCollection nodes)
+		{
+			foreach (TreeNode node in nodes)
+			{
+				node.ImageKey = null;
+				node.SelectedImageKey = null;
+				ClearAllNodeIcons(node.Nodes);
+			}
 		}
 
 		private void UpdateNodeIcon(TreeNode node)
@@ -949,14 +1003,22 @@ namespace WinFormsApp1
 					UnregisterTreeViewEvents(RightTree);
 					UnregisterListViewEvents(LeftList);
 					UnregisterListViewEvents(RightList);
+					
 					// 释放所有 TreeView 节点中的 ShellItem
 					ReleaseTreeNodes(LeftTree.Nodes);
 					ReleaseTreeNodes(RightTree.Nodes);
 					// 释放托管资源
+					LeftList.SmallImageList?.Dispose();
+					LeftList.LargeImageList?.Dispose();
+					RightList.SmallImageList?.Dispose();
+					RightList.LargeImageList?.Dispose();
 					LeftList?.Dispose();
 					RightList?.Dispose();
+
+					CleanupTreeViewResources();
 					LeftTree?.Dispose();
 					RightTree?.Dispose();
+
 					LeftPreview?.Dispose();
 					RightPreview?.Dispose();
 					LeftStatusStrip?.Dispose();
@@ -964,7 +1026,7 @@ namespace WinFormsApp1
 					toolbarManager?.Dispose();
 					vtoolbarManager?.Dispose();
 					dynamicMenuStrip?.Dispose();
-					BookmarkManager?.Dispose();
+					BookmarkManager?.Dispose(); 
 				}
 
 				// 释放非托管资源

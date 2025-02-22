@@ -4,16 +4,44 @@ using System.Runtime.InteropServices;
 using WinShell;
 using System.Collections.Generic;
 using System.Reflection.Metadata.Ecma335;
+using System.Windows.Forms;
 
 namespace WinFormsApp1
 {
 
-	public class IconManager
+	public class IconManager : IDisposable
 	{
 		[DllImport("shell32.dll", CharSet = CharSet.Auto)]
 		private static extern IntPtr ExtractIcon(IntPtr hInst, string lpszExeFileName, int nIconIndex);
 
 		private readonly Dictionary<string, Icon> iconCache = new Dictionary<string, Icon>();
+		private bool disposed = false;
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!disposed)
+			{
+				if (disposing)
+				{
+					// å–æ¶ˆäº‹ä»¶è®¢é˜…
+				
+				}
+				// é‡Šæ”¾å›¾æ ‡ç¼“å­˜
+				ClearCache();
+				// é‡Šæ”¾éæ‰˜ç®¡èµ„æº
+				disposed = true;
+			}
+		}
+
+		~IconManager()
+		{
+			Dispose(false);
+		}
 		public IconManager() 
 		{ 
 			InitIconCache(true);
@@ -26,7 +54,7 @@ namespace WinFormsApp1
 			var imageList = LoadIconsFromFile(imageresPath, islarge);
 			AddIcon("drive" + (islarge ? 'l' : 's'), ConvertImageToIcon(imageList.Images[27]));
 			AddIcon("folder" + (islarge ? 'l' : 's'), ConvertImageToIcon(imageList.Images[3]));
-			AddIcon("×ÀÃæ" + (islarge ? 'l' : 's'), ConvertImageToIcon(imageList.Images[174]));
+			AddIcon("æ¡Œé¢" + (islarge ? 'l' : 's'), ConvertImageToIcon(imageList.Images[174]));
 			//var idx = 0;
 			//foreach (Image image in imageList.Images) 
 			//{
@@ -40,18 +68,47 @@ namespace WinFormsApp1
 			return iconCache.ContainsKey(key.ToLower());
 		}
 
+		public void ClearCache()
+		{
+			foreach (var icon in iconCache.Values)
+			{
+				icon.Dispose();
+			}
+			iconCache.Clear();
+		}
+
 		public void AddIcon(string key, Icon icon)
 		{
+			if (icon == null) return;
+			
 			key = key.ToLower();
 			if (!iconCache.ContainsKey(key))
 			{
-				iconCache[key] = icon.Clone() as Icon;
+				// åˆ›å»ºå®Œå…¨ç‹¬ç«‹çš„å›¾æ ‡å‰¯æœ¬ï¼ˆå¢åŠ å¼‚å¸¸å¤„ç†ï¼‰
+				//iconCache.Add(key, icon.Clone() as Icon);
+				try
+				{
+					using (var ms = new MemoryStream())
+					{
+						icon.Save(ms);
+						ms.Position = 0;
+						iconCache[key] = new Icon(ms);
+					}
+				}
+				catch (Exception ex)
+				{
+					Debug.WriteLine($"å›¾æ ‡ç¼“å­˜å¤±è´¥: {ex.Message}");
+				}
 			}
 		}
+
+	
 		public Icon GetIcon(string key)
 		{
 			return iconCache[key.ToLower()];
 		}
+
+	
 		public void LoadIconFromCacheByKey(string key, ImageList l)
 		{
 			if (HasIconKey(key) && !l.Images.ContainsKey(key))
@@ -112,7 +169,7 @@ namespace WinFormsApp1
 		{
 			IntPtr[] phiconLarge = new IntPtr[1];
 			IntPtr[] phiconSmall = new IntPtr[1];
-			//ÎÄ¼şÃû Í¼±êË÷Òı 
+			//ï¿½Ä¼ï¿½ï¿½ï¿½ Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 
 			API.ExtractIconEx(fileName, 0, phiconLarge, phiconSmall, 1);
 			IntPtr IconHnd = new IntPtr(isLarge ? phiconLarge[0] : phiconSmall[0]);
 
@@ -121,11 +178,11 @@ namespace WinFormsApp1
 			return Icon.FromHandle(IconHnd);
 		}
 		/// <summary>  
-		/// ¸ù¾İÎÄ¼şÀ©Õ¹Ãû£¨Èç:.*£©£¬·µ»ØÓëÖ®¹ØÁªµÄÍ¼±ê¡£
-		/// Èô²»ÒÔ"."¿ªÍ·Ôò·µ»ØÎÄ¼ş¼ĞµÄÍ¼±ê¡£  
+		/// ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½Õ¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:.*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ê¡£
+		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"."ï¿½ï¿½Í·ï¿½ò·µ»ï¿½ï¿½Ä¼ï¿½ï¿½Ğµï¿½Í¼ï¿½ê¡£  
 		/// </summary>  
-		/// <param name="fileType">ÎÄ¼şÀ©Õ¹Ãû</param>  
-		/// <param name="isLarge">ÊÇ·ñ·µ»Ø´óÍ¼±ê</param>  
+		/// <param name="fileType">ï¿½Ä¼ï¿½ï¿½ï¿½Õ¹ï¿½ï¿½</param>  
+		/// <param name="isLarge">ï¿½Ç·ñ·µ»Ø´ï¿½Í¼ï¿½ï¿½</param>  
 		/// <returns></returns>  
 		public static Icon GetIconByFileType(string fileType, bool isLarge)
 		{
@@ -138,7 +195,7 @@ namespace WinFormsApp1
 
 			if (fileType[0] == '.')
 			{
-				//¶ÁÏµÍ³×¢²á±íÖĞÎÄ¼şÀàĞÍĞÅÏ¢  
+				//ï¿½ï¿½ÏµÍ³×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢  
 				regVersion = Registry.ClassesRoot.OpenSubKey(fileType, false);
 				if (regVersion != null)
 				{
@@ -153,25 +210,25 @@ namespace WinFormsApp1
 				}
 				if (regIconString == null)
 				{
-					//Ã»ÓĞ¶ÁÈ¡µ½ÎÄ¼şÀàĞÍ×¢²áĞÅÏ¢£¬Ö¸¶¨ÎªÎ´ÖªÎÄ¼şÀàĞÍµÄÍ¼±ê  
+					//Ã»ï¿½Ğ¶ï¿½È¡ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½×¢ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½Ö¸ï¿½ï¿½ÎªÎ´Öªï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Íµï¿½Í¼ï¿½ï¿½  
 					regIconString = systemDirectory + "shell32.dll,0";
 				}
 			}
 			else
 			{
-				//Ö±½ÓÖ¸¶¨ÎªÎÄ¼ş¼ĞÍ¼±ê  
+				//Ö±ï¿½ï¿½Ö¸ï¿½ï¿½Îªï¿½Ä¼ï¿½ï¿½ï¿½Í¼ï¿½ï¿½  
 				regIconString = systemDirectory + "shell32.dll,3";
 			}
 			string[] fileIcon = regIconString.Split(new char[] { ',' });
 			if (fileIcon.Length != 2)
 			{
-				//ÏµÍ³×¢²á±íÖĞ×¢²áµÄ±êÍ¼²»ÄÜÖ±½ÓÌáÈ¡£¬Ôò·µ»Ø¿ÉÖ´ĞĞÎÄ¼şµÄÍ¨ÓÃÍ¼±ê  
+				//ÏµÍ³×¢ï¿½ï¿½ï¿½ï¿½ï¿½×¢ï¿½ï¿½Ä±ï¿½Í¼ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ò·µ»Ø¿ï¿½Ö´ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½Í¨ï¿½ï¿½Í¼ï¿½ï¿½  
 				fileIcon = new string[] { systemDirectory + "shell32.dll", "2" };
 			}
 			Icon resultIcon = null;
 			try
 			{
-				//µ÷ÓÃAPI·½·¨¶ÁÈ¡Í¼±ê  
+				//ï¿½ï¿½ï¿½ï¿½APIï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡Í¼ï¿½ï¿½  
 				IntPtr[] phiconLarge = new IntPtr[1];
 				IntPtr[] phiconSmall = new IntPtr[1];
 				uint count = API.ExtractIconEx(fileIcon[0], Int32.Parse(fileIcon[1]), phiconLarge, phiconSmall, 1);
@@ -182,11 +239,11 @@ namespace WinFormsApp1
 			return resultIcon;
 		}
 		/// <summary>
-		/// Í¨¹ıÎÄ¼şÃû³Æ»ñÈ¡ÎÄ¼şÍ¼±ê
+		/// Í¨ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Æ»ï¿½È¡ï¿½Ä¼ï¿½Í¼ï¿½ï¿½
 		/// </summary>
-		/// <param name="tcType">Ö¸¶¨²ÎÊıtcFullNameµÄÀàĞÍ: FILE/DIR</param>
-		/// <param name="tcFullName">ĞèÒª»ñÈ¡Í¼Æ¬µÄÈ«Â·¾¶ÎÄ¼şÃû</param>
-		/// <param name="tlIsLarge">ÊÇ·ñ»ñÈ¡´óÍ¼±ê(32*32)</param>
+		/// <param name="tcType">Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½tcFullNameï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: FILE/DIR</param>
+		/// <param name="tcFullName">ï¿½ï¿½Òªï¿½ï¿½È¡Í¼Æ¬ï¿½ï¿½È«Â·ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½</param>
+		/// <param name="tlIsLarge">ï¿½Ç·ï¿½ï¿½È¡ï¿½ï¿½Í¼ï¿½ï¿½(32*32)</param>
 		/// <returns></returns>
 		public static Icon GetIconByFileNameEx(string tcType, string tcFullName, bool tlIsLarge = false)
 		{
@@ -205,10 +262,10 @@ namespace WinFormsApp1
 
 			if (tcType == "FILE")
 			{
-				//º¬Í¼±êµÄÎÄ¼ş£¬ÓÅÏÈÊ¹ÓÃÎÄ¼şÖĞ×Ô´øÍ¼±ê
+				//ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Ô´ï¿½Í¼ï¿½ï¿½
 				if (".exe.ico".Contains(fileType))
 				{
-					//ÎÄ¼şÃû Í¼±êË÷Òı
+					//ï¿½Ä¼ï¿½ï¿½ï¿½ Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 					phiconLarge[0] = phiconSmall[0] = IntPtr.Zero;
 					rst = API.ExtractIconEx(tcFullName, 0, phiconLarge, phiconSmall, 1);
 					hIcon = tlIsLarge ? phiconLarge[0] : phiconSmall[0];
@@ -219,7 +276,7 @@ namespace WinFormsApp1
 						return ico;
 				}
 
-				//Í¨¹ıÎÄ¼şÀ©Õ¹Ãû¶ÁÈ¡Í¼±ê
+				//Í¨ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½Õ¹ï¿½ï¿½ï¿½ï¿½È¡Í¼ï¿½ï¿½
 				regVersion = Registry.ClassesRoot.OpenSubKey(fileType, false);
 				if (regVersion != null)
 				{
@@ -234,18 +291,18 @@ namespace WinFormsApp1
 				}
 				if (regIconString == null)
 				{
-					//Ã»ÓĞ¶ÁÈ¡µ½ÎÄ¼şÀàĞÍ×¢²áĞÅÏ¢£¬Ö¸¶¨ÎªÎ´ÖªÎÄ¼şÀàĞÍµÄÍ¼±ê
+					//Ã»ï¿½Ğ¶ï¿½È¡ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½×¢ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½Ö¸ï¿½ï¿½ÎªÎ´Öªï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Íµï¿½Í¼ï¿½ï¿½
 					regIconString = systemDirectory + "shell32.dll,0";
 				}
 			}
 			else
 			{
-				//Ö±½ÓÖ¸¶¨ÎªÎÄ¼ş¼ĞÍ¼±ê
+				//Ö±ï¿½ï¿½Ö¸ï¿½ï¿½Îªï¿½Ä¼ï¿½ï¿½ï¿½Í¼ï¿½ï¿½
 				regIconString = systemDirectory + "shell32.dll,3";
 			}
 
 			string[] fileIcon = regIconString.Split(new char[] { ',' });
-			//ÏµÍ³×¢²á±íÖĞ×¢²áµÄ±êÍ¼²»ÄÜÖ±½ÓÌáÈ¡£¬Ôò·µ»Ø¿ÉÖ´ĞĞÎÄ¼şµÄÍ¨ÓÃÍ¼±ê
+			//ÏµÍ³×¢ï¿½ï¿½ï¿½ï¿½ï¿½×¢ï¿½ï¿½Ä±ï¿½Í¼ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ò·µ»Ø¿ï¿½Ö´ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½Í¨ï¿½ï¿½Í¼ï¿½ï¿½
 			fileIcon = fileIcon.Length == 2 ? fileIcon : new string[] { systemDirectory + "shell32.dll", "2" };
 
 			phiconLarge[0] = phiconSmall[0] = IntPtr.Zero;
@@ -257,10 +314,10 @@ namespace WinFormsApp1
 			if (ico != null)
 				return ico;
 
-			// ¶ÔÓÚÎÄ¼ş£¬Èç¹ûÌáÈ¡ÎÄ¼şÍ¼±êÊ§°Ü£¬ÔòÖØĞÂÊ¹ÓÃ¿ÉÖ´ĞĞÎÄ¼şÍ¨ÓÃÍ¼±ê
+			// ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½Ä¼ï¿½Í¼ï¿½ï¿½Ê§ï¿½Ü£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½Ã¿ï¿½Ö´ï¿½ï¿½ï¿½Ä¼ï¿½Í¨ï¿½ï¿½Í¼ï¿½ï¿½
 			if (tcType == "FILE")
 			{
-				//ÏµÍ³×¢²á±íÖĞ×¢²áµÄ±êÍ¼²»ÄÜÖ±½ÓÌáÈ¡£¬Ôò·µ»Ø¿ÉÖ´ĞĞÎÄ¼şµÄÍ¨ÓÃÍ¼±ê
+				//ÏµÍ³×¢ï¿½ï¿½ï¿½ï¿½ï¿½×¢ï¿½ï¿½Ä±ï¿½Í¼ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ò·µ»Ø¿ï¿½Ö´ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½Í¨ï¿½ï¿½Í¼ï¿½ï¿½
 				fileIcon = new string[] { systemDirectory + "shell32.dll", "2" };
 				phiconLarge = new IntPtr[1];
 				phiconSmall = new IntPtr[1];
@@ -291,7 +348,7 @@ namespace WinFormsApp1
 	
 		public static void InitializeIcons(ImageList l, bool islarge = false)
 		{
-			// Ìí¼ÓÏµÍ³Í¼±êµ½treeViewImageList
+			// ï¿½ï¿½ï¿½ï¿½ÏµÍ³Í¼ï¿½êµ½treeViewImageList
 			l.ColorDepth = ColorDepth.Depth32Bit;
 			if (islarge)
 				l.ImageSize = new Size(64, 64);

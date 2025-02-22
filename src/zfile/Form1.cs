@@ -79,19 +79,30 @@ namespace WinFormsApp1
 				RefreshPanel(activeListView);
 			}
 		}
+		//private ImageList _treeViewImageList;
+
 		public Form1()
-        {
-            InitializeComponent();
-            this.Size = new Size(1200, 800);
-            // 初始化COM组件
-            InitializeCOMComponents();
-            cmdProcessor = new CmdProc(this);
-			keyManager = new KeyMgr();
-            // 创建UIManager并初始化
-            uiManager = new UIControlManager(this);
-            uiManager.InitializeUI();
-			// 创建默认书签
-			uiManager.BookmarkManager.CreateDefaultBookmarks();
+		{
+		    InitializeComponent();
+		    this.Size = new Size(1200, 800);
+		    
+		    // 初始化TreeView的ImageList
+		    //_treeViewImageList = new ImageList();
+		    //_treeViewImageList.ColorDepth = ColorDepth.Depth32Bit;
+		    //_treeViewImageList.ImageSize = new Size(16, 16);
+
+		    // 初始化COM组件
+		    InitializeCOMComponents();
+		    cmdProcessor = new CmdProc(this);
+		    keyManager = new KeyMgr();
+		    
+		    // 创建UIManager并初始化
+		    uiManager = new UIControlManager(this);
+		    uiManager.InitializeUI();
+		    //activeTreeview.ImageList = _treeViewImageList;
+		    
+		    // 创建默认书签
+		    uiManager.BookmarkManager.CreateDefaultBookmarks();
 
 			// 设置活动视图
 			uiManager.isleft = true;
@@ -136,30 +147,38 @@ namespace WinFormsApp1
 
 		protected override void Dispose(bool disposing)
 		{
-			if (disposing)
-			{
-				// 释放其他资源
-				watcher.Dispose();
-				previewManager.Dispose();
-				thumbnailManager.Dispose();
-				uiManager.Dispose();
-				themeManager.Dispose();
-				contextMenuStrip.Dispose();
+		    if (disposing)
+		    {
+		        // 解除ImageList关联并释放
+		        //activeTreeview.ImageList = null;
+		        //_treeViewImageList?.Dispose();
+		        //_treeViewImageList = null;
+		        
+		        // 释放其他资源
+		        watcher.Dispose();
+		        previewManager.Dispose();
+		        thumbnailManager.Dispose();
+				iconManager.Dispose();
+
+		        // 释放图像列表资源
+		        //activeTreeview.ImageList?.Dispose();
+		        uiManager.Dispose();
+		        themeManager.Dispose();
+		        contextMenuStrip.Dispose();
 
                 // 释放打开的压缩文件句柄
 				foreach (var archive in openArchives)
-				{
 					CloseArchive(archive.Key);
-				}
 				openArchives.Clear();
 				archivePaths.Clear();
 
                 // 释放托管资源
-				if (components != null)
-				{
-					components.Dispose();
-				}
-                 if (iDeskTop != null)
+                if (components != null)
+                    components.Dispose();
+                // 清理图标缓存
+                //iconManager.ClearCache();
+                
+                if (iDeskTop != null)
                 {
                     Marshal.ReleaseComObject(iDeskTop);
                     iDeskTop = null;

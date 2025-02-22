@@ -299,12 +299,12 @@ namespace WinFormsApp1
 
         private void NavigateToBookmark(Bookmark bookmark, bool isLeft)
         {
-            var treeView = isLeft ? form.uiManager.LeftTree : form.uiManager.RightTree;
-            //var node = form.FindTreeNode(treeView.Nodes, bookmark.Path, true);
-			var node = bookmark.AssociatedNode;
+            var treeview = isLeft ? form.uiManager.LeftTree : form.uiManager.RightTree;
+            var node = form.FindTreeNode(form.thispc.Nodes, bookmark.Path);
+			//var node = bookmark.AssociatedNode;//bugfix: the associatedNode has been removed from the treeview will lead to exception
 			if (node != null)
             {
-                treeView.SelectedNode = node;
+                treeview.SelectedNode = node;
                 node.EnsureVisible();
             }
         }

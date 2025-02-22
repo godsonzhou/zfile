@@ -8,31 +8,33 @@ using Keys = System.Windows.Forms.Keys;
 
 namespace WinFormsApp1
 {
-    public partial class Form1 : Form
-    {
+	public partial class Form1 : Form
+	{
 		const int ILD_TRANSPARENT = 0x00000001;
 		private readonly ThemeManager themeManager;
-        private readonly FilePreviewManager previewManager = new();
-        public readonly FileSystemManager fsManager = new();
-        public readonly UIControlManager uiManager;
-        public readonly ThumbnailManager thumbnailManager = new("d:\\temp\\cache", new Size(64,64));
-        private Dictionary<Keys, string> hotkeyMappings;
-        private bool isSelecting = false;
-        private Rectangle selectionRectangle;
-        public ListView activeListView { get => (uiManager.isleft ? uiManager.LeftList : uiManager.RightList); }
-        public TreeView activeTreeview { get => (uiManager.isleft ? uiManager.LeftTree : uiManager.RightTree); }
-        private readonly FileSystemWatcher watcher = new();
-        public string currentDirectory = "";
-        private TreeNode? selectedNode = null;
-        private int sortColumn = -1;
-        private SortOrder sortOrder = SortOrder.None;
-        private readonly ContextMenuStrip contextMenuStrip = new();
-        public CmdProc cmdProcessor;
+		private readonly FilePreviewManager previewManager = new();
+		public readonly FileSystemManager fsManager = new();
+		public readonly UIControlManager uiManager;
+		public readonly ThumbnailManager thumbnailManager = new("d:\\temp\\cache", new Size(64, 64));
+		private Dictionary<Keys, string> hotkeyMappings;
+		private bool isSelecting = false;
+		private Rectangle selectionRectangle;
+		public ListView activeListView { get => (uiManager.isleft ? uiManager.LeftList : uiManager.RightList); }
+		public TreeView activeTreeview { get => (uiManager.isleft ? uiManager.LeftTree : uiManager.RightTree); }
+		private readonly FileSystemWatcher watcher = new();
+		public string currentDirectory = "";
+		private TreeNode? selectedNode = null;
+		private int sortColumn = -1;
+		private SortOrder sortOrder = SortOrder.None;
+		private readonly ContextMenuStrip contextMenuStrip = new();
+		public CmdProc cmdProcessor;
 		public KeyMgr keyManager;
-        private IShellFolder iDeskTop;
-        private Dictionary<string, string> specFolderPaths = new();
-        private string[] draggedItems;
+		private IShellFolder iDeskTop;
+		private Dictionary<string, string> specFolderPaths = new();
+		private string[] draggedItems;
 		private TreeNode rightClickBegin;
+		private TreeNode thispcL, thispcR;
+		public TreeNode thispc { get { return uiManager.isleft ? thispcL : thispcR; } }
 		private string oldname;
 		private WcxModuleList wcxModuleList;
 		private Dictionary<string, IntPtr> openArchives = new Dictionary<string, IntPtr>();
@@ -630,6 +632,7 @@ namespace WinFormsApp1
                     if (string.IsNullOrEmpty(path)) return;
                     LoadListViewByFilesystem(path, activeListView, e.Node);//todo: this step will clear the previous loadsubdirectories,!!!
                     currentDirectory = path;
+					uiManager.drivePathMap[path.Substring(0,2)] = path;
                     selectedNode = e.Node;
                     if (Directory.Exists(path))
                     {
@@ -683,7 +686,8 @@ namespace WinFormsApp1
                 treeView.Nodes.Add(rootNode);
                 // 加载并展开根目录
                 LoadSubDirectories(rootNode);
-				var node = FindTreeNode(rootNode.Nodes, drivepath, true);
+				rootNode.Expand();
+				var node = FindTreeNode(thispc.Nodes, drivepath);
 				treeView.SelectedNode = node;
 				treeView.EndUpdate();
             }
@@ -938,41 +942,66 @@ namespace WinFormsApp1
             }
         }
 
-        public TreeNode? FindTreeNode(TreeNodeCollection nodes, string path, bool deepSearch = false)
+        public TreeNode? FindTreeNode(TreeNodeCollection nodes, string path)
         {
-            Debug.Print("FindTreeNode -> {0}", path);
-			foreach (TreeNode node in nodes)
-            {
-                //Debug.Print("FindTreeNode -> node: {0}, {1}", node.Text, node.FullPath);
-                //bug fix: node.fullpath=桌面\此电脑\system (C:)\aDrive, path=c:\\
-                if (path.Equals(node.Text, StringComparison.OrdinalIgnoreCase)) return node;
-                if (!deepSearch) continue;
-                if (node.Parent != null && node.Tag != null)
-                {
-                    var pidl = ((ShellItem)node.Tag).PIDL;
-                    var pf = ((ShellItem)(node.Parent.Tag)).ShellFolder;
-                    var p = w32.GetPathByIShell(pf, pidl);      ////子节点path -> 此电脑\\迅雷下载, c:\\
-					//var n = w32.GetNameByIShell(pf, pidl);    //子节点name -> 迅雷下载, system (c:)
-                    if (p.Equals(path, StringComparison.OrdinalIgnoreCase))
-                        return node;
+            //Debug.Print("FindTreeNode -> {0}", path);
+			var deepSearch = path.Contains("\\");
+			if (!deepSearch)
+			{
+				foreach (TreeNode node in nodes)
+				{
+					//Debug.Print("FindTreeNode -> node: {0}, {1}", node.Text, node.FullPath);
+					//bug fix: node.fullpath=桌面\此电脑\system (C:)\aDrive, path=c:\\
+					if (path.Equals(node.Text, StringComparison.OrdinalIgnoreCase)) return node;
+					if (!deepSearch) continue;
+					if (node.Parent != null && node.Tag != null)
+					{
+						var pidl = ((ShellItem)node.Tag).PIDL;
+						var pf = ((ShellItem)(node.Parent.Tag)).ShellFolder;
+						var p = w32.GetPathByIShell(pf, pidl);      ////子节点path -> 此电脑\\迅雷下载, c:\\
+																	//var n = w32.GetNameByIShell(pf, pidl);    //子节点name -> 迅雷下载, system (c:)
+						if (p.Equals(path, StringComparison.OrdinalIgnoreCase))
+							return node;
 
-                    if (!(p.Equals("此电脑") && path.Contains(':')))
-                    {
-                        if (!path.Contains(p))
-                            continue;
-                    }
-                }
-                LoadSubDirectories(node);
-                node.Expand();
-				
-                TreeNode? foundNode = FindTreeNode(node.Nodes, path, deepSearch);
-                if (foundNode != null)
-                {
-                    //Debug.Print("FindTreeNode -> foundNode: {0}", foundNode.Text);
-                    return foundNode;
-                }
-            }
-            return null;
+						if (!(p.Equals("此电脑") && path.Contains(':')))
+						{
+							if (!path.Contains(p))
+								continue;
+						}
+					}
+					LoadSubDirectories(node);
+					node.Expand();
+
+					TreeNode? foundNode = FindTreeNode(node.Nodes, path);
+					if (foundNode != null)
+					{
+						//Debug.Print("FindTreeNode -> foundNode: {0}", foundNode.Text);
+						return foundNode;
+					}
+				}
+			}
+			else
+			{
+				var pathpart = path.Split('\\', StringSplitOptions.RemoveEmptyEntries);
+				foreach(var n in nodes)
+				{
+					var node = n as TreeNode;
+					if (node.Text == pathpart[0])
+					{
+						if (pathpart.Length == 1)
+							return node;
+						LoadSubDirectories(node);
+						node.Expand();
+						TreeNode? foundNode = FindTreeNode(node.Nodes, path.Substring(path.IndexOf('\\') + 1));
+						if (foundNode != null)
+						{
+							//Debug.Print("FindTreeNode -> foundNode: {0}", foundNode.Text);
+							return foundNode;
+						}
+					}
+				}
+			}
+			return null;
         }
 
       
@@ -1271,6 +1300,15 @@ namespace WinFormsApp1
 						}
 
 						node.Nodes.Add(nodeSub);
+						if(nodeSub.Text.Equals("此电脑"))
+						{
+							//Debug.Print("LoadSubDirectories: 此电脑");
+							//LoadSubDirectories(nodeSub);
+							if (uiManager.isleft)
+								thispcL = nodeSub;
+							else
+								thispcR = nodeSub;
+						}
 
 						if (lv != null)
 						{

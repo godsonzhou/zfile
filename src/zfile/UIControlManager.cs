@@ -330,7 +330,7 @@ namespace WinFormsApp1
 		public ToolbarManager toolbarManager;
 		public ToolbarManager vtoolbarManager;
 		public bool isleft;
-
+		public Dictionary<string, string> drivePathMap = new ();
 		private bool disposed = false;
 
 		public UIControlManager(Form1 form)
@@ -361,24 +361,11 @@ namespace WinFormsApp1
 
 		private void UpdateTreeViewSelection(TreeView treeView, IShengAddressNode snode)
 		{
-			Debug.Print($"update treeview sel: {snode.DisplayName}");
 			TreeNode? node = null;
 			if (snode.tNode != null)
 				node = snode.tNode;
 			else
-			{
-				//treeView.BeginUpdate();
-				var tmpnode = treeView.SelectedNode;
-				while (node == null && tmpnode != null)
-				{
-					var path = snode.DisplayName.Contains(':') ? snode.UniqueID.TrimEnd('\\') : snode.DisplayName;
-					node = form.FindTreeNode(tmpnode.Nodes, path);  //TODO: BUGFIX：应该用绝对路径查找，而不是相对路径，否则遇到相同名称的文件夫目录会出现问题
-					if (node != null)
-						break;
-					tmpnode = tmpnode.Parent;
-				}
-				//treeView.EndUpdate();
-			}
+				node = form.FindTreeNode(form.thispc.Nodes, snode.UniqueID);  //应该用绝对路径查找，而不是相对路径，否则遇到相同名称的文件夫目录会出现问题
 			if (node != null)
 			{
 				treeView.SelectedNode = node;
@@ -496,7 +483,7 @@ namespace WinFormsApp1
 				RightDriveBox.SelectedIndex = 0;
 			}
 		}
-
+	
 		private void DriveComboBox_SelectedIndexChanged(object? sender, EventArgs e)
 		{
 			if (sender is not ComboBox comboBox) return;
@@ -506,7 +493,8 @@ namespace WinFormsApp1
 
 			if (comboBox.SelectedItem is string drivePath)
 			{
-				form.LoadDriveIntoTree(treeView, drivePath);
+				drivePathMap.TryGetValue(drivePath, out var str);
+				form.LoadDriveIntoTree(treeView, str);
 			}
 		}
 

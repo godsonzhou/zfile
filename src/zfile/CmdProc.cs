@@ -300,15 +300,6 @@ namespace CmdProcessor
 		// 添加导航命令的实现
 		private void do_cm_gotopreviousdir()
 		{
-			//if (owner.backStack.Count > 0)
-			//{
-			//	// 保存当前目录到前进栈
-			//	owner.forwardStack.Push(owner.currentDirectory);
-			//	// 从后退栈获取上一个目录
-			//	string previousPath = owner.backStack.Pop();
-			//	// 导航到该目录
-			//	owner.NavigateToPath(previousPath);
-			//}
 			if (owner.backStack.Count > 0)
 			{
 				// 将当前目录存入前进栈
@@ -322,15 +313,6 @@ namespace CmdProcessor
 
 		private void do_cm_gotonextdir()
 		{
-			//if (owner.forwardStack.Count > 0)
-			//{
-			//	// 保存当前目录到后退栈
-			//	owner.backStack.Push(owner.currentDirectory);
-			//	// 从前进栈获取下一个目录
-			//	string nextPath = owner.forwardStack.Pop();
-			//	// 导航到该目录
-			//	owner.NavigateToPath(nextPath);
-			//}
 			if (owner.forwardStack.Count > 0)
 			{
 				// 将当前目录存入后退栈

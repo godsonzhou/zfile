@@ -47,13 +47,6 @@ namespace WinFormsApp1
 		// 在目录变更时调用此方法记录历史
 		public void RecordDirectoryHistory(string newPath)
 		{
-			//if (string.IsNullOrEmpty(currentDirectory) || newPath == currentDirectory)
-			//	return;
-
-			//backStack.Push(currentDirectory);
-			//forwardStack.Clear(); // 清除前进历史
-			//lastDirectory = currentDirectory;
-			//currentDirectory = newPath;
 			if (string.IsNullOrEmpty(currentDirectory) || newPath == currentDirectory)
 				return;
 
@@ -65,15 +58,6 @@ namespace WinFormsApp1
 		// 导航到指定路径
 		public void NavigateToPath(string path, bool recordHistory = true)
 		{
-			//if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
-			//	return;
-
-			//var node = FindTreeNode(thispc.Nodes, path);
-			//if (node != null)
-			//{
-			//	activeTreeview.SelectedNode = node;
-			//	RefreshPanel(activeListView);
-			//}
 			if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
 				return;
 

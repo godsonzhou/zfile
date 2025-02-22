@@ -39,6 +39,61 @@ namespace WinFormsApp1
 		private WcxModuleList wcxModuleList;
 		private Dictionary<string, IntPtr> openArchives = new Dictionary<string, IntPtr>();
 		private Dictionary<string, string> archivePaths = new Dictionary<string, string>();
+		// 添加目录历史导航相关的字段
+		public Stack<string> backStack = new();    // 后退历史
+		public Stack<string> forwardStack = new(); // 前进历史
+		private string lastDirectory = string.Empty; // 上一次访问的目录
+
+		// 在目录变更时调用此方法记录历史
+		public void RecordDirectoryHistory(string newPath)
+		{
+			//if (string.IsNullOrEmpty(currentDirectory) || newPath == currentDirectory)
+			//	return;
+
+			//backStack.Push(currentDirectory);
+			//forwardStack.Clear(); // 清除前进历史
+			//lastDirectory = currentDirectory;
+			//currentDirectory = newPath;
+			if (string.IsNullOrEmpty(currentDirectory) || newPath == currentDirectory)
+				return;
+
+			backStack.Push(currentDirectory);
+			forwardStack.Clear(); // 清除前进历史
+			currentDirectory = newPath;
+		}
+
+		// 导航到指定路径
+		public void NavigateToPath(string path, bool recordHistory = true)
+		{
+			//if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
+			//	return;
+
+			//var node = FindTreeNode(thispc.Nodes, path);
+			//if (node != null)
+			//{
+			//	activeTreeview.SelectedNode = node;
+			//	RefreshPanel(activeListView);
+			//}
+			if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
+				return;
+
+			var node = FindTreeNode(thispc.Nodes, path);
+			if (node != null)
+			{
+				if (recordHistory)
+				{
+					RecordDirectoryHistory(path);
+				}
+				else
+				{
+					// 直接更新当前目录，不记录历史
+					currentDirectory = path;
+				}
+
+				activeTreeview.SelectedNode = node;
+				RefreshPanel(activeListView);
+			}
+		}
 		public Form1()
         {
             InitializeComponent();
@@ -630,7 +685,10 @@ namespace WinFormsApp1
 					e.Node.Expand();
                     var path = Helper.getFSpathbyTree(e.Node);
                     if (string.IsNullOrEmpty(path)) return;
-                    LoadListViewByFilesystem(path, activeListView, e.Node);//todo: this step will clear the previous loadsubdirectories,!!!
+
+					// 记录目录历史
+					RecordDirectoryHistory(path);
+					LoadListViewByFilesystem(path, activeListView, e.Node);//todo: this step will clear the previous loadsubdirectories,!!!
                     currentDirectory = path;
 					uiManager.drivePathMap[path.Substring(0,2)] = path;
                     selectedNode = e.Node;

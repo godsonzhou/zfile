@@ -258,6 +258,17 @@ namespace CmdProcessor
                     case 511: // cm_executedos
                         owner.OpenCommandPrompt();
                         break;
+
+					case 570:
+						do_cm_gotopreviousdir();
+						break;
+					case 571:
+						do_cm_gotonextdir();
+						break;
+					case 2002:
+						do_cm_gotoparent();
+						break;
+
                     case 903: //cm_list
                         owner.do_cm_list();
                         break;
@@ -286,9 +297,64 @@ namespace CmdProcessor
                 throw new KeyNotFoundException("命令ID不存在");
             }
         }
+		// 添加导航命令的实现
+		private void do_cm_gotopreviousdir()
+		{
+			//if (owner.backStack.Count > 0)
+			//{
+			//	// 保存当前目录到前进栈
+			//	owner.forwardStack.Push(owner.currentDirectory);
+			//	// 从后退栈获取上一个目录
+			//	string previousPath = owner.backStack.Pop();
+			//	// 导航到该目录
+			//	owner.NavigateToPath(previousPath);
+			//}
+			if (owner.backStack.Count > 0)
+			{
+				// 将当前目录存入前进栈
+				owner.forwardStack.Push(owner.currentDirectory);
+				// 从后退栈获取上一个目录
+				string previousPath = owner.backStack.Pop();
+				// 导航到该目录，但不记录到历史（避免重复记录）
+				owner.NavigateToPath(previousPath, false);
+			}
+		}
 
-        // 复制选中的文件
-        private bool CopySelectedFiles()
+		private void do_cm_gotonextdir()
+		{
+			//if (owner.forwardStack.Count > 0)
+			//{
+			//	// 保存当前目录到后退栈
+			//	owner.backStack.Push(owner.currentDirectory);
+			//	// 从前进栈获取下一个目录
+			//	string nextPath = owner.forwardStack.Pop();
+			//	// 导航到该目录
+			//	owner.NavigateToPath(nextPath);
+			//}
+			if (owner.forwardStack.Count > 0)
+			{
+				// 将当前目录存入后退栈
+				owner.backStack.Push(owner.currentDirectory);
+				// 从前进栈获取下一个目录
+				string nextPath = owner.forwardStack.Pop();
+				// 导航到该目录，但不记录到历史（避免重复记录）
+				owner.NavigateToPath(nextPath, false);
+			}
+		}
+
+		private void do_cm_gotoparent()
+		{
+			string? parentPath = Path.GetDirectoryName(owner.currentDirectory);
+			if (!string.IsNullOrEmpty(parentPath))
+			{
+				// 记录当前目录到历史
+				owner.RecordDirectoryHistory(parentPath);
+				// 导航到父目录
+				owner.NavigateToPath(parentPath);
+			}
+		}
+		// 复制选中的文件
+		private bool CopySelectedFiles()
         {
             var listView = owner.activeListView;
             if (listView == null || listView.SelectedItems.Count <= 0) return false;

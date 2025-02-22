@@ -494,7 +494,7 @@ namespace WinFormsApp1
 			if (comboBox.SelectedItem is string drivePath)
 			{
 				drivePathMap.TryGetValue(drivePath, out var str);
-				form.LoadDriveIntoTree(treeView, str);
+				form.LoadDriveIntoTree(treeView, str ?? drivePath);
 			}
 		}
 

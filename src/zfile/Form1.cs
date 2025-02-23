@@ -66,9 +66,7 @@ namespace WinFormsApp1
 			if (node != null)
 			{
 				if (recordHistory)
-				{
 					RecordDirectoryHistory(path);
-				}
 				else
 				{
 					// 直接更新当前目录，不记录历史
@@ -79,17 +77,11 @@ namespace WinFormsApp1
 				RefreshPanel(activeListView);
 			}
 		}
-		//private ImageList _treeViewImageList;
 
 		public Form1()
 		{
 		    InitializeComponent();
 		    this.Size = new Size(1200, 800);
-		    
-		    // 初始化TreeView的ImageList
-		    //_treeViewImageList = new ImageList();
-		    //_treeViewImageList.ColorDepth = ColorDepth.Depth32Bit;
-		    //_treeViewImageList.ImageSize = new Size(16, 16);
 
 		    // 初始化COM组件
 		    InitializeCOMComponents();
@@ -99,7 +91,6 @@ namespace WinFormsApp1
 		    // 创建UIManager并初始化
 		    uiManager = new UIControlManager(this);
 		    uiManager.InitializeUI();
-		    //activeTreeview.ImageList = _treeViewImageList;
 		    
 		    // 创建默认书签
 		    uiManager.BookmarkManager.CreateDefaultBookmarks();
@@ -140,28 +131,18 @@ namespace WinFormsApp1
             w32.InitializeCOM();
             iDeskTop = w32.GetDesktopFolder(out deskTopPtr);
             if (iDeskTop == null)
-            {
                 throw new Exception("无法初始化桌面Shell接口");
-            }
         }
 
 		protected override void Dispose(bool disposing)
 		{
 		    if (disposing)
-		    {
-		        // 解除ImageList关联并释放
-		        //activeTreeview.ImageList = null;
-		        //_treeViewImageList?.Dispose();
-		        //_treeViewImageList = null;
-		        
+		    {   
 		        // 释放其他资源
 		        watcher.Dispose();
 		        previewManager.Dispose();
 		        thumbnailManager.Dispose();
 				iconManager.Dispose();
-
-		        // 释放图像列表资源
-		        //activeTreeview.ImageList?.Dispose();
 		        uiManager.Dispose();
 		        themeManager.Dispose();
 		        contextMenuStrip.Dispose();
@@ -175,8 +156,6 @@ namespace WinFormsApp1
                 // 释放托管资源
                 if (components != null)
                     components.Dispose();
-                // 清理图标缓存
-                //iconManager.ClearCache();
                 
                 if (iDeskTop != null)
                 {
@@ -319,10 +298,7 @@ namespace WinFormsApp1
 			if (draggedItems == null) return;
 			var listView = sender as ListView;
 			if (!IsValidTarget(listView, e, out string targetPath)) return;
-			//if (!e.Data.GetDataPresent(DataFormats.FileDrop))
-			//{
-			//	draggedItems = e.Data.GetData(DataFormats.FileDrop) as string[];
-			//}
+			
 			// 复制文件/目录到目标路径
 			foreach (var sourcePath in draggedItems)
 				FileSystemManager.CopyFilesAndDirectories(sourcePath, targetPath);
@@ -495,9 +471,7 @@ namespace WinFormsApp1
             finally
             {
                 if (pidl != IntPtr.Zero)
-                {
                     API.ILFree(pidl);
-                }
             }
         }
         private void HandleRegistryContextMenuItems(string path)
@@ -534,9 +508,7 @@ namespace WinFormsApp1
             //获得父节点的 IShellFolder 接口
             IShellFolder IParent = iDeskTop;
             if (node.Parent != null)
-            {
                 IParent = ((ShellItem)node.Parent.Tag).ShellFolder;
-            }
             else
             {
                 //桌面的真实路径的 PIDL
@@ -630,7 +602,6 @@ namespace WinFormsApp1
 
         public void TreeView_NodeMouseClick(object? sender, TreeNodeMouseClickEventArgs e)
         {
-			//Debug.WriteLine($"TreeView_NodeMouseClick 被触发，控件名称: {((TreeView)sender).Name}");
 			if (e.Node?.Tag == null) return;
             //try
             {
@@ -647,11 +618,6 @@ namespace WinFormsApp1
                     watcher.Path = path;
                     watcher.EnableRaisingEvents = true;
                 }
-                else
-                {
-                    //如果不是文件夹，而是比如我的电脑/网上邻居/控制面板等，则通过其他方式打开
-                    //Debug.Print(GetNodeType(e.Node));
-                }
             }
             //catch (Exception ex)
             //{
@@ -663,7 +629,6 @@ namespace WinFormsApp1
 			if (e.Node.Nodes.Count == 1 && e.Node.FirstNode.Text == "...")
 			{
 				LoadSubDirectories(e.Node);
-				//Debug.Print("TreeView_BeforeExpand");
 			}
         }
         public void TreeView_AfterSelect(object? sender, TreeViewEventArgs e)
@@ -789,7 +754,6 @@ namespace WinFormsApp1
 			string oldName = oldname;
 			var labeleditEvent = e as LabelEditEventArgs;
 			if (labeleditEvent.CancelEdit) return;
-			//string newName = item.Text;
 			string newName = labeleditEvent.Label;
 			if (string.IsNullOrEmpty(newName))
 			{
@@ -809,13 +773,9 @@ namespace WinFormsApp1
 			try
 			{
 				if (File.Exists(oldPath))
-				{
 					File.Move(oldPath, newPath);
-				}
 				else
-				{
 					Directory.Move(oldPath, newPath);
-				}
 			}
 			catch (Exception ex)
 			{
@@ -826,20 +786,10 @@ namespace WinFormsApp1
 		}
 		public void ListView_MouseMove(object sender, MouseEventArgs e)
         {
-            //if (isSelecting)
-            //{
-            //    selectionRectangle = new Rectangle(
-            //        Math.Min(selectionStart.X, e.X),
-            //        Math.Min(selectionStart.Y, e.Y),
-            //        Math.Abs(selectionStart.X - e.X),
-            //        Math.Abs(selectionStart.Y - e.Y));
-
-            //    activeListView.Invalidate();
-            //}
+         
         }
         public void ListView_MouseUp(object sender, MouseEventArgs e)
         {
-            //Debug.Print("listview_mouseup:");
             //if (isSelecting)
             //{
             //    isSelecting = false;
@@ -917,7 +867,7 @@ namespace WinFormsApp1
             if (listView.SelectedItems.Count == 0) return;
 
             ListViewItem selectedItem = listView.SelectedItems[0];
-            Debug.Print("listview_mousedoubleclick:{0}, currentDir={1}", selectedItem.Text, currentDirectory);
+            //Debug.Print("listview_mousedoubleclick:{0}, currentDir={1}", selectedItem.Text, currentDirectory);
             string path = Path.Combine(currentDirectory, selectedItem.Text);
 			if (IsArchiveFile(path))
 			{
@@ -954,7 +904,6 @@ namespace WinFormsApp1
 
                         // 更新当前目录和ListView
                         selectedNode = node;
-						//RefreshTreeViewAndListView(listView, path);
 						RefreshPanel(listView);
                     }
 
@@ -1065,7 +1014,6 @@ namespace WinFormsApp1
 			}
 			return null;
         }
-
       
         public void ToolbarButton_DragEnter(object sender, DragEventArgs e)
         {
@@ -1198,9 +1146,6 @@ namespace WinFormsApp1
 					iconManager.AddIcon(iconKey, icon);
 					if (!islarge)
 					{
-						//var bitmap = icon.ToBitmap();
-						//if (!activeTreeview.ImageList.Images.ContainsKey(iconKey))
-						//	activeTreeview.ImageList.Images.Add(iconKey, bitmap);
 						iconManager.LoadIconFromCacheByKey(iconKey, activeTreeview.ImageList);
 					}
 				}
@@ -1240,12 +1185,7 @@ namespace WinFormsApp1
 								iconKey += (islarge ? "l" : "s");
 								iconManager.AddIcon(iconKey, icon);
 								if (!islarge)
-								{
-									//var bitmap = icon.ToBitmap();
-									//if (!activeTreeview.ImageList.Images.ContainsKey(iconKey))
-									//	activeTreeview.ImageList.Images.Add(iconKey, bitmap);
 									iconManager.LoadIconFromCacheByKey(iconKey, activeTreeview.ImageList);
-								}
 							}
 						}
 						finally
@@ -1538,9 +1478,8 @@ namespace WinFormsApp1
                     };
                 }
                 else
-                {
                     return null;
-                }
+
 				var i = new ListViewItem(itemData);
 				return i;
             }
@@ -1594,9 +1533,7 @@ namespace WinFormsApp1
                 string filePath = Helper.getFSpath(Path.Combine(currentDirectory, selectedItem.Text));
 
                 if (File.Exists(filePath))
-                {
                     await PreviewFileAsync(filePath, previewPanel);
-                }
             }
         }
 

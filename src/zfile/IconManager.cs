@@ -54,12 +54,9 @@ namespace WinFormsApp1
 			// 标准化图标尺寸
 			var targetSize = islarge ? new Size(64, 64) : new Size(16, 16);
 
-			AddIcon("drive_" + (islarge ? 'l' : 's'),
-				ResizeIcon(ConvertImageToIcon(imageList.Images[27]), targetSize));
-			AddIcon("folder_" + (islarge ? 'l' : 's'),
-				ResizeIcon(ConvertImageToIcon(imageList.Images[3]), targetSize));
-			AddIcon("桌面" + (islarge ? 'l' : 's'),
-				ResizeIcon(ConvertImageToIcon(imageList.Images[174]), targetSize));
+			AddIcon("drive", ResizeIcon(ConvertImageToIcon(imageList.Images[27]), targetSize), islarge);
+			AddIcon("folder", ResizeIcon(ConvertImageToIcon(imageList.Images[3]), targetSize), islarge);
+			AddIcon("桌面",	ResizeIcon(ConvertImageToIcon(imageList.Images[174]), targetSize), islarge);
 			//var idx = 0;
 			//foreach (Image image in imageList.Images) 
 			//{
@@ -68,9 +65,10 @@ namespace WinFormsApp1
 			//}
 		}
 
-		public bool HasIconKey(string key)
+		public bool HasIconKey(string key, bool islarge)
 		{
-			return iconCache.ContainsKey(key.ToLower());
+			var subkey = islarge ? "l" : "s";
+			return iconCache.ContainsKey($"{key}___{subkey}".ToLower());
 		}
 
 		public void ClearCache()
@@ -82,11 +80,12 @@ namespace WinFormsApp1
 			iconCache.Clear();
 		}
 
-		public void AddIcon(string key, Icon icon)
+		public void AddIcon(string key, Icon icon, bool islarge)
 		{
 			if (icon == null) return;
 
-			key = key.ToLower();
+			var subkey = islarge ? "___l" : "___s";
+			key = (key+subkey).ToLower();
 			if (!iconCache.ContainsKey(key))
 			{
 				try
@@ -120,6 +119,8 @@ namespace WinFormsApp1
 							Debug.WriteLine("图标缓存失败: 无法从句柄创建图标");
 							return;
 						}
+						//save current icon to png file
+						newIcon.ToBitmap().Save("d:\\temp\\" + key + ".png", System.Drawing.Imaging.ImageFormat.Png);
 
 						iconCache[key] = (Icon)newIcon.Clone();
 						API.DestroyIcon(hIcon); // 确保销毁图标句柄
@@ -132,17 +133,16 @@ namespace WinFormsApp1
 			}
 		}
 
-		public Icon GetIcon(string key)
+		public Icon GetIcon(string key, bool islarge)
 		{
-			return iconCache[key.ToLower()];
+			var subkey = islarge ? "___l" : "___s";
+			return iconCache[(key + subkey).ToLower()];
 		}
 
-		public void LoadIconFromCacheByKey(string key, ImageList l)
+		public void LoadIconFromCacheByKey(string key, ImageList l, bool islarge)
 		{
-			if (HasIconKey(key) && !l.Images.ContainsKey(key))
-			{
-				l.Images.Add(key, iconCache[key]);
-			}
+			if (HasIconKey(key, islarge) && !l.Images.ContainsKey(key))
+				l.Images.Add(key, GetIcon(key, islarge));
 		}
 	
 		public static Icon ConvertImageToIcon(Image image)
@@ -209,14 +209,14 @@ namespace WinFormsApp1
 			else
 			{
 				if (item.Name.Contains(':'))
-					return "drive_";
-				return "folder_";
+					return "drive";
+				return "folder";
 			}
 		}
 
 		public static string GetNodeIconKey(TreeNode node)
 		{
-			return GetIconKey((ShellItem)node.Tag) + "s";   //treenode icon key is always use small icon, so append 's' to the pure key
+			return GetIconKey((ShellItem)node.Tag);   //treenode icon key is always use small icon, so append 's' to the pure key
 		}
 
 		public static Image? LoadIcon(string iconPath)

@@ -1142,12 +1142,9 @@ namespace WinFormsApp1
 				subItem.IconKey = iconKey;
 				using (Icon icon = Icon.FromHandle(shellInfo.hIcon))
 				{
-					iconKey += islarge ? "l" : "s";
-					iconManager.AddIcon(iconKey, icon);
+					iconManager.AddIcon(iconKey, icon, islarge);
 					if (!islarge)
-					{
-						iconManager.LoadIconFromCacheByKey(iconKey, activeTreeview.ImageList);
-					}
+						iconManager.LoadIconFromCacheByKey(iconKey, activeTreeview.ImageList, islarge);
 				}
 				API.DestroyIcon(shellInfo.hIcon);
 				return true;
@@ -1182,10 +1179,9 @@ namespace WinFormsApp1
 						{
 							using (Icon icon = Icon.FromHandle(hIcon))
 							{
-								iconKey += (islarge ? "l" : "s");
-								iconManager.AddIcon(iconKey, icon);
+								iconManager.AddIcon(iconKey, icon, islarge);
 								if (!islarge)
-									iconManager.LoadIconFromCacheByKey(iconKey, activeTreeview.ImageList);
+									iconManager.LoadIconFromCacheByKey(iconKey, activeTreeview.ImageList, islarge);
 							}
 						}
 						finally
@@ -1209,14 +1205,14 @@ namespace WinFormsApp1
 			{
 				iconKey = ($"{shellInfo.szTypeName}_{shellInfo.iIcon}").ToLower();
 				subItem.IconKey = iconKey;
-				iconKey += islarge ? "l" : "s";
-				if (!iconManager.HasIconKey(iconKey))
+				//iconKey += islarge ? "l" : "s";
+				if (!iconManager.HasIconKey(iconKey, islarge))
 				{
 					var icon = IconManager.ExtractIconFromFile(shellInfo.szTypeName, shellInfo.iIcon);
-					iconManager.AddIcon(iconKey, icon);
+					iconManager.AddIcon(iconKey, icon, islarge);
 				}
 				if(!islarge)
-					iconManager.LoadIconFromCacheByKey(iconKey, activeTreeview.ImageList);
+					iconManager.LoadIconFromCacheByKey(iconKey, activeTreeview.ImageList, islarge);
 				return true;
 			}
 			iconKey = string.Empty;
@@ -1273,7 +1269,7 @@ namespace WinFormsApp1
 						else
 						{
 							var iconKey = IconManager.GetNodeIconKey(nodeSub);
-							iconManager.LoadIconFromCacheByKey(iconKey, activeTreeview.ImageList);
+							iconManager.LoadIconFromCacheByKey(iconKey, activeTreeview.ImageList, false);
 							nodeSub.ImageKey = iconKey;
 							nodeSub.SelectedImageKey = nodeSub.ImageKey;
 							// 如果有子文件夹，则添加"..."节点
@@ -1303,8 +1299,8 @@ namespace WinFormsApp1
 						{
 							string[] s = ["", name, "", name.Contains(':') ? "本地磁盘" : "<CLS>", ""];
 							var i = new ListViewItem(s);
-							var ico = IconManager.GetIconKey(subItem) + "s";
-							iconManager.LoadIconFromCacheByKey(ico, lv.SmallImageList);
+							var ico = IconManager.GetIconKey(subItem);
+							iconManager.LoadIconFromCacheByKey(ico, lv.SmallImageList, false);
 							i.ImageKey = ico;
 							i.Text = name;
 							i.Tag = node;   //tag存放父节点
@@ -1364,51 +1360,46 @@ namespace WinFormsApp1
                     {
 						if (lvItem.SubItems[3].Text.Equals("<DIR>"))
 						{
-							iconManager.LoadIconFromCacheByKey("folder_s", listView.SmallImageList);
-							iconManager.LoadIconFromCacheByKey("folder_l", listView.LargeImageList);
-							lvItem.ImageKey = "folder_" + subkey ;
+							iconManager.LoadIconFromCacheByKey("folder", listView.SmallImageList, false);
+							iconManager.LoadIconFromCacheByKey("folder", listView.LargeImageList, true);
+							lvItem.ImageKey = "folder" ;
 						}
 						else
 						{
-							var ext = Path.GetExtension(item.FullName);
-							var key = ext + "___s";
-							if(!iconManager.HasIconKey(key))
+							var key = Path.GetExtension(item.FullName);
+							if(!iconManager.HasIconKey(key, false))
 							{
 								var ico = IconManager.GetIconByFileNameEx("FILE", item.FullName);
 								if (ico != null)
-									iconManager.AddIcon(key, ico);
+									iconManager.AddIcon(key, ico, false);
 							}
-							iconManager.LoadIconFromCacheByKey(key, listView.SmallImageList);
+							iconManager.LoadIconFromCacheByKey(key, listView.SmallImageList, false);
 
-							if(subkey == "l")
+							var thumb = thumbnailManager.CreatePreview(item.FullName);
+							if (thumb != null)
 							{
-								var thumb = thumbnailManager.CreatePreview(item.FullName);
-								if (thumb != null)
+								listView.LargeImageList.Images.Add(thumb);
+								lvItem.ImageIndex = listView.LargeImageList.Images.Count - 1;
+								lvItem.ImageKey = key;
+							}
+							else
+							{
+								if (!iconManager.HasIconKey(key, true))
 								{
-									listView.LargeImageList.Images.Add(thumb);
-									lvItem.ImageIndex = listView.LargeImageList.Images.Count - 1;
+									var icol = IconManager.GetIconByFileNameEx("FILE", item.FullName, true);
+									if (icol != null)
+										iconManager.AddIcon(key, icol, true);
 								}
-								else
-								{
-									key = ext + "___l";
-									if (!iconManager.HasIconKey(key))
-									{
-										var icol = IconManager.GetIconByFileNameEx("FILE", item.FullName, true);
-										if (icol != null)
-											iconManager.AddIcon(key, icol);
-									}
-									iconManager.LoadIconFromCacheByKey(key, listView.LargeImageList);
-									lvItem.ImageKey = key;
-								}
+								iconManager.LoadIconFromCacheByKey(key, listView.LargeImageList, true);
+								lvItem.ImageKey = key;
 							}
 						}
-
-						//Debug.Print("file add to listview ：{0}", item.FullName);
 						lvItem.Tag = parentnode;
                         listView.Items.Add(lvItem);
                     }
                 }
                 listView.EndUpdate();
+				listView.Refresh();
             }
             //catch (Exception ex)
             //{

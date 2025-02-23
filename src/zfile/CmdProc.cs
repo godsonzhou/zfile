@@ -304,6 +304,9 @@ namespace CmdProcessor
                     case 904: //cm_edit
                         owner.do_cm_edit();
                         break;
+					case 2026:
+						do_cm_DirBranch();
+						break;
                     case 2950:
                         owner.ThemeToggle();
                         break;
@@ -326,7 +329,10 @@ namespace CmdProcessor
                 throw new KeyNotFoundException("命令ID不存在");
             }
         }
-
+		private void do_cm_DirBranch()
+		{
+			owner.fsManager.isDirBranchMode = !owner.fsManager.isDirBranchMode;
+		}
 		// 全选
 		private void do_cm_SelectAll()
 		{

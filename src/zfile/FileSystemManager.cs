@@ -6,6 +6,7 @@ namespace WinFormsApp1
 	{
 		private readonly Dictionary<string, List<FileSystemInfo>> _directoryCache = new();
 		private Dictionary<string, DateTime> _lastCacheUpdate = new();
+		public bool isDirBranchMode = false;
 
 		public static void CopyFilesAndDirectories(string sourcePath, string destinationFolder)
 		{
@@ -249,46 +250,52 @@ namespace WinFormsApp1
 
 			//if (needsUpdate)
 			//{
-			var items = new List<FileSystemInfo>();
-			var directoryInfo = new DirectoryInfo(path);
+			if (!isDirBranchMode) {
+				var items = new List<FileSystemInfo>();
+				var directoryInfo = new DirectoryInfo(path);
 
-			try
-			{
-				if ((readmode & WinShell.ReadDirContentsMode.Folder) != 0)
+				try
 				{
-					foreach (var dir in directoryInfo.GetDirectories())
+					if ((readmode & WinShell.ReadDirContentsMode.Folder) != 0)
 					{
-						if ((dir.Attributes & FileAttributes.Hidden) == 0)
+						foreach (var dir in directoryInfo.GetDirectories())
 						{
-							items.Add(dir);
+							if ((dir.Attributes & FileAttributes.Hidden) == 0)
+							{
+								items.Add(dir);
+							}
 						}
 					}
-				}
-				if ((readmode & WinShell.ReadDirContentsMode.File) != 0)
-				{
-					foreach (var file in directoryInfo.GetFiles())
+					if ((readmode & WinShell.ReadDirContentsMode.File) != 0)
 					{
-						if ((file.Attributes & FileAttributes.Hidden) == 0)
+						foreach (var file in directoryInfo.GetFiles())
 						{
-							items.Add(file);
+							if ((file.Attributes & FileAttributes.Hidden) == 0)
+							{
+								items.Add(file);
+							}
 						}
 					}
+					_directoryCache[path] = items;
+					//_lastCacheUpdate[path] = currentTime;
+					//Debug.Print("dir cache updated {0} >", currentTime);
 				}
-				_directoryCache[path] = items;
-				//_lastCacheUpdate[path] = currentTime;
-				//Debug.Print("dir cache updated {0} >", currentTime);
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show($"读取目录内容失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-			}
-			//         }
-			//else
-			//{
-			//	Debug.Print("dir cache used!!!!!! {0}, {1} >", currentTime, _lastCacheUpdate[path]);
-			//}
+				catch (Exception ex)
+				{
+					MessageBox.Show($"读取目录内容失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+				//         }
+				//else
+				//{
+				//	Debug.Print("dir cache used!!!!!! {0}, {1} >", currentTime, _lastCacheUpdate[path]);
+				//}
 
-			return _directoryCache[path];
+				return _directoryCache[path];
+			}
+			else 
+			{
+				return _directoryCache[path];
+			}
 		}
 		public static string FormatFileSize(long bytes)
 		{

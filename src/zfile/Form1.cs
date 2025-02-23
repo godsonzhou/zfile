@@ -1413,53 +1413,58 @@ namespace WinFormsApp1
 			//try
 			{
                 var items = fsManager.GetDirectoryContents(path);
-
                 listView.BeginUpdate();
                 listView.Items.Clear();
-				
-                foreach (var item in items)
+				var subkey = (listView.View == View.Details | listView.View == View.List ? "s" : "l");
+				foreach (var item in items)
                 {
                     if ((item.Attributes & FileAttributes.Hidden) != 0) continue;
-
                     var lvItem = CreateListViewItem(item);
                     if (lvItem != null)
                     {
-						var subkey = (listView.View == View.Details | listView.View == View.Tile ? "s" : "l");
 						if (lvItem.SubItems[3].Text.Equals("<DIR>"))
 						{
-							//todo: bugfix listview add small icon / large icon
-							iconManager.LoadIconFromCacheByKey("folders", listView.SmallImageList);
-							iconManager.LoadIconFromCacheByKey("folderl", listView.LargeImageList);
-							lvItem.ImageKey = "folder" + subkey ;
+							iconManager.LoadIconFromCacheByKey("folder_s", listView.SmallImageList);
+							iconManager.LoadIconFromCacheByKey("folder_l", listView.LargeImageList);
+							lvItem.ImageKey = "folder_" + subkey ;
 						}
 						else
 						{
-							var ico = IconManager.GetIconByFileNameEx("FILE", item.FullName);
-							var icol = IconManager.GetIconByFileNameEx("FILE", item.FullName, true);
-							if (ico != null)
+							var ext = Path.GetExtension(item.FullName);
+							var key = ext + "___s";
+							if(!iconManager.HasIconKey(key))
 							{
-								var key = Path.GetExtension(item.FullName);
-								iconManager.AddIcon(key+"s", ico);
-								iconManager.AddIcon(key + "l", icol);
-								iconManager.LoadIconFromCacheByKey(key+"s", listView.SmallImageList);
-								
+								var ico = IconManager.GetIconByFileNameEx("FILE", item.FullName);
+								if (ico != null)
+									iconManager.AddIcon(key, ico);
+							}
+							iconManager.LoadIconFromCacheByKey(key, listView.SmallImageList);
+
+							if(subkey == "l")
+							{
 								var thumb = thumbnailManager.CreatePreview(item.FullName);
 								if (thumb != null)
 								{
 									listView.LargeImageList.Images.Add(thumb);
-									lvItem.ImageIndex = listView.SmallImageList.Images.Count - 1;
+									lvItem.ImageIndex = listView.LargeImageList.Images.Count - 1;
 								}
 								else
 								{
-									lvItem.ImageKey = key + "l";
-									iconManager.LoadIconFromCacheByKey(key + "l", listView.LargeImageList);
+									key = ext + "___l";
+									if (!iconManager.HasIconKey(key))
+									{
+										var icol = IconManager.GetIconByFileNameEx("FILE", item.FullName, true);
+										if (icol != null)
+											iconManager.AddIcon(key, icol);
+									}
+									iconManager.LoadIconFromCacheByKey(key, listView.LargeImageList);
+									lvItem.ImageKey = key;
 								}
-
 							}
 						}
-							
-                        //Debug.Print("file add to listview ：{0}", item.FullName);
-                        lvItem.Tag = parentnode;
+
+						//Debug.Print("file add to listview ：{0}", item.FullName);
+						lvItem.Tag = parentnode;
                         listView.Items.Add(lvItem);
                     }
                 }

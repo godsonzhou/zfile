@@ -840,7 +840,6 @@ namespace WinFormsApp1
 			return commanderPath;
 		}
 
-
 		public void ToolbarButton_Click(object? sender, EventArgs e)
 		{
 			if (sender is ToolStripItem item && item.Tag is string cmd)

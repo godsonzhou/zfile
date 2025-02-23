@@ -49,15 +49,14 @@ namespace WinFormsApp1
 		}
 		public void InitIconCache(bool islarge)
 		{
-			//iconCache.Clear();
 			var imageresPath = Path.Combine(Environment.SystemDirectory, "imageres.dll");
 			var imageList = LoadIconsFromFile(imageresPath, islarge);
 			// 标准化图标尺寸
 			var targetSize = islarge ? new Size(64, 64) : new Size(16, 16);
 
-			AddIcon("drive" + (islarge ? 'l' : 's'),
+			AddIcon("drive_" + (islarge ? 'l' : 's'),
 				ResizeIcon(ConvertImageToIcon(imageList.Images[27]), targetSize));
-			AddIcon("folder" + (islarge ? 'l' : 's'),
+			AddIcon("folder_" + (islarge ? 'l' : 's'),
 				ResizeIcon(ConvertImageToIcon(imageList.Images[3]), targetSize));
 			AddIcon("桌面" + (islarge ? 'l' : 's'),
 				ResizeIcon(ConvertImageToIcon(imageList.Images[174]), targetSize));
@@ -146,7 +145,7 @@ namespace WinFormsApp1
 			}
 		}
 	
-		private static Icon ConvertImageToIcon(Image image)
+		public static Icon ConvertImageToIcon(Image image)
 		{
 			// 创建32位ARGB格式的Bitmap保持透明通道
 			//Debug.Print(image.Width + " " + image.Height);
@@ -197,7 +196,6 @@ namespace WinFormsApp1
 
 		public static void InitializeIcons(ImageList l, bool islarge = false)
 		{
-			// ����ϵͳͼ�굽treeViewImageList
 			l.ColorDepth = ColorDepth.Depth32Bit;
 			if (islarge)
 				l.ImageSize = new Size(64, 64);
@@ -211,8 +209,8 @@ namespace WinFormsApp1
 			else
 			{
 				if (item.Name.Contains(':'))
-					return "drive";
-				return "folder";
+					return "drive_";
+				return "folder_";
 			}
 		}
 
@@ -224,14 +222,10 @@ namespace WinFormsApp1
 		public static Image? LoadIcon(string iconPath)
 		{
 			if (string.IsNullOrEmpty(iconPath))
-			{
 				return null;
-			}
 
 			if (iconPath.ToLower().StartsWith("wcmicon"))
-			{
 				iconPath = Constants.ZfilePath + iconPath;
-			}
 
 			if (iconPath.Contains(","))
 			{
@@ -337,14 +331,10 @@ namespace WinFormsApp1
 					}
 				}
 				if (regIconString == null)
-				{
 					regIconString = systemDirectory + "shell32.dll,0";
-				}
 			}
 			else
-			{
 				regIconString = systemDirectory + "shell32.dll,3";
-			}
 			string[] fileIcon = regIconString.Split(new char[] { ',' });
 			if (fileIcon.Length != 2)
 			{

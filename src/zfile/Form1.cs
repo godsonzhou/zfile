@@ -1143,8 +1143,6 @@ namespace WinFormsApp1
 				using (Icon icon = Icon.FromHandle(shellInfo.hIcon))
 				{
 					iconManager.AddIcon(iconKey, icon, islarge);
-					if (!islarge)
-						iconManager.LoadIconFromCacheByKey(iconKey, activeTreeview.ImageList, islarge);
 				}
 				API.DestroyIcon(shellInfo.hIcon);
 				return true;
@@ -1180,8 +1178,6 @@ namespace WinFormsApp1
 							using (Icon icon = Icon.FromHandle(hIcon))
 							{
 								iconManager.AddIcon(iconKey, icon, islarge);
-								if (!islarge)
-									iconManager.LoadIconFromCacheByKey(iconKey, activeTreeview.ImageList, islarge);
 							}
 						}
 						finally
@@ -1211,8 +1207,7 @@ namespace WinFormsApp1
 					var icon = IconManager.ExtractIconFromFile(shellInfo.szTypeName, shellInfo.iIcon);
 					iconManager.AddIcon(iconKey, icon, islarge);
 				}
-				if(!islarge)
-					iconManager.LoadIconFromCacheByKey(iconKey, activeTreeview.ImageList, islarge);
+			
 				return true;
 			}
 			iconKey = string.Empty;
@@ -1254,24 +1249,23 @@ namespace WinFormsApp1
 							Tag = subItem
 						};
 						// 为虚拟文件夹或非文件系统项设置特定图标
+						string iconkey;
 						if (subItem.IsVirtual || (subItem.GetAttributes() & SFGAO.FILESYSTEM) == 0)
 						{
-							string iconkey;
 							if (!getIconByShellItem(ref subItem, out iconkey))
 								if(!getIconBySysImageList(ref subItem, out iconkey))
 									getIconByIconLocation(ref subItem, out iconkey);
-							nodeSub.ImageKey = iconkey;
-							nodeSub.SelectedImageKey = iconkey;
+							iconManager.LoadIconFromCacheByKey(iconkey, activeTreeview.ImageList);
+						
 							SFGAO subattr = subItem.GetAttributes();    // 如果是文件夹且不是虚拟文件夹，则添加"..."节点
 							if (subattr.HasFlag(SFGAO.FOLDER))
 								nodeSub.Nodes.Add("...");
 						}
 						else
 						{
-							var iconKey = IconManager.GetNodeIconKey(nodeSub);
-							iconManager.LoadIconFromCacheByKey(iconKey, activeTreeview.ImageList, false);
-							nodeSub.ImageKey = iconKey;
-							nodeSub.SelectedImageKey = nodeSub.ImageKey;
+							iconkey = IconManager.GetNodeIconKey(nodeSub);
+							iconManager.LoadIconFromCacheByKey(iconkey, activeTreeview.ImageList);
+							
 							// 如果有子文件夹，则添加"..."节点
 							if (Directory.Exists(path))
 							{
@@ -1285,7 +1279,8 @@ namespace WinFormsApp1
 								catch { }
 							}
 						}
-
+						nodeSub.ImageKey = iconkey;
+						nodeSub.SelectedImageKey = iconkey;
 						node.Nodes.Add(nodeSub);
 						if(nodeSub.Text.Equals("此电脑"))
 						{
@@ -1300,7 +1295,9 @@ namespace WinFormsApp1
 							string[] s = ["", name, "", name.Contains(':') ? "本地磁盘" : "<CLS>", ""];
 							var i = new ListViewItem(s);
 							var ico = IconManager.GetIconKey(subItem);
-							iconManager.LoadIconFromCacheByKey(ico, lv.SmallImageList, false);
+							iconManager.LoadIconFromCacheByKey(ico, lv.SmallImageList);
+							getIconByShellItem(ref subItem, out ico, true);
+							iconManager.LoadIconFromCacheByKey(ico, lv.LargeImageList, true);
 							i.ImageKey = ico;
 							i.Text = name;
 							i.Tag = node;   //tag存放父节点
@@ -1325,7 +1322,7 @@ namespace WinFormsApp1
 			return false;
         }
         // 加载文件列表
-        private void LoadListViewByFilesystem(string path, ListView listView, TreeNode parentnode)
+        private async Task LoadListViewByFilesystem(string path, ListView listView, TreeNode parentnode)
         {
 			var sitem = (ShellItem)parentnode.Tag;
 			if (sitem.IsVirtual) return;
@@ -1360,7 +1357,7 @@ namespace WinFormsApp1
                     {
 						if (lvItem.SubItems[3].Text.Equals("<DIR>"))
 						{
-							iconManager.LoadIconFromCacheByKey("folder", listView.SmallImageList, false);
+							iconManager.LoadIconFromCacheByKey("folder", listView.SmallImageList);
 							iconManager.LoadIconFromCacheByKey("folder", listView.LargeImageList, true);
 							lvItem.ImageKey = "folder" ;
 						}
@@ -1373,14 +1370,15 @@ namespace WinFormsApp1
 								if (ico != null)
 									iconManager.AddIcon(key, ico, false);
 							}
-							iconManager.LoadIconFromCacheByKey(key, listView.SmallImageList, false);
-
-							var thumb = thumbnailManager.CreatePreview(item.FullName);
+							iconManager.LoadIconFromCacheByKey(key, listView.SmallImageList);
+							
+							var thumb = thumbnailManager.CreatePreview(item.FullName, out string md5key);
 							if (thumb != null)
 							{
-								listView.LargeImageList.Images.Add(thumb);
-								lvItem.ImageIndex = listView.LargeImageList.Images.Count - 1;
-								lvItem.ImageKey = key;
+								Debug.Print("thumb generated: {0}, {1}", item.FullName, md5key);
+								listView.LargeImageList.Images.Add(md5key, thumb);
+								//lvItem.ImageIndex = listView.LargeImageList.Images.Count - 1;
+								lvItem.ImageKey = md5key;
 							}
 							else
 							{

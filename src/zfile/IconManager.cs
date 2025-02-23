@@ -139,10 +139,13 @@ namespace WinFormsApp1
 			return iconCache[(key + subkey).ToLower()];
 		}
 
-		public void LoadIconFromCacheByKey(string key, ImageList l, bool islarge)
+		public void LoadIconFromCacheByKey(string key, ImageList l, bool islarge = false)
 		{
 			if (HasIconKey(key, islarge) && !l.Images.ContainsKey(key))
+			{
 				l.Images.Add(key, GetIcon(key, islarge));
+				Debug.Print(key + " added to imagelist : " + l.Images.Count);
+			}
 		}
 	
 		public static Icon ConvertImageToIcon(Image image)

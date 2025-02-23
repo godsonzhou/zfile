@@ -103,15 +103,16 @@ namespace zfile
         /// <summary>
         /// 为指定文件创建缩略图
         /// </summary>
-        public Image CreatePreview(string filePath)
+        public Image CreatePreview(string filePath, out string cacheKey)
         {
             if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
             {
+				cacheKey = string.Empty;
                 return null;
             }
 
             // 检查缓存
-            string cacheKey = GetCacheKey(filePath);
+            cacheKey = GetCacheKey(filePath);
             if (thumbnailCache.TryGetValue(cacheKey, out Image cachedImage))
             {
                 return cachedImage;

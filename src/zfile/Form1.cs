@@ -391,7 +391,7 @@ namespace WinFormsApp1
             }
         }
 
-        private void showCtxMenuOnListview(TreeNode parentNode, string path, Point location)
+        private void ShowCtxMenuOnListview(string path, Point location)
         {
             // 先获取路径的父目录
             if (!File.Exists(path) && !Directory.Exists(path))
@@ -817,8 +817,8 @@ namespace WinFormsApp1
                     if (node != null)
                     {
                         // Get the full path by combining current directory and selected item name
-                        string iPath = Path.Combine(currentDirectory, item.Text);
-
+                        //string iPath = Path.Combine(currentDirectory, item.Text);
+						string iPath = item.SubItems[1].Text;
                         // Get corresponding TreeNode for this path
                         TreeNode? targetNode = FindTreeNode(node.Nodes, item.Text);
                         if (targetNode != null)
@@ -828,8 +828,8 @@ namespace WinFormsApp1
                         else
                         {
                             // If no corresponding node found, use path to show context menu
-                            TreeNode? parentNode = (TreeNode)item.Tag;
-                            showCtxMenuOnListview(parentNode, iPath, e.Location);
+                            //TreeNode? parentNode = (TreeNode)item.Tag;
+                            ShowCtxMenuOnListview(iPath, e.Location);
                         }
                     }
                 }

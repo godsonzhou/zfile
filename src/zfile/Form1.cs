@@ -1295,9 +1295,12 @@ namespace WinFormsApp1
 							string[] s = ["", name, "", name.Contains(':') ? "本地磁盘" : "<CLS>", ""];
 							var i = new ListViewItem(s);
 							var ico = IconManager.GetIconKey(subItem);
+							if(lv.View == View.Tile)
+							{
+								getIconByShellItem(ref subItem, out ico, true);
+								iconManager.LoadIconFromCacheByKey(ico, lv.LargeImageList, true);
+							}
 							iconManager.LoadIconFromCacheByKey(ico, lv.SmallImageList);
-							getIconByShellItem(ref subItem, out ico, true);
-							iconManager.LoadIconFromCacheByKey(ico, lv.LargeImageList, true);
 							i.ImageKey = ico;
 							i.Text = name;
 							i.Tag = node;   //tag存放父节点

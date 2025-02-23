@@ -144,7 +144,7 @@ namespace WinFormsApp1
 			if (HasIconKey(key, islarge) && !l.Images.ContainsKey(key))
 			{
 				l.Images.Add(key, GetIcon(key, islarge));
-				Debug.Print(key + " added to imagelist : " + l.Images.Count);
+				//Debug.Print(key + " added to imagelist : " + l.Images.Count);
 			}
 		}
 	

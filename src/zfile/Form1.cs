@@ -386,12 +386,12 @@ namespace WinFormsApp1
                 if (node != null && node == rightClickBegin)
                 {
                     treeView.SelectedNode = node;
-                    ShowContextMenu1(node, e.Location);
+                    ShowContextMenuOnTreeview(node, e.Location);
                 }
             }
         }
 
-        private void showCtxMenu(TreeNode parentNode, string path, Point location)
+        private void showCtxMenuOnListview(TreeNode parentNode, string path, Point location)
         {
             // 先获取路径的父目录
             if (!File.Exists(path) && !Directory.Exists(path))
@@ -499,7 +499,7 @@ namespace WinFormsApp1
             }
         }
 
-        private void ShowContextMenu1(TreeNode node, Point location)
+        private void ShowContextMenuOnTreeview(TreeNode node, Point location)
         {
 			//获得当前节点的 PIDL
 			ShellItem sItem = (ShellItem)node.Tag;
@@ -823,13 +823,13 @@ namespace WinFormsApp1
                         TreeNode? targetNode = FindTreeNode(node.Nodes, item.Text);
                         if (targetNode != null)
                         {
-                            ShowContextMenu1(targetNode, e.Location);
+                            ShowContextMenuOnTreeview(targetNode, e.Location);
                         }
                         else
                         {
                             // If no corresponding node found, use path to show context menu
                             TreeNode? parentNode = (TreeNode)item.Tag;
-                            showCtxMenu(parentNode, iPath, e.Location);
+                            showCtxMenuOnListview(parentNode, iPath, e.Location);
                         }
                     }
                 }
@@ -1324,13 +1324,12 @@ namespace WinFormsApp1
 			return false;
         }
         // 加载文件列表
-        private void LoadListViewByFilesystem(string path, ListView listView, TreeNode parentnode)
+        private async Task LoadListViewByFilesystem(string path, ListView listView, TreeNode parentnode)
         {
 			var sitem = (ShellItem)parentnode.Tag;
 			if (sitem.IsVirtual) return;
             if (string.IsNullOrEmpty(path)) return;
             if (!path.Contains(':')) return;
-			//Debug.Print("LoadListViewByFilesystem:{0}", path);
 			path = Helper.getFSpath(path);
             if (path.EndsWith(':')) path += "\\";
 			if (IsArchiveFile(path))
@@ -1347,7 +1346,7 @@ namespace WinFormsApp1
 			}
 			//try
 			{
-                var items = fsManager.GetDirectoryContents(path);
+                var items = await Task.Run(() => fsManager.GetDirectoryContents(path));
                 listView.BeginUpdate();
                 listView.Items.Clear();
 				var subkey = (listView.View == View.Details | listView.View == View.List ? "s" : "l");
@@ -1384,7 +1383,6 @@ namespace WinFormsApp1
 								{
 									Debug.Print("thumb generated: {0}, {1}", item.FullName, md5key);
 									listView.LargeImageList.Images.Add(md5key, thumb);
-									//lvItem.ImageIndex = listView.LargeImageList.Images.Count - 1;
 									lvItem.ImageKey = md5key;
 								}
 								else
@@ -1413,40 +1411,7 @@ namespace WinFormsApp1
             //        MessageBoxButtons.OK, MessageBoxIcon.Error);
             //}
         }
-        private async Task LoadListViewByFilesystemAsync(string path, ListView listView)
-        {
-            if (string.IsNullOrEmpty(path)) return;
-            if (!path.Contains(':')) return;
-            path = Helper.getFSpath(path);
-            if (path.EndsWith(':'))
-                path += "\\";
-
-            try
-            {
-                path = Helper.getFSpathbyList(path);
-                var items = await Task.Run(() => fsManager.GetDirectoryContents(path));
-
-                listView.BeginUpdate();
-                listView.Items.Clear();
-
-                foreach (var item in items)
-                {
-                    if ((item.Attributes & FileAttributes.Hidden) != 0) continue;
-
-                    var lvItem = CreateListViewItem(item);
-                    if (lvItem != null)
-                    {
-                        listView.Items.Add(lvItem);
-                    }
-                }
-                listView.EndUpdate();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"加载文件列表失败: {ex.Message}", "错误",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
+      
         private ListViewItem? CreateListViewItem(FileSystemInfo item)
         {
             try

@@ -1322,7 +1322,7 @@ namespace WinFormsApp1
 			return false;
         }
         // 加载文件列表
-        private async Task LoadListViewByFilesystem(string path, ListView listView, TreeNode parentnode)
+        private void LoadListViewByFilesystem(string path, ListView listView, TreeNode parentnode)
         {
 			var sitem = (ShellItem)parentnode.Tag;
 			if (sitem.IsVirtual) return;
@@ -1363,33 +1363,39 @@ namespace WinFormsApp1
 						}
 						else
 						{
-							var key = Path.GetExtension(item.FullName);
-							if(!iconManager.HasIconKey(key, false))
+							var key = Path.GetExtension(item.FullName); 
+							if (subkey == "s")
 							{
-								var ico = IconManager.GetIconByFileNameEx("FILE", item.FullName);
-								if (ico != null)
-									iconManager.AddIcon(key, ico, false);
-							}
-							iconManager.LoadIconFromCacheByKey(key, listView.SmallImageList);
-							
-							var thumb = thumbnailManager.CreatePreview(item.FullName, out string md5key);
-							if (thumb != null)
-							{
-								Debug.Print("thumb generated: {0}, {1}", item.FullName, md5key);
-								listView.LargeImageList.Images.Add(md5key, thumb);
-								//lvItem.ImageIndex = listView.LargeImageList.Images.Count - 1;
-								lvItem.ImageKey = md5key;
+								if (!iconManager.HasIconKey(key, false))
+								{
+									var ico = IconManager.GetIconByFileNameEx("FILE", item.FullName);
+									if (ico != null)
+										iconManager.AddIcon(key, ico, false);
+								}
+								iconManager.LoadIconFromCacheByKey(key, listView.SmallImageList);
+								lvItem.ImageKey = key;
 							}
 							else
 							{
-								if (!iconManager.HasIconKey(key, true))
+								var thumb = thumbnailManager.CreatePreview(item.FullName, out string md5key);
+								if (thumb != null)
 								{
-									var icol = IconManager.GetIconByFileNameEx("FILE", item.FullName, true);
-									if (icol != null)
-										iconManager.AddIcon(key, icol, true);
+									Debug.Print("thumb generated: {0}, {1}", item.FullName, md5key);
+									listView.LargeImageList.Images.Add(md5key, thumb);
+									//lvItem.ImageIndex = listView.LargeImageList.Images.Count - 1;
+									lvItem.ImageKey = md5key;
 								}
-								iconManager.LoadIconFromCacheByKey(key, listView.LargeImageList, true);
-								lvItem.ImageKey = key;
+								else
+								{
+									if (!iconManager.HasIconKey(key, true))
+									{
+										var icol = IconManager.GetIconByFileNameEx("FILE", item.FullName, true);
+										if (icol != null)
+											iconManager.AddIcon(key, icol, true);
+									}
+									iconManager.LoadIconFromCacheByKey(key, listView.LargeImageList, true);
+									lvItem.ImageKey = key;
+								}
 							}
 						}
 						lvItem.Tag = parentnode;
@@ -1837,7 +1843,11 @@ namespace WinFormsApp1
 		
 		public void SetViewMode(View viewMode)
 		{
+			if(viewMode == activeListView.View) return;
+			var needupdate = viewMode == View.Tile || activeListView.View == View.Tile;
 			activeListView.View = viewMode;
+			if (needupdate) 
+				RefreshPanel();//update imagekey 
 		}
 		public bool IsArchiveFile(string filePath)
 		{

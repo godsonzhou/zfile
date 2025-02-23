@@ -810,7 +810,6 @@ namespace WinFormsApp1
                 if (item != null)
                 {
                     listView.FocusedItem = item;
-                    var p = Path.Combine(currentDirectory, item.Text);
 
                     var tree1 = listView == uiManager.LeftList ? uiManager.LeftTree : uiManager.RightTree;
                     // Find corresponding TreeNode for the clicked ListView item
@@ -1458,7 +1457,7 @@ namespace WinFormsApp1
                     itemData = new[]
                     {
                         item.Name,
-                        "",
+                        item.FullName,
                         "",
                         "<DIR>",
                         item.LastWriteTime.ToString("yyyy-MM-dd HH:mm")
@@ -1469,7 +1468,7 @@ namespace WinFormsApp1
                     itemData = new[]
                     {
                         item.Name,
-                        "",
+                        item.FullName,
                         FileSystemManager.FormatFileSize(fileInfo.Length),
                         fileInfo.Extension.ToUpperInvariant(),
                         item.LastWriteTime.ToString("yyyy-MM-dd HH:mm")

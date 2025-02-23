@@ -250,8 +250,9 @@ namespace WinFormsApp1
 
 			//if (needsUpdate)
 			//{
+			var items = new List<FileSystemInfo>();
 			if (!isDirBranchMode) {
-				var items = new List<FileSystemInfo>();
+
 				var directoryInfo = new DirectoryInfo(path);
 
 				try
@@ -294,7 +295,37 @@ namespace WinFormsApp1
 			}
 			else 
 			{
-				return _directoryCache[path];
+				// 目录分支模式：读取所有子目录中的文件
+				var allFiles = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
+
+				foreach (var filePath in allFiles)
+				{
+					var fileInfo = new FileInfo(filePath);
+					if ((fileInfo.Attributes & FileAttributes.Hidden) == 0)
+					{
+						// 为文件添加相对路径信息
+						var relativePathProperty = new FileInfo(filePath);
+						relativePathProperty.Refresh(); // 确保获取最新信息
+
+						// 计算相对路径
+						var relativePath = Path.GetRelativePath(path, filePath);
+						// 将相对路径信息存储在文件的扩展属性中（如果需要）
+
+						items.Add(fileInfo);
+					}
+				}
+
+				// 如果需要显示文件夹
+				if ((readmode & WinShell.ReadDirContentsMode.Folder) != 0)
+				{
+					var dirs = Directory.GetDirectories(path, "*", SearchOption.TopDirectoryOnly)
+						.Select(d => new DirectoryInfo(d))
+						.Where(d => (d.Attributes & FileAttributes.Hidden) == 0);
+
+					items.AddRange(dirs);
+				}
+				_directoryCache[path] = items;
+				return items;
 			}
 		}
 		public static string FormatFileSize(long bytes)

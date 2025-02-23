@@ -332,6 +332,7 @@ namespace CmdProcessor
 		private void do_cm_DirBranch()
 		{
 			owner.fsManager.isDirBranchMode = !owner.fsManager.isDirBranchMode;
+			owner.RefreshPanel();
 		}
 		// ȫѡ
 		private void do_cm_SelectAll()

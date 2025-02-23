@@ -276,7 +276,6 @@ namespace WinFormsApp1
 	public class UIControlManager : IDisposable
 	{
 		private readonly Form1 form;
-		//private readonly ImageList treeViewImageList;
 		private readonly ImageList listViewImageListL;
 		private readonly ImageList thumbnailImageListL;
 		private readonly ImageList listViewImageListR;
@@ -339,8 +338,6 @@ namespace WinFormsApp1
 		public UIControlManager(Form1 form)
 		{
 			this.form = form;
-			//treeViewImageList = new ImageList();
-			//treeViewImageList.ImageSize = new Size(16, 16);
 			listViewImageListL = new ImageList();
 			listViewImageListR = new ImageList();
 			thumbnailImageListL = new ImageList();
@@ -652,7 +649,6 @@ namespace WinFormsApp1
 			treeView.FullRowSelect = true;
 			treeView.ItemHeight = 20;
 			treeView.DrawMode = TreeViewDrawMode.OwnerDrawText;
-			//treeView.ImageList = treeViewImageList;
 			treeView.AllowDrop = true;
 
 			treeView.DragOver += form.TreeView_DragOver;
@@ -664,14 +660,6 @@ namespace WinFormsApp1
 			treeView.BeforeExpand += form.TreeView_BeforeExpand;
 			treeView.MouseDown += form.TreeView_MouseDown;
 			treeView.AfterExpand += (s, e) => UpdateNodeIcon(e.Node);
-			//treeView.BeforeExpand += (s, e) =>
-			//{
-			//	if (e.Node.Nodes.Count == 1 && e.Node.Nodes[0].Text == "...")
-			//	{
-			//		form.LoadSubDirectories(e.Node);
-			//		UpdateNodeIcon(e.Node);
-			//	}
-			//};
 		}
 		private void UnregisterTreeViewEvents(TreeView treeView)
 		{
@@ -709,8 +697,6 @@ namespace WinFormsApp1
 			listView.Columns.Add("大小", 100);
 			listView.Columns.Add("类型", 80);
 			listView.Columns.Add("修改日期", 150);
-			//listView.SmallImageList = listViewImageList; // 设置ListView的ImageList
-			//listView.LargeImageList = thumbnailImageList;
 			listView.AllowDrop = true;
 			listView.ItemDrag += form.ListView_ItemDrag;
 			listView.DragOver += form.ListView_DragOver;

@@ -1423,7 +1423,7 @@ namespace WinFormsApp1
                     {
                         item.Name,
                         item.FullName,
-                        "",
+                        EverythingWrapper.IsEverythingServiceRunning() ? EverythingWrapper.FormatFileSize(EverythingWrapper.CalculateDirectorySize(item.FullName)) : "",
                         "<DIR>",
                         item.LastWriteTime.ToString("yyyy-MM-dd HH:mm")
                     };

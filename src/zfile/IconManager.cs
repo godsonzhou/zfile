@@ -5,6 +5,7 @@ using WinShell;
 using System.Collections.Generic;
 using System.Reflection.Metadata.Ecma335;
 using System.Windows.Forms;
+using System.Text;
 
 namespace WinFormsApp1
 {
@@ -440,6 +441,36 @@ namespace WinFormsApp1
 			}
 			return null;
 		}
+		private static Icon ExtractIconFromPIDL(IShellFolder folder, IntPtr pidl)
+		{
+			try
+			{
+				Guid iExtractIconGuid = new Guid("000214EB-0000-0000-C000-000000000046");
+				IntPtr pExtractIcon;
+				folder.GetUIObjectOf(IntPtr.Zero, 1, new IntPtr[] { pidl }, iExtractIconGuid, out pExtractIcon);
 
+				if (pExtractIcon != IntPtr.Zero)
+				{
+					IExtractIconW extractIcon = (IExtractIconW)Marshal.GetObjectForIUnknown(pExtractIcon);
+					StringBuilder iconPath = new StringBuilder(260);
+					int iconIndex;
+					ExtractIconFlags flags;
+					extractIcon.GetIconLocation(0, iconPath, iconPath.Capacity, out iconIndex, out flags);
+
+					IntPtr hIcon;
+					extractIcon.Extract(iconPath.ToString(), (uint)iconIndex, out hIcon, out _, 0x00010000);
+
+					if (hIcon != IntPtr.Zero)
+					{
+						Icon icon = (Icon)Icon.FromHandle(hIcon).Clone();
+						API.DestroyIcon(hIcon);
+						return icon;
+					}
+				}
+			}
+			catch { }
+			return null;
+		}
+		
 	}
 }

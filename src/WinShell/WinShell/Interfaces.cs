@@ -105,6 +105,7 @@ public interface IImageList
 	{
 		void Initialize([MarshalAs(UnmanagedType.LPStr)] string pszFile);
 	}
+
 	[ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("000214E6-0000-0000-C000-000000000046")]
 	public interface IShellFolder
 	{
@@ -129,7 +130,6 @@ public interface IImageList
 		void InvokeCommand(ref CMINVOKECOMMANDINFOEX pici);
 		void GetCommandString(uint idCmd, GetCommandStringInformations uType, IntPtr pReserved, [MarshalAs(UnmanagedType.LPStr)] StringBuilder pszName, uint cchMax);
 	}
-	
 
 	[ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("000214F2-0000-0000-C000-000000000046")]
 	public interface IEnumIDList
@@ -140,6 +140,23 @@ public interface IImageList
 		void Reset();
 		void Clone(out IEnumIDList ppenum);
 	}
-	
+
+	[ComImport, Guid("000214FA-0000-0000-C000-000000000046")]
+	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+	public interface IExtractIconW
+	{
+		void GetIconLocation(uint uFlags, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder szIconFile,
+			int cchMax, out int piIndex, out ExtractIconFlags pwFlags);
+
+		void Extract([MarshalAs(UnmanagedType.LPWStr)] string pszFile, uint nIconIndex,
+			out IntPtr phiconLarge, out IntPtr phiconSmall, uint nIconSize);
+	}
+
+	[Flags]
+	public enum ExtractIconFlags : uint
+	{
+		GIL_OPENICON = 0x0001,
+		GIL_FORSHELL = 0x0002
+	}
 
 }

@@ -303,6 +303,19 @@ namespace WinShell
         {
             API.CoUninitialize();
         }
+		public static IShellFolder GetControlPanelFolder()
+		{
+			// 获取控制面板文件夹的IShellFolder接口
+			IntPtr pidl;
+			API.SHGetSpecialFolderLocation(IntPtr.Zero, CSIDL.CONTROLS, out pidl); // 0x0003 表示控制面板文件夹
+
+			Guid iid = typeof(IShellFolder).GUID;
+			IShellFolder desktopfolder = GetDesktopFolder(out _);
+			//IntPtr ppv;
+			desktopfolder.BindToObject(pidl, IntPtr.Zero, ref iid, out var ppv);
+			//return (IShellFolder)Marshal.GetObjectForIUnknown(ppv);
+			return ppv;
+		}
 		public static IShellFolder GetDesktopFolder(out IntPtr ppshf)
 		{
 			API.SHGetDesktopFolder(out ppshf);

@@ -441,11 +441,16 @@ namespace WinFormsApp1
 			}
 			return null;
 		}
-		private static Icon ExtractIconFromPIDL(IShellFolder folder, IntPtr pidl)
+		public static Icon ExtractIconFromPIDL(IShellFolder folder, IntPtr pidl)
 		{
 			try
 			{
-				Guid iExtractIconGuid = new Guid("000214EB-0000-0000-C000-000000000046");
+				if (folder == null || pidl == IntPtr.Zero)
+					return null;
+				
+				//Guid iExtractIconGuid = new Guid("000214EB-0000-0000-C000-000000000046");
+				// 获取节点的IExtractIcon接口
+				Guid iExtractIconGuid = typeof(IExtractIcon).GUID;
 				IntPtr pExtractIcon;
 				folder.GetUIObjectOf(IntPtr.Zero, 1, new IntPtr[] { pidl }, iExtractIconGuid, out pExtractIcon);
 

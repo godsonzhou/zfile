@@ -151,6 +151,16 @@ public interface IImageList
 		void Extract([MarshalAs(UnmanagedType.LPWStr)] string pszFile, uint nIconIndex,
 			out IntPtr phiconLarge, out IntPtr phiconSmall, uint nIconSize);
 	}
+	[ComImport]
+	[Guid("000214EB-0000-0000-C000-000000000046")]
+	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+	public interface IExtractIcon
+	{
+		[PreserveSig]
+		int GetIconLocation(uint uFlags, [Out, MarshalAs(UnmanagedType.LPWStr, SizeConst = 260)] StringBuilder szIconFile, int cchMax, out int piIndex, out uint pwFlags);
+		[PreserveSig]
+		int Extract([MarshalAs(UnmanagedType.LPWStr)] string pszFile, int nIconIndex, out IntPtr phiconLarge, out IntPtr phiconSmall, uint nIconSize);
+	}
 
 	[Flags]
 	public enum ExtractIconFlags : uint

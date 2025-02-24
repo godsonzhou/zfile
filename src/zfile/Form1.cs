@@ -30,7 +30,7 @@ namespace WinFormsApp1
 		private readonly ContextMenuStrip contextMenuStrip = new();
 		public CmdProc cmdProcessor;
 		public KeyMgr keyManager;
-		private IShellFolder iDeskTop;
+		private IShellFolder iDeskTop, iCtrlPanel;
 		private Dictionary<string, string> specFolderPaths = new();
 		private string[] draggedItems;
 		private TreeNode rightClickBegin;
@@ -132,7 +132,8 @@ namespace WinFormsApp1
             iDeskTop = w32.GetDesktopFolder(out deskTopPtr);
             if (iDeskTop == null)
                 throw new Exception("无法初始化桌面Shell接口");
-        }
+			iCtrlPanel = w32.GetControlPanelFolder();
+		}
 
 		protected override void Dispose(bool disposing)
 		{
@@ -162,6 +163,11 @@ namespace WinFormsApp1
                     Marshal.ReleaseComObject(iDeskTop);
                     iDeskTop = null;
                 }
+				if (iCtrlPanel != null)
+				{
+					Marshal.ReleaseComObject(iCtrlPanel);
+					iCtrlPanel = null;
+				}
                 
                 w32.UninitializeCOM();
 			}
@@ -1253,7 +1259,14 @@ namespace WinFormsApp1
 						{
 							if (!getIconByShellItem(ref subItem, out iconkey))
 								if(!getIconBySysImageList(ref subItem, out iconkey))
-									getIconByIconLocation(ref subItem, out iconkey);
+								{
+									var icon = IconManager.ExtractIconFromPIDL(iCtrlPanel, pidlSub);
+									if(icon != null)
+										iconManager.AddIcon(pidlSub.ToString(), icon, false);
+									else
+										getIconByIconLocation(ref subItem, out iconkey);
+								}
+										
 							iconManager.LoadIconFromCacheByKey(iconkey, activeTreeview.ImageList);
 						
 							SFGAO subattr = subItem.GetAttributes();    // 如果是文件夹且不是虚拟文件夹，则添加"..."节点

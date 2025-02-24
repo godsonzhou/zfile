@@ -349,7 +349,7 @@ namespace WinShell
 		public static string GetNameByPIDL(IntPtr pidl)
 		{
 			SHFILEINFO info = new SHFILEINFO();
-			API.SHGetFileInfo(pidl, 0, ref info, Marshal.SizeOf(typeof(SHFILEINFO)),
+			API.SHGetFileInfoPIDL(pidl, 0, ref info, Marshal.SizeOf(typeof(SHFILEINFO)),
 				SHGFI.PIDL | SHGFI.DISPLAYNAME | SHGFI.TYPENAME);
 			return info.szDisplayName;
 		}
@@ -480,7 +480,7 @@ namespace WinShell
 		public static extern IntPtr SHGetFileInfo(string pszPath, uint dwFileAttributes, ref SHFILEINFO psfi, int cbFileInfo, SHGFI uFlags);
 		
 		[DllImport("shell32", EntryPoint = "SHGetFileInfo", ExactSpelling = false, CharSet = CharSet.Auto, SetLastError = true)]
-		public static extern IntPtr SHGetFileInfo(
+		public static extern IntPtr SHGetFileInfoPIDL(
 			IntPtr ppidl,
 			FILE_ATTRIBUTE dwFileAttributes,
 			ref SHFILEINFO sfi,
@@ -511,6 +511,12 @@ namespace WinShell
 		public static extern string SHGetKnownFolderPath([MarshalAs(UnmanagedType.LPStruct)] Guid id, int flags, IntPtr token);
 		[DllImport("Comctl32.dll", CharSet = CharSet.Auto)]
 		public static extern IntPtr ImageList_GetIcon(IntPtr himl, int i, uint flags);
+		[DllImport("shell32.dll", CharSet = CharSet.Auto)]
+		public static extern int SHQueryRecycleBin(string pszRootPath, ref SHQUERYRBINFO pSHQueryRBInfo);
+
+		[DllImport("shell32.dll", CharSet = CharSet.Auto)]
+		public static extern int SHEnumRecycleBin(string pszRootPath, uint dwFlags, ref uint pdwFlags, [Out] StringBuilder pszDisplayName, int cchDisplayName, [Out] StringBuilder pszOriginalPath, int cchOriginalPath);
+
 	}
 
 	// [Flags]

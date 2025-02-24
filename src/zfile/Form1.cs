@@ -2,6 +2,7 @@ using CmdProcessor;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Text;
 using WinShell;
 using zfile;
 using Keys = System.Windows.Forms.Keys;
@@ -663,8 +664,11 @@ namespace WinFormsApp1
 
 					// 记录目录历史
 					RecordDirectoryHistory(path);
-					LoadListViewByFilesystem(path, activeListView, e.Node);//todo: this step will clear the previous loadsubdirectories,!!!
-                    currentDirectory = path;
+					if (path == "回收站")
+						LoadRecycleBin(activeListView); //加载回收站内容
+					else
+						LoadListViewByFilesystem(path, activeListView, e.Node); //如果未点击回收站
+					currentDirectory = path;
 					uiManager.drivePathMap[path.Substring(0,2)] = path;
                     selectedNode = e.Node;
                     if (Directory.Exists(path))
@@ -1135,7 +1139,7 @@ namespace WinFormsApp1
 		{
 			var shellInfo = new SHFILEINFO();
 			// 首先获取系统图标索引
-			var result = API.SHGetFileInfo(subItem.PIDL, 0, ref shellInfo, Marshal.SizeOf(typeof(SHFILEINFO)),
+			var result = API.SHGetFileInfoPIDL(subItem.PIDL, 0, ref shellInfo, Marshal.SizeOf(typeof(SHFILEINFO)),
 				((islarge ? SHGFI.LARGEICON : SHGFI.SMALLICON) | SHGFI.ICON | SHGFI.PIDL));
 			//Debug.Print($"Virtual 1folder：result={result} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}");
 			// 使用系统图标索引作为键值
@@ -1336,8 +1340,60 @@ namespace WinFormsApp1
 			}
 			return false;
         }
-        // 加载文件列表
-        private async Task LoadListViewByFilesystem(string path, ListView listView, TreeNode parentnode)
+		private static void LoadRecycleBinbak(ListView listview)
+		{
+			int MAX_PATH = 260;
+			// 获取回收站中的文件和文件夹信息
+			SHQUERYRBINFO shQueryRBInfo = new SHQUERYRBINFO();
+			shQueryRBInfo.cbSize = Marshal.SizeOf(shQueryRBInfo);
+			API.SHQueryRecycleBin(null, ref shQueryRBInfo);
+
+			uint dwFlags = 0;
+			StringBuilder sbDisplayName = new (MAX_PATH);
+			StringBuilder sbOriginalPath = new (MAX_PATH);
+
+			while (API.SHEnumRecycleBin(null, 0, ref dwFlags, sbDisplayName, MAX_PATH, sbOriginalPath, MAX_PATH) == 0)
+			{
+				// 创建 ListViewItem 并添加到 ListView 中
+				ListViewItem item = new ListViewItem(sbDisplayName.ToString());
+				item.SubItems.Add(sbOriginalPath.ToString());
+				listview.Items.Add(item);
+			}
+		}
+		public static void LoadRecycleBin(ListView listView)
+		{
+			IntPtr ppidlRecycleBin;
+			API.SHGetSpecialFolderLocation(IntPtr.Zero, CSIDL.BITBUCKET, out ppidlRecycleBin); // CSIDL_BITBUCKET
+
+			IShellFolder desktopFolder;
+			API.SHGetDesktopFolder(out desktopFolder);
+
+			IShellFolder recycleBinFolder;
+			desktopFolder.BindToObject(ppidlRecycleBin, IntPtr.Zero, ref Guids.IID_IShellFolder, out recycleBinFolder);
+
+			IEnumIDList enumIDList;
+			recycleBinFolder.EnumObjects(IntPtr.Zero, SHCONTF.FOLDERS | SHCONTF.NONFOLDERS | SHCONTF.INCLUDEHIDDEN, out nint enumIDs);
+			enumIDList = (IEnumIDList)Marshal.GetObjectForIUnknown(enumIDs);
+
+			//IntPtr pidl;
+			//uint fetched;
+			while (enumIDList.Next(1, out nint pidl, out uint fetched) == 0)
+			{
+				SHFILEINFO shfi = new ();
+				API.SHGetFileInfoPIDL(pidl, 0, ref shfi, Marshal.SizeOf(shfi), SHGFI.PIDL | SHGFI.DISPLAYNAME | SHGFI.TYPENAME | SHGFI.ATTRIBUTES | SHGFI.ICON | SHGFI.SMALLICON);
+
+				ListViewItem item = new (shfi.szDisplayName);
+				item.SubItems.Add(shfi.szTypeName);
+				listView.Items.Add(item);
+
+				Marshal.FreeCoTaskMem(pidl);
+			}
+
+			Marshal.FreeCoTaskMem(ppidlRecycleBin);
+		}
+
+		// 加载文件列表
+		private async Task LoadListViewByFilesystem(string path, ListView listView, TreeNode parentnode)
         {
 			var sitem = (ShellItem)parentnode.Tag;
 			if (sitem.IsVirtual) return;

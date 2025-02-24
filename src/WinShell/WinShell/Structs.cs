@@ -6,8 +6,15 @@ using System.Drawing;
 
 namespace WinShell
 {
-    // 定义 IMAGELISTDRAWPARAMS 结构体
-    [StructLayout(LayoutKind.Sequential)]
+	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+	public struct SHQUERYRBINFO
+	{
+		public int cbSize;
+		public long i64Size;
+		public long i64NumItems;
+	}
+	// 定义 IMAGELISTDRAWPARAMS 结构体
+	[StructLayout(LayoutKind.Sequential)]
     public struct IMAGELISTDRAWPARAMS
     {
         public int cbSize;

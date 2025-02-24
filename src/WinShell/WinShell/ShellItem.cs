@@ -126,7 +126,7 @@ namespace WinShell
 		{
 			SHFILEINFO shfi = new SHFILEINFO();
 			var flags = (SHGFI.PIDL | SHGFI.SYSICONINDEX | (smallIcon ? SHGFI.SMALLICON : SHGFI.LARGEICON));
-			API.SHGetFileInfo(PIDL, 0, ref shfi, Marshal.SizeOf(shfi), flags);
+			API.SHGetFileInfoPIDL(PIDL, 0, ref shfi, Marshal.SizeOf(shfi), flags);
 			//IntPtr hIcon = API.SHGetFileInfo(PIDL, 0, ref shfi, Marshal.SizeOf(shfi), flags);
 			return shfi;
 		}

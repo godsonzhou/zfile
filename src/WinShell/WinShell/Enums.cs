@@ -113,7 +113,11 @@ namespace WinShell
 		ENABLE_ASYNC = 0x08000,
 		INCLUDESUPERHIDDEN = 0x10000
 	}
-
+    public enum SIGDN : uint
+    {
+        FILESYSPATH = 0x80058000
+    }
+    
     [Flags()]
     public enum SFGAO
     {

@@ -6,7 +6,7 @@ using System.Text;
 using WinShell;
 using zfile;
 using Keys = System.Windows.Forms.Keys;
-
+using Shell32;
 namespace WinFormsApp1
 {
 	public partial class Form1 : Form
@@ -45,7 +45,22 @@ namespace WinFormsApp1
 		public Stack<string> backStack = new();    // 后退历史
 		public Stack<string> forwardStack = new(); // 前进历史
 		private string lastDirectory = string.Empty; // 上一次访问的目录
+		public IEnumerable<string> GetRecycleBinFilenames()
+		{
+			Shell shell = new Shell();
+			Folder recycleBin = shell.NameSpace(10);//hell.NameSpace(ShellSpecialFolderConstants.ssfBITBUCKET)
 
+			foreach (FolderItem2 recfile in recycleBin.Items())
+			{
+				// Filename
+				yield return recfile.Name;
+
+				// full recyclepath
+				// yield return recfile.Path;
+			}
+
+			Marshal.FinalReleaseComObject(shell);
+		}
 		// 在目录变更时调用此方法记录历史
 		public void RecordDirectoryHistory(string newPath)
 		{
@@ -1363,7 +1378,7 @@ namespace WinFormsApp1
 		public void LoadRecycleBin(ListView listView)
 		{
 			IntPtr ppidlRecycleBin;
-			API.SHGetSpecialFolderLocation(IntPtr.Zero, CSIDL.BITBUCKET, out ppidlRecycleBin); // CSIDL_BITBUCKET
+			API.SHGetSpecialFolderLocation(IntPtr.Zero, CSIDL.BITBUCKET, out ppidlRecycleBin);
 
 			IShellFolder desktopFolder;
 			API.SHGetDesktopFolder(out desktopFolder);
@@ -1374,22 +1389,103 @@ namespace WinFormsApp1
 			IEnumIDList enumIDList;
 			recycleBinFolder.EnumObjects(IntPtr.Zero, SHCONTF.FOLDERS | SHCONTF.NONFOLDERS | SHCONTF.INCLUDEHIDDEN, out nint enumIDs);
 			enumIDList = (IEnumIDList)Marshal.GetObjectForIUnknown(enumIDs);
+			var files = GetRecycleBinFilenames();
+			foreach (var originalPath in files) 
+			{ 
+				//Debug.Print(file.ToString()); 
+				var originalName = Path.GetFileName(originalPath);
+				var extension = Path.GetExtension(originalPath);
 
-			//IntPtr pidl;
-			//uint fetched;
-			while (enumIDList.Next(1, out nint pidl, out uint fetched) == 0)
-			{
-				SHFILEINFO shfi = new ();
-				API.SHGetFileInfoPIDL(pidl, 0, ref shfi, Marshal.SizeOf(shfi), SHGFI.PIDL | SHGFI.DISPLAYNAME | SHGFI.TYPENAME | SHGFI.ATTRIBUTES | SHGFI.ICON | SHGFI.SMALLICON);
+				ListViewItem item = new ListViewItem(new string[] {
+						originalName,                    // 原始文件名
+						originalPath,                    // 原始完整路径
+						"",                        // 文件大小
+						extension,                       // 扩展名
+						""                     // 最后修改时间
+					});
 
-				var filename = Path.GetFileName(shfi.szDisplayName);
-				var fileext = Path.GetExtension(shfi.szDisplayName);
-				ListViewItem item = new([filename, shfi.szDisplayName, "", fileext, ""]);
-				//item.SubItems.Add(shfi.szTypeName);
+				// 设置图标
 				SetIconForListViewItem(item, listView, (listView.View == View.Tile ? "l" : "s"));
 				listView.Items.Add(item);
+			}
+			return;
+			// 遍历回收站中的文件和文件夹
+			while (enumIDList.Next(1, out nint pidl, out uint fetched) == 0)
+			{
+				try 
+				{
+					SHFILEINFO shfi = new();
+					// 获取文件基本信息
+					API.SHGetFileInfoPIDL(pidl, 0, ref shfi, Marshal.SizeOf(shfi), 
+						SHGFI.PIDL | SHGFI.DISPLAYNAME | SHGFI.TYPENAME | SHGFI.ATTRIBUTES | 
+						SHGFI.ICON | SHGFI.SMALLICON);
 
-				Marshal.FreeCoTaskMem(pidl);
+					// 获取原始路径
+					IShellItem shellItem;
+					API.SHCreateItemFromIDList(pidl, ref Guids.IID_IShellItem, out shellItem);
+					
+					string originalPath = string.Empty;
+					if (shellItem != null)
+					{
+						IntPtr pszName;
+						shellItem.GetDisplayName(SIGDN.FILESYSPATH, out pszName);
+						if (pszName != IntPtr.Zero)
+						{
+							originalPath = Marshal.PtrToStringAuto(pszName);
+							Marshal.FreeCoTaskMem(pszName);
+						}
+					}
+
+					// 获取文件大小和日期信息
+					WIN32_FIND_DATA findData = new WIN32_FIND_DATA();
+					IntPtr findHandle = API.FindFirstFile(originalPath, out findData);
+					
+					string fileSize = "<未知>";
+					string lastModified = "<未知>";
+					
+					if (findHandle != new IntPtr(-1))
+					{
+						if ((findData.dwFileAttributes & FileAttributes.Directory) != FileAttributes.Directory)
+						{
+							long size = ((long)findData.nFileSizeHigh << 32) | (uint)findData.nFileSizeLow;
+							fileSize = FileSystemManager.FormatFileSize(size);
+						}
+						else
+						{
+							fileSize = "<DIR>";
+						}
+						
+						lastModified = DateTime.FromFileTime(
+							((long)findData.ftLastWriteTime.dwHighDateTime << 32) | 
+							(uint)findData.ftLastWriteTime.dwLowDateTime).ToString("yyyy-MM-dd HH:mm:ss");
+						
+						API.FindClose(findHandle);
+					}
+
+					// 创建 ListViewItem 并添加信息
+					var originalName = Path.GetFileName(originalPath);
+					var extension = Path.GetExtension(originalPath);
+					
+					ListViewItem item = new ListViewItem(new string[] {
+						originalName,                    // 原始文件名
+						originalPath,                    // 原始完整路径
+						fileSize,                        // 文件大小
+						extension,                       // 扩展名
+						lastModified                     // 最后修改时间
+					});
+
+					// 设置图标
+					SetIconForListViewItem(item, listView, (listView.View == View.Tile ? "l" : "s"));
+					listView.Items.Add(item);
+
+					if (shellItem != null)
+						Marshal.ReleaseComObject(shellItem);
+				}
+				finally 
+				{
+					if (pidl != IntPtr.Zero)
+						Marshal.FreeCoTaskMem(pidl);
+				}
 			}
 
 			Marshal.FreeCoTaskMem(ppidlRecycleBin);

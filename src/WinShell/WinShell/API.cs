@@ -516,7 +516,12 @@ namespace WinShell
 
 		[DllImport("shell32.dll", CharSet = CharSet.Auto)]
 		public static extern int SHEnumRecycleBin(string pszRootPath, uint dwFlags, ref uint pdwFlags, [Out] StringBuilder pszDisplayName, int cchDisplayName, [Out] StringBuilder pszOriginalPath, int cchOriginalPath);
-
+		[DllImport("shell32.dll")]
+		public static extern int SHCreateItemFromIDList(IntPtr pidl, ref Guid riid, out IShellItem ppv);
+		[DllImport("kernel32.dll", CharSet = CharSet.Auto)]
+		public static extern IntPtr FindFirstFile(string lpFileName, out WIN32_FIND_DATA lpFindFileData);
+		[DllImport("kernel32.dll")]
+		public static extern bool FindClose(IntPtr hFindFile);
 	}
 
 	// [Flags]

@@ -5,98 +5,105 @@ using System.Text;
 
 namespace WinShell
 {
+	[ComImport]
+	[Guid("43826d1e-e718-42ee-bc55-a1e261c37bfe")]
+	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+	public interface IShellItem
+	{
+		void GetDisplayName(SIGDN sigdnName, out IntPtr ppszName);
+	}
 	[ComImportAttribute()]
-[GuidAttribute("46EB5926-582E-4017-9FDF-E8998DAA0950")]
-[InterfaceTypeAttribute(ComInterfaceType.InterfaceIsIUnknown)]
-public interface IImageList
-{
-    [PreserveSig]
-    int Add(IntPtr hbmImage, IntPtr hbmMask, ref int pi);
+	[GuidAttribute("46EB5926-582E-4017-9FDF-E8998DAA0950")]
+	[InterfaceTypeAttribute(ComInterfaceType.InterfaceIsIUnknown)]
+	public interface IImageList
+	{
+		[PreserveSig]
+		int Add(IntPtr hbmImage, IntPtr hbmMask, ref int pi);
 
-    [PreserveSig]
-    int ReplaceIcon(int i, IntPtr hicon, ref int pi);
+		[PreserveSig]
+		int ReplaceIcon(int i, IntPtr hicon, ref int pi);
 
-    [PreserveSig]
-    int SetOverlayImage(int iImage, int iOverlay);
+		[PreserveSig]
+		int SetOverlayImage(int iImage, int iOverlay);
 
-    [PreserveSig]
-    int Replace(int i, IntPtr hbmImage, IntPtr hbmMask);
+		[PreserveSig]
+		int Replace(int i, IntPtr hbmImage, IntPtr hbmMask);
 
-    [PreserveSig]
-    int AddMasked(IntPtr hbmImage, int crMask, ref int pi);
+		[PreserveSig]
+		int AddMasked(IntPtr hbmImage, int crMask, ref int pi);
 
-    [PreserveSig]
-    int Draw(ref IMAGELISTDRAWPARAMS pimldp);
+		[PreserveSig]
+		int Draw(ref IMAGELISTDRAWPARAMS pimldp);
 
-    [PreserveSig]
-    int Remove(int i);
+		[PreserveSig]
+		int Remove(int i);
 
-    [PreserveSig]
-    int GetIcon(int i, int flags, ref IntPtr picon);
+		[PreserveSig]
+		int GetIcon(int i, int flags, ref IntPtr picon);
 
-    [PreserveSig]
-    int GetImageInfo(int i, ref IMAGEINFO pImageInfo);
+		[PreserveSig]
+		int GetImageInfo(int i, ref IMAGEINFO pImageInfo);
 
-    [PreserveSig]
-    int Copy(int iDst, IImageList punkSrc, int iSrc, int uFlags);
+		[PreserveSig]
+		int Copy(int iDst, IImageList punkSrc, int iSrc, int uFlags);
 
-    [PreserveSig]
-    int Merge(int i1, IImageList punk2, int i2, int dx, int dy, ref Guid riid, ref IntPtr ppv);
+		[PreserveSig]
+		int Merge(int i1, IImageList punk2, int i2, int dx, int dy, ref Guid riid, ref IntPtr ppv);
 
-    [PreserveSig]
-    int Clone(ref Guid riid, ref IntPtr ppv);
+		[PreserveSig]
+		int Clone(ref Guid riid, ref IntPtr ppv);
 
-    [PreserveSig]
-    int GetImageRect(int i, ref Rectangle prc);
+		[PreserveSig]
+		int GetImageRect(int i, ref Rectangle prc);
 
-    [PreserveSig]
-    int GetIconSize(ref int cx, ref int cy);
+		[PreserveSig]
+		int GetIconSize(ref int cx, ref int cy);
 
-    [PreserveSig]
-    int SetIconSize(int cx, int cy);
+		[PreserveSig]
+		int SetIconSize(int cx, int cy);
 
-    [PreserveSig]
-    int GetImageCount(ref int pi);
+		[PreserveSig]
+		int GetImageCount(ref int pi);
 
-    [PreserveSig]
-    int SetImageCount(int uNewCount);
+		[PreserveSig]
+		int SetImageCount(int uNewCount);
 
-    [PreserveSig]
-    int SetBkColor(int clrBk, ref int pclr);
+		[PreserveSig]
+		int SetBkColor(int clrBk, ref int pclr);
 
-    [PreserveSig]
-    int GetBkColor(ref int pclr);
+		[PreserveSig]
+		int GetBkColor(ref int pclr);
 
-    [PreserveSig]
-    int BeginDrag(int iTrack, int dxHotspot, int dyHotspot);
+		[PreserveSig]
+		int BeginDrag(int iTrack, int dxHotspot, int dyHotspot);
 
-    [PreserveSig]
-    int EndDrag();
+		[PreserveSig]
+		int EndDrag();
 
-    [PreserveSig]
-    int DragEnter(IntPtr hwndLock, int x, int y);
+		[PreserveSig]
+		int DragEnter(IntPtr hwndLock, int x, int y);
 
-    [PreserveSig]
-    int DragLeave(IntPtr hwndLock);
+		[PreserveSig]
+		int DragLeave(IntPtr hwndLock);
 
-    [PreserveSig]
-    int DragMove(int x, int y);
+		[PreserveSig]
+		int DragMove(int x, int y);
 
-    [PreserveSig]
-    int SetDragCursorImage(ref IImageList punk, int iDrag, int dxHotspot, int dyHotspot);
+		[PreserveSig]
+		int SetDragCursorImage(ref IImageList punk, int iDrag, int dxHotspot, int dyHotspot);
 
-    [PreserveSig]
-    int DragShowNolock(int fShow);
+		[PreserveSig]
+		int DragShowNolock(int fShow);
 
-    [PreserveSig]
-    int GetDragImage(ref Point ppt, ref Point pptHotspot, ref Guid riid, ref IntPtr ppv);
+		[PreserveSig]
+		int GetDragImage(ref Point ppt, ref Point pptHotspot, ref Guid riid, ref IntPtr ppv);
 
-    [PreserveSig]
-    int GetItemFlags(int i, ref int dwFlags);
+		[PreserveSig]
+		int GetItemFlags(int i, ref int dwFlags);
 
-    [PreserveSig]
-    int GetOverlayImage(int iOverlay, ref int piIndex);
-}
+		[PreserveSig]
+		int GetOverlayImage(int iOverlay, ref int piIndex);
+	}
 
 	[ComImport]
 	[Guid("000214E5-0000-0000-C000-000000000046")]

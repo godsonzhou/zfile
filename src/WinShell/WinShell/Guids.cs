@@ -30,6 +30,6 @@ namespace WinShell
         public static Guid IID_IStorage = new Guid("{0000000B-0000-0000-C000-000000000046}");
 
 		public static Guid DownloadFolderGuid = new Guid("374DE290-123F-4565-9164-39C4925E467B");
-
+        public static Guid IID_IShellItem = new Guid("43826d1e-e718-42ee-bc55-a1e261c37bfe");
 	}
 }

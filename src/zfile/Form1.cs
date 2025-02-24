@@ -1382,8 +1382,10 @@ namespace WinFormsApp1
 				SHFILEINFO shfi = new ();
 				API.SHGetFileInfoPIDL(pidl, 0, ref shfi, Marshal.SizeOf(shfi), SHGFI.PIDL | SHGFI.DISPLAYNAME | SHGFI.TYPENAME | SHGFI.ATTRIBUTES | SHGFI.ICON | SHGFI.SMALLICON);
 
-				ListViewItem item = new (shfi.szDisplayName);
-				item.SubItems.Add(shfi.szTypeName);
+				var filename = Path.GetFileName(shfi.szDisplayName);
+				var fileext = Path.GetExtension(shfi.szDisplayName);
+				ListViewItem item = new([filename, shfi.szDisplayName, "", fileext, ""]);
+				//item.SubItems.Add(shfi.szTypeName);
 				listView.Items.Add(item);
 
 				Marshal.FreeCoTaskMem(pidl);

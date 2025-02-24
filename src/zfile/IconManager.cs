@@ -441,7 +441,7 @@ namespace WinFormsApp1
 			}
 			return null;
 		}
-		public static Icon ExtractIconFromPIDL(IShellFolder folder, IntPtr pidl)
+		public static Icon? ExtractIconFromPIDL(IShellFolder folder, IntPtr pidl)
 		{
 			try
 			{
@@ -451,19 +451,19 @@ namespace WinFormsApp1
 				//Guid iExtractIconGuid = new Guid("000214EB-0000-0000-C000-000000000046");
 				// 获取节点的IExtractIcon接口
 				Guid iExtractIconGuid = typeof(IExtractIcon).GUID;
-				IntPtr pExtractIcon;
-				folder.GetUIObjectOf(IntPtr.Zero, 1, new IntPtr[] { pidl }, iExtractIconGuid, out pExtractIcon);
+				//IntPtr pExtractIcon;
+				folder.GetUIObjectOf(IntPtr.Zero, 1, [ pidl ], iExtractIconGuid, out nint pExtractIcon);
 
 				if (pExtractIcon != IntPtr.Zero)
 				{
-					IExtractIconW extractIcon = (IExtractIconW)Marshal.GetObjectForIUnknown(pExtractIcon);
-					StringBuilder iconPath = new StringBuilder(260);
-					int iconIndex;
-					ExtractIconFlags flags;
-					extractIcon.GetIconLocation(0, iconPath, iconPath.Capacity, out iconIndex, out flags);
+					IExtractIcon extractIcon = (IExtractIcon)Marshal.GetObjectForIUnknown(pExtractIcon);
+					StringBuilder iconPath = new (260);
+					//int iconIndex;
+					//ExtractIconFlags flags;
+					extractIcon.GetIconLocation(0, iconPath, iconPath.Capacity, out int iconIndex, out uint flags);
 
-					IntPtr hIcon;
-					extractIcon.Extract(iconPath.ToString(), (uint)iconIndex, out hIcon, out _, 0x00010000);
+					//IntPtr hIcon;
+					extractIcon.Extract(iconPath.ToString(), iconIndex, out nint hIcon, out _, 0x00010000);
 
 					if (hIcon != IntPtr.Zero)
 					{

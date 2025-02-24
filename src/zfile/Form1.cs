@@ -1360,7 +1360,7 @@ namespace WinFormsApp1
 				listview.Items.Add(item);
 			}
 		}
-		public static void LoadRecycleBin(ListView listView)
+		public void LoadRecycleBin(ListView listView)
 		{
 			IntPtr ppidlRecycleBin;
 			API.SHGetSpecialFolderLocation(IntPtr.Zero, CSIDL.BITBUCKET, out ppidlRecycleBin); // CSIDL_BITBUCKET
@@ -1386,6 +1386,7 @@ namespace WinFormsApp1
 				var fileext = Path.GetExtension(shfi.szDisplayName);
 				ListViewItem item = new([filename, shfi.szDisplayName, "", fileext, ""]);
 				//item.SubItems.Add(shfi.szTypeName);
+				SetIconForListViewItem(item, listView, (listView.View == View.Tile ? "l" : "s"));
 				listView.Items.Add(item);
 
 				Marshal.FreeCoTaskMem(pidl);
@@ -1393,7 +1394,56 @@ namespace WinFormsApp1
 
 			Marshal.FreeCoTaskMem(ppidlRecycleBin);
 		}
-
+		private void SetIconForListViewItem(ListViewItem lvItem, ListView listView, string subkey)
+		{
+			if (lvItem != null)
+			{
+				if (lvItem.SubItems[3].Text.Equals("<DIR>"))
+				{
+					iconManager.LoadIconFromCacheByKey("folder", listView.SmallImageList);
+					iconManager.LoadIconFromCacheByKey("folder", listView.LargeImageList, true);
+					lvItem.ImageKey = "folder";
+				}
+				else
+				{
+					var itemFullName = lvItem.SubItems[1].Text;
+					var key = Path.GetExtension(itemFullName);
+					if (subkey == "s")
+					{
+						if (!iconManager.HasIconKey(key, false))
+						{
+							var ico = IconManager.GetIconByFileNameEx("FILE", itemFullName);
+							if (ico != null)
+								iconManager.AddIcon(key, ico, false);
+						}
+						iconManager.LoadIconFromCacheByKey(key, listView.SmallImageList);
+						lvItem.ImageKey = key;
+					}
+					else
+					{
+						var thumb = thumbnailManager.CreatePreview(itemFullName, out string md5key);
+						if (thumb != null)
+						{
+							Debug.Print("thumb generated: {0}, {1}", itemFullName, md5key);
+							listView.LargeImageList.Images.Add(md5key, thumb);
+							lvItem.ImageKey = md5key;
+						}
+						else
+						{
+							if (!iconManager.HasIconKey(key, true))
+							{
+								var icol = IconManager.GetIconByFileNameEx("FILE", itemFullName, true);
+								if (icol != null)
+									iconManager.AddIcon(key, icol, true);
+							}
+							iconManager.LoadIconFromCacheByKey(key, listView.LargeImageList, true);
+							lvItem.ImageKey = key;
+						}
+					}
+				}
+				
+			}
+		}
 		// 加载文件列表
 		private async Task LoadListViewByFilesystem(string path, ListView listView, TreeNode parentnode)
         {
@@ -1420,59 +1470,15 @@ namespace WinFormsApp1
                 var items = await Task.Run(() => fsManager.GetDirectoryContents(path));
                 listView.BeginUpdate();
                 listView.Items.Clear();
-				var subkey = (listView.View == View.Details | listView.View == View.List ? "s" : "l");
+				var subkey = (listView.View == View.Tile ? "l" : "s");
 				foreach (var item in items)
                 {
                     if ((item.Attributes & FileAttributes.Hidden) != 0) continue;
                     var lvItem = CreateListViewItem(item);
-                    if (lvItem != null)
-                    {
-						if (lvItem.SubItems[3].Text.Equals("<DIR>"))
-						{
-							iconManager.LoadIconFromCacheByKey("folder", listView.SmallImageList);
-							iconManager.LoadIconFromCacheByKey("folder", listView.LargeImageList, true);
-							lvItem.ImageKey = "folder" ;
-						}
-						else
-						{
-							var key = Path.GetExtension(item.FullName); 
-							if (subkey == "s")
-							{
-								if (!iconManager.HasIconKey(key, false))
-								{
-									var ico = IconManager.GetIconByFileNameEx("FILE", item.FullName);
-									if (ico != null)
-										iconManager.AddIcon(key, ico, false);
-								}
-								iconManager.LoadIconFromCacheByKey(key, listView.SmallImageList);
-								lvItem.ImageKey = key;
-							}
-							else
-							{
-								var thumb = thumbnailManager.CreatePreview(item.FullName, out string md5key);
-								if (thumb != null)
-								{
-									Debug.Print("thumb generated: {0}, {1}", item.FullName, md5key);
-									listView.LargeImageList.Images.Add(md5key, thumb);
-									lvItem.ImageKey = md5key;
-								}
-								else
-								{
-									if (!iconManager.HasIconKey(key, true))
-									{
-										var icol = IconManager.GetIconByFileNameEx("FILE", item.FullName, true);
-										if (icol != null)
-											iconManager.AddIcon(key, icol, true);
-									}
-									iconManager.LoadIconFromCacheByKey(key, listView.LargeImageList, true);
-									lvItem.ImageKey = key;
-								}
-							}
-						}
-						lvItem.Tag = parentnode;
-                        listView.Items.Add(lvItem);
-                    }
-                }
+					SetIconForListViewItem(lvItem, listView, subkey);
+					lvItem.Tag = parentnode;
+					listView.Items.Add(lvItem);
+				}
                 listView.EndUpdate();
 				listView.Refresh();
             }
@@ -1810,7 +1816,10 @@ namespace WinFormsApp1
 			var node = listView == uiManager.LeftList ? uiManager.LeftTree.SelectedNode : uiManager.RightTree.SelectedNode;
 			
             LoadSubDirectories(node, listView);
-            LoadListViewByFilesystem(path, listView, node);
+			if (node.Text == "回收站")
+				LoadRecycleBin(listView);
+			else
+				LoadListViewByFilesystem(path, listView, node);
         }
 		public void RefreshPanel(TreeView treeView)
 		{

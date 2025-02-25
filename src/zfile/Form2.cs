@@ -52,12 +52,12 @@ namespace WinFormsApp1
 				{
 					commandHotkeys[cmd.CmdName] = k;
 				}
-
 			}
 			int y = 10;
             foreach (var cmd in commandHotkeys)
             {
-                Label label = new Label
+				if(cmd.Value == Keys.None) continue;
+				Label label = new Label
                 {
                     Text = cmd.Key,
                     Location = new Point(10, y),
@@ -69,7 +69,7 @@ namespace WinFormsApp1
                 ComboBox comboBox = new ComboBox
                 {
                     Location = new Point(250, y),
-                    Width = 200,
+                    Width = 80,
                     DropDownStyle = ComboBoxStyle.DropDownList
                 };
                 comboBox.Items.AddRange(Enum.GetNames(typeof(Keys)));
@@ -78,7 +78,7 @@ namespace WinFormsApp1
                 optionPanel.Controls.Add(comboBox);
                 commandComboBoxes[cmd.Key] = comboBox;
 
-                y += 30;
+                y += 26;
             }
 		
 			splitContainer1.Panel2.Controls.Add(optionPanel);
@@ -91,6 +91,8 @@ namespace WinFormsApp1
 			//A -> keys.A
 			//ControlKey -> keys.ControlKey
 			//1 -> keys.D1
+			if (str == "None")
+				return Keys.None;
 			if (int.TryParse(str, out _))
 				str = "D" + str;
 			else if (str.StartsWith("NUM"))
@@ -136,8 +138,7 @@ namespace WinFormsApp1
 				//all is letter, use camel case
 				str = str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower();
 			}
-			if (str == "None")
-				return Keys.None;
+			
 			try
 			{
 				return (Keys)Enum.Parse(typeof(Keys), str);
@@ -236,6 +237,7 @@ namespace WinFormsApp1
 
             splitContainer1.Panel1.Controls.Clear();
             splitContainer1.Panel1.Controls.Add(treeView);
+			rootNode.Expand();
             treeView.BringToFront();
         }
 

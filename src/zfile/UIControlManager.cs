@@ -34,6 +34,9 @@ namespace WinFormsApp1
 		public List<ToolbarButton> toolbarButtons = new List<ToolbarButton>();
 		public int ButtonCount => toolbarButtons.Count;
 		private string configfile;
+		// 添加上下文菜单属性
+		private readonly ContextMenuStrip buttonContextMenu;
+		private ToolStripButton? currentButton;
 		private bool disposed = false;
 		public void Dispose()
 		{
@@ -51,6 +54,20 @@ namespace WinFormsApp1
 					dynamicToolStrip.DragEnter -= form.ToolbarButton_DragEnter;
 					dynamicToolStrip.DragDrop -= form.ToolbarButton_DragDrop;
 					// 取消DriveBox事件订阅
+					// 取消所有按钮的事件订阅
+					foreach (ToolStripItem item in dynamicToolStrip.Items)
+					{
+						if (item is ToolStripButton button)
+						{
+							button.MouseUp -= Button_MouseUp;
+						}
+						else if (item is ToolStripDropDownButton dropDownButton)
+						{
+							dropDownButton.MouseUp -= Button_MouseUp;
+						}
+					}
+					// 释放上下文菜单
+					buttonContextMenu.Dispose();
 				}
 
 				// 释放非托管资源
@@ -68,6 +85,17 @@ namespace WinFormsApp1
 			dynamicToolStrip = new ToolStrip();
 			this.form = form;
 			this.configfile = configfile;
+			// 初始化上下文菜单
+			buttonContextMenu = new ContextMenuStrip();
+			var deleteItem = new ToolStripMenuItem("删除按钮");
+			var copyItem = new ToolStripMenuItem("复制按钮");
+
+			deleteItem.Click += DeleteButton_Click;
+			copyItem.Click += CopyButton_Click;
+
+			buttonContextMenu.Items.Add(deleteItem);
+			buttonContextMenu.Items.Add(copyItem);
+
 			Init(configfile);
 			GenerateDynamicToolbar();
 
@@ -159,20 +187,62 @@ namespace WinFormsApp1
 						ToolTipText = b.name,
 						Image = IconManager.LoadIcon(b.icon)
 					};
+					// 为下拉按钮添加右键菜单
+					dropdownButton.MouseUp += Button_MouseUp;
 					form.uiManager.InitializeDropdownMenu(dropdownButton, dropdownFilePath);
 					dynamicToolStrip.Items.Add(dropdownButton);
 				}
 				else
 				{
 					button.Click += form.uiManager.ToolbarButton_Click;
-					
+					// 为普通按钮添加右键菜单
+					button.MouseUp += Button_MouseUp;
 					dynamicToolStrip.Items.Add(button);
 				}
 			}
 			dynamicToolStrip.Refresh();
 
 		}
+		// 处理按钮的鼠标事件
+		private void Button_MouseUp(object? sender, MouseEventArgs e)
+		{
+			if (e.Button == MouseButtons.Right && sender is ToolStripItem button)
+			{
+				currentButton = button as ToolStripButton;
+				buttonContextMenu.Show(dynamicToolStrip.PointToScreen(new Point(e.X, e.Y)));
+			}
+		}
 
+		// 删除按钮
+		private void DeleteButton_Click(object? sender, EventArgs e)
+		{
+			if (currentButton != null)
+			{
+				int index = dynamicToolStrip.Items.IndexOf(currentButton);
+				if (index >= 0)
+				{
+					toolbarButtons.RemoveAt(index);
+					SaveToconfig();
+					GenerateDynamicToolbar();
+				}
+			}
+		}
+
+		// 复制按钮
+		private void CopyButton_Click(object? sender, EventArgs e)
+		{
+			if (currentButton != null)
+			{
+				int index = dynamicToolStrip.Items.IndexOf(currentButton);
+				if (index >= 0 && index < toolbarButtons.Count)
+				{
+					var button = toolbarButtons[index];
+					AddButton(button.name, button.cmd, button.icon, button.path, button.param, button.iconic);
+					SaveToconfig();
+					GenerateDynamicToolbar();
+				}
+			}
+		}
 		public void Init(string path)
 		{
 			//load from config file
@@ -398,8 +468,8 @@ namespace WinFormsApp1
 			MainContainer.Dock = DockStyle.Fill;
 			MainContainer.Orientation = Orientation.Vertical;
 
-			int halfWidth = (form.ClientSize.Width - MainContainer.SplitterWidth) / 2;
-			MainContainer.SplitterDistance = halfWidth;
+			//int halfWidth = (form.ClientSize.Width - MainContainer.SplitterWidth) / 2;
+			//MainContainer.SplitterDistance = halfWidth;
 			MainContainer.SplitterMoved += MainContainer_SplitterMoved;
 
 			containerPanel.Controls.Add(MainContainer);
@@ -413,11 +483,11 @@ namespace WinFormsApp1
 
 		private void MainContainer_SplitterMoved(object? sender, SplitterEventArgs e)
 		{
-			//int halfWidth = (form.ClientSize.Width - MainContainer.SplitterWidth) / 2;
-			//if (Math.Abs(MainContainer.SplitterDistance - halfWidth) > 5)
-			//{
-			//	MainContainer.SplitterDistance = halfWidth;
-			//}
+			int halfWidth = (form.ClientSize.Width - MainContainer.SplitterWidth) / 2;
+			if (Math.Abs(MainContainer.SplitterDistance - halfWidth) > 5)
+			{
+				MainContainer.SplitterDistance = halfWidth;
+			}
 		}
 
 		private void ConfigurePanel(SplitContainer panel, Control parent)

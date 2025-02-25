@@ -33,7 +33,28 @@ namespace WinFormsApp1
             commandLabels = new Dictionary<string, Label>();
             commandComboBoxes = new Dictionary<string, ComboBox>();
 
-            int y = 10;
+			var cmdtable = mainForm.cmdProcessor.cmdTable;
+			var keymapR = mainForm.keyManager.keymapReverse;
+			foreach (var cmd in cmdtable.GetAll())
+			{
+				string keystr = "None";
+				//将keymap的内容补充到commandhotkeys中
+				if (keymapR.ContainsKey(cmd.CmdName))
+				{
+					keystr = keymapR[cmd.CmdName];  //C+8 代表 ctrl+8, S+A 代表 shift+A A+8 代表 ALT+8 AS+0 代表 ALT+SHIFT+0	
+				}
+				
+				var keys = keystr.Split('+', StringSplitOptions.RemoveEmptyEntries);
+				var mainkey = keys[^1];
+				//在keymap.values中查找cmd.CmdName
+				var k = ConvertStringToKey(mainkey);
+				if (!commandHotkeys.ContainsKey(cmd.CmdName))
+				{
+					commandHotkeys[cmd.CmdName] = k;
+				}
+
+			}
+			int y = 10;
             foreach (var cmd in commandHotkeys)
             {
                 Label label = new Label
@@ -47,7 +68,7 @@ namespace WinFormsApp1
 
                 ComboBox comboBox = new ComboBox
                 {
-                    Location = new Point(150, y),
+                    Location = new Point(250, y),
                     Width = 200,
                     DropDownStyle = ComboBoxStyle.DropDownList
                 };
@@ -59,10 +80,69 @@ namespace WinFormsApp1
 
                 y += 30;
             }
-
-            splitContainer1.Panel2.Controls.Add(optionPanel);
+		
+			splitContainer1.Panel2.Controls.Add(optionPanel);
         }
-
+		
+		private Keys ConvertStringToKey(string str)
+		{
+			//F1 -> keys.F1
+			//None -> keys.None
+			//A -> keys.A
+			//ControlKey -> keys.ControlKey
+			//1 -> keys.D1
+			if (int.TryParse(str, out _))
+				str = "D" + str;
+			else if (str.StartsWith("NUM"))
+				str = str.Replace("NUM", "NumPad");
+			else if (str.ToUpper().Equals("OEM_US`~"))
+				str = "Oemtilde";
+			else if (str.ToUpper().Equals("OEM_"))
+				str = "Oemplus";
+			else if (str.Equals("*"))
+				str = "Multiply";
+			else if (str.Equals("/"))
+				str = "Divide";
+			else if (str.Equals(","))
+				str = "Oemcomma";
+			else if (str.Equals("."))
+				str = "OemPeriod";
+			else if (str.Equals("-"))
+				str = "OemMinus";
+			//else if (str.Equals("+"))		// + is impossible, because of the seperator is +
+			//	str = "Add";
+			else if (str.Equals("["))
+				str = "OemOpenBrackets";
+			else if (str.Equals("]"))
+				str = "OemCloseBrackets";
+			else if (str.Equals("\\"))
+				str = "OemPipe";
+			else if (str.Equals(";"))
+				str = "OemSemicolon";
+			else if (str.Equals("'"))
+				str = "OemQuotes";
+			else if (str.Equals("="))
+				str = "Oemplus";
+			else if (str.Equals("`"))
+				str = "Oemtilde";
+			else if (str.Equals("\\"))
+				str = "OemPipe";
+			else if (str.Equals("ESC"))
+				str = "Escape";
+			else if (str.Equals("Oem_us/?"))
+				str = "OemQuestion";
+			else
+			{
+				//all is letter, use camel case
+				str = str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower();
+			}
+			if (str == "None")
+				return Keys.None;
+			try
+			{
+				return (Keys)Enum.Parse(typeof(Keys), str);
+			} catch { return Keys.None; }
+		}
         private void InitializeFontPanel()
         {
             fontPanel = new Panel

@@ -32,6 +32,10 @@ namespace CmdProcessor
         {
             return _cmdIdDict.TryGetValue(cmdId, out var item) ? item : null;
         }
+		public List<CmdTableItem> GetAll() 
+		{ 
+			return _cmdNameDict.Values.ToList();
+		}
     }
 
     public static class ConfigLoader
@@ -92,17 +96,19 @@ namespace CmdProcessor
     }
     public class KeyMgr
     {
-        private Dictionary<string, string> keymap = new Dictionary<string, string>();
-        public KeyMgr()
+        public Dictionary<string, string> keymap = new Dictionary<string, string>();
+		public Dictionary<string,string> keymapReverse = new Dictionary<string, string>();
+		public KeyMgr()
         {
             loadFromConfig("wincmd.ini", "Shortcuts");
             loadFromConfig("wincmd.ini", "ShortcutsWin");
         }
-        public void Add(string key, string value)
+        public void Add(string key, string cmd)
         {
-            keymap[key] = value;
+            keymap[key] = cmd;
+			keymapReverse[cmd] = key;
         }
-        public string GetByKeyCode(System.Windows.Forms.Keys k)
+        public string GetByKeyCode(Keys k)
         {
             return Get(k.ToString());
         }
@@ -118,8 +124,10 @@ namespace CmdProcessor
         }
         public void Remove(string key)
         {
+			var cmd = Get(key);
             keymap.Remove(key);
-        }
+			keymapReverse.Remove(cmd);
+		}
         public void Clear()
         {
             keymap.Clear();
@@ -132,6 +140,10 @@ namespace CmdProcessor
         {
             return keymap.Keys.ToArray();
         }
+		public string[] GetCmds()
+		{
+			return keymap.Values.ToArray();
+		}
         private void loadFromConfig(string path, string section)
         {
             // 读取配置文件中的快捷键映射，位于section段内
@@ -147,7 +159,7 @@ namespace CmdProcessor
                     var parts = line.Split('=');
                     if (parts.Length == 2)
                     {
-                        Add(parts[0], parts[1]);
+                        Add(parts[0], parts[1].ToLower());
                     }
                 }
             }

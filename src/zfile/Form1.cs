@@ -331,8 +331,8 @@ namespace WinFormsApp1
         }
         public void AddCurrentPathToBookmarks()
         {
-            if (string.IsNullOrEmpty(currentDirectory)) return;
-            uiManager.BookmarkManager.AddBookmark(currentDirectory, selectedNode, uiManager.isleft);
+            //if (string.IsNullOrEmpty(currentDirectory)) return;
+            uiManager.BookmarkManager.AddBookmark(selectedNode, uiManager.isleft);
         }
 
         public void OpenOptions()
@@ -1017,7 +1017,7 @@ namespace WinFormsApp1
 			}
 			else
 			{
-				var pathpart = path.Split('\\', StringSplitOptions.RemoveEmptyEntries);
+				var pathpart = Helper.getFSpath(path).Split('\\', StringSplitOptions.RemoveEmptyEntries);
 				foreach(var n in nodes)
 				{
 					var node = n as TreeNode;

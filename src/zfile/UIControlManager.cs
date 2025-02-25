@@ -413,11 +413,11 @@ namespace WinFormsApp1
 
 		private void MainContainer_SplitterMoved(object? sender, SplitterEventArgs e)
 		{
-			int halfWidth = (form.ClientSize.Width - MainContainer.SplitterWidth) / 2;
-			if (Math.Abs(MainContainer.SplitterDistance - halfWidth) > 5)
-			{
-				MainContainer.SplitterDistance = halfWidth;
-			}
+			//int halfWidth = (form.ClientSize.Width - MainContainer.SplitterWidth) / 2;
+			//if (Math.Abs(MainContainer.SplitterDistance - halfWidth) > 5)
+			//{
+			//	MainContainer.SplitterDistance = halfWidth;
+			//}
 		}
 
 		private void ConfigurePanel(SplitContainer panel, Control parent)
@@ -784,19 +784,19 @@ namespace WinFormsApp1
 		public void InitializeBookmarkLists()
 		{
 			// 初始化左侧书签Panel
-			leftBookmarkPanel.Dock = DockStyle.Top;
+			//leftBookmarkPanel.Dock = DockStyle.Top;
 			var leftlines = Helper.GetFlowLayoutPanelLineCount(leftBookmarkPanel);
 			leftBookmarkPanel.Height = 20 * leftlines;
-			leftBookmarkPanel.WrapContents = true;
-			leftBookmarkPanel.DoubleClick += BookmarkPanel_DoubleClick;
+			//leftBookmarkPanel.WrapContents = true;
+			//leftBookmarkPanel.DoubleClick += BookmarkPanel_DoubleClick;
 			LeftPanel.Panel2.Controls.Add(leftBookmarkPanel);
 
 			// 初始化右侧书签Panel
 			var rightlines = Helper.GetFlowLayoutPanelLineCount(rightBookmarkPanel);
-			rightBookmarkPanel.Dock = DockStyle.Top;
+			//rightBookmarkPanel.Dock = DockStyle.Top;
 			rightBookmarkPanel.Height = 20 * rightlines;
-			rightBookmarkPanel.WrapContents = true;
-			rightBookmarkPanel.DoubleClick += BookmarkPanel_DoubleClick;
+			//rightBookmarkPanel.WrapContents = true;
+			//rightBookmarkPanel.DoubleClick += BookmarkPanel_DoubleClick;
 			RightPanel.Panel2.Controls.Add(rightBookmarkPanel);
 
 			// 调整布局顺序
@@ -805,12 +805,13 @@ namespace WinFormsApp1
 			RightPanel.Panel2.Controls.SetChildIndex(rightBookmarkPanel, 0);
 			RightPanel.Panel2.Controls.SetChildIndex(RightPreview, 1);
 		}
-		private void BookmarkPanel_DoubleClick(object? sender,  EventArgs e)
-		{
-			var s = sender as FlowLayoutPanel;
-			isleft = s == leftBookmarkPanel;
-			BookmarkManager.AddBookmark(form.currentDirectory, form.activeTreeview.SelectedNode, isleft);
-		}
+		//private void BookmarkPanel_DoubleClick(object? sender,  EventArgs e)
+		//{
+		//	Debug.Print("书签双击1");
+		//	var s = sender as FlowLayoutPanel;
+		//	isleft = s == leftBookmarkPanel;
+		//	BookmarkManager.AddBookmark(form.currentDirectory, form.activeTreeview.SelectedNode, isleft);
+		//}
 		//从环境变量获取%COMMANDER_PATH%
 		private string GetCommanderPath()
 		{
@@ -983,10 +984,10 @@ namespace WinFormsApp1
 					RightDriveBox.SelectedIndexChanged -= DriveComboBox_SelectedIndexChanged;
 
 					// 取消书签面板事件订阅
-					if (leftBookmarkPanel != null)
-						leftBookmarkPanel.DoubleClick -= BookmarkPanel_DoubleClick;
-					if (rightBookmarkPanel != null)
-						rightBookmarkPanel.DoubleClick -= BookmarkPanel_DoubleClick;
+					//if (leftBookmarkPanel != null)
+					//	leftBookmarkPanel.MouseDoubleClick -= BookmarkPanel_MouseDoubleClick;
+					//if (rightBookmarkPanel != null)
+					//	rightBookmarkPanel.MouseDoubleClick -= BookmarkPanel_MouseDoubleClick;
 					UnregisterTreeViewEvents(LeftTree);
 					UnregisterTreeViewEvents(RightTree);
 					UnregisterListViewEvents(LeftList);

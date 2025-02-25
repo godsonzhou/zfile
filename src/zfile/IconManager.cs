@@ -121,7 +121,7 @@ namespace WinFormsApp1
 							return;
 						}
 						//save current icon to png file
-						newIcon.ToBitmap().Save("d:\\temp\\" + key + ".png", System.Drawing.Imaging.ImageFormat.Png);
+						//newIcon.ToBitmap().Save("d:\\temp\\" + key + ".png", System.Drawing.Imaging.ImageFormat.Png);
 
 						iconCache[key] = (Icon)newIcon.Clone();
 						API.DestroyIcon(hIcon); // 确保销毁图标句柄

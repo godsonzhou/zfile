@@ -213,7 +213,10 @@ namespace CmdProcessor
                 // 在这里添加处理命令的逻辑
                 switch (cmdId)
                 {
-                    case 905: // cm_copy
+					case 540: // cm_rereadsource
+						do_cm_rereadsource();
+						break;
+					case 905: // cm_copy
                         CopySelectedFiles();
                         break;
                     case 906: // cm_renmov
@@ -329,6 +332,23 @@ namespace CmdProcessor
                 throw new KeyNotFoundException("命令ID不存在");
             }
         }
+		// 添加新方法实现刷新功能
+		private void do_cm_rereadsource()
+		{
+			var listView = owner.activeListView;
+			if (listView == null) return;
+
+			try
+			{
+				// 刷新当前面板
+				owner.RefreshPanel();
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"刷新目录失败: {ex.Message}", "错误",
+					MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
 		private void do_cm_DirBranch()
 		{
 			owner.fsManager.isDirBranchMode = !owner.fsManager.isDirBranchMode;

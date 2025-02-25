@@ -92,6 +92,8 @@ namespace WinFormsApp1
 				activeTreeview.SelectedNode = node;
 				RefreshPanel(activeListView);
 			}
+			// 更新最后访问路径
+			uiManager.UpdateLastVisitedPath(path);
 		}
 
 		public Form1()
@@ -684,7 +686,8 @@ namespace WinFormsApp1
 					else
 						LoadListViewByFilesystem(path, activeListView, e.Node); //如果未点击回收站
 					currentDirectory = path;
-					uiManager.drivePathMap[path.Substring(0,2)] = path;
+					//uiManager.lastVisitedPaths[path.Substring(0,2)] = path;
+					uiManager.UpdateLastVisitedPath(path);
                     selectedNode = e.Node;
                     if (Directory.Exists(path))
                     {

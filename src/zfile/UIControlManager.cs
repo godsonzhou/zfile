@@ -406,7 +406,7 @@ namespace WinFormsApp1
 		public ToolbarManager toolbarManager;
 		public ToolbarManager vtoolbarManager;
 		public bool isleft;
-		public Dictionary<string, string> drivePathMap = new ();
+		public Dictionary<string, string> lastVisitedPaths = new ();
 		private bool disposed = false;
 
 		public UIControlManager(Form1 form)
@@ -566,11 +566,24 @@ namespace WinFormsApp1
 
 			if (comboBox.SelectedItem is string drivePath)
 			{
-				drivePathMap.TryGetValue(drivePath, out var str);
-				form.LoadDriveIntoTree(treeView, str ?? drivePath);
+				if (lastVisitedPaths.TryGetValue(drivePath, out var lastPath)) 
+					form.NavigateToPath(lastPath);
+				else
+					form.LoadDriveIntoTree(treeView, drivePath);
 			}
 		}
+		// 添加方法用于更新最后访问路径
+		public void UpdateLastVisitedPath(string currentPath)
+		{
+			if (string.IsNullOrEmpty(currentPath)) return;
 
+			// 获取路径的根目录（盘符）
+			string root = Path.GetPathRoot(currentPath) ?? "";
+			if (!string.IsNullOrEmpty(root))
+			{
+				lastVisitedPaths[root] = currentPath;
+			}
+		}
 		public void InitializeTreeViews()
 		{
 			ConfigureTreeListSplitter(LeftTreeListSplitter, LeftUpperPanel, LeftTree, LeftList);

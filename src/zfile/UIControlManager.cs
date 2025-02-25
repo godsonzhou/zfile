@@ -209,7 +209,11 @@ namespace WinFormsApp1
 			if (e.Button == MouseButtons.Right && sender is ToolStripItem button)
 			{
 				currentButton = button as ToolStripButton;
-				buttonContextMenu.Show(dynamicToolStrip.PointToScreen(new Point(e.X, e.Y)));
+
+				//buttonContextMenu.Show(dynamicToolStrip.PointToScreen(new Point(e.X, e.Y)));
+				// 获取鼠标的屏幕坐标
+				Point screenPoint = Cursor.Position;
+				buttonContextMenu.Show(screenPoint);
 			}
 		}
 

@@ -121,6 +121,37 @@ namespace WinFormsApp1
 
 			return rowCount;
 		}
+		public static void WriteSectionContent(string filePath, string sectionContent, List<string> content)
+		{
+			try
+			{
+				// 读取文件内容
+				string fileContent = File.ReadAllText(filePath, Encoding.GetEncoding("GB2312"));
+				// 查找目标节��起始位置
+				int sectionStartIndex = fileContent.IndexOf(sectionContent);
+				if (sectionStartIndex == -1)
+				{
+					// 如果找不到目标节，直接返回
+					return;
+				}
+				// 查找目标节的结束位置
+				int sectionEndIndex = fileContent.IndexOf('[', sectionStartIndex + sectionContent.Length);
+				if (sectionEndIndex == -1)
+				{
+					// 如果找不到下一个节，说明目标节是文件的最后一节
+					sectionEndIndex = fileContent.Length;
+				}
+				// 将目标节的内容替换为新内容
+				fileContent = fileContent.Remove(sectionStartIndex + sectionContent.Length, sectionEndIndex - sectionStartIndex - sectionContent.Length);
+				fileContent = fileContent.Insert(sectionStartIndex + sectionContent.Length, string.Join("\r\n", content));
+				// 写入文件
+				File.WriteAllText(filePath, fileContent, Encoding.GetEncoding("GB2312"));
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"写入文件时发生错误: {ex.Message}");
+			}
+		}
 		public static List<string> ReadSectionContent(string filePath, string targetSection)
 		{
 			List<string> sectionContent = new List<string>();

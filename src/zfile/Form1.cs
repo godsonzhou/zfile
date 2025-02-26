@@ -340,11 +340,11 @@ namespace WinFormsApp1
         public void OpenOptions()
         {
             // 打开Options窗口
-            OptionsForm optionsForm = new OptionsForm(hotkeyMappings.ToDictionary(kvp => kvp.Value.ToString(), kvp => kvp.Key), this);
+            OptionsForm optionsForm = new OptionsForm(this);
             if (optionsForm.ShowDialog() == DialogResult.OK)
             {
                 // 更新热键映射
-                hotkeyMappings = optionsForm.commandHotkeys.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
+                //hotkeyMappings = optionsForm.commandHotkeys.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
             }
         }
         private void InitializeContextMenu()

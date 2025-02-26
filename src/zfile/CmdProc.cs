@@ -94,43 +94,75 @@ namespace CmdProcessor
             return zhDescDict;
         }
     }
-    public class KeyMgr
+	public class KeyDef
+	{
+		public string key { get; set; }
+		public string cmd { get; set; }
+		public bool hasShift
+		{
+			get => key.Contains("+") ? false : key.Split('+')[0].Contains("S", StringComparison.OrdinalIgnoreCase);
+		}
+
+		public bool hasCtrl
+		{
+			get => key.Contains("+") ? false : key.Split('+')[0].Contains("C", StringComparison.OrdinalIgnoreCase);
+		}
+		public bool hasAlt
+		{
+			get => key.Contains("+") ? false : key.Split('+')[0].Contains("A", StringComparison.OrdinalIgnoreCase);
+		}
+		public bool hasWin
+		{
+			get => key.Contains("+") ? false : key.Split('+')[0].Contains("#", StringComparison.OrdinalIgnoreCase);
+		}
+		public KeyDef(string key, string cmd)
+		{
+			this.key = key;
+			this.cmd = cmd;
+		}
+	}
+
+	public class KeyMgr
     {
-        public Dictionary<string, string> keymap = new Dictionary<string, string>();
-		public Dictionary<string,string> keymapReverse = new Dictionary<string, string>();
+        public Dictionary<string, KeyDef> keymap = new ();
+		public Dictionary<string, KeyDef> cmdmap = new();
 		public KeyMgr()
         {
-            loadFromConfig("wincmd.ini", "Shortcuts");
-            loadFromConfig("wincmd.ini", "ShortcutsWin");
+            loadFromConfig("wincmd.ini", "Shortcuts", false);
+            loadFromConfig("wincmd.ini", "ShortcutsWin", true);
         }
-        public void Add(string key, string cmd)
-        {
-            keymap[key] = cmd;
-			keymapReverse[cmd] = key;
-        }
-        public string GetByKeyCode(Keys k)
-        {
-            return Get(k.ToString());
-        }
-        public string Get(string key)
-        {
-            if (keymap.TryGetValue(key, out _))
-                return keymap[key];
-            return string.Empty;
-        }
-        public bool Contains(string key)
-        {
-            return keymap.ContainsKey(key);
-        }
-        public void Remove(string key)
-        {
-			var cmd = Get(key);
-            keymap.Remove(key);
-			keymapReverse.Remove(cmd);
+		public string GetByKeyCode(Keys k)
+		{
+
 		}
-        public void Clear()
+		public void Add(string key, string cmd, bool iswin)
+        {
+			var keydef = new KeyDef(iswin ? "#"+key : key, cmd);
+            keymap[key] = keydef;
+			cmdmap[cmd] = keydef;
+        }
+        public KeyDef? GetByKey(string key)
+        {
+            if (keymap.TryGetValue(key, out var result))
+                return result;
+            return null;
+        }
+		public KeyDef? GetByCmd(string cmd)
+		{
+			if (cmdmap.TryGetValue(cmd, out var result))
+				return result;
+			return null;
+		}
+        public void Remove(string cmd)
+        {
+			var keydef = GetByCmd(cmd);
+			keymap.Remove(keydef.key);
+			cmdmap.Remove(keydef.cmd);
+		}
+		public void Clear()
         {
             keymap.Clear();
+			cmdmap.Clear();
         }
         public int Count()
         {
@@ -142,9 +174,9 @@ namespace CmdProcessor
         }
 		public string[] GetCmds()
 		{
-			return keymap.Values.ToArray();
+			return cmdmap.Keys.ToArray();
 		}
-        private void loadFromConfig(string path, string section)
+        private void loadFromConfig(string path, string section, bool iswin)
         {
             // 读取配置文件中的快捷键映射，位于section段内
             // 例如：[Shortcuts]
@@ -159,12 +191,53 @@ namespace CmdProcessor
                     var parts = line.Split('=');
                     if (parts.Length == 2)
                     {
-                        Add(parts[0], parts[1].ToLower());
+                        Add(parts[0], parts[1].ToLower(), iswin);
                     }
                 }
             }
         }
-    }
+		public void UpdateKeyMapping(string cmd, string key)
+		{
+			// 更新快捷键映射
+			// 如果命令已存在，则更新快捷键
+			// 如果快捷键已存在，则更新命令
+			if (cmdmap.TryGetValue(cmd, out var keydef))
+			{
+				cmdmap.Remove(cmd);
+			}
+			if (keymap.TryGetValue(key, out _))
+			{
+				 keymap.Remove(key);
+			}
+			Add(key, cmd, key.Contains("#"));
+		}
+		public void SaveKeyMappingToConfigFile()
+		{
+			// 保存快捷键映射到配置文件
+			// 例如：[Shortcuts]
+			// cm_copy=Ctrl+C
+			// [ShortcutsWin]
+			// em_py=Ctrl+Insert
+			var shortcuts = new List<string>();
+			var shortcutsWin = new List<string>();
+			foreach (var key in keymap)
+			{
+				var cmd = key.Value.cmd;
+				var keydef = key.Value.key;
+				if (keydef.Contains("#"))
+				{
+					shortcutsWin.Add($"{keydef}={cmd}");
+				}
+				else
+				{
+					shortcuts.Add($"{keydef}={cmd}");
+				}
+			}
+			Helper.WriteSectionContent(Constants.ZfilePath + "wincmd.ini", "Shortcuts", shortcuts);
+			Helper.WriteSectionContent(Constants.ZfilePath + "wincmd.ini", "ShortcutsWin", shortcutsWin);
+		}
+
+	}
     public class CmdProc
     {
         public CmdTable cmdTable;

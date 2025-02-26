@@ -94,38 +94,21 @@ namespace CmdProcessor
             return zhDescDict;
         }
     }
-	public class KeyDef
+	public class KeyDef(string key, string cmd)
 	{
-		public string key { get; set; }
-		public string cmd { get; set; }
-		public bool hasShift
-		{
-			get => key.Contains("+") ? key.Split('+')[0].Contains("S", StringComparison.OrdinalIgnoreCase) : false;
-		}
+		public string Key { get; set; } = key;
+		public string Cmd { get; set; } = cmd;
+		public bool HasShift => Key.Contains('+') && Key.Split('+')[0].Contains("S", StringComparison.OrdinalIgnoreCase);
 
-		public bool hasCtrl
-		{
-			get => key.Contains("+") ? key.Split('+')[0].Contains("C", StringComparison.OrdinalIgnoreCase) : false;
-		}
-		public bool hasAlt
-		{
-			get => key.Contains("+") ? key.Split('+')[0].Contains("A", StringComparison.OrdinalIgnoreCase) : false;
-		}
-		public bool hasWin
-		{
-			get => key.Contains("+") ? key.Split('+')[0].Contains("#", StringComparison.OrdinalIgnoreCase) : false;
-		}
-		public KeyDef(string key, string cmd)
-		{
-			this.key = key;
-			this.cmd = cmd;
-		}
+		public bool HasCtrl => Key.Contains('+') && Key.Split('+')[0].Contains("C", StringComparison.OrdinalIgnoreCase);
+		public bool HasAlt => Key.Contains('+') && Key.Split('+')[0].Contains("A", StringComparison.OrdinalIgnoreCase);
+		public bool HasWin => Key.Contains('+') && Key.Split('+')[0].Contains("#", StringComparison.OrdinalIgnoreCase);
 	}
 
 	public class KeyMgr
     {
-        public Dictionary<string, KeyDef> keymap = new ();
-		public Dictionary<string, KeyDef> cmdmap = new();
+        public Dictionary<string, KeyDef> keymap = [];
+		public Dictionary<string, KeyDef> cmdmap = [];
 		public KeyMgr()
         {
             loadFromConfig("wincmd.ini", "Shortcuts", false);
@@ -134,7 +117,7 @@ namespace CmdProcessor
 		public string GetCmdByKey(string key)
 		{
 			if (keymap.TryGetValue(key, out var keydef))
-				return keydef.cmd;
+				return keydef.Cmd;
 			return "";
 		}
 		public void Add(string key, string cmd, bool iswin)
@@ -158,8 +141,8 @@ namespace CmdProcessor
         public void Remove(string cmd)
         {
 			var keydef = GetByCmd(cmd);
-			keymap.Remove(keydef.key);
-			cmdmap.Remove(keydef.cmd);
+			keymap.Remove(keydef.Key);
+			cmdmap.Remove(keydef.Cmd);
 		}
 		public void Clear()
         {
@@ -211,7 +194,7 @@ namespace CmdProcessor
 			{
 				 keymap.Remove(key);
 			}
-			Add(key, cmd, key.Contains("#"));
+			Add(key, cmd, key.Contains('#'));
 		}
 		public void SaveKeyMappingToConfigFile()
 		{
@@ -224,8 +207,8 @@ namespace CmdProcessor
 			var shortcutsWin = new List<string>();
 			foreach (var key in keymap)
 			{
-				var cmd = key.Value.cmd;
-				var keydef = key.Value.key;
+				var cmd = key.Value.Cmd;
+				var keydef = key.Value.Key;
 				if (keydef.Contains("#"))
 				{
 					shortcutsWin.Add($"{keydef}={cmd}");

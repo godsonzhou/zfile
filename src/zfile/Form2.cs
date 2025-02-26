@@ -60,25 +60,25 @@ namespace WinFormsApp1
 				//if(cmd.Value == Keys.None) continue;
 				Label label = new Label
                 {
-                    Text = mainForm.cmdProcessor.cmdTable.GetByCmdName(keydef.cmd)?.Description ?? cmd.Key,
+                    Text = mainForm.cmdProcessor.cmdTable.GetByCmdName(keydef.Cmd)?.Description ?? cmd.Key,
 					Location = new Point(10, y),
                     AutoSize = true,
 					Width = 180
 				};
                 optionPanel.Controls.Add(label);
-				commandLabels[keydef.cmd] = label;
+				commandLabels[keydef.Cmd] = label;
 				
 				// 添加修饰键复选框
 				int checkBoxX = 200;
-				var ctrlBox = CreateModifierCheckBox("Ctrl", checkBoxX, y, keydef.hasCtrl);
-				var altBox = CreateModifierCheckBox("Alt", checkBoxX + 60, y, keydef.hasAlt);
-				var shiftBox = CreateModifierCheckBox("Shift", checkBoxX + 120, y, keydef.hasShift);
-				var winBox = CreateModifierCheckBox("Win", checkBoxX + 180, y, keydef.hasWin);
+				var ctrlBox = CreateModifierCheckBox("Ctrl", checkBoxX, y, keydef.HasCtrl);
+				var altBox = CreateModifierCheckBox("Alt", checkBoxX + 60, y, keydef.HasAlt);
+				var shiftBox = CreateModifierCheckBox("Shift", checkBoxX + 120, y, keydef.HasShift);
+				var winBox = CreateModifierCheckBox("Win", checkBoxX + 180, y, keydef.HasWin);
 
-				ctrlCheckBoxes[keydef.cmd] = ctrlBox;
-				altCheckBoxes[keydef.cmd] = altBox;
-				shiftCheckBoxes[keydef.cmd] = shiftBox;
-				winCheckBoxes[keydef.cmd] = winBox;
+				ctrlCheckBoxes[keydef.Cmd] = ctrlBox;
+				altCheckBoxes[keydef.Cmd] = altBox;
+				shiftCheckBoxes[keydef.Cmd] = shiftBox;
+				winCheckBoxes[keydef.Cmd] = winBox;
 				optionPanel.Controls.AddRange([ctrlBox, altBox, shiftBox, winBox]);
 
 				var comboBox = new ComboBox
@@ -89,12 +89,12 @@ namespace WinFormsApp1
 				};
                 comboBox.Items.AddRange(Enum.GetNames(typeof(Keys)));
 				// 解析修饰键和主键
-				var keys = keydef.key.Split('+', StringSplitOptions.RemoveEmptyEntries);
+				var keys = keydef.Key.Split('+', StringSplitOptions.RemoveEmptyEntries);
 				var mainkey = keys[^1];
 				comboBox.SelectedItem = Helper.ConvertStringToKey(mainkey);
 				comboBox.SelectedIndexChanged += (sender, e) => UpdateHotkey(cmd.Key, comboBox);
                 optionPanel.Controls.Add(comboBox);
-                commandComboBoxes[keydef.cmd] = comboBox;
+                commandComboBoxes[keydef.Cmd] = comboBox;
 
                 y += 26;
             }

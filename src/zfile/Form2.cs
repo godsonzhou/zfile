@@ -16,17 +16,41 @@ namespace WinFormsApp1
 		private Dictionary<string, CheckBox> altCheckBoxes = new();
 		private Dictionary<string, CheckBox> shiftCheckBoxes = new();
 		private Dictionary<string, CheckBox> winCheckBoxes = new();
+		private bool hasConflict = false;  // 添加冲突标志
+		private readonly Color conflictColor = Color.Red;
+		private readonly Color normalColor = SystemColors.Window;
+		// 在构造函数中初始化ToolTip
+		private readonly ToolTip toolTip;
 		public OptionsForm(Form1 mainForm)
         {
             InitializeComponent();
             //this.commandHotkeys = commandHotkeys;
             this.mainForm = mainForm;
-            InitializeOptionPanel();
+			// 初始化ToolTip
+			toolTip = new ToolTip
+			{
+				InitialDelay = 0,
+				ReshowDelay = 0,
+				ShowAlways = true
+			};
+			InitializeOptionPanel();
             InitializeFontPanel();
             InitializeTreeView();
         }
-
-        private void InitializeOptionPanel()
+		// 重写FormClosing事件，防止有冲突时关闭窗口
+		protected override void OnFormClosing(FormClosingEventArgs e)
+		{
+			if (e.CloseReason == CloseReason.UserClosing && hasConflict)
+			{
+				if (MessageBox.Show("存在快捷键冲突，是否放弃更改？", "警告",
+					MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.No)
+				{
+					e.Cancel = true;
+				}
+			}
+			base.OnFormClosing(e);
+		}
+		private void InitializeOptionPanel()
         {
             optionPanel = new Panel
             {
@@ -101,18 +125,46 @@ namespace WinFormsApp1
 		
 			splitContainer1.Panel2.Controls.Add(optionPanel);
         }
+		//private CheckBox CreateModifierCheckBox(string text, int x, int y, bool isChecked)
+		//{
+		//	return new CheckBox
+		//	{
+		//		Text = text,
+		//		Location = new Point(x, y),
+		//		AutoSize = true,
+		//		Checked = isChecked
+		//	};
+		//}
+		// 添加修饰键变化事件
 		private CheckBox CreateModifierCheckBox(string text, int x, int y, bool isChecked)
 		{
-			return new CheckBox
+			var checkBox = new CheckBox
 			{
 				Text = text,
 				Location = new Point(x, y),
 				AutoSize = true,
 				Checked = isChecked
 			};
+
+			// 添加修饰键变化事件处理
+			checkBox.CheckedChanged += (sender, e) =>
+			{
+				var cmd = commandHotkeys.First(c =>
+					ctrlCheckBoxes.ContainsKey(c.Key) &&
+					(ctrlCheckBoxes[c.Key] == checkBox ||
+					 altCheckBoxes[c.Key] == checkBox ||
+					 shiftCheckBoxes[c.Key] == checkBox ||
+					 winCheckBoxes[c.Key] == checkBox)).Key;
+
+				if (commandComboBoxes.TryGetValue(cmd, out var comboBox))
+				{
+					UpdateHotkey(cmd, comboBox);
+				}
+			};
+
+			return checkBox;
 		}
-		
-        private void InitializeFontPanel()
+		private void InitializeFontPanel()
         {
             fontPanel = new Panel
             {
@@ -246,12 +298,58 @@ namespace WinFormsApp1
 
 			string keyStr = comboBox.SelectedItem.ToString();
 			string fullKeyStr = modifiers.Length > 0 ? $"{modifiers}+{keyStr}" : keyStr;
+			// 检查快捷键冲突
+			var conflicts = CheckHotkeyConflicts(cmdName, fullKeyStr);
+			if (conflicts.Any())
+			{
+				comboBox.BackColor = conflictColor;
+				comboBox.FlatStyle = FlatStyle.Flat;
+				hasConflict = true;
+				string conflictCommands = string.Join(", ", conflicts);
+				toolTip.SetToolTip(comboBox, $"快捷键冲突与: {conflictCommands}");
+			}
+			else
+			{
+				comboBox.BackColor = normalColor;
+				comboBox.FlatStyle = FlatStyle.Standard;
+				hasConflict = false;
+				toolTip.SetToolTip(comboBox, "");
+				mainForm.keyManager.UpdateKeyMapping(cmdName, fullKeyStr);
+			}
 
+			// 更新确定按钮状态
+			UpdateOkButtonState();
 			// 更新到mainForm的keyManager
-			mainForm.keyManager.UpdateKeyMapping(cmdName, fullKeyStr);
+			//mainForm.keyManager.UpdateKeyMapping(cmdName, fullKeyStr);
+		}
+		// 添加冲突检测方法
+		private List<string> CheckHotkeyConflicts(string currentCmd, string hotkey)
+		{
+			var conflicts = new List<string>();
+			foreach (var kvp in commandHotkeys)
+			{
+				if (kvp.Key == currentCmd) continue; // 跳过当前命令
+
+				// 检查修饰键和主键是否完全匹配
+				var otherHotkey = kvp.Value.Key;
+				if (string.Equals(hotkey, otherHotkey, StringComparison.OrdinalIgnoreCase))
+				{
+					var cmdInfo = mainForm.cmdProcessor.cmdTable.GetByCmdName(kvp.Key);
+					conflicts.Add(cmdInfo?.Description ?? kvp.Key);
+				}
+			}
+			return conflicts;
 		}
 
-        private void button1_Click(object sender, EventArgs e)
+		// 更新确定按钮状态
+		private void UpdateOkButtonState()
+		{
+			if (Okbutton != null)  // 假设你的确定按钮名称为buttonOk
+			{
+				Okbutton.Enabled = !hasConflict;
+			}
+		}
+		private void button1_Click(object sender, EventArgs e)
         {
             // 关闭此表单
             this.Close();
@@ -259,7 +357,9 @@ namespace WinFormsApp1
 
         private void Okbutton_Click(object sender, EventArgs e)
         {
-            this.Close();
+			// 保存设置
+			mainForm.keyManager.SaveKeyMappingToConfigFile();
+			this.Close();
         }
 
         // 其他代码...

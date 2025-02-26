@@ -223,7 +223,7 @@ namespace WinFormsApp1
             }
 			else
 			{
-				var cmd = keyManager.GetByKeyCode(e.KeyCode);
+				var cmd = keyManager.GetCmdByKey(Helper.ConvertKeyToString(e.KeyCode));
 				cmdProcessor.ExecCmdByName(cmd);
 			}
 			e.Handled = true;

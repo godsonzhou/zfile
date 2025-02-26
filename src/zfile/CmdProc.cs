@@ -100,20 +100,20 @@ namespace CmdProcessor
 		public string cmd { get; set; }
 		public bool hasShift
 		{
-			get => key.Contains("+") ? false : key.Split('+')[0].Contains("S", StringComparison.OrdinalIgnoreCase);
+			get => key.Contains("+") ? key.Split('+')[0].Contains("S", StringComparison.OrdinalIgnoreCase) : false;
 		}
 
 		public bool hasCtrl
 		{
-			get => key.Contains("+") ? false : key.Split('+')[0].Contains("C", StringComparison.OrdinalIgnoreCase);
+			get => key.Contains("+") ? key.Split('+')[0].Contains("C", StringComparison.OrdinalIgnoreCase) : false;
 		}
 		public bool hasAlt
 		{
-			get => key.Contains("+") ? false : key.Split('+')[0].Contains("A", StringComparison.OrdinalIgnoreCase);
+			get => key.Contains("+") ? key.Split('+')[0].Contains("A", StringComparison.OrdinalIgnoreCase) : false;
 		}
 		public bool hasWin
 		{
-			get => key.Contains("+") ? false : key.Split('+')[0].Contains("#", StringComparison.OrdinalIgnoreCase);
+			get => key.Contains("+") ? key.Split('+')[0].Contains("#", StringComparison.OrdinalIgnoreCase) : false;
 		}
 		public KeyDef(string key, string cmd)
 		{
@@ -131,9 +131,11 @@ namespace CmdProcessor
             loadFromConfig("wincmd.ini", "Shortcuts", false);
             loadFromConfig("wincmd.ini", "ShortcutsWin", true);
         }
-		public string GetByKeyCode(Keys k)
+		public string GetCmdByKey(string key)
 		{
-
+			if (keymap.TryGetValue(key, out var keydef))
+				return keydef.cmd;
+			return "";
 		}
 		public void Add(string key, string cmd, bool iswin)
         {

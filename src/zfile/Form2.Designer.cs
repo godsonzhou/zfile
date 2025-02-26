@@ -18,82 +18,78 @@
             base.Dispose(disposing);
         }
 
-        private void InitializeComponent()
-        {
-            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.treeView = new System.Windows.Forms.TreeView(); // Add this line
-            this.button1 = new System.Windows.Forms.Button();
-            this.Okbutton = new System.Windows.Forms.Button();
-            //((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
-            this.splitContainer1.Panel1.SuspendLayout();
-            this.splitContainer1.Panel2.SuspendLayout();
-            this.splitContainer1.SuspendLayout();
-            this.SuspendLayout();
-            // 
-            // splitContainer1
-            // 
-            this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer1.Location = new System.Drawing.Point(0, 0);
-            this.splitContainer1.Name = "splitContainer1";
-            this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Vertical;
-            this.splitContainer1.SplitterDistance = 240; // 设置初始分割位置为 3:7
-            this.splitContainer1.Size = new System.Drawing.Size(800, 450);
-            this.splitContainer1.TabIndex = 0;
-            // 
-            // splitContainer1.Panel1
-            // 
-            this.splitContainer1.Panel1.Controls.Add(this.treeView);
-            // 
-            // splitContainer1.Panel2
-            // 
-            this.splitContainer1.Panel2.Controls.Add(this.button1);
-            this.splitContainer1.Panel2.Controls.Add(this.Okbutton);
-            this.splitContainer1.Size = new System.Drawing.Size(800, 450);
-            this.splitContainer1.SplitterDistance = 240;
-            this.splitContainer1.TabIndex = 0;
-            // 
-            // treeView
-            // 
-            this.treeView.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.treeView.Location = new System.Drawing.Point(0, 0);
-            this.treeView.Name = "treeView";
-            this.treeView.Size = new System.Drawing.Size(300, 400);
-            this.treeView.TabIndex = 0;
-            // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(713, 3);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 0;
-            this.button1.Text = "Cancel";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
-            // Okbutton
-            // 
-            this.Okbutton.Location = new System.Drawing.Point(632, 3);
-            this.Okbutton.Name = "Okbutton";
-            this.Okbutton.Size = new System.Drawing.Size(75, 23);
-            this.Okbutton.TabIndex = 1;
-            this.Okbutton.Text = "OK";
-            this.Okbutton.UseVisualStyleBackColor = true;
-            this.Okbutton.Click += new System.EventHandler(this.Okbutton_Click);
-            // 
-            // OptionsForm
-            // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.splitContainer1);
-            this.Name = "OptionsForm";
-            this.Text = "OptionsForm";
-            this.splitContainer1.Panel1.ResumeLayout(false);
-            this.splitContainer1.Panel2.ResumeLayout(false);
-            //((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
-            this.splitContainer1.ResumeLayout(false);
-            this.ResumeLayout(false);
+		private void InitializeComponent()
+		{
+			splitContainer1 = new SplitContainer();
+			treeView = new TreeView();
+			button1 = new Button();
+			Okbutton = new Button();
+			((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
+			splitContainer1.Panel1.SuspendLayout();
+			splitContainer1.Panel2.SuspendLayout();
+			splitContainer1.SuspendLayout();
+			SuspendLayout();
+			// 
+			// splitContainer1
+			// 
+			splitContainer1.Dock = DockStyle.Fill;
+			splitContainer1.Location = new Point(0, 0);
+			splitContainer1.Name = "splitContainer1";
+			// 
+			// splitContainer1.Panel1
+			// 
+			splitContainer1.Panel1.Controls.Add(treeView);
+			// 
+			// splitContainer1.Panel2
+			// 
+			splitContainer1.Panel2.Controls.Add(button1);
+			splitContainer1.Panel2.Controls.Add(Okbutton);
+			splitContainer1.Size = new Size(700, 478);
+			splitContainer1.SplitterDistance = 126;
+			splitContainer1.TabIndex = 0;
+			// 
+			// treeView
+			// 
+			treeView.Dock = DockStyle.Fill;
+			treeView.Location = new Point(0, 0);
+			treeView.Name = "treeView";
+			treeView.Size = new Size(126, 478);
+			treeView.TabIndex = 0;
+			// 
+			// button1
+			// 
+			button1.Location = new Point(624, 3);
+			button1.Name = "button1";
+			button1.Size = new Size(66, 24);
+			button1.TabIndex = 0;
+			button1.Text = "Cancel";
+			button1.UseVisualStyleBackColor = true;
+			button1.Click += button1_Click;
+			// 
+			// Okbutton
+			// 
+			Okbutton.Location = new Point(553, 3);
+			Okbutton.Name = "Okbutton";
+			Okbutton.Size = new Size(66, 24);
+			Okbutton.TabIndex = 1;
+			Okbutton.Text = "OK";
+			Okbutton.UseVisualStyleBackColor = true;
+			Okbutton.Click += Okbutton_Click;
+			// 
+			// OptionsForm
+			// 
+			AutoScaleDimensions = new SizeF(7F, 17F);
+			AutoScaleMode = AutoScaleMode.Font;
+			ClientSize = new Size(700, 478);
+			Controls.Add(splitContainer1);
+			Name = "OptionsForm";
+			Text = "OptionsForm";
+			splitContainer1.Panel1.ResumeLayout(false);
+			splitContainer1.Panel2.ResumeLayout(false);
+			((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
+			splitContainer1.ResumeLayout(false);
+			ResumeLayout(false);
 
-        }
-    }
+		}
+	}
 }

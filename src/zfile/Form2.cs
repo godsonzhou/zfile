@@ -60,12 +60,14 @@ namespace WinFormsApp1
 				//if(cmd.Value == Keys.None) continue;
 				Label label = new Label
                 {
-                    Text = cmd.Key,
-                    Location = new Point(10, y),
-                    AutoSize = true
-                };
+                    Text = mainForm.cmdProcessor.cmdTable.GetByCmdName(keydef.cmd)?.Description ?? cmd.Key,
+					Location = new Point(10, y),
+                    AutoSize = true,
+					Width = 180
+				};
                 optionPanel.Controls.Add(label);
-                commandLabels[cmd.Key] = label;
+				commandLabels[keydef.cmd] = label;
+				
 				// 添加修饰键复选框
 				int checkBoxX = 200;
 				var ctrlBox = CreateModifierCheckBox("Ctrl", checkBoxX, y, keydef.hasCtrl);
@@ -77,32 +79,20 @@ namespace WinFormsApp1
 				altCheckBoxes[keydef.cmd] = altBox;
 				shiftCheckBoxes[keydef.cmd] = shiftBox;
 				winCheckBoxes[keydef.cmd] = winBox;
+				optionPanel.Controls.AddRange([ctrlBox, altBox, shiftBox, winBox]);
 
-				optionPanel.Controls.AddRange(new Control[] { ctrlBox, altBox, shiftBox, winBox });
-
-				ComboBox comboBox = new ComboBox
-                {
-                    Location = new Point(250 + checkBoxX, y),
-                    Width = 80,
-                    DropDownStyle = ComboBoxStyle.DropDownList
-                };
+				var comboBox = new ComboBox
+				{
+					Location = new Point(250 + checkBoxX, y),
+					Width = 80,
+					DropDownStyle = ComboBoxStyle.DropDownList
+				};
                 comboBox.Items.AddRange(Enum.GetNames(typeof(Keys)));
 				// 解析修饰键和主键
-				//bool hasCtrl = false, hasAlt = false, hasShift = false, hasWin = false;
 				var keys = keydef.key.Split('+', StringSplitOptions.RemoveEmptyEntries);
 				var mainkey = keys[^1];
-				//if (keys.Length > 1)
-				//{
-				//	string modifiers = keys[0];
-				//	hasCtrl = modifiers.Contains("C");
-				//	hasAlt = modifiers.Contains("A");
-				//	hasShift = modifiers.Contains("S");
-				//	hasWin = modifiers.Contains("#");
-				//}
-				////在keymap.values中查找cmd.CmdName
-				var k = ConvertStringToKey(mainkey);
-				comboBox.SelectedItem = (Keys)k;
-                comboBox.SelectedIndexChanged += (sender, e) => UpdateHotkey(cmd.Key, comboBox);
+				comboBox.SelectedItem = Helper.ConvertStringToKey(mainkey);
+				comboBox.SelectedIndexChanged += (sender, e) => UpdateHotkey(cmd.Key, comboBox);
                 optionPanel.Controls.Add(comboBox);
                 commandComboBoxes[keydef.cmd] = comboBox;
 
@@ -121,70 +111,7 @@ namespace WinFormsApp1
 				Checked = isChecked
 			};
 		}
-		public string ConvertKeyToString(Keys k)
-		{
-
-		}
-		public Keys ConvertStringToKey(string str)
-		{
-			//F1 -> keys.F1
-			//None -> keys.None
-			//A -> keys.A
-			//ControlKey -> keys.ControlKey
-			//1 -> keys.D1
-			if (str == "None")
-				return Keys.None;
-			if (int.TryParse(str, out _))
-				str = "D" + str;
-			else if (str.StartsWith("NUM"))
-				str = str.Replace("NUM", "NumPad");
-			else if (str.ToUpper().Equals("OEM_US`~"))
-				str = "Oemtilde";
-			else if (str.ToUpper().Equals("OEM_"))
-				str = "Oemplus";
-			else if (str.Equals("*"))
-				str = "Multiply";
-			else if (str.Equals("/"))
-				str = "Divide";
-			else if (str.Equals(","))
-				str = "Oemcomma";
-			else if (str.Equals("."))
-				str = "OemPeriod";
-			else if (str.Equals("-"))
-				str = "OemMinus";
-			//else if (str.Equals("+"))		// + is impossible, because of the seperator is +
-			//	str = "Add";
-			else if (str.Equals("["))
-				str = "OemOpenBrackets";
-			else if (str.Equals("]"))
-				str = "OemCloseBrackets";
-			else if (str.Equals("\\"))
-				str = "OemPipe";
-			else if (str.Equals(";"))
-				str = "OemSemicolon";
-			else if (str.Equals("'"))
-				str = "OemQuotes";
-			else if (str.Equals("="))
-				str = "Oemplus";
-			else if (str.Equals("`"))
-				str = "Oemtilde";
-			else if (str.Equals("\\"))
-				str = "OemPipe";
-			else if (str.Equals("ESC"))
-				str = "Escape";
-			else if (str.Equals("Oem_us/?"))
-				str = "OemQuestion";
-			else
-			{
-				//all is letter, use camel case
-				str = str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower();
-			}
-			
-			try
-			{
-				return (Keys)Enum.Parse(typeof(Keys), str);
-			} catch { return Keys.None; }
-		}
+		
         private void InitializeFontPanel()
         {
             fontPanel = new Panel

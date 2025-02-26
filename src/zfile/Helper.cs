@@ -16,6 +16,103 @@ namespace WinFormsApp1
 	}
 	internal static class Helper
 	{
+		public static string ConvertKeyToString(Keys k)
+		{
+			string str = k.ToString();
+
+			// 特殊按键转换
+			if (str.StartsWith("D") && str.Length == 2 && char.IsDigit(str[1]))
+				return str[1].ToString(); // D1->1, D2->2 etc.
+
+			if (str.StartsWith("NumPad"))
+				return "NUM" + str[6..]; // NumPad1 -> NUM1
+
+			switch (str)
+			{
+				case "Oemtilde": return "`";
+				case "Multiply": return "*";
+				case "Divide": return "/";
+				case "Oemcomma": return ",";
+				case "OemPeriod": return ".";
+				case "OemMinus": return "-";
+				case "Oemplus": return "=";
+				case "OemOpenBrackets": return "[";
+				case "OemCloseBrackets": return "]";
+				case "OemPipe": return "\\";
+				case "OemSemicolon": return ";";
+				case "OemQuotes": return "'";
+				case "OemQuestion": return "Oem_us/?";
+				case "Escape": return "ESC";
+				default:
+					// 如果是单个字母,转换为大写
+					if (str.Length == 1)
+						return str.ToUpper();
+					return str;
+			}
+		}
+		public static Keys ConvertKeyStringToEnum(string str)
+		{
+			try
+			{
+				return (Keys)Enum.Parse(typeof(Keys), str);
+			}
+			catch { return Keys.None; }
+		}
+		public static string ConvertStringToKey(string str)
+		{
+			//F1 -> keys.F1
+			//None -> keys.None
+			//A -> keys.A
+			//ControlKey -> keys.ControlKey
+			//1 -> keys.D1
+			if (str == "None")
+				return str;
+			if (int.TryParse(str, out _))
+				return "D" + str;
+			else if (str.StartsWith("NUM"))
+				return str.Replace("NUM", "NumPad");
+			else if (str.ToUpper().Equals("OEM_US`~"))
+				return "Oemtilde";
+			else if (str.ToUpper().Equals("OEM_"))
+				return "Oemplus";
+			else if (str.Equals("*"))
+				return "Multiply";
+			else if (str.Equals("/"))
+				return "Divide";
+			else if (str.Equals(","))
+				return "Oemcomma";
+			else if (str.Equals("."))
+				return "OemPeriod";
+			else if (str.Equals("-"))
+				return "OemMinus";
+			//else if (str.Equals("+"))		// + is impossible, because of the seperator is +
+			//	str = "Add";
+			else if (str.Equals("["))
+				return "OemOpenBrackets";
+			else if (str.Equals("]"))
+				return "OemCloseBrackets";
+			else if (str.Equals("\\"))
+				return "OemPipe";
+			else if (str.Equals(";"))
+				return "OemSemicolon";
+			else if (str.Equals("'"))
+				return "OemQuotes";
+			else if (str.Equals("="))
+				return "Oemplus";
+			else if (str.Equals("`"))
+				return "Oemtilde";
+			else if (str.Equals("\\"))
+				return "OemPipe";
+			else if (str.Equals("ESC"))
+				return "Escape";
+			else if (str.Equals("Oem_us/?"))
+				return "OemQuestion";
+			else
+			{
+				//all is letter, use camel case
+				return str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower();
+			}
+		}
 		public static Dictionary<string, string> ParseConfig(List<string> config)
 		{
 			/*

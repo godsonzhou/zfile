@@ -491,9 +491,9 @@ namespace WinFormsApp1
 	
 	public class WcxModuleList
 	{
-		List<WcxModule> _modules = new List<WcxModule>();
+		public List<WcxModule> _modules = new List<WcxModule>();
 		List<string> _cfg = new List<string>();
-		Dictionary<string, WcxModule> _exts = new Dictionary<string, WcxModule>();
+		public Dictionary<string, WcxModule> _exts = new Dictionary<string, WcxModule>();
 		public WcxModuleList()
 		{
 			LoadConfiguration();

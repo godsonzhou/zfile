@@ -38,7 +38,8 @@ namespace WinFormsApp1
 		private TreeNode thispcL, thispcR;
 		public TreeNode thispc { get { return uiManager.isleft ? thispcL : thispcR; } }
 		private string oldname;
-		private WcxModuleList wcxModuleList;
+		public WcxModuleList wcxModuleList;
+		public WlxModuleList wlxModuleList;
 		private Dictionary<string, IntPtr> openArchives = new Dictionary<string, IntPtr>();
 		private Dictionary<string, string> archivePaths = new Dictionary<string, string>();
 		// 添加目录历史导航相关的字段
@@ -141,6 +142,8 @@ namespace WinFormsApp1
 			WfxModuleList wfxModuleList = new WfxModuleList("");
 			wcxModuleList = new WcxModuleList();
 			wcxModuleList.LoadConfiguration();
+			wlxModuleList = new WlxModuleList();
+			
 		}
          private void InitializeCOMComponents()
         {

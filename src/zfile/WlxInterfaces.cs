@@ -330,8 +330,8 @@ namespace WinFormsApp1
 	public class WlxModuleList
 	{
 		private List<string> _config;
-		private Dictionary<string, string> _configDict;
-		private List<WlxModule> _modules = new List<WlxModule>();
+		public Dictionary<string, string> _configDict;
+		public List<WlxModule> _modules = new List<WlxModule>();
 
 		public List<WlxModule> Modules { get { return _modules; } }
 		public WlxModuleList()
@@ -339,6 +339,7 @@ namespace WinFormsApp1
 			_config = Helper.ReadSectionContent(Constants.ZfilePath+"wincmd.ini", "ListerPlugins");
 			_configDict = Helper.ParseConfig(_config);
 		}
+
 		public void AddModule(WlxModule module)
 		{
 			if (!_modules.Any(m => m.FilePath.Equals(module.FilePath, StringComparison.OrdinalIgnoreCase)))

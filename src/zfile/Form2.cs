@@ -2,7 +2,105 @@
 using CmdProcessor;
 namespace WinFormsApp1
 {
-    public partial class OptionsForm : Form
+	public class AddWlxMappingForm : Form
+	{
+		private ComboBox pluginCombo;
+		private TextBox extensionBox;
+		public string SelectedPlugin => pluginCombo.SelectedItem?.ToString() ?? "";
+		public string Extension => extensionBox.Text;
+
+		public AddWlxMappingForm(WlxModuleList wlxModules)
+		{
+			Text = "添加WLX插件映射";
+			Size = new Size(300, 150);
+			FormBorderStyle = FormBorderStyle.FixedDialog;
+			MaximizeBox = false;
+			MinimizeBox = false;
+			StartPosition = FormStartPosition.CenterParent;
+
+			TableLayoutPanel layout = new()
+			{
+				Dock = DockStyle.Fill,
+				ColumnCount = 2,
+				RowCount = 3,
+				Padding = new Padding(10)
+			};
+
+			layout.Controls.Add(new Label { Text = "插件:" }, 0, 0);
+			pluginCombo = new ComboBox { Dock = DockStyle.Fill };
+			pluginCombo.Items.AddRange(wlxModules._modules.Select(m => m.Name).ToArray());
+			layout.Controls.Add(pluginCombo, 1, 0);
+
+			layout.Controls.Add(new Label { Text = "扩展名:" }, 0, 1);
+			extensionBox = new TextBox { Dock = DockStyle.Fill };
+			layout.Controls.Add(extensionBox, 1, 1);
+
+			FlowLayoutPanel buttonPanel = new()
+			{
+				Dock = DockStyle.Fill,
+				FlowDirection = FlowDirection.RightToLeft
+			};
+
+			Button btnCancel = new Button { Text = "取消", DialogResult = DialogResult.Cancel };
+			Button btnOK = new Button { Text = "确定", DialogResult = DialogResult.OK };
+			buttonPanel.Controls.AddRange(new Control[] { btnCancel, btnOK });
+
+			layout.Controls.Add(buttonPanel, 1, 2);
+
+			Controls.Add(layout);
+		}
+	}
+	// 添加插件映射对话框
+	public class AddPluginMappingForm : Form
+	{
+		private ComboBox pluginCombo;
+		private TextBox extensionBox;
+		public string SelectedPlugin => pluginCombo.SelectedItem?.ToString() ?? "";
+		public string Extension => extensionBox.Text;
+		// WLX插件映射对话框
+	
+		public AddPluginMappingForm(WcxModuleList wcxModules)
+		{
+			Text = "添加插件映射";
+			Size = new Size(300, 150);
+			FormBorderStyle = FormBorderStyle.FixedDialog;
+			MaximizeBox = false;
+			MinimizeBox = false;
+			StartPosition = FormStartPosition.CenterParent;
+
+			TableLayoutPanel layout = new()
+			{
+				Dock = DockStyle.Fill,
+				ColumnCount = 2,
+				RowCount = 3,
+				Padding = new Padding(10)
+			};
+
+			layout.Controls.Add(new Label { Text = "插件:" }, 0, 0);
+			pluginCombo = new ComboBox { Dock = DockStyle.Fill };
+			pluginCombo.Items.AddRange(wcxModules._modules.Select(m => m.Name).ToArray());
+			layout.Controls.Add(pluginCombo, 1, 0);
+
+			layout.Controls.Add(new Label { Text = "扩展名:" }, 0, 1);
+			extensionBox = new TextBox { Dock = DockStyle.Fill };
+			layout.Controls.Add(extensionBox, 1, 1);
+
+			FlowLayoutPanel buttonPanel = new()
+			{
+				Dock = DockStyle.Fill,
+				FlowDirection = FlowDirection.RightToLeft
+			};
+
+			Button btnCancel = new Button { Text = "取消", DialogResult = DialogResult.Cancel };
+			Button btnOK = new Button { Text = "确定", DialogResult = DialogResult.OK };
+			buttonPanel.Controls.AddRange(new Control[] { btnCancel, btnOK });
+
+			layout.Controls.Add(buttonPanel, 1, 2);
+
+			Controls.Add(layout);
+		}
+	}
+	public partial class OptionsForm : Form
     {
         private Panel optionPanel;
         private Panel fontPanel;
@@ -21,11 +119,15 @@ namespace WinFormsApp1
 		private readonly Color normalColor = SystemColors.Window;
 		// 在构造函数中初始化ToolTip
 		private readonly ToolTip toolTip;
+		// 添加插件配置面板
+		private Panel pluginPanel;
+		private WcxModuleList wcxModuleList;
 		public OptionsForm(Form1 mainForm)
         {
             InitializeComponent();
             //this.commandHotkeys = commandHotkeys;
             this.mainForm = mainForm;
+			this.wcxModuleList = mainForm.wcxModuleList;
 			// 初始化ToolTip
 			toolTip = new ToolTip
 			{
@@ -36,7 +138,231 @@ namespace WinFormsApp1
 			InitializeOptionPanel();
             InitializeFontPanel();
             InitializeTreeView();
-        }
+			InitializePluginPanel();  // 添加插件配置面板初始化
+		}
+		private void InitializePluginPanel()
+		{
+			pluginPanel = new Panel
+			{
+				Dock = DockStyle.Fill,
+				AutoScroll = true
+			};
+
+			// 创建标签页控件
+			TabControl tabControl = new TabControl
+			{
+				Dock = DockStyle.Fill
+			};
+
+			// 添加WCX/WDX/WLX/WFX标签页
+			string[] pluginTypes = { "WCX", "WDX", "WLX", "WFX" };
+			foreach (var type in pluginTypes)
+			{
+				TabPage tabPage = new TabPage(type);
+				if (type == "WCX")
+				{
+					InitializeWcxTab(tabPage);
+				}
+				else if (type == "WLX")
+				{
+					InitializeWlxTab(tabPage);
+				}
+				tabControl.TabPages.Add(tabPage);
+			}
+
+			pluginPanel.Controls.Add(tabControl);
+			splitContainer1.Panel2.Controls.Add(pluginPanel);
+			pluginPanel.Visible = false;
+		}
+		private void InitializeWlxTab(TabPage tabPage)
+		{
+			// 创建DataGridView显示插件配置
+			DataGridView grid = new DataGridView
+			{
+				Dock = DockStyle.Fill,
+				AllowUserToAddRows = false,
+				AllowUserToDeleteRows = true,
+				AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+				SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+				MultiSelect = false
+			};
+
+			// 添加列
+			grid.Columns.Add("PluginName", "插件名称");
+			grid.Columns.Add("Extension", "文件扩展名");
+
+			// 添加按钮面板
+			FlowLayoutPanel buttonPanel = new FlowLayoutPanel
+			{
+				Dock = DockStyle.Bottom,
+				FlowDirection = FlowDirection.RightToLeft,
+				Height = 40,
+				Padding = new Padding(5)
+			};
+
+			Button btnAdd = new Button { Text = "添加", Width = 80 };
+			Button btnDelete = new Button { Text = "删除", Width = 80 };
+			Button btnMoveUp = new Button { Text = "上移", Width = 80 };
+			Button btnMoveDown = new Button { Text = "下移", Width = 80 };
+
+			buttonPanel.Controls.AddRange(new Control[] { btnAdd, btnDelete, btnMoveUp, btnMoveDown });
+
+			// 加载现有配置
+			foreach (var config in mainForm.wlxModuleList._configDict)
+			{
+				grid.Rows.Add(config.Value, config.Key);
+			}
+
+			// 添加事件处理
+			btnAdd.Click += (s, e) => AddWlxMapping(grid);
+			btnDelete.Click += (s, e) => DeleteWlxMapping(grid);
+			btnMoveUp.Click += (s, e) => MoveWlxMapping(grid, -1);
+			btnMoveDown.Click += (s, e) => MoveWlxMapping(grid, 1);
+
+			tabPage.Controls.Add(grid);
+			tabPage.Controls.Add(buttonPanel);
+		}
+
+		private void AddWlxMapping(DataGridView grid)
+		{
+			using var addForm = new AddWlxMappingForm(mainForm.wlxModuleList);
+			if (addForm.ShowDialog() == DialogResult.OK)
+			{
+				grid.Rows.Add(addForm.SelectedPlugin, addForm.Extension);
+				// 更新配置
+				UpdateWlxConfiguration(grid);
+			}
+		}
+
+		private void DeleteWlxMapping(DataGridView grid)
+		{
+			if (grid.SelectedRows.Count > 0)
+			{
+				grid.Rows.RemoveAt(grid.SelectedRows[0].Index);
+				// 更新配置
+				UpdateWlxConfiguration(grid);
+			}
+		}
+
+		private void MoveWlxMapping(DataGridView grid, int offset)
+		{
+			if (grid.SelectedRows.Count == 0) return;
+
+			int currentIndex = grid.SelectedRows[0].Index;
+			int newIndex = currentIndex + offset;
+
+			if (newIndex >= 0 && newIndex < grid.Rows.Count)
+			{
+				DataGridViewRow row = grid.Rows[currentIndex];
+				grid.Rows.RemoveAt(currentIndex);
+				grid.Rows.Insert(newIndex, row);
+				grid.ClearSelection();
+				grid.Rows[newIndex].Selected = true;
+				// 更新配置
+				UpdateWlxConfiguration(grid);
+			}
+		}
+
+		private void UpdateWlxConfiguration(DataGridView grid)
+		{
+			// 清除现有配置
+			mainForm.wlxModuleList._configDict.Clear();
+
+			// 从grid重建配置
+			foreach (DataGridViewRow row in grid.Rows)
+			{
+				string ext = row.Cells["Extension"].Value?.ToString() ?? "";
+				string pluginName = row.Cells["PluginName"].Value?.ToString() ?? "";
+
+				var module = mainForm.wlxModuleList.FindModuleByName(pluginName);
+				if (module != null)
+				{
+					mainForm.wlxModuleList._configDict[ext] = module;
+				}
+			}
+		}
+		private void InitializeWcxTab(TabPage tabPage)
+		{
+			// 创建DataGridView显示插件配置
+			DataGridView grid = new DataGridView
+			{
+				Dock = DockStyle.Fill,
+				AllowUserToAddRows = false,
+				AllowUserToDeleteRows = true,
+				AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+				SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+				MultiSelect = false
+			};
+
+			// 添加列
+			grid.Columns.Add("PluginName", "插件名称");
+			grid.Columns.Add("Extension", "文件扩展名");
+
+			// 添加按钮面板
+			FlowLayoutPanel buttonPanel = new FlowLayoutPanel
+			{
+				Dock = DockStyle.Bottom,
+				FlowDirection = FlowDirection.RightToLeft,
+				Height = 40,
+				Padding = new Padding(5)
+			};
+
+			Button btnAdd = new Button { Text = "添加", Width = 80 };
+			Button btnDelete = new Button { Text = "删除", Width = 80 };
+			Button btnMoveUp = new Button { Text = "上移", Width = 80 };
+			Button btnMoveDown = new Button { Text = "下移", Width = 80 };
+
+			buttonPanel.Controls.AddRange(new Control[] { btnAdd, btnDelete, btnMoveUp, btnMoveDown });
+
+			// 加载现有配置
+			foreach (var ext in wcxModuleList._exts)
+			{
+				grid.Rows.Add(ext.Value.Name, ext.Key);
+			}
+
+			// 添加事件处理
+			btnAdd.Click += (s, e) => AddWcxMapping(grid);
+			btnDelete.Click += (s, e) => DeleteWcxMapping(grid);
+			btnMoveUp.Click += (s, e) => MoveWcxMapping(grid, -1);
+			btnMoveDown.Click += (s, e) => MoveWcxMapping(grid, 1);
+
+			tabPage.Controls.Add(grid);
+			tabPage.Controls.Add(buttonPanel);
+		}
+
+		private void AddWcxMapping(DataGridView grid)
+		{
+			using var addForm = new AddPluginMappingForm(wcxModuleList);
+			if (addForm.ShowDialog() == DialogResult.OK)
+			{
+				grid.Rows.Add(addForm.SelectedPlugin, addForm.Extension);
+			}
+		}
+
+		private void DeleteWcxMapping(DataGridView grid)
+		{
+			if (grid.SelectedRows.Count > 0)
+			{
+				grid.Rows.RemoveAt(grid.SelectedRows[0].Index);
+			}
+		}
+
+		private void MoveWcxMapping(DataGridView grid, int offset)
+		{
+			if (grid.SelectedRows.Count == 0) return;
+
+			int currentIndex = grid.SelectedRows[0].Index;
+			int newIndex = currentIndex + offset;
+
+			if (newIndex >= 0 && newIndex < grid.Rows.Count)
+			{
+				DataGridViewRow row = grid.Rows[currentIndex];
+				grid.Rows.RemoveAt(currentIndex);
+				grid.Rows.Insert(newIndex, row);
+				grid.ClearSelection();
+				grid.Rows[newIndex].Selected = true;
+			}
+		}
 		// 重写FormClosing事件，防止有冲突时关闭窗口
 		protected override void OnFormClosing(FormClosingEventArgs e)
 		{
@@ -248,10 +574,13 @@ namespace WinFormsApp1
             TreeNode rootNode = new TreeNode("设置");
             TreeNode hotkeyNode = new TreeNode("快捷键设置");
             TreeNode fontNode = new TreeNode("字体设置");
+			TreeNode pluginNode = new TreeNode("插件设置");  // 新增插件设置节点
 
-            rootNode.Nodes.Add(hotkeyNode);
+
+			rootNode.Nodes.Add(hotkeyNode);
             rootNode.Nodes.Add(fontNode);
-            treeView.Nodes.Add(rootNode);
+			rootNode.Nodes.Add(pluginNode);  // 添加到树中
+			treeView.Nodes.Add(rootNode);
 
             treeView.AfterSelect += TreeView_AfterSelect;
 
@@ -265,17 +594,11 @@ namespace WinFormsApp1
         {
             if (e.Node != null)
             {
-                if (e.Node.Text == "快捷键设置")
-                {
-                    optionPanel.Visible = true;
-                    fontPanel.Visible = false;
-                }
-                else if (e.Node.Text == "字体设置")
-                {
-                    optionPanel.Visible = false;
-                    fontPanel.Visible = true;
-                }
-            }
+				// 修改现有的选择处理逻辑，添加插件设置面板的显示控制
+				optionPanel.Visible = e.Node.Text == "快捷键设置";
+				fontPanel.Visible = e.Node.Text == "字体设置";
+				pluginPanel.Visible = e.Node.Text == "插件设置";
+			}
         }
 
         private void UpdateHotkey(string cmdName, ComboBox comboBox)
@@ -359,6 +682,8 @@ namespace WinFormsApp1
         {
 			// 保存设置
 			mainForm.keyManager.SaveKeyMappingToConfigFile();
+			// 保存WLX配置
+			mainForm.wlxModuleList.SaveConfiguration();
 			this.Close();
         }
 

@@ -42,6 +42,7 @@ namespace WinFormsApp1
         private MenuStrip _menuStrip;
         private Timer _animationTimer;
         private Timer _screenshotTimer;
+		private bool isPluginLoaded;
 
         public string FileName 
         { 
@@ -145,7 +146,7 @@ namespace WinFormsApp1
             _screenshotTimer = new Timer { Interval = 3000 };
         }
 
-        private void InitializePlugins()
+        public WlxModuleList InitializePlugins()
         {
             _pluginList = new WlxModuleList();
             string pluginPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins\\wlx");
@@ -154,6 +155,8 @@ namespace WinFormsApp1
 			foreach (var subdir in subdirs) {
 				_pluginList.LoadModulesFromDirectory(subdir);
 			}
+			isPluginLoaded = true;
+			return _pluginList;
         }
 
         private void InitializeFileList()

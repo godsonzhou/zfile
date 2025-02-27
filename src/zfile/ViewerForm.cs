@@ -62,8 +62,9 @@ namespace WinFormsApp1
         {
 			init();
         }
-		public ViewerForm(string fileName)
+		public ViewerForm(string fileName, WlxModuleList wlxModuleList)
 		{
+			_pluginList = wlxModuleList;
 			init();
 			FileName = fileName;
 		}
@@ -148,7 +149,7 @@ namespace WinFormsApp1
 
         public WlxModuleList InitializePlugins()
         {
-            _pluginList = new WlxModuleList();
+            //_pluginList = new WlxModuleList();
             string pluginPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins\\wlx");
             //读取pluginpath目录下所有子目录的plugins
 			var subdirs = Directory.GetDirectories(pluginPath, "*", SearchOption.AllDirectories);

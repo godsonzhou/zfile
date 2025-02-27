@@ -277,7 +277,7 @@ namespace WinFormsApp1
 				var module = mainForm.wlxModuleList.FindModuleByName(pluginName);
 				if (module != null)
 				{
-					mainForm.wlxModuleList._configDict[ext] = module;
+					mainForm.wlxModuleList._configDict[ext] = module.Name;
 				}
 			}
 		}

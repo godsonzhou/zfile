@@ -336,10 +336,26 @@ namespace WinFormsApp1
 		public List<WlxModule> Modules { get { return _modules; } }
 		public WlxModuleList()
 		{
+			LoadConfiguration();
+		}
+		public void LoadConfiguration(){
 			_config = Helper.ReadSectionContent(Constants.ZfilePath+"wincmd.ini", "ListerPlugins");
 			_configDict = Helper.ParseConfig(_config);
 		}
+		public void SaveConfiguration(){
+		List<string> configContent = new();
+		foreach (var pair in _configDict)
+		{
+			if(!configContent.Contains(pair.Key))
+				configContent.Append(pair.Key + "=" + pair.Value + Environment.NewLine);
+			else
+			{
+				configContent[configContent.IndexOf(pair.Key)] += $",{pair.Value}";
+			}
+		}
+		Helper.WriteSectionContent(Constants.ZfilePath + "wincmd.ini", "ListerPlugins", configContent);
 
+		}
 		public void AddModule(WlxModule module)
 		{
 			if (!_modules.Any(m => m.FilePath.Equals(module.FilePath, StringComparison.OrdinalIgnoreCase)))
@@ -445,6 +461,11 @@ namespace WinFormsApp1
 				module.Dispose();
 			}
 			_modules.Clear();
+		}
+
+		public WlxModule FindModuleByName(string name)
+		{
+			return _modules.FirstOrDefault(m => m.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 		}
 	}
 }

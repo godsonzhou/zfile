@@ -581,8 +581,9 @@ namespace WinFormsApp1
             rootNode.Nodes.Add(fontNode);
 			rootNode.Nodes.Add(pluginNode);  // 添加到树中
 			treeView.Nodes.Add(rootNode);
+			treeView.SelectedNode = hotkeyNode;
 
-            treeView.AfterSelect += TreeView_AfterSelect;
+			treeView.AfterSelect += TreeView_AfterSelect;
 
             splitContainer1.Panel1.Controls.Clear();
             splitContainer1.Panel1.Controls.Add(treeView);

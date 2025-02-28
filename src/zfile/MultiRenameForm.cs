@@ -31,15 +31,15 @@ namespace zfile
             
             // 初始化窗体
             Text = "批量重命名";
-            Size = new Size(700, 500);
+            Size = new Size(800, 800);
             StartPosition = FormStartPosition.CenterParent;
 
             // 创建分隔容器
             var splitContainer = new SplitContainer
             {
                 Dock = DockStyle.Fill,
-                Orientation = Orientation.Vertical,
-                SplitterDistance = 300,
+                Orientation = Orientation.Horizontal,
+                SplitterDistance = 200,
                 FixedPanel = FixedPanel.Panel1
             };
 
@@ -58,7 +58,6 @@ namespace zfile
                 Padding = new Padding(10)
             };
             splitContainer.Panel2.Controls.Add(rightPanel);
-
             Controls.Add(splitContainer);
 
             // 创建控件
@@ -83,9 +82,9 @@ namespace zfile
                 insertExtButton
             });
 
-            nameTemplateBox.Location = new Point(70, 20);
+            nameTemplateBox.Location = new Point(170, 20);
             insertNameButton.Location = new Point(380, 20);
-            extensionTemplateBox.Location = new Point(70, 50);
+            extensionTemplateBox.Location = new Point(170, 50);
             insertExtButton.Location = new Point(380, 50);
 
             var searchGroup = new GroupBox
@@ -110,10 +109,10 @@ namespace zfile
                 regexBox
             });
 
-            findBox.Location = new Point(70, 20);
-            replaceBox.Location = new Point(70, 50);
-            caseSensitiveBox.Location = new Point(70, 80);
-            regexBox.Location = new Point(200, 80);
+            findBox.Location = new Point(170, 20);
+            replaceBox.Location = new Point(170, 50);
+            caseSensitiveBox.Location = new Point(170, 80);
+            regexBox.Location = new Point(300, 80);
 
             var counterGroup = new GroupBox
             {
@@ -136,9 +135,9 @@ namespace zfile
                 counterDigitsBox
             });
 
-            counterStartBox.Location = new Point(70, 20);
-            counterStepBox.Location = new Point(70, 50);
-            counterDigitsBox.Location = new Point(70, 80);
+            counterStartBox.Location = new Point(170, 20);
+            counterStepBox.Location = new Point(170, 50);
+            counterDigitsBox.Location = new Point(170, 80);
 
             var styleGroup = new GroupBox
             {
@@ -164,8 +163,8 @@ namespace zfile
                 extensionStyleBox
             });
 
-            nameStyleBox.Location = new Point(70, 20);
-            extensionStyleBox.Location = new Point(70, 50);
+            nameStyleBox.Location = new Point(170, 20);
+            extensionStyleBox.Location = new Point(170, 50);
 
             var buttonPanel = new Panel
             {

@@ -54,16 +54,30 @@ namespace WinFormsApp1
             rbRightToLeft = new RadioButton
             {
                 Text = "右 → 左",
-                Location = new Point(100, 10)
+                Location = new Point(150, 10)
             };
 
             chkSelectAll = new CheckBox
             {
                 Text = "全选",
-                Location = new Point(200, 10)
+                Location = new Point(300, 10)
             };
+			btnOK = new Button
+			{
+				Text = "确定",
+				DialogResult = DialogResult.OK,
+				Location = new Point(400, 10),
+				Size = new Size(75, 23)
+			};
 
-            panel.Controls.AddRange(new Control[] { rbLeftToRight, rbRightToLeft, chkSelectAll });
+			btnCancel = new Button
+			{
+				Text = "取消",
+				DialogResult = DialogResult.Cancel,
+				Location = new Point(500, 10),
+				Size = new Size(75, 23)
+			};
+			panel.Controls.AddRange(new Control[] { rbLeftToRight, rbRightToLeft, chkSelectAll, btnOK, btnCancel });
 
             fileListView = new ListView
             {
@@ -87,24 +101,8 @@ namespace WinFormsApp1
                 TextAlign = ContentAlignment.MiddleLeft
             };
 
-            btnOK = new Button
-            {
-                Text = "确定",
-                DialogResult = DialogResult.OK,
-                Location = new Point(400, 420),
-                Size = new Size(75, 23)
-            };
-
-            btnCancel = new Button
-            {
-                Text = "取消",
-                DialogResult = DialogResult.Cancel,
-                Location = new Point(490, 420),
-                Size = new Size(75, 23)
-            };
-
             this.Controls.AddRange(new Control[] { 
-                panel, fileListView, lblStatus, btnOK, btnCancel 
+                panel, fileListView, lblStatus
             });
         }
 

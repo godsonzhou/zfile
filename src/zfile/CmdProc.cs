@@ -394,6 +394,9 @@ namespace CmdProcessor
                     case 2400: // cm_multirename
                         ShowMultiRenameDialog();
                         break;
+                    case 2020: // cm_filesync
+                        ShowSyncDirsDialog();
+                        break;
                     default:
                         MessageBox.Show($"命令ID = {cmdId} 尚未实现", "提示");
                         break;
@@ -1053,6 +1056,19 @@ namespace CmdProcessor
             {
                 owner.RefreshPanel(listView);
             }
+        }
+
+        private void ShowSyncDirsDialog()
+        {
+            var leftPath = owner.uiManager.LeftTree.SelectedNode != null
+                ? Helper.getFSpathbyTree(owner.uiManager.LeftTree.SelectedNode)
+                : string.Empty;
+            var rightPath = owner.uiManager.RightTree.SelectedNode != null
+                ? Helper.getFSpathbyTree(owner.uiManager.RightTree.SelectedNode)
+                : string.Empty;
+
+            var syncDlg = new SyncDirsDlg(leftPath, rightPath);
+            syncDlg.Show();
         }
     }
 

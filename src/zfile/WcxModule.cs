@@ -522,7 +522,7 @@ namespace WinFormsApp1
 		{
 			if (!Directory.Exists(directory)) return;
 
-			foreach (var file in Directory.GetFiles(directory, "*.wcx64"))
+			foreach (var file in Directory.GetFiles(directory, "*.wcx*"))
 			{
 				try
 				{
@@ -565,7 +565,7 @@ namespace WinFormsApp1
 			7zip=735,%COMMANDER_PATH%\Plugins\Wcx\Total7Zip\Total7Zip.wcx64
 			rsz=21,%COMMANDER_PATH%\Plugins\Wcx\TotalRSZ\TotalRSZ.wcx64
 		 */
-			_cfg = Helper.ReadSectionContent(Constants.ZfilePath + "wincmd.ini", "PackerPlugins");
+			_cfg = Helper.ReadSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "PackerPlugins");
 			foreach (var line in _cfg)
 			{
 				var parts = line.Split('=');
@@ -574,7 +574,7 @@ namespace WinFormsApp1
 					var detectstring = parts[0].Trim().ToLower();
 					var part1 = parts[1].Trim();
 					var path = part1.Split(',')[^1];
-					path = path.Replace("%COMMANDER_PATH%", Constants.ZfilePath+ "..\\src\\zfile\\bin\\Debug\\");
+					path = path.Replace("%COMMANDER_PATH%", Constants.ZfilePath+ "src\\zfile\\bin\\Debug\\");
 					if (File.Exists(path))
 					{
 						var name = Path.GetFileNameWithoutExtension(path);
@@ -604,6 +604,8 @@ namespace WinFormsApp1
 					}
 				}
 			}
+			//先按照配置读取插件（优先级高），然后按照目录读取插件
+			LoadModulesFromDirectory(Constants.ZfilePath + "src\\zfile\\bin\\Debug\\Plugins\\wcx\\");
 		}
 		public WcxModule? GetModuleByExt(string ext)
 		{

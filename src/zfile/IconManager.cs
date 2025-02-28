@@ -229,7 +229,7 @@ namespace WinFormsApp1
 				return null;
 
 			if (iconPath.ToLower().StartsWith("wcmicon"))
-				iconPath = Constants.ZfilePath + iconPath;
+				iconPath = Constants.ZfileCfgPath + iconPath;
 
 			if (iconPath.Contains(","))
 			{

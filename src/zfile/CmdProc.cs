@@ -168,7 +168,7 @@ namespace CmdProcessor
             // cm_copy=Ctrl+C
             // [ShortcutsWin]
             // em_py=Ctrl+Insert
-            var cfg = Helper.ReadSectionContent(Constants.ZfilePath + path, section);
+            var cfg = Helper.ReadSectionContent(Constants.ZfileCfgPath + path, section);
             foreach (var line in cfg)
             {
                 if (line.Contains('='))
@@ -218,8 +218,8 @@ namespace CmdProcessor
 					shortcuts.Add($"{keydef}={cmd}");
 				}
 			}
-			Helper.WriteSectionContent(Constants.ZfilePath + "wincmd.ini", "Shortcuts", shortcuts);
-			Helper.WriteSectionContent(Constants.ZfilePath + "wincmd.ini", "ShortcutsWin", shortcutsWin);
+			Helper.WriteSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "Shortcuts", shortcuts);
+			Helper.WriteSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ShortcutsWin", shortcutsWin);
 		}
 
 	}
@@ -231,7 +231,7 @@ namespace CmdProcessor
         public CmdProc(Form1 owner)
         {
             cmdTable = new CmdTable();
-            InitializeCmdTable(Constants.ZfilePath + "TOTALCMD.INC", Constants.ZfilePath + "WCMD_CHN.INC");
+            InitializeCmdTable(Constants.ZfileCfgPath + "TOTALCMD.INC", Constants.ZfileCfgPath + "WCMD_CHN.INC");
             this.owner = owner;
         }
 

@@ -339,7 +339,7 @@ namespace WinFormsApp1
 			LoadConfiguration();
 		}
 		public void LoadConfiguration(){
-			_config = Helper.ReadSectionContent(Constants.ZfilePath+"wincmd.ini", "ListerPlugins");
+			_config = Helper.ReadSectionContent(Constants.ZfileCfgPath+"wincmd.ini", "ListerPlugins");
 			_configDict = Helper.ParseConfig(_config);
 		}
 		public void SaveConfiguration(){
@@ -353,7 +353,7 @@ namespace WinFormsApp1
 				configContent[configContent.IndexOf(pair.Key)] += $",{pair.Value}";
 			}
 		}
-		Helper.WriteSectionContent(Constants.ZfilePath + "wincmd.ini", "ListerPlugins", configContent);
+		Helper.WriteSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ListerPlugins", configContent);
 
 		}
 		public void AddModule(WlxModule module)

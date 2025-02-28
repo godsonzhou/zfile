@@ -135,7 +135,7 @@ namespace WinFormsApp1
 		{
 			try
 			{
-				string configPath = Path.Combine(Constants.ZfilePath, configfile);
+				string configPath = Path.Combine(Constants.ZfileCfgPath, configfile);
 				using (StreamWriter writer = new StreamWriter(configPath, false, Encoding.GetEncoding("GB2312")))
 				{
 					writer.WriteLine("[Buttonbar]");
@@ -250,14 +250,14 @@ namespace WinFormsApp1
 		public void Init(string path)
 		{
 			//load from config file
-			string toolbarFilePath = Path.Combine(Constants.ZfilePath, path);
+			string toolbarFilePath = Path.Combine(Constants.ZfileCfgPath, path);
 			if (!File.Exists(toolbarFilePath))
 			{
 				MessageBox.Show("工具栏配置文件不存在" + toolbarFilePath, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
 			}
 
-			var zfile_path = Path.Combine(Constants.ZfilePath, "WCMIcon3.dll");
+			var zfile_path = Path.Combine(Constants.ZfileCfgPath, "WCMIcon3.dll");
 			//var iconManager = form.iconManager;
 			var iconList = IconManager.LoadIconsFromFile(zfile_path);
 			var fileInfoList = new FileInfoList(new string[] { zfile_path });

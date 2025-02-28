@@ -70,14 +70,16 @@ namespace WinFormsApp1
             {
                 Location = new Point(10, 10),
                 Size = new Size(300, 23),
-                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+				Text = leftPath
             };
 
             txtRightPath = new TextBox
             {
                 Location = new Point(10, 40),
                 Size = new Size(300, 23),
-                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+				Text = rightPath
             };
 
             chkSubDirs = new CheckBox

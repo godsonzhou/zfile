@@ -2013,7 +2013,7 @@ namespace WinFormsApp1
 			var wcxModule = wcxModuleList.GetModuleByExt(ext);
 			if (wcxModule == null)
 				return false;
-			if(!wcxModule.CanYouHandleThisFile(archivePath))
+			if(!wcxModule.CanYouHandleThisFile(archivePath))//TODO: BUGFIX: zip.wcx 的函数canyouhandlethisfile 对于zip压缩文件为何不起作用
 				return false;
 			IntPtr handle = wcxModule.OpenArchive(archivePath, 0);
 			if (handle == IntPtr.Zero)

@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text;
 using WinFormsApp1;
-
+using zfile;
 namespace CmdProcessor
 {
     public struct CmdTableItem(string cmdName, int cmdId, string description, string zhDesc)
@@ -370,7 +370,6 @@ namespace CmdProcessor
 					case 2002:
 						do_cm_gotoparent();
 						break;
-
                     case 903: //cm_list
                         owner.do_cm_list();
                         break;
@@ -391,6 +390,9 @@ namespace CmdProcessor
                         break;
                     case 24340:
                         Form1.ExitApp();
+                        break;
+                    case 2400: // cm_multirename
+                        ShowMultiRenameDialog();
                         break;
                     default:
                         MessageBox.Show($"命令ID = {cmdId} 尚未实现", "提示");
@@ -1038,6 +1040,18 @@ namespace CmdProcessor
                 {
                     MessageBox.Show($"解压文件时出错: {ex.Message}", "错误");
                 }
+            }
+        }
+
+        private void ShowMultiRenameDialog()
+        {
+            var listView = owner.activeListView;
+            if (listView == null || listView.SelectedItems.Count == 0) return;
+
+            using var dialog = new MultiRenameForm(listView, owner.currentDirectory);
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                owner.RefreshPanel(listView);
             }
         }
     }

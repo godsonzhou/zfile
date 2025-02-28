@@ -62,7 +62,7 @@ namespace WinFormsApp1
 		public AddPluginMappingForm(WcxModuleList wcxModules)
 		{
 			Text = "添加插件映射";
-			Size = new Size(300, 150);
+			Size = new Size(400, 200);
 			FormBorderStyle = FormBorderStyle.FixedDialog;
 			MaximizeBox = false;
 			MinimizeBox = false;
@@ -280,6 +280,7 @@ namespace WinFormsApp1
 					mainForm.wlxModuleList._configDict[ext] = module.Name;
 				}
 			}
+			mainForm.wlxModuleList.isConfigChanged = true;
 		}
 		private void InitializeWcxTab(TabPage tabPage)
 		{
@@ -337,6 +338,7 @@ namespace WinFormsApp1
 			{
 				grid.Rows.Add(addForm.SelectedPlugin, addForm.Extension);
 			}
+			UpdateWcxConfiguration(grid);
 		}
 
 		private void DeleteWcxMapping(DataGridView grid)
@@ -345,6 +347,7 @@ namespace WinFormsApp1
 			{
 				grid.Rows.RemoveAt(grid.SelectedRows[0].Index);
 			}
+			UpdateWcxConfiguration(grid);
 		}
 
 		private void MoveWcxMapping(DataGridView grid, int offset)
@@ -362,6 +365,27 @@ namespace WinFormsApp1
 				grid.ClearSelection();
 				grid.Rows[newIndex].Selected = true;
 			}
+			UpdateWcxConfiguration(grid);
+		}
+		private void UpdateWcxConfiguration(DataGridView grid)
+		{
+			// 清除现有配置
+			mainForm.wcxModuleList._cfg.Clear();
+
+			// 从grid重建配置
+			foreach (DataGridViewRow row in grid.Rows)
+			{
+				string ext = row.Cells["Extension"].Value?.ToString() ?? "";
+				string pluginName = row.Cells["PluginName"].Value?.ToString() ?? "";
+
+				var module = mainForm.wcxModuleList.FindModuleByName(pluginName);
+				if (module != null)
+				{
+					//mainForm.wcxModuleList._configDict[ext] = module.Name;
+					mainForm.wcxModuleList._cfg.Add($"{ext}=0,{module.FilePath}");
+				}
+			}
+			mainForm.wcxModuleList.isConfigChanged = true;
 		}
 		// 重写FormClosing事件，防止有冲突时关闭窗口
 		protected override void OnFormClosing(FormClosingEventArgs e)
@@ -685,6 +709,7 @@ namespace WinFormsApp1
 			mainForm.keyManager.SaveKeyMappingToConfigFile();
 			// 保存WLX配置
 			mainForm.wlxModuleList.SaveConfiguration();
+			mainForm.wcxModuleList.SaveConfiguration();
 			this.Close();
         }
 

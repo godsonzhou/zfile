@@ -492,8 +492,9 @@ namespace WinFormsApp1
 	public class WcxModuleList
 	{
 		public List<WcxModule> _modules = new List<WcxModule>();
-		List<string> _cfg = new List<string>();
+		public List<string> _cfg = new List<string>();
 		public Dictionary<string, WcxModule> _exts = new Dictionary<string, WcxModule>();
+		public bool isConfigChanged = false;
 		public WcxModuleList()
 		{
 			LoadConfiguration();
@@ -522,27 +523,37 @@ namespace WinFormsApp1
 		{
 			if (!Directory.Exists(directory)) return;
 
-			foreach (var file in Directory.GetFiles(directory, "*.wcx*"))
+			var subdirs = Directory.GetDirectories(directory, "*", SearchOption.AllDirectories);
+			foreach (var subdir in subdirs)
 			{
-				try
+				foreach (var file in Directory.GetFiles(subdir, "*.wcx*"))
 				{
-					var module = new WcxModule
+					try
 					{
-						FilePath = file,
-						Name = Path.GetFileNameWithoutExtension(file)
-					};
+						var module = new WcxModule
+						{
+							FilePath = file,
+							Name = Path.GetFileNameWithoutExtension(file)
+						};
 
-					if (module.LoadModule())
+						if (module.LoadModule())
+						{
+							if (AddModule(module))
+								_exts[module.Name.ToLower()] = module;//TODO BUGFIX: HOW TO GET THE DETECTSTRING FOR WCX MODULE FILE
+						}
+					}
+					catch
 					{
-						if(AddModule(module))
-							_exts[module.Name.ToLower()] = module;//TODO BUGFIX: HOW TO GET THE DETECTSTRING FOR WCX MODULE FILE
+						// 加载失败的模块直接跳过
 					}
 				}
-				catch
-				{
-					// 加载失败的模块直接跳过
-				}
 			}
+		}
+		public void SaveConfiguration()
+		{
+			if (!isConfigChanged) return;
+			
+			Helper.WriteSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "PackerPlugins", _cfg);
 		}
 		public void LoadConfiguration()
 		{
@@ -574,7 +585,7 @@ namespace WinFormsApp1
 					var detectstring = parts[0].Trim().ToLower();
 					var part1 = parts[1].Trim();
 					var path = part1.Split(',')[^1];
-					path = path.Replace("%COMMANDER_PATH%", Constants.ZfilePath+ "src\\zfile\\bin\\Debug\\");
+					path = path.Replace("%COMMANDER_PATH%", Constants.ZfileBinPath);
 					if (File.Exists(path))
 					{
 						var name = Path.GetFileNameWithoutExtension(path);
@@ -605,7 +616,7 @@ namespace WinFormsApp1
 				}
 			}
 			//先按照配置读取插件（优先级高），然后按照目录读取插件
-			LoadModulesFromDirectory(Constants.ZfilePath + "src\\zfile\\bin\\Debug\\Plugins\\wcx\\");
+			LoadModulesFromDirectory(Constants.ZfileBinPath + "Plugins\\wcx\\");
 		}
 		public WcxModule? GetModuleByExt(string ext)
 		{

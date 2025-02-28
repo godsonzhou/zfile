@@ -12,6 +12,7 @@ namespace WinFormsApp1
 	{
 		public const string ZfilePath = "D:\\gitrepos\\Files\\";
 		public const string ZfileCfgPath = ZfilePath + "Config\\";
+		public const string ZfileBinPath = ZfilePath + "src\\zfile\\bin\\Debug\\";
 		public const int CacheTimeout = 500; // 缓存超时时间(毫秒)
 		public static readonly string[] TextFileExtensions = { ".txt", ".cs", ".html", ".htm", ".xml", ".json", ".css", ".js", ".md" };
 	}
@@ -240,8 +241,8 @@ namespace WinFormsApp1
 					sectionEndIndex = fileContent.Length;
 				}
 				// 将目标节的内容替换为新内容
-				fileContent = fileContent.Remove(sectionStartIndex + sectionContent.Length, sectionEndIndex - sectionStartIndex - sectionContent.Length);
-				fileContent = fileContent.Insert(sectionStartIndex + sectionContent.Length, string.Join("\r\n", content));
+				fileContent = fileContent.Remove(sectionStartIndex + sectionContent.Length + 1, sectionEndIndex - sectionStartIndex - sectionContent.Length);
+				fileContent = fileContent.Insert(sectionStartIndex + sectionContent.Length + 1, "\r\n"+string.Join("\r\n", content)) + "\r\n";
 				// 写入文件
 				File.WriteAllText(filePath, fileContent, Encoding.GetEncoding("GB2312"));
 			}

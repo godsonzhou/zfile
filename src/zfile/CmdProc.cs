@@ -109,6 +109,7 @@ namespace CmdProcessor
     {
         public Dictionary<string, KeyDef> keymap = [];
 		public Dictionary<string, KeyDef> cmdmap = [];
+		private bool keymapChanged = false;
 		public KeyMgr()
         {
             loadFromConfig("wincmd.ini", "Shortcuts", false);
@@ -195,6 +196,7 @@ namespace CmdProcessor
 				 keymap.Remove(key);
 			}
 			Add(key, cmd, key.Contains('#'));
+			keymapChanged = true;
 		}
 		public void SaveKeyMappingToConfigFile()
 		{
@@ -203,6 +205,8 @@ namespace CmdProcessor
 			// cm_copy=Ctrl+C
 			// [ShortcutsWin]
 			// em_py=Ctrl+Insert
+			if (!keymapChanged) return;
+
 			var shortcuts = new List<string>();
 			var shortcutsWin = new List<string>();
 			foreach (var key in keymap)

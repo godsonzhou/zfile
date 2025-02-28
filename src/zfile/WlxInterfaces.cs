@@ -334,6 +334,7 @@ namespace WinFormsApp1
 		public List<WlxModule> _modules = new List<WlxModule>();
 
 		public List<WlxModule> Modules { get { return _modules; } }
+		public bool isConfigChanged = false;
 		public WlxModuleList()
 		{
 			LoadConfiguration();
@@ -342,19 +343,20 @@ namespace WinFormsApp1
 			_config = Helper.ReadSectionContent(Constants.ZfileCfgPath+"wincmd.ini", "ListerPlugins");
 			_configDict = Helper.ParseConfig(_config);
 		}
-		public void SaveConfiguration(){
-		List<string> configContent = new();
-		foreach (var pair in _configDict)
+		public void SaveConfiguration()
 		{
-			if(!configContent.Contains(pair.Key))
-				configContent.Append(pair.Key + "=" + pair.Value + Environment.NewLine);
-			else
+			if (!isConfigChanged) return;
+			List<string> configContent = new();
+			foreach (var pair in _configDict)
 			{
-				configContent[configContent.IndexOf(pair.Key)] += $",{pair.Value}";
+				if(!configContent.Contains(pair.Key))
+					configContent.Append(pair.Key + "=" + pair.Value + Environment.NewLine);
+				else
+				{
+					configContent[configContent.IndexOf(pair.Key)] += $",{pair.Value}";
+				}
 			}
-		}
-		Helper.WriteSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ListerPlugins", configContent);
-
+			Helper.WriteSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ListerPlugins", configContent);
 		}
 		public void AddModule(WlxModule module)
 		{
@@ -433,23 +435,29 @@ namespace WinFormsApp1
 		public void LoadModulesFromDirectory(string directory)
 		{
 			if (!Directory.Exists(directory)) return;
-			foreach (var file in Directory.GetFiles(directory, "*.wlx64"))
+
+			//读取pluginpath目录下所有子目录的plugins
+			var subdirs = Directory.GetDirectories(directory, "*", SearchOption.AllDirectories);
+			foreach (var subdir in subdirs)
 			{
-				try
+				foreach (var file in Directory.GetFiles(subdir, "*.wlx*"))
 				{
-					var module = new WlxModule
+					try
 					{
-						FilePath = file,
-						Name = Path.GetFileNameWithoutExtension(file)
-					};
-					if (module.LoadModule())
-					{
-						AddModule(module);
+						var module = new WlxModule
+						{
+							FilePath = file,
+							Name = Path.GetFileNameWithoutExtension(file)
+						};
+						if (module.LoadModule())
+						{
+							AddModule(module);
+						}
 					}
-				}
-				catch
-				{
-					// 加载失败的模块直接跳过
+					catch
+					{
+						// 加载失败的模块直接跳过
+					}
 				}
 			}
 		}

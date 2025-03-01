@@ -124,6 +124,35 @@ namespace WinFormsApp1
 		public int CmtState;
 		public ulong Reserved;
 	}
+	/*
+	 *  typedef struct {
+		   int size;
+			 DWORD PluginInterfaceVersionLow;
+			 DWORD PluginInterfaceVersionHi;
+			 char DefaultIniName[MAX_PATH];
+		   } PackDefaultParamStruct;
+
+		* Definition of callback functions called by the DLL
+		 Ask to swap disk for multi-volume archive *
+			typedef int (__stdcall* tChangeVolProc) (char* ArcName, int Mode);
+		 * Notify that data is processed - used for progress dialog *
+		 typedef int (__stdcall* tProcessDataProc) (char* FileName, int Size);
+	 */
+	// 回调函数定义
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+	public delegate int TChangeVolProc(string arcName, int mode);
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+	public delegate int TProcessDataProc(string arcName, int mode);
+
+	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+	public struct PackDefaultParamStruct
+	{
+		public int size;
+		public uint PluginInterfaceVersionLow;
+		public uint PluginInterfaceVersionHi;
+		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+		public string DefaultIniName;
+	}
 
 	// 委托定义
 	public delegate IntPtr TOpenArchive(ref TOpenArchiveData archiveData);
@@ -131,12 +160,12 @@ namespace WinFormsApp1
 	public delegate int TReadHeader(IntPtr handle, ref THeaderData headerData);
 	public delegate int TReadHeaderExW(IntPtr handle, ref THeaderDataExW headerData);
 	public delegate int TProcessFile(IntPtr handle, int operation, string destPath, string destName);
-	public delegate int TProcessFileW(IntPtr handle, int operation, string destPath, string destName);
+	public delegate int TProcessFileW(IntPtr handle, int operation, [MarshalAs(UnmanagedType.LPWStr)] string destPath, [MarshalAs(UnmanagedType.LPWStr)] string destName);
 	public delegate int TCloseArchive(IntPtr handle);
 	public delegate int TPackFiles(string packedFile, string subPath, string srcPath, string addList, int flags);
-	public delegate int TPackFilesW(string packedFile, string subPath, string srcPath, string addList, int flags);
+	public delegate int TPackFilesW([MarshalAs(UnmanagedType.LPWStr)] string packedFile, [MarshalAs(UnmanagedType.LPWStr)] string subPath, [MarshalAs(UnmanagedType.LPWStr)] string srcPath, [MarshalAs(UnmanagedType.LPWStr)] string addList, int flags);
 	public delegate int TDeleteFiles(string packedFile, string deleteList);
-	public delegate int TDeleteFilesW(string packedFile, string deleteList);
+	public delegate int TDeleteFilesW([MarshalAs(UnmanagedType.LPWStr)] string packedFile, [MarshalAs(UnmanagedType.LPWStr)] string deleteList);
 	public delegate int TGetPackerCaps();
 	public delegate void TConfigurePacker(IntPtr parent, IntPtr dllInstance);
 	public delegate void TSetChangeVolProc(IntPtr handle, IntPtr changeVolProc);
@@ -144,11 +173,11 @@ namespace WinFormsApp1
 	public delegate void TSetProcessDataProc(IntPtr handle, IntPtr processDataProc);
 	public delegate void TSetProcessDataProcW(IntPtr handle, IntPtr processDataProc);
 	public delegate IntPtr TStartMemPack(int options, string fileName);
-	public delegate IntPtr TStartMemPackW(int options, string fileName);
+	public delegate IntPtr TStartMemPackW(int options, [MarshalAs(UnmanagedType.LPWStr)] string fileName);
 	public delegate int TPackToMem(IntPtr memPack, IntPtr bufIn, int inLen, ref int taken, IntPtr bufOut, int outLen, ref int written, ref int seekBy);
 	public delegate int TDoneMemPack(IntPtr memPack);
 	public delegate bool TCanYouHandleThisFile(string fileName);
-	public delegate bool TCanYouHandleThisFileW(string fileName);
+	public delegate bool TCanYouHandleThisFileW([MarshalAs(UnmanagedType.LPWStr)] string fileName);
 	public delegate void TPackSetDefaultParams(IntPtr dps);
 	public delegate void TPkSetCryptCallback(IntPtr cryptProc, int cryptoNr, int flags);
 	public delegate void TPkSetCryptCallbackW(IntPtr cryptProc, int cryptoNr, int flags);
@@ -223,11 +252,15 @@ namespace WinFormsApp1
 				_readHeader = GetDelegate<TReadHeader>("ReadHeader");
 				_processFile = GetDelegate<TProcessFile>("ProcessFile");
 				_closeArchive = GetDelegate<TCloseArchive>("CloseArchive");
+				_setChangeVolProc = GetDelegate<TSetChangeVolProc>("SetChangeVolProc");
+				_setProcessDataProc = GetDelegate<TSetProcessDataProc>("SetProcessDataProc");
 
 				// 加载可选的Unicode函数
 				_openArchiveW = GetDelegate<TOpenArchiveW>("OpenArchiveW");
 				_readHeaderExW = GetDelegate<TReadHeaderExW>("ReadHeaderExW");
 				_processFileW = GetDelegate<TProcessFileW>("ProcessFileW");
+				_setChangeVolProcW = GetDelegate<TSetChangeVolProcW>("SetChangeVolProcW");
+				_setProcessDataProcW = GetDelegate<TSetProcessDataProcW>("SetProcessDataProcW");
 
 				_isUnicode = _openArchiveW != null && _readHeaderExW != null && _processFileW != null;
 
@@ -238,10 +271,6 @@ namespace WinFormsApp1
 				_deleteFilesW = GetDelegate<TDeleteFilesW>("DeleteFilesW");
 				_getPackerCaps = GetDelegate<TGetPackerCaps>("GetPackerCaps");
 				_configurePacker = GetDelegate<TConfigurePacker>("ConfigurePacker");
-				_setChangeVolProc = GetDelegate<TSetChangeVolProc>("SetChangeVolProc");
-				_setChangeVolProcW = GetDelegate<TSetChangeVolProcW>("SetChangeVolProcW");
-				_setProcessDataProc = GetDelegate<TSetProcessDataProc>("SetProcessDataProc");
-				_setProcessDataProcW = GetDelegate<TSetProcessDataProcW>("SetProcessDataProcW");
 				_startMemPack = GetDelegate<TStartMemPack>("StartMemPack");
 				_startMemPackW = GetDelegate<TStartMemPackW>("StartMemPackW");
 				_packToMem = GetDelegate<TPackToMem>("PackToMem");
@@ -457,6 +486,7 @@ namespace WinFormsApp1
 
 		public bool CanYouHandleThisFile(string fileName)
 		{
+			fileName = fileName.ToUpper();
 			if (_isUnicode && _canYouHandleThisFileW != null)
 			{
 				return _canYouHandleThisFileW(fileName);

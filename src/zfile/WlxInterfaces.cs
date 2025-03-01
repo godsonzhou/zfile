@@ -78,7 +78,7 @@ namespace WinFormsApp1
 	public delegate int ListGetPreviewBitmap(string fileToLoad, int width, int height, IntPtr bitmapHandle);
 	public delegate void ListNotificationReceived(IntPtr pluginWin, int message, IntPtr wParam, IntPtr lParam);
 	public delegate int ListGetValue(int field, [MarshalAs(UnmanagedType.LPWStr)] string filePath, int unitIndex, int maxLen, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder value);
-	public delegate int ListGetPreviewBitmapW(string fileToLoad, int width, int height, IntPtr bitmapHandle);
+	public delegate int ListGetPreviewBitmapW([MarshalAs(UnmanagedType.LPWStr)] string fileToLoad, int width, int height, IntPtr bitmapHandle);
 
 	public class WlxModule : IDisposable
 	{

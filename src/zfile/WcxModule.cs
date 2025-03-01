@@ -55,14 +55,55 @@ Unicode支持：
 */
 namespace WinFormsApp1
 {
+	// 常量定义
+	/*
+	 * E_SUCCESS	0	Success
+		E_END_ARCHIVE	10	No more files in archive
+		E_NO_MEMORY	11	Not enough memory
+		E_BAD_DATA	12	Data is bad
+		E_BAD_ARCHIVE	13	CRC error in archive data
+		E_UNKNOWN_FORMAT	14	Archive format unknown
+		E_EOPEN	15	Cannot open existing file
+		E_ECREATE	16	Cannot create file
+		E_ECLOSE	17	Error closing file
+		E_EREAD	18	Error reading from file
+		E_EWRITE	19	Error writing to file
+		E_SMALL_BUF	20	Buffer too small
+		E_EABORTED	21	Function aborted by user
+		E_NO_FILES	22	No files found
+		E_TOO_MANY_FILES	23	Too many files to pack
+		E_NOT_SUPPORTED	24	Function not supported
+	 */
+	public enum WcxResult:int
+	{
+		PK_OK = 0,
+		PK_END_ARCHIVE = 10,
+		PK_NO_MEMORY = 11,
+		PK_BAD_DATA = 12,
+		PK_BAD_ARCHIVE = 13,
+		PK_UNKNOWN_FORMAT = 14,
+		PK_EOPEN = 15,
+		PK_ECREATE = 16,
+		PK_ECLOSE = 17,
+		PK_EREAD = 18,
+		PK_EWRITE = 19,
+		PK_SMALL_BUF = 20,
+		PK_EABORTED = 21,
+		PK_NO_FILES = 22,
+		PK_TOO_MANY_FILES = 23,
+		PK_NOT_SUPPORTED = 24
+	}
+	
 	// 基础结构体定义
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
 	public struct TOpenArchiveData
 	{
-		public IntPtr ArcName;
+		[MarshalAs(UnmanagedType.LPStr)]
+		public string ArcName;
 		public int OpenMode;
 		public int OpenResult;
-		public IntPtr CmtBuf;
+		[MarshalAs(UnmanagedType.LPStr)]
+		public string CmtBuf;
 		public int CmtBufSize;
 		public int CmtSize;
 		public int CmtState;
@@ -71,10 +112,14 @@ namespace WinFormsApp1
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
 	public struct TOpenArchiveDataW
 	{
-		public IntPtr ArcName;
+		[MarshalAs(UnmanagedType.LPWStr)]
+		//public IntPtr ArcName;
+		public string ArcName;
 		public int OpenMode;
 		public int OpenResult;
-		public IntPtr CmtBuf;
+		[MarshalAs(UnmanagedType.LPWStr)]
+		public string CmtBuf;
+		//public StringBuilder CmtBuf;
 		public int CmtBufSize;
 		public int CmtSize;
 		public int CmtState;
@@ -96,7 +141,8 @@ namespace WinFormsApp1
 		public int UnpVer;
 		public int Method;
 		public int FileAttr;
-		public IntPtr CmtBuf;
+		[MarshalAs(UnmanagedType.LPStr)]
+		public string CmtBuf;
 		public int CmtBufSize;
 		public int CmtSize;
 		public int CmtState;
@@ -110,6 +156,12 @@ namespace WinFormsApp1
 		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1024)]
 		public string FileName;
 		public int Flags;
+		/*
+		 *    public uint PackSizeLow;
+            public uint PackSizeHigh;
+            public uint UnpSizeLow;
+            public uint UnpSizeHigh;
+		 */
 		public ulong PackSize;
 		public ulong UnpSize;
 		public int HostOS;
@@ -118,10 +170,12 @@ namespace WinFormsApp1
 		public int UnpVer;
 		public int Method;
 		public int FileAttr;
-		public IntPtr CmtBuf;
+		[MarshalAs(UnmanagedType.LPWStr)]
+		public string CmtBuf;
 		public int CmtBufSize;
 		public int CmtSize;
 		public int CmtState;
+		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 1024)]
 		public ulong Reserved;
 	}
 	/*
@@ -155,7 +209,9 @@ namespace WinFormsApp1
 	}
 
 	// 委托定义
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet=CharSet.Ansi)]
 	public delegate IntPtr TOpenArchive(ref TOpenArchiveData archiveData);
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet=CharSet.Unicode)]
 	public delegate IntPtr TOpenArchiveW(ref TOpenArchiveDataW archiveData);
 	public delegate int TReadHeader(IntPtr handle, ref THeaderData headerData);
 	public delegate int TReadHeaderExW(IntPtr handle, ref THeaderDataExW headerData);
@@ -337,44 +393,64 @@ namespace WinFormsApp1
 			return Marshal.GetDelegateForFunctionPointer(procAddress, typeof(T)) as T;
 		}
 
-		public IntPtr OpenArchive(string archiveName, int openMode)
+		public IntPtr OpenArchive(string archiveName, int openMode, out int openResult )
 		{
+			IntPtr result = IntPtr.Zero;
+			openResult = (int)WcxResult.PK_UNKNOWN_FORMAT;
 			if (_isUnicode && _openArchiveW != null)
 			{
 				var archiveDataW = new TOpenArchiveDataW
 				{
-					ArcName = Marshal.StringToHGlobalUni(archiveName),
+					ArcName = archiveName,//Marshal.StringToHGlobalUni(archiveName),
 					OpenMode = openMode,
-					CmtBuf = IntPtr.Zero,
+					CmtBuf = string.Empty,
 					CmtBufSize = 0
 				};
 
 				try
 				{
-					return _openArchiveW(ref archiveDataW);
+					result =  _openArchiveW(ref archiveDataW);
+					if(result == IntPtr.Zero)
+					{
+						openResult = archiveDataW.OpenResult;
+					}
+					else
+					{
+						openResult = (int)WcxResult.PK_OK;	//success
+					}
+					return result;
 				}
 				finally
 				{
-					Marshal.FreeHGlobal(archiveDataW.ArcName);
+					//Marshal.FreeHGlobal(archiveDataW.ArcName);
 				}
 			}
 			else if (_openArchive != null)
 			{
 				var archiveData = new TOpenArchiveData
 				{
-					ArcName = Marshal.StringToHGlobalAnsi(archiveName),
+					ArcName = archiveName,// Marshal.StringToHGlobalAnsi(archiveName),
 					OpenMode = openMode,
-					CmtBuf = IntPtr.Zero,
+					CmtBuf = string.Empty,
 					CmtBufSize = 0
 				};
 
 				try
 				{
-					return _openArchive(ref archiveData);
+					result = _openArchive(ref archiveData);
+					if(result == IntPtr.Zero)
+					{
+						openResult = archiveData.OpenResult;
+					}
+					else
+					{
+						openResult = (int)WcxResult.PK_OK;  //success
+					}
+					return result;
 				}
 				finally
 				{
-					Marshal.FreeHGlobal(archiveData.ArcName);
+					//Marshal.FreeHGlobal(archiveData.ArcName);
 				}
 			}
 

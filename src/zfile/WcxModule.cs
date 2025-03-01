@@ -124,6 +124,64 @@ namespace WinFormsApp1
 		public int CmtSize;
 		public int CmtState;
 	}
+	
+    public class OpenArchiveData
+    {
+        private readonly IntPtr ptr;
+        private TOpenArchiveData data;
+        private TOpenArchiveDataW dataW;
+        private bool isUnicode;
+
+        #region Properties
+
+        public string ArchiveName { get; private set; }
+        public int Mode { get; private set; }
+        public WcxResult Result { get; set; }
+
+        #endregion Properties
+
+        #region Constructors
+
+        public OpenArchiveData(IntPtr ptr, bool isUnicode)
+        {
+            this.ptr = ptr;
+            this.isUnicode = isUnicode;
+            if (ptr != IntPtr.Zero)
+            {
+                if (isUnicode)
+                {
+                    dataW = (TOpenArchiveDataW)Marshal.PtrToStructure(ptr, typeof(TOpenArchiveDataW));
+                    ArchiveName = dataW.ArcName;
+                    Mode = dataW.OpenMode;
+                }
+                else
+                {
+                    data = (TOpenArchiveData)Marshal.PtrToStructure(ptr, typeof(TOpenArchiveData));
+                    ArchiveName = data.ArcName;
+                    Mode = data.OpenMode;
+                }
+            }
+        }
+
+        #endregion Constructors
+
+        public void Update()
+        {
+            if (ptr != IntPtr.Zero)
+            {
+                if (isUnicode)
+                {
+                    dataW.OpenResult = (int)Result;
+                    Marshal.StructureToPtr(dataW, ptr, false);
+                }
+                else
+                {
+                    data.OpenResult = (int)Result;
+                    Marshal.StructureToPtr(data, ptr, false);
+                }
+            }
+        }
+    }
 
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
 	public struct THeaderData

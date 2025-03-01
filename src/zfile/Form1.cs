@@ -2058,7 +2058,9 @@ namespace WinFormsApp1
 			while (wcxModule.ReadHeader(handle, out headerData))
 			{
 				var item = new ListViewItem(headerData.FileName);
-				item.SubItems.Add(headerData.UnpSize.ToString());
+				// 将 vhigh 左移32位，然后与 vlow 进行按位或运算
+				ulong UnpSize = ((ulong)headerData.UnpSizeHigh << 32) | headerData.UnpSizeLow;
+				item.SubItems.Add(UnpSize.ToString());
 				item.SubItems.Add(DateTime.FromFileTime(headerData.FileTime).ToString());
 				item.SubItems.Add(headerData.Method.ToString());
 				items.Add(item);

@@ -128,10 +128,10 @@ namespace WinFormsApp1
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
 	public struct THeaderData
 	{
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 260)]
-		public byte[] ArcName;
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 260)]
-		public byte[] FileName;
+		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+		public string ArcName;
+		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+		public string FileName;
 		public int Flags;
 		public int PackSize;
 		public int UnpSize;
@@ -156,14 +156,14 @@ namespace WinFormsApp1
 		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1024)]
 		public string FileName;
 		public int Flags;
-		/*
-		 *    public uint PackSizeLow;
-            public uint PackSizeHigh;
-            public uint UnpSizeLow;
-            public uint UnpSizeHigh;
-		 */
-		public ulong PackSize;
-		public ulong UnpSize;
+		
+		public uint PackSizeLow;
+        public uint PackSizeHigh;
+        public uint UnpSizeLow;
+        public uint UnpSizeHigh;
+		 
+		//public ulong PackSize;
+		//public ulong UnpSize;
 		public int HostOS;
 		public int FileCRC;
 		public int FileTime;
@@ -176,7 +176,7 @@ namespace WinFormsApp1
 		public int CmtSize;
 		public int CmtState;
 		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 1024)]
-		public ulong Reserved;
+		public byte[] Reserved;
 	}
 	/*
 	 *  typedef struct {
@@ -471,11 +471,13 @@ namespace WinFormsApp1
 				if (_readHeader(arcHandle, ref ansiHeader) == 0)
 				{
 					// 转换ANSI到Unicode
-					headerData.ArcName = Encoding.Default.GetString(ansiHeader.ArcName).TrimEnd('\0');
-					headerData.FileName = Encoding.Default.GetString(ansiHeader.FileName).TrimEnd('\0');
+					headerData.ArcName = ansiHeader.ArcName;// Encoding.Default.GetString(ansiHeader.ArcName).TrimEnd('\0');
+					headerData.FileName = ansiHeader.FileName;// Encoding.Default.GetString(ansiHeader.FileName).TrimEnd('\0');
 					headerData.Flags = ansiHeader.Flags;
-					headerData.PackSize = (ulong)ansiHeader.PackSize;
-					headerData.UnpSize = (ulong)ansiHeader.UnpSize;
+					headerData.PackSizeHigh = 0;
+					headerData.PackSizeLow = (uint)ansiHeader.PackSize;
+					headerData.UnpSizeHigh = 0;
+					headerData.UnpSizeLow = (uint)ansiHeader.UnpSize;
 					headerData.HostOS = ansiHeader.HostOS;
 					headerData.FileCRC = ansiHeader.FileCRC;
 					headerData.FileTime = ansiHeader.FileTime;

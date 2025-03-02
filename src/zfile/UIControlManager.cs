@@ -916,10 +916,17 @@ namespace WinFormsApp1
 
 		public void ToolbarButton_Click(object? sender, EventArgs e)
 		{
-			if (sender is ToolStripItem item && item.Tag is string cmd)
+			if (sender is ToolStripItem item)
 			{
-				Debug.Print($"执行命令: {cmd} <信息");
-				form.cmdProcessor.ExecCmdByName(cmd);
+				if (item.Tag is string cmd)
+				{
+					Debug.Print($"执行命令: {cmd} <信息");
+					form.cmdProcessor.ExecCmdByName(cmd);
+				}
+				else if (item.Tag is MenuInfo mi){
+					form.cmdProcessor.ExecCmdByMenuInfo(mi);
+					Debug.Print($"执行命令: {mi.Cmd} <信息");
+				}
 			}
 		}
 		public void InitializeDropdownMenu(ToolStripDropDownButton dropdownButton, string dropdownFilePath)
@@ -971,7 +978,7 @@ namespace WinFormsApp1
 				ToolStripMenuItem menuItem = new ToolStripMenuItem
 				{
 					Text = item.Menu,
-					Tag = item.Cmd,
+					Tag = item,
 					Image = IconManager.LoadIcon(item.Button)
 				};
 				menuItem.Click += ToolbarButton_Click;

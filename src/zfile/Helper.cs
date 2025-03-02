@@ -20,20 +20,39 @@ namespace WinFormsApp1
 	// 定义MenuInfo类来存储每个按钮的信息
 	public class MenuInfo
 	{
-		public string Button { get; set; }
-		public string Cmd { get; set; }
-		public string Param { get; set; }
-		public string Path { get; set; }
+		public string Button { get; set; } = string.Empty;
+		public string Cmd { get; set; } = string.Empty;
+		public string Param { get; set; } = string.Empty;
+		public string Path { get; set; } = string.Empty;
 		public int Iconic { get; set; }
-		public string Menu { get; set; }
-	}
+		public string Menu { get; set; } = string.Empty;
+		public MenuInfo()
+		{
 
-	
-	
+		}
+		public MenuInfo(string button, string cmd, string param, string path, int iconic, string menu)
+		{
+			Button = button;
+			Cmd = cmd;
+			Param = param;
+			Path = path;
+			Iconic = iconic;
+			Menu = menu;
+		}
+	}
 	
 	internal static class Helper
 	{
-
+		private static string GetPathByEnv(string path)
+		{
+			//如果路径中包含环境变量，替换为实际路径
+			if (path.Contains("%"))
+			{
+				path = path.Replace("%COMMANDER_PATH%", Constants.ZfileCfgPath, StringComparison.OrdinalIgnoreCase);
+				path = Environment.ExpandEnvironmentVariables(path);
+			}
+			return path;
+		}
 		public static List<MenuInfo> ReadButtonbarFile(string filePath)
 		{
 			List<MenuInfo> menuInfos = new List<MenuInfo>();
@@ -60,7 +79,7 @@ namespace WinFormsApp1
 					if (buttonMatch.Success)
 					{
 						int buttonNumber = int.Parse(buttonMatch.Groups[1].Value);
-						string buttonValue = buttonMatch.Groups[2].Value?.Replace("%COMMANDER_PATH%", Constants.ZfileCfgPath);
+						string buttonValue = GetPathByEnv(buttonMatch.Groups[2].Value);
 
 						if (!buttonInfoMap.ContainsKey(buttonNumber))
 						{
@@ -75,7 +94,7 @@ namespace WinFormsApp1
 					if (cmdMatch.Success)
 					{
 						int buttonNumber = int.Parse(cmdMatch.Groups[1].Value);
-						string cmdValue = cmdMatch.Groups[2].Value?.Replace("%COMMANDER_PATH%", Constants.ZfileCfgPath);
+						string cmdValue = GetPathByEnv(cmdMatch.Groups[2].Value);
 
 						if (!buttonInfoMap.ContainsKey(buttonNumber))
 						{
@@ -105,7 +124,7 @@ namespace WinFormsApp1
 					if (pathMatch.Success)
 					{
 						int buttonNumber = int.Parse(pathMatch.Groups[1].Value);
-						string pathValue = pathMatch.Groups[2].Value?.Replace("%COMMANDER_PATH%", Constants.ZfileCfgPath);
+						string pathValue = GetPathByEnv(pathMatch.Groups[2].Value);
 
 						if (!buttonInfoMap.ContainsKey(buttonNumber))
 						{
@@ -149,9 +168,17 @@ namespace WinFormsApp1
 				// 将字典中的信息添加到列表中
 				foreach (var kvp in buttonInfoMap)
 				{
-					if (kvp.Value.Cmd == null || kvp.Value.Cmd.EndsWith("default.bar", StringComparison.OrdinalIgnoreCase))
+					var mi = kvp.Value;
+					if (mi.Cmd.Equals(string.Empty) || mi.Cmd.EndsWith("default.bar", StringComparison.OrdinalIgnoreCase))
 						continue;
-					menuInfos.Add(kvp.Value);
+					
+					if (mi.Path.Equals(string.Empty))
+						mi.Path = Path.GetDirectoryName(mi.Cmd) ?? string.Empty;
+					if (mi.Path.Equals(string.Empty))
+						mi.Path = Path.GetDirectoryName(mi.Button) ?? string.Empty;
+					if(mi.Path.Equals(string.Empty))
+						Debug.Print($"{mi.Button} for {mi.Cmd} > path is empty!");
+					menuInfos.Add(mi);
 				}
 			}
 			catch (Exception ex)

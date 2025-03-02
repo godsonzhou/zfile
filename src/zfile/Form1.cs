@@ -576,7 +576,7 @@ namespace WinFormsApp1
 
         public void myShellExe(string path = "c:\\windows\\system32")
         {
-            API.ShellExecute(IntPtr.Zero, "open", "cmd.exe", "", path, (int)SW.SHOWNORMAL);
+            API.ShellExecute(IntPtr.Zero, "open", path, "", path, (int)SW.SHOWNORMAL);
             //Window wnd = Window.GetWindow(this); //获取当前窗口
             //var wih = new WindowInteropHelper(wnd); //该类支持获取hWnd
             //IntPtr hWnd = wih.Handle;    //获取窗口句柄
@@ -1964,17 +1964,28 @@ namespace WinFormsApp1
             Application.Exit();
         }
 
-        public void OpenCommandPrompt()
+        public void OpenCommandPrompt(string cmdstring = "", string cmdMode = "/k", bool isRunas = true)
         {
             try
             {
-                Process.Start("cmd.exe");
+                //Process.Start("cmd.exe");
                 //w32.ShellExecute(IntPtr.Zero, "open", "notepad.exe", "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
                 //WinExec(path, 1);
                 //System.Diagnostics.Process.Start(path);
                 //System.Diagnostics.Process.Start("explorer.exe", path);
-                //System.Diagnostics.Process.Start("cmd.exe", "/c start explorer.exe /select," + path);
-            }
+                //Process.Start("cmd.exe", "/c start explorer.exe /select,");
+				var processInfo = new ProcessStartInfo("cmd.exe")
+				{
+					Arguments = $"{cmdMode} {cmdstring}",
+					RedirectStandardInput = true,
+					RedirectStandardOutput = true,
+					UseShellExecute = false,
+					CreateNoWindow = true,
+					Verb = isRunas ? "runas" : string.Empty
+				};
+				//Process.Start("cmd.exe", $"{cmdMode} {cmdstring}");
+				Process.Start(processInfo);
+			}
             catch (Exception ex)
             {
                 MessageBox.Show($"无法打开命令提示符: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);

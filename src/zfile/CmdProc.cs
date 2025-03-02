@@ -254,8 +254,12 @@ namespace CmdProcessor
         {
             return cmdTable.GetByCmdId(cmdId);
         }
+		public void ExecCmdByMenuInfo(MenuInfo mi)
+		{
+			ExecCmdByName(mi.Cmd, mi.Path);
+		}
         // 处理由菜单栏和工具栏发起的动作
-        public void ExecCmdByName(string cmdName)
+        public void ExecCmdByName(string cmdName, string workingdir = "")
         {
             if (cmdName.StartsWith("cm_") || cmdName.StartsWith("em_"))
             {
@@ -297,7 +301,12 @@ namespace CmdProcessor
 							UseShellExecute = true,
 							Verb = "runas" // 请求管理员权限
 						};
-						Process.Start(startInfo);
+						if (workingdir != "")
+							startInfo.WorkingDirectory = workingdir;
+						if (cmdName.StartsWith("control.exe", StringComparison.OrdinalIgnoreCase))
+							owner.OpenCommandPrompt(cmdName);
+						else
+							Process.Start(startInfo);
 					}
 					catch (Exception ex)
 					{

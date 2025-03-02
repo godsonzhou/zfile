@@ -112,9 +112,9 @@ namespace WinFormsApp1
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
 	public struct TOpenArchiveDataW
 	{
-		//[MarshalAs(UnmanagedType.LPWStr)]
-		public IntPtr ArcName;
-		//public string ArcName;
+		[MarshalAs(UnmanagedType.LPWStr)]
+		//public IntPtr ArcName;
+		public string ArcName;
 		public int OpenMode;
 		public int OpenResult;
 		[MarshalAs(UnmanagedType.LPWStr)]
@@ -151,7 +151,7 @@ namespace WinFormsApp1
                 if (isUnicode)
                 {
                     dataW = (TOpenArchiveDataW)Marshal.PtrToStructure(ptr, typeof(TOpenArchiveDataW));
-                    ArchiveName = Marshal.PtrToStringUni(dataW.ArcName);
+					ArchiveName = dataW.ArcName;// Marshal.PtrToStringUni(dataW.ArcName);
                     Mode = dataW.OpenMode;
                 }
                 else
@@ -352,7 +352,42 @@ namespace WinFormsApp1
 			Name = name;
 			_modulePath = path;
 		}
+		~WcxModule()
+		{
+			UnloadModule();
+		}
+		// 设置进度回调示例
+		private static int ProcessDataCallback(string fileName, int size)
+		{
+			// 更新进度显示
+			return 0; // 返回0继续操作
+		}
 
+		public void SetCallbacks(IntPtr handle)
+		{
+			var procDelegate = new TProcessDataProc(ProcessDataCallback);
+			IntPtr pProc = Marshal.GetFunctionPointerForDelegate(procDelegate);
+			SetProcessDataProc(handle, pProc);
+
+			// 需要保持委托引用防止被GC回收
+			GC.KeepAlive(procDelegate);
+		}
+		public void SetDefaultParam()
+		{
+			if(_packSetDefaultParams == null)
+				return;
+			// 在加载插件后初始化默认参数
+			var dps = new PackDefaultParamStruct
+			{
+				size = Marshal.SizeOf(typeof(PackDefaultParamStruct)),
+				DefaultIniName = Path.Combine(Path.GetDirectoryName(_modulePath), "wcx.ini")
+			};
+
+			IntPtr pDps = Marshal.AllocHGlobal(dps.size);
+			Marshal.StructureToPtr(dps, pDps, false);
+			_packSetDefaultParams?.Invoke(pDps);
+			Marshal.FreeHGlobal(pDps);
+		}
 		public bool LoadModule()
 		{
 			try
@@ -392,6 +427,7 @@ namespace WinFormsApp1
 				_canYouHandleThisFile = GetDelegate<TCanYouHandleThisFile>("CanYouHandleThisFile");
 				_canYouHandleThisFileW = GetDelegate<TCanYouHandleThisFileW>("CanYouHandleThisFileW");
 				_packSetDefaultParams = GetDelegate<TPackSetDefaultParams>("PackSetDefaultParams");
+				SetDefaultParam();
 				_pkSetCryptCallback = GetDelegate<TPkSetCryptCallback>("PkSetCryptCallback");
 				_pkSetCryptCallbackW = GetDelegate<TPkSetCryptCallbackW>("PkSetCryptCallbackW");
 				_getBackgroundFlags = GetDelegate<TGetBackgroundFlags>("GetBackgroundFlags");
@@ -459,7 +495,7 @@ namespace WinFormsApp1
 			{
 				var archiveDataW = new TOpenArchiveDataW
 				{
-					ArcName = Marshal.StringToHGlobalUni(archiveName),
+					ArcName = archiveName, //Marshal.StringToHGlobalUni(archiveName),
 					OpenMode = openMode,
 					CmtBuf = string.Empty,
 					CmtBufSize = 0
@@ -469,13 +505,9 @@ namespace WinFormsApp1
 				{
 					result =  _openArchiveW(ref archiveDataW);
 					if(result == IntPtr.Zero)
-					{
 						openResult = archiveDataW.OpenResult;
-					}
 					else
-					{
 						openResult = (int)WcxResult.PK_OK;	//success
-					}
 					return result;
 				}
 				finally
@@ -497,13 +529,9 @@ namespace WinFormsApp1
 				{
 					result = _openArchive(ref archiveData);
 					if(result == IntPtr.Zero)
-					{
 						openResult = archiveData.OpenResult;
-					}
 					else
-					{
 						openResult = (int)WcxResult.PK_OK;  //success
-					}
 					return result;
 				}
 				finally

@@ -340,6 +340,7 @@ namespace WinFormsApp1
 			LoadConfiguration();
 		}
 		public void LoadConfiguration(){
+			_modules.Clear();
 			_config = Helper.ReadSectionContent(Constants.ZfileCfgPath+"wincmd.ini", "ListerPlugins");
 			_configDict = Helper.ParseConfig(_config);
 		}
@@ -357,6 +358,8 @@ namespace WinFormsApp1
 				}
 			}
 			Helper.WriteSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ListerPlugins", configContent);
+			LoadConfiguration();
+			isConfigChanged = false;
 		}
 		public void AddModule(WlxModule module)
 		{

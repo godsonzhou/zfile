@@ -53,8 +53,8 @@ namespace WinFormsApp1
 	// 添加插件映射对话框
 	public class AddPluginMappingForm : Form
 	{
-		private ComboBox pluginCombo;
-		private TextBox extensionBox;
+		public ComboBox pluginCombo;
+		public TextBox extensionBox;
 		public string SelectedPlugin => pluginCombo.SelectedItem?.ToString() ?? "";
 		public string Extension => extensionBox.Text;
 		// WLX插件映射对话框
@@ -292,6 +292,7 @@ namespace WinFormsApp1
 				AllowUserToDeleteRows = true,
 				AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
 				SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+				EditMode = DataGridViewEditMode.EditProgrammatically,
 				MultiSelect = false
 			};
 
@@ -308,12 +309,14 @@ namespace WinFormsApp1
 				Padding = new Padding(5)
 			};
 
+			Button btnEdit = new Button { Text = "编辑", Width = 80 };
 			Button btnAdd = new Button { Text = "添加", Width = 80 };
 			Button btnDelete = new Button { Text = "删除", Width = 80 };
 			Button btnMoveUp = new Button { Text = "上移", Width = 80 };
 			Button btnMoveDown = new Button { Text = "下移", Width = 80 };
 
-			buttonPanel.Controls.AddRange(new Control[] { btnAdd, btnDelete, btnMoveUp, btnMoveDown });
+
+			buttonPanel.Controls.AddRange(new Control[] { btnEdit, btnAdd, btnDelete, btnMoveUp, btnMoveDown });
 
 			// 加载现有配置
 			foreach (var ext in wcxModuleList._exts)
@@ -322,6 +325,7 @@ namespace WinFormsApp1
 			}
 
 			// 添加事件处理
+			btnEdit.Click += (s, e) => EditWcxMapping(grid);
 			btnAdd.Click += (s, e) => AddWcxMapping(grid);
 			btnDelete.Click += (s, e) => DeleteWcxMapping(grid);
 			btnMoveUp.Click += (s, e) => MoveWcxMapping(grid, -1);
@@ -330,7 +334,6 @@ namespace WinFormsApp1
 			tabPage.Controls.Add(grid);
 			tabPage.Controls.Add(buttonPanel);
 		}
-
 		private void AddWcxMapping(DataGridView grid)
 		{
 			using var addForm = new AddPluginMappingForm(wcxModuleList);
@@ -348,6 +351,25 @@ namespace WinFormsApp1
 				grid.Rows.RemoveAt(grid.SelectedRows[0].Index);
 			}
 			UpdateWcxConfiguration(grid);
+		}
+		private void EditWcxMapping(DataGridView grid)
+		{
+			if (grid.SelectedRows.Count == 0) return;
+			var selectedRow = grid.SelectedRows[0];
+			string pluginName = selectedRow.Cells["PluginName"].Value?.ToString() ?? "";
+			string extension = selectedRow.Cells["Extension"].Value?.ToString() ?? "";
+			using var editForm = new AddPluginMappingForm(wcxModuleList)
+			{
+				extensionBox = { Text = extension }
+			};
+			editForm.pluginCombo.SelectedItem = pluginName;
+			if (editForm.ShowDialog() == DialogResult.OK)
+			{
+				selectedRow.Cells["PluginName"].Value = editForm.SelectedPlugin;
+				selectedRow.Cells["Extension"].Value = editForm.Extension;
+			}
+			UpdateWcxConfiguration(grid);
+
 		}
 
 		private void MoveWcxMapping(DataGridView grid, int offset)

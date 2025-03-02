@@ -696,16 +696,20 @@ namespace WinFormsApp1
 				{
 					try
 					{
-						var module = new WcxModule
+						var name = Path.GetFileNameWithoutExtension(file);
+						var module = FindModuleByName(name);
+						if (module == null)
 						{
-							FilePath = file,
-							Name = Path.GetFileNameWithoutExtension(file)
-						};
-
-						if (module.LoadModule())
-						{
-							if (AddModule(module))
-								_exts[module.Name.ToLower()] = module;//TODO BUGFIX: HOW TO GET THE DETECTSTRING FOR WCX MODULE FILE
+							module = new WcxModule
+							{
+								FilePath = file,
+								Name = name
+							};
+							if (module.LoadModule())
+							{
+								if (AddModule(module))
+									_exts[module.Name.ToLower()] = module;//TODO BUGFIX: HOW TO GET THE DETECTSTRING FOR WCX MODULE FILE
+							}
 						}
 					}
 					catch
@@ -718,30 +722,24 @@ namespace WinFormsApp1
 		public void SaveConfiguration()
 		{
 			if (!isConfigChanged) return;
-			
 			Helper.WriteSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "PackerPlugins", _cfg);
+			LoadConfiguration();
+			isConfigChanged = false;
 		}
 		public void LoadConfiguration()
 		{
-			/*
-		 * [PackerPlugins]
+			/* [PackerPlugins]
 			lst=21,%COMMANDER_PATH%\Plugins\Wcx\DiskDir\DiskDir.wcx64
 			ico=327,%COMMANDER_PATH%\Plugins\Wlx\Imagine\Imagine.wcx64
 			gif=327,%COMMANDER_PATH%\Plugins\Wlx\Imagine\Imagine.wcx64
-			ani=327,%COMMANDER_PATH%\Plugins\Wlx\Imagine\Imagine.wcx64
-			bin=192,%COMMANDER_PATH%\Plugins\Wcx\ISO\Iso.wcx64
-			c2d=192,%COMMANDER_PATH%\Plugins\Wcx\ISO\Iso.wcx64
-			ima=192,%COMMANDER_PATH%\Plugins\Wcx\ISO\Iso.wcx64
-			img=192,%COMMANDER_PATH%\Plugins\Wcx\ISO\Iso.wcx64
-			iso=192,%COMMANDER_PATH%\Plugins\Wcx\ISO\Iso.wcx64
-			nrg=192,%COMMANDER_PATH%\Plugins\Wcx\ISO\Iso.wcx64
-			svcd=192,%COMMANDER_PATH%\Plugins\Wcx\ISO\Iso.wcx64
 			vcd=192,%COMMANDER_PATH%\Plugins\Wcx\ISO\Iso.wcx64
 			xcd=192,%COMMANDER_PATH%\Plugins\Wcx\ISO\Iso.wcx64
 			7z=735,%COMMANDER_PATH%\Plugins\Wcx\Total7Zip\Total7Zip.wcx64
 			7zip=735,%COMMANDER_PATH%\Plugins\Wcx\Total7Zip\Total7Zip.wcx64
 			rsz=21,%COMMANDER_PATH%\Plugins\Wcx\TotalRSZ\TotalRSZ.wcx64
 		 */
+			_modules.Clear();
+			_exts.Clear();
 			_cfg = Helper.ReadSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "PackerPlugins");
 			foreach (var line in _cfg)
 			{

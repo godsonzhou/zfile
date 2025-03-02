@@ -241,7 +241,7 @@ namespace WinFormsApp1
 					sectionEndIndex = fileContent.Length;
 				}
 				// 将目标节的内容替换为新内容
-				fileContent = fileContent.Remove(sectionStartIndex + sectionContent.Length + 1, sectionEndIndex - sectionStartIndex - sectionContent.Length);
+				fileContent = fileContent.Remove(sectionStartIndex + sectionContent.Length + 1, sectionEndIndex - sectionStartIndex - sectionContent.Length - 1);
 				fileContent = fileContent.Insert(sectionStartIndex + sectionContent.Length + 1, "\r\n"+string.Join("\r\n", content)) + "\r\n";
 				// 写入文件
 				File.WriteAllText(filePath, fileContent, Encoding.GetEncoding("GB2312"));

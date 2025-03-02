@@ -222,7 +222,7 @@ namespace WinFormsApp1
 		{
 			return GetIconKey((ShellItem)node.Tag);   //treenode icon key is always use small icon, so append 's' to the pure key
 		}
-
+	
 		public static Image? LoadIcon(string iconPath)
 		{
 			if (string.IsNullOrEmpty(iconPath))

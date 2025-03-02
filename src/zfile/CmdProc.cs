@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 using WinFormsApp1;
 using zfile;
@@ -256,7 +257,7 @@ namespace CmdProcessor
         // 处理由菜单栏和工具栏发起的动作
         public void ExecCmdByName(string cmdName)
         {
-            if (cmdName.StartsWith("cm_"))
+            if (cmdName.StartsWith("cm_") || cmdName.StartsWith("em_"))
             {
                 var cmdItem = cmdTable.GetByCmdName(cmdName);
                 if (cmdItem != null)
@@ -264,11 +265,9 @@ namespace CmdProcessor
                     Console.WriteLine($"Processing command: {cmdItem}");
                     // 在这里添加处理命令的逻辑
                     ExecCmdByID(cmdItem.Value.CmdId);
+					return;
                 }
-                else
-                {
-                    throw new KeyNotFoundException("Command name does not exist.");
-                }
+                Debug.Print($"Command name {cmdName} does not exist.");
             }
             else
             {
@@ -277,6 +276,19 @@ namespace CmdProcessor
                 {
                     ExecCmdByID(cmdId);
                 }
+				else
+				{
+					//可能是可执行文件名称,比如regedit.exe, 直接运行
+					if (Path.GetExtension(cmdName).Equals(".exe", StringComparison.OrdinalIgnoreCase))
+					{
+						Process.Start(cmdName);
+					}
+					else
+					{
+						// 使用系统默认关联程序打开文件
+						Process.Start(new ProcessStartInfo(cmdName) { UseShellExecute = true });
+					}
+				}
             }
         }
         public void ExecCmdByID(int cmdId)

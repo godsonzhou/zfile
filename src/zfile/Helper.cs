@@ -16,8 +16,151 @@ namespace WinFormsApp1
 		public const int CacheTimeout = 500; // 缓存超时时间(毫秒)
 		public static readonly string[] TextFileExtensions = { ".txt", ".cs", ".html", ".htm", ".xml", ".json", ".css", ".js", ".md" };
 	}
+
+	// 定义MenuInfo类来存储每个按钮的信息
+	public class MenuInfo
+	{
+		public string Button { get; set; }
+		public string Cmd { get; set; }
+		public string Param { get; set; }
+		public string Path { get; set; }
+		public int Iconic { get; set; }
+		public string Menu { get; set; }
+	}
+
+	
+	
+	
 	internal static class Helper
 	{
+
+		public static List<MenuInfo> ReadButtonbarFile(string filePath)
+		{
+			List<MenuInfo> menuInfos = new List<MenuInfo>();
+
+			try
+			{
+				// 读取文件的所有行
+				string[] lines = File.ReadAllLines(filePath);
+
+				// 用于匹配按钮信息的正则表达式
+				Regex buttonRegex = new Regex(@"button(\d+)=(.*)");
+				Regex cmdRegex = new Regex(@"cmd(\d+)=(.*)");
+				Regex paramRegex = new Regex(@"param(\d+)=(.*)");
+				Regex pathRegex = new Regex(@"path(\d+)=(.*)");
+				Regex iconicRegex = new Regex(@"iconic(\d+)=(\d+)");
+				Regex menuRegex = new Regex(@"menu(\d+)=(.*)");
+
+				// 用于存储每个按钮的信息
+				Dictionary<int, MenuInfo> buttonInfoMap = new Dictionary<int, MenuInfo>();
+
+				foreach (string line in lines)
+				{
+					Match buttonMatch = buttonRegex.Match(line);
+					if (buttonMatch.Success)
+					{
+						int buttonNumber = int.Parse(buttonMatch.Groups[1].Value);
+						string buttonValue = buttonMatch.Groups[2].Value?.Replace("%COMMANDER_PATH%", Constants.ZfileCfgPath);
+
+						if (!buttonInfoMap.ContainsKey(buttonNumber))
+						{
+							buttonInfoMap[buttonNumber] = new MenuInfo();
+						}
+
+						buttonInfoMap[buttonNumber].Button = buttonValue;
+						continue;
+					}
+
+					Match cmdMatch = cmdRegex.Match(line);
+					if (cmdMatch.Success)
+					{
+						int buttonNumber = int.Parse(cmdMatch.Groups[1].Value);
+						string cmdValue = cmdMatch.Groups[2].Value?.Replace("%COMMANDER_PATH%", Constants.ZfileCfgPath);
+
+						if (!buttonInfoMap.ContainsKey(buttonNumber))
+						{
+							buttonInfoMap[buttonNumber] = new MenuInfo();
+						}
+
+						buttonInfoMap[buttonNumber].Cmd = cmdValue;
+						continue;
+					}
+
+					Match paramMatch = paramRegex.Match(line);
+					if (paramMatch.Success)
+					{
+						int buttonNumber = int.Parse(paramMatch.Groups[1].Value);
+						string paramValue = paramMatch.Groups[2].Value;
+
+						if (!buttonInfoMap.ContainsKey(buttonNumber))
+						{
+							buttonInfoMap[buttonNumber] = new MenuInfo();
+						}
+
+						buttonInfoMap[buttonNumber].Param = paramValue;
+						continue;
+					}
+
+					Match pathMatch = pathRegex.Match(line);
+					if (pathMatch.Success)
+					{
+						int buttonNumber = int.Parse(pathMatch.Groups[1].Value);
+						string pathValue = pathMatch.Groups[2].Value?.Replace("%COMMANDER_PATH%", Constants.ZfileCfgPath);
+
+						if (!buttonInfoMap.ContainsKey(buttonNumber))
+						{
+							buttonInfoMap[buttonNumber] = new MenuInfo();
+						}
+
+						buttonInfoMap[buttonNumber].Path = pathValue;
+						continue;
+					}
+
+					Match iconicMatch = iconicRegex.Match(line);
+					if (iconicMatch.Success)
+					{
+						int buttonNumber = int.Parse(iconicMatch.Groups[1].Value);
+						int iconicValue = int.Parse(iconicMatch.Groups[2].Value);
+
+						if (!buttonInfoMap.ContainsKey(buttonNumber))
+						{
+							buttonInfoMap[buttonNumber] = new MenuInfo();
+						}
+
+						buttonInfoMap[buttonNumber].Iconic = iconicValue;
+						continue;
+					}
+
+					Match menuMatch = menuRegex.Match(line);
+					if (menuMatch.Success)
+					{
+						int buttonNumber = int.Parse(menuMatch.Groups[1].Value);
+						string menuValue = menuMatch.Groups[2].Value;
+
+						if (!buttonInfoMap.ContainsKey(buttonNumber))
+						{
+							buttonInfoMap[buttonNumber] = new MenuInfo();
+						}
+
+						buttonInfoMap[buttonNumber].Menu = menuValue;
+					}
+				}
+
+				// 将字典中的信息添加到列表中
+				foreach (var kvp in buttonInfoMap)
+				{
+					if (kvp.Value.Cmd == null || kvp.Value.Cmd.EndsWith("default.bar", StringComparison.OrdinalIgnoreCase))
+						continue;
+					menuInfos.Add(kvp.Value);
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"读取文件时发生错误: {ex.Message}");
+			}
+
+			return menuInfos;
+		}
 		public static string ConvertKeyToString(Keys k)
 		{
 			string str = k.ToString();

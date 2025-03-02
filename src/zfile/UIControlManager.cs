@@ -929,41 +929,55 @@ namespace WinFormsApp1
 			{
 				return;
 			}
-			dropdownFilePath = dropdownFilePath.ToUpper().Replace("%COMMANDER_PATH%", commanderPath + "\\..\\..\\..\\..\\config");
+			dropdownFilePath = dropdownFilePath.ToUpper().Replace("%COMMANDER_PATH%", Constants.ZfileCfgPath );//commanderPath + "\\..\\..\\..\\..\\config"
 			if (!File.Exists(dropdownFilePath))
 			{
 				MessageBox.Show("下拉菜单配置文件不存在" + dropdownFilePath, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
 			}
 
-			try
-			{
-				using (StreamReader reader = new StreamReader(dropdownFilePath, Encoding.GetEncoding("GB2312")))
-				{
-					string? line;
-					while ((line = reader.ReadLine()) != null)
-					{
-						line = line.Trim();
-						if (line.StartsWith("button"))
-						{
-							string menuText = reader.ReadLine()?.Trim() ?? string.Empty;
-							string cmd = reader.ReadLine()?.Trim() ?? string.Empty;
+			//try
+			//{
+			//	using (StreamReader reader = new StreamReader(dropdownFilePath, Encoding.GetEncoding("GB2312")))
+			//	{
+			//		string? line;
+			//		while ((line = reader.ReadLine()) != null)
+			//		{
+			//			line = line.Trim();
+			//			if (line.StartsWith("button"))
+			//			{
+			//				string menuText = reader.ReadLine()?.Trim() ?? string.Empty;
+			//				string cmd = reader.ReadLine()?.Trim() ?? string.Empty;
 
-							ToolStripMenuItem menuItem = new ToolStripMenuItem
-							{
-								Text = menuText,
-								Tag = cmd
-							};
-							menuItem.Click += ToolbarButton_Click;
-							dropdownButton.DropDownItems.Add(menuItem);
-						}
-					}
-				}
-			}
-			catch (Exception ex)
+			//				ToolStripMenuItem menuItem = new ToolStripMenuItem
+			//				{
+			//					Text = menuText,
+
+			//					Tag = cmd
+			//				};
+			//				menuItem.Click += ToolbarButton_Click;
+			//				dropdownButton.DropDownItems.Add(menuItem);
+			//			}
+			//		}
+			//	}
+			//}
+			//catch (Exception ex)
+			//{
+			//	MessageBox.Show($"加载下拉菜单失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			//}
+			var menulist = Helper.ReadButtonbarFile(dropdownFilePath);
+			foreach (var item in menulist)
 			{
-				MessageBox.Show($"加载下拉菜单失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				ToolStripMenuItem menuItem = new ToolStripMenuItem
+				{
+					Text = item.Menu,
+					Tag = item.Cmd,
+					Image = IconManager.LoadIcon(item.Button)
+				};
+				menuItem.Click += ToolbarButton_Click;
+				dropdownButton.DropDownItems.Add(menuItem);
 			}
+
 		}
 		public void InitializeDynamicToolbar()
 		{
@@ -972,7 +986,7 @@ namespace WinFormsApp1
 		}
 		public void InitializeDynamicMenu()
 		{
-			string menuFilePath = "C:\\Users\\zhouy\\source\\repos\\WinFormsApp1\\src\\config\\WCMD_CHN.MNU";
+			string menuFilePath = Constants.ZfileCfgPath+"WCMD_CHN.MNU";
 			if (!File.Exists(menuFilePath))
 			{
 				MessageBox.Show("菜单文件不存在" + menuFilePath, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);

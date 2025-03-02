@@ -112,9 +112,9 @@ namespace WinFormsApp1
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
 	public struct TOpenArchiveDataW
 	{
-		[MarshalAs(UnmanagedType.LPWStr)]
-		//public IntPtr ArcName;
-		public string ArcName;
+		//[MarshalAs(UnmanagedType.LPWStr)]
+		public IntPtr ArcName;
+		//public string ArcName;
 		public int OpenMode;
 		public int OpenResult;
 		[MarshalAs(UnmanagedType.LPWStr)]
@@ -151,7 +151,7 @@ namespace WinFormsApp1
                 if (isUnicode)
                 {
                     dataW = (TOpenArchiveDataW)Marshal.PtrToStructure(ptr, typeof(TOpenArchiveDataW));
-                    ArchiveName = dataW.ArcName;
+                    ArchiveName = Marshal.PtrToStringUni(dataW.ArcName);
                     Mode = dataW.OpenMode;
                 }
                 else
@@ -459,7 +459,7 @@ namespace WinFormsApp1
 			{
 				var archiveDataW = new TOpenArchiveDataW
 				{
-					ArcName = archiveName,//Marshal.StringToHGlobalUni(archiveName),
+					ArcName = Marshal.StringToHGlobalUni(archiveName),
 					OpenMode = openMode,
 					CmtBuf = string.Empty,
 					CmtBufSize = 0

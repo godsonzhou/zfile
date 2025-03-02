@@ -279,14 +279,29 @@ namespace CmdProcessor
 				else
 				{
 					//可能是可执行文件名称,比如regedit.exe, 直接运行
-					if (Path.GetExtension(cmdName).Equals(".exe", StringComparison.OrdinalIgnoreCase))
+					//if (Path.GetExtension(cmdName).Equals(".exe", StringComparison.OrdinalIgnoreCase))
+					//{
+					//	Process.Start(cmdName);//insufficient permission, bugfix
+					//}
+					//else
+					//{
+					//	// 使用系统默认关联程序打开文件
+					//	Process.Start(new ProcessStartInfo(cmdName) { UseShellExecute = true });
+					//}
+					try
 					{
-						Process.Start(cmdName);
+						// 使用 ProcessStartInfo 设置启动进程的详细信息
+						var startInfo = new ProcessStartInfo
+						{
+							FileName = cmdName,
+							UseShellExecute = true,
+							Verb = "runas" // 请求管理员权限
+						};
+						Process.Start(startInfo);
 					}
-					else
+					catch (Exception ex)
 					{
-						// 使用系统默认关联程序打开文件
-						Process.Start(new ProcessStartInfo(cmdName) { UseShellExecute = true });
+						MessageBox.Show($"无法启动进程: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
 					}
 				}
             }

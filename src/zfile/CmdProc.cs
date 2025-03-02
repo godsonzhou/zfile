@@ -261,8 +261,8 @@ namespace CmdProcessor
         // 处理由菜单栏和工具栏发起的动作
         public void ExecCmdByName(string cmdName, string workingdir = "")
         {
-            if (cmdName.StartsWith("cm_") || cmdName.StartsWith("em_"))
-            {
+            if (cmdName.StartsWith("cm_") || cmdName.StartsWith("em_")) //TODO: add more prefix em_
+			{
                 var cmdItem = cmdTable.GetByCmdName(cmdName);
                 if (cmdItem != null)
                 {

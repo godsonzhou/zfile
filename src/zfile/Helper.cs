@@ -178,7 +178,7 @@ namespace WinFormsApp1
 						mi.Path = Path.GetDirectoryName(mi.Button) ?? string.Empty;
 					if(mi.Path.Equals(string.Empty))
 						Debug.Print($"{mi.Button} for {mi.Cmd} > path is empty!");
-					menuInfos.Add(mi);
+					menuInfos.Add(mi);//TODO: BUGFIX PATH=. will cause Problem
 				}
 			}
 			catch (Exception ex)

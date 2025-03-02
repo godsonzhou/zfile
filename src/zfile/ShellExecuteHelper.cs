@@ -56,6 +56,7 @@ namespace WinFormsApp1
 
         public bool ExecuteCommand(string command, string[] files, string currentPath, bool keepTerminalOpen = false)
         {
+			//TODO: 
             try
             {
                 var processedCommand = PrepareParameter(command, files, currentPath);

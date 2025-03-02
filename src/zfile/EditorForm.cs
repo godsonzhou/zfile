@@ -44,6 +44,7 @@ namespace WinFormsApp1
         private ToolStripStatusLabel _positionLabel;
         private ToolStripStatusLabel _modifiedLabel;
         private ToolStripStatusLabel _lineEndingLabel;
+		//TODO: ADD LANGUAGE HIGH LIGHTER SUPPORT
 
         public bool IsModified
         {

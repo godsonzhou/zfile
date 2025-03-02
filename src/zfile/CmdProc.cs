@@ -304,7 +304,7 @@ namespace CmdProcessor
 						if (workingdir != "")
 							startInfo.WorkingDirectory = workingdir;
 						if (cmdName.StartsWith("control.exe", StringComparison.OrdinalIgnoreCase))
-							owner.OpenCommandPrompt(cmdName);
+							owner.OpenCommandPrompt(cmdName);	//TODO: SHELLEXECUTEHELPER.EXECUTECOMMAND合并（增加了参数的处理）
 						else
 							Process.Start(startInfo);
 					}

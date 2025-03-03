@@ -337,7 +337,8 @@ namespace WinFormsApp1
         public void AddCurrentPathToBookmarks()
         {
             //if (string.IsNullOrEmpty(currentDirectory)) return;
-            uiManager.BookmarkManager.AddBookmark(selectedNode, uiManager.isleft);
+			if(selectedNode == null) return;
+			uiManager.BookmarkManager.AddBookmark(selectedNode, uiManager.isleft);
         }
 
         public void OpenOptions()

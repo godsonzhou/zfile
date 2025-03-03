@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using WinFormsApp1;
+using WinShell;
 using zfile;
 namespace CmdProcessor
 {
@@ -317,9 +318,11 @@ namespace CmdProcessor
         }
         public void ExecCmdByID(int cmdId)
         {
-            if (cmdTable.GetByCmdId(cmdId) != null)
+			var cmdItem = cmdTable.GetByCmdId(cmdId);
+
+			if (cmdItem != null)
             {
-                Console.WriteLine($"Processing command: {cmdTable.GetByCmdId(cmdId)}");
+                Console.WriteLine($"Processing command: {cmdItem}");
                 // 在这里添加处理命令的逻辑
                 switch (cmdId)
                 {
@@ -437,8 +440,11 @@ namespace CmdProcessor
                     case 2020: // cm_filesync
                         ShowSyncDirsDialog();
                         break;
+					case 2924:  //命令ID=2924,Name=cm_commandbrowser尚未实现
+						ShowCommandBrowser();
+						break;
                     default:
-                        MessageBox.Show($"命令ID = {cmdId} 尚未实现", "提示");
+						MessageBox.Show($"命令ID = {cmdId}, Name = {cmdItem?.CmdName} 尚未实现", "提示");
                         break;
                 }
             }
@@ -447,6 +453,152 @@ namespace CmdProcessor
                 throw new KeyNotFoundException("命令ID不存在");
             }
         }
+		private void ShowCommandBrowser()
+		{
+			var form = new Form
+			{
+				Text = "命令浏览器",
+				Size = new Size(800, 600),
+				StartPosition = FormStartPosition.CenterParent,
+				MinimizeBox = false,
+				MaximizeBox = false
+			};
+
+			// 创建搜索面板
+			var searchPanel = new Panel
+			{
+				Dock = DockStyle.Top,
+				Height = 40
+			};
+
+			var searchBox = new TextBox
+			{
+				Location = new Point(10, 10),
+				Width = 200,
+				PlaceholderText = "搜索命令..."
+			};
+
+			var searchTypeCombo = new ComboBox
+			{
+				Location = new Point(220, 10),
+				Width = 120,
+				DropDownStyle = ComboBoxStyle.DropDownList
+			};
+			searchTypeCombo.Items.AddRange(new string[] { "按ID搜索", "按名称搜索", "按描述搜索" });
+			searchTypeCombo.SelectedIndex = 0;
+
+			searchPanel.Controls.AddRange(new Control[] { searchBox, searchTypeCombo });
+
+			// 创建ListView用于显示命令
+			var listView = new ListView
+			{
+				Dock = DockStyle.Fill,
+				View = View.Details,
+				FullRowSelect = true,
+				GridLines = true,
+				MultiSelect = false
+			};
+
+			// 添加列
+			listView.Columns.Add("ID", 80);
+			listView.Columns.Add("命令名称", 200);
+			listView.Columns.Add("描述", 250);
+			listView.Columns.Add("中文描述", 250);
+
+			// 获取所有命令并填充ListView
+			var commands = cmdTable.GetAll();
+			foreach (var cmd in commands)
+			{
+				var item = new ListViewItem(cmd.CmdId.ToString());
+				item.SubItems.Add(cmd.CmdName);
+				item.SubItems.Add(cmd.Description);
+				item.SubItems.Add(cmd.ZhDesc);
+				listView.Items.Add(item);
+			}
+
+			// 添加搜索功能
+			searchBox.TextChanged += (s, e) =>
+			{
+				string searchText = searchBox.Text.ToLower();
+				bool foundMatch = false;
+				foreach (ListViewItem item in listView.Items)
+				{
+					bool match = false;
+					switch (searchTypeCombo.SelectedIndex)
+					{
+						case 0: // ID
+							match = item.Text.ToLower().Contains(searchText);
+							break;
+						case 1: // 名称
+							match = item.SubItems[1].Text.ToLower().Contains(searchText);
+							break;
+						case 2: // 描述
+							match = item.SubItems[2].Text.ToLower().Contains(searchText) ||
+								   item.SubItems[3].Text.ToLower().Contains(searchText);
+							break;
+					}
+					item.ForeColor = match || string.IsNullOrEmpty(searchText) ?
+						SystemColors.WindowText : SystemColors.GrayText;
+					if (match && !foundMatch)
+					{
+						// 找到第一个匹配项
+						foundMatch = true;
+						item.Selected = true;
+						item.EnsureVisible(); // 滚动到可见区域
+					}
+					else
+					{
+						item.Selected = false;
+					}
+				}
+			};
+
+			// 双击命令时复制命令名称
+			listView.DoubleClick += (s, e) =>
+			{
+				if (listView.SelectedItems.Count > 0)
+				{
+					string cmdName = listView.SelectedItems[0].SubItems[1].Text;
+					Clipboard.SetText(cmdName);
+					MessageBox.Show($"命令 {cmdName} 已复制到剪贴板", "提示",
+						MessageBoxButtons.OK, MessageBoxIcon.Information);
+				}
+			};
+
+			// 添加右键菜单
+			var contextMenu = new ContextMenuStrip();
+			var copyMenuItem = new ToolStripMenuItem("复制命令名称");
+			var execMenuItem = new ToolStripMenuItem("执行命令");
+			copyMenuItem.Click += (s, e) =>
+			{
+				if (listView.SelectedItems.Count > 0)
+				{
+					string cmdName = listView.SelectedItems[0].SubItems[1].Text;
+					Clipboard.SetText(cmdName);
+				}
+			}; 
+			execMenuItem.Click += (s, e) =>
+			{
+				if (listView.SelectedItems.Count > 0)
+				{
+					string cmdName = listView.SelectedItems[0].SubItems[1].Text;
+					ExecCmdByName(cmdName);
+					form.Close();
+				}
+			};
+			//contextMenu.Items.Add(copyMenuItem);
+			contextMenu.Items.AddRange(new ToolStripItem[] { copyMenuItem, execMenuItem });
+			listView.ContextMenuStrip = contextMenu;
+
+			// 添加控件到窗体
+			form.Controls.Add(listView);
+			form.Controls.Add(searchPanel);
+			// 设置初始焦点
+			form.Load += (s, e) => searchBox.Focus();
+			// 显示窗体
+			form.ShowDialog();
+		}
+
 		// 添加新方法实现刷新功能
 		private void do_cm_rereadsource()
 		{

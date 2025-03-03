@@ -1048,7 +1048,10 @@ namespace WinFormsApp1
 							}
 							else
 							{
-								ToolStripMenuItem menuItem = new ToolStripMenuItem(line);
+								var lineSplit = line.Split(',');
+								var menutxt = lineSplit[0].Trim('"');
+								ToolStripMenuItem menuItem = new ToolStripMenuItem(menutxt);
+								menuItem.Tag = lineSplit[1];
 								menuItem.Click += form.MenuItem_Click;
 								currentPopup.DropDownItems.Add(menuItem);
 							}

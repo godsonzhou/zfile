@@ -1996,8 +1996,11 @@ namespace WinFormsApp1
         {
             if (sender is ToolStripMenuItem menuItem)
             {
-                Debug.Print($"点击了菜单项: {menuItem.Text}");
-                cmdProcessor.ExecCmdByName(menuItem.Text);
+				if (menuItem != null && menuItem.Tag != null)
+				{
+					Debug.Print($"点击了菜单项: {menuItem.Text} , cmdid : {menuItem.Tag?.ToString()}");
+					cmdProcessor.ExecCmdByID(int.Parse(menuItem.Tag.ToString()));
+				}
             }
         }
 		

@@ -20,6 +20,7 @@ namespace WinFormsApp1
 	// 定义MenuInfo类来存储每个按钮的信息
 	public class MenuInfo
 	{
+		public string Name { get; set; } = string.Empty;
 		public string Button { get; set; } = string.Empty;
 		public string Cmd { get; set; } = string.Empty;
 		public string Param { get; set; } = string.Empty;
@@ -30,8 +31,9 @@ namespace WinFormsApp1
 		{
 
 		}
-		public MenuInfo(string button, string cmd, string param, string path, int iconic, string menu)
+		public MenuInfo(string name, string button, string cmd, string param, string path, int iconic, string menu)
 		{
+			Name = name;
 			Button = button;
 			Cmd = cmd;
 			Param = param;
@@ -43,13 +45,110 @@ namespace WinFormsApp1
 	
 	internal static class Helper
 	{
-		private static string GetPathByEnv(string path)
+		public static List<MenuInfo> ReadConfigFromFile(string filePath)
+		{
+			try
+			{
+				// 读取文件内容
+				string configContent = File.ReadAllText(filePath);
+				// 调用 ReadConfig 函数处理配置内容
+				return ReadConfig(configContent);
+			}
+			catch (Exception ex)
+			{
+				// 若读取文件或处理配置过程中出现异常，打印错误信息
+				Console.WriteLine($"读取配置文件时发生错误: {ex.Message}");
+				return new List<MenuInfo>();
+			}
+		}
+		public static List<MenuInfo> ReadConfig(string config)
+		{
+			List<MenuInfo> menuInfos = new List<MenuInfo>();
+			string[] sections = Regex.Split(config, @"\[(em_[^\]]+)\]");
+
+			for (int i = 1; i < sections.Length; i += 2)
+			{
+				string sectionName = sections[i];
+				string sectionContent = sections[i + 1];
+
+				string cmd = string.Empty;
+				string path = string.Empty;
+				string param = string.Empty;
+				string menu = string.Empty;
+				string button = string.Empty;
+
+				string[] lines = sectionContent.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+				foreach (string line in lines)
+				{
+					string[] parts = line.Split('=');
+					if (parts.Length == 2)
+					{
+						string key = parts[0].Trim();
+						string value = parts[1].Trim();
+
+						switch (key)
+						{
+							case "cmd":
+								cmd = value;
+								break;
+							case "path":
+								path = value;
+								break;
+							case "param":
+								param = value;
+								break;
+							case "menu":
+								menu = value;
+								break;
+							case "button":
+								button = value;
+								break;
+						}
+					}
+				}
+
+				MenuInfo menuInfo = new MenuInfo(sectionName, button, cmd, param, path, 0, menu);
+				menuInfos.Add(menuInfo);
+			}
+
+			return menuInfos;
+		}
+		public static string ReplaceEnvironmentVariables(string input)
+		{
+			// 定义一个正则表达式模式，用于匹配被 % 包裹的环境变量
+			string pattern = @"%([^%]+)%";
+			bool hasReplacement;
+
+			do
+			{
+				hasReplacement = false;
+				// 使用正则表达式匹配输入字符串中的环境变量
+				var matches = System.Text.RegularExpressions.Regex.Matches(input, pattern);
+				foreach (System.Text.RegularExpressions.Match match in matches)
+				{
+					string variableName = match.Groups[1].Value;
+					// 获取环境变量的实际值
+					string variableValue = Environment.GetEnvironmentVariable(variableName);
+					if (variableValue != null)
+					{
+						// 将匹配到的环境变量替换为实际值
+						input = input.Replace(match.Value, variableValue);
+						hasReplacement = true;
+					}
+				}
+			} while (hasReplacement);
+
+			return input;
+		}
+		public static string GetPathByEnv(string path)
 		{
 			//如果路径中包含环境变量，替换为实际路径
 			if (path.Contains("%"))
 			{
-				path = path.Replace("%COMMANDER_PATH%", Constants.ZfileCfgPath, StringComparison.OrdinalIgnoreCase);
+				path = path.Replace("%COMMANDER_PATH%\\", Constants.ZfileCfgPath, StringComparison.OrdinalIgnoreCase);
 				path = Environment.ExpandEnvironmentVariables(path);
+				//将path中的%环境变量%替换为实际路径
+				//path = ReplaceEnvironmentVariables(path);
 			}
 			return path;
 		}

@@ -85,11 +85,11 @@ namespace WinFormsApp1
             }
         }
 
-        private string PrepareParameter(string command, string[] files, string currentPath)
+        public string PrepareParameter(string command, string[] files, string currentPath)
         {
             // 环境变量替换
-            var result = Environment.ExpandEnvironmentVariables(command);
-            
+            //var result = Environment.ExpandEnvironmentVariables(command);
+			var result = Helper.GetPathByEnv(command);
             // 波浪号展开
             if (result.StartsWith("~"))
             {

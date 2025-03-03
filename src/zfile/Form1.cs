@@ -1857,20 +1857,30 @@ namespace WinFormsApp1
 				editorForm.Show();
 			}
         }
-		public void do_cm_list()
+		public void do_cm_list(string param="")
 		{
 			// 编辑按钮点击处理逻辑
 			// OPEN VIEWERFORM
-			var listView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
-			if (listView.SelectedItems.Count == 0) return;
-			var selectedItem = listView.SelectedItems[0];
-			var filePath = Helper.getFSpath(Path.Combine(currentDirectory, selectedItem.Text));
-
+			string filePath;
+			//ListView listView;
+			if (param.Equals(string.Empty))
+			{
+				var listView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
+				if (listView.SelectedItems.Count == 0) return;
+				var selectedItemText = listView.SelectedItems[0].Text;
+				filePath = Helper.getFSpath(Path.Combine(currentDirectory, selectedItemText));
+			}
+			else
+			{
+				var se = new ShellExecuteHelper();
+				filePath = se.PrepareParameter(param, new string[] { }, "");
+			}
+		
 			if (File.Exists(filePath))
 			{
 				Form viewerForm = new ViewerForm(filePath, wlxModuleList)
 				{
-					Text = $"查看文件 - {selectedItem.Text}",
+					Text = $"查看文件 - {filePath}",
 					Size = new Size(800, 600)
 				};
 

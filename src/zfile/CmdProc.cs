@@ -233,12 +233,14 @@ namespace CmdProcessor
     {
         public CmdTable cmdTable;
         private Form1 owner;
+		private List<MenuInfo> emCmds;
 
-        public CmdProc(Form1 owner)
+		public CmdProc(Form1 owner)
         {
             cmdTable = new CmdTable();
-            InitializeCmdTable(Constants.ZfileCfgPath + "TOTALCMD.INC", Constants.ZfileCfgPath + "WCMD_CHN.INC");
-            this.owner = owner;
+            InitializeCmdTable(Constants.ZfileCfgPath + "TOTALCMD.INC", Constants.ZfileCfgPath + "WCMD_CHN.INC");//读取cm_开头的内部命令与ID的对应关系
+			emCmds = Helper.ReadConfigFromFile(Constants.ZfileCfgPath + "Wcmd_chn.ini");
+			this.owner = owner;
         }
 
         public void InitializeCmdTable(string totalCmdPath, string wcmIconsPath)
@@ -257,22 +259,37 @@ namespace CmdProcessor
         }
 		public void ExecCmdByMenuInfo(MenuInfo mi)
 		{
-			ExecCmd(mi.Cmd, mi.Path);
+			ExecCmd(mi.Cmd, mi.Param, mi.Path);
 		}
         // 处理由菜单栏和工具栏发起的动作
-        public void ExecCmd(string cmdName, string workingdir = "")
+        public void ExecCmd(string cmdName, string param = "", string workingdir = "")
         {
 			cmdName = cmdName.Trim();
 			if (cmdName.Equals(string.Empty)) return;
 			//support cm_xx, em_xx, "xx, cmdid", regedit.exe, control.exe xxx.cpl, cmdid
-			if (cmdName.StartsWith("cm_") || cmdName.StartsWith("em_")) //TODO: add more prefix em_
+			if(cmdName.StartsWith("em_"))
 			{
-                var cmdItem = cmdTable.GetByCmdName(cmdName);
+				var emCmd = emCmds.Find(x => x.Name.Equals(cmdName));
+				if (emCmd != null)
+				{
+					ExecCmdByMenuInfo(emCmd);
+					return;
+				}
+			}
+			if (cmdName.StartsWith("cm_")) //TODO: add more prefix em_
+			{
+				var cmdparts = cmdName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+				cmdName = cmdparts[0];
+				if (cmdparts.Length > 1)
+					//join the rest parts except the first one
+					param += string.Join(' ', cmdparts.Skip(1));
+
+				var cmdItem = cmdTable.GetByCmdName(cmdName);
                 if (cmdItem != null)
                 {
                     Console.WriteLine($"Processing command: {cmdItem}");
                     // 在这里添加处理命令的逻辑
-                    ExecCmdByID(cmdItem.Value.CmdId);
+                    ExecCmdByID(cmdItem.Value.CmdId, param);
 					return;
                 }
                 Debug.Print($"Command name {cmdName} does not exist.");
@@ -282,11 +299,11 @@ namespace CmdProcessor
 				var parts = cmdName.Split(',');
 				if (parts.Length == 2 && int.TryParse(parts[1], out var cmdId))
 				{
-					ExecCmdByID(cmdId);
+					ExecCmdByID(cmdId, param);
 				}
 				else
 				{
-					if (int.TryParse(cmdName, out cmdId)) { ExecCmdByID(cmdId); return; }
+					if (int.TryParse(cmdName, out cmdId)) { ExecCmdByID(cmdId, param); return; }
 					//可能是可执行文件名称,比如regedit.exe, 直接运行
 					//if (Path.GetExtension(cmdName).Equals(".exe", StringComparison.OrdinalIgnoreCase))
 					//{
@@ -320,7 +337,7 @@ namespace CmdProcessor
 				}
             }
         }
-        public void ExecCmdByID(int cmdId)
+        public void ExecCmdByID(int cmdId, string param = "")
         {
 			var cmdItem = cmdTable.GetByCmdId(cmdId);
 
@@ -384,7 +401,7 @@ namespace CmdProcessor
 						break;
 
 					case 903: //cm_list
-						owner.do_cm_list();
+						owner.do_cm_list(param);
 						break;
 					case 904: //cm_edit
 						owner.do_cm_edit();

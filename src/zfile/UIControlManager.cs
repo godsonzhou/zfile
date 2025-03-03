@@ -3,6 +3,7 @@ using Sheng.Winform.Controls;
 using System.Diagnostics;
 using System.Text;
 using WinShell;
+using ZstdSharp.Unsafe;
 using static System.Net.Mime.MediaTypeNames;
 namespace WinFormsApp1
 {
@@ -37,7 +38,11 @@ namespace WinFormsApp1
 		// 添加上下文菜单属性
 		private readonly ContextMenuStrip buttonContextMenu;
 		private ToolStripButton? currentButton;
+		private ToolStripDropDownButton? currentDropDownButton;
 		private bool disposed = false;
+		ToolStripMenuItem deleteItem = new ToolStripMenuItem("删除按钮");
+		ToolStripMenuItem copyItem = new ToolStripMenuItem("复制按钮");
+		ToolStripMenuItem editItem = new ToolStripMenuItem("编辑按钮");
 		public void Dispose()
 		{
 			Dispose(true);
@@ -55,6 +60,9 @@ namespace WinFormsApp1
 					dynamicToolStrip.DragDrop -= form.ToolbarButton_DragDrop;
 					// 取消DriveBox事件订阅
 					// 取消所有按钮的事件订阅
+					deleteItem.Click -= DeleteButton_Click;
+					copyItem.Click -= CopyButton_Click;
+					editItem.Click -= EditButton_Click;
 					foreach (ToolStripItem item in dynamicToolStrip.Items)
 					{
 						if (item is ToolStripButton button)
@@ -87,9 +95,9 @@ namespace WinFormsApp1
 			this.configfile = configfile;
 			// 初始化上下文菜单
 			buttonContextMenu = new ContextMenuStrip();
-			var deleteItem = new ToolStripMenuItem("删除按钮");
-			var copyItem = new ToolStripMenuItem("复制按钮");
-			var editItem = new ToolStripMenuItem("编辑按钮");
+			//var deleteItem = new ToolStripMenuItem("删除按钮");
+			//var copyItem = new ToolStripMenuItem("复制按钮");
+			//var editItem = new ToolStripMenuItem("编辑按钮");
 
 			deleteItem.Click += DeleteButton_Click;
 			copyItem.Click += CopyButton_Click;
@@ -133,7 +141,7 @@ namespace WinFormsApp1
 			var form = new Form
 			{
 				Text = "编辑按钮",
-				Size = new Size(400, 320),
+				Size = new Size(400, 350),
 				StartPosition = FormStartPosition.CenterParent,
 				FormBorderStyle = FormBorderStyle.FixedDialog,
 				MaximizeBox = false,
@@ -322,14 +330,24 @@ namespace WinFormsApp1
 		// 处理按钮的鼠标事件
 		private void Button_MouseUp(object? sender, MouseEventArgs e)
 		{
-			if (e.Button == MouseButtons.Right && sender is ToolStripItem button)
+			if (e.Button == MouseButtons.Right)
 			{
-				currentButton = button as ToolStripButton;
-
-				//buttonContextMenu.Show(dynamicToolStrip.PointToScreen(new Point(e.X, e.Y)));
-				// 获取鼠标的屏幕坐标
-				Point screenPoint = Cursor.Position;
-				buttonContextMenu.Show(screenPoint);
+				if (sender is ToolStripItem button)
+				{
+					currentButton = button as ToolStripButton;
+					//buttonContextMenu.Show(dynamicToolStrip.PointToScreen(new Point(e.X, e.Y)));
+					// 获取鼠标的屏幕坐标
+					Point screenPoint = Cursor.Position;
+					buttonContextMenu.Show(screenPoint);
+				}
+				else if (sender is ToolStripDropDownButton dropDownButton)  //TODO: BUGFIX: 为下拉按钮添加右键菜单, 但是右键菜单不显示
+				{
+					currentDropDownButton = dropDownButton;
+					//buttonContextMenu.Show(dynamicToolStrip.PointToScreen(new Point(e.X, e.Y)));
+					// 获取鼠标的屏幕坐标
+					Point screenPoint = Cursor.Position;
+					buttonContextMenu.Show(screenPoint);
+				}
 			}
 		}
 

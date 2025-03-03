@@ -1330,7 +1330,7 @@ namespace WinFormsApp1
 
 						if (lv != null)
 						{
-							string[] s = ["", name, "", name.Contains(':') ? "本地磁盘" : "<CLS>", ""];
+							string[] s = ["", name, "", name.Contains(':') ? "本地磁盘" : "<CLS>", "", ""];
 							var i = new ListViewItem(s);
 							var ico = IconManager.GetIconKey(subItem);
 							if(lv.View == View.Tile)
@@ -1408,7 +1408,8 @@ namespace WinFormsApp1
 						originalPath,                    // 原始完整路径
 						"",                        // 文件大小
 						extension,                       // 扩展名
-						""                     // 最后修改时间
+						"",                     // 最后修改时间
+						""					 // 原始文件大小
 					});
 
 				// 设置图标
@@ -1478,7 +1479,8 @@ namespace WinFormsApp1
 						originalPath,                    // 原始完整路径
 						fileSize,                        // 文件大小
 						extension,                       // 扩展名
-						lastModified                     // 最后修改时间
+						lastModified,                     // 最后修改时间
+						fileSize					 // 原始文件大小
 					});
 
 					// 设置图标
@@ -1585,12 +1587,15 @@ namespace WinFormsApp1
                 listView.EndUpdate();
 				listView.Refresh();
             }
-            //catch (Exception ex)
-            //{
-            //    MessageBox.Show($"加载文件列表失败: {ex.Message}", "错误",
-            //        MessageBoxButtons.OK, MessageBoxIcon.Error);
-            //}
-        }
+			var status = (listView == uiManager.LeftList) ? uiManager.LeftStatusStrip : uiManager.RightStatusStrip;
+			uiManager.UpdateStatusBar(listView, status);
+			
+			//catch (Exception ex)
+			//{
+			//    MessageBox.Show($"加载文件列表失败: {ex.Message}", "错误",
+			//        MessageBoxButtons.OK, MessageBoxIcon.Error);
+			//}
+		}
       
         private ListViewItem? CreateListViewItem(FileSystemInfo item)
         {
@@ -1599,14 +1604,16 @@ namespace WinFormsApp1
                 string[] itemData;
                 if (item is DirectoryInfo)
                 {
-                    itemData = new[]
+					var size = EverythingWrapper.CalculateDirectorySize(item.FullName);
+					itemData = new[]
                     {
                         item.Name,
                         item.FullName,
-                        EverythingWrapper.IsEverythingServiceRunning() ? FileSystemManager.FormatFileSize(EverythingWrapper.CalculateDirectorySize(item.FullName)) : "",
+                        EverythingWrapper.IsEverythingServiceRunning() ? FileSystemManager.FormatFileSize(size, true) : "",
                         "<DIR>",
-                        item.LastWriteTime.ToString("yyyy-MM-dd HH:mm")
-                    };
+                        item.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),
+						size.ToString()
+					};
                 }
                 else if (item is FileInfo fileInfo)
                 {
@@ -1614,10 +1621,11 @@ namespace WinFormsApp1
                     {
                         item.Name,
                         item.FullName,
-                        FileSystemManager.FormatFileSize(fileInfo.Length),
+                        FileSystemManager.FormatFileSize(fileInfo.Length, true),
                         fileInfo.Extension.ToUpperInvariant(),
-                        item.LastWriteTime.ToString("yyyy-MM-dd HH:mm")
-                    };
+                        item.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),
+						fileInfo.Length.ToString()
+					};
                 }
                 else
                     return null;

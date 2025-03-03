@@ -1015,7 +1015,7 @@ namespace WinFormsApp1
 			UpdateStatusBar(RightList, RightStatusStrip);
 		}
 
-		private void UpdateStatusBar(ListView listView, StatusStrip statusStrip)
+		public void UpdateStatusBar(ListView listView, StatusStrip statusStrip)
 		{
 			var totalStats = CalculateStats(listView.Items.Cast<ListViewItem>());
 			var selectedStats = CalculateStats(listView.SelectedItems.Cast<ListViewItem>());
@@ -1040,18 +1040,12 @@ namespace WinFormsApp1
 					// 检查是否是文件夹
 					bool isFolder = item.SubItems[3].Text.Equals("<DIR>", StringComparison.OrdinalIgnoreCase);
 					if (isFolder)
-					{
 						folderCount++;
-					}
 					else
-					{
 						fileCount++;
-						// 解析文件大小
-						if (long.TryParse(item.SubItems[1].Text.Replace(",", ""), out long size))
-						{
-							totalSize += size;
-						}
-					}
+					// 解析文件大小
+					if (long.TryParse(item.SubItems[5]?.Text.Replace(",", ""), out long size))
+						totalSize += size;
 				}
 			}
 
@@ -1061,21 +1055,15 @@ namespace WinFormsApp1
 		private string FormatStatsText((int files, int folders, long totalSize) stats, string prefix)
 		{
 			if (stats.files == 0 && stats.folders == 0)
-			{
 				return $"{prefix}: 无项目";
-			}
 
 			var parts = new List<string>();
 			if (stats.folders > 0)
-			{
 				parts.Add($"{stats.folders} 个文件夹");
-			}
 			if (stats.files > 0)
-			{
 				parts.Add($"{stats.files} 个文件");
-			}
 
-			string sizeStr = FileSystemManager.FormatFileSize(stats.totalSize);
+			string sizeStr = FileSystemManager.FormatFileSize(stats.totalSize, true);
 			return $"{prefix}: {string.Join(", ", parts)}, {sizeStr}";
 		}
 

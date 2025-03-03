@@ -328,8 +328,9 @@ namespace WinFormsApp1
 				return items;
 			}
 		}
-		public static string FormatFileSize(long bytes)
+		public static string FormatFileSize(long bytes, bool needFormat = false)
 		{
+			if (!needFormat) { return bytes.ToString(); }
 			string[] units = { "B", "KB", "MB", "GB", "TB" };
 			int unitIdx = 0;
 			double size = bytes;

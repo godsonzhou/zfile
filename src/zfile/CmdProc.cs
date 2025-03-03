@@ -262,6 +262,7 @@ namespace CmdProcessor
         // 处理由菜单栏和工具栏发起的动作
         public void ExecCmd(string cmdName, string workingdir = "")
         {
+			cmdName = cmdName.Trim();
 			if (cmdName.Equals(string.Empty)) return;
 			//support cm_xx, em_xx, "xx, cmdid", regedit.exe, control.exe xxx.cpl, cmdid
 			if (cmdName.StartsWith("cm_") || cmdName.StartsWith("em_")) //TODO: add more prefix em_

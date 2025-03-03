@@ -980,11 +980,123 @@ namespace WinFormsApp1
 
 		public void InitializeStatusStrips()
 		{
+			// 创建状态栏项
+			var totalFilesLabel = new ToolStripStatusLabel();
+			var selectedFilesLabel = new ToolStripStatusLabel();
+			var spacerLabel = new ToolStripStatusLabel { Spring = true }; // 弹性空间
+
+			// 添加到左侧状态栏
+			LeftStatusStrip.Items.AddRange(new ToolStripItem[] {
+				totalFilesLabel,
+				spacerLabel,
+				selectedFilesLabel
+			});
 			LeftStatusStrip.Dock = DockStyle.Bottom;
 			LeftPanel.Panel2.Controls.Add(LeftStatusStrip);
 
+			// 为右侧状态栏创建相同的项
+			var rightTotalFilesLabel = new ToolStripStatusLabel();
+			var rightSelectedFilesLabel = new ToolStripStatusLabel();
+			var rightSpacerLabel = new ToolStripStatusLabel { Spring = true };
+
+			RightStatusStrip.Items.AddRange(new ToolStripItem[] {
+				rightTotalFilesLabel,
+				rightSpacerLabel,
+				rightSelectedFilesLabel
+			});
 			RightStatusStrip.Dock = DockStyle.Bottom;
 			RightPanel.Panel2.Controls.Add(RightStatusStrip);
+			// 添加事件处理
+			LeftList.ItemSelectionChanged += (s, e) => UpdateStatusBar(LeftList, LeftStatusStrip);
+			RightList.ItemSelectionChanged += (s, e) => UpdateStatusBar(RightList, RightStatusStrip);
+
+			// 更新初始状态
+			UpdateStatusBar(LeftList, LeftStatusStrip);
+			UpdateStatusBar(RightList, RightStatusStrip);
+		}
+
+		private void UpdateStatusBar(ListView listView, StatusStrip statusStrip)
+		{
+			var totalStats = CalculateStats(listView.Items.Cast<ListViewItem>());
+			var selectedStats = CalculateStats(listView.SelectedItems.Cast<ListViewItem>());
+
+			// 更新总计信息
+			statusStrip.Items[0].Text = FormatStatsText(totalStats, "总计");
+
+			// 更新选中信息
+			statusStrip.Items[2].Text = FormatStatsText(selectedStats, "已选择");
+		}
+
+		private (int files, int folders, long totalSize) CalculateStats(IEnumerable<ListViewItem> items)
+		{
+			int fileCount = 0;
+			int folderCount = 0;
+			long totalSize = 0;
+
+			foreach (var item in items)
+			{
+				if (item.SubItems.Count >= 3) // 确保有足够的子项
+				{
+					// 检查是否是文件夹
+					bool isFolder = item.SubItems[3].Text.Equals("<DIR>", StringComparison.OrdinalIgnoreCase);
+					if (isFolder)
+					{
+						folderCount++;
+					}
+					else
+					{
+						fileCount++;
+						// 解析文件大小
+						if (long.TryParse(item.SubItems[1].Text.Replace(",", ""), out long size))
+						{
+							totalSize += size;
+						}
+					}
+				}
+			}
+
+			return (fileCount, folderCount, totalSize);
+		}
+
+		private string FormatStatsText((int files, int folders, long totalSize) stats, string prefix)
+		{
+			if (stats.files == 0 && stats.folders == 0)
+			{
+				return $"{prefix}: 无项目";
+			}
+
+			var parts = new List<string>();
+			if (stats.folders > 0)
+			{
+				parts.Add($"{stats.folders} 个文件夹");
+			}
+			if (stats.files > 0)
+			{
+				parts.Add($"{stats.files} 个文件");
+			}
+
+			string sizeStr = FileSystemManager.FormatFileSize(stats.totalSize);
+			return $"{prefix}: {string.Join(", ", parts)}, {sizeStr}";
+		}
+
+		//private string FormatFileSize(long bytes)
+		//{
+		//	string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+		//	int order = 0;
+		//	double size = bytes;
+		//	while (size >= 1024 && order < sizes.Length - 1)
+		//	{
+		//		order++;
+		//		size = size / 1024;
+		//	}
+		//	return $"总大小: {size:0.##} {sizes[order]}";
+		//}
+
+		// 在ListView内容改变时调用此方法
+		public void RefreshStatusBar(ListView listView)
+		{
+			var statusStrip = listView == LeftList ? LeftStatusStrip : RightStatusStrip;
+			UpdateStatusBar(listView, statusStrip);
 		}
 		private ToolStripButton CreateToolStripButton(string text, Keys shortcutKeys, EventHandler onClick)
 		{

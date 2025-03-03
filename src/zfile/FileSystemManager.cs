@@ -330,15 +330,15 @@ namespace WinFormsApp1
 		}
 		public static string FormatFileSize(long bytes)
 		{
-			string[] sizes = { "B", "KB", "MB", "GB", "TB" };
-			int order = 0;
+			string[] units = { "B", "KB", "MB", "GB", "TB" };
+			int unitIdx = 0;
 			double size = bytes;
-			while (size >= 1024 && order < sizes.Length - 1)
+			while (size >= 1024 && unitIdx < units.Length - 1)
 			{
-				order++;
-				size = size / 1024;
+				unitIdx++;
+				size /= 1024;
 			}
-			return $"{size:0.##} {sizes[order]}";
+			return $"{size:0.##} {units[unitIdx]}";
 		}
 		// 判断文件是否为文本文件
 		public static bool IsTextFile(string extension)

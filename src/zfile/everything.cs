@@ -227,16 +227,16 @@ public class EverythingWrapper
 	}
 
 	// 转换为友好单位（如 GB/MB）
-	public static string FormatFileSize(long bytes)
-	{
-		string[] units = { "B", "KB", "MB", "GB", "TB" };
-		int unitIndex = 0;
-		double size = bytes;
-		while (size >= 1024 && unitIndex < units.Length - 1)
-		{
-			size /= 1024;
-			unitIndex++;
-		}
-		return $"{size:0.##} {units[unitIndex]}";
-	}
+	//public static string FormatFileSize(long bytes)
+	//{
+	//	string[] units = { "B", "KB", "MB", "GB", "TB" };
+	//	int unitIndex = 0;
+	//	double size = bytes;
+	//	while (size >= 1024 && unitIndex < units.Length - 1)
+	//	{
+	//		size /= 1024;
+	//		unitIndex++;
+	//	}
+	//	return $"{size:0.##} {units[unitIndex]}";
+	//}
 }

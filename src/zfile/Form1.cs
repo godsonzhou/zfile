@@ -218,7 +218,7 @@ namespace WinFormsApp1
         {
             if (hotkeyMappings.TryGetValue(e.KeyData, out string cmdName))
             {
-                cmdProcessor.ExecCmdByName(cmdName);
+                cmdProcessor.ExecCmd(cmdName);
             }
             else if (e.KeyCode == Keys.T)
             {
@@ -227,7 +227,7 @@ namespace WinFormsApp1
 			else
 			{
 				var cmd = keyManager.GetCmdByKey(Helper.ConvertKeyToString(e.KeyCode));
-				cmdProcessor.ExecCmdByName(cmd);
+				cmdProcessor.ExecCmd(cmd);
 			}
 			e.Handled = true;
 		}
@@ -1886,11 +1886,11 @@ namespace WinFormsApp1
 
         public void CopyButton_Click(object? sender, EventArgs e)
         {
-			cmdProcessor.ExecCmdByName("cm_copy");
+			cmdProcessor.ExecCmd("cm_copy");
         }
         public void DeleteButton_Click(object? sender, EventArgs e)
         {
-			cmdProcessor.ExecCmdByName("cm_delete");
+			cmdProcessor.ExecCmd("cm_delete");
         }
 
         public void FolderButton_Click(object? sender, EventArgs e)
@@ -1908,7 +1908,7 @@ namespace WinFormsApp1
 
         public void MoveButton_Click(object? sender, EventArgs e)
         {
-			cmdProcessor.ExecCmdByName("cm_renmov");
+			cmdProcessor.ExecCmd("cm_renmov");
         }
 
         public void RefreshTreeViewAndListView(ListView listView, string path)
@@ -1998,8 +1998,9 @@ namespace WinFormsApp1
             {
 				if (menuItem != null && menuItem.Tag != null)
 				{
-					Debug.Print($"点击了菜单项: {menuItem.Text} , cmdid : {menuItem.Tag?.ToString()}");
-					cmdProcessor.ExecCmdByID(int.Parse(menuItem.Tag.ToString()));
+					var cmd = (string)menuItem.Tag;//51 or cm_xx
+					Debug.Print($"点击了菜单项: {menuItem.Text} , cmd : {cmd}");
+					cmdProcessor.ExecCmd(cmd);
 				}
             }
         }

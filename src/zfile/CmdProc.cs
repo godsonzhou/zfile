@@ -257,12 +257,14 @@ namespace CmdProcessor
         }
 		public void ExecCmdByMenuInfo(MenuInfo mi)
 		{
-			ExecCmdByName(mi.Cmd, mi.Path);
+			ExecCmd(mi.Cmd, mi.Path);
 		}
         // 处理由菜单栏和工具栏发起的动作
-        public void ExecCmdByName(string cmdName, string workingdir = "")
+        public void ExecCmd(string cmdName, string workingdir = "")
         {
-            if (cmdName.StartsWith("cm_") || cmdName.StartsWith("em_")) //TODO: add more prefix em_
+			if (cmdName.Equals(string.Empty)) return;
+			//support cm_xx, em_xx, "xx, cmdid", regedit.exe, control.exe xxx.cpl, cmdid
+			if (cmdName.StartsWith("cm_") || cmdName.StartsWith("em_")) //TODO: add more prefix em_
 			{
                 var cmdItem = cmdTable.GetByCmdName(cmdName);
                 if (cmdItem != null)
@@ -276,13 +278,14 @@ namespace CmdProcessor
             }
             else
             {
-                var parts = cmdName.Split(',');
-                if (parts.Length == 2 && int.TryParse(parts[1], out var cmdId))
-                {
-                    ExecCmdByID(cmdId);
-                }
+				var parts = cmdName.Split(',');
+				if (parts.Length == 2 && int.TryParse(parts[1], out var cmdId))
+				{
+					ExecCmdByID(cmdId);
+				}
 				else
 				{
+					if (int.TryParse(cmdName, out cmdId)) { ExecCmdByID(cmdId); return; }
 					//可能是可执行文件名称,比如regedit.exe, 直接运行
 					//if (Path.GetExtension(cmdName).Equals(".exe", StringComparison.OrdinalIgnoreCase))
 					//{
@@ -305,7 +308,7 @@ namespace CmdProcessor
 						if (workingdir != "")
 							startInfo.WorkingDirectory = workingdir;
 						if (cmdName.StartsWith("control.exe", StringComparison.OrdinalIgnoreCase))
-							owner.OpenCommandPrompt(cmdName);	//TODO: SHELLEXECUTEHELPER.EXECUTECOMMAND合并（增加了参数的处理）
+							owner.OpenCommandPrompt(cmdName);   //TODO: SHELLEXECUTEHELPER.EXECUTECOMMAND合并（增加了参数的处理）
 						else
 							Process.Start(startInfo);
 					}
@@ -326,50 +329,27 @@ namespace CmdProcessor
                 // 在这里添加处理命令的逻辑
                 switch (cmdId)
                 {
-					case 540: // cm_rereadsource
-						do_cm_rereadsource();
+					case 269:   //cm_srcthumbs
+						owner.SetViewMode(View.Tile);
 						break;
-					case 905: // cm_copy
-                        CopySelectedFiles();
-                        break;
-                    case 906: // cm_renmov
-                        MoveSelectedFiles();
-                        break;
-                    case 908: // cm_delete
-                        DeleteSelectedFiles();
-                        break;
-                    case 907: // cm_mkdir
-                        CreateNewFolder();
-                        break;
-                    case 501: // cm_searchfor
+					case 301:   //cm_srcshort
+						owner.SetViewMode(View.List);
+						break;
+					case 302:   //cm_srclong
+						owner.SetViewMode(View.Details);
+						break;
+
+					case 490:   //cm_config
+						owner.OpenOptions();
+						break;
+					case 501: // cm_searchfor
                         SearchFiles();
-                        break;
-                    case 1002: // cm_renameonly
-                        RenameSelected();
-                        break;
-                    case 1003: // cm_properties
-                        ShowFileProperties();
-                        break;
-                    case 2022: // cm_comparefilesbycontent
-                        CompareFiles();
                         break;
                     case 508: // cm_packfiles
                         PackFiles();
                         break;
                     case 509: // cm_unpackfiles
                         UnpackFiles();
-                        break;
-                    case 269:   //cm_srcthumbs
-                        owner.SetViewMode(View.Tile);
-                        break;
-                    case 301:	//cm_srcshort
-                        owner.SetViewMode(View.List);
-                        break;
-                    case 302:	//cm_srclong
-                        owner.SetViewMode(View.Details);
-                        break;
-                    case 490:	//cm_config
-                        owner.OpenOptions();
                         break;
                     case 511: // cm_executedos
                         owner.OpenCommandPrompt();
@@ -386,23 +366,14 @@ namespace CmdProcessor
 					case 527: // cm_SelectByExt
 						do_cm_SelectByExt();
 						break;
-					case 530: // cm_SaveSelection
-						do_cm_SaveSelection();
-						break;
 					case 529: // cm_RestoreSelection  
 						do_cm_RestoreSelection();
 						break;
-					case 2017: // cm_CopyNamesToClip
-						do_cm_CopyNamesToClip();
+					case 530: // cm_SaveSelection
+						do_cm_SaveSelection();
 						break;
-					case 2018: // cm_CopyFullNamesToClip 
-						do_cm_CopyFullNamesToClip();
-						break;
-					case 2036: // cm_CopyDetailsToClip
-						do_cm_CopyDetailsToClip();
-						break;
-					case 2037: // cm_CopyFullDetailsToClip
-						do_cm_CopyFullDetailsToClip();
+					case 540: // cm_rereadsource
+						do_cm_rereadsource();
 						break;
 					case 570:
 						do_cm_gotopreviousdir();
@@ -410,40 +381,76 @@ namespace CmdProcessor
 					case 571:
 						do_cm_gotonextdir();
 						break;
+
+					case 903: //cm_list
+						owner.do_cm_list();
+						break;
+					case 904: //cm_edit
+						owner.do_cm_edit();
+						break;
+					case 905: // cm_copy
+						CopySelectedFiles();
+						break;
+					case 906: // cm_renmov
+						MoveSelectedFiles();
+						break;
+					case 907: // cm_mkdir
+						CreateNewFolder();
+						break;
+					case 908: // cm_delete
+						DeleteSelectedFiles();
+						break;
+
+					case 1002: // cm_renameonly
+						RenameSelected();
+						break;
+					case 1003: // cm_properties
+						ShowFileProperties();
+						break;
+
 					case 2002:
 						do_cm_gotoparent();
 						break;
-                    case 903: //cm_list
-                        owner.do_cm_list();
-                        break;
-                    case 904: //cm_edit
-                        owner.do_cm_edit();
-                        break;
+					case 2017: // cm_CopyNamesToClip
+						do_cm_CopyNamesToClip();
+						break;
+					case 2018: // cm_CopyFullNamesToClip 
+						do_cm_CopyFullNamesToClip();
+						break;
+					case 2020: // cm_filesync
+						ShowSyncDirsDialog();
+						break;
+					case 2022: // cm_comparefilesbycontent
+						CompareFiles();
+						break;
 					case 2026:
 						do_cm_DirBranch();
 						break;
-                    case 2950:
-                        owner.ThemeToggle();
-                        break;
-                    case 3001:  //add new bookmark
-                        owner.AddCurrentPathToBookmarks();
-                        break;
-                    case 3012:  //lock the bookmark
-                        owner.uiManager.BookmarkManager.ToggleCurrentBookmarkLock(owner.uiManager.isleft);
-                        break;
-                    case 24340:
-                        Form1.ExitApp();
-                        break;
-                    case 2400: // cm_multirename
-                        ShowMultiRenameDialog();
-                        break;
-                    case 2020: // cm_filesync
-                        ShowSyncDirsDialog();
-                        break;
+					case 2036: // cm_CopyDetailsToClip
+						do_cm_CopyDetailsToClip();
+						break;
+					case 2037: // cm_CopyFullDetailsToClip
+						do_cm_CopyFullDetailsToClip();
+						break;
+					case 2400: // cm_multirename
+						ShowMultiRenameDialog();
+						break;
 					case 2924:  //命令ID=2924,Name=cm_commandbrowser尚未实现
 						ShowCommandBrowser();
 						break;
-                    default:
+					case 2950:
+						owner.ThemeToggle();
+						break;
+					case 3001:  //add new bookmark
+						owner.AddCurrentPathToBookmarks();
+						break;
+					case 3012:  //lock the bookmark
+						owner.uiManager.BookmarkManager.ToggleCurrentBookmarkLock(owner.uiManager.isleft);
+						break;
+					case 24340:
+						Form1.ExitApp();
+						break;
+					default:
 						MessageBox.Show($"命令ID = {cmdId}, Name = {cmdItem?.CmdName} 尚未实现", "提示");
                         break;
                 }
@@ -582,7 +589,7 @@ namespace CmdProcessor
 				if (listView.SelectedItems.Count > 0)
 				{
 					string cmdName = listView.SelectedItems[0].SubItems[1].Text;
-					ExecCmdByName(cmdName);
+					ExecCmd(cmdName);
 					form.Close();
 				}
 			};
@@ -1241,8 +1248,11 @@ namespace CmdProcessor
         private void ShowMultiRenameDialog()
         {
             var listView = owner.activeListView;
-            if (listView == null || listView.SelectedItems.Count == 0) return;
-
+			if (listView == null || listView.SelectedItems.Count == 0)
+			{
+				MessageBox.Show("没有选中文件");
+				return;
+			}
             using var dialog = new MultiRenameForm(listView, owner.currentDirectory);
             if (dialog.ShowDialog() == DialogResult.OK)
             {

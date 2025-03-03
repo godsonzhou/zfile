@@ -922,7 +922,7 @@ namespace WinFormsApp1
 				if (item.Tag is string cmd)
 				{
 					Debug.Print($"执行命令: {cmd} <信息");
-					form.cmdProcessor.ExecCmdByName(cmd);
+					form.cmdProcessor.ExecCmd(cmd);
 				}
 				else if (item.Tag is MenuInfo mi){
 					form.cmdProcessor.ExecCmdByMenuInfo(mi);

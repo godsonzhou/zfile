@@ -28,7 +28,6 @@
   <ItemGroup>
     <PackageReference Include="CSCore" Version="1.2.1.2" />
     <PackageReference Include="Ghostscript.NET" Version="1.2.3.1" />
-    <PackageReference Include="ICSharpCode.TextEditor" Version="3.2.1.6466" />
     <PackageReference Include="LibVLCSharp" Version="3.9.2" />
     <PackageReference Include="LibVLCSharp.WinForms" Version="3.9.2" />
     <PackageReference Include="Microsoft.WindowsAPICodePack.Shell" Version="1.1.0" />
@@ -39,6 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ICSharpCode.TextEditor\Project\ICSharpCode.TextEditor.csproj" />
     <ProjectReference Include="..\Sheng.Winform.Controls\Sheng.Winform.Controls.csproj" />
     <ProjectReference Include="..\WinShell\WinShell\WinShell.csproj" />
   </ItemGroup>

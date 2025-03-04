@@ -191,15 +191,15 @@ namespace zfile
 			this.MaximizeBox = false;
 			this.MinimizeBox = false;
 			this.ShowInTaskbar = false;
-			this.Size = new System.Drawing.Size(400, 250);
+			this.Size = new System.Drawing.Size(450, 250);
 			this.StartPosition = FormStartPosition.CenterParent;
 
 			// 创建控件
 			findLabel = new Label { Text = "查找内容:", Location = new System.Drawing.Point(10, 15) };
-			findTextBox = new TextBox { Location = new System.Drawing.Point(80, 12), Width = 200 };
+			findTextBox = new TextBox { Location = new System.Drawing.Point(120, 12), Width = 200 };
 
 			replaceLabel = new Label { Text = "替换为:", Location = new System.Drawing.Point(10, 45) };
-			replaceTextBox = new TextBox { Location = new System.Drawing.Point(80, 42), Width = 200 };
+			replaceTextBox = new TextBox { Location = new System.Drawing.Point(120, 42), Width = 200 };
 
 			matchCaseCheckBox = new CheckBox
 			{
@@ -222,7 +222,7 @@ namespace zfile
 			findNextButton = new Button
 			{
 				Text = "查找下一个",
-				Location = new System.Drawing.Point(290, 12),
+				Location = new System.Drawing.Point(330, 12),
 				Width = 90
 			};
 
@@ -243,7 +243,7 @@ namespace zfile
 			closeButton = new Button
 			{
 				Text = "关闭",
-				Location = new System.Drawing.Point(290, 102),
+				Location = new System.Drawing.Point(330, 102),
 				Width = 90
 			};
 
@@ -518,7 +518,7 @@ namespace zfile
 			textEditor.ActiveTextAreaControl.TextArea.Caret.PositionChanged += Caret_PositionChanged;
 
 			// 设置默认字体
-			textEditor.Font = new Font("Consolas", 12f);
+			textEditor.Font = new Font("Consolas", 11f);
 
 			// 应用默认主题
 			ApplyTheme(isDarkMode);
@@ -759,15 +759,14 @@ namespace zfile
             try
             {
 				// 检测文件编码
-				// 检测文件编码
 				currentEncoding = DetectFileEncoding(filePath);
 				using (var reader = new StreamReader(filePath, currentEncoding))
                 {
                     //currentEncoding = reader.CurrentEncoding;
                     textEditor.Document.TextContent = reader.ReadToEnd();
                 }
-
-                currentFilePath = filePath;
+				
+				currentFilePath = filePath;
                 this.Text = Path.GetFileName(filePath) + " - 文本编辑器";
 				// 更新状态栏信息
 				UpdateStatusBar(filePath);
@@ -776,8 +775,8 @@ namespace zfile
                 string highlighting = GetHighlightingByExtension(extension);
                 textEditor.Document.HighlightingStrategy = 
                     HighlightingStrategyFactory.CreateHighlightingStrategy(highlighting);
-
-            }
+				textEditor.Refresh();
+			}
             catch (Exception ex)
             {
                 MessageBox.Show("打开文件时发生错误：" + ex.Message, "错误", 

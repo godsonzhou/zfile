@@ -12,6 +12,7 @@ namespace WinFormsApp1
 	public partial class Form1 : Form
 	{
 		const int ILD_TRANSPARENT = 0x00000001;
+		public readonly CFGLOADER configLoader;
 		private readonly IconManager iconManager = new();
 		private readonly ThemeManager themeManager;
 		private readonly FilePreviewManager previewManager = new();
@@ -99,7 +100,8 @@ namespace WinFormsApp1
 
 		public Form1()
 		{
-		    InitializeComponent();
+			configLoader = new CFGLOADER(Constants.ZfileCfgPath+"wincmd.ini");
+			InitializeComponent();
 		    this.Size = new Size(1200, 800);
 
 		    // 初始化COM组件

@@ -87,12 +87,12 @@ namespace WinFormsApp1
 		{
 			Dispose(false);
 		}
-		public ToolbarManager(Form1 form, string configfile, bool isVertical)
+		public ToolbarManager(Form1 form, string cfgfile, bool isVertical)
 		{
 			// 加载配置文件中的工具栏按钮信息并初始化控件,实现逻辑参照 initializeDynamicToolbar
 			dynamicToolStrip = new ToolStrip();
 			this.form = form;
-			this.configfile = configfile;
+			this.configfile = Helper.GetPathByEnv(cfgfile);
 			// 初始化上下文菜单
 			buttonContextMenu = new ContextMenuStrip();
 			//var deleteItem = new ToolStripMenuItem("删除按钮");
@@ -398,7 +398,7 @@ namespace WinFormsApp1
 		public void Init(string path)
 		{
 			//load from config file
-			string toolbarFilePath = Path.Combine(Constants.ZfileCfgPath, path);
+			string toolbarFilePath = path;// Path.Combine(Constants.ZfileCfgPath, path);
 			if (!File.Exists(toolbarFilePath))
 			{
 				MessageBox.Show("工具栏配置文件不存在" + toolbarFilePath, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -1237,12 +1237,15 @@ namespace WinFormsApp1
 		}
 		public void InitializeDynamicToolbar()
 		{
-			toolbarManager = new ToolbarManager(form, "DEFAULT.BAR", false);
-			vtoolbarManager = new ToolbarManager(form, "VERTICAL.BAR", true);
+			var bar = form.configLoader.FindConfigValue("ButtonBar", "Buttonbar");
+			var bar1 = form.configLoader.FindConfigValue("ButtonbarVertical", "Buttonbar");
+			toolbarManager = new ToolbarManager(form, bar, false);//"DEFAULT.BAR"
+			vtoolbarManager = new ToolbarManager(form, bar1, true);//"VERTICAL.BAR"
 		}
 		public void InitializeDynamicMenu()
 		{
-			string menuFilePath = Constants.ZfileCfgPath+"WCMD_CHN.MNU";
+			var menu = form.configLoader.FindConfigValue("Configuration", "Mainmenu");
+			string menuFilePath = Constants.ZfileCfgPath + menu;// "WCMD_CHN.MNU";
 			if (!File.Exists(menuFilePath))
 			{
 				MessageBox.Show("菜单文件不存在" + menuFilePath, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);

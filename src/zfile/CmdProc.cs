@@ -4,6 +4,7 @@ using System.Text;
 using WinFormsApp1;
 using WinShell;
 using zfile;
+using WinFormsApp1;
 namespace CmdProcessor
 {
     public struct CmdTableItem(string cmdName, int cmdId, string description, string zhDesc)
@@ -40,62 +41,6 @@ namespace CmdProcessor
 		}
     }
 
-    public static class ConfigLoader
-    {
-        public static CmdTable LoadCmdTable(string totalCmdPath, string wcmIconsPath)
-        {
-            var cmdTable = new CmdTable();
-            var zhDescDict = LoadZhDesc(wcmIconsPath);
-
-            using (var reader = new StreamReader(totalCmdPath, Encoding.GetEncoding("GB2312")))
-            {
-                string? line;
-                while ((line = reader.ReadLine()) != null)
-                {
-                    line = line.Trim();
-                    if (line.StartsWith("cm_"))
-                    {
-                        var parts = line.Split(';');
-                        var cmdParts = parts[0].Split('=');
-                        if (cmdParts.Length == 2 && int.TryParse(cmdParts[1], out var cmdId))
-                        {
-                            var cmdName = cmdParts[0].ToLower();//bugfix: cm_SrcThumbs in cfgfile£¬ but in toolbarstrip, the button trigger cmd is cm_srcthumbs, so we need to convert cm_SrcThumbs to cm_srcthumbs
-                            var description = parts.Length > 1 ? parts[1] : string.Empty;
-                            var zhDesc = zhDescDict.TryGetValue(cmdId, out var desc) ? desc : string.Empty;
-                            var cmdItem = new CmdTableItem(cmdName, cmdId, description, zhDesc);
-                            cmdTable.Add(cmdItem);
-                        }
-                    }
-                }
-            }
-
-            return cmdTable;
-        }
-
-        private static Dictionary<int, string> LoadZhDesc(string wcmIconsPath)
-        {
-            var zhDescDict = new Dictionary<int, string>();
-
-            using (var reader = new StreamReader(wcmIconsPath, Encoding.GetEncoding("GB2312")))
-            {
-                string? line;
-                while ((line = reader.ReadLine()) != null)
-                {
-                    line = line.Trim();
-                    if (line.Contains('='))
-                    {
-                        var parts = line.Split('=');
-                        if (parts.Length == 2 && int.TryParse(parts[0], out var cmdId))
-                        {
-                            zhDescDict[cmdId] = parts[1];
-                        }
-                    }
-                }
-            }
-
-            return zhDescDict;
-        }
-    }
 	public class KeyDef(string key, string cmd)
 	{
 		public string Key { get; set; } = key;
@@ -227,8 +172,8 @@ namespace CmdProcessor
 			Helper.WriteSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "Shortcuts", shortcuts);
 			Helper.WriteSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ShortcutsWin", shortcutsWin);
 		}
-
 	}
+
     public class CmdProc
     {
         public CmdTable cmdTable;
@@ -245,7 +190,7 @@ namespace CmdProcessor
 
         public void InitializeCmdTable(string totalCmdPath, string wcmIconsPath)
         {
-            cmdTable = ConfigLoader.LoadCmdTable(totalCmdPath, wcmIconsPath);
+            cmdTable = CFGLOADER.LoadCmdTable(totalCmdPath, wcmIconsPath);
         }
 
         public CmdTableItem? GetCmdByName(string cmdName)

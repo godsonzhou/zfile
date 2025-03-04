@@ -1858,7 +1858,7 @@ namespace WinFormsApp1
 				//Control viewerControl = previewManager.CreatePreviewControl(filePath);
 				//viewerForm.Controls.Add(viewerControl);
 				//viewerForm.Show();
-				var editorForm = new EditorForm(filePath)
+				var editorForm = new NewEditorForm(filePath)
 				{
 					Text = $"编辑文件 - {selectedItem.Text}",
 					Size = new Size(800, 600)

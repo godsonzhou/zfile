@@ -28,6 +28,7 @@
   <ItemGroup>
     <PackageReference Include="CSCore" Version="1.2.1.2" />
     <PackageReference Include="Ghostscript.NET" Version="1.2.3.1" />
+    <PackageReference Include="ICSharpCode.TextEditor" Version="3.2.1.6466" />
     <PackageReference Include="LibVLCSharp" Version="3.9.2" />
     <PackageReference Include="LibVLCSharp.WinForms" Version="3.9.2" />
     <PackageReference Include="Microsoft.WindowsAPICodePack.Shell" Version="1.1.0" />

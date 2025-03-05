@@ -24,6 +24,7 @@ namespace WinFormsApp1
 		private Rectangle selectionRectangle;
 		public ListView activeListView { get => (uiManager.isleft ? uiManager.LeftList : uiManager.RightList); }
 		public TreeView activeTreeview { get => (uiManager.isleft ? uiManager.LeftTree : uiManager.RightTree); }
+		public TreeView unactiveTreeview { get => (!uiManager.isleft ? uiManager.LeftTree : uiManager.RightTree); }
 		private readonly FileSystemWatcher watcher = new();
 		public string currentDirectory = "";
 		private TreeNode? selectedNode = null;

@@ -5,6 +5,7 @@ using WinFormsApp1;
 using WinShell;
 using zfile;
 using WinFormsApp1;
+using System.Security.Cryptography;
 namespace CmdProcessor
 {
 	public struct CmdTableItem(string cmdName, int cmdId, string description, string zhDesc)
@@ -230,6 +231,12 @@ namespace CmdProcessor
 					case 563: // cm_decode
 						do_cm_decode(param);
 						break;
+					case 564:   // cm_crccreate
+						do_cm_crccreate(param);
+						break;
+					case 565:   // cm_crccheck
+						do_cm_crccheck(param);
+						break;
 					case 570:
 						do_cm_gotopreviousdir();
 						break;
@@ -320,6 +327,232 @@ namespace CmdProcessor
 
 		}
 
+		private void do_cm_crccheck(string param)
+		{
+			var listView = owner.activeListView;
+			if (listView == null || listView.SelectedItems.Count == 0)
+			{
+				MessageBox.Show("请选择要校验的文件", "提示");
+				return;
+			}
+
+			foreach (ListViewItem item in listView.SelectedItems)
+			{
+				var filePath = Path.Combine(owner.currentDirectory, item.Text);
+				var extension = Path.GetExtension(filePath).ToLower();
+
+				if (extension == ".sfv" || extension == ".md5" || extension == ".sha1" || extension == ".sha256" || extension == ".sha512")
+				{
+					ValidateChecksumFile(filePath, extension);
+				}
+				else
+				{
+					MessageBox.Show($"不支持的校验文件格式: {extension}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			}
+		}
+
+		private void ValidateChecksumFile(string checksumFilePath, string extension)
+		{
+			var lines = File.ReadAllLines(checksumFilePath);
+			var errors = new List<string>();
+
+			foreach (var line in lines)
+			{
+				if (string.IsNullOrWhiteSpace(line) || line.StartsWith(";"))
+					continue;
+
+				var parts = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+				if (parts.Length < 2)
+					continue;
+
+				var expectedChecksum = parts[0];
+				var filePath = Path.Combine(Path.GetDirectoryName(checksumFilePath)!, parts[1].Replace("/", "\\"));
+
+				if (!File.Exists(filePath))
+				{
+					errors.Add($"文件不存在: {filePath}");
+					continue;
+				}
+
+				var actualChecksum = ComputeChecksum(filePath, extension);
+				if (!string.Equals(expectedChecksum, actualChecksum, StringComparison.OrdinalIgnoreCase))
+				{
+					errors.Add($"校验失败: {filePath} (预期: {expectedChecksum}, 实际: {actualChecksum})");
+				}
+			}
+
+			if (errors.Count > 0)
+			{
+				MessageBox.Show(string.Join(Environment.NewLine, errors), "校验结果", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+			else
+			{
+				MessageBox.Show("所有文件校验通过", "校验结果", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			}
+		}
+
+	
+		private void do_cm_crccreate(string param)
+		{
+			var listView = owner.activeListView;
+			if (listView == null || listView.SelectedItems.Count == 0)
+			{
+				MessageBox.Show("请选择要生成校验和的文件或文件夹", "提示");
+				return;
+			}
+
+			var optionsForm = new Form
+			{
+				Text = "生成校验和文件",
+				Size = new Size(400, 300),
+				FormBorderStyle = FormBorderStyle.FixedDialog,
+				StartPosition = FormStartPosition.CenterParent,
+				MaximizeBox = false,
+				MinimizeBox = false
+			};
+
+			var singleFileCheckBox = new CheckBox
+			{
+				Text = "为每个文件创建单独的校验和文件 (S)",
+				Location = new Point(10, 10),
+				AutoSize = true
+			};
+
+			var singleFolderCheckBox = new CheckBox
+			{
+				Text = "为每个文件夹单独创建校验和文件",
+				Location = new Point(10, 40),
+				AutoSize = true
+			};
+
+			var utf8CheckBox = new CheckBox
+			{
+				Text = "为校验文件使用UTF-8编码 (A)",
+				Location = new Point(10, 70),
+				AutoSize = true
+			};
+
+			var unixFormatCheckBox = new CheckBox
+			{
+				Text = "使用Unix格式的换行符和路径分隔符 (U)",
+				Location = new Point(10, 100),
+				AutoSize = true
+			};
+
+			var hashAlgorithmLabel = new Label
+			{
+				Text = "选择校验算法：",
+				Location = new Point(10, 130),
+				AutoSize = true
+			};
+
+			var hashAlgorithmComboBox = new ComboBox
+			{
+				Location = new Point(10, 160),
+				Width = 200,
+				DropDownStyle = ComboBoxStyle.DropDownList
+			};
+
+			hashAlgorithmComboBox.Items.AddRange(new string[]
+			{
+				"CRC32 (SFV)", "SHA224", "SHA3_224", "MD5", "SHA256", "SHA3_256",
+				"SHA1", "SHA384", "SHA3_384", "BLAKE3", "SHA512", "SHA3_512"
+			});
+			hashAlgorithmComboBox.SelectedIndex = 0;
+
+			var generateButton = new Button
+			{
+				Text = "生成",
+				Location = new Point(150, 200),
+				DialogResult = DialogResult.OK
+			};
+
+			optionsForm.Controls.AddRange(new Control[]
+			{
+				singleFileCheckBox, singleFolderCheckBox, utf8CheckBox, unixFormatCheckBox,
+				hashAlgorithmLabel, hashAlgorithmComboBox, generateButton
+			});
+			optionsForm.AcceptButton = generateButton;
+
+			if (optionsForm.ShowDialog() == DialogResult.OK)
+			{
+				var selectedAlgorithm = hashAlgorithmComboBox.SelectedItem.ToString();
+				var useUtf8 = utf8CheckBox.Checked;
+				var useUnixFormat = unixFormatCheckBox.Checked;
+				var createSingleFile = singleFileCheckBox.Checked;
+				var createSingleFolder = singleFolderCheckBox.Checked;
+
+				foreach (ListViewItem item in listView.SelectedItems)
+				{
+					var path = Path.Combine(owner.currentDirectory, item.Text);
+					if (Directory.Exists(path) && createSingleFolder)
+					{
+						GenerateChecksumForDirectory(path, selectedAlgorithm, useUtf8, useUnixFormat);
+					}
+					else if (File.Exists(path) && createSingleFile)
+					{
+						GenerateChecksumForFile(path, selectedAlgorithm, useUtf8, useUnixFormat);
+					}
+				}
+
+				owner.RefreshPanel();
+			}
+		}
+
+		private void GenerateChecksumForFile(string filePath, string algorithm, bool useUtf8, bool useUnixFormat)
+		{
+			var checksum = ComputeChecksum(filePath, algorithm);
+			var checksumFileName = $"{filePath}.{algorithm.ToLower()}";
+			var encoding = useUtf8 ? Encoding.UTF8 : Encoding.Default;
+			var lineEnding = useUnixFormat ? "\n" : "\r\n";
+			var pathSeparator = useUnixFormat ? "/" : "\\";
+
+			var checksumContent = $"{checksum} {filePath.Replace("\\", pathSeparator)}{lineEnding}";
+			File.WriteAllText(checksumFileName, checksumContent, encoding);
+		}
+
+		private void GenerateChecksumForDirectory(string directoryPath, string algorithm, bool useUtf8, bool useUnixFormat)
+		{
+			var files = Directory.GetFiles(directoryPath, "*", SearchOption.AllDirectories);
+			var encoding = useUtf8 ? Encoding.UTF8 : Encoding.Default;
+			var lineEnding = useUnixFormat ? "\n" : "\r\n";
+			var pathSeparator = useUnixFormat ? "/" : "\\";
+
+			var checksumFileName = $"{directoryPath}.{algorithm.ToLower()}";
+			using var writer = new StreamWriter(checksumFileName, false, encoding);
+
+			foreach (var file in files)
+			{
+				var checksum = ComputeChecksum(file, algorithm);
+				var relativePath = file.Substring(directoryPath.Length + 1).Replace("\\", pathSeparator);
+				writer.WriteLine($"{checksum} {relativePath}");
+			}
+		}
+	
+		private string ComputeChecksum(string filePath, string algorithm)
+		{
+			using var stream = File.OpenRead(filePath);
+			HashAlgorithm hashAlgorithm = algorithm switch
+			{
+				//"CRC32 (SFV)" => new Crc32(),
+				//"SHA224" => SHA224.Create(),
+				//"SHA3_224" => SHA3_224.Create(),
+				"MD5" => MD5.Create(),
+				"SHA256" => SHA256.Create(),
+				"SHA3_256" => SHA3_256.Create(),
+				"SHA1" => SHA1.Create(),
+				"SHA384" => SHA384.Create(),
+				"SHA3_384" => SHA3_384.Create(),
+				//"BLAKE3" => Blake3.Create(),
+				"SHA512" => SHA512.Create(),
+				"SHA3_512" => SHA3_512.Create(),
+				_ => throw new InvalidOperationException("不支持的校验算法")
+			};
+
+			var hash = hashAlgorithm.ComputeHash(stream);
+			return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+		}
 		private void do_cm_combine(string param = "")
 		{
 			List<string> filesToCombine;

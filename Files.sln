@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sheng.Winform.Controls", "s
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ICSharpCode.TextEditor", "src\ICSharpCode.TextEditor\Project\ICSharpCode.TextEditor.csproj", "{2D18BE89-D210-49EB-A9DD-2246FBB3DF6D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentFTP", "src\FluentFTP\FluentFTP\FluentFTP.csproj", "{C09B3257-38E9-E818-BB0A-50F5B6BC27F5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -91,6 +93,22 @@ Global
 		{2D18BE89-D210-49EB-A9DD-2246FBB3DF6D}.Release|x64.Build.0 = Release|Any CPU
 		{2D18BE89-D210-49EB-A9DD-2246FBB3DF6D}.Release|x86.ActiveCfg = Release|Any CPU
 		{2D18BE89-D210-49EB-A9DD-2246FBB3DF6D}.Release|x86.Build.0 = Release|Any CPU
+		{C09B3257-38E9-E818-BB0A-50F5B6BC27F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C09B3257-38E9-E818-BB0A-50F5B6BC27F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C09B3257-38E9-E818-BB0A-50F5B6BC27F5}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{C09B3257-38E9-E818-BB0A-50F5B6BC27F5}.Debug|arm64.Build.0 = Debug|Any CPU
+		{C09B3257-38E9-E818-BB0A-50F5B6BC27F5}.Debug|x64.ActiveCfg = Debug|x64
+		{C09B3257-38E9-E818-BB0A-50F5B6BC27F5}.Debug|x64.Build.0 = Debug|x64
+		{C09B3257-38E9-E818-BB0A-50F5B6BC27F5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C09B3257-38E9-E818-BB0A-50F5B6BC27F5}.Debug|x86.Build.0 = Debug|Any CPU
+		{C09B3257-38E9-E818-BB0A-50F5B6BC27F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C09B3257-38E9-E818-BB0A-50F5B6BC27F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C09B3257-38E9-E818-BB0A-50F5B6BC27F5}.Release|arm64.ActiveCfg = Release|Any CPU
+		{C09B3257-38E9-E818-BB0A-50F5B6BC27F5}.Release|arm64.Build.0 = Release|Any CPU
+		{C09B3257-38E9-E818-BB0A-50F5B6BC27F5}.Release|x64.ActiveCfg = Release|x64
+		{C09B3257-38E9-E818-BB0A-50F5B6BC27F5}.Release|x64.Build.0 = Release|x64
+		{C09B3257-38E9-E818-BB0A-50F5B6BC27F5}.Release|x86.ActiveCfg = Release|Any CPU
+		{C09B3257-38E9-E818-BB0A-50F5B6BC27F5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

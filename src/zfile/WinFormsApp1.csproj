@@ -38,6 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FluentFTP\FluentFTP\FluentFTP.csproj" />
     <ProjectReference Include="..\ICSharpCode.TextEditor\Project\ICSharpCode.TextEditor.csproj" />
     <ProjectReference Include="..\Sheng.Winform.Controls\Sheng.Winform.Controls.csproj" />
     <ProjectReference Include="..\WinShell\WinShell\WinShell.csproj" />

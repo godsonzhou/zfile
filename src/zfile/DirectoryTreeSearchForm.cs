@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -43,7 +44,7 @@ namespace zfile
         private void InitializeComponent()
         {
             this.Text = "目录树查找";
-            this.Size = new Size(600, 500);
+            this.Size = new Size(600, 600);
             this.StartPosition = FormStartPosition.CenterParent;
             this.MinimizeBox = false;
             this.MaximizeBox = false;
@@ -217,27 +218,36 @@ namespace zfile
 
             try
             {
-                // 创建根节点
-                TreeNode rootNode = new TreeNode(currentDrive)
-                {
-                    Tag = currentDrive
-                };
-                treeView.Nodes.Add(rootNode);
-                directoryNodes[currentDrive.ToLower()] = rootNode;
+				// 创建根节点
+				TreeNode rootNode = new TreeNode(currentDrive)
+				{
+					Tag = currentDrive
+				};
+				treeView.Nodes.Add(rootNode);
+				directoryNodes[currentDrive.ToLower()] = rootNode;
 
-                // 使用Everything SDK生成目录结构
-                if (EverythingWrapper.IsEverythingServiceRunning())
-                {
-                    LoadDirectoriesUsingEverything(rootNode);
-                }
-                else
-                {
-                    // 如果Everything服务未运行，使用传统方法加载目录
-                    LoadDirectoriesRecursively(rootNode, currentDrive);
-                }
-
-                rootNode.Expand();
-            }
+				var nfo = $"_treeinfo_{currentDrive.Substring(0, 1)}.nfo";
+				if (File.Exists(nfo))
+				{
+					//load dirs from file
+					LoadDirectoriesFromFile(nfo, rootNode);
+				}
+				else 
+				{
+					// 使用Everything SDK生成目录结构
+					if (EverythingWrapper.IsEverythingServiceRunning())
+					{
+						LoadDirectoriesUsingEverything(rootNode);
+					}
+					else
+					{
+						// 如果Everything服务未运行，使用传统方法加载目录
+						LoadDirectoriesRecursively(rootNode, currentDrive);
+					}
+					savetofile(nfo);
+				}
+				rootNode.Expand();
+			}
             catch (Exception ex)
             {
                 MessageBox.Show($"加载目录树时出错: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -247,8 +257,16 @@ namespace zfile
                 Cursor = Cursors.Default;
             }
         }
+		private void savetofile(string filename)
+		{
+			//save 
+		}
+		private void LoadDirectoriesFromFile(string filename, TreeNode node)
+		{
 
-        private void LoadDirectoriesUsingEverything(TreeNode rootNode)
+		}
+
+		private void LoadDirectoriesUsingEverything(TreeNode rootNode)
         {
             // 设置搜索参数
             EverythingWrapper.Everything_SetSearchW($"{currentDrive}*");
@@ -276,7 +294,8 @@ namespace zfile
             Dictionary<string, TreeNode> pathNodes = new Dictionary<string, TreeNode>();
             pathNodes[currentDrive.ToLower()] = rootNode;
 
-            // 处理结果
+			// 处理结果
+			int j = 0;
             for (uint i = 0; i < numResults; i++)
             {
                 if (EverythingWrapper.Everything_IsFolderResult(i))
@@ -290,15 +309,17 @@ namespace zfile
                         continue;
 
                     // 创建目录节点
-                    CreateDirectoryNode(fullPath, pathNodes);
+                    if(CreateDirectoryNode(fullPath, pathNodes))
+						j++;
                 }
             }
+			Debug.Print($"{j} nodes created.");
         }
 
-        private void CreateDirectoryNode(string fullPath, Dictionary<string, TreeNode> pathNodes)
+        private bool CreateDirectoryNode(string fullPath, Dictionary<string, TreeNode> pathNodes)
         {
             string parentPath = Path.GetDirectoryName(fullPath);
-            if (parentPath == null) return;
+            if (parentPath == null) return false;
 
             parentPath = parentPath.ToLower();
             string dirName = Path.GetFileName(fullPath);
@@ -320,6 +341,7 @@ namespace zfile
                 pathNodes[fullPath.ToLower()] = dirNode;
                 directoryNodes[fullPath.ToLower()] = dirNode;
             }
+			return true;
         }
 
         private void LoadDirectoriesRecursively(TreeNode parentNode, string path, int depth = 0)
@@ -471,5 +493,5 @@ namespace zfile
                 }
             }
         }
-    }
+	}
 }

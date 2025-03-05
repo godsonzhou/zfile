@@ -111,8 +111,8 @@ namespace CmdProcessor
 		}
         private void loadFromConfig(string path, string section, bool iswin)
         {
-            // ¶ÁÈ¡ÅäÖÃÎÄ¼şÖĞµÄ¿ì½İ¼üÓ³Éä£¬Î»ÓÚsection¶ÎÄÚ
-            // ÀıÈç£º[Shortcuts]
+            // ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ĞµÄ¿ï¿½İ¼ï¿½Ó³ï¿½ä£¬Î»ï¿½ï¿½sectionï¿½ï¿½ï¿½ï¿½
+            // ï¿½ï¿½ï¿½ç£º[Shortcuts]
             // cm_copy=Ctrl+C
             // [ShortcutsWin]
             // em_py=Ctrl+Insert
@@ -131,9 +131,9 @@ namespace CmdProcessor
         }
 		public void UpdateKeyMapping(string cmd, string key)
 		{
-			// ¸üĞÂ¿ì½İ¼üÓ³Éä
-			// Èç¹ûÃüÁîÒÑ´æÔÚ£¬Ôò¸üĞÂ¿ì½İ¼ü
-			// Èç¹û¿ì½İ¼üÒÑ´æÔÚ£¬Ôò¸üĞÂÃüÁî
+			// ï¿½ï¿½ï¿½Â¿ï¿½İ¼ï¿½Ó³ï¿½ï¿½
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½ï¿½Ú£ï¿½ï¿½ï¿½ï¿½ï¿½Â¿ï¿½İ¼ï¿½
+			// ï¿½ï¿½ï¿½ï¿½ï¿½İ¼ï¿½ï¿½Ñ´ï¿½ï¿½Ú£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			if (cmdmap.TryGetValue(cmd, out var keydef))
 			{
 				cmdmap.Remove(cmd);
@@ -147,8 +147,8 @@ namespace CmdProcessor
 		}
 		public void SaveKeyMappingToConfigFile()
 		{
-			// ±£´æ¿ì½İ¼üÓ³Éäµ½ÅäÖÃÎÄ¼ş
-			// ÀıÈç£º[Shortcuts]
+			// ï¿½ï¿½ï¿½ï¿½ï¿½İ¼ï¿½Ó³ï¿½äµ½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½
+			// ï¿½ï¿½ï¿½ç£º[Shortcuts]
 			// cm_copy=Ctrl+C
 			// [ShortcutsWin]
 			// em_py=Ctrl+Insert
@@ -183,7 +183,7 @@ namespace CmdProcessor
 		public CmdProc(Form1 owner)
         {
             cmdTable = new CmdTable();
-            InitializeCmdTable(Constants.ZfileCfgPath + "TOTALCMD.INC", Constants.ZfileCfgPath + "WCMD_CHN.INC");//¶ÁÈ¡cm_¿ªÍ·µÄÄÚ²¿ÃüÁîÓëIDµÄ¶ÔÓ¦¹ØÏµ
+            InitializeCmdTable(Constants.ZfileCfgPath + "TOTALCMD.INC", Constants.ZfileCfgPath + "WCMD_CHN.INC");//ï¿½ï¿½È¡cm_ï¿½ï¿½Í·ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½IDï¿½Ä¶ï¿½Ó¦ï¿½ï¿½Ïµ
 			emCmds = Helper.ReadConfigFromFile(Constants.ZfileCfgPath + "Wcmd_chn.ini");
 			this.owner = owner;
         }
@@ -206,7 +206,7 @@ namespace CmdProcessor
 		{
 			ExecCmd(mi.Cmd, mi.Param, mi.Path);
 		}
-        // ´¦ÀíÓÉ²Ëµ¥À¸ºÍ¹¤¾ßÀ¸·¢ÆğµÄ¶¯×÷
+        // ï¿½ï¿½ï¿½ï¿½ï¿½É²Ëµï¿½ï¿½ï¿½ï¿½Í¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¶ï¿½ï¿½ï¿½
         public void ExecCmd(string cmdName, string param = "", string workingdir = "")
         {
 			cmdName = cmdName.Trim();
@@ -233,7 +233,7 @@ namespace CmdProcessor
                 if (cmdItem != null)
                 {
                     Console.WriteLine($"Processing command: {cmdItem}");
-                    // ÔÚÕâÀïÌí¼Ó´¦ÀíÃüÁîµÄÂß¼­
+                    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½
                     ExecCmdByID(cmdItem.Value.CmdId, param);
 					return;
                 }
@@ -249,35 +249,35 @@ namespace CmdProcessor
 				else
 				{
 					if (int.TryParse(cmdName, out cmdId)) { ExecCmdByID(cmdId, param); return; }
-					//¿ÉÄÜÊÇ¿ÉÖ´ĞĞÎÄ¼şÃû³Æ,±ÈÈçregedit.exe, Ö±½ÓÔËĞĞ
+					//ï¿½ï¿½ï¿½ï¿½ï¿½Ç¿ï¿½Ö´ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½regedit.exe, Ö±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 					//if (Path.GetExtension(cmdName).Equals(".exe", StringComparison.OrdinalIgnoreCase))
 					//{
 					//	Process.Start(cmdName);//insufficient permission, bugfix
 					//}
 					//else
 					//{
-					//	// Ê¹ÓÃÏµÍ³Ä¬ÈÏ¹ØÁª³ÌĞò´ò¿ªÎÄ¼ş
+					//	// Ê¹ï¿½ï¿½ÏµÍ³Ä¬ï¿½Ï¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½
 					//	Process.Start(new ProcessStartInfo(cmdName) { UseShellExecute = true });
 					//}
 					try
 					{
-						// Ê¹ÓÃ ProcessStartInfo ÉèÖÃÆô¶¯½ø³ÌµÄÏêÏ¸ĞÅÏ¢
+						// Ê¹ï¿½ï¿½ ProcessStartInfo ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½ï¿½ï¿½Ï¸ï¿½ï¿½Ï¢
 						var startInfo = new ProcessStartInfo
 						{
 							FileName = cmdName,
 							UseShellExecute = true,
-							Verb = "runas" // ÇëÇó¹ÜÀíÔ±È¨ÏŞ
+							Verb = "runas" // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô±È¨ï¿½ï¿½
 						};
 						if (workingdir != "")
 							startInfo.WorkingDirectory = workingdir;
 						if (cmdName.StartsWith("control.exe", StringComparison.OrdinalIgnoreCase))
-							owner.OpenCommandPrompt(cmdName);   //TODO: SHELLEXECUTEHELPER.EXECUTECOMMANDºÏ²¢£¨Ôö¼ÓÁË²ÎÊıµÄ´¦Àí£©
+							owner.OpenCommandPrompt(cmdName);   //TODO: SHELLEXECUTEHELPER.EXECUTECOMMANDï¿½Ï²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë²ï¿½ï¿½ï¿½ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½
 						else
 							Process.Start(startInfo);
 					}
 					catch (Exception ex)
 					{
-						MessageBox.Show($"ÎŞ·¨Æô¶¯½ø³Ì: {ex.Message}", "´íÎó", MessageBoxButtons.OK, MessageBoxIcon.Error);
+						MessageBox.Show($"ï¿½Ş·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: {ex.Message}", "ï¿½ï¿½ï¿½ï¿½", MessageBoxButtons.OK, MessageBoxIcon.Error);
 					}
 				}
             }
@@ -289,7 +289,7 @@ namespace CmdProcessor
 			if (cmdItem != null)
             {
                 Console.WriteLine($"Processing command: {cmdItem}");
-                // ÔÚÕâÀïÌí¼Ó´¦ÀíÃüÁîµÄÂß¼­
+                // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½
                 switch (cmdId)
                 {
 					case 269:   //cm_srcthumbs
@@ -304,6 +304,9 @@ namespace CmdProcessor
 
 					case 490:   //cm_config
 						owner.OpenOptions();
+						break;
+					case 500:   //cm_cdtree
+						ShowDirectoryTreeSearch();
 						break;
 					case 501: // cm_searchfor
                         SearchFiles();
@@ -398,7 +401,7 @@ namespace CmdProcessor
 					case 2400: // cm_multirename
 						ShowMultiRenameDialog();
 						break;
-					case 2924:  //ÃüÁîID=2924,Name=cm_commandbrowserÉĞÎ´ÊµÏÖ
+					case 2924:  //ï¿½ï¿½ï¿½ï¿½ID=2924,Name=cm_commandbrowserï¿½ï¿½Î´Êµï¿½ï¿½
 						ShowCommandBrowser();
 						break;
 					case 2950:
@@ -414,27 +417,27 @@ namespace CmdProcessor
 						Form1.ExitApp();
 						break;
 					default:
-						MessageBox.Show($"ÃüÁîID = {cmdId}, Name = {cmdItem?.CmdName} ÉĞÎ´ÊµÏÖ", "ÌáÊ¾");
+						MessageBox.Show($"ï¿½ï¿½ï¿½ï¿½ID = {cmdId}, Name = {cmdItem?.CmdName} ï¿½ï¿½Î´Êµï¿½ï¿½", "ï¿½ï¿½Ê¾");
                         break;
                 }
             }
             else
             {
-                throw new KeyNotFoundException("ÃüÁîID²»´æÔÚ");
+                throw new KeyNotFoundException("ï¿½ï¿½ï¿½ï¿½IDï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
             }
         }
 		private void ShowCommandBrowser()
 		{
 			var form = new Form
 			{
-				Text = "ÃüÁîä¯ÀÀÆ÷",
+				Text = "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½",
 				Size = new Size(800, 600),
 				StartPosition = FormStartPosition.CenterParent,
 				MinimizeBox = false,
 				MaximizeBox = false
 			};
 
-			// ´´½¨ËÑË÷Ãæ°å
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			var searchPanel = new Panel
 			{
 				Dock = DockStyle.Top,
@@ -445,7 +448,7 @@ namespace CmdProcessor
 			{
 				Location = new Point(10, 10),
 				Width = 200,
-				PlaceholderText = "ËÑË÷ÃüÁî..."
+				PlaceholderText = "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½..."
 			};
 
 			var searchTypeCombo = new ComboBox
@@ -454,12 +457,12 @@ namespace CmdProcessor
 				Width = 120,
 				DropDownStyle = ComboBoxStyle.DropDownList
 			};
-			searchTypeCombo.Items.AddRange(new string[] { "°´IDËÑË÷", "°´Ãû³ÆËÑË÷", "°´ÃèÊöËÑË÷" });
+			searchTypeCombo.Items.AddRange(new string[] { "ï¿½ï¿½IDï¿½ï¿½ï¿½ï¿½", "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½", "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" });
 			searchTypeCombo.SelectedIndex = 0;
 
 			searchPanel.Controls.AddRange(new Control[] { searchBox, searchTypeCombo });
 
-			// ´´½¨ListViewÓÃÓÚÏÔÊ¾ÃüÁî
+			// ï¿½ï¿½ï¿½ï¿½ListViewï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½
 			var listView = new ListView
 			{
 				Dock = DockStyle.Fill,
@@ -469,13 +472,13 @@ namespace CmdProcessor
 				MultiSelect = false
 			};
 
-			// Ìí¼ÓÁĞ
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			listView.Columns.Add("ID", 80);
-			listView.Columns.Add("ÃüÁîÃû³Æ", 200);
-			listView.Columns.Add("ÃèÊö", 250);
-			listView.Columns.Add("ÖĞÎÄÃèÊö", 250);
+			listView.Columns.Add("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½", 200);
+			listView.Columns.Add("ï¿½ï¿½ï¿½ï¿½", 250);
+			listView.Columns.Add("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½", 250);
 
-			// »ñÈ¡ËùÓĞÃüÁî²¢Ìî³äListView
+			// ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½î²¢ï¿½ï¿½ï¿½ListView
 			var commands = cmdTable.GetAll();
 			foreach (var cmd in commands)
 			{
@@ -486,7 +489,7 @@ namespace CmdProcessor
 				listView.Items.Add(item);
 			}
 
-			// Ìí¼ÓËÑË÷¹¦ÄÜ
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			searchBox.TextChanged += (s, e) =>
 			{
 				string searchText = searchBox.Text.ToLower();
@@ -499,10 +502,10 @@ namespace CmdProcessor
 						case 0: // ID
 							match = item.Text.ToLower().Contains(searchText);
 							break;
-						case 1: // Ãû³Æ
+						case 1: // ï¿½ï¿½ï¿½ï¿½
 							match = item.SubItems[1].Text.ToLower().Contains(searchText);
 							break;
-						case 2: // ÃèÊö
+						case 2: // ï¿½ï¿½ï¿½ï¿½
 							match = item.SubItems[2].Text.ToLower().Contains(searchText) ||
 								   item.SubItems[3].Text.ToLower().Contains(searchText);
 							break;
@@ -511,10 +514,10 @@ namespace CmdProcessor
 						SystemColors.WindowText : SystemColors.GrayText;
 					if (match && !foundMatch)
 					{
-						// ÕÒµ½µÚÒ»¸öÆ¥ÅäÏî
+						// ï¿½Òµï¿½ï¿½ï¿½Ò»ï¿½ï¿½Æ¥ï¿½ï¿½ï¿½ï¿½
 						foundMatch = true;
 						item.Selected = true;
-						item.EnsureVisible(); // ¹ö¶¯µ½¿É¼ûÇøÓò
+						item.EnsureVisible(); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¼ï¿½ï¿½ï¿½ï¿½ï¿½
 					}
 					else
 					{
@@ -523,22 +526,22 @@ namespace CmdProcessor
 				}
 			};
 
-			// Ë«»÷ÃüÁîÊ±¸´ÖÆÃüÁîÃû³Æ
+			// Ë«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			listView.DoubleClick += (s, e) =>
 			{
 				if (listView.SelectedItems.Count > 0)
 				{
 					string cmdName = listView.SelectedItems[0].SubItems[1].Text;
 					Clipboard.SetText(cmdName);
-					MessageBox.Show($"ÃüÁî {cmdName} ÒÑ¸´ÖÆµ½¼ôÌù°å", "ÌáÊ¾",
+					MessageBox.Show($"ï¿½ï¿½ï¿½ï¿½ {cmdName} ï¿½Ñ¸ï¿½ï¿½Æµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½", "ï¿½ï¿½Ê¾",
 						MessageBoxButtons.OK, MessageBoxIcon.Information);
 				}
 			};
 
-			// Ìí¼ÓÓÒ¼ü²Ëµ¥
+			// ï¿½ï¿½ï¿½ï¿½ï¿½Ò¼ï¿½ï¿½Ëµï¿½
 			var contextMenu = new ContextMenuStrip();
-			var copyMenuItem = new ToolStripMenuItem("¸´ÖÆÃüÁîÃû³Æ");
-			var execMenuItem = new ToolStripMenuItem("Ö´ĞĞÃüÁî");
+			var copyMenuItem = new ToolStripMenuItem("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
+			var execMenuItem = new ToolStripMenuItem("Ö´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
 			copyMenuItem.Click += (s, e) =>
 			{
 				if (listView.SelectedItems.Count > 0)
@@ -560,16 +563,16 @@ namespace CmdProcessor
 			contextMenu.Items.AddRange(new ToolStripItem[] { copyMenuItem, execMenuItem });
 			listView.ContextMenuStrip = contextMenu;
 
-			// Ìí¼Ó¿Ø¼şµ½´°Ìå
+			// ï¿½ï¿½ï¿½Ó¿Ø¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			form.Controls.Add(listView);
 			form.Controls.Add(searchPanel);
-			// ÉèÖÃ³õÊ¼½¹µã
+			// ï¿½ï¿½ï¿½Ã³ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½
 			form.Load += (s, e) => searchBox.Focus();
-			// ÏÔÊ¾´°Ìå
+			// ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½
 			form.ShowDialog();
 		}
 
-		// Ìí¼ÓĞÂ·½·¨ÊµÏÖË¢ĞÂ¹¦ÄÜ
+		// ï¿½ï¿½ï¿½ï¿½ï¿½Â·ï¿½ï¿½ï¿½Êµï¿½ï¿½Ë¢ï¿½Â¹ï¿½ï¿½ï¿½
 		private void do_cm_rereadsource()
 		{
 			var listView = owner.activeListView;
@@ -577,12 +580,12 @@ namespace CmdProcessor
 
 			try
 			{
-				// Ë¢ĞÂµ±Ç°Ãæ°å
+				// Ë¢ï¿½Âµï¿½Ç°ï¿½ï¿½ï¿½
 				owner.RefreshPanel();
 			}
 			catch (Exception ex)
 			{
-				MessageBox.Show($"Ë¢ĞÂÄ¿Â¼Ê§°Ü: {ex.Message}", "´íÎó",
+				MessageBox.Show($"Ë¢ï¿½ï¿½Ä¿Â¼Ê§ï¿½ï¿½: {ex.Message}", "ï¿½ï¿½ï¿½ï¿½",
 					MessageBoxButtons.OK, MessageBoxIcon.Error);
 			}
 		}
@@ -590,6 +593,18 @@ namespace CmdProcessor
 		{
 			owner.fsManager.isDirBranchMode = !owner.fsManager.isDirBranchMode;
 			owner.RefreshPanel();
+		}
+
+		private void ShowDirectoryTreeSearch()
+		{
+			// è·å–å½“å‰é©±åŠ¨å™¨
+			string currentDrive = Path.GetPathRoot(owner.currentDirectory);
+			if (string.IsNullOrEmpty(currentDrive))
+				currentDrive = "C:\\";
+
+			// åˆ›å»ºå¹¶æ˜¾ç¤ºç›®å½•æ ‘æŸ¥æ‰¾çª—å£
+			var treeSearchForm = new DirectoryTreeSearchForm(owner, currentDrive);
+			treeSearchForm.ShowDialog();
 		}
 		// È«Ñ¡
 		private void do_cm_SelectAll()
@@ -602,7 +617,7 @@ namespace CmdProcessor
 			}
 		}
 
-		// È¡ÏûÈ«Ñ¡
+		// È¡ï¿½ï¿½È«Ñ¡
 		private void do_cm_ClearAll()
 		{
 			var lv = owner.activeListView;
@@ -613,7 +628,7 @@ namespace CmdProcessor
 			}
 		}
 
-		// ·´Ñ¡
+		// ï¿½ï¿½Ñ¡
 		private void do_cm_InvertSelection()
 		{
 			var lv = owner.activeListView;
@@ -624,7 +639,7 @@ namespace CmdProcessor
 			}
 		}
 
-		// Ñ¡ÔñÏàÍ¬À©Õ¹ÃûÎÄ¼ş
+		// Ñ¡ï¿½ï¿½ï¿½ï¿½Í¬ï¿½ï¿½Õ¹ï¿½ï¿½ï¿½Ä¼ï¿½
 		private void do_cm_SelectByExt()
 		{
 			var lv = owner.activeListView;
@@ -640,10 +655,10 @@ namespace CmdProcessor
 			}
 		}
 
-		// ´æ´¢µÄÑ¡Ôñ¼¯ºÏ
+		// ï¿½æ´¢ï¿½ï¿½Ñ¡ï¿½ñ¼¯ºï¿½
 		private List<string> savedSelection = new();
 
-		// ±£´æÑ¡Ôñ
+		// ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½
 		private void do_cm_SaveSelection()
 		{
 			var lv = owner.activeListView;
@@ -656,7 +671,7 @@ namespace CmdProcessor
 			}
 		}
 
-		// »Ö¸´Ñ¡Ôñ
+		// ï¿½Ö¸ï¿½Ñ¡ï¿½ï¿½
 		private void do_cm_RestoreSelection()
 		{
 			var lv = owner.activeListView;
@@ -668,7 +683,7 @@ namespace CmdProcessor
 			}
 		}
 
-		// ¸´ÖÆÎÄ¼şÃûµ½¼ôÌù°å
+		// ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		private void do_cm_CopyNamesToClip()
 		{
 			var lv = owner.activeListView;
@@ -679,7 +694,7 @@ namespace CmdProcessor
 			Clipboard.SetText(names);
 		}
 
-		// ¸´ÖÆÍêÕûÂ·¾¶µ½¼ôÌù°å
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		private void do_cm_CopyFullNamesToClip()
 		{
 			var lv = owner.activeListView;
@@ -691,7 +706,7 @@ namespace CmdProcessor
 			Clipboard.SetText(paths);
 		}
 
-		// ¸´ÖÆÎÄ¼şÏêÏ¸ĞÅÏ¢
+		// ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½Ï¢
 		private void do_cm_CopyDetailsToClip()
 		{
 			var lv = owner.activeListView;
@@ -705,7 +720,7 @@ namespace CmdProcessor
 			Clipboard.SetText(details.ToString());
 		}
 
-		// ¸´ÖÆÎÄ¼şÏêÏ¸ĞÅÏ¢¼°ÍêÕûÂ·¾¶
+		// ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â·ï¿½ï¿½
 		private void do_cm_CopyFullDetailsToClip()
 		{
 			var lv = owner.activeListView;
@@ -719,16 +734,16 @@ namespace CmdProcessor
 			}
 			Clipboard.SetText(details.ToString());
 		}
-		// Ìí¼Óµ¼º½ÃüÁîµÄÊµÏÖ
+		// ï¿½ï¿½ï¿½Óµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½
 		private void do_cm_gotopreviousdir()
 		{
 			if (owner.backStack.Count > 0)
 			{
-				// ½«µ±Ç°Ä¿Â¼´æÈëÇ°½øÕ»
+				// ï¿½ï¿½ï¿½ï¿½Ç°Ä¿Â¼ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½Õ»
 				owner.forwardStack.Push(owner.currentDirectory);
-				// ´ÓºóÍËÕ»»ñÈ¡ÉÏÒ»¸öÄ¿Â¼
+				// ï¿½Óºï¿½ï¿½ï¿½Õ»ï¿½ï¿½È¡ï¿½ï¿½Ò»ï¿½ï¿½Ä¿Â¼
 				string previousPath = owner.backStack.Pop();
-				// µ¼º½µ½¸ÃÄ¿Â¼£¬µ«²»¼ÇÂ¼µ½ÀúÊ·£¨±ÜÃâÖØ¸´¼ÇÂ¼£©
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿Â¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½Ê·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¸ï¿½ï¿½ï¿½Â¼ï¿½ï¿½
 				owner.NavigateToPath(previousPath, false);
 			}
 		}
@@ -737,11 +752,11 @@ namespace CmdProcessor
 		{
 			if (owner.forwardStack.Count > 0)
 			{
-				// ½«µ±Ç°Ä¿Â¼´æÈëºóÍËÕ»
+				// ï¿½ï¿½ï¿½ï¿½Ç°Ä¿Â¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ»
 				owner.backStack.Push(owner.currentDirectory);
-				// ´ÓÇ°½øÕ»»ñÈ¡ÏÂÒ»¸öÄ¿Â¼
+				// ï¿½ï¿½Ç°ï¿½ï¿½Õ»ï¿½ï¿½È¡ï¿½ï¿½Ò»ï¿½ï¿½Ä¿Â¼
 				string nextPath = owner.forwardStack.Pop();
-				// µ¼º½µ½¸ÃÄ¿Â¼£¬µ«²»¼ÇÂ¼µ½ÀúÊ·£¨±ÜÃâÖØ¸´¼ÇÂ¼£©
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿Â¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½Ê·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¸ï¿½ï¿½ï¿½Â¼ï¿½ï¿½
 				owner.NavigateToPath(nextPath, false);
 			}
 		}
@@ -751,13 +766,13 @@ namespace CmdProcessor
 			string? parentPath = Path.GetDirectoryName(owner.currentDirectory);
 			if (!string.IsNullOrEmpty(parentPath))
 			{
-				// ¼ÇÂ¼µ±Ç°Ä¿Â¼µ½ÀúÊ·
+				// ï¿½ï¿½Â¼ï¿½ï¿½Ç°Ä¿Â¼ï¿½ï¿½ï¿½ï¿½Ê·
 				owner.RecordDirectoryHistory(parentPath);
-				// µ¼º½µ½¸¸Ä¿Â¼
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿Â¼
 				owner.NavigateToPath(parentPath);
 			}
 		}
-		// ¸´ÖÆÑ¡ÖĞµÄÎÄ¼ş
+		// ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½Ğµï¿½ï¿½Ä¼ï¿½
 		private bool CopySelectedFiles()
         {
             var listView = owner.activeListView;
@@ -769,7 +784,7 @@ namespace CmdProcessor
                 .Select(item => Helper.GetListItemPath(item))
                 .ToArray();
 
-            // TODO: ÏÔÊ¾¸´ÖÆ¶Ô»°¿ò£¬ÈÃÓÃ»§Ñ¡ÔñÄ¿±êÂ·¾¶
+            // TODO: ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½Æ¶Ô»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½Ñ¡ï¿½ï¿½Ä¿ï¿½ï¿½Â·ï¿½ï¿½
             var targetTree = owner.uiManager.isleft ? owner.uiManager.RightTree : owner.uiManager.LeftTree;
             var targetPath = Helper.getFSpath(targetTree.SelectedNode.FullPath);
             var isSamePath = targetPath.Equals(srcPath);
@@ -804,12 +819,12 @@ namespace CmdProcessor
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"¸´ÖÆÎÄ¼şÊ§°Ü: {ex.Message}", "´íÎó");
+                MessageBox.Show($"ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½Ê§ï¿½ï¿½: {ex.Message}", "ï¿½ï¿½ï¿½ï¿½");
                 return false;
             }
         }
 
-        // ÒÆ¶¯Ñ¡ÖĞµÄÎÄ¼ş
+        // ï¿½Æ¶ï¿½Ñ¡ï¿½Ğµï¿½ï¿½Ä¼ï¿½
         public void MoveSelectedFiles()
         {
             var listView = owner.activeListView;
@@ -824,7 +839,7 @@ namespace CmdProcessor
             var targetPath = Helper.getFSpath(targettree.SelectedNode.FullPath);
             if (string.IsNullOrEmpty(targetPath))
             {
-                MessageBox.Show("ÎŞĞ§µÄÄ¿±êÂ·¾¶", "´íÎó");
+                MessageBox.Show("ï¿½ï¿½Ğ§ï¿½ï¿½Ä¿ï¿½ï¿½Â·ï¿½ï¿½", "ï¿½ï¿½ï¿½ï¿½");
                 return;
             }
             if (srcpath.Equals(targetPath))
@@ -839,11 +854,11 @@ namespace CmdProcessor
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"ÒÆ¶¯ÎÄ¼şÊ§°Ü: {ex.Message}", "´íÎó");
+                MessageBox.Show($"ï¿½Æ¶ï¿½ï¿½Ä¼ï¿½Ê§ï¿½ï¿½: {ex.Message}", "ï¿½ï¿½ï¿½ï¿½");
             }
         }
 
-        // É¾³ıÑ¡ÖĞµÄÎÄ¼ş
+        // É¾ï¿½ï¿½Ñ¡ï¿½Ğµï¿½ï¿½Ä¼ï¿½
         private void DeleteSelectedFiles(bool needConfirm = true)
         {
             Debug.Print("Delete files : >>");
@@ -857,8 +872,8 @@ namespace CmdProcessor
             if (needConfirm)
             {
                 result = MessageBox.Show(
-                    $"È·¶¨ÒªÉ¾³ıÑ¡ÖĞµÄ {files.Length} ¸öÎÄ¼şÂğ£¿",
-                    "È·ÈÏÉ¾³ı",
+                    $"È·ï¿½ï¿½ÒªÉ¾ï¿½ï¿½Ñ¡ï¿½Ğµï¿½ {files.Length} ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½",
+                    "È·ï¿½ï¿½É¾ï¿½ï¿½",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question
                 );
@@ -885,13 +900,13 @@ namespace CmdProcessor
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"É¾³ıÎÄ¼şÊ§°Ü: {ex.Message}", "´íÎó");
+                    MessageBox.Show($"É¾ï¿½ï¿½ï¿½Ä¼ï¿½Ê§ï¿½ï¿½: {ex.Message}", "ï¿½ï¿½ï¿½ï¿½");
                 }
             }
         }
 
-        // ´´½¨ĞÂÎÄ¼ş¼Ğ
-        private void CreateNewFolder(string folderName = "ĞÂ½¨ÎÄ¼ş¼Ğ")
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
+        private void CreateNewFolder(string folderName = "ï¿½Â½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½")
         {
             var path = owner.currentDirectory;
             var newFolderPath = Path.Combine(path, folderName);
@@ -900,7 +915,7 @@ namespace CmdProcessor
             owner.RefreshPanel(owner.activeListView);
         }
 
-        // ÖØÃüÃûÑ¡ÖĞµÄÎÄ¼ş»òÎÄ¼ş¼Ğ
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½Ğµï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
         private void RenameSelected()
         {
             var listView = owner.activeListView;
@@ -908,16 +923,16 @@ namespace CmdProcessor
 
             var selectedItem = listView.SelectedItems[0];
 
-            // ÆôÓÃ±à¼­Ä£Ê½
+            // ï¿½ï¿½ï¿½Ã±à¼­Ä£Ê½
             selectedItem.BeginEdit();
         }
 
-        // ËÑË÷ÎÄ¼ş
+        // ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½
         private void SearchFiles()
         {
             var searchForm = new Form
             {
-                Text = "ËÑË÷ÎÄ¼ş",
+                Text = "ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½",
                 Size = new Size(400, 200),
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 StartPosition = FormStartPosition.CenterParent,
@@ -929,12 +944,12 @@ namespace CmdProcessor
             {
                 Location = new Point(10, 10),
                 Size = new Size(360, 20),
-                PlaceholderText = "ÊäÈëËÑË÷¹Ø¼ü´Ê"
+                PlaceholderText = "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ï¿½ï¿½"
             };
 
             var searchButton = new Button
             {
-                Text = "ËÑË÷",
+                Text = "ï¿½ï¿½ï¿½ï¿½",
                 Location = new Point(150, 100),
                 DialogResult = DialogResult.OK
             };
@@ -952,7 +967,7 @@ namespace CmdProcessor
                     var files = Directory.GetFiles(searchPath, $"*{searchPattern}*", SearchOption.AllDirectories);
                     var results = new Form
                     {
-                        Text = "ËÑË÷½á¹û",
+                        Text = "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½",
                         Size = new Size(600, 400),
                         StartPosition = FormStartPosition.CenterParent
                     };
@@ -963,8 +978,8 @@ namespace CmdProcessor
                         View = View.Details
                     };
 
-                    resultList.Columns.Add("ÎÄ¼şÃû", 200);
-                    resultList.Columns.Add("Â·¾¶", 350);
+                    resultList.Columns.Add("ï¿½Ä¼ï¿½ï¿½ï¿½", 200);
+                    resultList.Columns.Add("Â·ï¿½ï¿½", 350);
 
                     foreach (var file in files)
                     {
@@ -978,12 +993,12 @@ namespace CmdProcessor
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"ËÑË÷ÎÄ¼şÊ±³ö´í: {ex.Message}", "´íÎó");
+                    MessageBox.Show($"ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½Ê±ï¿½ï¿½ï¿½ï¿½: {ex.Message}", "ï¿½ï¿½ï¿½ï¿½");
                 }
             }
         }
 
-        // ÏÔÊ¾ÎÄ¼şÊôĞÔ
+        // ï¿½ï¿½Ê¾ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½
         private void ShowFileProperties()
         {
             var listView = owner.activeListView;
@@ -996,24 +1011,24 @@ namespace CmdProcessor
             {
                 var info = new FileInfo(filePath);
                 var sb = new StringBuilder();
-                sb.AppendLine($"Ãû³Æ: {info.Name}");
-                sb.AppendLine($"ÀàĞÍ: {(info.Attributes.HasFlag(FileAttributes.Directory) ? "ÎÄ¼ş¼Ğ" : "ÎÄ¼ş")}");
-                sb.AppendLine($"Î»ÖÃ: {info.DirectoryName}");
-                sb.AppendLine($"´óĞ¡: {FormatFileSize(info.Length)}");
-                sb.AppendLine($"´´½¨Ê±¼ä: {info.CreationTime}");
-                sb.AppendLine($"ĞŞ¸ÄÊ±¼ä: {info.LastWriteTime}");
-                sb.AppendLine($"·ÃÎÊÊ±¼ä: {info.LastAccessTime}");
-                sb.AppendLine($"ÊôĞÔ: {info.Attributes}");
+                sb.AppendLine($"ï¿½ï¿½ï¿½ï¿½: {info.Name}");
+                sb.AppendLine($"ï¿½ï¿½ï¿½ï¿½: {(info.Attributes.HasFlag(FileAttributes.Directory) ? "ï¿½Ä¼ï¿½ï¿½ï¿½" : "ï¿½Ä¼ï¿½")}");
+                sb.AppendLine($"Î»ï¿½ï¿½: {info.DirectoryName}");
+                sb.AppendLine($"ï¿½ï¿½Ğ¡: {FormatFileSize(info.Length)}");
+                sb.AppendLine($"ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½: {info.CreationTime}");
+                sb.AppendLine($"ï¿½Ş¸ï¿½Ê±ï¿½ï¿½: {info.LastWriteTime}");
+                sb.AppendLine($"ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½: {info.LastAccessTime}");
+                sb.AppendLine($"ï¿½ï¿½ï¿½ï¿½: {info.Attributes}");
 
-                MessageBox.Show(sb.ToString(), "ÎÄ¼şÊôĞÔ", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(sb.ToString(), "ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"ÎŞ·¨»ñÈ¡ÎÄ¼şÊôĞÔ: {ex.Message}", "´íÎó");
+                MessageBox.Show($"ï¿½Ş·ï¿½ï¿½ï¿½È¡ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½: {ex.Message}", "ï¿½ï¿½ï¿½ï¿½");
             }
         }
 
-        // ¸ñÊ½»¯ÎÄ¼ş´óĞ¡
+        // ï¿½ï¿½Ê½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½Ğ¡
         private string FormatFileSize(long bytes)
         {
             string[] sizes = { "B", "KB", "MB", "GB", "TB" };
@@ -1027,13 +1042,13 @@ namespace CmdProcessor
             return $"{size:0.##} {sizes[order]}";
         }
 
-        // ±È½ÏÎÄ¼ş
+        // ï¿½È½ï¿½ï¿½Ä¼ï¿½
         private void CompareFiles()
         {
             var listView = owner.activeListView;
             if (listView == null || listView.SelectedItems.Count != 2)
             {
-                MessageBox.Show("ÇëÑ¡ÔñÁ½¸öÎÄ¼ş½øĞĞ±È½Ï", "ÌáÊ¾");
+                MessageBox.Show("ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Ğ±È½ï¿½", "ï¿½ï¿½Ê¾");
                 return;
             }
 
@@ -1044,13 +1059,13 @@ namespace CmdProcessor
             {
                 if (!File.Exists(file1) || !File.Exists(file2))
                 {
-                    MessageBox.Show("ËùÑ¡ÎÄ¼ş²»´æÔÚ", "´íÎó");
+                    MessageBox.Show("ï¿½ï¿½Ñ¡ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½", "ï¿½ï¿½ï¿½ï¿½");
                     return;
                 }
 
                 var form = new Form
                 {
-                    Text = "ÎÄ¼ş±È½Ï",
+                    Text = "ï¿½Ä¼ï¿½ï¿½È½ï¿½",
                     Size = new Size(800, 600),
                     StartPosition = FormStartPosition.CenterScreen
                 };
@@ -1079,22 +1094,22 @@ namespace CmdProcessor
                 splitContainer.Panel2.Controls.Add(textBox2);
                 form.Controls.Add(splitContainer);
 
-                // ¶ÁÈ¡ÎÄ¼şÄÚÈİ
+                // ï¿½ï¿½È¡ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½
                 textBox1.Text = File.ReadAllText(file1);
                 textBox2.Text = File.ReadAllText(file2);
 
-                // ¸ßÁÁÏÔÊ¾²îÒì
+                // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½
                 HighlightDifferences(textBox1, textBox2);
 
                 form.Show();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"±È½ÏÎÄ¼şÊ±³ö´í: {ex.Message}", "´íÎó");
+                MessageBox.Show($"ï¿½È½ï¿½ï¿½Ä¼ï¿½Ê±ï¿½ï¿½ï¿½ï¿½: {ex.Message}", "ï¿½ï¿½ï¿½ï¿½");
             }
         }
 
-        // ¸ßÁÁÏÔÊ¾ÎÄ±¾²îÒì
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½Ä±ï¿½ï¿½ï¿½ï¿½ï¿½
         private void HighlightDifferences(RichTextBox box1, RichTextBox box2)
         {
             var lines1 = box1.Text.Split('\n');
@@ -1124,7 +1139,7 @@ namespace CmdProcessor
             }
         }
 
-        // ´ò°üÎÄ¼ş
+        // ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½
         private void PackFiles()
         {
             var listView = owner.activeListView;
@@ -1132,15 +1147,15 @@ namespace CmdProcessor
             var targetfile = Path.Combine(owner.currentDirectory, listView.SelectedItems[0].Text) + ".zip";
             if (File.Exists(targetfile))
             {
-                if (MessageBox.Show($"{targetfile} ÒÑ´æÔÚ£¬ÊÇ·ñÌæ»»£¿", "Warning", MessageBoxButtons.YesNo) != DialogResult.Yes)
+                if (MessageBox.Show($"{targetfile} ï¿½Ñ´ï¿½ï¿½Ú£ï¿½ï¿½Ç·ï¿½ï¿½æ»»ï¿½ï¿½", "Warning", MessageBoxButtons.YesNo) != DialogResult.Yes)
                     return;
                 else
                     File.Delete(targetfile);    //delete the old zip file
             }
             //var saveDialog = new SaveFileDialog
             //{
-            //    Filter = "ZIP ÎÄ¼ş|*.zip|ËùÓĞÎÄ¼ş|*.*",
-            //    Title = "Ñ¡Ôñ±£´æÎ»ÖÃ"
+            //    Filter = "ZIP ï¿½Ä¼ï¿½|*.zip|ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½|*.*",
+            //    Title = "Ñ¡ï¿½ñ±£´ï¿½Î»ï¿½ï¿½"
             //};
 
             //if (saveDialog.ShowDialog() == DialogResult.OK)
@@ -1159,17 +1174,17 @@ namespace CmdProcessor
                         System.IO.Compression.CompressionLevel.Optimal,
                         true);
 
-                    MessageBox.Show("ÎÄ¼ş´ò°üÍê³É", "ÌáÊ¾");
+                    MessageBox.Show("ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½", "ï¿½ï¿½Ê¾");
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"´ò°üÎÄ¼şÊ±³ö´í: {ex.Message}", "´íÎó");
+                    MessageBox.Show($"ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½Ê±ï¿½ï¿½ï¿½ï¿½: {ex.Message}", "ï¿½ï¿½ï¿½ï¿½");
                 }
             }
             owner.RefreshPanel(listView);
         }
 
-        // ½âÑ¹ÎÄ¼ş
+        // ï¿½ï¿½Ñ¹ï¿½Ä¼ï¿½
         private void UnpackFiles()
         {
             var listView = owner.activeListView;
@@ -1178,15 +1193,15 @@ namespace CmdProcessor
             var selectedItem = listView.SelectedItems[0];
             var zipPath = Path.Combine(owner.currentDirectory, selectedItem.Text);
 
-            if (!zipPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))		//TODO:ÆäËûÑ¹Ëõ¸ñÊ½µÄÖ§³Ö£¬Ê¹ÓÃ²å¼ş
+            if (!zipPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))		//TODO:ï¿½ï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½Ö§ï¿½Ö£ï¿½Ê¹ï¿½Ã²ï¿½ï¿½
             {
-                MessageBox.Show("ÇëÑ¡Ôñ ZIP ÎÄ¼ş", "ÌáÊ¾");
+                MessageBox.Show("ï¿½ï¿½Ñ¡ï¿½ï¿½ ZIP ï¿½Ä¼ï¿½", "ï¿½ï¿½Ê¾");
                 return;
             }
 
             var folderDialog = new FolderBrowserDialog
             {
-                Description = "Ñ¡Ôñ½âÑ¹Ä¿±êÎÄ¼ş¼Ğ"
+                Description = "Ñ¡ï¿½ï¿½ï¿½Ñ¹Ä¿ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½"
             };
 
             if (folderDialog.ShowDialog() == DialogResult.OK)
@@ -1199,11 +1214,11 @@ namespace CmdProcessor
                         Encoding.GetEncoding("GB2312"),
                         true);
 
-                    MessageBox.Show("ÎÄ¼ş½âÑ¹Íê³É", "ÌáÊ¾");
+                    MessageBox.Show("ï¿½Ä¼ï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½", "ï¿½ï¿½Ê¾");
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"½âÑ¹ÎÄ¼şÊ±³ö´í: {ex.Message}", "´íÎó");
+                    MessageBox.Show($"ï¿½ï¿½Ñ¹ï¿½Ä¼ï¿½Ê±ï¿½ï¿½ï¿½ï¿½: {ex.Message}", "ï¿½ï¿½ï¿½ï¿½");
                 }
             }
         }
@@ -1213,7 +1228,7 @@ namespace CmdProcessor
             var listView = owner.activeListView;
 			if (listView == null || listView.SelectedItems.Count == 0)
 			{
-				MessageBox.Show("Ã»ÓĞÑ¡ÖĞÎÄ¼ş");
+				MessageBox.Show("Ã»ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½Ä¼ï¿½");
 				return;
 			}
             using var dialog = new MultiRenameForm(listView, owner.currentDirectory);

@@ -25,12 +25,19 @@ namespace zfile
         private Dictionary<string, TreeNode> directoryNodes = new Dictionary<string, TreeNode>();
 		List<TreeNode> matchingNodes = new();
 		private int idx;
+		// 在类的字段部分添加
+		private FlowLayoutPanel driveFlowLayoutPanel;
+		private Color originalNodeForeColor;
+		private TreeNode? lastHighlightedNode;
+
 		public DirectoryTreeSearchForm(Form1 owner, string drive)
         {
             ownerForm = owner;
             currentDrive = drive;
-            InitializeComponent();
-            LoadDirectoryTree();
+			originalNodeForeColor = SystemColors.WindowText;
+			InitializeComponent();
+			LoadDriveButtons();
+			LoadDirectoryTree();
         }
 
         private void InitializeComponent()
@@ -42,8 +49,22 @@ namespace zfile
             this.MaximizeBox = false;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
 
-            // 创建搜索框和按钮面板
-            Panel topPanel = new Panel
+			// 创建最上层的面板来容纳所有控件
+			Panel mainPanel = new Panel
+			{
+				Dock = DockStyle.Fill
+			};
+
+			// 在 InitializeComponent 方法中添加 driveFlowLayoutPanel 的初始化代码，放在 topPanel 之前
+			driveFlowLayoutPanel = new FlowLayoutPanel
+			{
+				Dock = DockStyle.Top,
+				Height = 35,
+				Padding = new Padding(5),
+				AutoScroll = true
+			};
+			// 创建搜索框和按钮面板
+			Panel topPanel = new Panel
             {
                 Dock = DockStyle.Top,
                 Height = 40
@@ -116,16 +137,79 @@ namespace zfile
             bottomPanel.Controls.Add(okButton);
             bottomPanel.Controls.Add(cancelButton);
 
-            // 添加控件到窗体
-            this.Controls.Add(treeView);
-            this.Controls.Add(topPanel);
-            this.Controls.Add(bottomPanel);
+			// 添加控件到窗体
+			// 按照从下到上的顺序添加控件到主面板
+			mainPanel.Controls.Add(treeView);         // 先添加树视图（Fill）
+			mainPanel.Controls.Add(topPanel);         // 再添加搜索面板（Top）
+			mainPanel.Controls.Add(driveFlowLayoutPanel); // 最后添加驱动器面板（Top）
+
+			//this.Controls.Add(driveFlowLayoutPanel);
+			//this.Controls.Add(treeView);
+			//         this.Controls.Add(topPanel);
+			this.Controls.Add(bottomPanel);
+            this.Controls.Add(mainPanel);
 
             this.AcceptButton = okButton;
             this.CancelButton = cancelButton;
         }
 
-        private void LoadDirectoryTree()
+		// 添加加载驱动器按钮的方法
+		private void LoadDriveButtons()
+		{
+			driveFlowLayoutPanel.Controls.Clear();
+
+			foreach (DriveInfo drive in DriveInfo.GetDrives())
+			{
+				if (drive.IsReady)
+				{
+					Button driveButton = new Button
+					{
+						Text = $"{drive.Name} ({drive.VolumeLabel})",
+						Tag = drive.Name,
+						Width = 100,
+						Height = 25,
+						Margin = new Padding(2)
+					};
+
+					driveButton.Click += DriveButton_Click;
+
+					// 高亮显示当前选中的驱动器
+					if (drive.Name.Equals(currentDrive, StringComparison.OrdinalIgnoreCase))
+					{
+						driveButton.BackColor = SystemColors.Highlight;
+						driveButton.ForeColor = Color.White;
+					}
+
+					driveFlowLayoutPanel.Controls.Add(driveButton);
+				}
+			}
+		}
+
+		// 添加驱动器按钮点击事件处理
+		private void DriveButton_Click(object sender, EventArgs e)
+		{
+			if (sender is Button button)
+			{
+				string selectedDrive = button.Tag.ToString();
+				if (selectedDrive != currentDrive)
+				{
+					currentDrive = selectedDrive;
+					LoadDirectoryTree();
+
+					// 更新按钮外观
+					foreach (Control control in driveFlowLayoutPanel.Controls)
+					{
+						if (control is Button driveBtn)
+						{
+							bool isSelected = driveBtn.Tag.ToString() == currentDrive;
+							driveBtn.BackColor = isSelected ? SystemColors.Highlight : SystemColors.Control;
+							driveBtn.ForeColor = isSelected ? Color.White : SystemColors.ControlText;
+						}
+					}
+				}
+			}
+		}
+		private void LoadDirectoryTree()
         {
             treeView.Nodes.Clear();
             directoryNodes.Clear();
@@ -279,7 +363,14 @@ namespace zfile
 
         private void SearchBox_TextChanged(object sender, EventArgs e)
         {
-            string searchText = searchBox.Text.ToLower();
+			// 清除上一次的高亮显示
+			if (lastHighlightedNode != null)
+			{
+				lastHighlightedNode.ForeColor = originalNodeForeColor;
+				lastHighlightedNode.BackColor = Color.Transparent;
+			}
+
+			string searchText = searchBox.Text.ToLower();
             if (string.IsNullOrWhiteSpace(searchText))
             {
                 // 如果搜索框为空，恢复所有节点
@@ -306,7 +397,12 @@ namespace zfile
                 TreeNode firstMatch = matchingNodes[0];
                 treeView.SelectedNode = firstMatch;
                 firstMatch.EnsureVisible();
-            }
+
+				// 高亮显示匹配节点
+				firstMatch.ForeColor = Color.White;
+				firstMatch.BackColor = SystemColors.Highlight;
+				lastHighlightedNode = firstMatch;
+			}
 			idx = 0;
         }
 
@@ -324,11 +420,22 @@ namespace zfile
 		{
 			if (matchingNodes.Count > 0)
 			{
+				// 清除上一次的高亮显示
+				if (lastHighlightedNode != null)
+				{
+					lastHighlightedNode.ForeColor = originalNodeForeColor;
+					lastHighlightedNode.BackColor = Color.Transparent;
+				}
 				idx++;
 				idx %= matchingNodes.Count;
 				TreeNode firstMatch = matchingNodes[idx];
 				treeView.SelectedNode = firstMatch;
 				firstMatch.EnsureVisible();
+				// 高亮显示当前匹配节点
+				firstMatch.ForeColor = Color.White;
+				firstMatch.BackColor = SystemColors.Highlight;
+				lastHighlightedNode = firstMatch;
+				treeView.Refresh();
 			}
 		}
         private void TreeView_AfterSelect(object sender, TreeViewEventArgs e)

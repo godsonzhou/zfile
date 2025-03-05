@@ -41,139 +41,6 @@ namespace CmdProcessor
 		}
 	}
 
-	public class KeyDef(string key, string cmd)
-	{
-		public string Key { get; set; } = key;
-		public string Cmd { get; set; } = cmd;
-		public bool HasShift => Key.Contains('+') && Key.Split('+')[0].Contains("S", StringComparison.OrdinalIgnoreCase);
-
-		public bool HasCtrl => Key.Contains('+') && Key.Split('+')[0].Contains("C", StringComparison.OrdinalIgnoreCase);
-		public bool HasAlt => Key.Contains('+') && Key.Split('+')[0].Contains("A", StringComparison.OrdinalIgnoreCase);
-		public bool HasWin => Key.Contains('+') && Key.Split('+')[0].Contains("#", StringComparison.OrdinalIgnoreCase);
-	}
-
-	public class KeyMgr
-	{
-		public Dictionary<string, KeyDef> keymap = [];
-		public Dictionary<string, KeyDef> cmdmap = [];
-		private bool keymapChanged = false;
-		public KeyMgr()
-		{
-			loadFromConfig("wincmd.ini", "Shortcuts", false);
-			loadFromConfig("wincmd.ini", "ShortcutsWin", true);
-		}
-		public string GetCmdByKey(string key)
-		{
-			if (keymap.TryGetValue(key, out var keydef))
-				return keydef.Cmd;
-			return "";
-		}
-		public void Add(string key, string cmd, bool iswin)
-		{
-			var keydef = new KeyDef(iswin ? "#" + key : key, cmd);
-			keymap[key] = keydef;
-			cmdmap[cmd] = keydef;
-		}
-		public KeyDef? GetByKey(string key)
-		{
-			if (keymap.TryGetValue(key, out var result))
-				return result;
-			return null;
-		}
-		public KeyDef? GetByCmd(string cmd)
-		{
-			if (cmdmap.TryGetValue(cmd, out var result))
-				return result;
-			return null;
-		}
-		public void Remove(string cmd)
-		{
-			var keydef = GetByCmd(cmd);
-			keymap.Remove(keydef.Key);
-			cmdmap.Remove(keydef.Cmd);
-		}
-		public void Clear()
-		{
-			keymap.Clear();
-			cmdmap.Clear();
-		}
-		public int Count()
-		{
-			return keymap.Count;
-		}
-		public string[] GetKeys()
-		{
-			return keymap.Keys.ToArray();
-		}
-		public string[] GetCmds()
-		{
-			return cmdmap.Keys.ToArray();
-		}
-		private void loadFromConfig(string path, string section, bool iswin)
-		{
-			// 读取配置文件中的快捷键映射，位于section段内
-			// 例如：[Shortcuts]
-			// cm_copy=Ctrl+C
-			// [ShortcutsWin]
-			// em_py=Ctrl+Insert
-			var cfg = Helper.ReadSectionContent(Constants.ZfileCfgPath + path, section);
-			foreach (var line in cfg)
-			{
-				if (line.Contains('='))
-				{
-					var parts = line.Split('=');
-					if (parts.Length == 2)
-					{
-						Add(parts[0], parts[1].ToLower(), iswin);
-					}
-				}
-			}
-		}
-		public void UpdateKeyMapping(string cmd, string key)
-		{
-			// 更新快捷键映射
-			// 如果命令已存在，则更新快捷键
-			// 如果快捷键已存在，则更新命令
-			if (cmdmap.TryGetValue(cmd, out var keydef))
-			{
-				cmdmap.Remove(cmd);
-			}
-			if (keymap.TryGetValue(key, out _))
-			{
-				keymap.Remove(key);
-			}
-			Add(key, cmd, key.Contains('#'));
-			keymapChanged = true;
-		}
-		public void SaveKeyMappingToConfigFile()
-		{
-			// 保存快捷键映射到配置文件
-			// 例如：[Shortcuts]
-			// cm_copy=Ctrl+C
-			// [ShortcutsWin]
-			// em_py=Ctrl+Insert
-			if (!keymapChanged) return;
-
-			var shortcuts = new List<string>();
-			var shortcutsWin = new List<string>();
-			foreach (var key in keymap)
-			{
-				var cmd = key.Value.Cmd;
-				var keydef = key.Value.Key;
-				if (keydef.Contains("#"))
-				{
-					shortcutsWin.Add($"{keydef}={cmd}");
-				}
-				else
-				{
-					shortcuts.Add($"{keydef}={cmd}");
-				}
-			}
-			Helper.WriteSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "Shortcuts", shortcuts);
-			Helper.WriteSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ShortcutsWin", shortcutsWin);
-		}
-	}
-
 	public class CmdProc
 	{
 		public CmdTable cmdTable;
@@ -345,13 +212,21 @@ namespace CmdProcessor
 					case 530: // cm_SaveSelection
 						do_cm_SaveSelection();
 						break;
+					case 532: // cm_matchsrc
+						do_cm_matchsrc();
+						break;
 					case 540: // cm_rereadsource
 						do_cm_rereadsource();
+						break;
+					case 560: // cm_split
+						do_cm_split(param);
+						break;
+					case 561: // cm_combine
+						do_cm_combine(param);
 						break;
 					case 562: // cm_encode
 						do_cm_encode(param);
 						break;
-
 					case 563: // cm_decode
 						do_cm_decode(param);
 						break;
@@ -440,6 +315,277 @@ namespace CmdProcessor
 				throw new KeyNotFoundException("命令ID不存在");
 			}
 		}
+		private void do_cm_matchsrc()
+		{
+
+		}
+
+		private void do_cm_combine(string param = "")
+		{
+			List<string> filesToCombine;
+			if (string.IsNullOrEmpty(param))
+			{
+				// 如果没有参数，使用当前选中的第一个文件
+				var listView = owner.activeListView;
+				if (listView == null || listView.SelectedItems.Count == 0)
+				{
+					MessageBox.Show("请选择要合并的文件", "提示");
+					return;
+				}
+
+				// 获取选中的第一个文件
+				var firstFile = listView.SelectedItems[0].Text;
+				var directory = owner.currentDirectory;
+				var fileNameWithoutExt = Path.GetFileNameWithoutExtension(firstFile);
+
+				// 如果文件名包含.part，则去掉.part及后面的数字
+				if (fileNameWithoutExt.Contains(".part"))
+				{
+					fileNameWithoutExt = fileNameWithoutExt.Substring(0, fileNameWithoutExt.LastIndexOf(".part"));
+				}
+
+				// 获取所有匹配的文件
+				filesToCombine = Directory.GetFiles(directory, $"{fileNameWithoutExt}.part*")
+					.OrderBy(f => f)
+					.ToList();
+
+				if (filesToCombine.Count == 0)
+				{
+					MessageBox.Show("未找到可合并的文件", "提示");
+					return;
+				}
+			}
+			else
+			{
+				// 使用参数解析文件列表
+				filesToCombine = owner.se.PrepareParameter(param, null, "")
+					.OrderBy(f => f)
+					.ToList();
+			}
+
+			try
+			{
+				// 获取第一个文件的基本信息
+				var firstFile = filesToCombine[0];
+				var directory = Path.GetDirectoryName(firstFile);
+				var extension = Path.GetExtension(firstFile);
+				var fileNameWithoutPartNum = Path.GetFileNameWithoutExtension(firstFile);
+
+				// 如果文件名包含.part，则去掉.part及后面的数字
+				if (fileNameWithoutPartNum.Contains(".part"))
+				{
+					fileNameWithoutPartNum = fileNameWithoutPartNum.Substring(0, fileNameWithoutPartNum.LastIndexOf(".part"));
+				}
+
+				// 构造目标文件路径
+				var targetFile = Path.Combine(directory!, $"{fileNameWithoutPartNum}{extension}");
+
+				// 确认是否覆盖已存在的文件
+				if (File.Exists(targetFile))
+				{
+					var result = MessageBox.Show(
+						$"文件 {Path.GetFileName(targetFile)} 已存在，是否覆盖？",
+						"确认覆盖",
+						MessageBoxButtons.YesNo,
+						MessageBoxIcon.Question
+					);
+
+					if (result != DialogResult.Yes)
+						return;
+				}
+
+				// 合并文件
+				using (var outputStream = new FileStream(targetFile, FileMode.Create))
+				{
+					var buffer = new byte[8192]; // 8KB buffer
+					foreach (var file in filesToCombine)
+					{
+						using var inputStream = new FileStream(file, FileMode.Open, FileAccess.Read);
+						int bytesRead;
+						while ((bytesRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
+						{
+							outputStream.Write(buffer, 0, bytesRead);
+						}
+					}
+				}
+
+				// 询问是否删除源文件
+				var deleteResult = MessageBox.Show(
+					"文件合并完成。是否删除源文件？",
+					"合并完成",
+					MessageBoxButtons.YesNo,
+					MessageBoxIcon.Question
+				);
+
+				if (deleteResult == DialogResult.Yes)
+				{
+					foreach (var file in filesToCombine)
+					{
+						File.Delete(file);
+					}
+				}
+
+				// 刷新当前面板
+				owner.RefreshPanel();
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"合并文件时出错：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+
+		private void do_cm_split(string param = "")
+		{
+			List<string> filesToSplit;
+			if (string.IsNullOrEmpty(param))
+			{
+				// 如果没有参数，使用当前选中的文件
+				var listView = owner.activeListView;
+				if (listView == null || listView.SelectedItems.Count == 0)
+				{
+					MessageBox.Show("请选择要拆分的文件", "提示");
+					return;
+				}
+				filesToSplit = listView.SelectedItems.Cast<ListViewItem>()
+					.Select(item => Path.Combine(owner.currentDirectory, item.Text))
+					.ToList();
+			}
+			else
+			{
+				// 使用参数解析文件列表
+				filesToSplit = owner.se.PrepareParameter(param, null, "");
+			}
+
+			// 创建拆分对话框
+			var splitForm = new Form
+			{
+				Text = "文件拆分",
+				Size = new Size(400, 150),
+				FormBorderStyle = FormBorderStyle.FixedDialog,
+				StartPosition = FormStartPosition.CenterParent,
+				MaximizeBox = false,
+				MinimizeBox = false
+			};
+
+			var sizeLabel = new Label
+			{
+				Text = "选择拆分大小：",
+				Location = new Point(10, 20),
+				AutoSize = true
+			};
+
+			var sizeCombo = new ComboBox
+			{
+				Location = new Point(120, 17),
+				Width = 150,
+				DropDownStyle = ComboBoxStyle.DropDownList
+			};
+
+			//var sizeInput = new TextBox
+			//{
+			//	Location = new Point(120, 37),
+			//	Width = 150
+			//};
+
+			var m = 1024 * 1024;
+			var g = 1024 * m;
+			// 添加常用大小选项
+			var sizeOptions = new Dictionary<string, long>
+			{
+				{"650 MB (CD)", 650L * m},
+				{"700 MB (CD)", 700L * m},
+				{"4.7 GB (DVD)", (long)(4.7 * g)},
+				{"8.5 GB (DVD)", (long)(8.5 * g)},
+				{"自定义...", 0}
+			};
+
+			sizeCombo.Items.AddRange(sizeOptions.Keys.ToArray());
+			sizeCombo.SelectedIndex = 0;
+
+			var splitButton = new Button
+			{
+				Text = "开始拆分",
+				Location = new Point(150, 70),
+				DialogResult = DialogResult.OK
+			};
+
+			splitForm.Controls.AddRange(new Control[] { sizeLabel, sizeCombo,  splitButton });
+			splitForm.AcceptButton = splitButton;
+
+			if (splitForm.ShowDialog() == DialogResult.OK)
+			{
+				var selectedSize = sizeOptions[sizeCombo.SelectedItem.ToString()!];
+
+				// 如果选择自定义大小，弹出输入框
+				if (selectedSize == 0)
+				{
+					var input = Microsoft.VisualBasic.Interaction.InputBox(
+						"请输入拆分大小(MB)：",
+						"自定义大小",
+						"100");
+
+					if (string.IsNullOrEmpty(input) || !long.TryParse(input, out long customSize))
+						return;
+
+					selectedSize = customSize * 1024 * 1024; // 转换为字节
+				}
+
+				// 处理每个选中的文件
+				foreach (var filePath in filesToSplit)
+				{
+					try
+					{
+						SplitFile(filePath, selectedSize);
+					}
+					catch (Exception ex)
+					{
+						MessageBox.Show($"拆分文件 {Path.GetFileName(filePath)} 时出错：{ex.Message}", "错误");
+					}
+				}
+
+				// 刷新当前面板
+				owner.RefreshPanel();
+			}
+		}
+
+		private void SplitFile(string filePath, long splitSize)
+		{
+			using var sourceStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+			var fileName = Path.GetFileNameWithoutExtension(filePath);
+			var extension = Path.GetExtension(filePath);
+			var directory = Path.GetDirectoryName(filePath);
+
+			var buffer = new byte[8192]; // 8KB buffer
+			var partNumber = 1;
+			long bytesRead;
+			long currentPartSize = 0;
+
+			FileStream? outputStream = null;
+
+			try
+			{
+				while ((bytesRead = sourceStream.Read(buffer, 0, buffer.Length)) > 0)
+				{
+					if (outputStream == null || currentPartSize >= splitSize)
+					{
+						outputStream?.Dispose();
+						var partPath = Path.Combine(directory!,
+							$"{fileName}.part{partNumber:D3}{extension}");
+						outputStream = new FileStream(partPath, FileMode.Create);
+						currentPartSize = 0;
+						partNumber++;
+					}
+
+					outputStream.Write(buffer, 0, (int)bytesRead);
+					currentPartSize += bytesRead;
+				}
+			}
+			finally
+			{
+				outputStream?.Dispose();
+			}
+		}
+
 		private void do_cm_decode(string param)
 		{
 			if (param.Equals(string.Empty))

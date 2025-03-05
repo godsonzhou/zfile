@@ -52,7 +52,7 @@ namespace WinFormsApp1
 				// 读取文件内容
 				string configContent = File.ReadAllText(filePath);
 				// 调用 ReadConfig 函数处理配置内容
-				return ReadConfig(configContent);
+				return Read_em_Config(configContent);
 			}
 			catch (Exception ex)
 			{
@@ -61,7 +61,7 @@ namespace WinFormsApp1
 				return new List<MenuInfo>();
 			}
 		}
-		public static List<MenuInfo> ReadConfig(string config)
+		public static List<MenuInfo> Read_em_Config(string config)
 		{
 			List<MenuInfo> menuInfos = new List<MenuInfo>();
 			string[] sections = Regex.Split(config, @"\[(em_[^\]]+)\]");
@@ -76,38 +76,51 @@ namespace WinFormsApp1
 				string param = string.Empty;
 				string menu = string.Empty;
 				string button = string.Empty;
+				int iconic = 0;
 
 				string[] lines = sectionContent.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
 				foreach (string line in lines)
 				{
-					string[] parts = line.Split('=');
-					if (parts.Length == 2)
+					//string[] parts = line.Split('=');
+					//if (parts.Length == 2)
 					{
-						string key = parts[0].Trim();
-						string value = parts[1].Trim();
+						//string key = parts[0].Trim();
+						//string value = parts[1].Trim();
 
-						switch (key)
-						{
-							case "cmd":
-								cmd = value;
-								break;
-							case "path":
-								path = value;
-								break;
-							case "param":
-								param = value;
-								break;
-							case "menu":
-								menu = value;
-								break;
-							case "button":
-								button = value;
-								break;
-						}
+						//switch (key)
+						//{
+						//	case "cmd":
+						//		cmd = value;
+						//		break;
+						//	case "path":
+						//		path = value;
+						//		break;
+						//	case "param":
+						//		param = value;
+						//		break;
+						//	case "menu":
+						//		menu = value;
+						//		break;
+						//	case "button":
+						//		button = value;
+						//		break;
+						//}
 					}
+					if (line.StartsWith("cmd="))
+						cmd = line[4..];
+					else if (line.StartsWith("path="))
+						path = line[5..];
+					else if (line.StartsWith("param="))
+						param = line[6..];
+					else if (line.StartsWith("menu="))
+						menu = line[5..];
+					else if (line.StartsWith("button="))
+						button = line[7..];
+					else if (line.StartsWith("iconic="))
+						iconic = line[7..] == null ? 0 : int.Parse(line[7..]);
 				}
 
-				MenuInfo menuInfo = new MenuInfo(sectionName, button, cmd, param, path, 0, menu);
+				MenuInfo menuInfo = new MenuInfo(sectionName, button, cmd, param, path, iconic, menu);
 				menuInfos.Add(menuInfo);
 			}
 

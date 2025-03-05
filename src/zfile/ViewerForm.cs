@@ -68,8 +68,9 @@ namespace WinFormsApp1
 			init();
 			FileName = fileName;
 		}
-		public ViewerForm(List<string> files)
+		public ViewerForm(List<string> files, WlxModuleList wlxModuleList)
 		{
+			_pluginList = wlxModuleList;
 			init();
 			_fileList.AddRange(files);
 			FileName = _fileList[0];

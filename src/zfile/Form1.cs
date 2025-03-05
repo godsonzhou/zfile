@@ -47,6 +47,7 @@ namespace WinFormsApp1
 		public Stack<string> backStack = new();    // 后退历史
 		public Stack<string> forwardStack = new(); // 前进历史
 		private string lastDirectory = string.Empty; // 上一次访问的目录
+		public ShellExecuteHelper se;
 		public IEnumerable<string> GetRecycleBinFilenames()
 		{
 			Shell shell = new Shell();
@@ -145,7 +146,8 @@ namespace WinFormsApp1
 			wcxModuleList = new WcxModuleList();
 			wcxModuleList.LoadConfiguration();
 			wlxModuleList = new WlxModuleList();
-			
+
+			se = new ShellExecuteHelper(this);
 		}
          private void InitializeCOMComponents()
         {
@@ -708,6 +710,7 @@ namespace WinFormsApp1
 					uiManager.BookmarkManager.UpdateActiveBookmark(path, selectedNode, uiManager.isleft);
 				}
             }
+			uiManager.setArgs();
             //catch (Exception ex)
             //{
             //    MessageBox.Show($"TreeView_AfterSelect加载目录失败: {ex.Message}", "错误");
@@ -764,6 +767,7 @@ namespace WinFormsApp1
             {
 				var v = sender as ListView;
 				uiManager.isleft = v == uiManager.LeftList;
+				uiManager.setArgs();
             }
         }
 		public void ListView_BeforeLabelEdit(object sender, EventArgs e)
@@ -1606,12 +1610,13 @@ namespace WinFormsApp1
                 string[] itemData;
                 if (item is DirectoryInfo)
                 {
-					var size = EverythingWrapper.CalculateDirectorySize(item.FullName);
+					var showFolderSize = configLoader.FindConfigValue("Configuration", "EverythingForSize").Equals("1");
+					var size = showFolderSize ? EverythingWrapper.CalculateDirectorySize(item.FullName) : 0;
 					itemData = new[]
                     {
                         item.Name,
                         item.FullName,
-                        EverythingWrapper.IsEverythingServiceRunning() ? FileSystemManager.FormatFileSize(size, true) : "",
+                        showFolderSize && EverythingWrapper.IsEverythingServiceRunning() ? FileSystemManager.FormatFileSize(size, true) : "",
                         "<DIR>",
                         item.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),
 						size.ToString()
@@ -1687,6 +1692,8 @@ namespace WinFormsApp1
                 if (File.Exists(filePath))
                     await PreviewFileAsync(filePath, previewPanel);
             }
+			Debug.Print("selection index changed");
+			uiManager.setArgs();
         }
 
         public void ListView_ColumnClick(object? sender, ColumnClickEventArgs e)
@@ -1873,6 +1880,7 @@ namespace WinFormsApp1
 			// 编辑按钮点击处理逻辑
 			// OPEN VIEWERFORM
 			string filePath;
+			List<string> filePaths;
 			//ListView listView;
 			if (param.Equals(string.Empty))
 			{
@@ -1880,27 +1888,33 @@ namespace WinFormsApp1
 				if (listView.SelectedItems.Count == 0) return;
 				var selectedItemText = listView.SelectedItems[0].Text;
 				filePath = Helper.getFSpath(Path.Combine(currentDirectory, selectedItemText));
+				if (File.Exists(filePath))
+				{
+					Form viewerForm = new ViewerForm(filePath, wlxModuleList)
+					{
+						Text = $"查看文件 - {filePath}",
+						Size = new Size(800, 600)
+					};
+					viewerForm.Show();
+					//Control viewerControl = previewManager.CreatePreviewControl(filePath);
+					//viewerForm.Controls.Add(viewerControl);
+				}
 			}
 			else
 			{
-				var se = new ShellExecuteHelper();
-				filePath = se.PrepareParameter(param, new string[] { }, "");
-			}
-		
-			if (File.Exists(filePath))
-			{
-				Form viewerForm = new ViewerForm(filePath, wlxModuleList)
+				//se = new ShellExecuteHelper(this);
+				filePaths = se.PrepareParameter(param, new string[] { }, "");
+				Form viewerForm = new ViewerForm(filePaths, wlxModuleList)
 				{
-					Text = $"查看文件 - {filePath}",
+					Text = $"查看文件 - {filePaths}",
 					Size = new Size(800, 600)
 				};
-
+				viewerForm.Show();
 				//Control viewerControl = previewManager.CreatePreviewControl(filePath);
 				//viewerForm.Controls.Add(viewerControl);
-				viewerForm.Show();
 			}
 		}
-        public void EditButton_Click(object? sender, EventArgs e)
+		public void EditButton_Click(object? sender, EventArgs e)
         {
 			do_cm_edit();
 		}

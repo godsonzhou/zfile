@@ -526,9 +526,9 @@ namespace WinFormsApp1
 		#endregion
 
 		#region View Controls
-		public TreeView LeftTree { get; } = new() { Name = "LeftTree"};
-		public TreeView RightTree { get; } = new() { Name = "RightTree"};
-		public ListView LeftList { get; } = new() { Name = "LeftList"};
+		public TreeView LeftTree { get; } = new() { Name = "LeftTree" };
+		public TreeView RightTree { get; } = new() { Name = "RightTree" };
+		public ListView LeftList { get; } = new() { Name = "LeftList" };
 		public ListView RightList { get; } = new() { Name = "RightList" };
 		#endregion
 
@@ -553,7 +553,17 @@ namespace WinFormsApp1
 		#endregion
 		public ToolbarManager toolbarManager;
 		public ToolbarManager vtoolbarManager;
-		public bool isleft;
+		public bool isleft { get; set; }
+		public string leftDir => LeftPathTextBox?.CurrentNode?.UniqueID ;
+		public string rightDir => RightPathTextBox?.CurrentNode?.UniqueID;
+		public string leftfiles => string.Join("|", LeftList.SelectedItems.Cast<ListViewItem>()?.Select(item => item.SubItems[0].Text));
+		public string rightfiles => string.Join("|", RightList.SelectedItems.Cast<ListViewItem>()?.Select(item => item.SubItems[0].Text));
+		public string targetDir => isleft ? rightDir : leftDir;
+		public string srcDir => isleft ? leftDir : rightDir;
+		public string targetfiles => isleft ? rightfiles : leftfiles;
+		public string srcfiles => isleft ? leftfiles : rightfiles; 
+		public Dictionary<string, string> args = new();
+		
 		public Dictionary<string, string> lastVisitedPaths = new ();
 		private bool disposed = false;
 
@@ -568,6 +578,51 @@ namespace WinFormsApp1
 			
 			LeftPathTextBox.SelectionChange += LeftPathTextBox_PathChanged;
 			RightPathTextBox.SelectionChange += RightPathTextBox_PathChanged;
+			
+			setArgs();
+		}
+		public void setArgs()
+		{
+			/*
+			 * ? 为 第一个 参数时，启动程序前显示对话框，列出其余参数，允许你修改，甚至中止程序运行
+			%P 插入来源路径，以反斜杠() 结尾。
+			%N 插入光标所在的文件名。
+			%T 插入当前目标路径，对压缩程序尤其有用。
+			%M 插入目标文件夹的当前文件名。
+			%O 插入当前文件名，不含扩展名。
+			%E 插入当前文件的 扩展名 （无前导句号）。
+			%S 插入所有选中文件的文件名。包含空格的名字放在双引号中。请注意命令行最大长度是32767个字符。
+			%S10 插入（最多）前10个选中文件的文件名。这样可以限定传递给程序的文件名个数。可指定其它数字。
+			%P%S 插入所有选中文件的全路径文件名。包含空格的名字将放在双引号中。不要自己在%P%S前后加双引号！
+			注释: %N 和 %M 插入长文件名，而%n 和 %m 插入8.3 DOS文件名。%P 和 %T 插入长路径名，%p 和 %t 插入短路径名。（%o，%e和%s同样）
+			如果直接在%S或%s前写%P，%p，%T或%t，将插入每个文件的路径名+文件名。例如：%P%S代表所有选中文件的长路径名和长文件名。
+			%% 插入百分号。
+			%L, %l, %F, %f, %D, %d 在TEMP文件夹创建包含选定文件和文件夹名字的列表文件，并插入该文件的名字。列表文件在调用程序退出后自动删除。可创建以下6种列表文件：
+			%L 包含完整路径的长文件名，如，c:\Program Files\Long name.exe
+			%l (小写L) 包含完整路径的短文件名，如，C:\PROGRA1\LONGNA1.EXE
+			%F 不含路径的长文件名，如，Long name.exe
+			%f 不含路径的短文件名，如，LONGNA~1.EXE
+			%D 包含完整路径的短文件名，重音（accent）使用DOS字符集。
+			%d 不含路径的短文件名，重音（accent）使用DOS字符集。
+			仅用于命令别名：
+			%A 插入已输入的命令行的其余部分。
+			%A1..%A9 插入第1至第9个参数。
+			例如，别名op代表命令：totalcmd.exe 参数：/L=%A1 /R=%A2
+			-> 命令行：op c:\dir1 d:\dir2 等同于: totalcmd.exe /L=c:\dir1 /R=d:\dir2
+			 */
+			args["%T"] = targetDir;
+			args["%N"] = srcfiles;
+			args["%P"] = srcDir;
+			args["%M"] = targetfiles;
+			args["%O"] = Path.GetFileNameWithoutExtension(srcfiles);
+			args["%E"] = Path.GetExtension(srcfiles);
+			args["%S"] = srcfiles;
+			args["%F"] = srcfiles;
+			Debug.Print($"args update>>> \r\n [T]:{targetDir}, \r\n[P]:{srcDir}, \r\n[N]:{srcfiles}, \r\n[M]:{targetfiles}");
+		}
+		private void updateArg(string arg, string value)
+		{
+			args[arg] = value;
 		}
 
 		private void LeftPathTextBox_PathChanged(object? sender, EventArgs e)

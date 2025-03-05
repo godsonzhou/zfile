@@ -261,19 +261,25 @@ namespace CmdProcessor
 					//}
 					try
 					{
-						// 使用 ProcessStartInfo 设置启动进程的详细信息
-						var startInfo = new ProcessStartInfo
+						var args = owner.se.PrepareParameter(param, null, "");
+						foreach(var arg in args) 
 						{
-							FileName = cmdName,
-							UseShellExecute = true,
-							Verb = "runas" // 请求管理员权限
-						};
-						if (workingdir != "")
-							startInfo.WorkingDirectory = workingdir;
-						if (cmdName.StartsWith("control.exe", StringComparison.OrdinalIgnoreCase))
-							owner.OpenCommandPrompt(cmdName);   //TODO: SHELLEXECUTEHELPER.EXECUTECOMMAND合并（增加了参数的处理）
-						else
-							Process.Start(startInfo);
+							// 使用 ProcessStartInfo 设置启动进程的详细信息
+							var startInfo = new ProcessStartInfo
+							{
+								FileName = Helper.GetPathByEnv(cmdName),
+								UseShellExecute = true,
+								Arguments = arg,
+								Verb = "runas" // 请求管理员权限
+							};
+							if (workingdir != "")
+								startInfo.WorkingDirectory = workingdir;
+							if (cmdName.StartsWith("control.exe", StringComparison.OrdinalIgnoreCase))
+								owner.OpenCommandPrompt(cmdName);   //TODO: SHELLEXECUTEHELPER.EXECUTECOMMAND合并（增加了参数的处理）
+							else
+								Process.Start(startInfo);
+
+						}
 					}
 					catch (Exception ex)
 					{
@@ -621,6 +627,7 @@ namespace CmdProcessor
 			{
 				item.Selected = true;
 			}
+			owner.uiManager.setArgs();
 		}
 
 		// 取消全选
@@ -632,6 +639,7 @@ namespace CmdProcessor
 			{
 				item.Selected = false;
 			}
+			owner.uiManager.setArgs();
 		}
 
 		// 反选
@@ -643,6 +651,7 @@ namespace CmdProcessor
 			{
 				item.Selected = !item.Selected;
 			}
+			owner.uiManager.setArgs();
 		}
 
 		// 选择相同扩展名文件
@@ -659,6 +668,7 @@ namespace CmdProcessor
 					item.Selected = true;
 				}
 			}
+			owner.uiManager.setArgs();
 		}
 
 		// 存储的选择集合
@@ -687,6 +697,7 @@ namespace CmdProcessor
 			{
 				item.Selected = savedSelection.Contains(item.Text);
 			}
+			owner.uiManager.setArgs();
 		}
 
 		// 复制文件名到剪贴板

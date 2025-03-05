@@ -341,7 +341,10 @@ namespace CmdProcessor
 		}
 		private void do_cm_matchsrc()
 		{
-
+			var node = owner.FindTreeNode(owner.unactiveTreeview.Nodes, owner.uiManager.srcDir);
+			if (node != null) { 
+				owner.unactiveTreeview.SelectedNode = node;
+			}
 		}
 		private void ShowFtpConnectionManager()
 		{

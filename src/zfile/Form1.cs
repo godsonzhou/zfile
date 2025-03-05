@@ -12,6 +12,7 @@ namespace WinFormsApp1
 	public partial class Form1 : Form
 	{
 		const int ILD_TRANSPARENT = 0x00000001;
+		public readonly FTPMGR fTPMGR = new();
 		public readonly CFGLOADER configLoader;
 		private readonly IconManager iconManager = new();
 		private readonly ThemeManager themeManager;

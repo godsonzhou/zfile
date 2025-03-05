@@ -345,7 +345,7 @@ namespace CmdProcessor
 		}
 		private void ShowFtpConnectionManager()
 		{
-
+			owner.fTPMGR.ShowFtpConnectionForm();
 		}
 
 

@@ -26,6 +26,7 @@ namespace WinFormsApp1
 		/// 获取当前活动的FTP客户端
 		/// </summary>
 		public FtpClient ActiveClient => _activeClient;
+		ListView listView;
 
 		#endregion
 
@@ -37,6 +38,18 @@ namespace WinFormsApp1
 		public FTPMGR()
 		{
 			_connections = new Dictionary<string, FtpConnectionInfo>();
+			listView = new ListView
+			{
+				Dock = DockStyle.Left,
+				View = View.Details,
+				FullRowSelect = true,
+				Location = new Point(10, 10),
+				Size = new Size(420, 300),
+				MultiSelect = false
+			};
+
+			listView.Columns.Add("名称", 150);
+			listView.Columns.Add("主机", 200);
 		}
 
 		#endregion
@@ -327,7 +340,7 @@ namespace WinFormsApp1
 			}
 		}
 		// 添加新的私有方法来处理 FTP 连接管理器
-		private void ShowFtpConnectionManager()
+		public void ShowFtpConnectionForm()
 		{
 			var form = new Form
 			{
@@ -338,19 +351,6 @@ namespace WinFormsApp1
 				MaximizeBox = false,
 				MinimizeBox = false
 			};
-
-			var listView = new ListView
-			{
-				Dock = DockStyle.Left,
-				View = View.Details,
-				FullRowSelect = true,
-				Location = new Point(10, 10),
-				Size = new Size(420, 300),
-				MultiSelect = false
-			};
-
-			listView.Columns.Add("名称", 150);
-			listView.Columns.Add("主机", 200);
 
 			// 创建按钮面板
 			var buttonPanel = new FlowLayoutPanel
@@ -378,6 +378,7 @@ namespace WinFormsApp1
 				{
 					var selectedItem = listView.SelectedItems[0];
 					// TODO: 调用 FtpMgr.Connect 方法
+					Connect(selectedItem.Text);
 					form.Close();
 				}
 				else
@@ -462,15 +463,18 @@ namespace WinFormsApp1
 		{
 			// TODO: 从 FtpMgr 获取现有连接列表并填充到 ListView
 			// 示例代码:
-			/*
-			var connections = FtpMgr.GetConnections();
+			listView.Clear();
+			var connections = GetConnections();
 			foreach (var conn in connections)
 			{
 				var item = new ListViewItem(conn.Name);
 				item.SubItems.Add(conn.Host);
 				listView.Items.Add(item);
 			}
-			*/
+		}
+		private List<FtpConnectionInfo> GetConnections()
+		{ 
+			return _connections.Values.ToList();
 		}
 
 		private void ShowNewConnectionDialog()
@@ -635,7 +639,7 @@ namespace WinFormsApp1
 
 				// TODO: 保存配置到FtpMgr
 				SaveFtpConnection(config);
-
+				LoadFtpConnections(listView);
 				form.DialogResult = DialogResult.OK;
 				form.Close();
 			};
@@ -664,6 +668,8 @@ namespace WinFormsApp1
 		{
 			// TODO: 实现保存FTP连接配置的逻辑
 			// 可以保存到配置文件或数据库中
+			CreateConnection(config.SessionName, config.HostName, config.Password, config.Port.ToString());
+			
 		}
 		private void ShowNewUrlDialog()
 		{
@@ -698,6 +704,8 @@ namespace WinFormsApp1
 		private void CopyFtpConnection(string connectionName)
 		{
 			// TODO: 实现复制连接的逻辑
+			CopyConnection(connectionName, connectionName + "_Copy");
+			LoadFtpConnections(listView);
 		}
 
 		private void EditFtpConnection(string connectionName)
@@ -708,6 +716,7 @@ namespace WinFormsApp1
 		private void DeleteFtpConnection(string connectionName)
 		{
 			// TODO: 实现删除连接的逻辑
+			DeleteConnection(connectionName);
 		}
 
 		private void EncryptFtpConnections()

@@ -226,7 +226,7 @@ namespace zfile
 				treeView.Nodes.Add(rootNode);
 				directoryNodes[currentDrive.ToLower()] = rootNode;
 
-				var nfo = $"_treeinfo_{currentDrive.Substring(0, 1)}.nfo";
+				var nfo = $"treeinfo{currentDrive.Substring(0, 1)}.wc";
 				if (File.Exists(nfo))
 				{
 					//load dirs from file
@@ -260,10 +260,98 @@ namespace zfile
 		private void savetofile(string filename)
 		{
 			//save 
-		}
-		private void LoadDirectoriesFromFile(string filename, TreeNode node)
-		{
+			try
+			{
+				using var writer = new StreamWriter(filename, false, Encoding.UTF8);
+				// 写入保存时间作为文件头
+				writer.WriteLine($"#SaveTime:{DateTime.Now:yyyy-MM-dd HH:mm:ss}");
 
+				// 使用队列进行广度优先遍历，保存目录结构
+				var queue = new Queue<TreeNode>();
+				queue.Enqueue(treeView.Nodes[0]); // 根节点
+
+				while (queue.Count > 0)
+				{
+					var node = queue.Dequeue();
+					string path = node.Tag?.ToString() ?? string.Empty;
+					// 每行格式：目录完整路径|目录名称
+					writer.WriteLine($"{path}|{node.Text}");
+
+					// 将子节点加入队列
+					foreach (TreeNode childNode in node.Nodes)
+					{
+						queue.Enqueue(childNode);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Debug.Print($"保存目录树结构时出错: {ex.Message}");
+				// 这里我们只是记录错误，不抛出异常，因为这不是关键功能
+			}
+		}
+		private void LoadDirectoriesFromFile(string filename, TreeNode rootNode)
+		{
+			try
+			{
+				string[] lines = File.ReadAllLines(filename, Encoding.UTF8);
+				if (lines.Length == 0)
+					return;
+
+				// 检查文件是否过期（超过24小时）
+				if (lines[0].StartsWith("#SaveTime:"))
+				{
+					string timeStr = lines[0].Substring(10);
+					if (DateTime.TryParse(timeStr, out DateTime saveTime))
+					{
+						if ((DateTime.Now - saveTime).TotalHours > 24)
+						{
+							// 文件过期，返回false以触发重新扫描
+							return;
+						}
+					}
+				}
+
+				// 使用字典记录父节点路径和对应的TreeNode
+				var pathNodes = new Dictionary<string, TreeNode>(StringComparer.OrdinalIgnoreCase)
+				{
+					[currentDrive.ToLower()] = rootNode
+				};
+
+				// 从第二行开始处理（跳过时间戳行）
+				for (int i = 1; i < lines.Length; i++)
+				{
+					string line = lines[i];
+					if (string.IsNullOrWhiteSpace(line)) continue;
+
+					string[] parts = line.Split('|');
+					if (parts.Length != 2) continue;
+
+					string fullPath = parts[0];
+					string dirName = parts[1];
+
+					// 获取父目录路径
+					string parentPath = Path.GetDirectoryName(fullPath)?.ToLower() ?? string.Empty;
+
+					// 如果能找到父节点，就创建当前节点
+					if (pathNodes.TryGetValue(parentPath, out TreeNode parentNode))
+					{
+						TreeNode newNode = new TreeNode(dirName)
+						{
+							Tag = fullPath
+						};
+						parentNode.Nodes.Add(newNode);
+						pathNodes[fullPath.ToLower()] = newNode;
+						directoryNodes[fullPath.ToLower()] = newNode;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Debug.Print($"加载目录树缓存文件时出错: {ex.Message}");
+				// 出错时清空节点，以便后续重新扫描
+				rootNode.Nodes.Clear();
+			}
 		}
 
 		private void LoadDirectoriesUsingEverything(TreeNode rootNode)

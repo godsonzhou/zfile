@@ -348,6 +348,13 @@ namespace CmdProcessor
 					case 540: // cm_rereadsource
 						do_cm_rereadsource();
 						break;
+					case 562: // cm_encode
+						do_cm_encode(param);
+						break;
+
+					case 563: // cm_decode
+						do_cm_decode(param);
+						break;
 					case 570:
 						do_cm_gotopreviousdir();
 						break;
@@ -432,6 +439,396 @@ namespace CmdProcessor
 			{
 				throw new KeyNotFoundException("命令ID不存在");
 			}
+		}
+		private void do_cm_decode(string param)
+		{
+			if (param.Equals(string.Empty))
+			{
+				var listView = owner.activeListView;
+				if (listView == null || listView.SelectedItems.Count == 0)
+				{
+					MessageBox.Show("请先选择要解码的文件", "提示");
+					return;
+				}
+
+				using var dialog = new EncodeDialog();
+				//if (dialog.ShowDialog() != DialogResult.OK) return;
+
+				string targetPath = string.IsNullOrEmpty(dialog.TargetPath) ?
+					owner.currentDirectory : dialog.TargetPath;
+
+				foreach (ListViewItem item in listView.SelectedItems)
+				{
+					var sourcePath = Path.Combine(owner.currentDirectory, item.Text);
+					string decodedContent;
+					try
+					{
+						string encodedContent = File.ReadAllText(sourcePath);
+						decodedContent = Path.GetExtension(sourcePath) switch
+						{
+							".B64" => DecodeBase64(encodedContent),
+							".UUE" => DecodeUUEncode(encodedContent),
+							".XXE" => DecodeXXEncode(encodedContent),
+							_ => throw new InvalidOperationException("仅支持编码格式B64/UUE/XXE")
+						};
+
+						var targetFile = Path.Combine(targetPath, Path.GetFileNameWithoutExtension(item.Text));
+						File.WriteAllText(targetFile, decodedContent);
+					}
+					catch (Exception ex)
+					{
+						MessageBox.Show($"解码文件 {item.Text} 时出错: {ex.Message}", "错误");
+					}
+				}
+			}
+			else
+			{
+				var files = owner.se.PrepareParameter(param, null, "");
+				var targetPath = owner.currentDirectory;
+				foreach(var file in files)
+				{
+					var sourcePath = Path.Combine(owner.currentDirectory, file);
+					string decodedContent;
+					try
+					{
+						string encodedContent = File.ReadAllText(sourcePath);
+						decodedContent = Path.GetExtension(sourcePath) switch
+						{
+							"B64" => DecodeBase64(encodedContent),
+							"UUE" => DecodeUUEncode(encodedContent),
+							"XXE" => DecodeXXEncode(encodedContent),
+							_ => throw new InvalidOperationException("仅支持编码格式B64/UUE/XXE")
+						};
+
+						var targetFile = Path.Combine(targetPath, Path.GetFileNameWithoutExtension(file));
+						File.WriteAllText(targetFile, decodedContent);
+					}
+					catch (Exception ex)
+					{
+						MessageBox.Show($"解码文件 {file} 时出错: {ex.Message}", "错误");
+					}
+				}
+
+			}
+			owner.RefreshPanel();
+		}
+
+		private string DecodeBase64(string encodedContent)
+		{
+			byte[] bytes = Convert.FromBase64String(encodedContent);
+			return Encoding.UTF8.GetString(bytes);
+		}
+
+		private string DecodeUUEncode(string encodedContent)
+		{
+			// 实现 UUEncode 解码逻辑
+			var decodedBytes = new List<byte>();
+			var lines = encodedContent.Split('\n');
+
+			foreach (var line in lines)
+			{
+				if (string.IsNullOrWhiteSpace(line) || line == "end" || line == "`")
+					continue;
+
+				int length = line[0] - 32;
+				if (length <= 0)
+					continue;
+
+				for (int i = 1; i < line.Length; i += 4)
+				{
+					byte a = (byte)(line[i] - 32);
+					byte b = (byte)(line[i + 1] - 32);
+					byte c = (byte)(line[i + 2] - 32);
+					byte d = (byte)(line[i + 3] - 32);
+
+					byte e = (byte)((a << 2) | (b >> 4));
+					byte f = (byte)((b << 4) | (c >> 2));
+					byte g = (byte)((c << 6) | d);
+
+					decodedBytes.Add(e);
+					if (decodedBytes.Count < length) decodedBytes.Add(f);
+					if (decodedBytes.Count < length) decodedBytes.Add(g);
+				}
+			}
+
+			return Encoding.UTF8.GetString(decodedBytes.ToArray());
+		}
+
+		private string DecodeXXEncode(string encodedContent)
+		{
+			// 实现 XXEncode 解码逻辑
+			var decodedBytes = new List<byte>();
+			var lines = encodedContent.Split('\n');
+
+			foreach (var line in lines)
+			{
+				if (string.IsNullOrWhiteSpace(line) || line == "end" || line == "+")
+					continue;
+
+				int length = line[0] - 32;
+				if (length <= 0)
+					continue;
+
+				for (int i = 1; i < line.Length; i += 4)
+				{
+					byte a = (byte)(line[i] - 42);
+					byte b = (byte)(line[i + 1] - 42);
+					byte c = (byte)(line[i + 2] - 42);
+					byte d = (byte)(line[i + 3] - 42);
+
+					byte e = (byte)((a << 2) | (b >> 4));
+					byte f = (byte)((b << 4) | (c >> 2));
+					byte g = (byte)((c << 6) | d);
+
+					decodedBytes.Add(e);
+					if (decodedBytes.Count < length) decodedBytes.Add(f);
+					if (decodedBytes.Count < length) decodedBytes.Add(g);
+				}
+			}
+
+			return Encoding.UTF8.GetString(decodedBytes.ToArray());
+		}
+		private void encode_files(string sourcePath)
+		{
+		
+		}
+		private void do_cm_encode(string param)
+		{
+			if (param.Equals(string.Empty))
+			{
+				var listView = owner.activeListView;
+				if (listView == null || listView.SelectedItems.Count == 0)
+				{
+					MessageBox.Show("请先选择要编码的文件", "提示");
+					return;
+				}
+				using var dialog = new EncodeDialog();
+				if (dialog.ShowDialog() != DialogResult.OK) return;
+
+				string targetPath = string.IsNullOrEmpty(dialog.TargetPath) ?
+					owner.currentDirectory : dialog.TargetPath;
+
+				foreach (ListViewItem item in listView.SelectedItems)
+				{
+					var sourcePath = Path.Combine(owner.currentDirectory, item.Text);
+					string extension = dialog.SelectedEncoding switch
+					{
+						"MIME (Base64)" => ".B64",
+						"UUEncode" => ".UUE",
+						"XXEncode" => ".XXE",
+						_ => ".B64"
+					};
+
+					var targetFile = Path.Combine(targetPath,
+						Path.GetFileNameWithoutExtension(item.Text) + extension);
+
+					try
+					{
+						byte[] fileContent = File.ReadAllBytes(sourcePath);
+						string encodedContent = dialog.SelectedEncoding switch
+						{
+							"MIME (Base64)" => Convert.ToBase64String(fileContent),
+							"UUEncode" => UUEncode(fileContent),
+							"XXEncode" => XXEncode(fileContent),
+							_ => Convert.ToBase64String(fileContent)
+						};
+
+						// 添加文件头
+						var header = string.Empty;// $"begin {Path.GetFileName(sourcePath)}\n";
+
+						if (dialog.FileSize > 0 || dialog.LineCount > 0)
+						{
+							// 分割编码后的内容
+							var parts = SplitEncodedContent(encodedContent, dialog.FileSize, dialog.LineCount);
+							for (int i = 0; i < parts.Count; i++)
+							{
+								var partFile = i == 0 ? targetFile :
+									Path.Combine(targetPath,
+										Path.GetFileNameWithoutExtension(targetFile) +
+										$"_{i + 1}{extension}");
+								File.WriteAllText(partFile, header + parts[i]);
+							}
+						}
+						else
+						{
+							File.WriteAllText(targetFile, header + encodedContent);
+						}
+					}
+					catch (Exception ex)
+					{
+						MessageBox.Show($"编码文件 {item.Text} 时出错: {ex.Message}", "错误");
+					}
+				}
+			}
+			else {
+				using var dialog = new EncodeDialog();
+				if (dialog.ShowDialog() != DialogResult.OK) return;
+
+				string targetPath = string.IsNullOrEmpty(dialog.TargetPath) ?
+					owner.currentDirectory : dialog.TargetPath;
+
+				var files = owner.se.PrepareParameter(param, null, "");
+				foreach (var file in files) {
+					var sourcePath = Path.Combine(owner.currentDirectory, file);
+					string extension = dialog.SelectedEncoding switch
+					{
+						"MIME (Base64)" => ".B64",
+						"UUEncode" => ".UUE",
+						"XXEncode" => ".XXE",
+						_ => ".B64"
+					};
+
+					var targetFile = Path.Combine(targetPath,
+						Path.GetFileNameWithoutExtension(file) + extension);
+
+					try
+					{
+						byte[] fileContent = File.ReadAllBytes(sourcePath);
+						string encodedContent = dialog.SelectedEncoding switch
+						{
+							"MIME (Base64)" => Convert.ToBase64String(fileContent),
+							"UUEncode" => UUEncode(fileContent),
+							"XXEncode" => XXEncode(fileContent),
+							_ => Convert.ToBase64String(fileContent)
+						};
+
+						// 添加文件头
+						var header = $"begin {Path.GetFileName(sourcePath)}\n";
+
+						if (dialog.FileSize > 0 || dialog.LineCount > 0)
+						{
+							// 分割编码后的内容
+							var parts = SplitEncodedContent(encodedContent, dialog.FileSize, dialog.LineCount);
+							for (int i = 0; i < parts.Count; i++)
+							{
+								var partFile = i == 0 ? targetFile :
+									Path.Combine(targetPath,
+										Path.GetFileNameWithoutExtension(targetFile) +
+										$"_{i + 1}{extension}");
+								File.WriteAllText(partFile, header + parts[i]);
+							}
+						}
+						else
+						{
+							File.WriteAllText(targetFile, header + encodedContent);
+						}
+					}
+					catch (Exception ex)
+					{
+						MessageBox.Show($"编码文件 {file} 时出错: {ex.Message}", "错误");
+					}
+				}
+			}
+		
+
+			owner.RefreshPanel();
+		}
+
+		private string UUEncode(byte[] data)
+		{
+			var sb = new StringBuilder();
+			const int lineLength = 45;
+
+			for (int i = 0; i < data.Length; i += lineLength)
+			{
+				int blockLength = Math.Min(lineLength, data.Length - i);
+				sb.Append((char)(blockLength + 32));
+
+				for (int j = 0; j < blockLength; j += 3)
+				{
+					byte a = data[i + j];
+					byte b = j + 1 < blockLength ? data[i + j + 1] : (byte)0;
+					byte c = j + 2 < blockLength ? data[i + j + 2] : (byte)0;
+
+					byte d = (byte)((a >> 2) & 0x3f);
+					byte e = (byte)(((a << 4) | ((b >> 4) & 0xf)) & 0x3f);
+					byte f = (byte)(((b << 2) | ((c >> 6) & 0x3)) & 0x3f);
+					byte g = (byte)(c & 0x3f);
+
+					sb.Append((char)(d + 32));
+					sb.Append((char)(e + 32));
+					if (j + 1 < blockLength) sb.Append((char)(f + 32));
+					if (j + 2 < blockLength) sb.Append((char)(g + 32));
+				}
+				sb.AppendLine();
+			}
+			sb.AppendLine("`");
+			return sb.ToString();
+		}
+
+		private string XXEncode(byte[] data)
+		{
+			var sb = new StringBuilder();
+			const int lineLength = 45;
+
+			for (int i = 0; i < data.Length; i += lineLength)
+			{
+				int blockLength = Math.Min(lineLength, data.Length - i);
+				sb.Append((char)(blockLength + 32));
+
+				for (int j = 0; j < blockLength; j += 3)
+				{
+					byte a = data[i + j];
+					byte b = j + 1 < blockLength ? data[i + j + 1] : (byte)0;
+					byte c = j + 2 < blockLength ? data[i + j + 2] : (byte)0;
+
+					byte d = (byte)((a >> 2) & 0x3f);
+					byte e = (byte)(((a << 4) | ((b >> 4) & 0xf)) & 0x3f);
+					byte f = (byte)(((b << 2) | ((c >> 6) & 0x3)) & 0x3f);
+					byte g = (byte)(c & 0x3f);
+
+					sb.Append(XXEncodeChar(d));
+					sb.Append(XXEncodeChar(e));
+					if (j + 1 < blockLength) sb.Append(XXEncodeChar(f));
+					if (j + 2 < blockLength) sb.Append(XXEncodeChar(g));
+				}
+				sb.AppendLine();
+			}
+			sb.AppendLine("+");
+			return sb.ToString();
+		}
+
+		private char XXEncodeChar(byte b)
+		{
+			return (char)(b + 42);
+		}
+
+		private List<string> SplitEncodedContent(string content, int maxSize, int maxLines)
+		{
+			var result = new List<string>();
+			var lines = content.Split('\n');
+
+			if (maxLines > 0)
+			{
+				for (int i = 0; i < lines.Length; i += maxLines)
+				{
+					result.Add(string.Join("\n",
+						lines.Skip(i).Take(maxLines)));
+				}
+			}
+			else if (maxSize > 0)
+			{
+				var currentPart = new StringBuilder();
+				foreach (var line in lines)
+				{
+					if (currentPart.Length + line.Length > maxSize)
+					{
+						result.Add(currentPart.ToString());
+						currentPart.Clear();
+					}
+					currentPart.AppendLine(line);
+				}
+				if (currentPart.Length > 0)
+				{
+					result.Add(currentPart.ToString());
+				}
+			}
+			else
+			{
+				result.Add(content);
+			}
+
+			return result;
 		}
 
 		private void ShowDirectoryTreeSearch()

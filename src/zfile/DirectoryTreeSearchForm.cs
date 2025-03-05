@@ -16,14 +16,16 @@ namespace zfile
     {
         private TreeView treeView;
         private TextBox searchBox;
+		private Button nextButton;
         private Button refreshButton;
         private Button okButton;
         private Button cancelButton;
         private string currentDrive;
         private Form1 ownerForm;
         private Dictionary<string, TreeNode> directoryNodes = new Dictionary<string, TreeNode>();
-
-        public DirectoryTreeSearchForm(Form1 owner, string drive)
+		List<TreeNode> matchingNodes = new();
+		private int idx;
+		public DirectoryTreeSearchForm(Form1 owner, string drive)
         {
             ownerForm = owner;
             currentDrive = drive;
@@ -63,8 +65,17 @@ namespace zfile
             };
             refreshButton.Click += RefreshButton_Click;
 
-            topPanel.Controls.Add(searchBox);
-            topPanel.Controls.Add(refreshButton);
+			nextButton = new Button
+			{
+				Text = "下一个",
+				Location = new Point(470, 9),
+				Width = 80
+			};
+			nextButton.Click += NextButton_Click;
+
+			topPanel.Controls.Add(searchBox);
+			topPanel.Controls.Add(nextButton);
+			topPanel.Controls.Add(refreshButton);
 
             // 创建目录树
             treeView = new TreeView
@@ -277,7 +288,7 @@ namespace zfile
             }
 
             // 搜索匹配的目录
-            List<TreeNode> matchingNodes = new List<TreeNode>();
+            matchingNodes = new List<TreeNode>();
             foreach (var kvp in directoryNodes)
             {
                 string path = kvp.Key;
@@ -296,6 +307,7 @@ namespace zfile
                 treeView.SelectedNode = firstMatch;
                 firstMatch.EnsureVisible();
             }
+			idx = 0;
         }
 
         private void ResetTreeView()
@@ -308,7 +320,17 @@ namespace zfile
         {
             LoadDirectoryTree();
         }
-
+		private void NextButton_Click(Object sender, EventArgs e)
+		{
+			if (matchingNodes.Count > 0)
+			{
+				idx++;
+				idx %= matchingNodes.Count;
+				TreeNode firstMatch = matchingNodes[idx];
+				treeView.SelectedNode = firstMatch;
+				firstMatch.EnsureVisible();
+			}
+		}
         private void TreeView_AfterSelect(object sender, TreeViewEventArgs e)
         {
             // 可以在这里添加选择节点后的逻辑

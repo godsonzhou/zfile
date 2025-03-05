@@ -465,16 +465,16 @@ namespace CmdProcessor
 				PlaceholderText = "搜索命令..."
 			};
 
-			var searchTypeCombo = new ComboBox
-			{
-				Location = new Point(220, 10),
-				Width = 120,
-				DropDownStyle = ComboBoxStyle.DropDownList
-			};
-			searchTypeCombo.Items.AddRange(new string[] { "按ID搜索", "按名称搜索", "按描述搜索" });
-			searchTypeCombo.SelectedIndex = 0;
+			//var searchTypeCombo = new ComboBox
+			//{
+			//	Location = new Point(220, 10),
+			//	Width = 120,
+			//	DropDownStyle = ComboBoxStyle.DropDownList
+			//};
+			//searchTypeCombo.Items.AddRange(new string[] { "按ID搜索", "按名称搜索", "按描述搜索" });
+			//searchTypeCombo.SelectedIndex = 0;
 
-			searchPanel.Controls.AddRange(new Control[] { searchBox, searchTypeCombo });
+			searchPanel.Controls.AddRange(new Control[] { searchBox });//, searchTypeCombo
 
 			// 创建ListView用于显示命令
 			var listView = new ListView
@@ -511,19 +511,23 @@ namespace CmdProcessor
 				foreach (ListViewItem item in listView.Items)
 				{
 					bool match = false;
-					switch (searchTypeCombo.SelectedIndex)
+					//switch (searchTypeCombo.SelectedIndex)
+					//{
+						//case 0: // ID
+					match = item.Text.ToLower().Contains(searchText);
+					//break;
+					//case 1: // 名称
+					if (!match)
 					{
-						case 0: // ID
-							match = item.Text.ToLower().Contains(searchText);
-							break;
-						case 1: // 名称
-							match = item.SubItems[1].Text.ToLower().Contains(searchText);
-							break;
-						case 2: // 描述
+						match = item.SubItems[1].Text.ToLower().Contains(searchText);
+						//break;
+						//case 2: // 描述
+						if (!match)
 							match = item.SubItems[2].Text.ToLower().Contains(searchText) ||
 								   item.SubItems[3].Text.ToLower().Contains(searchText);
-							break;
+						//break;
 					}
+					//}
 					item.ForeColor = match || string.IsNullOrEmpty(searchText) ?
 						SystemColors.WindowText : SystemColors.GrayText;
 					if (match && !foundMatch)

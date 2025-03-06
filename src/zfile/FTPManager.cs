@@ -211,7 +211,7 @@ namespace WinFormsApp1
 		/// <param name="port">端口号</param>
 		/// <param name="encryptionMode">加密模式</param>
 		/// <returns>是否编辑成功</returns>
-		public bool EditConnection(string name, string host = null, string username = null, string password = null, int? port = null, FtpEncryptionMode? encryptionMode = null)
+		public bool ChangeConnection(string name, string host = null, string username = null, string password = null, int? port = null, FtpEncryptionMode? encryptionMode = null)
 		{
 			if (!_connections.ContainsKey(name))
 			{
@@ -377,7 +377,7 @@ namespace WinFormsApp1
 				if (listView.SelectedItems.Count > 0)
 				{
 					var selectedItem = listView.SelectedItems[0];
-					// TODO: 调用 FtpMgr.Connect 方法
+					// 调用 FtpMgr.Connect 方法
 					Connect(selectedItem.Text);
 					form.Close();
 				}
@@ -388,33 +388,33 @@ namespace WinFormsApp1
 			};
 
 			btnNewConnection.Click += (s, e) => {
-				// TODO: 调用 FtpMgr.CreateNewConnection 方法
-				ShowNewConnectionDialog();
+				//  调用 FtpMgr.CreateNewConnection 方法
+				EditConnectionDialog();
 			};
 
 			btnNewUrl.Click += (s, e) => {
-				// TODO: 调用 FtpMgr.CreateNewUrl 方法
+				// 调用 FtpMgr.CreateNewUrl 方法
 				ShowNewUrlDialog();
 			};
 
 			btnCopyConnection.Click += (s, e) => {
 				if (listView.SelectedItems.Count > 0)
 				{
-					// TODO: 调用 FtpMgr.CopyConnection 方法
+					// 调用 FtpMgr.CopyConnection 方法
 					var selectedItem = listView.SelectedItems[0];
 					CopyFtpConnection(selectedItem.Text);
 				}
 			};
 
 			btnNewFolder.Click += (s, e) => {
-				// TODO: 调用 FtpMgr.CreateNewFolder 方法
+				// 调用 FtpMgr.CreateNewFolder 方法
 				ShowNewFolderDialog();
 			};
 
 			btnEditConnection.Click += (s, e) => {
 				if (listView.SelectedItems.Count > 0)
 				{
-					// TODO: 调用 FtpMgr.EditConnection 方法
+					// 调用 FtpMgr.EditConnection 方法
 					var selectedItem = listView.SelectedItems[0];
 					EditFtpConnection(selectedItem.Text);
 				}
@@ -426,7 +426,7 @@ namespace WinFormsApp1
 					if (MessageBox.Show("确定要删除选中的连接吗？", "确认删除",
 						MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
 					{
-						// TODO: 调用 FtpMgr.DeleteConnection 方法
+						//  调用 FtpMgr.DeleteConnection 方法
 						var selectedItem = listView.SelectedItems[0];
 						DeleteFtpConnection(selectedItem.Text);
 						listView.Items.Remove(selectedItem);
@@ -435,7 +435,7 @@ namespace WinFormsApp1
 			};
 
 			btnEncrypt.Click += (s, e) => {
-				// TODO: 调用 FtpMgr.EncryptConnections 方法
+				// 调用 FtpMgr.EncryptConnections 方法
 				EncryptFtpConnections();
 			};
 
@@ -461,27 +461,34 @@ namespace WinFormsApp1
 
 		private void ReloadListview(ListView listView)
 		{
-			// TODO: 从 FtpMgr 获取现有连接列表并填充到 ListView
-			// 示例代码:
+			//  从 FtpMgr 获取现有连接列表并填充到 ListView
 			listView.Clear();
 			var connections = GetConnections();
 			foreach (var conn in connections)
 			{
-				var item = new ListViewItem(conn.Name);
+				var item = new ListViewItem();
 				item.SubItems.Add(conn.Host);
 				listView.Items.Add(item);
 			}
+			listView.Refresh();
 		}
 		private List<FtpConnectionInfo> GetConnections()
 		{ 
 			return _connections.Values.ToList();
 		}
 
-		private void ShowNewConnectionDialog()
+		private void EditConnectionDialog(string connectionName = "")
 		{
+			FtpConnectionInfo connection = new();
+			bool isEditMode = false;
+			if (!string.IsNullOrWhiteSpace(connectionName)) { 
+				connection = _connections[connectionName];
+				isEditMode = true;
+			}
+
 			var form = new Form
 			{
-				Text = "新建FTP连接",
+				Text = isEditMode ? "编辑FTP连接" : "新建FTP连接",
 				Width = 450,
 				Height = 500,
 				FormBorderStyle = FormBorderStyle.FixedDialog,
@@ -496,34 +503,40 @@ namespace WinFormsApp1
 			var sessionTextBox = new TextBox
 			{
 				Location = new Point(150, 17),
-				Width = 250
+				Width = 250,
+				ReadOnly = isEditMode,
+				Text = isEditMode ? connection.Name : ""
 			};
 
 			var hostLabel = new Label { Text = "主机名[端口](&H):", Location = new Point(10, 50) };
 			var hostTextBox = new TextBox
 			{
 				Location = new Point(150, 47),
-				Width = 200
+				Width = 200,
+				Text = isEditMode ? connection.Host : ""
 			};
 			var portTextBox = new TextBox
 			{
 				Location = new Point(360, 47),
 				Width = 40,
-				Text = "21"
+				Text = isEditMode ? connection.Port.ToString() : "21"
 			};
 
 			var sslCheckBox = new CheckBox
 			{
 				Text = "SSL/TLS",
 				Location = new Point(150, 80),
-				AutoSize = true
+				AutoSize = true,
+				Checked = isEditMode ? connection.EncryptionMode.HasValue &&
+				 connection.EncryptionMode.Value != FluentFTP.FtpEncryptionMode.None : false
 			};
 
 			var userLabel = new Label { Text = "用户名(&U):", Location = new Point(10, 110) };
 			var userTextBox = new TextBox
 			{
 				Location = new Point(150, 107),
-				Width = 250
+				Width = 250,
+				Text = isEditMode ? connection.Credentials.UserName : ""
 			};
 
 			var passwordLabel = new Label { Text = "密码(&P):", Location = new Point(10, 140) };
@@ -531,7 +544,8 @@ namespace WinFormsApp1
 			{
 				Location = new Point(150, 137),
 				Width = 250,
-				PasswordChar = '*'
+				PasswordChar = '*',
+				Text = isEditMode ? connection.Credentials.Password : ""
 			};
 
 			var passwordWarning = new Label
@@ -621,27 +635,70 @@ namespace WinFormsApp1
 					MessageBox.Show("请输入有效的端口号(1-65535)", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
 					return;
 				}
+				if (isEditMode) {
+					try
+					{
+						// 更新连接配置
+						if (ChangeConnection(
+							connectionName,
+							hostTextBox.Text,
+							userTextBox.Text,
+							passwordTextBox.Text,
+							port,
+							sslCheckBox.Checked ? FluentFTP.FtpEncryptionMode.Explicit : FluentFTP.FtpEncryptionMode.None))
+						{
+							// 如果当前连接是活动连接，则断开重连
+							if (_activeClient != null && _activeClient.IsConnected &&
+								_connections[connectionName].Host == _activeClient.Host &&
+								_connections[connectionName].Credentials.UserName == _activeClient.Credentials.UserName)
+							{
+								try
+								{
+									Connect(connectionName);
+								}
+								catch (Exception ex)
+								{
+									MessageBox.Show($"重新连接时出错: {ex.Message}", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+								}
+							}
 
-				// 创建配置对象
-				var config = new FtpConnectionConfig
+							MessageBox.Show("连接配置已更新", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+							form.DialogResult = DialogResult.OK;
+							form.Close();
+						}
+						else
+						{
+							MessageBox.Show("更新连接配置失败", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+						}
+					}
+					catch (Exception ex)
+					{
+						MessageBox.Show($"更新连接时出错: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					}
+				}
+				else 
 				{
-					SessionName = sessionTextBox.Text,
-					HostName = hostTextBox.Text,
-					Port = port,
-					UseSsl = sslCheckBox.Checked,
-					UserName = userTextBox.Text,
-					Password = passwordTextBox.Text,
-					RemoteDirectory = remoteTextBox.Text,
-					LocalDirectory = localTextBox.Text,
-					UsePassiveMode = passiveModeCheckBox.Checked,
-					UseFirewall = firewallCheckBox.Checked
-				};
-
-				// TODO: 保存配置到FtpMgr
-				SaveFtpConnection(config);
+					// 创建配置对象
+					var config = new FtpConnectionConfig
+					{
+						SessionName = sessionTextBox.Text,
+						HostName = hostTextBox.Text,
+						Port = port,
+						UseSsl = sslCheckBox.Checked,
+						UserName = userTextBox.Text,
+						Password = passwordTextBox.Text,
+						RemoteDirectory = remoteTextBox.Text,
+						LocalDirectory = localTextBox.Text,
+						UsePassiveMode = passiveModeCheckBox.Checked,
+						UseFirewall = firewallCheckBox.Checked
+					};
+					// 保存配置到FtpMgr
+					SaveFtpConnection(config);
+					form.DialogResult = DialogResult.OK;
+					form.Close();
+				}
 				ReloadListview(listView);
-				form.DialogResult = DialogResult.OK;
-				form.Close();
+
 			};
 
 			// 将控件添加到窗体
@@ -666,10 +723,8 @@ namespace WinFormsApp1
 
 		private void SaveFtpConnection(FtpConnectionConfig config)
 		{
-			// TODO: 实现保存FTP连接配置的逻辑
 			// 可以保存到配置文件或数据库中
 			CreateConnection(config.SessionName, config.HostName, config.Password, config.Port.ToString());
-			
 		}
 		private void ShowNewUrlDialog()
 		{
@@ -703,27 +758,22 @@ namespace WinFormsApp1
 
 		private void CopyFtpConnection(string connectionName)
 		{
-			// TODO: 实现复制连接的逻辑
 			CopyConnection(connectionName, connectionName + "_Copy");
 			ReloadListview(listView);
 		}
 
 		private void EditFtpConnection(string connectionName)
 		{
-			// TODO: 实现编辑连接的逻辑
-
-			EditConnection(connectionName);
+			EditConnectionDialog(connectionName);
 		}
 
 		private void DeleteFtpConnection(string connectionName)
 		{
-			// TODO: 实现删除连接的逻辑
 			DeleteConnection(connectionName);
 		}
 
 		private void EncryptFtpConnections()
 		{
-			// TODO: 实现加密连接的逻辑
 		}
 		#endregion
 

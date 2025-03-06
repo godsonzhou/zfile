@@ -1,11 +1,8 @@
 using System.Diagnostics;
-using System.IO;
+using System.Security.Cryptography;
 using System.Text;
 using WinFormsApp1;
-using WinShell;
 using zfile;
-using WinFormsApp1;
-using System.Security.Cryptography;
 namespace CmdProcessor
 {
 	// 首先定义一个FTP连接配置的数据结构
@@ -197,6 +194,12 @@ namespace CmdProcessor
 					case 511: // cm_executedos
 						owner.OpenCommandPrompt();
 						break;
+					case 512: // cm_netConnect
+						do_cm_netConnect();
+						break;
+					case 513: // cm_netDisconnect
+						do_cm_netDisconnect();
+						break;
 					case 523: // cm_SelectAll
 						do_cm_SelectAll();
 						break;
@@ -226,6 +229,9 @@ namespace CmdProcessor
 						break;
 					case 551: //命令ID=551，Name=cm_ftpnew
 						do_cm_ftpnew();
+						break;
+					case 552: //命令ID=552,Name=cm_ftpdisconnect
+						do_cm_ftpdisconnect();
 						break;
 					case 560: // cm_split
 						do_cm_split(param);
@@ -330,6 +336,14 @@ namespace CmdProcessor
 				throw new KeyNotFoundException("命令ID不存在");
 			}
 		}
+		private void do_cm_netConnect()		//调用操作系统命令来映射网上邻居的共享文件夹到虚拟盘符
+		{
+
+		}
+		private void do_cm_netDisconnect()
+		{
+
+		}
 		private void do_cm_matchsrc()
 		{
 			var node = owner.FindTreeNode(owner.unactiveTreeview.Nodes, owner.uiManager.srcDir);
@@ -345,7 +359,10 @@ namespace CmdProcessor
 		{
 			owner.fTPMGR.EditConnectionDialog();
 		}
-
+		private void do_cm_ftpdisconnect()
+		{
+			owner.fTPMGR.CloseConnection();
+		}
 		private void do_cm_crccheck(string param)
 		{
 			var listView = owner.activeListView;

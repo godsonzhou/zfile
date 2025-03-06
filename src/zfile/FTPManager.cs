@@ -1,5 +1,6 @@
 ﻿using CmdProcessor;
 using FluentFTP;
+using System.Diagnostics;
 using System.Net;
 
 namespace WinFormsApp1
@@ -98,7 +99,14 @@ namespace WinFormsApp1
 				}
 
 				// 连接到服务器
-				_activeClient.Connect();
+				var profile = _activeClient.AutoConnect();  //connect()
+				if (profile != null) {
+					Debug.Print("ftp auto connect success.");
+				}
+				else
+				{
+					Debug.Print("ftp auto connect failed.");
+				}
 				return _activeClient.IsConnected;
 			}
 			catch (Exception ex)

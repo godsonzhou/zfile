@@ -26,7 +26,7 @@ namespace WinFormsApp1
 		/// 获取当前活动的FTP客户端
 		/// </summary>
 		public FtpClient ActiveClient => _activeClient;
-		ListView listView;
+		ListView ftplistView;
 
 		#endregion
 
@@ -38,7 +38,7 @@ namespace WinFormsApp1
 		public FTPMGR()
 		{
 			_connections = new Dictionary<string, FtpConnectionInfo>();
-			listView = new ListView
+			ftplistView = new ListView
 			{
 				Dock = DockStyle.Left,
 				View = View.Details,
@@ -48,8 +48,8 @@ namespace WinFormsApp1
 				MultiSelect = false
 			};
 
-			listView.Columns.Add("名称", 150);
-			listView.Columns.Add("主机", 200);
+			ftplistView.Columns.Add("名称", 150);
+			ftplistView.Columns.Add("主机", 200);
 		}
 
 		#endregion
@@ -374,9 +374,9 @@ namespace WinFormsApp1
 
 			// 添加按钮事件处理
 			btnConnect.Click += (s, e) => {
-				if (listView.SelectedItems.Count > 0)
+				if (ftplistView.SelectedItems.Count > 0)
 				{
-					var selectedItem = listView.SelectedItems[0];
+					var selectedItem = ftplistView.SelectedItems[0];
 					// 调用 FtpMgr.Connect 方法
 					Connect(selectedItem.Text);
 					form.Close();
@@ -398,10 +398,10 @@ namespace WinFormsApp1
 			};
 
 			btnCopyConnection.Click += (s, e) => {
-				if (listView.SelectedItems.Count > 0)
+				if (ftplistView.SelectedItems.Count > 0)
 				{
 					// 调用 FtpMgr.CopyConnection 方法
-					var selectedItem = listView.SelectedItems[0];
+					var selectedItem = ftplistView.SelectedItems[0];
 					CopyFtpConnection(selectedItem.Text);
 				}
 			};
@@ -412,24 +412,24 @@ namespace WinFormsApp1
 			};
 
 			btnEditConnection.Click += (s, e) => {
-				if (listView.SelectedItems.Count > 0)
+				if (ftplistView.SelectedItems.Count > 0)
 				{
 					// 调用 FtpMgr.EditConnection 方法
-					var selectedItem = listView.SelectedItems[0];
+					var selectedItem = ftplistView.SelectedItems[0];
 					EditFtpConnection(selectedItem.Text);
 				}
 			};
 
 			btnDeleteConnection.Click += (s, e) => {
-				if (listView.SelectedItems.Count > 0)
+				if (ftplistView.SelectedItems.Count > 0)
 				{
 					if (MessageBox.Show("确定要删除选中的连接吗？", "确认删除",
 						MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
 					{
 						//  调用 FtpMgr.DeleteConnection 方法
-						var selectedItem = listView.SelectedItems[0];
+						var selectedItem = ftplistView.SelectedItems[0];
 						DeleteFtpConnection(selectedItem.Text);
-						listView.Items.Remove(selectedItem);
+						ftplistView.Items.Remove(selectedItem);
 					}
 				}
 			};
@@ -449,11 +449,11 @@ namespace WinFormsApp1
 				});
 			buttonPanel.Dock = DockStyle.Right;
 			// 添加控件到窗体
-			form.Controls.Add(listView);
+			form.Controls.Add(ftplistView);
 			form.Controls.Add(buttonPanel);
 
 			// 加载现有FTP连接
-			ReloadListview(listView);
+			ReloadListview(ftplistView);
 
 			// 显示窗体
 			form.ShowDialog();
@@ -462,11 +462,11 @@ namespace WinFormsApp1
 		private void ReloadListview(ListView listView)
 		{
 			//  从 FtpMgr 获取现有连接列表并填充到 ListView
-			listView.Clear();
+			listView.Items.Clear();
 			var connections = GetConnections();
 			foreach (var conn in connections)
 			{
-				var item = new ListViewItem();
+				var item = new ListViewItem(conn.Name);
 				item.SubItems.Add(conn.Host);
 				listView.Items.Add(item);
 			}
@@ -697,7 +697,7 @@ namespace WinFormsApp1
 					form.DialogResult = DialogResult.OK;
 					form.Close();
 				}
-				ReloadListview(listView);
+				ReloadListview(ftplistView);
 
 			};
 
@@ -724,7 +724,7 @@ namespace WinFormsApp1
 		private void SaveFtpConnection(FtpConnectionConfig config)
 		{
 			// 可以保存到配置文件或数据库中
-			CreateConnection(config.SessionName, config.HostName, config.Password, config.Port.ToString());
+			CreateConnection(config.SessionName, config.HostName, config.UserName, config.Password, config.Port, config.UseSsl ? FtpEncryptionMode.Explicit : FtpEncryptionMode.None);
 		}
 		private void ShowNewUrlDialog()
 		{
@@ -759,7 +759,7 @@ namespace WinFormsApp1
 		private void CopyFtpConnection(string connectionName)
 		{
 			CopyConnection(connectionName, connectionName + "_Copy");
-			ReloadListview(listView);
+			ReloadListview(ftplistView);
 		}
 
 		private void EditFtpConnection(string connectionName)

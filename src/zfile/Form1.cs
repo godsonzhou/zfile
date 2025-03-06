@@ -107,6 +107,7 @@ namespace WinFormsApp1
 			configLoader = new CFGLOADER(Constants.ZfileCfgPath+"wincmd.ini");
 			ftpconfigLoader = new CFGLOADER(Constants.ZfileCfgPath + "wcx_ftp.ini");
 			fTPMGR = new FTPMGR(this);
+
 			InitializeComponent();
 		    this.Size = new Size(1200, 800);
 

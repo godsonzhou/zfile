@@ -1,0 +1,66 @@
+//创建FTP客户端并指定主机、用户名和密码（删除凭据以使用“匿名”帐户）
+FtpClient client = new FtpClient("123.123.123.123", "david", "pass123");
+
+//连接到服务器并自动检测工作FTP设置
+client.AutoConnect();
+
+//获取“/htdocs”文件夹中的文件和目录列表
+foreach (FtpListItem item in client.GetListing("/htdocs"))
+{
+    //如果这是一个文件
+    if (item.Type == FtpFileSystemObjectType.File)
+    {
+        //获取文件大小
+        long size = client.GetFileSize(item.FullName);
+
+        //计算服务器端文件的哈希值（默认算法）
+        FtpHash hash = client.GetChecksum(item.FullName);
+    }
+
+    //获取文件或文件夹的修改日期/时间
+    DateTime time = client.GetModifiedTime(item.FullName);
+
+}
+
+//上载文件
+client.UploadFile(@"C:\MyVideo.mp4", "/htdocs/MyVideo.mp4");
+
+//移动上载的文件
+client.MoveFile("/htdocs/MyVideo.mp4", "/htdocs/MyVideo_2.mp4");
+
+//再次下载文件
+client.DownloadFile(@"C:\MyVideo_2.mp4", "/htdocs/MyVideo_2.mp4");
+
+//将下载的文件与服务器进行比较
+if (client.CompareFile(@"C:\MyVideo_2.mp4", "/htdocs/MyVideo_2.mp4") == FtpCompareResult.Equal) { }
+
+//删除文件
+client.DeleteFile("/htdocs/MyVideo_2.mp4");
+
+//上载文件夹及其所有文件
+client.UploadDirectory(@"C:\website\videos\", @"/public_html/videos", FtpFolderSyncMode.Update);
+
+//上载文件夹及其所有文件，并删除服务器上的其他文件
+client.UploadDirectory(@"C:\website\assets\", @"/public_html/assets", FtpFolderSyncMode.Mirror);
+
+//下载文件夹及其所有文件
+client.DownloadDirectory(@"C:\website\logs\", @"/public_html/logs", FtpFolderSyncMode.Update);
+
+//下载文件夹及其所有文件，并删除磁盘上的其他文件
+client.DownloadDirectory(@"C:\website\dailybackup\", @"/public_html/", FtpFolderSyncMode.Mirror);
+
+//递归删除文件夹
+client.DeleteDirectory("/htdocs/extras/");
+
+//检查文件是否存在
+if (client.FileExists("/htdocs/big2.txt")) { }
+
+//检查文件夹是否存在
+if (client.DirectoryExists("/htdocs/extras/")) { }
+
+//上载文件并重试3次，然后放弃
+client.RetryAttempts = 3;
+client.UploadFile(@"C:\MyVideo.mp4", "/htdocs/big.txt", FtpRemoteExists.Overwrite, false, FtpVerify.Retry);
+
+//断开再见！
+client.Disconnect();

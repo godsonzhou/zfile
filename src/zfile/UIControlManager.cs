@@ -66,6 +66,7 @@ namespace WinFormsApp1
 		#endregion
 		public ToolbarManager toolbarManager;
 		public ToolbarManager vtoolbarManager;
+		public FtpController ftpController;
 		public bool isleft { get; set; }
 		public string leftDir => LeftPathTextBox?.CurrentNode?.UniqueID ;
 		public string rightDir => RightPathTextBox?.CurrentNode?.UniqueID;
@@ -169,11 +170,16 @@ namespace WinFormsApp1
 			InitializeListViews();
 			InitializeDriveComboBoxes();
 			InitializePreviewPanels();
-			InitializeStatusStrips();
-			InitializeToolStrip();
 			InitializeDynamicMenu();
 			InitializeDynamicToolbar();
+			InitializeFtpController();
+			InitializeStatusStrips();
+			InitializeToolStrip();
 			InitializeBookmarkLists();
+		}
+		private void InitializeFtpController()
+		{
+			ftpController = new FtpController(form, form.fTPMGR);
 		}
 		public void InitializeLayout()
 		{

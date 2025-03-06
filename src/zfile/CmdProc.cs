@@ -9,19 +9,7 @@ using System.Security.Cryptography;
 namespace CmdProcessor
 {
 	// 首先定义一个FTP连接配置的数据结构
-	public class FtpConnectionConfig
-	{
-		public string SessionName { get; set; } = string.Empty;
-		public string HostName { get; set; } = string.Empty;
-		public int Port { get; set; } = 21;
-		public bool UseSsl { get; set; }
-		public string UserName { get; set; } = string.Empty;
-		public string Password { get; set; } = string.Empty;
-		public string RemoteDirectory { get; set; } = "/";
-		public string LocalDirectory { get; set; } = string.Empty;
-		public bool UsePassiveMode { get; set; } = true;
-		public bool UseFirewall { get; set; }
-	}
+	
 	public struct CmdTableItem(string cmdName, int cmdId, string description, string zhDesc)
 	{
 		public string CmdName = cmdName;

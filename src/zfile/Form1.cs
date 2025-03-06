@@ -1031,7 +1031,8 @@ namespace WinFormsApp1
 				}
 			}
 			else
-			{
+			{   // Get the first part of the path, find the node, expand it, and call FindTreeNode recursively
+				//TODO : 优化查找算法
 				var pathpart = Helper.getFSpath(path).Split('\\', StringSplitOptions.RemoveEmptyEntries);
 				foreach(var n in nodes)
 				{

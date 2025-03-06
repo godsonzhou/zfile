@@ -453,13 +453,13 @@ namespace WinFormsApp1
 			form.Controls.Add(buttonPanel);
 
 			// 加载现有FTP连接
-			LoadFtpConnections(listView);
+			ReloadListview(listView);
 
 			// 显示窗体
 			form.ShowDialog();
 		}
 
-		private void LoadFtpConnections(ListView listView)
+		private void ReloadListview(ListView listView)
 		{
 			// TODO: 从 FtpMgr 获取现有连接列表并填充到 ListView
 			// 示例代码:
@@ -639,7 +639,7 @@ namespace WinFormsApp1
 
 				// TODO: 保存配置到FtpMgr
 				SaveFtpConnection(config);
-				LoadFtpConnections(listView);
+				ReloadListview(listView);
 				form.DialogResult = DialogResult.OK;
 				form.Close();
 			};
@@ -705,12 +705,14 @@ namespace WinFormsApp1
 		{
 			// TODO: 实现复制连接的逻辑
 			CopyConnection(connectionName, connectionName + "_Copy");
-			LoadFtpConnections(listView);
+			ReloadListview(listView);
 		}
 
 		private void EditFtpConnection(string connectionName)
 		{
 			// TODO: 实现编辑连接的逻辑
+
+			EditConnection(connectionName);
 		}
 
 		private void DeleteFtpConnection(string connectionName)
@@ -726,7 +728,19 @@ namespace WinFormsApp1
 		#endregion
 
 		#region 辅助类
-
+		public class FtpConnectionConfig
+		{
+			public string SessionName { get; set; } = string.Empty;
+			public string HostName { get; set; } = string.Empty;
+			public int Port { get; set; } = 21;
+			public bool UseSsl { get; set; }
+			public string UserName { get; set; } = string.Empty;
+			public string Password { get; set; } = string.Empty;
+			public string RemoteDirectory { get; set; } = "/";
+			public string LocalDirectory { get; set; } = string.Empty;
+			public bool UsePassiveMode { get; set; } = true;
+			public bool UseFirewall { get; set; }
+		}
 		/// <summary>
 		/// FTP连接信息类
 		/// </summary>

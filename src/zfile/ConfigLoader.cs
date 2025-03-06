@@ -36,7 +36,8 @@ namespace WinFormsApp1
 	// 定义 CFGLOADER 类
 	public class CFGLOADER
 	{
-		private List<ConfigSection> sections;
+		public List<ConfigSection> sections;
+		private string cfgfile;
 
 		public CFGLOADER()
 		{
@@ -45,6 +46,7 @@ namespace WinFormsApp1
 
 		public CFGLOADER(string filePath) : this()
 		{
+			cfgfile = filePath;
 			LoadConfig(filePath);
 		}
 
@@ -78,9 +80,9 @@ namespace WinFormsApp1
 		}
 
 		// 保存配置到文件
-		public void SaveConfig(string filePath)
+		public void SaveConfig()
 		{
-			using (var writer = new StreamWriter(filePath))
+			using (var writer = new StreamWriter(cfgfile))
 			{
 				foreach (var section in sections)
 				{
@@ -93,7 +95,29 @@ namespace WinFormsApp1
 				}
 			}
 		}
+		// 添加或更新配置节
+		public void AddOrUpdateSection(string sectionName, List<ConfigItem> items)
+		{
+			var section = sections.FirstOrDefault(s => s.Name == sectionName);
+			if (section == null)
+			{
+				section = new ConfigSection { Name = sectionName };
+				sections.Add(section);
+			}
+			section.Items = items;
+		}
 
+		// 移除配置节
+		public void RemoveSection(string sectionName)
+		{
+			sections.RemoveAll(s => s.Name == sectionName);
+		}
+
+		// 清除指定前缀的所有配置节
+		public void ClearSectionsWithPrefix(string prefix)
+		{
+			sections.RemoveAll(s => s.Name.StartsWith(prefix));
+		}
 		// 根据关键字查找配置
 		public string FindConfigValue(string sectionName, string key)
 		{

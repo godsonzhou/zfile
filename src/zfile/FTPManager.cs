@@ -27,7 +27,7 @@ namespace WinFormsApp1
 		/// </summary>
 		public FtpClient ActiveClient => _activeClient;
 		ListView ftplistView;
-
+		Form1 Owner;
 		#endregion
 
 		#region 构造函数
@@ -35,8 +35,9 @@ namespace WinFormsApp1
 		/// <summary>
 		/// 初始化FTP管理器
 		/// </summary>
-		public FTPMGR()
+		public FTPMGR(Form1 form)
 		{
+			Owner = form;
 			_connections = new Dictionary<string, FtpConnectionInfo>();
 			ftplistView = new ListView
 			{
@@ -50,10 +51,14 @@ namespace WinFormsApp1
 
 			ftplistView.Columns.Add("名称", 150);
 			ftplistView.Columns.Add("主机", 200);
+			Init(); //init connctions from ftpcfgloader
 		}
 
 		#endregion
-
+		~FTPMGR()
+		{
+			SaveToCfgloader();
+		}
 		#region 连接管理
 
 		/// <summary>
@@ -477,7 +482,7 @@ namespace WinFormsApp1
 			return _connections.Values.ToList();
 		}
 
-		private void EditConnectionDialog(string connectionName = "")
+		public void EditConnectionDialog(string connectionName = "")
 		{
 			FtpConnectionInfo connection = new();
 			bool isEditMode = false;
@@ -833,5 +838,187 @@ namespace WinFormsApp1
 		}
 
 		#endregion
+		private void SaveToCfgloader()
+		{
+			// 保存配置到cfgloader
+			try
+			{
+				// 清除已有的FTP相关配置
+				Owner.ftpconfigLoader.ClearSectionsWithPrefix("ftp_");
+				Owner.ftpconfigLoader.RemoveSection("connections");
+
+				// 创建connections节的配置项
+				var connectionItems = new List<ConfigItem>();
+				int index = 1;
+				string defaultConnection = "";
+
+				foreach (var conn in _connections)
+				{
+					string sectionName = $"ftp_{conn.Key}";
+					defaultConnection = defaultConnection == "" ? conn.Key : defaultConnection;
+
+					// 添加到connections列表
+					connectionItems.Add(new ConfigItem
+					{
+						Key = index.ToString(),
+						Value = conn.Key
+					});
+
+					// 创建每个连接的配置项
+					var connectionConfig = new List<ConfigItem>
+					{
+						new ConfigItem { Key = "host", Value = conn.Value.Host },
+						new ConfigItem { Key = "username", Value = conn.Value.Credentials.UserName },
+						new ConfigItem { Key = "password", Value = conn.Value.Credentials.Password },
+						new ConfigItem { Key = "port", Value = conn.Value.Port.ToString() },
+						new ConfigItem
+						{
+							Key = "pasvmode",
+							Value = (conn.Value.Config?.DataConnectionType == FtpDataConnectionType.AutoPassive
+									|| conn.Value.Config?.DataConnectionType == FtpDataConnectionType.PASV)
+									? "1" : "0"
+						}
+					};
+
+					// 如果有加密模式，添加加密配置
+					if (conn.Value.EncryptionMode.HasValue)
+					{
+						connectionConfig.Add(new ConfigItem
+						{
+							Key = "encryption",
+							Value = conn.Value.EncryptionMode.Value.ToString()
+						});
+					}
+
+					// 添加该连接的配置节
+					Owner.ftpconfigLoader.AddOrUpdateSection(sectionName, connectionConfig);
+					index++;
+				}
+
+				// 添加默认连接配置
+				connectionItems.Add(new ConfigItem { Key = "default", Value = defaultConnection });
+
+				// 添加connections节
+				Owner.ftpconfigLoader.AddOrUpdateSection("connections", connectionItems);
+
+				// 保存到文件
+				Owner.ftpconfigLoader.SaveConfig();
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"保存FTP配置时发生错误: {ex.Message}", "错误",
+					MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+
+		}
+		private void Init()
+		{
+			var defaultConnName = Owner.ftpconfigLoader.FindConfigValue("connections", "default");
+			//init _connection by ftp.configloader.sections:
+			/*
+			 * [connections]
+				1=tt
+				default=tt
+				[tt]
+				host=localhost
+				username=isa
+				password=713A3D5726ACF87D597A0283
+				pasvmode=0
+			 */
+			if (string.IsNullOrEmpty(defaultConnName))
+			{
+				return; // 没有配置默认连接
+			}
+
+			// 读取指定连接名称的配置
+			var host = Owner.ftpconfigLoader.FindConfigValue(defaultConnName, "host");
+			var username = Owner.ftpconfigLoader.FindConfigValue(defaultConnName, "username");
+			var password = Owner.ftpconfigLoader.FindConfigValue(defaultConnName, "password");
+			var pasvModeStr = Owner.ftpconfigLoader.FindConfigValue(defaultConnName, "pasvmode");
+
+			// 验证必要参数
+			if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(username))
+			{
+				return; // 缺少必要参数
+			}
+
+			// 转换被动模式设置
+			bool usePasvMode = true; // 默认使用被动模式
+			if (!string.IsNullOrEmpty(pasvModeStr) && int.TryParse(pasvModeStr, out int pasvMode))
+			{
+				usePasvMode = pasvMode != 0;
+			}
+
+			// 创建FTP连接配置
+			var connectionInfo = new FtpConnectionInfo
+			{
+				Name = defaultConnName,
+				Host = host,
+				Credentials = new NetworkCredential(username, password),
+				Port = 21, // 使用默认端口
+				Config = new FtpConfig
+				{
+					DataConnectionType = usePasvMode ?
+						FtpDataConnectionType.AutoPassive :
+						FtpDataConnectionType.AutoActive
+				}
+			};
+
+			// 添加到连接字典
+			_connections[defaultConnName] = connectionInfo;
+
+			// 读取所有配置的连接
+			// 先获取 connections 段下的所有键值对
+			var connections = Owner.ftpconfigLoader.GroupConfigItemsByNumberOrName()
+				.Where(x => x.Key == "connections")
+				.SelectMany(x => x.Value)
+				.Where(x => x.Key != "default"); // 排除default配置项
+
+			// 遍历添加其他连接
+			foreach (var conn in connections)
+			{
+				var connName = conn.Value;
+				if (connName == defaultConnName) continue; // 跳过已添加的默认连接
+
+				// 读取连接配置
+				host = Owner.ftpconfigLoader.FindConfigValue(connName, "host");
+				username = Owner.ftpconfigLoader.FindConfigValue(connName, "username");
+				password = Owner.ftpconfigLoader.FindConfigValue(connName, "password");
+				pasvModeStr = Owner.ftpconfigLoader.FindConfigValue(connName, "pasvmode");
+
+				// 验证必要参数
+				if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(username))
+					continue;
+
+				// 转换被动模式设置
+				usePasvMode = true;
+				if (!string.IsNullOrEmpty(pasvModeStr) && int.TryParse(pasvModeStr, out pasvMode))
+				{
+					usePasvMode = pasvMode != 0;
+				}
+
+				// 创建并添加连接配置
+				_connections[connName] = new FtpConnectionInfo
+				{
+					Name = connName,
+					Host = host,
+					Credentials = new NetworkCredential(username, password),
+					Port = 21,
+					Config = new FtpConfig
+					{
+						DataConnectionType = usePasvMode ?
+							FtpDataConnectionType.AutoPassive :
+							FtpDataConnectionType.AutoActive
+					}
+				};
+			}
+
+			// 刷新ListView显示
+			if (ftplistView != null)
+			{
+				ReloadListview(ftplistView);
+			}
+
+		}
 	}
 }

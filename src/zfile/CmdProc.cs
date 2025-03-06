@@ -224,6 +224,9 @@ namespace CmdProcessor
 					case 550: // cm_ftpconnect
 						ShowFtpConnectionManager();
 						break;
+					case 551: //命令ID=551，Name=cm_ftpnew
+						do_cm_ftpnew();
+						break;
 					case 560: // cm_split
 						do_cm_split(param);
 						break;
@@ -338,7 +341,10 @@ namespace CmdProcessor
 		{
 			owner.fTPMGR.ShowFtpConnectionForm();
 		}
-
+		private void do_cm_ftpnew()
+		{
+			owner.fTPMGR.EditConnectionDialog();
+		}
 
 		private void do_cm_crccheck(string param)
 		{

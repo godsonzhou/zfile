@@ -12,8 +12,9 @@ namespace WinFormsApp1
 	public partial class Form1 : Form
 	{
 		const int ILD_TRANSPARENT = 0x00000001;
-		public readonly FTPMGR fTPMGR = new();
+		public readonly FTPMGR fTPMGR;
 		public readonly CFGLOADER configLoader;
+		public readonly CFGLOADER ftpconfigLoader;
 		private readonly IconManager iconManager = new();
 		private readonly ThemeManager themeManager;
 		private readonly FilePreviewManager previewManager = new();
@@ -104,6 +105,8 @@ namespace WinFormsApp1
 		public Form1()
 		{
 			configLoader = new CFGLOADER(Constants.ZfileCfgPath+"wincmd.ini");
+			ftpconfigLoader = new CFGLOADER(Constants.ZfileCfgPath + "wcx_ftp.ini");
+			fTPMGR = new FTPMGR(this);
 			InitializeComponent();
 		    this.Size = new Size(1200, 800);
 

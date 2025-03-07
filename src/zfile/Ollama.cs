@@ -8,15 +8,189 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WinFormsApp1
 {
+	public class AIassistDlg : Form
+	{
+		private LLM_Helper LLMhelper;
+		List<string> filelist;
+		private ComboBox cboModels;
+		private Button btnRefresh;
+		private ListView lstFiles;
+		private TextBox txtPrompt;
+		private Button btnSend;
+		private Button btnClose;
+		public AIassistDlg(List<string> files, LLM_Helper llm)
+		{
+			LLMhelper = llm;
+			filelist = files;
+			InitializeComponents();
+			LoadModels();
+			LoadFiles();
+		}
+
+		private void InitializeComponents()
+		{
+			this.Text = "AI 助手";
+			this.Size = new Size(600, 500);
+			this.StartPosition = FormStartPosition.CenterParent;
+
+			// 模型选择区域
+			var lblModel = new Label
+			{
+				Text = "选择模型：",
+				Location = new Point(10, 15),
+				AutoSize = true
+			};
+
+			cboModels = new ComboBox
+			{
+				Location = new Point(80, 12),
+				Width = 200,
+				DropDownStyle = ComboBoxStyle.DropDownList
+			};
+
+			btnRefresh = new Button
+			{
+				Text = "刷新",
+				Location = new Point(290, 12),
+				Width = 60
+			};
+			btnRefresh.Click += BtnRefresh_Click;
+
+			// 文件列表
+			lstFiles = new ListView
+			{
+				Location = new Point(10, 50),
+				Size = new Size(565, 250),
+				CheckBoxes = true,
+				View = View.Details
+			};
+			lstFiles.Columns.Add("文件", 560);
+
+			// 提示词输入
+			txtPrompt = new TextBox
+			{
+				Location = new Point(10, 320),
+				Size = new Size(565, 80),
+				Multiline = true,
+				ScrollBars = ScrollBars.Vertical
+			};
+
+			// 按钮区域
+			btnSend = new Button
+			{
+				Text = "发送",
+				Location = new Point(410, 420),
+				Width = 80
+			};
+			btnSend.Click += BtnSend_Click;
+
+			btnClose = new Button
+			{
+				Text = "关闭",
+				Location = new Point(495, 420),
+				Width = 80
+			};
+			btnClose.Click += BtnClose_Click;
+
+			// 添加控件到窗体
+			this.Controls.AddRange(new Control[]
+			{
+			lblModel, cboModels, btnRefresh,
+			lstFiles, txtPrompt,
+			btnSend, btnClose
+			});
+		}
+
+		private void LoadModels()
+		{
+			cboModels.Items.Clear();
+			if (LLMhelper.InstalledModels != null)
+			{
+				cboModels.Items.AddRange(LLMhelper.InstalledModels);
+				if (cboModels.Items.Count > 0)
+				{
+					cboModels.SelectedIndex = 0;
+				}
+			}
+		}
+
+		private void LoadFiles()
+		{
+			lstFiles.Items.Clear();
+			foreach (var file in filelist)
+			{
+				lstFiles.Items.Add(file);
+			}
+		}
+
+		private async void BtnRefresh_Click(object sender, EventArgs e)
+		{
+			btnRefresh.Enabled = false;
+			try
+			{
+				await LLMhelper.Prepare();
+				LoadModels();
+			}
+			finally
+			{
+				btnRefresh.Enabled = true;
+			}
+		}
+
+		private async void BtnSend_Click(object sender, EventArgs e)
+		{
+			if (string.IsNullOrWhiteSpace(txtPrompt.Text))
+			{
+				MessageBox.Show("请输入提示词", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				return;
+			}
+
+			var selectedFiles = lstFiles.CheckedItems.Cast<ListViewItem>()
+									  .Select(item => item.Text)
+									  .ToList();
+			if (selectedFiles.Count == 0)
+			{
+				MessageBox.Show("请选择至少一个文件", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				return;
+			}
+
+			btnSend.Enabled = false;
+			try
+			{
+				var prompt = txtPrompt.Text;
+				var response = await LLMhelper.CallOllamaApiAsync(prompt);
+				// TODO: 处理响应结果
+				MessageBox.Show(response, "AI 响应", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			}
+			finally
+			{
+				btnSend.Enabled = true;
+			}
+		}
+
+		private void BtnClose_Click(object sender, EventArgs e)
+		{
+			this.Close();
+		}
+
+		protected override void OnFormClosing(FormClosingEventArgs e)
+		{
+			base.OnFormClosing(e);
+			// 清理资源
+			LLMhelper = null;
+			filelist = null;
+		}
+	}
 	public class LLM_Helper
 	{
 		private static readonly string OllamaApiUrl = "http://localhost:11434/api"; // OLLAMA API 基础地址
 		private static readonly string OllamaProcessName = "ollama"; // OLLAMA 进程名称
 		private static readonly string OllamaExePath = @"%LOCALAPPDATA%\Programs\ollama.exe"; // OLLAMA 可执行文件路径
 		private string[] installedModels;
+		public string[] InstalledModels { get { return installedModels; } }
 		public string currentModel { get ; private set; } = string.Empty;
 		public bool IsPrepared { get => !currentModel.Equals(string.Empty); }
-		public async Task Prepare(string newModel="qwq")
+		public async Task Prepare(string newModel="deepseek-r1:1.5b")
 		{
 			try
 			{
@@ -73,7 +247,7 @@ namespace WinFormsApp1
 					// 调用 OLLAMA API 与大模型交互
 					try
 					{
-						string prompt = "你好，介绍一下你自己。";
+						string prompt = "你好";
 						string response = await CallOllamaApiAsync(prompt);
 						Debug.Print($"OLLAMA ({currentModel})响应：");
 						Debug.Print(response);
@@ -237,7 +411,7 @@ namespace WinFormsApp1
 			{
 				using (HttpClient client = new HttpClient())
 				{
-					client.Timeout = TimeSpan.FromMinutes(10); // 设置更长的超时时间，因为模型下载可能需要较长时间
+					client.Timeout = TimeSpan.FromMinutes(120); // 设置更长的超时时间，因为模型下载可能需要较长时间
 					
 					var requestBody = new
 					{
@@ -290,7 +464,7 @@ namespace WinFormsApp1
 
 				using (HttpClient client = new HttpClient(handler))
 				{
-					client.Timeout = TimeSpan.FromSeconds(30); // 设置超时时间
+					client.Timeout = TimeSpan.FromSeconds(600); // 设置超时时间
 					client.DefaultRequestHeaders.ConnectionClose = true; // 确保连接关闭，避免连接池问题
 					
 					// 检查Ollama服务是否运行

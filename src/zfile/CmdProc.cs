@@ -324,28 +324,7 @@ namespace CmdProcessor
 						owner.uiManager.BookmarkManager.ToggleCurrentBookmarkLock(owner.uiManager.isleft);
 						break;
 					case 11434: //命令ID=11434,Name=cm_ollama
-						// 使用异步方式处理，避免UI线程阻塞
-						Task.Run(async () => {
-							try {
-								if (!owner.lLM_Helper.IsPrepared)
-								{
-									await owner.lLM_Helper.Prepare().ConfigureAwait(false);
-								}
-								var response = await owner.lLM_Helper.CallOllamaApiAsync("你好，介绍一下你自己。").ConfigureAwait(false);
-								
-								// 使用Invoke确保在UI线程上显示消息框
-								owner.Invoke(() => {
-									MessageBox.Show(response, $"{owner.lLM_Helper.currentModel}");
-									ShowAIassistDialog(param);
-								});
-							}
-							catch (Exception ex)
-							{
-								owner.Invoke(() => {
-									MessageBox.Show($"Ollama操作失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-								});
-							}
-						});
+						do_cm_llm_helper(param);
 						break;
 					case 24340:
 						Form1.ExitApp();
@@ -363,6 +342,39 @@ namespace CmdProcessor
 			//{
 			//	throw new KeyNotFoundException("命令ID不存在");
 			//}
+		}
+		private void do_cm_llm_helper(string param)
+		{
+			List<string> filePaths;
+			if (param.Equals(string.Empty))
+			{
+				filePaths = new List<string>();
+				filePaths.Add(Path.Combine(owner.uiManager.srcDir, owner.activeListView.SelectedItems[0].Text));
+			}
+			else
+				filePaths = owner.se.PrepareParameter(param, new string[] { }, "");
+
+			// 使用异步方式处理，避免UI线程阻塞
+			Task.Run(async () => {
+				try
+				{
+					if (!owner.lLM_Helper.IsPrepared)
+						await owner.lLM_Helper.Prepare().ConfigureAwait(false);
+					var response = await owner.lLM_Helper.CallOllamaApiAsync("介绍一下你自己。").ConfigureAwait(false);
+					// 使用Invoke确保在UI线程上显示消息框
+					owner.Invoke(() => {
+						Debug.Print($"{owner.lLM_Helper.currentModel}: {response}");
+					});
+					response = await ShowAIassistDialog(filePaths, "请描述以下内容：\r\n");
+					Debug.Print(response);
+				}
+				catch (Exception ex)
+				{
+					owner.Invoke(() => {
+						MessageBox.Show($"Ollama操作失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					});
+				}
+			});
 		}
 		private void do_cm_netConnect()		//调用操作系统命令来映射网上邻居的共享文件夹到虚拟盘符
 		{
@@ -2107,23 +2119,16 @@ namespace CmdProcessor
 			var syncDlg = new SyncDirsDlg(leftPath, rightPath);
 			syncDlg.Show();
 		}
-		private void ShowAIassistDialog(string param, bool isBackground = true)
+		private async Task<string> ShowAIassistDialog(List<string> filePaths, string prompt, bool isBackground = true)
 		{
-			List<string> filePaths;
-			if (param.Equals(string.Empty)) { 
-				filePaths = new List<string>();
-				filePaths.Add(owner.uiManager.srcDir+owner.activeListView.SelectedItems[0].ToString());
-			}
-			else
-				filePaths = owner.se.PrepareParameter(param, new string[] { }, "");
+			string response = string.Empty;
 			if (!isBackground)
 			{
-				//var aiDlg = new AIassistDlg(filePaths);
-				//aiDlg.Show();
+				var aiDlg = new AIassistDlg(filePaths, owner.lLM_Helper);
+				aiDlg.Show();
 			}
 			else
 			{
-				var prompt = "请描述一下以下内容：\r\n";
 				foreach (var file in filePaths)
 				{
 					//read all text from file if it is a text file
@@ -2133,11 +2138,11 @@ namespace CmdProcessor
 					if (!result.Contains("text", StringComparison.OrdinalIgnoreCase)) continue;
 
 					var content = File.ReadAllText(file);
-					owner.lLM_Helper.CallOllamaApiAsync(prompt + content);
+					response = await owner.lLM_Helper.CallOllamaApiAsync(prompt + content);
 				}
 			}
+			return response;
 		}
 	}
-
 }
 

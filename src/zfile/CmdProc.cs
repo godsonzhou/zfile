@@ -324,8 +324,11 @@ namespace CmdProcessor
 						owner.uiManager.BookmarkManager.ToggleCurrentBookmarkLock(owner.uiManager.isleft);
 						break;
 					case 11434: //命令ID=11434,Name=cm_ollama
-						if(!owner.lLM_Helper.IsPrepared)
-							owner.lLM_Helper.Prepare();
+						if (!owner.lLM_Helper.IsPrepared)
+						{
+							var prepareTask = owner.lLM_Helper.Prepare();
+							Task.WaitAll(prepareTask);
+						}
 						var msg = owner.lLM_Helper.CallOllamaApiAsync("你好，介绍一下你自己。");
 						Task.WaitAll(msg);
 						MessageBox.Show(msg.Result, $"{owner.lLM_Helper.currentModel}");

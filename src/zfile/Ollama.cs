@@ -73,24 +73,33 @@ namespace WinFormsApp1
 		// 获取已安装的模型列表
 		private static async Task<string[]> GetInstalledModelsAsync()
 		{
+			string[] modelNames = [];
 			using (HttpClient client = new HttpClient())
 			{
+				client.Timeout = TimeSpan.FromSeconds(30); // 设置超时时间
 				string url = $"{OllamaApiUrl}/tags"; // 获取模型列表的 API 地址
-				HttpResponseMessage response = await client.GetAsync(url);
-				response.EnsureSuccessStatusCode();
-
-				string responseBody = await response.Content.ReadAsStringAsync();
-				JObject jsonResponse = JObject.Parse(responseBody);
-				JArray models = (JArray)jsonResponse["models"];
-
-				string[] modelNames = new string[models.Count];
-				for (int i = 0; i < models.Count; i++)
+				try
 				{
-					modelNames[i] = models[i]["name"].ToString();
-				}
+					HttpResponseMessage response = await client.GetAsync(url);
+					response.EnsureSuccessStatusCode();
+					string responseBody = await response.Content.ReadAsStringAsync();
+					JObject jsonResponse = JObject.Parse(responseBody);
+					JArray models = (JArray)jsonResponse["models"];
 
-				return modelNames;
+					modelNames = new string[models.Count];
+					for (int i = 0; i < models.Count; i++)
+					{
+						modelNames[i] = models[i]["name"].ToString();
+					}
+
+					return modelNames;
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"请求失败: {ex.Message}");
+				}
 			}
+			return modelNames;
 		}
 
 		// 下载并安装新模型

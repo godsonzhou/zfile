@@ -312,14 +312,14 @@ namespace WinFormsApp1
 					Debug.Print($"正在连接到: {url}");
 
 					// 使用取消令牌
-					using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(25)))
+					using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(600)))
 					{
 						Debug.Print("开始发送HTTP请求...");
 						var task = client.PostAsync(url, content, cts.Token);
 
 						// 添加超时保护
 						Debug.Print("等待响应...");
-						if (await Task.WhenAny(task, Task.Delay(26000)) != task)
+						if (await Task.WhenAny(task, Task.Delay(600000)) != task)
 						{
 							cts.Cancel();
 							Debug.Print("API请求超时，已取消请求");

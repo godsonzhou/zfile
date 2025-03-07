@@ -329,6 +329,7 @@ namespace CmdProcessor
 						var msg = owner.lLM_Helper.CallOllamaApiAsync("你好，介绍一下你自己。");
 						Task.WaitAll(msg);
 						MessageBox.Show(msg.Result, $"{owner.lLM_Helper.currentModel}");
+						ShowAIassistDialog(param);
 						break;
 					case 24340:
 						Form1.ExitApp();
@@ -2092,7 +2093,13 @@ namespace CmdProcessor
 		}
 		private void ShowAIassistDialog(string param, bool isBackground = true)
 		{
-			var filePaths = owner.se.PrepareParameter(param, new string[] { }, "");
+			List<string> filePaths;
+			if (param.Equals(string.Empty)) { 
+				filePaths = new List<string>();
+				filePaths.Add(owner.uiManager.srcDir+owner.activeListView.SelectedItems[0].ToString());
+			}
+			else
+				filePaths = owner.se.PrepareParameter(param, new string[] { }, "");
 			if (!isBackground)
 			{
 				//var aiDlg = new AIassistDlg(filePaths);

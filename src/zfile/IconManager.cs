@@ -16,6 +16,7 @@ namespace WinFormsApp1
 		private static extern IntPtr ExtractIcon(IntPtr hInst, string lpszExeFileName, int nIconIndex);
 
 		private readonly Dictionary<string, Icon> iconCache = new Dictionary<string, Icon>();
+		public ImageList ImageList { get; private set; }
 		private bool disposed = false;
 		public void Dispose()
 		{
@@ -51,13 +52,13 @@ namespace WinFormsApp1
 		public void InitIconCache(bool islarge)
 		{
 			var imageresPath = Path.Combine(Environment.SystemDirectory, "imageres.dll");
-			var imageList = LoadIconsFromFile(imageresPath, islarge);
+			ImageList = LoadIconsFromFile(imageresPath, islarge);
 			// 标准化图标尺寸
 			var targetSize = islarge ? new Size(64, 64) : new Size(16, 16);
 
-			AddIcon("drive", ResizeIcon(ConvertImageToIcon(imageList.Images[27]), targetSize), islarge);
-			AddIcon("folder", ResizeIcon(ConvertImageToIcon(imageList.Images[3]), targetSize), islarge);
-			AddIcon("桌面",	ResizeIcon(ConvertImageToIcon(imageList.Images[174]), targetSize), islarge);
+			AddIcon("drive", ResizeIcon(ConvertImageToIcon(ImageList.Images[27]), targetSize), islarge);
+			AddIcon("folder", ResizeIcon(ConvertImageToIcon(ImageList.Images[3]), targetSize), islarge);
+			AddIcon("桌面",	ResizeIcon(ConvertImageToIcon(ImageList.Images[174]), targetSize), islarge);
 			//var idx = 0;
 			//foreach (Image image in imageList.Images) 
 			//{

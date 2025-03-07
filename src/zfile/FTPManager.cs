@@ -102,6 +102,7 @@ namespace WinFormsApp1
 				var profile = _activeClient.AutoConnect();  //connect()
 				if (profile != null) {
 					Debug.Print("ftp auto connect success.");
+					Owner.uiManager.ftpController.UpdateStatus(true);
 				}
 				else
 				{

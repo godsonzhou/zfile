@@ -1,12 +1,13 @@
 //using System.Net.FtpClient; // 假设使用了FluentFTP库
 //using FluentFTP;
 using FluentFTP;
+using System.Diagnostics;
 
 namespace WinFormsApp1
 {
 	public class FtpController : IDisposable
 	{
-		private readonly Form parentForm;
+		private readonly Form1 parentForm;
 		private readonly FTPMGR ftpManager;
 
 		// UI Controls
@@ -17,11 +18,11 @@ namespace WinFormsApp1
 		private TextBox commandInput;
 		private ListView replyList;
 		private RichTextBox replayDetail;
-
+		private bool isFtpConnected;
 		private bool isBinaryMode = true;
 		private bool disposed = false;
 
-		public FtpController(Form parentForm, FTPMGR ftpManager)
+		public FtpController(Form1 parentForm, FTPMGR ftpManager)
 		{
 			this.parentForm = parentForm;
 			this.ftpManager = ftpManager;
@@ -32,11 +33,12 @@ namespace WinFormsApp1
 				Dock = DockStyle.Bottom,
 				Height = 25
 			};
-			mainPanel.Hide(); // 默认隐藏
+			//mainPanel.Hide(); // 默认隐藏
 			InitializeControls();// 初始化控件
 
 			// 添加到父窗体
 			parentForm.Controls.Add(mainPanel);
+			UpdateStatus(false);
 		}
 
 		private void InitializeControls()
@@ -54,7 +56,7 @@ namespace WinFormsApp1
 			{
 				Text = "Binary",
 				Location = new Point(20, 2),
-				Width = 50
+				Width = 60
 			};
 			transferModeButton.Click += TransferModeButton_Click;
 
@@ -62,7 +64,7 @@ namespace WinFormsApp1
 			disconnectButton = new Button
 			{
 				Text = "Disconnect",
-				Location = new Point(70, 2),
+				Location = new Point(80, 2),
 				Width = 80
 			};
 			disconnectButton.Click += DisconnectButton_Click;
@@ -70,16 +72,16 @@ namespace WinFormsApp1
 			// 命令输入框
 			commandInput = new TextBox
 			{
-				Location = new Point(150, 2),
-				Width = 300
+				Location = new Point(160, 2),
+				Width = 400
 			};
 			commandInput.KeyPress += CommandInput_KeyPress;
 
 			// 回复列表
 			replyList = new ListView
 			{
-				Location = new Point(450, 2),
-				Width = 400,
+				Location = new Point(560, 2),
+				Width = 500,
 				Height = 25,
 				View = View.Details
 			};
@@ -152,11 +154,20 @@ namespace WinFormsApp1
 
 		private async void SendCommand(string command)
 		{
-			if (ftpManager.ActiveClient == null || string.IsNullOrEmpty(command)) return;
+			if (string.IsNullOrEmpty(command)) return;
 
 			try
 			{
-				var response = ftpManager.ActiveClient.Execute(command);
+				if (ftpManager.ActiveClient != null && isFtpConnected)
+				{
+					var response = ftpManager.ActiveClient.Execute(command);
+					Debug.Print(response.Message);
+				}
+				else
+				{
+					// if ftp is not connected, send command to cmdproc
+					parentForm.cmdProcessor.ExecCmd(command, "", parentForm.currentDirectory);
+				}
 				//AddReplayToList(command, response);
 			}
 			catch (Exception ex)
@@ -181,13 +192,29 @@ namespace WinFormsApp1
 
 		public void UpdateStatus(bool isConnected)
 		{
-			//statusLight.Image = isConnected ?
-			//	Properties.Resources.StatusOnline :
-			//	Properties.Resources.StatusOffline;
-
+			isFtpConnected = isConnected;
+			statusLight.Image = isConnected ?
+				parentForm.iconManager.ImageList.Images[233] :
+				parentForm.iconManager.ImageList.Images[230];
+			if (!isConnected) 
+			{ 
+				statusLight.Hide();
+				disconnectButton.Hide();
+				transferModeButton.Hide();
+				replyList.Hide();
+				//replayDetail.Hide();
+			}
+			else 
+			{
+				statusLight.Show();
+				disconnectButton.Show();
+				transferModeButton.Show();
+				replyList.Show();
+				//replayDetail.Show();
+			}
 			transferModeButton.Enabled = isConnected;
 			disconnectButton.Enabled = isConnected;
-			commandInput.Enabled = isConnected;
+			//commandInput.Enabled = isConnected;
 		}
 
 		protected virtual void Dispose(bool disposing)

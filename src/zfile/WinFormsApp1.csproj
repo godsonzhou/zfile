@@ -31,6 +31,7 @@
     <PackageReference Include="LibVLCSharp" Version="3.9.2" />
     <PackageReference Include="LibVLCSharp.WinForms" Version="3.9.2" />
     <PackageReference Include="Microsoft.WindowsAPICodePack.Shell" Version="1.1.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="PdfiumViewer" Version="2.13.0" />
     <PackageReference Include="PdfiumViewer.Native.x86_64.v8-xfa" Version="2018.4.8.256" />
     <PackageReference Include="SharpCompress" Version="0.39.0" />

@@ -157,11 +157,11 @@ namespace CmdProcessor
 		}
 		public void ExecCmdByID(int cmdId, string param = "")
 		{
-			var cmdItem = cmdTable.GetByCmdId(cmdId);
+			//var cmdItem = cmdTable.GetByCmdId(cmdId);
 
-			if (cmdItem != null)
+			//if (cmdItem != null)
 			{
-				Console.WriteLine($"Processing command: {cmdItem}");
+				//Console.WriteLine($"Processing command: {cmdItem}");
 				// 在这里添加处理命令的逻辑
 				switch (cmdId)
 				{
@@ -323,18 +323,29 @@ namespace CmdProcessor
 					case 3012:  //lock the bookmark
 						owner.uiManager.BookmarkManager.ToggleCurrentBookmarkLock(owner.uiManager.isleft);
 						break;
+					case 11434: //命令ID=11434,Name=cm_ollama
+						if(!owner.lLM_Helper.IsPrepared)
+							owner.lLM_Helper.Prepare();
+						var msg = owner.lLM_Helper.CallOllamaApiAsync("你好，介绍一下你自己。");
+						Task.WaitAll(msg);
+						MessageBox.Show(msg.Result, $"{owner.lLM_Helper.currentModel}");
+						break;
 					case 24340:
 						Form1.ExitApp();
 						break;
 					default:
-						MessageBox.Show($"命令ID = {cmdId}, Name = {cmdItem?.CmdName} 尚未实现", "提示");
+						var cmdItem = cmdTable.GetByCmdId(cmdId);
+						if (cmdItem != null)
+							MessageBox.Show($"命令ID = {cmdId}, Name = {cmdItem?.CmdName} 尚未实现", "提示");
+						else
+							MessageBox.Show($"命令ID = {cmdId} 尚未实现", "提示");
 						break;
 				}
 			}
-			else
-			{
-				throw new KeyNotFoundException("命令ID不存在");
-			}
+			//else
+			//{
+			//	throw new KeyNotFoundException("命令ID不存在");
+			//}
 		}
 		private void do_cm_netConnect()		//调用操作系统命令来映射网上邻居的共享文件夹到虚拟盘符
 		{
@@ -2078,6 +2089,30 @@ namespace CmdProcessor
 
 			var syncDlg = new SyncDirsDlg(leftPath, rightPath);
 			syncDlg.Show();
+		}
+		private void ShowAIassistDialog(string param, bool isBackground = true)
+		{
+			var filePaths = owner.se.PrepareParameter(param, new string[] { }, "");
+			if (!isBackground)
+			{
+				//var aiDlg = new AIassistDlg(filePaths);
+				//aiDlg.Show();
+			}
+			else
+			{
+				var prompt = "请描述一下以下内容：\r\n";
+				foreach (var file in filePaths)
+				{
+					//read all text from file if it is a text file
+					var result = Helper.Getfiletype(file);
+					Debug.Print($"{file} => {result}");
+
+					if (!result.Contains("text", StringComparison.OrdinalIgnoreCase)) continue;
+
+					var content = File.ReadAllText(file);
+					owner.lLM_Helper.CallOllamaApiAsync(prompt + content);
+				}
+			}
 		}
 	}
 

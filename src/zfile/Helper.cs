@@ -45,6 +45,53 @@ namespace WinFormsApp1
 	
 	internal static class Helper
 	{
+		public static string Getfiletype(string args)
+		{
+			// 配置启动参数
+			ProcessStartInfo startInfo = new ProcessStartInfo
+			{
+				FileName = "file.exe",        // 程序路径
+				Arguments = args, // 参数（可选）
+				UseShellExecute = false,      // 不使用系统外壳程序
+				RedirectStandardOutput = true,// 重定向标准输出
+				RedirectStandardError = true, // 重定向错误输出
+				CreateNoWindow = true         // 不创建新窗口
+			};
+
+			using (Process process = new Process())
+			{
+				process.StartInfo = startInfo;
+
+				try
+				{
+					// 启动进程
+					process.Start();
+
+					// 异步读取输出（防止死锁）
+					string output = process.StandardOutput.ReadToEnd();
+					string error = process.StandardError.ReadToEnd();
+
+					// 等待程序结束（可设置超时时间，单位毫秒）
+					process.WaitForExit();
+
+					// 获取退出代码
+					int exitCode = process.ExitCode;
+
+					Console.WriteLine("输出内容：\n" + output);
+					if (!string.IsNullOrEmpty(error))
+					{
+						Console.WriteLine("错误信息：\n" + error);
+					}
+					Console.WriteLine($"退出代码：{exitCode}");
+					return output;
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"执行出错：{ex.Message}");
+				}
+			}
+			return string.Empty; 
+		}
 		public static List<MenuInfo> ReadConfigFromFile(string filePath)
 		{
 			try

@@ -324,15 +324,28 @@ namespace CmdProcessor
 						owner.uiManager.BookmarkManager.ToggleCurrentBookmarkLock(owner.uiManager.isleft);
 						break;
 					case 11434: //命令ID=11434,Name=cm_ollama
-						if (!owner.lLM_Helper.IsPrepared)
-						{
-							var prepareTask = owner.lLM_Helper.Prepare();
-							Task.WaitAll(prepareTask);
-						}
-						var msg = owner.lLM_Helper.CallOllamaApiAsync("你好，介绍一下你自己。");
-						Task.WaitAll(msg);
-						MessageBox.Show(msg.Result, $"{owner.lLM_Helper.currentModel}");
-						ShowAIassistDialog(param);
+						// 使用异步方式处理，避免UI线程阻塞
+						Task.Run(async () => {
+							try {
+								if (!owner.lLM_Helper.IsPrepared)
+								{
+									await owner.lLM_Helper.Prepare().ConfigureAwait(false);
+								}
+								var response = await owner.lLM_Helper.CallOllamaApiAsync("你好，介绍一下你自己。").ConfigureAwait(false);
+								
+								// 使用Invoke确保在UI线程上显示消息框
+								owner.Invoke(() => {
+									MessageBox.Show(response, $"{owner.lLM_Helper.currentModel}");
+									ShowAIassistDialog(param);
+								});
+							}
+							catch (Exception ex)
+							{
+								owner.Invoke(() => {
+									MessageBox.Show($"Ollama操作失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+								});
+							}
+						});
 						break;
 					case 24340:
 						Form1.ExitApp();

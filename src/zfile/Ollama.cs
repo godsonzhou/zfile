@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-
+using CmdProcessor;
 namespace WinFormsApp1
 {
 	public class AIassistDlg : Form
@@ -19,13 +19,15 @@ namespace WinFormsApp1
 		private TextBox txtPrompt;
 		private Button btnSend;
 		private Button btnClose;
-		public AIassistDlg(List<string> files, LLM_Helper llm)
+		private CmdProc cmdProc;
+		public AIassistDlg(List<string> files, LLM_Helper llm, CmdProc cmdproc)
 		{
 			LLMhelper = llm;
 			filelist = files;
 			InitializeComponents();
 			LoadModels();
 			LoadFiles();
+			this.cmdProc = cmdproc;
 		}
 
 		private void InitializeComponents()
@@ -220,13 +222,20 @@ namespace WinFormsApp1
 	}
 	public class LLM_Helper
 	{
+		private Form1 form;
+		CmdProc cmdProc;
 		private static readonly string OllamaApiUrl = "http://localhost:11434/api"; // OLLAMA API 基础地址
 		private static readonly string OllamaProcessName = "ollama"; // OLLAMA 进程名称
-		private static readonly string OllamaExePath = @"%LOCALAPPDATA%\Programs\ollama.exe"; // OLLAMA 可执行文件路径
+		private static readonly string OllamaExePath = @"%LOCALAPPDATA%\Programs\ollama\ollama.exe"; // OLLAMA 可执行文件路径
 		private string[] installedModels;
 		public string[] InstalledModels { get { return installedModels; } }
 		public string currentModel { get ; private set; } = string.Empty;
 		public bool IsPrepared { get => !currentModel.Equals(string.Empty); }
+		public LLM_Helper(Form1 form)
+		{
+			this.form = form;
+			this.cmdProc = form.cmdProcessor;
+		}
 		public async Task Prepare(string newModel="deepseek-r1:1.5b")
 		{
 			try
@@ -313,11 +322,12 @@ namespace WinFormsApp1
 		}
 
 		// 启动 OLLAMA 服务
-		private static void StartOllama()
+		private void StartOllama()
 		{
 			try
 			{
-				Process.Start(OllamaExePath);
+				//Process.Start(Helper.GetPathByEnv(OllamaExePath));
+				cmdProc.ExecCmd(OllamaExePath, "serve", Path.GetDirectoryName(Helper.GetPathByEnv(OllamaExePath)));
 			}
 			catch (Exception ex)
 			{

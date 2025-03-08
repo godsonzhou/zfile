@@ -108,13 +108,13 @@ namespace WinFormsApp1
 			configLoader = new CFGLOADER(Constants.ZfileCfgPath+"wincmd.ini");
 			ftpconfigLoader = new CFGLOADER(Constants.ZfileCfgPath + "wcx_ftp.ini");
 			fTPMGR = new FTPMGR(this);
-			lLM_Helper = new LLM_Helper();
+		    cmdProcessor = new CmdProc(this);
+			lLM_Helper = new LLM_Helper(this);
 			InitializeComponent();
 		    this.Size = new Size(1200, 800);
 
 		    // 初始化COM组件
 		    InitializeCOMComponents();
-		    cmdProcessor = new CmdProc(this);
 		    keyManager = new KeyMgr();
 		    
 		    // 创建UIManager并初始化

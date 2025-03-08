@@ -145,7 +145,6 @@ namespace CmdProcessor
 								owner.OpenCommandPrompt(cmdName);   //TODO: SHELLEXECUTEHELPER.EXECUTECOMMAND合并（增加了参数的处理）
 							else
 								Process.Start(startInfo);
-
 						}
 					}
 					catch (Exception ex)
@@ -2125,7 +2124,7 @@ namespace CmdProcessor
 			string response = string.Empty;
 			if (!isBackground)
 			{
-				var aiDlg = new AIassistDlg(filePaths, owner.lLM_Helper);
+				var aiDlg = new AIassistDlg(filePaths, owner.lLM_Helper, owner.cmdProcessor);
 				owner.Invoke(() => { aiDlg.Show(); });
 			}
 			else

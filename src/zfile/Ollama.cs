@@ -183,18 +183,20 @@ namespace WinFormsApp1
 					var content = File.ReadAllText(file);
 					var response = await LLMhelper.CallOllamaApiAsync(prompt + content);
 					Debug.Print("AI 响应" + response);
-					
+					var res = Helper.ExtractResponseContent(response);
+					//将res中的"\n"替换为真正的换行符
+					res = res.Replace("\\n", "\n");
 					var i = lstFiles.Items.Cast<ListViewItem>().First(m => m.Text.Equals(file));
 					if (i != null) {
 						//将response写入第2列
-						i.SubItems[1].Text = Helper.ExtractResponseContent(response);
+						i.SubItems[1].Text = res;
 						lstFiles.Refresh();
 						if (chkboxSave.Checked) 
 						{
-							//save response to file, file's name is same as i.subitems[0] + "AID"
+							//save response to file, file's name is same as i.subitems[0] + "ion"
 							var ionfile = file + ".ion";
 							if (!File.Exists(ionfile))
-								File.WriteAllText(ionfile, i.SubItems[1].Text);
+								File.WriteAllText(ionfile, res);
 							else
 								MessageBox.Show($"{ionfile} already exist.");
 						}

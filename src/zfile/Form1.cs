@@ -52,6 +52,7 @@ namespace WinFormsApp1
 		public Stack<string> forwardStack = new(); // 前进历史
 		private string lastDirectory = string.Empty; // 上一次访问的目录
 		public ShellExecuteHelper se;
+		private bool shiftKeyPressed, altKeyPressed, ctrlKeyPressed, winKeyPressed;
 		public IEnumerable<string> GetRecycleBinFilenames()
 		{
 			Shell shell = new Shell();
@@ -217,27 +218,39 @@ namespace WinFormsApp1
                 { Keys.F6, "cm_renmov" },
                 { Keys.F7, "cm_mkdir" },
                 { Keys.F8, "cm_Delete" },
-                { Keys.F9, "cm_ExecuteDOS" },
+				{ Keys.Delete, "cm_Delete" },
+				{ Keys.F9, "cm_ExecuteDOS" },
+				{ Keys.Escape, "cm_ClearAll"},
                 { Keys.Alt | Keys.X, "cm_Exit" }
             };
 
             this.KeyPreview = true;
             this.KeyDown += new KeyEventHandler(Form1_KeyDown);
+			this.KeyUp += new KeyEventHandler(Form1_KeyUp);
         }
-
+		private void Form1_KeyUp(object sender, KeyEventArgs e)
+		{
+			if(e.KeyCode == Keys.Shift)	shiftKeyPressed = false;
+			if (e.KeyCode == Keys.Alt) altKeyPressed = false;
+			if (e.KeyCode == Keys.Control) ctrlKeyPressed = false;
+			if (e.KeyCode == Keys.LWin || e.KeyCode == Keys.RWin) winKeyPressed = false;
+		}
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            if (hotkeyMappings.TryGetValue(e.KeyData, out string cmdName))
-            {
+			if(e.KeyCode == Keys.Shift) shiftKeyPressed = true;
+			if (e.KeyCode == Keys.Alt) altKeyPressed = true;
+			if(e.KeyCode == Keys.ControlKey) ctrlKeyPressed = true;
+			if(e.KeyCode == Keys.LWin || e.KeyCode == Keys.RWin) winKeyPressed = true;
+
+			if (hotkeyMappings.TryGetValue(e.KeyData, out string cmdName))
                 cmdProcessor.ExecCmd(cmdName);
-            }
-            else if (e.KeyCode == Keys.T)
-            {
-                AddCurrentPathToBookmarks();
-            }
+            //else if (e.KeyCode == Keys.T)
+            //    AddCurrentPathToBookmarks();
 			else
 			{
-				var cmd = keyManager.GetCmdByKey(Helper.ConvertKeyToString(e.KeyCode));
+				var specKey = (winKeyPressed ? "#" : "") + (altKeyPressed ? "A" : "") + (ctrlKeyPressed ? "C" : "") + (shiftKeyPressed ? "S" : "");
+				var mainKey = Helper.ConvertKeyToString(e.KeyCode);
+				var cmd = keyManager.GetCmdByKey(specKey.Length != 0 ? $"{specKey}+{mainKey}" : mainKey);
 				cmdProcessor.ExecCmd(cmd);
 			}
 			e.Handled = true;

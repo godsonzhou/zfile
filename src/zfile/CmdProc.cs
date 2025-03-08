@@ -349,7 +349,7 @@ namespace CmdProcessor
 			{
 				filePaths = new List<string>();
 				foreach(var i in owner.activeListView.SelectedItems.Cast<ListViewItem>())
-					filePaths.Add(Path.Combine(owner.uiManager.srcDir, i.Text));
+					filePaths.Add(i.SubItems[1].Text);	//对于展开所有子目录的文件，路径应该读取第2个subitem（存放真实路径)
 			}
 			else
 				filePaths = owner.se.PrepareParameter(param, new string[] { }, "");

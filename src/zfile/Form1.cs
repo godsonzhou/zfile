@@ -187,6 +187,7 @@ namespace WinFormsApp1
 				openArchives.Clear();
 				archivePaths.Clear();
 
+				unInitializeHotkeys();
                 // 释放托管资源
                 if (components != null)
                     components.Dispose();
@@ -206,7 +207,11 @@ namespace WinFormsApp1
 			}
 			base.Dispose(disposing);
 		}
-
+		private void unInitializeHotkeys()
+		{
+			this.KeyDown -= Form1_KeyDown;
+			this.KeyUp -= Form1_KeyUp;
+		}
 		private void InitializeHotkeys()
         {
             hotkeyMappings = new Dictionary<Keys, string>
@@ -1648,7 +1653,7 @@ namespace WinFormsApp1
                     itemData = new[]
                     {
                         item.Name,
-                        item.FullName,
+                        item.FullName,	//真实完整路径
                         FileSystemManager.FormatFileSize(fileInfo.Length, true),
                         fileInfo.Extension.ToUpperInvariant(),
                         item.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),

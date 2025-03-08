@@ -349,7 +349,8 @@ namespace CmdProcessor
 			if (param.Equals(string.Empty))
 			{
 				filePaths = new List<string>();
-				filePaths.Add(Path.Combine(owner.uiManager.srcDir, owner.activeListView.SelectedItems[0].Text));
+				foreach(var i in owner.activeListView.SelectedItems.Cast<ListViewItem>())
+					filePaths.Add(Path.Combine(owner.uiManager.srcDir, i.Text));
 			}
 			else
 				filePaths = owner.se.PrepareParameter(param, new string[] { }, "");
@@ -365,7 +366,7 @@ namespace CmdProcessor
 					owner.Invoke(() => {
 						Debug.Print($"{owner.lLM_Helper.currentModel}: {response}");
 					});
-					response = await ShowAIassistDialog(filePaths, "请描述以下内容：\r\n");
+					response = await ShowAIassistDialog(filePaths, "请描述以下内容：\r\n", false);
 					Debug.Print(response);
 				}
 				catch (Exception ex)
@@ -2125,7 +2126,7 @@ namespace CmdProcessor
 			if (!isBackground)
 			{
 				var aiDlg = new AIassistDlg(filePaths, owner.lLM_Helper);
-				aiDlg.Show();
+				owner.Invoke(() => { aiDlg.Show(); });
 			}
 			else
 			{

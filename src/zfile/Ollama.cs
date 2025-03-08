@@ -14,6 +14,7 @@ namespace WinFormsApp1
 		List<string> filelist;
 		private ComboBox cboModels;
 		private Button btnRefresh;
+		private CheckBox chkboxSave;
 		private ListView lstFiles;
 		private TextBox txtPrompt;
 		private Button btnSend;
@@ -56,6 +57,15 @@ namespace WinFormsApp1
 			};
 			btnRefresh.Click += BtnRefresh_Click;
 
+			chkboxSave = new CheckBox
+			{
+				Text = "保存结果到文件",
+				Location = new Point(450, 12),
+				Width = 260,
+				Checked = true
+			};
+			chkboxSave.Click += chkboxSave_Click;
+
 			// 文件列表
 			lstFiles = new ListView
 			{
@@ -64,7 +74,8 @@ namespace WinFormsApp1
 				CheckBoxes = true,
 				View = View.Details
 			};
-			lstFiles.Columns.Add("文件", 560);
+			lstFiles.Columns.Add("文件", 280);
+			lstFiles.Columns.Add("处理结果", 280);
 
 			// 提示词输入
 			txtPrompt = new TextBox
@@ -72,7 +83,8 @@ namespace WinFormsApp1
 				Location = new Point(10, 320),
 				Size = new Size(565, 80),
 				Multiline = true,
-				ScrollBars = ScrollBars.Vertical
+				ScrollBars = ScrollBars.Vertical,
+				Text = "分析以下程序的功能："
 			};
 
 			// 按钮区域
@@ -95,9 +107,7 @@ namespace WinFormsApp1
 			// 添加控件到窗体
 			this.Controls.AddRange(new Control[]
 			{
-			lblModel, cboModels, btnRefresh,
-			lstFiles, txtPrompt,
-			btnSend, btnClose
+				lblModel, cboModels, btnRefresh, chkboxSave, lstFiles, txtPrompt, btnSend, btnClose
 			});
 		}
 
@@ -119,10 +129,16 @@ namespace WinFormsApp1
 			lstFiles.Items.Clear();
 			foreach (var file in filelist)
 			{
-				lstFiles.Items.Add(file);
+				var i = new ListViewItem([file, ""]);
+				lstFiles.Items.Add(i);
+				i.Checked = true;
 			}
 		}
 
+		private void chkboxSave_Click(object sender, EventArgs e)
+		{
+			//chkboxSave.Checked = true;
+		}
 		private async void BtnRefresh_Click(object sender, EventArgs e)
 		{
 			btnRefresh.Enabled = false;
@@ -158,9 +174,28 @@ namespace WinFormsApp1
 			try
 			{
 				var prompt = txtPrompt.Text;
-				var response = await LLMhelper.CallOllamaApiAsync(prompt);
-				// TODO: 处理响应结果
-				MessageBox.Show(response, "AI 响应", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				foreach (var file in selectedFiles)
+				{
+					var content = File.ReadAllText(file);
+					var response = await LLMhelper.CallOllamaApiAsync(prompt + content);
+					Debug.Print("AI 响应" + response);
+					
+					var i = lstFiles.Items.Cast<ListViewItem>().First(m => m.Text.Equals(file));
+					if (i != null) {
+						//将response写入第2列
+						i.SubItems[1].Text = Helper.ExtractResponseContent(response);
+						lstFiles.Refresh();
+						if (chkboxSave.Checked) 
+						{
+							//save response to file, file's name is same as i.subitems[0] + "AID"
+							var aidfile = file + ".AID";
+							if (!File.Exists(aidfile))
+								File.WriteAllText(aidfile, response);
+							else
+								MessageBox.Show($"{aidfile} already exist.");
+						}
+					}
+				}
 			}
 			finally
 			{

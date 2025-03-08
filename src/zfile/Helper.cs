@@ -45,6 +45,26 @@ namespace WinFormsApp1
 	
 	internal static class Helper
 	{
+		public static string ExtractResponseContent(string input)
+		{
+			// 定义正则表达式模式，用于匹配 response 字段的值
+			string pattern = @"\""response\"":\""(.*?)\""";
+			MatchCollection matches = Regex.Matches(input, pattern);
+
+			// 用于存储提取的内容
+			StringBuilder result = new StringBuilder();
+
+			// 遍历所有匹配结果
+			foreach (Match match in matches)
+			{
+				// 提取匹配的内容
+				string responseValue = match.Groups[1].Value;
+				// 将提取的内容添加到结果中
+				result.Append(responseValue);
+			}
+
+			return result.ToString();
+		}
 		public static string Getfiletype(string args)
 		{
 			// 配置启动参数

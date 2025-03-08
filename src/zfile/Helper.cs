@@ -367,8 +367,11 @@ namespace WinFormsApp1
 
 			return menuInfos;
 		}
-		public static string ConvertKeyToString(Keys k)
+		public static string ConvertKeyToString(Keys k, bool excludeSpecKey = true)
 		{
+			if (excludeSpecKey)
+				if (k == Keys.ControlKey || k == Keys.Alt || k == Keys.Shift || k == Keys.LWin || k == Keys.RWin)
+					return "";
 			string str = k.ToString();
 
 			// 特殊按键转换

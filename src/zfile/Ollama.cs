@@ -59,7 +59,7 @@ namespace WinFormsApp1
 
 			chkboxSave = new CheckBox
 			{
-				Text = "保存结果到文件",
+				Text = "保存结果到文件备注",
 				Location = new Point(450, 12),
 				Width = 260,
 				Checked = true
@@ -129,7 +129,9 @@ namespace WinFormsApp1
 			lstFiles.Items.Clear();
 			foreach (var file in filelist)
 			{
-				var i = new ListViewItem([file, ""]);
+				var ionfile = file + ".ion";
+				var desc = File.Exists(ionfile) ? File.ReadAllText(ionfile) : "";
+				var i = new ListViewItem([file, desc]);
 				lstFiles.Items.Add(i);
 				i.Checked = true;
 			}
@@ -188,11 +190,11 @@ namespace WinFormsApp1
 						if (chkboxSave.Checked) 
 						{
 							//save response to file, file's name is same as i.subitems[0] + "AID"
-							var aidfile = file + ".AID";
-							if (!File.Exists(aidfile))
-								File.WriteAllText(aidfile, response);
+							var ionfile = file + ".ion";
+							if (!File.Exists(ionfile))
+								File.WriteAllText(ionfile, i.SubItems[1].Text);
 							else
-								MessageBox.Show($"{aidfile} already exist.");
+								MessageBox.Show($"{ionfile} already exist.");
 						}
 					}
 				}

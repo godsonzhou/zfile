@@ -256,6 +256,9 @@ namespace CmdProcessor
 					case 571:
 						do_cm_gotonextdir();
 						break;
+					case 580:
+						do_cm_configsavesettings();
+						break;
 
 					case 903: //cm_list
 						owner.do_cm_list(param);
@@ -341,6 +344,11 @@ namespace CmdProcessor
 			//{
 			//	throw new KeyNotFoundException("命令ID不存在");
 			//}
+		}
+		private void do_cm_configsavesettings()
+		{
+			//save ftp config
+			owner.fTPMGR.SaveToCfgloader();
 		}
 		private void do_cm_llm_helper(string param)
 		{

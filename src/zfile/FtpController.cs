@@ -121,6 +121,7 @@ namespace WinFormsApp1
 			{
 				// 设置FTP传输模式
 				//ftpManager.ActiveClient.(isBinaryMode ? FtpDataType.ASCII : FtpDataType.Binary);
+				SendCommand(isBinaryMode ? "bin" : "asc");
 			}
 		}
 

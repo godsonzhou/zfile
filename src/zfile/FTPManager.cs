@@ -58,7 +58,7 @@ namespace WinFormsApp1
 		#endregion
 		~FTPMGR()
 		{
-			SaveToCfgloader();
+		
 		}
 		#region 连接管理
 
@@ -847,13 +847,18 @@ namespace WinFormsApp1
 		}
 
 		#endregion
-		private void SaveToCfgloader()
+		public void SaveToCfgloader()
 		{
 			// 保存配置到cfgloader
 			try
 			{
-				// 清除已有的FTP相关配置
-				Owner.ftpconfigLoader.ClearSectionsWithPrefix("ftp_");
+				var connectionsSection = Owner.ftpconfigLoader.sections.Find(s => s.Name.Equals("connections"));
+				foreach(var i in connectionsSection.Items)
+				{
+					if(i.Key == "default") continue;
+					// 清除已有的FTP相关配置
+					Owner.ftpconfigLoader.RemoveSection(i.Value);
+				}
 				Owner.ftpconfigLoader.RemoveSection("connections");
 
 				// 创建connections节的配置项
@@ -863,7 +868,7 @@ namespace WinFormsApp1
 
 				foreach (var conn in _connections)
 				{
-					string sectionName = $"ftp_{conn.Key}";
+					string sectionName = $"{conn.Key}";
 					defaultConnection = defaultConnection == "" ? conn.Key : defaultConnection;
 
 					// 添加到connections列表

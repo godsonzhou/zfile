@@ -415,9 +415,12 @@ namespace WinFormsApp1
         #region 事件处理
         private void ViewerForm_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Escape && _isFullScreen)
+            if (e.KeyCode == Keys.Escape)
             {
-                ToggleFullScreen();
+				if (_isFullScreen)
+					ToggleFullScreen();
+				else
+					Close();
             }
         }
 

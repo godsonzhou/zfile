@@ -515,7 +515,7 @@ namespace WinFormsApp1
                 if (fileInfo != null)
                 {
                     var fileSize = new FileInfo(_fileName).Length;
-                    fileInfo.Text = $"大小: {FormatFileSize(fileSize)}";
+                    fileInfo.Text = $"大小: {FileSystemManager.FormatFileSize(fileSize,true)}";
                 }
 
                 if (encodingLabel != null)
@@ -530,18 +530,6 @@ namespace WinFormsApp1
             }
         }
 
-        private string FormatFileSize(long bytes)
-        {
-            string[] suffixes = { "B", "KB", "MB", "GB", "TB" };
-            int counter = 0;
-            decimal number = bytes;
-            while (Math.Round(number / 1024) >= 1)
-            {
-                number = number / 1024;
-                counter++;
-            }
-            return string.Format("{0:n1} {1}", number, suffixes[counter]);
-        }
 		private void SetPluginWindowBounds(Panel container)
 		{
 			if (_pluginWindow != IntPtr.Zero && container != null)

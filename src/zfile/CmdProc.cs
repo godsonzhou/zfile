@@ -259,12 +259,14 @@ namespace CmdProcessor
 					case 580:
 						do_cm_configsavesettings();
 						break;
-
+					case 581:
+						do_cm_configchangeinifiles();
+						break;
 					case 903: //cm_list
 						owner.do_cm_list(param);
 						break;
 					case 904: //cm_edit
-						owner.do_cm_edit();
+						owner.do_cm_edit(param);
 						break;
 					case 905: // cm_copy
 						CopySelectedFiles();
@@ -344,6 +346,10 @@ namespace CmdProcessor
 			//{
 			//	throw new KeyNotFoundException("命令ID不存在");
 			//}
+		}
+		private void do_cm_configchangeinifiles()
+		{
+			owner.do_cm_edit(Constants.ZfileCfgPath + "wincmd.ini");
 		}
 		private void do_cm_configsavesettings()
 		{

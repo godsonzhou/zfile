@@ -438,6 +438,7 @@ namespace zfile
 		private ToolStripStatusLabel lineColumnLabel;
 		private ToolStripStatusLabel fileTypeLabel;
 		private bool isDarkMode = false;
+		private List<string> openFiles;
 
 		public NewEditorForm()
         {
@@ -449,6 +450,12 @@ namespace zfile
 		public NewEditorForm(string filename): this()
 		{
 			OpenFile(filename);
+		}
+		public NewEditorForm(List<string> files) : this()
+		{
+			openFiles = files;
+			if (openFiles.Count != 0)
+				OpenFile(openFiles[0]);
 		}
 
         private void InitializeComponents()

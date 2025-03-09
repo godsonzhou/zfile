@@ -1873,16 +1873,25 @@ namespace WinFormsApp1
         {
             do_cm_list();
         }
-
-        public void do_cm_edit()
+		private List<string> GetFileListByViewOrParam(string param)
+		{
+			if (!param.Equals(string.Empty))
+				return se.PrepareParameter(param, new string[] { }, "");
+			List<string> result = new();
+			if (activeListView.SelectedItems.Count == 0)
+				return result;
+			return activeListView.SelectedItems.Cast<ListViewItem>().Select(i => i.SubItems[1].Text).ToList();
+		}
+        public void do_cm_edit(string param = "")
         {
-            var listView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
-            if (listView.SelectedItems.Count == 0) return;
 
-            var selectedItem = listView.SelectedItems[0];
-            var filePath = Helper.getFSpath(Path.Combine(currentDirectory, selectedItem.Text));
+			//var listView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
+			//if (listView.SelectedItems.Count == 0) return;
 
-            if (File.Exists(filePath))
+			//var selectedItem = listView.SelectedItems[0];
+			//var filePath = Helper.getFSpath(Path.Combine(currentDirectory, selectedItem.Text));
+			var files = GetFileListByViewOrParam(param);
+            //if (File.Exists(filePath))
             {
 				//Form viewerForm = new Form
 				//{
@@ -1893,9 +1902,9 @@ namespace WinFormsApp1
 				//Control viewerControl = previewManager.CreatePreviewControl(filePath);
 				//viewerForm.Controls.Add(viewerControl);
 				//viewerForm.Show();
-				var editorForm = new NewEditorForm(filePath)
+				var editorForm = new NewEditorForm(files)
 				{
-					Text = $"编辑文件 - {selectedItem.Text}",
+					Text = $"编辑文件 - {files[0]}",
 					Size = new Size(800, 600)
 				};
 				editorForm.Show();
@@ -1905,40 +1914,48 @@ namespace WinFormsApp1
 		{
 			// 编辑按钮点击处理逻辑
 			// OPEN VIEWERFORM
-			string filePath;
-			List<string> filePaths;
+			//string filePath;
+			//List<string> filePaths;
 			//ListView listView;
-			if (param.Equals(string.Empty))
+			//if (param.Equals(string.Empty))
+			//{
+			//	var listView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
+			//	if (listView.SelectedItems.Count == 0) return;
+			//	var selectedItemText = listView.SelectedItems[0].Text;
+			//	filePath = Helper.getFSpath(Path.Combine(currentDirectory, selectedItemText));
+			//	if (File.Exists(filePath))
+			//	{
+			//		Form viewerForm = new ViewerForm(filePath, wlxModuleList)
+			//		{
+			//			Text = $"查看文件 - {filePath}",
+			//			Size = new Size(800, 600)
+			//		};
+			//		viewerForm.Show();
+			//		//Control viewerControl = previewManager.CreatePreviewControl(filePath);
+			//		//viewerForm.Controls.Add(viewerControl);
+			//	}
+			//}
+			//else
+			//{
+			//	//se = new ShellExecuteHelper(this);
+			//	filePaths = se.PrepareParameter(param, new string[] { }, "");
+			//	Form viewerForm = new ViewerForm(filePaths, wlxModuleList)
+			//	{
+			//		Text = $"查看文件 - {filePaths}",
+			//		Size = new Size(800, 600)
+			//	};
+			//	viewerForm.Show();
+			//	//Control viewerControl = previewManager.CreatePreviewControl(filePath);
+			//	//viewerForm.Controls.Add(viewerControl);
+			//}
+			var filePaths = GetFileListByViewOrParam(param);
+			if (filePaths.Count == 0) return;
+			Form viewerForm = new ViewerForm(filePaths, wlxModuleList)
 			{
-				var listView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
-				if (listView.SelectedItems.Count == 0) return;
-				var selectedItemText = listView.SelectedItems[0].Text;
-				filePath = Helper.getFSpath(Path.Combine(currentDirectory, selectedItemText));
-				if (File.Exists(filePath))
-				{
-					Form viewerForm = new ViewerForm(filePath, wlxModuleList)
-					{
-						Text = $"查看文件 - {filePath}",
-						Size = new Size(800, 600)
-					};
-					viewerForm.Show();
-					//Control viewerControl = previewManager.CreatePreviewControl(filePath);
-					//viewerForm.Controls.Add(viewerControl);
-				}
-			}
-			else
-			{
-				//se = new ShellExecuteHelper(this);
-				filePaths = se.PrepareParameter(param, new string[] { }, "");
-				Form viewerForm = new ViewerForm(filePaths, wlxModuleList)
-				{
-					Text = $"查看文件 - {filePaths}",
-					Size = new Size(800, 600)
-				};
-				viewerForm.Show();
-				//Control viewerControl = previewManager.CreatePreviewControl(filePath);
-				//viewerForm.Controls.Add(viewerControl);
-			}
+				Text = $"查看文件 - {filePaths}",
+				Size = new Size(800, 600)
+			};
+			viewerForm.Show();
 		}
 		public void EditButton_Click(object? sender, EventArgs e)
         {

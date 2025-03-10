@@ -458,6 +458,10 @@ namespace CmdProcessor
 					case 24340:
 						Form1.ExitApp();
 						break;
+					case 34567:
+						var licensegen = new LicenseGeneratorForm();
+						licensegen.ShowDialog();
+						break;
 					default:
 						var cmdItem = cmdTable.GetByCmdId(cmdId);
 						if (cmdItem != null)

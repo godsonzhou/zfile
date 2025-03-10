@@ -759,7 +759,7 @@ namespace WinFormsApp1
 			{
 				return;
 			}
-			dropdownFilePath = dropdownFilePath.ToUpper().Replace("%COMMANDER_PATH%", Constants.ZfileCfgPath );//commanderPath + "\\..\\..\\..\\..\\config"
+			dropdownFilePath = Helper.GetPathByEnv(dropdownFilePath);//.ToUpper().Replace("%COMMANDER_PATH%", Constants.ZfileCfgPath );//commanderPath + "\\..\\..\\..\\..\\config"
 			if (!File.Exists(dropdownFilePath))
 			{
 				MessageBox.Show("下拉菜单配置文件不存在" + dropdownFilePath, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -802,7 +802,7 @@ namespace WinFormsApp1
 				{
 					Text = item.Menu,
 					Tag = item,
-					Image = IconManager.LoadIcon(item.Button)
+					Image = form.iconManager.LoadIcon(item.Button)
 				};
 				menuItem.Click += ToolbarButton_Click;
 				dropdownButton.DropDownItems.Add(menuItem);
@@ -876,8 +876,12 @@ namespace WinFormsApp1
 								var lineSplit = line.Split(',');
 								var menutxt = lineSplit[0].Trim('"');
 								ToolStripMenuItem menuItem = new ToolStripMenuItem(menutxt);
-								menuItem.Tag = lineSplit[1];
+								var cmdid = lineSplit[1].Trim();
+								menuItem.Tag = cmdid;
 								menuItem.Click += form.MenuItem_Click;
+								var iconidx = form.cmdicons_configloader.FindConfigValue("mappings", cmdid);
+								if(iconidx != null)
+									menuItem.Image = form.iconManager.LoadIcon($"wcmicon2.dll,{iconidx}");
 								currentPopup.DropDownItems.Add(menuItem);
 							}
 						}

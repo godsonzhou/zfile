@@ -1,5 +1,5 @@
 // mappings internal command -> icon index;
-[mappings];
+[mappings]
 69=26
 70=52
 71=87

@@ -16,6 +16,7 @@ namespace WinFormsApp1
 		public readonly LLM_Helper lLM_Helper;
 		public readonly CFGLOADER configLoader;
 		public readonly CFGLOADER ftpconfigLoader;
+		public readonly CFGLOADER cmdicons_configloader;
 		public readonly IconManager iconManager = new();
 		private readonly ThemeManager themeManager;
 		private readonly FilePreviewManager previewManager = new();
@@ -137,6 +138,7 @@ namespace WinFormsApp1
 		{
 			configLoader = new CFGLOADER(Constants.ZfileCfgPath+"wincmd.ini");
 			ftpconfigLoader = new CFGLOADER(Constants.ZfileCfgPath + "wcx_ftp.ini");
+			cmdicons_configloader = new CFGLOADER(Constants.ZfileCfgPath + "wcmicons.inc");
 			fTPMGR = new FTPMGR(this);
 		    cmdProcessor = new CmdProc(this);
 			lLM_Helper = new LLM_Helper(this);

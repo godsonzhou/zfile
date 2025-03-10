@@ -17,7 +17,10 @@ namespace WinFormsApp1
 
 		private readonly Dictionary<string, Icon> iconCache = new Dictionary<string, Icon>();
 		public ImageList ImageList { get; private set; }
+		private Dictionary<string, ImageList> iconsCache = new();
 		private bool disposed = false;
+		private Size largesize = new Size(64, 64);
+		private Size smallsize = new Size(16, 16);
 		public void Dispose()
 		{
 			Dispose(true);
@@ -54,7 +57,7 @@ namespace WinFormsApp1
 			var imageresPath = Path.Combine(Environment.SystemDirectory, "imageres.dll");
 			ImageList = LoadIconsFromFile(imageresPath, islarge);
 			// 标准化图标尺寸
-			var targetSize = islarge ? new Size(64, 64) : new Size(16, 16);
+			var targetSize = islarge ? largesize : smallsize;
 
 			AddIcon("drive", ResizeIcon(ConvertImageToIcon(ImageList.Images[27]), targetSize), islarge);
 			AddIcon("folder", ResizeIcon(ConvertImageToIcon(ImageList.Images[3]), targetSize), islarge);
@@ -224,7 +227,7 @@ namespace WinFormsApp1
 			return GetIconKey((ShellItem)node.Tag);   //treenode icon key is always use small icon, so append 's' to the pure key
 		}
 	
-		public static Image? LoadIcon(string iconPath)
+		public Image? LoadIcon(string iconPath)
 		{
 			if (string.IsNullOrEmpty(iconPath))
 				return null;
@@ -261,8 +264,10 @@ namespace WinFormsApp1
 			Icon icon = Icon.FromHandle(hIcon);
 			return icon;
 		}
-		public static ImageList LoadIconsFromFile(string path, bool islarge = true)
+		public ImageList LoadIconsFromFile(string path, bool islarge = true)
 		{
+			var pathkey = path + (islarge ? "|L" : "|S");
+			if (iconsCache.TryGetValue(pathkey, out var icons)) { return icons; }
 			var count = API.ExtractIconEx(path, -1, null, null, 0);
 			var phiconLarge = new IntPtr[count];
 			var phiconSmall = new IntPtr[count];
@@ -271,16 +276,17 @@ namespace WinFormsApp1
 			ImageList imageList = new();
 			if (islarge)
 			{
-				imageList.ImageSize = new Size(64, 64);//SystemInformation.IconSize;
+				imageList.ImageSize = largesize;//SystemInformation.IconSize;
 				imageList.Images.AddRange(phiconLarge.Select(x => Icon.FromHandle(x).ToBitmap()).ToArray());
 			}
 			else
 			{
-				imageList.ImageSize = new Size(16, 16);
+				imageList.ImageSize = smallsize;
 				imageList.Images.AddRange(phiconSmall.Select(x => Icon.FromHandle(x).ToBitmap()).ToArray());
 			}
 			phiconLarge.ToList().ForEach(x => API.DestroyIcon(x));
 			phiconSmall.ToList().ForEach(x => API.DestroyIcon(x));
+			iconsCache[pathkey] = imageList;
 			return imageList;
 		}
 		public static ImageList LoadIconsFromFile1(string path)
@@ -433,12 +439,16 @@ namespace WinFormsApp1
 
 			return ico;
 		}
-		private static Image? GetIconByFilenameAndIndex(string path, int index)
+		private Image? GetIconByFilenameAndIndex(string path, int index)
 		{
+			if (iconsCache.TryGetValue(path, out ImageList imglst))
+				return imglst.Images[index];
 			ImageList images = LoadIconsFromFile(path);
-			if (images != null && index < images.Images.Count)
+			if (images != null )
 			{
-				return images.Images[index];
+				iconsCache[path] = images;
+				if(index < images.Images.Count)
+					return images.Images[index];
 			}
 			return null;
 		}

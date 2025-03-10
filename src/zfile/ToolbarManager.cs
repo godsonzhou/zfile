@@ -292,7 +292,7 @@ public class ToolbarManager : IDisposable
 			{
 				Text = "",  //menuText,
 				ToolTipText = b.name,
-				Image = IconManager.LoadIcon(b.icon),
+				Image = form.iconManager.LoadIcon(b.icon),
 				Tag = b.cmd
 			};
 
@@ -303,7 +303,7 @@ public class ToolbarManager : IDisposable
 				{
 					Text = "", //menuText,
 					ToolTipText = b.name,
-					Image = IconManager.LoadIcon(b.icon)
+					Image = form.iconManager.LoadIcon(b.icon)
 				};
 				// 为下拉按钮添加右键菜单
 				dropdownButton.MouseUp += Button_MouseUp;
@@ -399,10 +399,10 @@ public class ToolbarManager : IDisposable
 			return;
 		}
 
-		var zfile_path = Path.Combine(Constants.ZfileCfgPath, "WCMIcon3.dll");
+		var zfile_path = Path.Combine(Constants.ZfileCfgPath, "WCMIcon2.dll");//bugfix: should use wcmicon2.dll which contains 317 icons
 		//var iconManager = form.iconManager;
-		var iconList = IconManager.LoadIconsFromFile(zfile_path);
-		var fileInfoList = new FileInfoList(new string[] { zfile_path });
+		var iconList = form.iconManager.LoadIconsFromFile(zfile_path, false);
+		//var fileInfoList = new FileInfoList(new string[] { zfile_path });
 
 		using (StreamReader reader = new StreamReader(toolbarFilePath, Encoding.GetEncoding("GB2312")))
 		{

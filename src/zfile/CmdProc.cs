@@ -48,6 +48,7 @@ namespace CmdProcessor
 		public CmdTable cmdTable;
 		private Form1 owner;
 		private List<MenuInfo> emCmds;
+		private int targetIndex = 0;
 
 		public CmdProc(Form1 owner)
 		{
@@ -340,10 +341,10 @@ namespace CmdProcessor
 						do_cm_gotofirstfile();
 						break;
 					case 2053:
-						do_cmgotonextselected();
+						do_cmgotoprevornextselected(false);
 						break;
 					case 2054: //命令ID=2054,Name = cmgotoprevselected
-						do_cmgotoprevselected();
+						do_cmgotoprevornextselected();
 						break;
 					case 2061:
 						do_cm_gotodrivea();
@@ -476,16 +477,38 @@ namespace CmdProcessor
 		{
 			owner.uiManager.BookmarkManager.ToggleHidePanel(owner.uiManager.isleft);
 		}
-		private void do_cmgotoprevselected()
+		private void do_cmgotoprevornextselected(bool isprevious = true)
 		{
-			var selidxs = owner.activeListView.SelectedIndices;
-
+			//var selidxs = owner.activeListView.SelectedIndices;
+			var listView = owner.activeListView;
+			if (listView == null || listView.SelectedIndices.Count == 0) return;
+			
+			// 获取当前选中项的索引
+			var currentIndex = listView.SelectedIndices[targetIndex];
+			int target;
+			if (isprevious)
+			{
+				// 查找前一个选中项
+				targetIndex -= 1;
+				if (targetIndex < 0)
+					targetIndex += listView.SelectedIndices.Count;
+				target = listView.SelectedIndices[targetIndex];
+			}
+			else 
+			{
+				// 查找下一个选中项
+				// 如果没有找到下一个选中项，则跳转到第一个选中项
+				targetIndex += 1;
+				if (targetIndex >= listView.SelectedIndices.Count)
+					targetIndex -= listView.SelectedIndices.Count;
+				target = listView.SelectedIndices[targetIndex];
+			}
+			// 如果找到了目标项，则将其设为焦点并确保可见
+			listView.Items[currentIndex].Focused = false;
+			listView.Items[target].Focused = true;
+			listView.EnsureVisible(target);
 		}
-		private void do_cmgotonextselected()
-		{
-			var selidxs = owner.activeListView.SelectedIndices;
-
-		}
+	
 		private void do_cm_gotofirstfile()
 		{
 			var firstfile = owner.activeListView.Items.Cast<ListViewItem>().FirstOrDefault(item => !item.SubItems[3].Text.Equals("<DIR>"));

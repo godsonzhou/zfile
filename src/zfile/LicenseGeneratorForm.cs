@@ -124,7 +124,7 @@ namespace WinFormsApp1
 
         private void CheckPrivateKeyExists()
         {
-            if (!File.Exists("private.pem"))
+            if (!File.Exists(Constants.ZfilePath+"private.pem"))
             {
                 statusLabel.Text = "警告: private.pem 文件不存在，无法生成授权码!";
                 generateButton.Enabled = false;
@@ -170,16 +170,47 @@ namespace WinFormsApp1
 
         private void CopyButton_Click(object sender, EventArgs e)
         {
-            if (!string.IsNullOrEmpty(licenseKeyTextBox.Text))
-            {
-                Clipboard.SetText(licenseKeyTextBox.Text);
-                statusLabel.Text = "授权码已复制到剪贴板";
-            }
-            else
-            {
-                MessageBox.Show("没有可复制的授权码", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-        }
+			//if (!string.IsNullOrEmpty(licenseKeyTextBox.Text))
+			//{
+			//    Clipboard.SetText(licenseKeyTextBox.Text);
+			//    statusLabel.Text = "授权码已复制到剪贴板";
+			//}
+			//else
+			//{
+			//    MessageBox.Show("没有可复制的授权码", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			//}
+			if (!string.IsNullOrEmpty(licenseKeyTextBox.Text))
+			{
+				bool success = false;
+				int retryCount = 5;
+				while (!success && retryCount > 0)
+				{
+					try
+					{
+						Clipboard.SetText(licenseKeyTextBox.Text);
+						success = true;
+					}
+					catch (System.Runtime.InteropServices.ExternalException)
+					{
+						retryCount--;
+						System.Threading.Thread.Sleep(100); // Wait before retrying
+					}
+				}
+
+				if (success)
+				{
+					statusLabel.Text = "授权码已复制到剪贴板";
+				}
+				else
+				{
+					MessageBox.Show("无法复制授权码到剪贴板，请稍后再试。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			}
+			else
+			{
+				MessageBox.Show("没有可复制的授权码", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			}
+		}
 
         private void SaveButton_Click(object sender, EventArgs e)
         {

@@ -34,23 +34,23 @@ VfsModuleManager.RegisterVirtualFileSource<FtpFileSource>("FTP", true);
 */
 namespace zfile
 {
-	public class FtpFileSource : FileSourceBase
-	{
-		public override bool IsSupportedPath(string path)
-		{
-			return path.StartsWith("ftp://", StringComparison.OrdinalIgnoreCase);
-		}
+	//public class FtpFileSource : FileSourceBase
+	//{
+	//	public override bool IsSupportedPath(string path)
+	//	{
+	//		return path.StartsWith("ftp://", StringComparison.OrdinalIgnoreCase);
+	//	}
 
-		public override void Initialize()
-		{
-			// 初始化FTP连接
-		}
+	//	public override void Initialize()
+	//	{
+	//		// 初始化FTP连接
+	//	}
 
-		public override void Finalize()
-		{
-			// 清理资源
-		}
-	}
+	//	public override void Finalize()
+	//	{
+	//		// 清理资源
+	//	}
+	//}
 	/// <summary>
 	/// 文件源基类，所有具体文件源实现都应继承此类
 	/// </summary>

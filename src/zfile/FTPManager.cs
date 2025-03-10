@@ -486,7 +486,11 @@ namespace WinFormsApp1
 			}
 			listView.Refresh();
 		}
-		private List<FtpConnectionInfo> GetConnections()
+		/// <summary>
+		/// 获取所有FTP连接信息
+		/// </summary>
+		/// <returns>FTP连接信息列表</returns>
+		public List<FtpConnectionInfo> GetConnections()
 		{ 
 			return _connections.Values.ToList();
 		}
@@ -808,7 +812,7 @@ namespace WinFormsApp1
 		/// <summary>
 		/// FTP连接信息类
 		/// </summary>
-		private class FtpConnectionInfo
+		public class FtpConnectionInfo
 		{
 			/// <summary>
 			/// 连接名称

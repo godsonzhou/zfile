@@ -792,7 +792,11 @@ namespace CmdProcessor
 		}
 		private void ShowFtpConnectionManager()
 		{
+			// 显示FTP连接管理器
 			owner.fTPMGR.ShowFtpConnectionForm();
+			
+			// 初始化FTP管理器扩展
+			FtpManagerExtension.Initialize(owner);
 		}
 		private void do_cm_ftpnew()
 		{

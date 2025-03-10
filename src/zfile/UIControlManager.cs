@@ -32,8 +32,8 @@ namespace WinFormsApp1
 		#endregion
 
 		#region Drive Controls
-		public ComboBox LeftDriveBox { get; } = new();
-		public ComboBox RightDriveBox { get; } = new();
+		public ComboBox LeftDriveComboBox { get; } = new();
+		public ComboBox RightDriveComboBox { get; } = new();
 		public ShengAddressBarStrip LeftPathTextBox { get; } = new();
 		public ShengAddressBarStrip RightPathTextBox { get; } = new();
 		#endregion
@@ -239,8 +239,8 @@ namespace WinFormsApp1
 
 		public void InitializeDriveComboBoxes()
 		{
-			ConfigureDriveBox(LeftDriveBox, LeftDrivePanel, LeftPathTextBox);
-			ConfigureDriveBox(RightDriveBox, RightDrivePanel, RightPathTextBox);
+			ConfigureDriveBox(LeftDriveComboBox, LeftDrivePanel, LeftPathTextBox);
+			ConfigureDriveBox(RightDriveComboBox, RightDrivePanel, RightPathTextBox);
 
 			var rootNode = new ShengFileSystemNode();
 			LeftPathTextBox.InitializeRoot(rootNode);
@@ -267,15 +267,15 @@ namespace WinFormsApp1
 			{
 				if (drive.IsReady)
 				{
-					LeftDriveBox.Items.Add(drive.Name);
-					RightDriveBox.Items.Add(drive.Name);
+					LeftDriveComboBox.Items.Add(drive.Name);
+					RightDriveComboBox.Items.Add(drive.Name);
 				}
 			}
 
-			if (LeftDriveBox.Items.Count > 0)
+			if (LeftDriveComboBox.Items.Count > 0)
 			{
-				LeftDriveBox.SelectedIndex = 0;
-				RightDriveBox.SelectedIndex = 0;
+				LeftDriveComboBox.SelectedIndex = 0;
+				RightDriveComboBox.SelectedIndex = 0;
 			}
 		}
 	
@@ -283,8 +283,8 @@ namespace WinFormsApp1
 		{
 			if (sender is not ComboBox comboBox) return;
 
-			var treeView = comboBox == LeftDriveBox ? LeftTree : RightTree;
-			var listView = comboBox == LeftDriveBox ? LeftList : RightList;
+			var treeView = comboBox == LeftDriveComboBox ? LeftTree : RightTree;
+			var listView = comboBox == LeftDriveComboBox ? LeftList : RightList;
 
 			if (comboBox.SelectedItem is string drivePath)
 			{
@@ -921,8 +921,8 @@ namespace WinFormsApp1
 					LeftPathTextBox.SelectionChange -= LeftPathTextBox_PathChanged;
 					RightPathTextBox.SelectionChange -= RightPathTextBox_PathChanged;
 					MainContainer.SplitterMoved -= MainContainer_SplitterMoved;
-					LeftDriveBox.SelectedIndexChanged -= DriveComboBox_SelectedIndexChanged;
-					RightDriveBox.SelectedIndexChanged -= DriveComboBox_SelectedIndexChanged;
+					LeftDriveComboBox.SelectedIndexChanged -= DriveComboBox_SelectedIndexChanged;
+					RightDriveComboBox.SelectedIndexChanged -= DriveComboBox_SelectedIndexChanged;
 
 					// 取消书签面板事件订阅
 					//if (leftBookmarkPanel != null)

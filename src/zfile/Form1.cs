@@ -186,6 +186,9 @@ namespace WinFormsApp1
 			wcxModuleList.LoadConfiguration();
 			wlxModuleList = new WlxModuleList();
 
+			// 初始化FTP管理器扩展
+			FtpManagerExtension.Initialize(this);
+
 			se = new ShellExecuteHelper(this);
 		}
          private void InitializeCOMComponents()
@@ -735,6 +738,25 @@ namespace WinFormsApp1
                     treeView.Refresh(); // 强制重绘
 					uiManager.isleft = treeView == uiManager.LeftTree;
 
+                    // 检查是否是FTP节点
+                    if (e.Node.Tag is FtpNodeTag ftpTag)
+                    {
+                        // 处理FTP节点双击事件
+                        FtpManagerExtension.HandleFtpNodeDoubleClick(this, e.Node, activeListView);
+                        
+                        // 更新当前目录和路径显示
+                        currentDirectory = $"ftp://{ftpTag.ConnectionName}{ftpTag.Path}";
+                        if (uiManager.isleft)
+                            uiManager.LeftPathTextBox.Text = currentDirectory;
+                        else
+                            uiManager.RightPathTextBox.Text = currentDirectory;
+                            
+                        selectedNode = e.Node;
+                        uiManager.BookmarkManager.UpdateActiveBookmark(currentDirectory, selectedNode, uiManager.isleft);
+                        uiManager.setArgs();
+                        return;
+                    }
+
 					// 获取节点属性
 					var shellItem = (ShellItem)e.Node.Tag;
 					SFGAO attributes = shellItem.GetAttributes();
@@ -888,6 +910,29 @@ namespace WinFormsApp1
         {
          
         }
+        /// <summary>
+        /// 从FTP路径中提取连接名称
+        /// </summary>
+        private string ExtractFtpConnectionName(string ftpPath)
+        {
+            // 从FTP路径中提取主机名
+            if (ftpPath.StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
+            {
+                string host = ftpPath.Substring(6).Split('/')[0];
+                
+                // 查找匹配的连接名称
+                var connections = fTPMGR.GetConnections();
+                foreach (var conn in connections)
+                {
+                    if (conn.Host.Equals(host, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return conn.Name;
+                    }
+                }
+            }
+            return string.Empty;
+        }
+        
         public void ListView_MouseUp(object sender, MouseEventArgs e)
         {
             //if (isSelecting)
@@ -910,6 +955,19 @@ namespace WinFormsApp1
                 if (item != null)
                 {
                     listView.FocusedItem = item;
+
+                    // 检查是否是FTP路径
+                    if (currentDirectory.StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // 从当前目录中提取连接名称
+                        string connectionName = ExtractFtpConnectionName(currentDirectory);
+                        if (!string.IsNullOrEmpty(connectionName))
+                        {
+                            // 显示FTP右键菜单
+                            FtpManagerExtension.ShowFtpContextMenu(this, connectionName, item, e.Location);
+                            return;
+                        }
+                    }
 
                     var tree1 = listView == uiManager.LeftList ? uiManager.LeftTree : uiManager.RightTree;
                     // Find corresponding TreeNode for the clicked ListView item
@@ -967,6 +1025,20 @@ namespace WinFormsApp1
 
             ListViewItem selectedItem = listView.SelectedItems[0];
             //Debug.Print("listview_mousedoubleclick:{0}, currentDir={1}", selectedItem.Text, currentDirectory);
+            
+            // 检查是否是FTP路径
+            if (currentDirectory.StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
+            {
+                // 从当前目录中提取连接名称
+                string connectionName = ExtractFtpConnectionName(currentDirectory);
+                if (!string.IsNullOrEmpty(connectionName))
+                {
+                    // 处理FTP列表项双击事件
+                    FtpManagerExtension.HandleFtpListItemDoubleClick(this, connectionName, selectedItem, listView);
+                    return;
+                }
+            }
+            
             string path = Path.Combine(currentDirectory, selectedItem.Text);
 			if (IsArchiveFile(path))
 			{
@@ -2254,7 +2326,7 @@ namespace WinFormsApp1
         {
             Control.CheckForIllegalCrossThreadCalls = false;//设置该属性 为false
 
-            var selectedDrive = uiManager.LeftDriveBox.SelectedItem?.ToString();
+            var selectedDrive = uiManager.LeftDriveComboBox.SelectedItem?.ToString();
             var listView = selectedDrive != null && watcher.Path.StartsWith(selectedDrive) ? uiManager.LeftList : uiManager.RightList;
 			//RefreshPanel(listView);//TODO:BUGFIX 线程异常操作，
         }

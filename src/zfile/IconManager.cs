@@ -212,6 +212,7 @@ namespace WinFormsApp1
 		}
 		public static string GetIconKey(ShellItem item)
 		{
+			if(item==null) return string.Empty;
 			if (item.IsVirtual || !item.GetAttributes().HasFlag(SFGAO.FILESYSTEM))
 				return item.IconKey;
 			else
@@ -224,7 +225,9 @@ namespace WinFormsApp1
 
 		public static string GetNodeIconKey(TreeNode node)
 		{
-			return GetIconKey((ShellItem)node.Tag);   //treenode icon key is always use small icon, so append 's' to the pure key
+			if(node.Tag is ShellItem)
+				return GetIconKey((ShellItem)node.Tag);   //treenode icon key is always use small icon, so append 's' to the pure key
+			return string.Empty;
 		}
 	
 		public Image? LoadIcon(string iconPath)

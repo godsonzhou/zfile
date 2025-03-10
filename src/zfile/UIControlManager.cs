@@ -67,7 +67,7 @@ namespace WinFormsApp1
 		public ToolbarManager toolbarManager;
 		public ToolbarManager vtoolbarManager;
 		public FtpController ftpController;
-		public bool isleft { get; set; }
+		public bool isleft { get; set; }//= true;
 		public string leftDir => LeftPathTextBox?.CurrentNode?.UniqueID ;
 		public string rightDir => RightPathTextBox?.CurrentNode?.UniqueID;
 		public string leftfiles => string.Join("|", LeftList.SelectedItems.Cast<ListViewItem>()?.Select(item => item.SubItems[0].Text));
@@ -155,7 +155,7 @@ namespace WinFormsApp1
 			if (snode.tNode != null)
 				node = snode.tNode;
 			else
-				node = form.FindTreeNode(form.thispc.Nodes, snode.UniqueID);  //应该用绝对路径查找，而不是相对路径，否则遇到相同名称的文件夫目录会出现问题
+				node = form.FindTreeNode(form.activeThispc.Nodes, snode.UniqueID);  //应该用绝对路径查找，而不是相对路径，否则遇到相同名称的文件夫目录会出现问题
 			if (node != null)
 			{
 				treeView.SelectedNode = node;

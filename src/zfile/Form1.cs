@@ -26,8 +26,12 @@ namespace WinFormsApp1
 		private bool isSelecting = false;
 		private Rectangle selectionRectangle;
 		public ListView activeListView { get => (uiManager.isleft ? uiManager.LeftList : uiManager.RightList); }
+		public ListView unactiveListView { get => (!uiManager.isleft ? uiManager.LeftList : uiManager.RightList); }
 		public TreeView activeTreeview { get => (uiManager.isleft ? uiManager.LeftTree : uiManager.RightTree); }
 		public TreeView unactiveTreeview { get => (!uiManager.isleft ? uiManager.LeftTree : uiManager.RightTree); }
+		public TreeNode leftRoot, rightRoot;
+		public TreeNode activeRoot { get => (uiManager.isleft ? leftRoot : rightRoot); }
+		public TreeNode unactiveRoot { get => (!uiManager.isleft ? leftRoot : rightRoot); }
 		private readonly FileSystemWatcher watcher = new();
 		public string currentDirectory = "";
 		private TreeNode? selectedNode = null;
@@ -41,7 +45,8 @@ namespace WinFormsApp1
 		private string[] draggedItems;
 		private TreeNode rightClickBegin;
 		private TreeNode thispcL, thispcR;
-		public TreeNode thispc { get { return uiManager.isleft ? thispcL : thispcR; } }
+		public TreeNode activeThispc { get { return uiManager.isleft ? thispcL : thispcR; } }
+		public TreeNode unactiveThispc { get { return !uiManager.isleft ? thispcL : thispcR; } }
 		private string oldname;
 		public WcxModuleList wcxModuleList;
 		public WlxModuleList wlxModuleList;
@@ -79,29 +84,53 @@ namespace WinFormsApp1
 			forwardStack.Clear(); // 清除前进历史
 			currentDirectory = newPath;
 		}
-
-		// 导航到指定路径
-		public void NavigateToPath(string path, bool recordHistory = true)
+		public enum TreeSearchScope
 		{
-			if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
+			thispc = 0,
+			desktop = 1,
+			full = 2
+		}
+		// 导航到指定路径
+		public void NavigateToPath(string path, bool recordHistory = true, TreeSearchScope scope = TreeSearchScope.thispc , bool isactive = true)
+		{
+			//scope : thispc, desktop, full
+			if (string.IsNullOrEmpty(path))
 				return;
-
-			var node = FindTreeNode(thispc.Nodes, path);
+			if (scope == TreeSearchScope.thispc && !Directory.Exists(path))
+				return;
+			var searchtarget = scope switch
+			{
+				TreeSearchScope.thispc => isactive ? activeThispc.Nodes : unactiveThispc.Nodes,
+				TreeSearchScope.full => isactive ? activeTreeview.Nodes : unactiveTreeview.Nodes,
+				TreeSearchScope.desktop => isactive ? activeRoot.Nodes : unactiveRoot.Nodes
+			};
+			
+			var node = FindTreeNode(searchtarget, path);
 			if (node != null)
 			{
-				if (recordHistory)
-					RecordDirectoryHistory(path);
-				else
+				if (isactive)
 				{
-					// 直接更新当前目录，不记录历史
-					currentDirectory = path;
+					if (recordHistory)
+						RecordDirectoryHistory(path);
+					else
+					{
+						// 直接更新当前目录，不记录历史
+						currentDirectory = path;
+					}
 				}
-
-				activeTreeview.SelectedNode = node;
-				RefreshPanel(activeListView);
+				if (isactive)
+				{
+					activeTreeview.SelectedNode = node;
+					RefreshPanel(activeListView);
+				}else
+				{
+					unactiveTreeview.SelectedNode = node;
+					RefreshPanel(unactiveListView);
+				}
 			}
 			// 更新最后访问路径
-			uiManager.UpdateLastVisitedPath(path);
+			if(isactive)
+				uiManager.UpdateLastVisitedPath(path);
 		}
 
 		public Form1()
@@ -773,10 +802,15 @@ namespace WinFormsApp1
                     SelectedImageKey = "桌面" // 设置选中图标
 				};
                 treeView.Nodes.Add(rootNode);
-                // 加载并展开根目录
-                LoadSubDirectories(rootNode);
+				if (treeView == uiManager.LeftTree)
+					leftRoot = rootNode;
+				else
+					rightRoot = rootNode;
+				//treeView.SelectedNode = rootNode;
+				// 加载并展开根目录
+				LoadSubDirectories(rootNode);
 				rootNode.Expand();
-				var node = FindTreeNode(thispc.Nodes, drivepath);
+				var node = FindTreeNode(activeThispc.Nodes, drivepath);
 				treeView.SelectedNode = node;
 				treeView.EndUpdate();
             }
@@ -1017,7 +1051,12 @@ namespace WinFormsApp1
 
         public TreeNode? FindTreeNode(TreeNodeCollection nodes, string path)
         {
-            //Debug.Print("FindTreeNode -> {0}", path);
+			//Debug.Print("FindTreeNode -> {0}", path);
+			//if (nodes.Count == 1 && nodes[0].Text.Equals("..."))
+			//{
+			//	LoadSubDirectories(nodes[0]);
+			//	nodes[0].Expand();
+			//}
 			var deepSearch = path.Contains("\\");
 			if (!deepSearch)
 			{

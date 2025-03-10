@@ -5,8 +5,10 @@ using WinFormsApp1;
 using zfile;
 namespace CmdProcessor
 {
-	// 首先定义一个FTP连接配置的数据结构
+
 	
+	// 首先定义一个FTP连接配置的数据结构
+
 	public struct CmdTableItem(string cmdName, int cmdId, string description, string zhDesc)
 	{
 		public string CmdName = cmdName;
@@ -174,6 +176,25 @@ namespace CmdProcessor
 						owner.SetViewMode(View.Details);
 						break;
 
+					case 321: // cm_srcbyname
+						do_cm_srcbyname();
+						break;
+					case 322: // cm_srcbyext
+						do_cm_srcbyext();
+						break;
+					case 323: // cm_srcbysize
+						do_cm_srcbysize();
+						break;
+					case 324: // cm_srcbydatetime
+						do_cm_srcbydatetime();
+						break;
+					case 325: // cm_srcunsorted
+						do_cm_srcunsorted();
+						break;
+					case 330: // cm_srcnegorder
+						do_cm_srcnegorder();
+						break;
+
 					case 490:   //cm_config
 						owner.OpenOptions();
 						break;
@@ -288,6 +309,9 @@ namespace CmdProcessor
 						ShowFileProperties();
 						break;
 
+					case 2001:
+						do_cm_gotoroot();
+						break;
 					case 2002:
 						do_cm_gotoparent();
 						break;
@@ -311,6 +335,60 @@ namespace CmdProcessor
 						break;
 					case 2037: // cm_CopyFullDetailsToClip
 						do_cm_CopyFullDetailsToClip();
+						break;
+					case 2050: // 命令ID=2050,Name = cm_gotofirstfile
+						do_cm_gotofirstfile();
+						break;
+					case 2053:
+						do_cmgotonextselected();
+						break;
+					case 2054: //命令ID=2054,Name = cmgotoprevselected
+						do_cmgotoprevselected();
+						break;
+					case 2061:
+						do_cm_gotodrivea();
+						break;
+					case 2062:
+						do_cm_gotodriveb();
+						break;
+					case 2063:
+						do_cm_gotodrivec();
+						break;
+					case 2064:
+						do_cm_gotodrived();
+						break;
+					case 2065:
+						do_cm_gotodrivee();
+						break;
+					case 2066:
+						do_cm_gotodrivef();
+						break;
+					case 2067:
+						do_cm_gotodriveg();
+						break;
+					case 2068:
+						do_cm_gotodriveh();
+						break;
+					case 2086:
+						do_cm_gotodrivez();
+						break;
+					case 2121:
+						do_cm_opendesktop();
+						break;
+					case 2122:
+						do_cm_opendrives();
+						break;
+					case 2123:
+						do_cm_opencontrols();
+						break;
+					case 2124:
+						do_cm_openfonts();
+						break;
+					case 2125:
+						do_cm_opennetwork();
+						break;
+					case 2127:
+						do_cm_openrecycled();
 						break;
 					case 2400: // cm_multirename
 						ShowMultiRenameDialog();
@@ -346,6 +424,226 @@ namespace CmdProcessor
 			//{
 			//	throw new KeyNotFoundException("命令ID不存在");
 			//}
+		}
+		private void do_cmgotoprevselected()
+		{
+			var selidxs = owner.activeListView.SelectedIndices;
+
+		}
+		private void do_cmgotonextselected()
+		{
+			var selidxs = owner.activeListView.SelectedIndices;
+
+		}
+		private void do_cm_gotofirstfile()
+		{
+			var firstfile = owner.activeListView.Items.Cast<ListViewItem>().FirstOrDefault(item => !item.SubItems[3].Text.Equals("<DIR>"));
+			//firstfile.Selected = true;
+			var idx = owner.activeListView.Items.IndexOf(firstfile);
+			owner.activeListView.EnsureVisible(idx);
+		}
+		private void do_cm_openrecycled()
+		{
+			owner.NavigateToPath("回收站", scope: Form1.TreeSearchScope.desktop);
+		}
+		private void do_cm_openfonts()
+		{
+
+		}
+
+		private void do_cm_opencontrols()
+		{
+			owner.NavigateToPath("控制面板", scope: Form1.TreeSearchScope.desktop);
+		}
+
+		private void do_cm_opennetwork()
+		{
+			owner.NavigateToPath("网络", scope: Form1.TreeSearchScope.desktop);
+		}
+		private void do_cm_opendrives()
+		{
+			owner.NavigateToPath("此电脑", scope: Form1.TreeSearchScope.desktop);
+		}
+		private void do_cm_opendesktop()
+		{
+			owner.NavigateToPath("桌面", scope: Form1.TreeSearchScope.full);
+		}
+		private void do_cm_gotoroot()
+		{
+			var currentpath = owner.uiManager.srcDir;
+			var parts = currentpath.Split('\\');
+			owner.NavigateToPath(parts[0]);
+		}
+		private void do_cm_gotodrive(string drive)
+		{
+			owner.NavigateToPath(drive);
+		}
+		private void do_cm_gotodrivec()
+		{
+			do_cm_gotodrive("c:");
+		}
+		private void do_cm_gotodrived()
+		{
+			do_cm_gotodrive("d:");
+		}
+		private void do_cm_gotodrivee()
+		{
+			do_cm_gotodrive("e:");
+		}
+		private void do_cm_gotodrivef()
+		{
+			do_cm_gotodrive("f:");
+		}
+		private void do_cm_gotodriveg()
+		{
+			do_cm_gotodrive("g:");
+		}
+		private void do_cm_gotodriveh()
+		{
+			do_cm_gotodrive("h:");
+		}
+		private void do_cm_gotodrivez()
+		{
+			do_cm_gotodrive("z:");
+		}
+		private void do_cm_gotodrivea()
+		{
+			do_cm_gotodrive("a:");
+		}
+		private void do_cm_gotodriveb()
+		{
+			do_cm_gotodrive("b:");
+		}
+		// 添加一个 ListViewItemComparer 类来处理排序
+		private class ListViewItemComparer : System.Collections.IComparer
+		{
+			private int _columnIndex;
+			private bool _ascending;
+			private readonly Func<ListViewItem, ListViewItem, int> _customComparer;
+
+			public ListViewItemComparer(int columnIndex, bool ascending = true,
+				Func<ListViewItem, ListViewItem, int> customComparer = null)
+			{
+				_columnIndex = columnIndex;
+				_ascending = ascending;
+				_customComparer = customComparer;
+			}
+
+			public void ReverseOrder()
+			{
+				_ascending = !_ascending;
+			}
+
+			public int Compare(object x, object y)
+			{
+				var item1 = (ListViewItem)x;
+				var item2 = (ListViewItem)y;
+
+				int result;
+				if (_customComparer != null)
+				{
+					result = _customComparer(item1, item2);
+				}
+				else
+				{
+					result = string.Compare(
+						item1.SubItems[_columnIndex].Text,
+						item2.SubItems[_columnIndex].Text,
+						StringComparison.OrdinalIgnoreCase
+					);
+				}
+
+				return _ascending ? result : -result;
+			}
+		}
+		// 按名称排序
+		private void do_cm_srcbyname()
+		{
+			var listView = owner.activeListView;
+			if (listView == null) return;
+
+			listView.ListViewItemSorter = new ListViewItemComparer(0, true); // 0 表示第一列（文件名）
+			listView.Sort();
+		}
+
+		// 按扩展名排序
+		private void do_cm_srcbyext()
+		{
+			var listView = owner.activeListView;
+			if (listView == null) return;
+
+			listView.ListViewItemSorter = new ListViewItemComparer(
+				3,		//the third col is extension
+				true,
+				(x, y) => string.Compare(
+					Path.GetExtension(x.Text),
+					Path.GetExtension(y.Text),
+					StringComparison.OrdinalIgnoreCase
+				)
+			);
+			listView.Sort();
+		}
+
+		// 按大小排序
+		private void do_cm_srcbysize()
+		{
+			var listView = owner.activeListView;
+			if (listView == null) return;
+
+			// 大小信息在第5列
+			listView.ListViewItemSorter = new ListViewItemComparer(5, true, (x, y) =>
+			{
+				if (long.TryParse(x.SubItems[1].Text, out long size1) &&
+					long.TryParse(y.SubItems[1].Text, out long size2))
+				{
+					return size1.CompareTo(size2);
+				}
+				return string.Compare(x.SubItems[1].Text, y.SubItems[1].Text);
+			});
+			listView.Sort();
+		}
+
+		// 按日期时间排序
+		private void do_cm_srcbydatetime()
+		{
+			var listView = owner.activeListView;
+			if (listView == null) return;
+
+			// 日期时间信息在第3列
+			listView.ListViewItemSorter = new ListViewItemComparer(4, true, (x, y) =>
+			{
+				if (DateTime.TryParse(x.SubItems[2].Text, out DateTime date1) &&
+					DateTime.TryParse(y.SubItems[2].Text, out DateTime date2))
+				{
+					return date1.CompareTo(date2);
+				}
+				return string.Compare(x.SubItems[2].Text, y.SubItems[2].Text);
+			});
+			listView.Sort();
+		}
+
+		// 取消排序
+		private void do_cm_srcunsorted()
+		{
+			var listView = owner.activeListView;
+			if (listView == null) return;
+
+			listView.ListViewItemSorter = null;
+			owner.RefreshPanel(); // 刷新面板以恢复默认顺序
+		}
+
+		// 反向排序
+		private void do_cm_srcnegorder()
+		{
+			var listView = owner.activeListView;
+			if (listView == null) return;
+
+			// 如果当前有排序器，反转其排序方向
+			if (listView.ListViewItemSorter is ListViewItemComparer comparer)
+			{
+				comparer.ReverseOrder();
+				listView.Sort();
+			}
 		}
 		private void do_cm_configchangeinifiles()
 		{
@@ -400,10 +698,11 @@ namespace CmdProcessor
 		}
 		private void do_cm_matchsrc()
 		{
-			var node = owner.FindTreeNode(owner.unactiveTreeview.Nodes, owner.uiManager.srcDir);
-			if (node != null) { 
-				owner.unactiveTreeview.SelectedNode = node;
-			}
+			//var node = owner.FindTreeNode(owner.unactiveTreeview.Nodes, owner.uiManager.srcDir);
+			//if (node != null) { 
+			//	owner.unactiveTreeview.SelectedNode = node;
+			//}
+			owner.NavigateToPath(owner.uiManager.srcDir, true, Form1.TreeSearchScope.desktop, false);
 		}
 		private void ShowFtpConnectionManager()
 		{

@@ -14,7 +14,7 @@ namespace WinFormsApp1
             
             // 设置窗体基本属性
             Text = "产品注册";
-            Size = new Size(400, 200);
+            Size = new Size(600, 600);
             FormBorderStyle = FormBorderStyle.FixedDialog;
             StartPosition = FormStartPosition.CenterScreen;
             MaximizeBox = false;
@@ -24,22 +24,23 @@ namespace WinFormsApp1
             licenseKeyTextBox = new TextBox
             {
                 Location = new Point(20, 20),
-                Size = new Size(340, 25),
-                PlaceholderText = "请输入注册码"
+                Size = new Size(540, 425),
+                PlaceholderText = "请输入注册码",
+				Multiline = true
             };
 
             // 创建状态标签
             statusLabel = new Label
             {
-                Location = new Point(20, 60),
-                Size = new Size(340, 40),
+                Location = new Point(20, 460),
+                Size = new Size(540, 40),
                 Text = GetLicenseStatus()
             };
 
             // 创建验证按钮
             validateButton = new Button
             {
-                Location = new Point(100, 120),
+                Location = new Point(200, 520),
                 Size = new Size(80, 30),
                 Text = "验证"
             };
@@ -48,7 +49,7 @@ namespace WinFormsApp1
             // 创建关闭按钮
             closeButton = new Button
             {
-                Location = new Point(200, 120),
+                Location = new Point(300, 520),
                 Size = new Size(80, 30),
                 Text = "关闭"
             };

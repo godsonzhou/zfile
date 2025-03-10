@@ -208,9 +208,16 @@ namespace WinFormsApp1
 								 .Replace("X", "A") // 添加混淆字符
 								 .Substring(2);      // 偏移处理
 
+			//using (var rsa = new RSACryptoServiceProvider())
+			//{
+			//	rsa.FromXmlString(fullKey);
+			//	return rsa.ExportParameters(false);
+			//}
 			using (var rsa = new RSACryptoServiceProvider())
 			{
-				rsa.FromXmlString(fullKey);
+				// 修改为使用 ImportFromPem 方法处理 PEM 格式的公钥
+				string pemKey = $"-----BEGIN PUBLIC KEY-----\n{fullKey}\n-----END PUBLIC KEY-----";
+				rsa.ImportFromPem(pemKey);
 				return rsa.ExportParameters(false);
 			}
 		}

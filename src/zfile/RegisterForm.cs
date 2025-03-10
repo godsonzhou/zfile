@@ -68,7 +68,6 @@ namespace WinFormsApp1
         {
             string licenseKey = licenseKeyTextBox.Text.Trim();
 			//File.WriteAllText(Constants.ZfileCfgPath + "user.lic", licenseKey);
-			LicenseValidator.SaveLicense(licenseKey);
             if (string.IsNullOrEmpty(licenseKey))
             {
                 MessageBox.Show("请输入注册码", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -80,7 +79,8 @@ namespace WinFormsApp1
                 if (LicenseValidator.ValidateLicense(licenseKey))
                 {
                     MessageBox.Show("注册成功!", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    statusLabel.Text = GetLicenseStatus();
+					LicenseValidator.SaveLicense(licenseKey);
+					statusLabel.Text = GetLicenseStatus();
                     licenseKeyTextBox.Clear();
                 }
                 else

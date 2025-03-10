@@ -192,7 +192,7 @@ namespace WinFormsApp1
 		}
 		public void OnRightClick()
 		{
-			OnSingleClick(lastClickBookmark, "Right");
+			OnSingleClick(lastClickBookmark ?? activeBookmark(isLeft), "Right");
 		}
 		public void OnSingleClick(Bookmark bookmark, string clickButton)
 		{

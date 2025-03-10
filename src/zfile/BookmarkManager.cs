@@ -142,14 +142,31 @@ namespace WinFormsApp1
 				OnSingleClick(lastClickBookmark, lastClickButton);
 			}
 		}
-		public void SwitchToPreviousTab()
+		public void SwitchToPrevOrNextTab(bool isPrevious = true)
 		{
+			// 获取当前活动面板的书签列表
+			var bookmarkList = GetBookmarkList(isLeft);
+			if (bookmarkList.Count <= 1) return;
 
-		}
-		public void SwitchToNextTab()
-		{
+			var actBookmark = activeBookmark(isLeft);
+			if (actBookmark == null) return;
 
+			// 获取当前活动书签的索引
+			int currentIndex = bookmarkList.IndexOf(actBookmark);
+
+			// 计算上一个书签的索引（循环到最后一个）
+			int targetIndex;
+			if(isPrevious)
+				targetIndex = (currentIndex - 1 + bookmarkList.Count) % bookmarkList.Count;
+			else
+				targetIndex = (currentIndex + 1) % bookmarkList.Count;
+
+			// 激活并导航到上一个书签
+			var targetBookmark = bookmarkList[targetIndex];
+			SetActiveBookmark(targetBookmark, isLeft);
+			NavigateToBookmark(targetBookmark, isLeft);
 		}
+	
 		public void OnRightClick()
 		{
 			OnSingleClick(lastClickBookmark, "Right");

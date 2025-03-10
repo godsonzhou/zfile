@@ -406,10 +406,10 @@ namespace CmdProcessor
 						owner.AddCurrentPathToBookmarks();
 						break;
 					case 3005: // 命令ID=3005，Name=cm switchtonexttab
-						owner.uiManager.BookmarkManager.SwitchToNextTab();
+						owner.uiManager.BookmarkManager.SwitchToPrevOrNextTab(false);
 						break;
 					case 3006: // 命令ID=3006，Name=cm switchtoprevioustab
-						owner.uiManager.BookmarkManager.SwitchToPreviousTab();
+						owner.uiManager.BookmarkManager.SwitchToPrevOrNextTab(true);
 						break;
 
 					case 3009: // 命令ID=3009,Name=cm_dirtabsshowmenu

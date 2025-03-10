@@ -169,6 +169,7 @@ namespace WinFormsApp1
 		// 隐蔽验证方法（分散在代码各处）
 		private static bool StealthValidation(string licenseKey)
 		{
+			if (string.IsNullOrEmpty(licenseKey)) return false;
 			// 使用硬件ID的部分特征验证
 			string hwId = GenerateHardwareId();
 			return licenseKey.Substring(5, 8) ==
@@ -191,12 +192,15 @@ namespace WinFormsApp1
 
 		// 将公钥分段存储（示例）
 		private static string[] publicKeyFragments = new[] {
-			"MIIBIjANBgkqhkiG",
-			"9w0BAQEFAAOCAQ8A",
-			"MIIBCgKCAQEAz6ZK",
-			"...其他片段..." // 真实情况需要更复杂的拆分
+			// 真实情况需要更复杂的拆分
+			"MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu/F/6gLm0bIPwPQfXHA5\r\nx/5HHBUrrTfeSjT6TgWhwspQFpWkq6L/Y/Lwex+IH02Bs76PYRgXHtzBJ5qNATrn\r\nRzeOFSFVzFoL92JXOSqvzT/8ToBFhftGCba9jGJNl1TMcjB2cAjQOMeADGBBwBqQ\r\nOLoVVTghfLBxSFM3Z/H5cvNnsqbA57mXCHVQL/Ut2/zRc1fcxdNSemTNdRJXPhe/\r\nmS8tAhzZXxSTMvHvDWRpfc3XbkjoLtN2JScopnWKg4rOVx3mbLXmGAi0JHnHlj69\r\naXzNp39bVOD69W5Ja5ut8cWZqzabhaTDlX9JfrIzDa3RfiiSv5e34xBAADr1uEXU\r\n5QIDAQAB"
 		};
-
+		public static void RSAKey(out string xmlKeys, out string xmlPublicKey)
+		{
+			RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
+			xmlKeys = rsa.ToXmlString(true);
+			xmlPublicKey = rsa.ToXmlString(false);
+		}
 		// 运行时动态组合公钥
 		public static RSAParameters LoadPublicKey()
 		{

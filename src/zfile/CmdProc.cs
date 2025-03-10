@@ -284,6 +284,9 @@ namespace CmdProcessor
 					case 581:
 						do_cm_configchangeinifiles();
 						break;
+					case 630:
+						do_cm_register();
+						break;
 					case 903: //cm_list
 						owner.do_cm_list(param);
 						break;
@@ -468,6 +471,11 @@ namespace CmdProcessor
 			//{
 			//	throw new KeyNotFoundException("命令ID不存在");
 			//}
+		}
+		private void do_cm_register()
+		{
+			var registerForm = new RegisterForm();
+			registerForm.ShowDialog();
 		}
 		private void do_cm_dirtabsshowmenu()
 		{

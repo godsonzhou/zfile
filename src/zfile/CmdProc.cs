@@ -393,6 +393,9 @@ namespace CmdProcessor
 					case 2400: // cm_multirename
 						ShowMultiRenameDialog();
 						break;
+					case 2916: // 命令ID=2916,Name=cm_visdirtabs
+						do_cm_visdirtabs();
+						break;
 					case 2924:  //命令ID=2924,Name=cm_commandbrowser尚未实现
 						ShowCommandBrowser();
 						break;
@@ -401,6 +404,16 @@ namespace CmdProcessor
 						break;
 					case 3001:  //add new bookmark
 						owner.AddCurrentPathToBookmarks();
+						break;
+					case 3005: // 命令ID=3005，Name=cm switchtonexttab
+						owner.uiManager.BookmarkManager.SwitchToNextTab();
+						break;
+					case 3006: // 命令ID=3006，Name=cm switchtoprevioustab
+						owner.uiManager.BookmarkManager.SwitchToPreviousTab();
+						break;
+
+					case 3009: // 命令ID=3009,Name=cm_dirtabsshowmenu
+						do_cm_dirtabsshowmenu();
 						break;
 					case 3012:  //lock the bookmark
 						owner.uiManager.BookmarkManager.ToggleCurrentBookmarkLock(owner.uiManager.isleft);
@@ -424,6 +437,14 @@ namespace CmdProcessor
 			//{
 			//	throw new KeyNotFoundException("命令ID不存在");
 			//}
+		}
+		private void do_cm_dirtabsshowmenu()
+		{
+			owner.uiManager.BookmarkManager.OnRightClick();
+		}
+		private void do_cm_visdirtabs()
+		{
+			owner.uiManager.BookmarkManager.ToggleHidePanel(owner.uiManager.isleft);
 		}
 		private void do_cmgotoprevselected()
 		{

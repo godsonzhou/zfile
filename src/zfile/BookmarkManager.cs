@@ -61,6 +61,7 @@ namespace WinFormsApp1
 		private DateTime lastClickTime;
 		private string lastClickButton = string.Empty;
 		private Bookmark lastClickBookmark;
+		private bool isLeftHide, isRightHide;
 		private List<Bookmark> GetBookmarkList(bool isleft)
 		{
 			return isleft ? leftBookmarks : rightBookmarks;
@@ -112,6 +113,25 @@ namespace WinFormsApp1
 				clickTimer.Start();
 			}
 		}
+		public void ToggleHidePanel(bool isleft)
+		{
+			if (isleft)
+			{
+				if (isLeftHide)
+					leftBookmarkPanel.Show();
+				else
+					leftBookmarkPanel.Hide();
+				isLeftHide = !isLeftHide;
+			}
+			else
+			{
+				if (isRightHide)
+					rightBookmarkPanel.Show();
+				else
+					rightBookmarkPanel.Hide();
+				isRightHide = !isRightHide;
+			}
+		}
 		private void ClickTimer_Tick(object sender, EventArgs e)
 		{
 			//MouseEventArgs me = e as MouseEventArgs;
@@ -122,8 +142,19 @@ namespace WinFormsApp1
 				OnSingleClick(lastClickBookmark, lastClickButton);
 			}
 		}
+		public void SwitchToPreviousTab()
+		{
 
-		private void OnSingleClick(Bookmark bookmark, string clickButton)
+		}
+		public void SwitchToNextTab()
+		{
+
+		}
+		public void OnRightClick()
+		{
+			OnSingleClick(lastClickBookmark, "Right");
+		}
+		public void OnSingleClick(Bookmark bookmark, string clickButton)
 		{
 			//Debug.Print("这是鼠标单击事件");
 			//var bookmark = (Bookmark)sender;

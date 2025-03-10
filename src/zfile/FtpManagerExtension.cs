@@ -135,8 +135,15 @@ namespace WinFormsApp1
 			};
 
 			// 添加到左侧和右侧树视图的桌面节点下
-			form.activeRoot.Nodes.Add(_ftpRootNode);
-			form.unactiveRoot.Nodes.Add((TreeNode)_ftpRootNode.Clone());
+			if (form.leftRoot != null && form.rightRoot != null)
+			{
+				form.leftRoot.Nodes.Add(_ftpRootNode);
+				form.rightRoot.Nodes.Add((TreeNode)_ftpRootNode.Clone());
+			}
+			else
+			{
+				MessageBox.Show("树视图根节点尚未初始化，FTP连接将在下次启动时显示", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			}
 		}
 
 		/// <summary>
@@ -248,7 +255,7 @@ namespace WinFormsApp1
 		/// <returns>是否取消注册成功</returns>
 		public static bool UnregisterFtpConnection(Form1 form, string connectionName)
 		{
-			try
+			try //TODO: 在ftp disconnect时调用
 			{
 				if (_ftpNodes.TryGetValue(connectionName, out TreeNode node))
 				{

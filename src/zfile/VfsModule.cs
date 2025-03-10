@@ -19,23 +19,7 @@ VfsModuleManager：提供全局静态访问点
 强类型的模块管理
 使用字典实现高效的模块查找
 使用示例：
-要实现一个新的文件源，你需要：public class FtpFileSource : FileSourceBase
-{
-    public override bool IsSupportedPath(string path)
-    {
-        return path.StartsWith("ftp://", StringComparison.OrdinalIgnoreCase);
-    }
-
-    public override void Initialize()
-    {
-        // 初始化FTP连接
-    }
-
-    public override void Finalize()
-    {
-        // 清理资源
-    }
-}
+要实现一个新的文件源，你需要：
 
 // 注册文件源
 VfsModuleManager.RegisterVirtualFileSource<FtpFileSource>("FTP", true);
@@ -50,10 +34,27 @@ VfsModuleManager.RegisterVirtualFileSource<FtpFileSource>("FTP", true);
 */
 namespace zfile
 {
-    /// <summary>
-    /// 文件源基类，所有具体文件源实现都应继承此类
-    /// </summary>
-    public abstract class FileSourceBase
+	public class FtpFileSource : FileSourceBase
+	{
+		public override bool IsSupportedPath(string path)
+		{
+			return path.StartsWith("ftp://", StringComparison.OrdinalIgnoreCase);
+		}
+
+		public override void Initialize()
+		{
+			// 初始化FTP连接
+		}
+
+		public override void Finalize()
+		{
+			// 清理资源
+		}
+	}
+	/// <summary>
+	/// 文件源基类，所有具体文件源实现都应继承此类
+	/// </summary>
+	public abstract class FileSourceBase
     {
         public abstract bool IsSupportedPath(string path);
         public abstract void Initialize();
@@ -180,16 +181,16 @@ namespace zfile
     /// <summary>
     /// 全局VFS模块管理器
     /// </summary>
-    public static class VfsModuleManager
+    public class VfsModuleManager
     {
-        private static readonly VfsModuleList moduleList = new VfsModuleList();
+        private readonly VfsModuleList moduleList = new VfsModuleList();
 
-        public static VfsModuleList Modules => moduleList;
+        public VfsModuleList Modules => moduleList;
 
         /// <summary>
         /// 注册虚拟文件系统
         /// </summary>
-        public static void RegisterVirtualFileSource<T>(string name, bool visible) where T : FileSourceBase, new()
+        public void RegisterVirtualFileSource<T>(string name, bool visible) where T : FileSourceBase, new()
         {
             moduleList.RegisterModule(name, typeof(T), visible, () => new T());
         }
@@ -197,7 +198,7 @@ namespace zfile
         /// <summary>
         /// 根据路径获取合适的文件源
         /// </summary>
-        public static FileSourceBase GetFileSource(string path)
+        public FileSourceBase GetFileSource(string path)
         {
             return moduleList.GetFileSource(path);
         }

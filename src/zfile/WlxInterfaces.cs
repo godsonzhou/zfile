@@ -129,42 +129,42 @@ namespace WinFormsApp1
 
 				// 加载必需的函数
 				int flg = 0;
-				try { _listLoad = GetFunction<ListLoad>("ListLoad"); } catch { flg++;  }
-				try { _listLoadW = GetFunction<ListLoadW>("ListLoadW"); } catch { flg++; }
+				try { _listLoad = GetFunction<ListLoad>("ListLoad"); } catch (Exception ex) { flg++;  }
+				try { _listLoadW = GetFunction<ListLoadW>("ListLoadW"); } catch (Exception ex) { flg++; }
 				if ( flg == 2)
 					throw new Exception("required listload can not be found!");
 
 				// 加载可选函数 // 可选函数加载失败不影响插件使用
 				try { _listLoadNext = GetFunction<ListLoadNext>("ListLoadNext"); }
-				catch { }
+				catch (Exception ex) { }
 				// 加载Unicode版本函数 // Unicode函数加载失败不影响插件使用
 				try { _listLoadNextW = GetFunction<ListLoadNextW>("ListLoadNextW"); }
-				catch { }
+				catch (Exception ex) { }
 				try { _listSearchText = GetFunction<ListSearchText>("ListSearchText"); }
-				catch { }
+				catch (Exception ex) { }
 				try { _listSearchTextW = GetFunction<ListSearchTextW>("ListSearchTextW"); }
-				catch { }
+				catch (Exception ex) { }
 				try { _listPrint = GetFunction<ListPrint>("ListPrint"); }
-				catch { }
+				catch (Exception ex) { }
 				try { _listPrintW = GetFunction<ListPrintW>("ListPrintW"); }
-				catch { }
+				catch (Exception ex) { }
 				try { _listGetPreviewBitmap = GetFunction<ListGetPreviewBitmap>("ListGetPreviewBitmap"); }
-				catch { }
+				catch (Exception ex) { }
 				try { _listGetPreviewBitmapW = GetFunction<ListGetPreviewBitmapW>("ListGetPreviewBitmapW"); }
-				catch { }
+				catch (Exception ex) { }
 
 				try { _listCloseWindow = GetFunction<ListCloseWindow>("ListCloseWindow"); }
-				catch { }
+				catch (Exception ex) { }
 				try { _listGetDetectString = GetFunction<ListGetDetectString>("ListGetDetectString"); }
-				catch { }
+				catch (Exception ex) { }
 				try { _listSearchDialog = GetFunction<ListSearchDialog>("ListSearchDialog"); }
-				catch { }
+				catch (Exception ex) { }
 				try { _listSendCommand = GetFunction<ListSendCommand>("ListSendCommand"); }
-				catch { }
+				catch (Exception ex) { }
 				try { _listNotificationReceived = GetFunction<ListNotificationReceived>("ListNotificationReceived");}
-				catch { }
+				catch (Exception ex) { }
 				try { _listSetDefaultParams = GetFunction<ListSetDefaultParams>("ListSetDefaultParams"); }
-				catch { }
+				catch (Exception ex) { }
 
 				// 初始化插件
 				CallListSetDefaultParams();
@@ -183,7 +183,8 @@ namespace WinFormsApp1
 		{
 			IntPtr functionPtr = NativeLibrary.GetExport(_moduleHandle, functionName);
 			if (functionPtr == IntPtr.Zero)
-				throw new EntryPointNotFoundException($"Function {functionName} not found in module {FilePath}");
+				//throw new EntryPointNotFoundException($"Function {functionName} not found in module {FilePath}");
+				return null;
 			return Marshal.GetDelegateForFunctionPointer<T>(functionPtr);
 		}
 

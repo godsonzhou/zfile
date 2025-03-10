@@ -411,12 +411,42 @@ namespace CmdProcessor
 					case 3006: // 命令ID=3006，Name=cm switchtoprevioustab
 						owner.uiManager.BookmarkManager.SwitchToPrevOrNextTab(true);
 						break;
-
+					case 3007: // 命令ID=3007,Name =cm_closecurrenttab
+						owner.uiManager.BookmarkManager.CloseCurrentTab();
+						break;
+					case 3008: // 命令ID=3008,Name=cm_closealltabs
+						owner.uiManager.BookmarkManager.CloseAllTabs();
+						break;
 					case 3009: // 命令ID=3009,Name=cm_dirtabsshowmenu
 						do_cm_dirtabsshowmenu();
 						break;
+					case 3010: // 命令ID=3010Name=cmtogglelockcurrenttab
+						owner.uiManager.BookmarkManager.ToggleCurrentBookmarkLock(owner.uiManager.isleft);
+						break;
 					case 3012:  //lock the bookmark
 						owner.uiManager.BookmarkManager.ToggleCurrentBookmarkLock(owner.uiManager.isleft);
+						break;
+					case 5001: // 命令ID=5001,Name =cm_srcactivatetab1
+					case 5002:
+					case 5003:
+					case 5004:
+					case 5005:
+					case 5006:
+					case 5007:
+					case 5008:
+					case 5009:// 命令ID=5009,Name =cm_srcactivatetab9
+						owner.uiManager.BookmarkManager.SwitchToNthTab(cmdId - 5000);
+						break;
+					case 5101: //命令ID = 5101, Name = cm_trgactivatetab1
+					case 5102:
+					case 5103:
+					case 5104:
+					case 5105:
+					case 5106:
+					case 5107:
+					case 5108:
+					case 5109:
+						owner.uiManager.BookmarkManager.SwitchToNthTab(cmdId - 5100, true);
 						break;
 					case 11434: //命令ID=11434,Name=cm_ollama
 						do_cm_llm_helper(param);

@@ -57,7 +57,7 @@ namespace WinFormsApp1
         private readonly List<Bookmark> rightBookmarks = new();
 		private System.Windows.Forms.Timer clickTimer;
 		private bool isDoubleClick;
-		private bool isLeft;
+		private bool isLeft { get => form.uiManager.isleft; set => form.uiManager.isleft = value; }
 		private DateTime lastClickTime;
 		private string lastClickButton = string.Empty;
 		private Bookmark lastClickBookmark;
@@ -142,6 +142,20 @@ namespace WinFormsApp1
 				OnSingleClick(lastClickBookmark, lastClickButton);
 			}
 		}
+		public void SwitchToNthTab(int targetIndex, bool isOtherPanel = false)
+		{
+			bool isleft;
+			if (isOtherPanel)
+				isleft = !isLeft;
+			else
+				isleft = isLeft;
+			targetIndex -= 1;
+			var bookmarkList = GetBookmarkList(isleft);
+			if (bookmarkList.Count <= targetIndex) return;
+			var targetBookmark = bookmarkList[targetIndex];
+			SetActiveBookmark(targetBookmark, isleft);
+			NavigateToBookmark(targetBookmark, isleft);
+		}
 		public void SwitchToPrevOrNextTab(bool isPrevious = true)
 		{
 			// 获取当前活动面板的书签列表
@@ -166,7 +180,16 @@ namespace WinFormsApp1
 			SetActiveBookmark(targetBookmark, isLeft);
 			NavigateToBookmark(targetBookmark, isLeft);
 		}
-	
+		public void CloseCurrentTab()
+		{
+			// 获取当前活动面板的书签列表
+			var bookmarkList = GetBookmarkList(isLeft);
+			if (bookmarkList.Count <= 1) return;
+
+			var actBookmark = activeBookmark(isLeft);
+			if (actBookmark == null) return;
+			RemoveBookmark(actBookmark, isLeft);
+		}
 		public void OnRightClick()
 		{
 			OnSingleClick(lastClickBookmark, "Right");
@@ -351,8 +374,12 @@ namespace WinFormsApp1
 				ToggleBookmarkLock(bookmark);
 			}
 		}
+		public void CloseAllTabs()
+		{
+			RemoveAllUnlockedBookmarks(isLeft);
+		}
 
-        private void RemoveAllUnlockedBookmarks(bool isLeft)
+		private void RemoveAllUnlockedBookmarks(bool isLeft)
         {
             var bookmarkList = isLeft ? leftBookmarks : rightBookmarks;
             var panel = isLeft ? leftBookmarkPanel : rightBookmarkPanel;
@@ -393,8 +420,9 @@ namespace WinFormsApp1
             activeLeftBookmark = activeRightBookmark;
             activeRightBookmark = tempActive;
         }
+	
 
-        private void RemoveBookmark(Bookmark bookmark, bool isLeft)
+		private void RemoveBookmark(Bookmark bookmark, bool isLeft)
         {
             if (bookmark.IsLocked) return;
 

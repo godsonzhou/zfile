@@ -394,9 +394,10 @@ namespace WinFormsApp1
         }
         public void AddCurrentPathToBookmarks()
         {
-            //if (string.IsNullOrEmpty(currentDirectory)) return;
-			if(selectedNode == null) return;
-			uiManager.BookmarkManager.AddBookmark(selectedNode, uiManager.isleft);
+			//if (string.IsNullOrEmpty(currentDirectory)) return;
+			var node = activeTreeview.SelectedNode;
+			if(node == null) return;
+			uiManager.BookmarkManager.AddBookmark(node, uiManager.isleft);
         }
 
         public void OpenOptions()

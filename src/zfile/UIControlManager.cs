@@ -64,9 +64,15 @@ namespace WinFormsApp1
 		#region Menu Controls
 		public MenuStrip dynamicMenuStrip = new();
 		#endregion
+		public ListView activeListView { get => (isleft ? LeftList : RightList); }
+		public ListView unactiveListView { get => (!isleft ? LeftList : RightList); }
+		public TreeView activeTreeview { get => (isleft ? LeftTree : RightTree); }
+		public TreeView unactiveTreeview { get => (!isleft ? LeftTree : RightTree); }
+
 		public ToolbarManager toolbarManager;
 		public ToolbarManager vtoolbarManager;
 		public FtpController ftpController;
+
 		public bool isleft { get; set; } = true;
 		public string leftDir => LeftPathTextBox?.CurrentNode?.UniqueID ;
 		public string rightDir => RightPathTextBox?.CurrentNode?.UniqueID;
@@ -76,8 +82,8 @@ namespace WinFormsApp1
 		public string srcDir => isleft ? leftDir : rightDir;
 		public string targetfiles => isleft ? rightfiles : leftfiles;
 		public string srcfiles => isleft ? leftfiles : rightfiles; 
+
 		public Dictionary<string, string> args = new();
-		
 		public Dictionary<string, string> lastVisitedPaths = new ();
 		private bool disposed = false;
 
@@ -282,16 +288,13 @@ namespace WinFormsApp1
 		private void DriveComboBox_SelectedIndexChanged(object? sender, EventArgs e)
 		{
 			if (sender is not ComboBox comboBox) return;
-
-			var treeView = comboBox == LeftDriveComboBox ? LeftTree : RightTree;
-			var listView = comboBox == LeftDriveComboBox ? LeftList : RightList;
-
+			isleft = comboBox == LeftDriveComboBox;
 			if (comboBox.SelectedItem is string drivePath)
 			{
 				if (lastVisitedPaths.TryGetValue(drivePath, out var lastPath)) 
 					form.NavigateToPath(lastPath);
 				else
-					form.LoadDriveIntoTree(treeView, drivePath);
+					form.LoadDriveIntoTree(form.activeTreeview, drivePath);
 			}
 		}
 		// 添加方法用于更新最后访问路径

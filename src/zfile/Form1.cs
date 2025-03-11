@@ -7,6 +7,8 @@ using WinShell;
 using zfile;
 using Keys = System.Windows.Forms.Keys;
 using Shell32;
+using SharpCompress.Compressors.Explode;
+using System.Collections.Generic;
 namespace WinFormsApp1
 {
 	public partial class Form1 : Form
@@ -26,13 +28,18 @@ namespace WinFormsApp1
 		private Dictionary<Keys, string> hotkeyMappings;
 		private bool isSelecting = false;
 		private Rectangle selectionRectangle;
-		public ListView activeListView { get => (uiManager.isleft ? uiManager.LeftList : uiManager.RightList); }
-		public ListView unactiveListView { get => (!uiManager.isleft ? uiManager.LeftList : uiManager.RightList); }
-		public TreeView activeTreeview { get => (uiManager.isleft ? uiManager.LeftTree : uiManager.RightTree); }
-		public TreeView unactiveTreeview { get => (!uiManager.isleft ? uiManager.LeftTree : uiManager.RightTree); }
+		public bool isleft => uiManager.isleft;
+		public ListView activeListView { get => uiManager.activeListView; }
+		public ListView unactiveListView { get => uiManager.unactiveListView; }
+		public TreeView activeTreeview { get => uiManager.activeTreeview; }
+		public TreeView unactiveTreeview { get => uiManager.unactiveTreeview; }
 		public TreeNode leftRoot, rightRoot;
-		public TreeNode activeRoot { get => (uiManager.isleft ? leftRoot : rightRoot); }
-		public TreeNode unactiveRoot { get => (!uiManager.isleft ? leftRoot : rightRoot); }
+		public TreeNode activeRoot { get => (isleft ? leftRoot : rightRoot); }
+		public TreeNode unactiveRoot { get => (!isleft ? leftRoot : rightRoot); }
+		private TreeNode thispcL, thispcR;
+		public TreeNode activeThispc { get { return isleft ? thispcL : thispcR; } }
+		public TreeNode unactiveThispc { get { return !isleft ? thispcL : thispcR; } }
+
 		private readonly FileSystemWatcher watcher = new();
 		public string currentDirectory = "";
 		private TreeNode? selectedNode = null;
@@ -45,9 +52,6 @@ namespace WinFormsApp1
 		private Dictionary<string, string> specFolderPaths = new();
 		private string[] draggedItems;
 		private TreeNode rightClickBegin;
-		private TreeNode thispcL, thispcR;
-		public TreeNode activeThispc { get { return uiManager.isleft ? thispcL : thispcR; } }
-		public TreeNode unactiveThispc { get { return !uiManager.isleft ? thispcL : thispcR; } }
 		private string oldname;
 		public WcxModuleList wcxModuleList;
 		public WlxModuleList wlxModuleList;
@@ -157,7 +161,7 @@ namespace WinFormsApp1
 		    uiManager.BookmarkManager.CreateDefaultBookmarks();
 
 			// 设置活动视图
-			//uiManager.isleft = true;
+			//isleft = true;
             thumbnailManager.RegisterProvider(ThumbnailGenerator.GetThumbnail);
     
             // 其他初始化
@@ -402,7 +406,7 @@ namespace WinFormsApp1
 			//if (string.IsNullOrEmpty(currentDirectory)) return;
 			var node = activeTreeview.SelectedNode;
 			if(node == null) return;
-			uiManager.BookmarkManager.AddBookmark(node, uiManager.isleft);
+			uiManager.BookmarkManager.AddBookmark(node, isleft);
         }
 
         public void OpenOptions()
@@ -738,13 +742,13 @@ namespace WinFormsApp1
 				activeListView.Refresh();
 				// 更新当前目录和路径显示
 				currentDirectory = $"ftp://{ftpTag.ConnectionName}{ftpTag.Path}";
-				if (uiManager.isleft)
+				if (isleft)
 					uiManager.LeftPathTextBox.Text = currentDirectory;
 				else
 					uiManager.RightPathTextBox.Text = currentDirectory;
 
 				selectedNode = eNode;
-				uiManager.BookmarkManager.UpdateActiveBookmark(currentDirectory, selectedNode, uiManager.isleft);
+				uiManager.BookmarkManager.UpdateActiveBookmark(currentDirectory, selectedNode, isleft);
 				uiManager.setArgs();
 				return true;
 			}
@@ -794,11 +798,11 @@ namespace WinFormsApp1
                         watcher.EnableRaisingEvents = true;
                     }
                     // 调用leftpathtextbox的setaddress方法来更新路径
-					if (uiManager.isleft)
+					if (isleft)
 						uiManager.LeftPathTextBox.SetAddress(e.Node);
                     else
                         uiManager.RightPathTextBox.SetAddress(e.Node);
-					uiManager.BookmarkManager.UpdateActiveBookmark(path, selectedNode, uiManager.isleft);
+					uiManager.BookmarkManager.UpdateActiveBookmark(path, selectedNode, isleft);
 				}
             }
 			uiManager.setArgs();
@@ -839,7 +843,8 @@ namespace WinFormsApp1
 						SelectedImageKey = "桌面" // 设置选中图标
 					};
 					treeView.Nodes.Add(rootNode);
-					if (treeView == uiManager.LeftTree)
+					uiManager.isleft = (treeView == uiManager.LeftTree);
+					if(isleft)
 						leftRoot = rootNode;
 					else
 						rightRoot = rootNode;
@@ -1538,7 +1543,7 @@ namespace WinFormsApp1
 						nodesToKeep.Add(nodeSub);
 						if(nodeSub.Text.Equals("此电脑"))
 						{
-							if (uiManager.isleft)
+							if (isleft)
 								thispcL = nodeSub;
 							else
 								thispcR = nodeSub;
@@ -2215,7 +2220,7 @@ namespace WinFormsApp1
 		}
 		public void RefreshPanel()
 		{
-			RefreshPanel(uiManager.isleft);
+			RefreshPanel(isleft);
 		}
 		public void RefreshPanel(bool isleft)
 		{

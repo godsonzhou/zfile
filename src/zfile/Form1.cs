@@ -593,6 +593,11 @@ namespace WinFormsApp1
 
         private void ShowContextMenuOnTreeview(TreeNode node, Point location)
         {
+			if(node.Tag is not ShellItem)
+			{
+				//ftp node process
+				return;
+			}
 			//获得当前节点的 PIDL
 			ShellItem sItem = (ShellItem)node.Tag;
             IntPtr PIDL = sItem.PIDL;
@@ -723,6 +728,28 @@ namespace WinFormsApp1
 				LoadSubDirectories(e.Node);
 			}
         }
+		private bool ftpNodeSelect(TreeNode eNode)
+		{
+			// 检查是否是FTP节点
+			if (eNode.Tag is FtpNodeTag ftpTag)
+			{
+				// 处理FTP节点双击事件
+				FtpManagerExtension.HandleFtpNodeDoubleClick(this, eNode, activeListView);
+				activeListView.Refresh();
+				// 更新当前目录和路径显示
+				currentDirectory = $"ftp://{ftpTag.ConnectionName}{ftpTag.Path}";
+				if (uiManager.isleft)
+					uiManager.LeftPathTextBox.Text = currentDirectory;
+				else
+					uiManager.RightPathTextBox.Text = currentDirectory;
+
+				selectedNode = eNode;
+				uiManager.BookmarkManager.UpdateActiveBookmark(currentDirectory, selectedNode, uiManager.isleft);
+				uiManager.setArgs();
+				return true;
+			}
+			return false;
+		}
         public void TreeView_AfterSelect(object? sender, TreeViewEventArgs e)
         {
             if (e.Node?.Tag == null) return;
@@ -738,24 +765,7 @@ namespace WinFormsApp1
                     treeView.Refresh(); // 强制重绘
 					uiManager.isleft = treeView == uiManager.LeftTree;
 
-                    // 检查是否是FTP节点
-                    if (e.Node.Tag is FtpNodeTag ftpTag)
-                    {
-                        // 处理FTP节点双击事件
-                        FtpManagerExtension.HandleFtpNodeDoubleClick(this, e.Node, activeListView);
-                        
-                        // 更新当前目录和路径显示
-                        currentDirectory = $"ftp://{ftpTag.ConnectionName}{ftpTag.Path}";
-                        if (uiManager.isleft)
-                            uiManager.LeftPathTextBox.Text = currentDirectory;
-                        else
-                            uiManager.RightPathTextBox.Text = currentDirectory;
-                            
-                        selectedNode = e.Node;
-                        uiManager.BookmarkManager.UpdateActiveBookmark(currentDirectory, selectedNode, uiManager.isleft);
-                        uiManager.setArgs();
-                        return;
-                    }
+					if (ftpNodeSelect(e.Node)) return;
 
 					// 获取节点属性
 					var shellItem = (ShellItem)e.Node.Tag;
@@ -1399,6 +1409,7 @@ namespace WinFormsApp1
 				lv.BeginUpdate();
 				lv.Items.Clear();
 			}
+			if (node.Tag is not ShellItem) return; //eg, if it is ftp virtual node, do not load subnode
 			ShellItem sItem = (ShellItem)node.Tag;
 			if (sItem == null) return;
 			IShellFolder root = sItem.ShellFolder;
@@ -1753,6 +1764,8 @@ namespace WinFormsApp1
 		// 加载文件列表
 		private async Task LoadListViewByFilesystem(string path, ListView listView, TreeNode parentnode)
         {
+			if(ftpNodeSelect(parentnode)) return;
+
 			var sitem = (ShellItem)parentnode.Tag;
 			if (sitem.IsVirtual) return;
             if (string.IsNullOrEmpty(path)) return;

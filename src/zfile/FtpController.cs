@@ -216,6 +216,7 @@ namespace WinFormsApp1
 			transferModeButton.Enabled = isConnected;
 			disconnectButton.Enabled = isConnected;
 			//commandInput.Enabled = isConnected;
+			//
 		}
 
 		protected virtual void Dispose(bool disposing)

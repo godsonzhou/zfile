@@ -71,22 +71,23 @@ namespace zfile
                     
                     // 添加子项
                     listItem.SubItems.Add(item.FullName); // 完整路径作为第二列
-                    listItem.SubItems.Add(item.Modified.ToString()); // 修改时间
                     
                     // 根据类型设置不同的显示
                     if (item.Type == FtpObjectType.Directory)
                     {
-                        listItem.SubItems.Add("<DIR>"); // 类型
-                        listItem.SubItems.Add(""); // 大小
+						listItem.SubItems.Add(""); // 大小
+						listItem.SubItems.Add("<DIR>"); // 类型
                     }
                     else
                     {
-                        listItem.SubItems.Add(Path.GetExtension(item.Name).TrimStart('.')); // 扩展名
-                        listItem.SubItems.Add(FileSystemManager.FormatFileSize(item.Size)); // 格式化文件大小
+						listItem.SubItems.Add(FileSystemManager.FormatFileSize(item.Size, true)); // 格式化文件大小
+						listItem.SubItems.Add(Path.GetExtension(item.Name).TrimStart('.')); // 扩展名
                     }
-                    
-                    // 设置图标
-                    listItem.ImageKey = item.Type == FtpObjectType.Directory ? "folder" : GetFileIconKey(item.Name);
+					listItem.SubItems.Add(item.Modified.ToString()); // 修改时间
+					listItem.SubItems.Add(item.Size.ToString()); //real size
+
+					// 设置图标
+					listItem.ImageKey = item.Type == FtpObjectType.Directory ? "folder" : GetFileIconKey(item.Name);
                     
                     // 添加到列表
                     items.Add(listItem);

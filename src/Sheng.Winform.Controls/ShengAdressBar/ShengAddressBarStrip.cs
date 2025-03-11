@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
+using WinShell;
 
 namespace Sheng.Winform.Controls
 {
@@ -513,8 +514,12 @@ namespace Sheng.Winform.Controls
         }
 		public void SetAddress(TreeNode tnode)
 		{
-			var i = (WinShell.ShellItem)tnode.Tag;
-			SetAddress(i.parsepath);
+			if (tnode.Tag is ShellItem)
+			{
+				var i = (ShellItem)tnode.Tag;
+				SetAddress(i.parsepath);
+			}
+			
 			_currentNode.tNode = tnode;
 		}
         /// <summary>

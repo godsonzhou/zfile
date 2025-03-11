@@ -9,6 +9,7 @@ using Keys = System.Windows.Forms.Keys;
 using Shell32;
 using SharpCompress.Compressors.Explode;
 using System.Collections.Generic;
+using System.IO;
 namespace WinFormsApp1
 {
 	public partial class Form1 : Form
@@ -742,13 +743,14 @@ namespace WinFormsApp1
 				activeListView.Refresh();
 				// 更新当前目录和路径显示
 				currentDirectory = $"ftp://{ftpTag.ConnectionName}{ftpTag.Path}";
-				if (isleft)
-					uiManager.LeftPathTextBox.Text = currentDirectory;
-				else
-					uiManager.RightPathTextBox.Text = currentDirectory;
+				//if (isleft)
+				//	uiManager.LeftPathTextBox.Text = currentDirectory;
+				//else
+				//	uiManager.RightPathTextBox.Text = currentDirectory;
 
 				selectedNode = eNode;
-				uiManager.BookmarkManager.UpdateActiveBookmark(currentDirectory, selectedNode, isleft);
+				//uiManager.BookmarkManager.UpdateActiveBookmark(currentDirectory, selectedNode, isleft);
+				UpdatePathTextAndDriveComboBox(eNode, currentDirectory, isleft);
 				uiManager.setArgs();
 				return true;
 			}
@@ -770,12 +772,6 @@ namespace WinFormsApp1
 					uiManager.isleft = treeView == uiManager.LeftTree;
 
 					if (ftpNodeSelect(e.Node)) return;
-					//if (e.Node == fTPMGR.ftpRootNode) { 
-					//	return; 
-					//}
-					// 获取节点属性
-					//var shellItem = (ShellItem)e.Node.Tag;
-					//SFGAO attributes = shellItem.GetAttributes();
 
 					LoadSubDirectories(e.Node, activeListView);
 					e.Node.Expand();
@@ -788,6 +784,7 @@ namespace WinFormsApp1
 						LoadRecycleBin(activeListView); //加载回收站内容
 					else
 						LoadListViewByFilesystem(path, activeListView, e.Node); //如果未点击回收站
+
 					currentDirectory = path;
 					//uiManager.lastVisitedPaths[path.Substring(0,2)] = path;
 					uiManager.UpdateLastVisitedPath(path);
@@ -797,12 +794,7 @@ namespace WinFormsApp1
                         watcher.Path = path;
                         watcher.EnableRaisingEvents = true;
                     }
-                    // 调用leftpathtextbox的setaddress方法来更新路径
-					if (isleft)
-						uiManager.LeftPathTextBox.SetAddress(e.Node);
-                    else
-                        uiManager.RightPathTextBox.SetAddress(e.Node);
-					uiManager.BookmarkManager.UpdateActiveBookmark(path, selectedNode, isleft);
+					UpdatePathTextAndDriveComboBox(e.Node, path, isleft);
 				}
             }
 			uiManager.setArgs();
@@ -811,8 +803,34 @@ namespace WinFormsApp1
             //    MessageBox.Show($"TreeView_AfterSelect加载目录失败: {ex.Message}", "错误");
             //}
         }
-		
-        private void ClearTreeViewHighlight(TreeView treeView)
+		private void UpdatePathTextAndDriveComboBox(TreeNode eNode, string path, bool isleft)
+		{
+			if (isleft)
+			{
+				uiManager.LeftPathTextBox.SetAddress(eNode);    // 调用leftpathtextbox的setaddress方法来更新路径
+				SetDriveComboByValue(uiManager.LeftDriveComboBox, eNode.FullPath);
+			}
+			else
+			{
+				uiManager.RightPathTextBox.SetAddress(eNode);
+				SetDriveComboByValue(uiManager.RightDriveComboBox, eNode.FullPath);
+			}
+
+			uiManager.BookmarkManager.UpdateActiveBookmark(path, selectedNode, isleft);
+		}
+		private void SetDriveComboByValue(ComboBox cb, string value)
+		{
+			foreach (var i in cb.Items)
+			{
+				if (value.Contains(i.ToString().Substring(0,2)))
+				{
+					cb.SelectedItem = i;
+					return;
+				}
+			}
+		}
+
+		private void ClearTreeViewHighlight(TreeView treeView)
         {
             foreach (TreeNode node in treeView.Nodes)
                 ClearNodeHighlight(node);

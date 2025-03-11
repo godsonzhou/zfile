@@ -766,10 +766,12 @@ namespace WinFormsApp1
 					uiManager.isleft = treeView == uiManager.LeftTree;
 
 					if (ftpNodeSelect(e.Node)) return;
-
+					//if (e.Node == fTPMGR.ftpRootNode) { 
+					//	return; 
+					//}
 					// 获取节点属性
-					var shellItem = (ShellItem)e.Node.Tag;
-					SFGAO attributes = shellItem.GetAttributes();
+					//var shellItem = (ShellItem)e.Node.Tag;
+					//SFGAO attributes = shellItem.GetAttributes();
 
 					LoadSubDirectories(e.Node, activeListView);
 					e.Node.Expand();

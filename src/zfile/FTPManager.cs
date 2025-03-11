@@ -40,6 +40,7 @@ namespace WinFormsApp1
 		private  readonly Dictionary<string, FtpFileSource> _ftpSources = new Dictionary<string, FtpFileSource>();
 		private  readonly List<string> _registeredDrives = new List<string>();
 		private  TreeNode _ftpRootNode;
+		public TreeNode ftpRootNode => _ftpRootNode;
 		private  VfsModuleManager _vfsManager;
 
 		/// <summary>

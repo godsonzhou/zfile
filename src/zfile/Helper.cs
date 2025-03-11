@@ -753,7 +753,7 @@ namespace WinFormsApp1
 		//获取当前树节点的实际文件系统路径，eg. 'system (c:)' -> c:\\
 		public static string getFSpathbyTree(TreeNode Node)
 		{
-			if (Node.Parent == null)
+			if (Node.Parent == null || Node.Parent.Tag is not ShellItem || Node.Tag is not ShellItem)
 			{
 				//top node process, does not need to process listviewbyfilesystem
 				return string.Empty;

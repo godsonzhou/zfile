@@ -856,6 +856,8 @@ namespace WinFormsApp1
 				}
 
 				var node = FindTreeNode(activeThispc.Nodes, drivepath);//todo: if drivepath is ftpdrive, find treenode in ftproot
+				if (node == null)
+					node = FindTreeNode(fTPMGR.ftpRootNode.Nodes, drivepath);
 				treeView.SelectedNode = node;
 				//treeView.EndUpdate();
             }
@@ -1524,7 +1526,7 @@ namespace WinFormsApp1
 								{
 									var dirinfo = new DirectoryInfo(path);  //压缩文件处理到此处引发异常
 									var subdir = dirinfo.GetDirectories();	//windows目录CSC无权限异常
-									if (subdir.Length != 0)
+									if (subdir.Length != 0 && nodeSub.Nodes.Count == 0)
 										nodeSub.Nodes.Add("...");
 								}
 								catch { }

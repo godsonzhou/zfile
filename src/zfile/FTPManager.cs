@@ -222,7 +222,7 @@ namespace WinFormsApp1
 					_ftpSources[connectionName] = ftpSource;
 
 					// 创建FTP节点
-					var ftpNode = new TreeNode($"{connectionName} ({driveId})")
+					var ftpNode = new TreeNode($"{driveId} [{connectionName}]")
 					{
 						ImageKey = "ftp",
 						SelectedImageKey = "ftp",

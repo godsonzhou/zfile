@@ -1403,7 +1403,23 @@ namespace WinFormsApp1
 			if (sItem == null) return;
 			IShellFolder root = sItem.ShellFolder;
 			if (root == null ) return;
-			node.Nodes.Clear();
+			
+			if(node.Nodes.Count == 1 && node.Nodes[0].Text.Equals("...")) 
+				node.Nodes.RemoveAt(0);
+			// 保存现有节点的引用，以便后续比较
+			Dictionary<string, TreeNode> existingNodes = new Dictionary<string, TreeNode>();
+			foreach (TreeNode existingNode in node.Nodes)
+			{
+				if (existingNode.Tag is ShellItem existingItem)
+				{
+					existingNodes[existingItem.PIDL.ToString()] = existingNode;
+				}
+			}
+			
+			// 创建一个新的节点集合，用于存储需要保留的节点
+			List<TreeNode> nodesToKeep = new List<TreeNode>();
+			// 创建一个集合，用于存储新的PIDL，以便后续比较
+			HashSet<string> newPidls = new HashSet<string>();
 			IEnumIDList Enum;
 			
 			if (root.EnumObjects(this.Handle, SHCONTF.FOLDERS, out nint EnumPtr) == w32.S_OK)    // 循环查找子项
@@ -1421,10 +1437,30 @@ namespace WinFormsApp1
 						var pathPart = path.Split('\\');
 						name = !pathPart[^1].Equals(string.Empty) ? pathPart[^1] : pathPart[^2];
 						var subItem = new ShellItem(pidlSub, iSub, root); //子节点的tag存放pidl和ishellfolder接口
-						TreeNode nodeSub = new(name)
+						
+						// 记录新的PIDL
+						string pidlKey = pidlSub.ToString();
+						newPidls.Add(pidlKey);
+						
+						// 检查是否已存在相同PIDL的节点
+						TreeNode nodeSub;
+						if (existingNodes.TryGetValue(pidlKey, out TreeNode existingNode))
 						{
-							Tag = subItem
-						};
+							// 保留现有节点
+							nodeSub = existingNode;
+							// 更新节点的Tag，确保使用最新的ShellItem
+							nodeSub.Tag = subItem;
+							// 将节点添加到保留列表
+							nodesToKeep.Add(nodeSub);
+						}
+						else
+						{
+							// 创建新节点
+							nodeSub = new TreeNode(name)
+							{
+								Tag = subItem
+							};
+						}
 						// 为虚拟文件夹或非文件系统项设置特定图标
 						string iconkey;
 						if (subItem.IsVirtual || (subItem.GetAttributes() & SFGAO.FILESYSTEM) == 0)
@@ -1465,7 +1501,15 @@ namespace WinFormsApp1
 						}
 						nodeSub.ImageKey = iconkey;
 						nodeSub.SelectedImageKey = iconkey;
-						node.Nodes.Add(nodeSub);
+						
+						// 如果是新创建的节点，才添加到父节点
+						if (!existingNodes.ContainsValue(nodeSub))
+						{
+							node.Nodes.Add(nodeSub);
+						}
+						
+						// 将节点添加到保留列表
+						nodesToKeep.Add(nodeSub);
 						if(nodeSub.Text.Equals("此电脑"))
 						{
 							if (uiManager.isleft)
@@ -1491,6 +1535,17 @@ namespace WinFormsApp1
 							lv.Items.Add(i);
 						}
 					}
+					// 处理需要删除的节点
+					// 找出所有不在新PIDL集合中的现有节点，这些节点需要被删除
+					foreach (var existingPair in existingNodes)
+					{
+						if (!newPidls.Contains(existingPair.Key))
+						{
+							// 从父节点中移除不再存在的节点
+							node.Nodes.Remove(existingPair.Value);
+						}
+					}
+					
 					lv?.EndUpdate();
 				}
 				finally

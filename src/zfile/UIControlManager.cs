@@ -67,7 +67,7 @@ namespace WinFormsApp1
 		public ToolbarManager toolbarManager;
 		public ToolbarManager vtoolbarManager;
 		public FtpController ftpController;
-		public bool isleft { get; set; }//= true;
+		public bool isleft { get; set; } = true;
 		public string leftDir => LeftPathTextBox?.CurrentNode?.UniqueID ;
 		public string rightDir => RightPathTextBox?.CurrentNode?.UniqueID;
 		public string leftfiles => string.Join("|", LeftList.SelectedItems.Cast<ListViewItem>()?.Select(item => item.SubItems[0].Text));

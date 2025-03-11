@@ -143,7 +143,7 @@ namespace WinFormsApp1
 		    cmdProcessor = new CmdProc(this);
 			lLM_Helper = new LLM_Helper(this);
 			InitializeComponent();
-		    this.Size = new Size(1200, 800);
+		    this.Size = new Size(1920, 1080);
 
 		    // 初始化COM组件
 		    InitializeCOMComponents();
@@ -157,7 +157,7 @@ namespace WinFormsApp1
 		    uiManager.BookmarkManager.CreateDefaultBookmarks();
 
 			// 设置活动视图
-			uiManager.isleft = true;
+			//uiManager.isleft = true;
             thumbnailManager.RegisterProvider(ThumbnailGenerator.GetThumbnail);
     
             // 其他初始化
@@ -825,31 +825,34 @@ namespace WinFormsApp1
         {
             try
             {
-                treeView.BeginUpdate();
-                treeView.Nodes.Clear();
+                //treeView.BeginUpdate();
+                //treeView.Nodes.Clear();
+				if(treeView.Nodes.Count == 0)
+				{
+					//获得桌面 PIDL
+					IntPtr deskTopPtr;
+					iDeskTop = w32.GetDesktopFolder(out deskTopPtr);
+					TreeNode rootNode = new("桌面")
+					{
+						Tag = new ShellItem(deskTopPtr, iDeskTop, null) { IconKey = "桌面" },
+						ImageKey = "桌面", // 设置图标
+						SelectedImageKey = "桌面" // 设置选中图标
+					};
+					treeView.Nodes.Add(rootNode);
+					if (treeView == uiManager.LeftTree)
+						leftRoot = rootNode;
+					else
+						rightRoot = rootNode;
+					//treeView.SelectedNode = rootNode;
+					// 加载并展开根目录
+					LoadSubDirectories(rootNode);
+					rootNode.Expand();
+					LoadSubDirectories(activeThispc);
+				}
 
-                //获得桌面 PIDL
-                IntPtr deskTopPtr;
-                iDeskTop = w32.GetDesktopFolder(out deskTopPtr);
-
-                TreeNode rootNode = new ("桌面")
-                {
-                    Tag = new ShellItem(deskTopPtr, iDeskTop, null) { IconKey = "桌面"},
-                    ImageKey = "桌面", // 设置图标
-                    SelectedImageKey = "桌面" // 设置选中图标
-				};
-                treeView.Nodes.Add(rootNode);
-				if (treeView == uiManager.LeftTree)
-					leftRoot = rootNode;
-				else
-					rightRoot = rootNode;
-				//treeView.SelectedNode = rootNode;
-				// 加载并展开根目录
-				LoadSubDirectories(rootNode);
-				rootNode.Expand();
-				var node = FindTreeNode(activeThispc.Nodes, drivepath);
+				var node = FindTreeNode(activeThispc.Nodes, drivepath);//todo: if drivepath is ftpdrive, find treenode in ftproot
 				treeView.SelectedNode = node;
-				treeView.EndUpdate();
+				//treeView.EndUpdate();
             }
             catch (Exception ex)
             {
@@ -1498,7 +1501,7 @@ namespace WinFormsApp1
 										getIconByIconLocation(ref subItem, out iconkey);
 								}
 										
-							iconManager.LoadIconFromCacheByKey(iconkey, activeTreeview.ImageList);
+							iconManager.LoadIconFromCacheByKey(iconkey, node.TreeView.ImageList);
 						
 							SFGAO subattr = subItem.GetAttributes();    // 如果是文件夹且不是虚拟文件夹，则添加"..."节点
 							if (subattr.HasFlag(SFGAO.FOLDER) && nodeSub.Nodes.Count == 0)
@@ -1507,7 +1510,7 @@ namespace WinFormsApp1
 						else
 						{
 							iconkey = IconManager.GetNodeIconKey(nodeSub);
-							iconManager.LoadIconFromCacheByKey(iconkey, activeTreeview.ImageList);
+							iconManager.LoadIconFromCacheByKey(iconkey, node.TreeView.ImageList);
 							
 							// 如果有子文件夹，则添加"..."节点
 							if (Directory.Exists(path))
@@ -1563,7 +1566,7 @@ namespace WinFormsApp1
 					foreach (var existingPair in existingNodes)
 					{
 						// 使用路径作为唯一标识符进行比较
-						if (!newPidls.Contains(existingPair.Key))
+						if (!newPidls.Contains(existingPair.Key) && !existingPair.Key.Equals("ftproot"))
 						{
 							// 从父节点中移除不再存在的节点
 							node.Nodes.Remove(existingPair.Value);

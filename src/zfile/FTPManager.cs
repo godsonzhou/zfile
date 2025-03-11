@@ -36,7 +36,9 @@ namespace WinFormsApp1
 		/// </summary>
 		private FtpConnectionMonitor _connectionMonitor;
 		#endregion
-		private  readonly Dictionary<string, TreeNode> _ftpNodes = new Dictionary<string, TreeNode>();
+		private  readonly Dictionary<string, TreeNode> _ftpNodesL = new Dictionary<string, TreeNode>();
+		private readonly Dictionary<string, TreeNode> _ftpNodesR = new Dictionary<string, TreeNode>();
+		private Dictionary<string, TreeNode> _ftpNodes => form.uiManager.isleft ? _ftpNodesL : _ftpNodesR;
 		private  readonly Dictionary<string, FtpFileSource> _ftpSources = new Dictionary<string, FtpFileSource>();
 		private  readonly List<string> _registeredDrives = new List<string>();
 		private  TreeNode _ftpRootNodeL, _ftpRootNodeR;
@@ -226,10 +228,12 @@ namespace WinFormsApp1
 						SelectedImageKey = "ftp",
 						Tag = new FtpNodeTag { ConnectionName = connectionName, Path = "/" }
 					};
-
+					var ftpNodeR = (TreeNode)ftpNode.Clone();
 					// 添加到FTP根节点
-					AddFtpNode(ftpNode);
-					_ftpNodes[connectionName] = ftpNode;
+					AddFtpNode(ftpNode, true);
+					AddFtpNode(ftpNodeR);
+					_ftpNodesL[connectionName] = ftpNode;
+					_ftpNodesR[connectionName] = ftpNodeR;
 					_registeredDrives.Add(driveId);
 
 					// 添加到DriveComboBox
@@ -245,10 +249,12 @@ namespace WinFormsApp1
 
 			return false;
 		}
-		private void AddFtpNode(TreeNode ftpNode)
+		private void AddFtpNode(TreeNode ftpNode, bool isleft = false)
 		{
-			_ftpRootNodeL.Nodes.Add(ftpNode);
-			_ftpRootNodeR.Nodes.Add(ftpNode);
+			if(isleft)
+				_ftpRootNodeL.Nodes.Add(ftpNode);
+			else
+				_ftpRootNodeR.Nodes.Add(ftpNode);
 		}
 		/// <summary>
 		/// 获取下一个可用的驱动器盘符
@@ -282,10 +288,12 @@ namespace WinFormsApp1
 			form.uiManager.RightDriveComboBox.Items.Add($"{driveId} [{connectionName}]");
 		}
 
-		private void RemoveFtpNode(TreeNode node)
+		private void RemoveFtpNode(TreeNode node, bool isleft = false)
 		{
-			_ftpRootNodeL.Nodes.Remove(node);
-			_ftpRootNodeR.Nodes.Remove(node);
+			if(isleft)
+				_ftpRootNodeL.Nodes.Remove(node);
+			else
+				_ftpRootNodeR.Nodes.Remove(node);
 		}
 		/// <summary>
 		/// 取消注册FTP连接
@@ -297,8 +305,9 @@ namespace WinFormsApp1
 		{
 			try
 			{
-				if (_ftpNodes.TryGetValue(connectionName, out TreeNode node))
+				if (_ftpNodesL.TryGetValue(connectionName, out TreeNode node))
 				{
+					_ftpNodesR.TryGetValue(connectionName, out TreeNode nodeR);
 					// 从连接监视器中移除
 					_connectionMonitor.RemoveConnection(connectionName);
 
@@ -307,8 +316,10 @@ namespace WinFormsApp1
 					string driveId = nodeText.Substring(nodeText.IndexOf('(') + 1, 2);
 
 					// 从树视图中移除节点
-					RemoveFtpNode(node);
-					_ftpNodes.Remove(connectionName);
+					RemoveFtpNode(node, true);
+					RemoveFtpNode(nodeR);
+					_ftpNodesL.Remove(connectionName);
+					_ftpNodesR.Remove(connectionName);
 
 					// 从驱动器列表中移除
 					_registeredDrives.Remove(driveId);

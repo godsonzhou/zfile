@@ -1425,7 +1425,9 @@ namespace WinFormsApp1
 			{
 				if (existingNode.Tag is ShellItem existingItem)
 				{
-					existingNodes[existingItem.PIDL.ToString()] = existingNode;
+					// 使用路径作为唯一标识符，而不是PIDL的内存地址
+					string path = w32.GetPathByIShell(existingItem.ParentShellFolder, existingItem.PIDL);
+					existingNodes[path] = existingNode;
 				}
 			}
 			
@@ -1451,13 +1453,13 @@ namespace WinFormsApp1
 						name = !pathPart[^1].Equals(string.Empty) ? pathPart[^1] : pathPart[^2];
 						var subItem = new ShellItem(pidlSub, iSub, root); //子节点的tag存放pidl和ishellfolder接口
 						
-						// 记录新的PIDL
-						string pidlKey = pidlSub.ToString();
-						newPidls.Add(pidlKey);
+						// 使用路径作为唯一标识符，而不是PIDL的内存地址
+						string nodeKey = path;
+						newPidls.Add(nodeKey);
 						
-						// 检查是否已存在相同PIDL的节点
+						// 检查是否已存在相同路径的节点
 						TreeNode nodeSub;
-						if (existingNodes.TryGetValue(pidlKey, out TreeNode existingNode))
+						if (existingNodes.TryGetValue(nodeKey, out TreeNode existingNode))
 						{
 							// 保留现有节点
 							nodeSub = existingNode;
@@ -1491,7 +1493,7 @@ namespace WinFormsApp1
 							iconManager.LoadIconFromCacheByKey(iconkey, activeTreeview.ImageList);
 						
 							SFGAO subattr = subItem.GetAttributes();    // 如果是文件夹且不是虚拟文件夹，则添加"..."节点
-							if (subattr.HasFlag(SFGAO.FOLDER))
+							if (subattr.HasFlag(SFGAO.FOLDER) && nodeSub.Nodes.Count == 0)
 								nodeSub.Nodes.Add("...");
 						}
 						else
@@ -1549,9 +1551,10 @@ namespace WinFormsApp1
 						}
 					}
 					// 处理需要删除的节点
-					// 找出所有不在新PIDL集合中的现有节点，这些节点需要被删除
+					// 找出所有不在新路径集合中的现有节点，这些节点需要被删除
 					foreach (var existingPair in existingNodes)
 					{
+						// 使用路径作为唯一标识符进行比较
 						if (!newPidls.Contains(existingPair.Key))
 						{
 							// 从父节点中移除不再存在的节点

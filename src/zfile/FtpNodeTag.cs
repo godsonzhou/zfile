@@ -17,4 +17,9 @@ namespace WinFormsApp1
         /// </summary>
         public string Path { get; set; }
     }
+	public class FtpRootNodeTag(string name)
+	{
+		public string Name { get; set; } = name;
+	
+	}
 }

@@ -1429,6 +1429,14 @@ namespace WinFormsApp1
 					string path = w32.GetPathByIShell(existingItem.ParentShellFolder, existingItem.PIDL);
 					existingNodes[path] = existingNode;
 				}
+				else if (existingNode.Tag is FtpRootNodeTag)
+				{
+					existingNodes["ftproot"] = existingNode;
+				}
+				else if (existingNode.Tag is FtpNodeTag ftptag)
+				{
+
+				}
 			}
 			
 			// 创建一个新的节点集合，用于存储需要保留的节点

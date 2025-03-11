@@ -39,8 +39,8 @@ namespace WinFormsApp1
 		private  readonly Dictionary<string, TreeNode> _ftpNodes = new Dictionary<string, TreeNode>();
 		private  readonly Dictionary<string, FtpFileSource> _ftpSources = new Dictionary<string, FtpFileSource>();
 		private  readonly List<string> _registeredDrives = new List<string>();
-		private  TreeNode _ftpRootNode;
-		public TreeNode ftpRootNode => _ftpRootNode;
+		private  TreeNode _ftpRootNodeL, _ftpRootNodeR;
+		public TreeNode ftpRootNode => form.uiManager.isleft ? _ftpRootNodeL : _ftpRootNodeR;
 		private  VfsModuleManager _vfsManager;
 
 		/// <summary>
@@ -153,18 +153,23 @@ namespace WinFormsApp1
 		private  void CreateFtpRootNode()
 		{
 			// 在桌面节点下创建FTP连接节点
-			_ftpRootNode = new TreeNode("FTP连接")
+			_ftpRootNodeL = new TreeNode("FTP连接")
 			{
 				ImageKey = "folder",
 				SelectedImageKey = "folder",
-				Tag = "ftp"	//tag must not be null, otherwise 无法正常刷新高亮状态
+				Tag = new FtpRootNodeTag("Left")	//tag must not be null, otherwise 无法正常刷新高亮状态
 			};
-
+			_ftpRootNodeR = new TreeNode("FTP连接")
+			{
+				ImageKey = "folder",
+				SelectedImageKey = "folder",
+				Tag = new FtpRootNodeTag("Right")    //tag must not be null, otherwise 无法正常刷新高亮状态
+			};
 			// 添加到左侧和右侧树视图的桌面节点下
 			if (form.leftRoot != null && form.rightRoot != null)
 			{
-				form.leftRoot.Nodes.Add(_ftpRootNode);
-				form.rightRoot.Nodes.Add((TreeNode)_ftpRootNode.Clone());
+				form.leftRoot.Nodes.Add(_ftpRootNodeL);
+				form.rightRoot.Nodes.Add(_ftpRootNodeR);
 			}
 			else
 			{
@@ -223,7 +228,7 @@ namespace WinFormsApp1
 					};
 
 					// 添加到FTP根节点
-					_ftpRootNode.Nodes.Add(ftpNode);
+					AddFtpNode(ftpNode);
 					_ftpNodes[connectionName] = ftpNode;
 					_registeredDrives.Add(driveId);
 
@@ -240,7 +245,11 @@ namespace WinFormsApp1
 
 			return false;
 		}
-
+		private void AddFtpNode(TreeNode ftpNode)
+		{
+			_ftpRootNodeL.Nodes.Add(ftpNode);
+			_ftpRootNodeR.Nodes.Add(ftpNode);
+		}
 		/// <summary>
 		/// 获取下一个可用的驱动器盘符
 		/// </summary>
@@ -273,6 +282,11 @@ namespace WinFormsApp1
 			form.uiManager.RightDriveComboBox.Items.Add($"{driveId} [{connectionName}]");
 		}
 
+		private void RemoveFtpNode(TreeNode node)
+		{
+			_ftpRootNodeL.Nodes.Remove(node);
+			_ftpRootNodeR.Nodes.Remove(node);
+		}
 		/// <summary>
 		/// 取消注册FTP连接
 		/// </summary>
@@ -293,7 +307,7 @@ namespace WinFormsApp1
 					string driveId = nodeText.Substring(nodeText.IndexOf('(') + 1, 2);
 
 					// 从树视图中移除节点
-					_ftpRootNode.Nodes.Remove(node);
+					RemoveFtpNode(node);
 					_ftpNodes.Remove(connectionName);
 
 					// 从驱动器列表中移除

@@ -796,7 +796,7 @@ namespace CmdProcessor
 			owner.fTPMGR.ShowFtpConnectionForm();
 			
 			// 初始化FTP管理器扩展
-			FtpManagerExtension.Initialize(owner);
+			owner.fTPMGR.Initialize();
 		}
 		private void do_cm_ftpnew()
 		{

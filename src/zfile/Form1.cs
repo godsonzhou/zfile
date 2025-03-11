@@ -187,7 +187,7 @@ namespace WinFormsApp1
 			wlxModuleList = new WlxModuleList();
 
 			// 初始化FTP管理器扩展
-			FtpManagerExtension.Initialize(this);
+			fTPMGR.Initialize();
 
 			se = new ShellExecuteHelper(this);
 		}
@@ -734,7 +734,7 @@ namespace WinFormsApp1
 			if (eNode.Tag is FtpNodeTag ftpTag)
 			{
 				// 处理FTP节点双击事件
-				FtpManagerExtension.HandleFtpNodeDoubleClick(this, eNode, activeListView);
+				fTPMGR.HandleFtpNodeDoubleClick( eNode, activeListView);
 				activeListView.Refresh();
 				// 更新当前目录和路径显示
 				currentDirectory = $"ftp://{ftpTag.ConnectionName}{ftpTag.Path}";
@@ -974,7 +974,7 @@ namespace WinFormsApp1
                         if (!string.IsNullOrEmpty(connectionName))
                         {
                             // 显示FTP右键菜单
-                            FtpManagerExtension.ShowFtpContextMenu(this, connectionName, item, e.Location);
+                            fTPMGR.ShowFtpContextMenu(connectionName, item, e.Location);
                             return;
                         }
                     }
@@ -1044,7 +1044,7 @@ namespace WinFormsApp1
                 if (!string.IsNullOrEmpty(connectionName))
                 {
                     // 处理FTP列表项双击事件
-                    FtpManagerExtension.HandleFtpListItemDoubleClick(this, connectionName, selectedItem, listView);
+                    fTPMGR.HandleFtpListItemDoubleClick(connectionName, selectedItem, listView);
                     return;
                 }
             }

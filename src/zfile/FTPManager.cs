@@ -141,8 +141,8 @@ namespace WinFormsApp1
 			// 创建FTP根节点
 			CreateFtpRootNode();
 
-			// 加载已保存的FTP连接
-			LoadSavedFtpConnections();
+			// 加载已保存的FTP连接 //启动程序时不自动连接FTP
+			//LoadSavedFtpConnections();
 		}
 
 		/// <summary>
@@ -1079,7 +1079,7 @@ namespace WinFormsApp1
 		// 添加新的私有方法来处理 FTP 连接管理器
 		public void ShowFtpConnectionForm()
 		{
-			var form = new Form
+			var ftpConnMgrform = new Form
 			{
 				Text = "FTP 连接管理器",
 				Size = new Size(600, 500),
@@ -1115,8 +1115,9 @@ namespace WinFormsApp1
 				{
 					var selectedItem = ftplistView.SelectedItems[0];
 					// 调用 FtpMgr.Connect 方法
-					Connect(selectedItem.Text);
-					form.Close();
+					//Connect(selectedItem.Text);//bugfix: connect 不会维护drivecombobox和ftptreenode,改用registerftpconnection
+					RegisterFtpConnection(selectedItem.Text);
+					ftpConnMgrform.Close();
 				}
 				else
 				{

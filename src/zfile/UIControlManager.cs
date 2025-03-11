@@ -509,6 +509,8 @@ namespace WinFormsApp1
 			listView.Columns.Add("大小", 100);
 			listView.Columns.Add("类型", 80);
 			listView.Columns.Add("修改日期", 150);
+			listView.Columns.Add("大小", 0); //
+			listView.Columns.Add("属性", 80); // 新增属性列，显示RAHSC或L777格式
 			listView.AllowDrop = true;
 			listView.ItemDrag += form.ListView_ItemDrag;
 			listView.DragOver += form.ListView_DragOver;

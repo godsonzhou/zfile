@@ -254,6 +254,24 @@ namespace CmdProcessor
 					case 552: //命令ID=552,Name=cm_ftpdisconnect
 						do_cm_ftpdisconnect();
 						break;
+					case 553: //命令ID=553，Name=cm_ftphiddenfiles 显示隐藏文件
+						do_cm_ftphiddenfiles();
+						break;
+					case 554: // cm_ftpabort
+						do_cm_ftpabort();
+						break;
+					case 555: // cm_ftpresumedownload
+						do_cm_ftpresumedownload();
+						break;
+					case 556: // cm_ftpselecttransfermode
+						do_cm_ftpselectransfermode();
+						break;
+					case 557: // cm_ftpaddtolist
+						do_cm_ftpaddtolist();
+						break;
+					case 558: // cm_ftpdownloadlist
+						do_cm_ftpdownloadlist();
+						break;
 					case 560: // cm_split
 						do_cm_split(param);
 						break;
@@ -475,6 +493,30 @@ namespace CmdProcessor
 			//{
 			//	throw new KeyNotFoundException("命令ID不存在");
 			//}
+		}
+		private void do_cm_ftpdownloadlist()
+		{
+
+		}
+		private void do_cm_ftpaddtolist()
+		{
+
+		}
+		private void do_cm_ftpselectransfermode()
+		{
+
+		}
+		private void do_cm_ftpresumedownload()
+		{
+
+		}
+		private void do_cm_ftpabort()
+		{
+
+		}
+		private void do_cm_ftphiddenfiles()
+		{
+
 		}
 		private void do_cm_register()
 		{

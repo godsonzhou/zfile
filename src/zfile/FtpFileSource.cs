@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using WinFormsApp1;
-
+using System.Text;
 namespace zfile
 {
     /// <summary>
@@ -12,6 +12,55 @@ namespace zfile
     /// </summary>
     public class FtpFileSource : FileSourceBase
     {
+        /// <summary>
+        /// 将FTP文件属性转换为L777格式的字符串
+        /// </summary>
+        /// <param name="item">FTP文件项</param>
+        /// <returns>格式化的属性字符串</returns>
+        private string GetFtpAttributesString(FtpListItem item)
+        {
+            StringBuilder sb = new StringBuilder("-----");
+            
+            // 检查是否为链接文件
+            if (item.Type == FtpObjectType.Link)
+                sb[0] = 'L';
+                
+            // 处理权限信息 (使用777格式：RWX分别对应421)
+            int ownerValue = 0;
+            int groupValue = 0;
+            int othersValue = 0;
+            
+            // 所有者权限
+            if (item.OwnerPermissions.HasFlag(FtpPermission.Read))
+                ownerValue += 4;
+            if (item.OwnerPermissions.HasFlag(FtpPermission.Write))
+                ownerValue += 2;
+            if (item.OwnerPermissions.HasFlag(FtpPermission.Execute))
+                ownerValue += 1;
+                
+            // 组权限
+            if (item.GroupPermissions.HasFlag(FtpPermission.Read))
+                groupValue += 4;
+            if (item.GroupPermissions.HasFlag(FtpPermission.Write))
+                groupValue += 2;
+            if (item.GroupPermissions.HasFlag(FtpPermission.Execute))
+                groupValue += 1;
+                
+            // 其他用户权限
+            if (item.OthersPermissions.HasFlag(FtpPermission.Read))
+                othersValue += 4;
+            if (item.OthersPermissions.HasFlag(FtpPermission.Write))
+                othersValue += 2;
+            if (item.OthersPermissions.HasFlag(FtpPermission.Execute))
+                othersValue += 1;
+                
+            // 设置权限值
+            sb[1] = ownerValue.ToString()[0];
+            sb[2] = groupValue.ToString()[0];
+            sb[3] = othersValue.ToString()[0];
+            
+            return sb.ToString();
+        }
         private FtpClient _client;
         private string _currentPath = "/";
         private string _ftpHost;
@@ -85,6 +134,10 @@ namespace zfile
                     }
 					listItem.SubItems.Add(item.Modified.ToString()); // 修改时间
 					listItem.SubItems.Add(item.Size.ToString()); //real size
+					
+					// 添加FTP文件属性列
+					string attrStr = GetFtpAttributesString(item);
+					listItem.SubItems.Add(attrStr); // 属性
 
 					// 设置图标
 					listItem.ImageKey = item.Type == FtpObjectType.Directory ? "folder" : GetFileIconKey(item.Name);

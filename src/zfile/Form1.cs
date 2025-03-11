@@ -1852,6 +1852,26 @@ namespace WinFormsApp1
 			//}
 		}
       
+        // 将文件属性转换为RAHSC格式的字符串
+        private string GetFileAttributesString(FileAttributes attributes)
+        {
+            StringBuilder sb = new StringBuilder("-----");
+            
+            // 检查各种属性并设置对应的字符
+            if ((attributes & FileAttributes.ReadOnly) != 0)
+                sb[0] = 'R';
+            if ((attributes & FileAttributes.Hidden) != 0)
+                sb[1] = 'H';
+            if ((attributes & FileAttributes.System) != 0)
+                sb[2] = 'S';
+            if ((attributes & FileAttributes.Compressed) != 0)
+                sb[4] = 'C';
+            if ((attributes & FileAttributes.Archive) != 0)
+                sb[3] = 'A';
+                
+            return sb.ToString();
+        }
+        
         private ListViewItem? CreateListViewItem(FileSystemInfo item)
         {
             try
@@ -1861,6 +1881,10 @@ namespace WinFormsApp1
                 {
 					var showFolderSize = configLoader.FindConfigValue("Configuration", "EverythingForSize").Equals("1");
 					var size = showFolderSize ? EverythingWrapper.CalculateDirectorySize(item.FullName) : 0;
+					
+					// 获取目录属性并格式化为RAHSC格式
+					string attrStr = GetFileAttributesString(item.Attributes);
+					
 					itemData = new[]
                     {
                         item.Name,
@@ -1868,11 +1892,15 @@ namespace WinFormsApp1
                         showFolderSize && EverythingWrapper.IsEverythingServiceRunning() ? FileSystemManager.FormatFileSize(size, true) : "",
                         "<DIR>",
                         item.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),
-						size.ToString()
+						size.ToString(),
+						attrStr
 					};
                 }
                 else if (item is FileInfo fileInfo)
                 {
+                    // 获取文件属性并格式化为RAHSC格式
+                    string attrStr = GetFileAttributesString(item.Attributes);
+                    
                     itemData = new[]
                     {
                         item.Name,
@@ -1880,7 +1908,8 @@ namespace WinFormsApp1
                         FileSystemManager.FormatFileSize(fileInfo.Length, true),
                         fileInfo.Extension.ToUpperInvariant(),
                         item.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),
-						fileInfo.Length.ToString()
+						fileInfo.Length.ToString(),
+						attrStr
 					};
                 }
                 else

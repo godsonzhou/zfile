@@ -155,7 +155,8 @@ namespace WinFormsApp1
 			_ftpRootNode = new TreeNode("FTP连接")
 			{
 				ImageKey = "folder",
-				SelectedImageKey = "folder"
+				SelectedImageKey = "folder",
+				Tag = "ftp"	//tag must not be null, otherwise 无法正常刷新高亮状态
 			};
 
 			// 添加到左侧和右侧树视图的桌面节点下
@@ -1040,7 +1041,7 @@ namespace WinFormsApp1
 				// 断开连接
 				ActiveClient.Disconnect();
 				form.uiManager.ftpController.UpdateStatus(false);
-
+				form.activeListView.Items.Clear();
 				// 如果找到了连接名称，注销FTP连接
 				if (!string.IsNullOrEmpty(connectionName))
 				{

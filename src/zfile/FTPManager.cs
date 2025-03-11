@@ -29,7 +29,12 @@ namespace WinFormsApp1
 		/// </summary>
 		public FtpClient ActiveClient => _activeClient;
 		ListView ftplistView;
-		Form1 form;
+		public Form1 form;
+		
+		/// <summary>
+		/// FTP连接监视器，用于检测被动断开的情况
+		/// </summary>
+		private FtpConnectionMonitor _connectionMonitor;
 		#endregion
 		private  readonly Dictionary<string, TreeNode> _ftpNodes = new Dictionary<string, TreeNode>();
 		private  readonly Dictionary<string, FtpFileSource> _ftpSources = new Dictionary<string, FtpFileSource>();
@@ -274,10 +279,13 @@ namespace WinFormsApp1
 		/// <returns>是否取消注册成功</returns>
 		public  bool UnregisterFtpConnection(string connectionName)
 		{
-			try //TODO: 在ftp disconnect时调用
+			try
 			{
 				if (_ftpNodes.TryGetValue(connectionName, out TreeNode node))
 				{
+					// 从连接监视器中移除
+					_connectionMonitor.RemoveConnection(connectionName);
+
 					// 获取驱动器标识符
 					string nodeText = node.Text;
 					string driveId = nodeText.Substring(nodeText.IndexOf('(') + 1, 2);
@@ -715,12 +723,16 @@ namespace WinFormsApp1
 			ftplistView.Columns.Add("名称", 150);
 			ftplistView.Columns.Add("主机", 200);
 			Init(); //init connctions from ftpcfgloader
+
+			// 初始化FTP连接监视器
+			_connectionMonitor = new FtpConnectionMonitor(this);
 		}
 
 		#endregion
 		~FTPMGR()
 		{
-		
+			// 释放连接监视器资源
+			_connectionMonitor?.Dispose();
 		}
 		#region 连接管理
 
@@ -765,6 +777,9 @@ namespace WinFormsApp1
 				if (profile != null) {
 					Debug.Print("ftp auto connect success.");
 					form.uiManager.ftpController.UpdateStatus(true);
+
+					// 添加到连接监视器进行监控
+					_connectionMonitor.AddConnection(connectionName, _activeClient);
 				}
 				else
 				{
@@ -982,11 +997,57 @@ namespace WinFormsApp1
 		/// </summary>
 		public void CloseConnection()
 		{
-			if (_activeClient != null && _activeClient.IsConnected)
+			// 获取当前连接名称（如果有）
+			//string connectionName = null;
+			//if (_activeClient != null && _activeClient.IsConnected)
+			//{
+			//	// 尝试找到当前连接的名称
+			//	foreach (var conn in _connections)
+			//	{
+			//		if (conn.Value.Host == _activeClient.Host && 
+			//			conn.Value.Credentials.UserName == _activeClient.Credentials.UserName)
+			//		{
+			//			connectionName = conn.Key;
+			//			break;
+			//		}
+			//	}
+
+			//	// 断开连接
+			//	_activeClient.Disconnect();
+
+			//	// 如果找到了连接名称，从监视器中移除
+			//	if (connectionName != null)
+			//	{
+			//		_connectionMonitor.RemoveConnection(connectionName);
+			//	}
+			//}
+			//_activeClient = null;
+			if (ActiveClient != null && ActiveClient.IsConnected)
 			{
-				_activeClient.Disconnect();
+				// 查找当前连接的名称
+				string connectionName = null;
+				foreach (var node in _ftpNodes)
+				{
+					if (node.Value.Tag is FtpNodeTag tag &&
+						_ftpSources.TryGetValue(tag.ConnectionName, out var source) &&
+						source.Client == ActiveClient)
+					{
+						connectionName = tag.ConnectionName;
+						break;
+					}
+				}
+
+				// 断开连接
+				ActiveClient.Disconnect();
+				form.uiManager.ftpController.UpdateStatus(false);
+
+				// 如果找到了连接名称，注销FTP连接
+				if (!string.IsNullOrEmpty(connectionName))
+				{
+					UnregisterFtpConnection(connectionName);
+					_connectionMonitor.RemoveConnection(connectionName); //，从监视器中移除
+				}
 			}
-			_activeClient = null;
 		}
 
 		#endregion

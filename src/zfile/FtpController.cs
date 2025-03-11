@@ -1,4 +1,4 @@
-//using System.Net.FtpClient; // ¼ÙÉèÊ¹ÓÃÁËFluentFTP¿â
+//using System.Net.FtpClient; // ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½ï¿½ï¿½FluentFTPï¿½ï¿½
 //using FluentFTP;
 using FluentFTP;
 using System.Diagnostics;
@@ -27,31 +27,31 @@ namespace WinFormsApp1
 			this.parentForm = parentForm;
 			this.ftpManager = ftpManager;
 
-			// ´´½¨Ö÷Ãæ°å
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			mainPanel = new Panel
 			{
 				Dock = DockStyle.Bottom,
 				Height = 25
 			};
-			//mainPanel.Hide(); // Ä¬ÈÏÒþ²Ø
-			InitializeControls();// ³õÊ¼»¯¿Ø¼þ
+			//mainPanel.Hide(); // Ä¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			InitializeControls();// ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½Ø¼ï¿½
 
-			// Ìí¼Óµ½¸¸´°Ìå
+			// ï¿½ï¿½ï¿½Óµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			parentForm.Controls.Add(mainPanel);
 			UpdateStatus(false);
 		}
 
 		private void InitializeControls()
 		{
-			// ×´Ì¬Ö¸Ê¾µÆ
+			// ×´Ì¬Ö¸Ê¾ï¿½ï¿½
 			statusLight = new PictureBox
 			{
 				Size = new Size(16, 16),
 				Location = new Point(2, 2),
-				//Image = Properties.Resources.StatusOffline // ÐèÒªÌí¼ÓÏàÓ¦µÄ×ÊÔ´
+				//Image = Properties.Resources.StatusOffline // ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½Ô´
 			};
 
-			// ´«ÊäÄ£Ê½ÇÐ»»°´Å¥
+			// ï¿½ï¿½ï¿½ï¿½Ä£Ê½ï¿½Ð»ï¿½ï¿½ï¿½Å¥
 			transferModeButton = new Button
 			{
 				Text = "Binary",
@@ -60,7 +60,7 @@ namespace WinFormsApp1
 			};
 			transferModeButton.Click += TransferModeButton_Click;
 
-			// ¶Ï¿ªÁ¬½Ó°´Å¥
+			// ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ó°ï¿½Å¥
 			disconnectButton = new Button
 			{
 				Text = "Disconnect",
@@ -69,7 +69,7 @@ namespace WinFormsApp1
 			};
 			disconnectButton.Click += DisconnectButton_Click;
 
-			// ÃüÁîÊäÈë¿ò
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			commandInput = new TextBox
 			{
 				Location = new Point(160, 2),
@@ -77,7 +77,7 @@ namespace WinFormsApp1
 			};
 			commandInput.KeyPress += CommandInput_KeyPress;
 
-			// »Ø¸´ÁÐ±í
+			// ï¿½Ø¸ï¿½ï¿½Ð±ï¿½
 			replyList = new ListView
 			{
 				Location = new Point(560, 2),
@@ -87,12 +87,12 @@ namespace WinFormsApp1
 			};
 			replyList.Columns.Add("Time", 100);
 			replyList.Columns.Add("Response");
-			// Òþ²Ø±êÌâÀ¸
+			// ï¿½ï¿½ï¿½Ø±ï¿½ï¿½ï¿½ï¿½ï¿½
 			replyList.HeaderStyle = ColumnHeaderStyle.None;
 
 			replyList.SelectedIndexChanged += ReplayList_SelectedIndexChanged;
 
-			// »Ø¸´ÏêÇé
+			// ï¿½Ø¸ï¿½ï¿½ï¿½ï¿½ï¿½
 			//replayDetail = new RichTextBox
 			//{
 			//	Location = new Point(750, 2),
@@ -101,7 +101,7 @@ namespace WinFormsApp1
 			//	ReadOnly = true
 			//};
 
-			// Ìí¼Ó¿Ø¼þµ½Ãæ°å
+			// ï¿½ï¿½ï¿½Ó¿Ø¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			mainPanel.Controls.AddRange(new Control[] {
 				statusLight,
 				transferModeButton,
@@ -119,7 +119,7 @@ namespace WinFormsApp1
 
 			if (ftpManager.ActiveClient != null)
 			{
-				// ÉèÖÃFTP´«ÊäÄ£Ê½
+				// ï¿½ï¿½ï¿½ï¿½FTPï¿½ï¿½ï¿½ï¿½Ä£Ê½
 				//ftpManager.ActiveClient.(isBinaryMode ? FtpDataType.ASCII : FtpDataType.Binary);
 				SendCommand(isBinaryMode ? "bin" : "asc");
 			}
@@ -127,11 +127,7 @@ namespace WinFormsApp1
 
 		private void DisconnectButton_Click(object? sender, EventArgs e)
 		{
-			if (ftpManager.ActiveClient != null)
-			{
-				ftpManager.ActiveClient.Disconnect();
-				UpdateStatus(false);
-			}
+			parentForm.fTPMGR.CloseConnection();
 		}
 
 		private void CommandInput_KeyPress(object? sender, KeyPressEventArgs e)
@@ -185,7 +181,7 @@ namespace WinFormsApp1
 			item.Tag = $"Command: {command}\n\nResponse:\n{response}";
 
 			replyList.Items.Insert(0, item);
-			if (replyList.Items.Count > 100) // ÏÞÖÆÁÐ±íÏîÊýÁ¿
+			if (replyList.Items.Count > 100) // ï¿½ï¿½ï¿½ï¿½ï¿½Ð±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			{
 				replyList.Items.RemoveAt(replyList.Items.Count - 1);
 			}
@@ -224,7 +220,7 @@ namespace WinFormsApp1
 			{
 				if (disposing)
 				{
-					// ÇåÀíÍÐ¹Ü×ÊÔ´
+					// ï¿½ï¿½ï¿½ï¿½ï¿½Ð¹ï¿½ï¿½ï¿½Ô´
 					statusLight.Dispose();
 					transferModeButton.Dispose();
 					disconnectButton.Dispose();

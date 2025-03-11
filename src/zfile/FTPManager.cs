@@ -44,6 +44,7 @@ namespace WinFormsApp1
 		private  TreeNode _ftpRootNodeL, _ftpRootNodeR;
 		public TreeNode ftpRootNode => form.uiManager.isleft ? _ftpRootNodeL : _ftpRootNodeR;
 		private  VfsModuleManager _vfsManager;
+		public Dictionary<string, FtpFileSource> ftpSources => _ftpSources;
 
 		/// <summary>
 		/// 显示FTP项目属性

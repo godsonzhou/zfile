@@ -2103,6 +2103,27 @@ namespace WinFormsApp1
 			List<string> result = new();
 			if (activeListView.SelectedItems.Count == 0)
 				return result;
+			
+			// 检查是否是FTP路径
+			if (currentDirectory.StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
+			{
+				// 从当前目录中提取连接名称
+				string connectionName = ExtractFtpConnectionName(currentDirectory);
+				if (!string.IsNullOrEmpty(connectionName) && fTPMGR.ftpSources.TryGetValue(connectionName, out FtpFileSource source))
+				{
+					// 对于FTP文件，先下载到本地临时目录
+					return activeListView.SelectedItems.Cast<ListViewItem>()
+						.Where(i => i.SubItems[3].Text != "<DIR>") // 排除目录
+						.Select(i => {
+							string remotePath = i.SubItems[1].Text;
+							return source.DownloadFile(remotePath);
+						})
+						.Where(path => !string.IsNullOrEmpty(path)) // 排除下载失败的文件
+						.ToList();
+				}
+			}
+			
+			// 非FTP路径或FTP处理失败，使用原来的逻辑
 			return activeListView.SelectedItems.Cast<ListViewItem>().Select(i => i.SubItems[1].Text).ToList();
 		}
         public void do_cm_edit(string param = "")

@@ -1408,7 +1408,7 @@ namespace WinFormsApp1
 			{
 				lv.SmallImageList ??= new ImageList();
 				lv.LargeImageList ??= new ImageList();
-				lv.BeginUpdate();
+				//lv.BeginUpdate();
 				lv.Items.Clear();
 			}
 			if (node.Tag is not ShellItem) return; //eg, if it is ftp virtual node, do not load subnode
@@ -1562,7 +1562,7 @@ namespace WinFormsApp1
 						}
 					}
 					
-					lv?.EndUpdate();
+					//lv?.EndUpdate();
 				}
 				finally
 				{
@@ -2185,6 +2185,10 @@ namespace WinFormsApp1
             LoadSubDirectories(node, listView);
 			if (node.Text == "回收站")
 				LoadRecycleBin(listView);
+			else if (node.Tag is FtpNodeTag)
+			{
+				ftpNodeSelect(node);
+			} 
 			else
 				LoadListViewByFilesystem(path, listView, node);
         }

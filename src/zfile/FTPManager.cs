@@ -30,7 +30,7 @@ namespace WinFormsApp1
 		public FtpClient ActiveClient => _activeClient;
 		ListView ftplistView;
 		public Form1 form;
-		
+		private Form ftpConnMgrform;
 		/// <summary>
 		/// FTP连接监视器，用于检测被动断开的情况
 		/// </summary>
@@ -1079,7 +1079,7 @@ namespace WinFormsApp1
 		// 添加新的私有方法来处理 FTP 连接管理器
 		public void ShowFtpConnectionForm()
 		{
-			var ftpConnMgrform = new Form
+			ftpConnMgrform = new Form
 			{
 				Text = "FTP 连接管理器",
 				Size = new Size(600, 500),
@@ -1110,36 +1110,7 @@ namespace WinFormsApp1
 			var btnClose = new Button { Text = "关闭", Width = buttonWidth };
 
 			// 添加按钮事件处理
-			btnConnect.Click += (s, e) => {
-				if (ftplistView.SelectedItems.Count > 0)
-				{
-					var selectedItem = ftplistView.SelectedItems[0];
-					string connectionName = selectedItem.Text;
-					// 调用 FtpMgr.Connect 方法
-					//Connect(selectedItem.Text);//bugfix: connect 不会维护drivecombobox和ftptreenode,改用registerftpconnection
-					if (RegisterFtpConnection(connectionName))
-					{
-						// 获取新添加的FTP节点并设置为活动树的SelectedNode
-						if (_ftpNodes.TryGetValue(connectionName, out TreeNode ftpNode))
-						{
-							// 设置活动树的SelectedNode为新添加的FTP节点
-							form.activeTreeview.SelectedNode = ftpNode;
-							
-							// 触发节点双击事件，加载FTP目录内容
-							if (ftpNode.Tag is FtpNodeTag tag)
-							{
-								// 加载FTP目录内容到活动列表视图
-								LoadFtpDirectory(tag.ConnectionName, tag.Path, form.activeListView);
-							}
-						}
-					}
-					ftpConnMgrform.Close();
-				}
-				else
-				{
-					MessageBox.Show("请选择要连接的FTP站点", "提示");
-				}
-			};
+			btnConnect.Click += connectButton_click;
 
 			btnNewConnection.Click += (s, e) => {
 				//  调用 FtpMgr.CreateNewConnection 方法
@@ -1203,14 +1174,45 @@ namespace WinFormsApp1
 				});
 			buttonPanel.Dock = DockStyle.Right;
 			// 添加控件到窗体
-			form.Controls.Add(ftplistView);
-			form.Controls.Add(buttonPanel);
+			ftpConnMgrform.Controls.Add(ftplistView);
+			ftpConnMgrform.Controls.Add(buttonPanel);
 
 			// 加载现有FTP连接
 			ReloadListview(ftplistView);
 
 			// 显示窗体
 			ftpConnMgrform.ShowDialog();
+		}
+		private void connectButton_click(object s, EventArgs e)
+		{
+			if (ftplistView.SelectedItems.Count > 0)
+			{
+				var selectedItem = ftplistView.SelectedItems[0];
+				string connectionName = selectedItem.Text;
+				// 调用 FtpMgr.Connect 方法
+				//Connect(selectedItem.Text);//bugfix: connect 不会维护drivecombobox和ftptreenode,改用registerftpconnection
+				if (RegisterFtpConnection(connectionName))
+				{
+					// 获取新添加的FTP节点并设置为活动树的SelectedNode
+					if (_ftpNodes.TryGetValue(connectionName, out TreeNode ftpNode))
+					{
+						// 设置活动树的SelectedNode为新添加的FTP节点
+						form.activeTreeview.SelectedNode = ftpNode;
+
+						// 触发节点双击事件，加载FTP目录内容
+						if (ftpNode.Tag is FtpNodeTag tag)
+						{
+							// 加载FTP目录内容到活动列表视图
+							LoadFtpDirectory(tag.ConnectionName, tag.Path, form.activeListView);
+						}
+					}
+					ftpConnMgrform.Close();
+				}
+			}
+			else
+			{
+				MessageBox.Show("请选择要连接的FTP站点", "提示");
+			}
 		}
 
 		private void ReloadListview(ListView listView)

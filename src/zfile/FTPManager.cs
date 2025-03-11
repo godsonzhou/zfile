@@ -1114,9 +1114,25 @@ namespace WinFormsApp1
 				if (ftplistView.SelectedItems.Count > 0)
 				{
 					var selectedItem = ftplistView.SelectedItems[0];
+					string connectionName = selectedItem.Text;
 					// 调用 FtpMgr.Connect 方法
 					//Connect(selectedItem.Text);//bugfix: connect 不会维护drivecombobox和ftptreenode,改用registerftpconnection
-					RegisterFtpConnection(selectedItem.Text);
+					if (RegisterFtpConnection(connectionName))
+					{
+						// 获取新添加的FTP节点并设置为活动树的SelectedNode
+						if (_ftpNodes.TryGetValue(connectionName, out TreeNode ftpNode))
+						{
+							// 设置活动树的SelectedNode为新添加的FTP节点
+							form.activeTreeview.SelectedNode = ftpNode;
+							
+							// 触发节点双击事件，加载FTP目录内容
+							if (ftpNode.Tag is FtpNodeTag tag)
+							{
+								// 加载FTP目录内容到活动列表视图
+								LoadFtpDirectory(tag.ConnectionName, tag.Path, form.activeListView);
+							}
+						}
+					}
 					ftpConnMgrform.Close();
 				}
 				else
@@ -1177,7 +1193,7 @@ namespace WinFormsApp1
 				EncryptFtpConnections();
 			};
 
-			btnClose.Click += (s, e) => form.Close();
+			btnClose.Click += (s, e) => ftpConnMgrform.Close();
 
 			// 将按钮添加到面板
 			buttonPanel.Controls.AddRange(new Control[] {
@@ -1194,7 +1210,7 @@ namespace WinFormsApp1
 			ReloadListview(ftplistView);
 
 			// 显示窗体
-			form.ShowDialog();
+			ftpConnMgrform.ShowDialog();
 		}
 
 		private void ReloadListview(ListView listView)

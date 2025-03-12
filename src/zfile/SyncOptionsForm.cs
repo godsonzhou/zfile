@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace WinFormsApp1
+namespace zfile
 {
     public class SyncOptionsForm : Form
     {

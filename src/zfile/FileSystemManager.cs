@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace WinFormsApp1
+namespace zfile
 {
 	public class FileSystemManager
 	{

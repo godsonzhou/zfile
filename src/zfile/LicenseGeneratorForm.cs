@@ -4,7 +4,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Security.Cryptography;
 
-namespace WinFormsApp1
+namespace zfile
 {
     public partial class LicenseGeneratorForm : Form
     {

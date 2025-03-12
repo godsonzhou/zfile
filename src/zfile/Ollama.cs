@@ -5,8 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-using CmdProcessor;
-namespace WinFormsApp1
+using zfile;
+namespace zfile
 {
 	public class AIassistDlg : Form
 	{

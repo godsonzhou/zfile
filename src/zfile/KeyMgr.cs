@@ -1,4 +1,4 @@
-﻿using WinFormsApp1;
+﻿using zfile;
 
 public class KeyDef(string key, string cmd)
 {

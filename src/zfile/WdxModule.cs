@@ -6,7 +6,7 @@ using System.IO;
 using System.Xml.Linq;
 using System.Linq;
 
-namespace WinFormsApp1
+namespace zfile
 {
     #region WDX常量和结构体
     public static class WdxConstants

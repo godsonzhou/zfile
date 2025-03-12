@@ -1,4 +1,4 @@
-using CmdProcessor;
+using zfile;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
@@ -10,7 +10,7 @@ using Shell32;
 using SharpCompress.Compressors.Explode;
 using System.Collections.Generic;
 using System.IO;
-namespace WinFormsApp1
+namespace zfile
 {
 	public partial class Form1 : Form
 	{

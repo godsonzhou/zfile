@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace WinFormsApp1
+namespace zfile
 {
     public partial class RegisterForm : Form
     {

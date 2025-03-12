@@ -5,7 +5,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace WinFormsApp1
+namespace zfile
 {
     public class ShellExecuteHelper
     {

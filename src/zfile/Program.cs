@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace WinFormsApp1
+namespace zfile
 {
     internal static class Program
     {

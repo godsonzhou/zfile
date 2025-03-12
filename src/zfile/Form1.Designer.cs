@@ -1,4 +1,4 @@
-﻿﻿namespace WinFormsApp1
+﻿﻿namespace zfile
 {
     partial class Form1
     {

@@ -1,11 +1,11 @@
-﻿using CmdProcessor;
+﻿using zfile;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-namespace WinFormsApp1
+namespace zfile
 {
 	// 定义配置项类
 	public class ConfigItem

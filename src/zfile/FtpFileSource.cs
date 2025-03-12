@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using WinFormsApp1;
+using zfile;
 using System.Text;
 namespace zfile
 {

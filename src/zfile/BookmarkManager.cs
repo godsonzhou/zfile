@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace WinFormsApp1
+namespace zfile
 {
     public class Bookmark
     {

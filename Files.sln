@@ -4,7 +4,7 @@ VisualStudioVersion = 17.1.32421.90
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A74DCE98-A744-4D71-A2B1-7EE4FED0936B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinFormsApp1", "src\zfile\WinFormsApp1.csproj", "{40A3CA49-6058-4E9F-8E6B-5B6DABD94F68}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zfile", "src\zfile\Zfile.csproj", "{40A3CA49-6058-4E9F-8E6B-5B6DABD94F68}"
 	ProjectSection(ProjectDependencies) = postProject
 		{5C1F5D13-B5F3-46F6-8A25-D02D7D0C83B8} = {5C1F5D13-B5F3-46F6-8A25-D02D7D0C83B8}
 	EndProjectSection

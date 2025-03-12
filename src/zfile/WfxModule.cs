@@ -46,7 +46,7 @@ using System.IO;
 using System.Xml.Linq;
 using System.Linq;
 
-namespace WinFormsApp1
+namespace zfile
 {
     #region WFX常量和结构体
     public static class WfxConstants

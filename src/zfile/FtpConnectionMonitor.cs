@@ -1,7 +1,7 @@
 using FluentFTP;
 using System.Diagnostics;
 using Timer = System.Windows.Forms.Timer;
-namespace WinFormsApp1
+namespace zfile
 {
     /// <summary>
     /// FTP连接监视器，用于监控FTP连接状态并处理被动断开的情况

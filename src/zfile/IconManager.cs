@@ -7,7 +7,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Windows.Forms;
 using System.Text;
 
-namespace WinFormsApp1
+namespace zfile
 {
 
 	public class IconManager : IDisposable

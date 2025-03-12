@@ -1,6 +1,6 @@
 ﻿using System.Data;
-using CmdProcessor;
-namespace WinFormsApp1
+using zfile;
+namespace zfile
 {
 	public class AddWlxMappingForm : Form
 	{

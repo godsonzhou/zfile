@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
-using WinFormsApp1;
+using zfile;
 /*
 核心功能：
 缩略图生成和缓存管理

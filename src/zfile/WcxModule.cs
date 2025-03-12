@@ -53,7 +53,7 @@ Unicode支持：
 提供进度回调
 安全地管理非托管资源
 */
-namespace WinFormsApp1
+namespace zfile
 {
 	// 常量定义
 	/*

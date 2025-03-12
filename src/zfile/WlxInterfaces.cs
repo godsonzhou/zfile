@@ -33,7 +33,7 @@ if (module != null)
     // ... 其他操作
 }
 */
-namespace WinFormsApp1
+namespace zfile
 {
 	public class WlxConstants
 	{

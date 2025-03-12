@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Management;
-namespace WinFormsApp1
+namespace zfile
 {
     public static class LicenseValidator
 	{

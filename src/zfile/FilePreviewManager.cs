@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Text;
 //using MF.Core;
 //using MF.MediaFoundation;
-namespace WinFormsApp1
+namespace zfile
 {
 	public class FilePreviewManager : IDisposable
 	{

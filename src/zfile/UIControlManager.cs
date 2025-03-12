@@ -6,7 +6,7 @@ using WinShell;
 using ZstdSharp.Unsafe;
 using static System.Net.Mime.MediaTypeNames;
 
-namespace WinFormsApp1
+namespace zfile
 {
 	public class UIControlManager : IDisposable
 	{

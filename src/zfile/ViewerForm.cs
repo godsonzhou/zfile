@@ -9,7 +9,7 @@ using System.Drawing.Imaging;
 using Timer = System.Windows.Forms.Timer;
 using System.Runtime.InteropServices;
 
-namespace WinFormsApp1
+namespace zfile
 {
     public class ViewerForm : Form
     {

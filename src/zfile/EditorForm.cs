@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.ComponentModel;
 
-namespace WinFormsApp1
+namespace zfile
 {
     public class EditorForm : Form
     {

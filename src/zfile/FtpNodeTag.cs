@@ -1,6 +1,6 @@
 using System;
 
-namespace WinFormsApp1
+namespace zfile
 {
     /// <summary>
     /// FTP节点标签类，用于存储FTP节点的相关信息

@@ -1,11 +1,9 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
-using WinFormsApp1;
-using zfile;
 using FluentFTP;
 
-namespace CmdProcessor
+namespace zfile
 {
 	
 	// 首先定义一个FTP连接配置的数据结构
@@ -1920,185 +1918,186 @@ namespace CmdProcessor
 
 		private void ShowCommandBrowser()
 		{
-			var form = new Form
-			{
-				Text = "命令浏览器",
-				Size = new Size(800, 600),
-				StartPosition = FormStartPosition.CenterParent,
-				MinimizeBox = false,
-				MaximizeBox = false
-			};
-
-			// 创建搜索面板
-			var searchPanel = new Panel
-			{
-				Dock = DockStyle.Top,
-				Height = 40
-			};
-			var btnWidth = 100;
-			var searchBox = new TextBox
-			{
-				Location = new Point(10, 10),
-				Width = 200,
-				PlaceholderText = "搜索命令..."
-			};
-			var btnNew = new Button
-			{
-				Location = new Point(300, 10),
-				Width = btnWidth,
-				Text = "New"
-			};
-			var btnEdit = new Button
-			{
-				Location = new Point(400, 10),
-				Width = btnWidth,
-				Text = "Edit"
-			};
-			var btnDel = new Button
-			{
-				Location = new Point(500, 10),
-				Width = btnWidth,
-				Text = "Delete"
-			};
-			var btnCopy = new Button
-			{
-				Location = new Point(600, 10),
-				Width = btnWidth,
-				Text = "Copy"
-			};
-			var btnRename = new Button
-			{
-				Location = new Point(700, 10),
-				Width = btnWidth,
-				Text = "Rename"
-			};
-			//var searchTypeCombo = new ComboBox
+			//var form = new Form
 			//{
-			//	Location = new Point(220, 10),
-			//	Width = 120,
-			//	DropDownStyle = ComboBoxStyle.DropDownList
+			//	Text = "命令浏览器",
+			//	Size = new Size(800, 600),
+			//	StartPosition = FormStartPosition.CenterParent,
+			//	MinimizeBox = false,
+			//	MaximizeBox = false
 			//};
-			//searchTypeCombo.Items.AddRange(new string[] { "按ID搜索", "按名称搜索", "按描述搜索" });
-			//searchTypeCombo.SelectedIndex = 0;
 
-			searchPanel.Controls.AddRange(new Control[] { searchBox, btnNew, btnEdit, btnDel, btnCopy, btnRename });//, searchTypeCombo
+			//// 创建搜索面板
+			//var searchPanel = new Panel
+			//{
+			//	Dock = DockStyle.Top,
+			//	Height = 40
+			//};
+			//var btnWidth = 100;
+			//var searchBox = new TextBox
+			//{
+			//	Location = new Point(10, 10),
+			//	Width = 200,
+			//	PlaceholderText = "搜索命令..."
+			//};
+			//var btnNew = new Button
+			//{
+			//	Location = new Point(300, 10),
+			//	Width = btnWidth,
+			//	Text = "New"
+			//};
+			//var btnEdit = new Button
+			//{
+			//	Location = new Point(400, 10),
+			//	Width = btnWidth,
+			//	Text = "Edit"
+			//};
+			//var btnDel = new Button
+			//{
+			//	Location = new Point(500, 10),
+			//	Width = btnWidth,
+			//	Text = "Delete"
+			//};
+			//var btnCopy = new Button
+			//{
+			//	Location = new Point(600, 10),
+			//	Width = btnWidth,
+			//	Text = "Copy"
+			//};
+			//var btnRename = new Button
+			//{
+			//	Location = new Point(700, 10),
+			//	Width = btnWidth,
+			//	Text = "Rename"
+			//};
+			////var searchTypeCombo = new ComboBox
+			////{
+			////	Location = new Point(220, 10),
+			////	Width = 120,
+			////	DropDownStyle = ComboBoxStyle.DropDownList
+			////};
+			////searchTypeCombo.Items.AddRange(new string[] { "按ID搜索", "按名称搜索", "按描述搜索" });
+			////searchTypeCombo.SelectedIndex = 0;
 
-			// 创建ListView用于显示命令
-			var listView = new ListView
-			{
-				Dock = DockStyle.Fill,
-				View = View.Details,
-				FullRowSelect = true,
-				GridLines = true,
-				MultiSelect = false
-			};
+			//searchPanel.Controls.AddRange(new Control[] { searchBox, btnNew, btnEdit, btnDel, btnCopy, btnRename });//, searchTypeCombo
 
-			// 添加列
-			listView.Columns.Add("ID", 80);
-			listView.Columns.Add("命令名称", 200);
-			listView.Columns.Add("描述", 250);
-			listView.Columns.Add("中文描述", 250);
+			//// 创建ListView用于显示命令
+			//var listView = new ListView
+			//{
+			//	Dock = DockStyle.Fill,
+			//	View = View.Details,
+			//	FullRowSelect = true,
+			//	GridLines = true,
+			//	MultiSelect = false
+			//};
 
-			// 获取所有命令并填充ListView
-			var commands = cmdTable.GetAll();
-			foreach (var cmd in commands)
-			{
-				var item = new ListViewItem(cmd.CmdId.ToString());
-				item.SubItems.Add(cmd.CmdName);
-				item.SubItems.Add(cmd.Description);
-				item.SubItems.Add(cmd.ZhDesc);
-				listView.Items.Add(item);
-			}
+			//// 添加列
+			//listView.Columns.Add("ID", 80);
+			//listView.Columns.Add("命令名称", 200);
+			//listView.Columns.Add("描述", 250);
+			//listView.Columns.Add("中文描述", 250);
 
-			// 添加搜索功能
-			searchBox.TextChanged += (s, e) =>
-			{
-				string searchText = searchBox.Text.ToLower();
-				bool foundMatch = false;
-				foreach (ListViewItem item in listView.Items)
-				{
-					bool match = false;
-					//switch (searchTypeCombo.SelectedIndex)
-					//{
-						//case 0: // ID
-					match = item.Text.ToLower().Contains(searchText);
-					//break;
-					//case 1: // 名称
-					if (!match)
-					{
-						match = item.SubItems[1].Text.ToLower().Contains(searchText);
-						//break;
-						//case 2: // 描述
-						if (!match)
-							match = item.SubItems[2].Text.ToLower().Contains(searchText) ||
-								   item.SubItems[3].Text.ToLower().Contains(searchText);
-						//break;
-					}
-					//}
-					item.ForeColor = match || string.IsNullOrEmpty(searchText) ?
-						SystemColors.WindowText : SystemColors.GrayText;
-					if (match && !foundMatch)
-					{
-						// 找到第一个匹配项
-						foundMatch = true;
-						item.Selected = true;
-						item.EnsureVisible(); // 滚动到可见区域
-					}
-					else
-					{
-						item.Selected = false;
-					}
-				}
-			};
+			//// 获取所有命令并填充ListView
+			//var commands = cmdTable.GetAll();
+			//foreach (var cmd in commands)
+			//{
+			//	var item = new ListViewItem(cmd.CmdId.ToString());
+			//	item.SubItems.Add(cmd.CmdName);
+			//	item.SubItems.Add(cmd.Description);
+			//	item.SubItems.Add(cmd.ZhDesc);
+			//	listView.Items.Add(item);
+			//}
 
-			// 双击命令时复制命令名称
-			listView.DoubleClick += (s, e) =>
-			{
-				if (listView.SelectedItems.Count > 0)
-				{
-					string cmdName = listView.SelectedItems[0].SubItems[1].Text;
-					Clipboard.SetText(cmdName);
-					MessageBox.Show($"命令 {cmdName} 已复制到剪贴板", "提示",
-						MessageBoxButtons.OK, MessageBoxIcon.Information);
-				}
-			};
-			btnNew.Click += (s, e) => { };
-			btnEdit.Click += (s, e) => { };
-			btnDel.Click += (s, e) => { };
-			btnCopy.Click += (s, e) => { };
-			btnRename.Click += (s, e) => { };
+			//// 添加搜索功能
+			//searchBox.TextChanged += (s, e) =>
+			//{
+			//	string searchText = searchBox.Text.ToLower();
+			//	bool foundMatch = false;
+			//	foreach (ListViewItem item in listView.Items)
+			//	{
+			//		bool match = false;
+			//		//switch (searchTypeCombo.SelectedIndex)
+			//		//{
+			//			//case 0: // ID
+			//		match = item.Text.ToLower().Contains(searchText);
+			//		//break;
+			//		//case 1: // 名称
+			//		if (!match)
+			//		{
+			//			match = item.SubItems[1].Text.ToLower().Contains(searchText);
+			//			//break;
+			//			//case 2: // 描述
+			//			if (!match)
+			//				match = item.SubItems[2].Text.ToLower().Contains(searchText) ||
+			//					   item.SubItems[3].Text.ToLower().Contains(searchText);
+			//			//break;
+			//		}
+			//		//}
+			//		item.ForeColor = match || string.IsNullOrEmpty(searchText) ?
+			//			SystemColors.WindowText : SystemColors.GrayText;
+			//		if (match && !foundMatch)
+			//		{
+			//			// 找到第一个匹配项
+			//			foundMatch = true;
+			//			item.Selected = true;
+			//			item.EnsureVisible(); // 滚动到可见区域
+			//		}
+			//		else
+			//		{
+			//			item.Selected = false;
+			//		}
+			//	}
+			//};
 
-			// 添加右键菜单
-			var contextMenu = new ContextMenuStrip();
-			var copyMenuItem = new ToolStripMenuItem("复制命令名称");
-			var execMenuItem = new ToolStripMenuItem("执行命令");
-			copyMenuItem.Click += (s, e) =>
-			{
-				if (listView.SelectedItems.Count > 0)
-				{
-					string cmdName = listView.SelectedItems[0].SubItems[1].Text;
-					Clipboard.SetText(cmdName);
-				}
-			};
-			execMenuItem.Click += (s, e) =>
-			{
-				if (listView.SelectedItems.Count > 0)
-				{
-					string cmdName = listView.SelectedItems[0].SubItems[1].Text;
-					ExecCmd(cmdName);
-					form.Close();
-				}
-			};
-			//contextMenu.Items.Add(copyMenuItem);
-			contextMenu.Items.AddRange(new ToolStripItem[] { copyMenuItem, execMenuItem });
-			listView.ContextMenuStrip = contextMenu;
+			//// 双击命令时复制命令名称
+			//listView.DoubleClick += (s, e) =>
+			//{
+			//	if (listView.SelectedItems.Count > 0)
+			//	{
+			//		string cmdName = listView.SelectedItems[0].SubItems[1].Text;
+			//		Clipboard.SetText(cmdName);
+			//		MessageBox.Show($"命令 {cmdName} 已复制到剪贴板", "提示",
+			//			MessageBoxButtons.OK, MessageBoxIcon.Information);
+			//	}
+			//};
+			//btnNew.Click += (s, e) => { };
+			//btnEdit.Click += (s, e) => { };
+			//btnDel.Click += (s, e) => { };
+			//btnCopy.Click += (s, e) => { };
+			//btnRename.Click += (s, e) => { };
 
-			// 添加控件到窗体
-			form.Controls.Add(listView);
-			form.Controls.Add(searchPanel);
-			// 设置初始焦点
-			form.Load += (s, e) => searchBox.Focus();
+			//// 添加右键菜单
+			//var contextMenu = new ContextMenuStrip();
+			//var copyMenuItem = new ToolStripMenuItem("复制命令名称");
+			//var execMenuItem = new ToolStripMenuItem("执行命令");
+			//copyMenuItem.Click += (s, e) =>
+			//{
+			//	if (listView.SelectedItems.Count > 0)
+			//	{
+			//		string cmdName = listView.SelectedItems[0].SubItems[1].Text;
+			//		Clipboard.SetText(cmdName);
+			//	}
+			//};
+			//execMenuItem.Click += (s, e) =>
+			//{
+			//	if (listView.SelectedItems.Count > 0)
+			//	{
+			//		string cmdName = listView.SelectedItems[0].SubItems[1].Text;
+			//		ExecCmd(cmdName);
+			//		form.Close();
+			//	}
+			//};
+			////contextMenu.Items.Add(copyMenuItem);
+			//contextMenu.Items.AddRange(new ToolStripItem[] { copyMenuItem, execMenuItem });
+			//listView.ContextMenuStrip = contextMenu;
+
+			//// 添加控件到窗体
+			//form.Controls.Add(listView);
+			//form.Controls.Add(searchPanel);
+			//// 设置初始焦点
+			//form.Load += (s, e) => searchBox.Focus();
 			// 显示窗体
+			var form = new CommandBrowserForm(owner.cmdProcessor);
 			form.ShowDialog();
 		}
 

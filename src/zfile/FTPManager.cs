@@ -661,7 +661,7 @@ namespace WinFormsApp1
 		/// <summary>
 		/// 添加到下载列表
 		/// </summary>
-		private void AddToDownloadList( FtpFileSource source, string path, bool isDirectory)
+		public void AddToDownloadList( FtpFileSource source, string path, bool isDirectory)
 		{
 			try
 			{

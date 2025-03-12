@@ -496,27 +496,172 @@ namespace CmdProcessor
 		}
 		private void do_cm_ftpdownloadlist()
 		{
+			// 下载列表中的文件
+			if (owner.fTPMGR.ActiveClient == null || !owner.fTPMGR.ActiveClient.IsConnected)
+			{
+				MessageBox.Show("请先连接到FTP服务器", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return;
+			}
 
+			// 显示下载列表并开始下载
+			owner.fTPMGR.ProcessDownloadList();
 		}
+
 		private void do_cm_ftpaddtolist()
 		{
+			// 添加到下载列表
+			if (owner.fTPMGR.ActiveClient == null || !owner.fTPMGR.ActiveClient.IsConnected)
+			{
+				MessageBox.Show("请先连接到FTP服务器", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return;
+			}
 
+			// 获取当前选中的文件或文件夹
+			if (owner.activeListView.SelectedItems.Count > 0)
+			{
+				var selectedItem = owner.activeListView.SelectedItems[0];
+				bool isDirectory = selectedItem.SubItems[3].Text == "<DIR>";
+				string path = selectedItem.SubItems[1].Text;
+
+				// 获取当前连接名称
+				string connectionName = "";
+				foreach (var node in owner.fTPMGR.ftpRootNode.Nodes)
+				{
+					if (node is TreeNode treeNode && treeNode.Tag is FtpNodeTag tag && tag.Path == path)
+					{
+						connectionName = tag.ConnectionName;
+						break;
+					}
+				}
+
+				if (!string.IsNullOrEmpty(connectionName) && owner.fTPMGR.ftpSources.TryGetValue(connectionName, out var source))
+				{
+					// 调用添加到下载列表方法
+					owner.fTPMGR.AddToDownloadList(source, path, isDirectory);
+				}
+			}
+			else
+			{
+				MessageBox.Show("请先选择要添加到下载列表的文件或文件夹", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			}
 		}
+
 		private void do_cm_ftpselectransfermode()
 		{
+			// 选择传输模式（ASCII/Binary）
+			if (owner.fTPMGR.ActiveClient == null || !owner.fTPMGR.ActiveClient.IsConnected)
+			{
+				MessageBox.Show("请先连接到FTP服务器", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return;
+			}
 
+			// 创建传输模式选择对话框
+			var dialog = new Form
+			{
+				Text = "选择传输模式",
+				Size = new Size(300, 150),
+				FormBorderStyle = FormBorderStyle.FixedDialog,
+				StartPosition = FormStartPosition.CenterParent,
+				MaximizeBox = false,
+				MinimizeBox = false
+			};
+
+			var asciiRadio = new RadioButton
+			{
+				Text = "ASCII模式（文本文件）",
+				Location = new Point(20, 20),
+				Width = 250,
+				Checked = owner.fTPMGR.ActiveClient.Config.DataType == FtpDataType.ASCII
+			};
+
+			var binaryRadio = new RadioButton
+			{
+				Text = "二进制模式（图像、压缩文件等）",
+				Location = new Point(20, 50),
+				Width = 250,
+				Checked = owner.fTPMGR.ActiveClient.Config.DataType == FtpDataType.Binary
+			};
+
+			var okButton = new Button
+			{
+				Text = "确定",
+				DialogResult = DialogResult.OK,
+				Location = new Point(120, 80)
+			};
+
+			dialog.Controls.AddRange(new Control[] { asciiRadio, binaryRadio, okButton });
+			dialog.AcceptButton = okButton;
+
+			if (dialog.ShowDialog() == DialogResult.OK)
+			{
+				// 设置传输模式
+				owner.fTPMGR.ActiveClient.Config.DataType = asciiRadio.Checked ? FtpDataType.ASCII : FtpDataType.Binary;
+				MessageBox.Show($"已切换到{(asciiRadio.Checked ? "ASCII" : "二进制")}传输模式", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			}
 		}
+
 		private void do_cm_ftpresumedownload()
 		{
+			// 恢复下载
+			if (owner.fTPMGR.ActiveClient == null || !owner.fTPMGR.ActiveClient.IsConnected)
+			{
+				MessageBox.Show("请先连接到FTP服务器", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return;
+			}
 
+			// 检查是否有中断的下载任务
+			if (owner.fTPMGR.HasPendingDownloads())
+			{
+				// 恢复下载任务
+				owner.fTPMGR.ResumeDownload();
+			}
+			else
+			{
+				MessageBox.Show("没有可恢复的下载任务", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			}
 		}
+
 		private void do_cm_ftpabort()
 		{
+			// 中断下载
+			if (owner.fTPMGR.ActiveClient == null || !owner.fTPMGR.ActiveClient.IsConnected)
+			{
+				MessageBox.Show("请先连接到FTP服务器", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return;
+			}
 
+			// 检查是否有正在进行的下载任务
+			if (owner.fTPMGR.IsDownloading())
+			{
+				// 中断下载任务
+				owner.fTPMGR.AbortDownload();
+				MessageBox.Show("已中断下载任务", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			}
+			else
+			{
+				MessageBox.Show("没有正在进行的下载任务", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			}
 		}
+
 		private void do_cm_ftphiddenfiles()
 		{
+			// 显示/隐藏隐藏文件
+			if (owner.fTPMGR.ActiveClient == null || !owner.fTPMGR.ActiveClient.IsConnected)
+			{
+				MessageBox.Show("请先连接到FTP服务器", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return;
+			}
 
+			// 切换显示隐藏文件的状态
+			bool currentState = owner.fTPMGR.ActiveClient.Config.ListHiddenFiles;
+			owner.fTPMGR.ActiveClient.Config.ListHiddenFiles = !currentState;
+
+			// 刷新当前目录
+			if (owner.fTPMGR.ftpRootNode.Nodes.Count > 0 && owner.fTPMGR.ftpRootNode.Nodes[0].Tag is FtpNodeTag tag)
+			{
+				owner.fTPMGR.LoadFtpDirectory(tag.ConnectionName, tag.Path, owner.activeListView);
+				MessageBox.Show($"已{(currentState ? "隐藏" : "显示")}隐藏文件", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			}
 		}
 		private void do_cm_register()
 		{

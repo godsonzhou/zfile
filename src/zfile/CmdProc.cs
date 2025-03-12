@@ -1942,7 +1942,36 @@ namespace CmdProcessor
 				Width = 200,
 				PlaceholderText = "搜索命令..."
 			};
-
+			var btnNew = new Button
+			{
+				Location = new Point(220, 10),
+				Width = 50,
+				Text = "New"
+			};
+			var btnEdit = new Button
+			{
+				Location = new Point(270, 10),
+				Width = 50,
+				Text = "Edit"
+			};
+			var btnDel = new Button
+			{
+				Location = new Point(320, 10),
+				Width = 50,
+				Text = "Delete"
+			};
+			var btnCopy = new Button
+			{
+				Location = new Point(370, 10),
+				Width = 50,
+				Text = "Copy"
+			};
+			var btnRename = new Button
+			{
+				Location = new Point(420, 10),
+				Width = 50,
+				Text = "Rename"
+			};
 			//var searchTypeCombo = new ComboBox
 			//{
 			//	Location = new Point(220, 10),
@@ -1952,7 +1981,7 @@ namespace CmdProcessor
 			//searchTypeCombo.Items.AddRange(new string[] { "按ID搜索", "按名称搜索", "按描述搜索" });
 			//searchTypeCombo.SelectedIndex = 0;
 
-			searchPanel.Controls.AddRange(new Control[] { searchBox });//, searchTypeCombo
+			searchPanel.Controls.AddRange(new Control[] { searchBox, btnNew, btnEdit, btnDel, btnCopy, btnRename });//, searchTypeCombo
 
 			// 创建ListView用于显示命令
 			var listView = new ListView
@@ -2033,6 +2062,11 @@ namespace CmdProcessor
 						MessageBoxButtons.OK, MessageBoxIcon.Information);
 				}
 			};
+			btnNew.Click += (s, e) => { };
+			btnEdit.Click += (s, e) => { };
+			btnDel.Click += (s, e) => { };
+			btnCopy.Click += (s, e) => { };
+			btnRename.Click += (s, e) => { };
 
 			// 添加右键菜单
 			var contextMenu = new ContextMenuStrip();

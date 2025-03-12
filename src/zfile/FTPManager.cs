@@ -446,6 +446,7 @@ namespace WinFormsApp1
 					contextMenu.Items.Add("复制", null, (s, e) => CopyFtpItem(source, path));
 					contextMenu.Items.Add("重命名", null, (s, e) => RenameFtpItem(source, path));
 					contextMenu.Items.Add("删除", null, (s, e) => DeleteFtpItem(source, path, true));
+					contextMenu.Items.Add("下载", null, (s, e) => DownloadList(source, path, true));
 					contextMenu.Items.Add("添加到下载列表", null, (s, e) => AddToDownloadList(source, path, true));
 					contextMenu.Items.Add("属性", null, (s, e) => ShowFtpItemProperties(source, path, true));
 				}
@@ -457,6 +458,7 @@ namespace WinFormsApp1
 					contextMenu.Items.Add("复制", null, (s, e) => CopyFtpItem(source, path));
 					contextMenu.Items.Add("重命名", null, (s, e) => RenameFtpItem(source, path));
 					contextMenu.Items.Add("删除", null, (s, e) => DeleteFtpItem(source, path, false));
+					contextMenu.Items.Add("下载", null, (s, e) => DownloadList(source, path, false));
 					contextMenu.Items.Add("添加到下载列表", null, (s, e) => AddToDownloadList(source, path, false));
 					contextMenu.Items.Add("属性", null, (s, e) => ShowFtpItemProperties(source, path, false));
 				}
@@ -659,11 +661,11 @@ namespace WinFormsApp1
 				MessageBox.Show($"删除失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
 			}
 		}
-
+	
 		/// <summary>
 		/// 添加到下载列表
 		/// </summary>
-		public void AddToDownloadList( FtpFileSource source, string path, bool isDirectory)
+		public void DownloadList( FtpFileSource source, string path, bool isDirectory)
 		{
 			try
 			{
@@ -1718,6 +1720,10 @@ namespace WinFormsApp1
 		}
 		
 		public void ResumeDownload()
+		{
+
+		}
+		public void AddToDownloadList(FtpFileSource source, string path, bool isDirectory)
 		{
 
 		}

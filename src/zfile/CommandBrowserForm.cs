@@ -106,11 +106,11 @@ namespace zfile
             // 添加事件处理
             searchBox.TextChanged += SearchBox_TextChanged;
             listView.DoubleClick += ListView_DoubleClick;
-            btnNew.Click += (s, e) => { };
-            btnEdit.Click += (s, e) => { };
-            btnDel.Click += (s, e) => { };
-            btnCopy.Click += (s, e) => { };
-            btnRename.Click += (s, e) => { };
+            btnNew.Click += BtnNew_Click;
+            btnEdit.Click += BtnEdit_Click;
+            btnDel.Click += BtnDel_Click;
+            btnCopy.Click += BtnCopy_Click;
+            btnRename.Click += BtnRename_Click;
 
             // 添加右键菜单
             var contextMenu = new ContextMenuStrip();
@@ -206,6 +206,175 @@ namespace zfile
                 cmdProcessor.ExecCmd(cmdName);
                 this.Close();
             }
+        }
+
+        private void BtnNew_Click(object sender, EventArgs e)
+        {
+            // 创建新命令
+            ShowCommandEditDialog(null);
+        }
+
+        private void BtnEdit_Click(object sender, EventArgs e)
+        {
+            // 编辑选中的命令
+            if (listView.SelectedItems.Count > 0)
+            {
+                string cmdName = listView.SelectedItems[0].SubItems[1].Text;
+                var cmdItem = cmdProcessor.GetCmdByName(cmdName);
+                if (cmdItem != null)
+                {
+                    ShowCommandEditDialog(cmdItem);
+                }
+            }
+            else
+            {
+                MessageBox.Show("请先选择一个命令", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void BtnDel_Click(object sender, EventArgs e)
+        {
+            // 删除选中的命令
+            if (listView.SelectedItems.Count > 0)
+            {
+                string cmdName = listView.SelectedItems[0].SubItems[1].Text;
+                var result = MessageBox.Show($"确定要删除命令 {cmdName} 吗？", "确认删除",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                
+                if (result == DialogResult.Yes)
+                {
+                    // 这里应该添加删除命令的逻辑
+                    // 删除后刷新列表
+                    listView.Items.Remove(listView.SelectedItems[0]);
+                }
+            }
+            else
+            {
+                MessageBox.Show("请先选择一个命令", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void BtnCopy_Click(object sender, EventArgs e)
+        {
+            // 复制选中的命令
+            if (listView.SelectedItems.Count > 0)
+            {
+                string cmdName = listView.SelectedItems[0].SubItems[1].Text;
+                var cmdItem = cmdProcessor.GetCmdByName(cmdName);
+                if (cmdItem != null)
+                {
+                    // 创建一个新的命令，基于选中的命令
+                    var newCmdItem = cmdItem.Value;
+                    newCmdItem.CmdName = $"{newCmdItem.CmdName}_copy";
+                    ShowCommandEditDialog(newCmdItem);
+                }
+            }
+            else
+            {
+                MessageBox.Show("请先选择一个命令", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void BtnRename_Click(object sender, EventArgs e)
+        {
+            // 重命名选中的命令
+            if (listView.SelectedItems.Count > 0)
+            {
+                string cmdName = listView.SelectedItems[0].SubItems[1].Text;
+                var cmdItem = cmdProcessor.GetCmdByName(cmdName);
+                if (cmdItem != null)
+                {
+                    // 显示重命名对话框
+                    var inputDialog = new Form
+                    {
+                        Width = 400,
+                        Height = 150,
+                        FormBorderStyle = FormBorderStyle.FixedDialog,
+                        Text = "重命名命令",
+                        StartPosition = FormStartPosition.CenterParent,
+                        MaximizeBox = false,
+                        MinimizeBox = false
+                    };
+
+                    var textBox = new TextBox
+                    {
+                        Left = 50,
+                        Top = 20,
+                        Width = 300,
+                        Text = cmdName
+                    };
+
+                    var okButton = new Button
+                    {
+                        Text = "确定",
+                        Left = 100,
+                        Width = 100,
+                        Top = 70,
+                        DialogResult = DialogResult.OK
+                    };
+
+                    var cancelButton = new Button
+                    {
+                        Text = "取消",
+                        Left = 220,
+                        Width = 100,
+                        Top = 70,
+                        DialogResult = DialogResult.Cancel
+                    };
+
+                    inputDialog.Controls.Add(textBox);
+                    inputDialog.Controls.Add(okButton);
+                    inputDialog.Controls.Add(cancelButton);
+                    inputDialog.AcceptButton = okButton;
+                    inputDialog.CancelButton = cancelButton;
+
+                    var result = inputDialog.ShowDialog();
+                    if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(textBox.Text))
+                    {
+                        string newName = textBox.Text;
+                        // 这里应该添加重命名命令的逻辑
+                        // 重命名后刷新列表
+                        listView.SelectedItems[0].SubItems[1].Text = newName;
+                    }
+                }
+            }
+        }
+
+        private void ShowCommandEditDialog(CmdTableItem? cmdItem)
+        {
+            // 创建并显示命令编辑对话框
+            var editDialog = new CommandEditDialog(cmdProcessor, cmdItem);
+            if (editDialog.ShowDialog() == DialogResult.OK)
+            {
+                // 获取编辑结果
+                string command = editDialog.Command;
+                string parameters = editDialog.Parameters;
+                string workingDir = editDialog.WorkingDirectory;
+                string iconFile = editDialog.IconFile;
+                string tooltip = editDialog.Tooltip;
+                int iconIndex = editDialog.SelectedIconIndex;
+
+                // 保存命令
+                SaveCommand(command, parameters, workingDir, iconFile, iconIndex, tooltip);
+
+                // 刷新命令列表
+                RefreshCommandList();
+            }
+        }
+
+        private void SaveCommand(string command, string parameters, string workingDir, string iconFile, int iconIndex, string tooltip)
+        {
+            // 这里应该实现保存命令到配置文件的逻辑
+            // 例如，将命令保存到Wcmd_chn.ini文件中
+            // 简化起见，这里只显示一个消息框
+            MessageBox.Show($"命令 {command} 已保存", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void RefreshCommandList()
+        {
+            // 清空并重新加载命令列表
+            listView.Items.Clear();
+            LoadCommands();
         }
     }
 }

@@ -121,7 +121,19 @@ namespace WinFormsApp1
 			{
 				// ����FTP����ģʽ
 				//ftpManager.ActiveClient.(isBinaryMode ? FtpDataType.ASCII : FtpDataType.Binary);
-				SendCommand(isBinaryMode ? "bin" : "asc");
+				//SendCommand(isBinaryMode ? "bin" : "asc");
+				if (isBinaryMode)
+				{
+					ftpManager.ActiveClient.Config.DownloadDataType = FtpDataType.Binary;
+					ftpManager.ActiveClient.Config.UploadDataType = FtpDataType.Binary;
+					ftpManager.ActiveClient.Config.ListingDataType = FtpDataType.Binary;
+				}
+				else
+				{
+					ftpManager.ActiveClient.Config.DownloadDataType = FtpDataType.ASCII;
+					ftpManager.ActiveClient.Config.UploadDataType = FtpDataType.ASCII;
+					ftpManager.ActiveClient.Config.ListingDataType = FtpDataType.ASCII;
+				}
 			}
 		}
 

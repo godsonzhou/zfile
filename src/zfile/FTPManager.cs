@@ -45,7 +45,9 @@ namespace WinFormsApp1
 		public TreeNode ftpRootNode => form.uiManager.isleft ? _ftpRootNodeL : _ftpRootNodeR;
 		private  VfsModuleManager _vfsManager;
 		public Dictionary<string, FtpFileSource> ftpSources => _ftpSources;
-
+		private bool _isDownloading = false;
+		private FtpListOption _listOption = FtpListOption.Auto;
+		public FtpListOption ListOption { get => _listOption; set => _listOption = value; }
 		/// <summary>
 		/// 显示FTP项目属性
 		/// </summary>
@@ -56,7 +58,7 @@ namespace WinFormsApp1
 				// 获取文件或文件夹信息
 				if (isDirectory)
 				{
-					var listing = source.Client.GetListing(path);
+					var listing = source.Client.GetListing(path, _listOption);
 					int fileCount = listing.Count(i => i.Type == FtpObjectType.File);
 					int dirCount = listing.Count(i => i.Type == FtpObjectType.Directory);
 					long totalSize = listing.Where(i => i.Type == FtpObjectType.File).Sum(i => i.Size);
@@ -394,7 +396,7 @@ namespace WinFormsApp1
 					listView.Items.Clear();
 
 					// 获取目录列表
-					var items = source.GetListing(path);
+					var items = source.GetListing(path, _listOption);
 					foreach (var item in items)
 					{
 						// 确保图标已加载
@@ -523,7 +525,7 @@ namespace WinFormsApp1
 		/// <summary>
 		/// 复制FTP项目
 		/// </summary>
-		private static void CopyFtpItem(FtpFileSource source, string path)
+		private void CopyFtpItem(FtpFileSource source, string path)
 		{
 			try
 			{
@@ -562,10 +564,10 @@ namespace WinFormsApp1
 		/// <summary>
 		/// 递归下载目录
 		/// </summary>
-		private static void DownloadDirectory(FtpFileSource source, string remotePath, string localPath)
+		private void DownloadDirectory(FtpFileSource source, string remotePath, string localPath)
 		{
 			// 获取目录列表
-			var listing = source.Client.GetListing(remotePath);
+			var listing = source.Client.GetListing(remotePath, _listOption);
 
 			foreach (var item in listing)
 			{
@@ -1697,6 +1699,26 @@ namespace WinFormsApp1
 				MessageBox.Show($"保存FTP配置时发生错误: {ex.Message}", "错误",
 					MessageBoxButtons.OK, MessageBoxIcon.Error);
 			}
+		}
+		public bool HasPendingDownloads()
+		{
+			return true;
+		}
+		public void ProcessDownloadList()
+		{
+
+		}
+		public void AbortDownload()
+		{
+
+		}
+		public bool IsDownloading()
+		{
+			return _isDownloading;
+		}
+		
+		public void ResumeDownload()
+		{
 
 		}
 		private void Init()

@@ -101,7 +101,7 @@ namespace zfile
         /// </summary>
         /// <param name="path">FTP路径</param>
         /// <returns>文件和文件夹列表</returns>
-        public List<ListViewItem> GetListing(string path = "")
+        public List<ListViewItem> GetListing(string path = "", FtpListOption listOption = FtpListOption.Auto)
         {
             if (string.IsNullOrEmpty(path))
                 path = _currentPath;
@@ -111,7 +111,7 @@ namespace zfile
             try
             {
                 // 获取FTP目录列表
-                var listing = _client.GetListing(path);
+                var listing = _client.GetListing(path, listOption);
 
                 foreach (var item in listing)
                 {

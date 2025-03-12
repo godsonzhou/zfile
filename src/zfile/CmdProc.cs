@@ -3,9 +3,10 @@ using System.Security.Cryptography;
 using System.Text;
 using WinFormsApp1;
 using zfile;
+using FluentFTP;
+
 namespace CmdProcessor
 {
-
 	
 	// 首先定义一个FTP连接配置的数据结构
 
@@ -571,7 +572,7 @@ namespace CmdProcessor
 				Text = "ASCII模式（文本文件）",
 				Location = new Point(20, 20),
 				Width = 250,
-				Checked = owner.fTPMGR.ActiveClient.Config.DataType == FtpDataType.ASCII
+				Checked = owner.fTPMGR.ActiveClient.Config.DownloadDataType == FtpDataType.ASCII
 			};
 
 			var binaryRadio = new RadioButton
@@ -579,7 +580,7 @@ namespace CmdProcessor
 				Text = "二进制模式（图像、压缩文件等）",
 				Location = new Point(20, 50),
 				Width = 250,
-				Checked = owner.fTPMGR.ActiveClient.Config.DataType == FtpDataType.Binary
+				Checked = owner.fTPMGR.ActiveClient.Config.DownloadDataType == FtpDataType.Binary
 			};
 
 			var okButton = new Button
@@ -595,7 +596,9 @@ namespace CmdProcessor
 			if (dialog.ShowDialog() == DialogResult.OK)
 			{
 				// 设置传输模式
-				owner.fTPMGR.ActiveClient.Config.DataType = asciiRadio.Checked ? FtpDataType.ASCII : FtpDataType.Binary;
+				owner.fTPMGR.ActiveClient.Config.DownloadDataType = asciiRadio.Checked ? FtpDataType.ASCII : FtpDataType.Binary;
+				owner.fTPMGR.ActiveClient.Config.UploadDataType = asciiRadio.Checked ? FtpDataType.ASCII : FtpDataType.Binary;
+				owner.fTPMGR.ActiveClient.Config.ListingDataType = asciiRadio.Checked ? FtpDataType.ASCII : FtpDataType.Binary;
 				MessageBox.Show($"已切换到{(asciiRadio.Checked ? "ASCII" : "二进制")}传输模式", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
 			}
 		}
@@ -653,14 +656,16 @@ namespace CmdProcessor
 			}
 
 			// 切换显示隐藏文件的状态
-			bool currentState = owner.fTPMGR.ActiveClient.Config.ListHiddenFiles;
-			owner.fTPMGR.ActiveClient.Config.ListHiddenFiles = !currentState;
+			//bool currentState = owner.fTPMGR.ActiveClient.Config.ListHiddenFiles;
+			//owner.fTPMGR.ActiveClient.Config.ListHiddenFiles = !currentState;
+			
+			owner.fTPMGR.ListOption ^= FtpListOption.AllFiles;
 
 			// 刷新当前目录
 			if (owner.fTPMGR.ftpRootNode.Nodes.Count > 0 && owner.fTPMGR.ftpRootNode.Nodes[0].Tag is FtpNodeTag tag)
 			{
 				owner.fTPMGR.LoadFtpDirectory(tag.ConnectionName, tag.Path, owner.activeListView);
-				MessageBox.Show($"已{(currentState ? "隐藏" : "显示")}隐藏文件", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				//MessageBox.Show($"已{(currentState ? "隐藏" : "显示")}隐藏文件", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
 			}
 		}
 		private void do_cm_register()

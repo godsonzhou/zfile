@@ -222,6 +222,7 @@ namespace CmdProcessor
 					case 513: // cm_netDisconnect
 						do_cm_netDisconnect();
 						break;
+
 					case 523: // cm_SelectAll
 						do_cm_SelectAll();
 						break;
@@ -240,12 +241,14 @@ namespace CmdProcessor
 					case 530: // cm_SaveSelection
 						do_cm_SaveSelection();
 						break;
+
 					case 532: // cm_matchsrc
 						do_cm_matchsrc();
 						break;
 					case 540: // cm_rereadsource
 						do_cm_rereadsource();
 						break;
+
 					case 550: // cm_ftpconnect
 						ShowFtpConnectionManager();
 						break;
@@ -273,6 +276,7 @@ namespace CmdProcessor
 					case 558: // cm_ftpdownloadlist
 						do_cm_ftpdownloadlist();
 						break;
+
 					case 560: // cm_split
 						do_cm_split(param);
 						break;
@@ -291,6 +295,7 @@ namespace CmdProcessor
 					case 565:   // cm_crccheck
 						do_cm_crccheck(param);
 						break;
+
 					case 570:
 						do_cm_gotopreviousdir();
 						break;
@@ -306,6 +311,7 @@ namespace CmdProcessor
 					case 630:
 						do_cm_register();
 						break;
+
 					case 903: //cm_list
 						owner.do_cm_list(param);
 						break;
@@ -324,7 +330,6 @@ namespace CmdProcessor
 					case 908: // cm_delete
 						DeleteSelectedFiles();
 						break;
-
 					case 1002: // cm_renameonly
 						RenameSelected();
 						break;
@@ -338,12 +343,14 @@ namespace CmdProcessor
 					case 2002:
 						do_cm_gotoparent();
 						break;
+
 					case 2017: // cm_CopyNamesToClip
 						do_cm_CopyNamesToClip();
 						break;
 					case 2018: // cm_CopyFullNamesToClip 
 						do_cm_CopyFullNamesToClip();
 						break;
+
 					case 2020: // cm_filesync
 						ShowSyncDirsDialog();
 						break;
@@ -359,6 +366,7 @@ namespace CmdProcessor
 					case 2037: // cm_CopyFullDetailsToClip
 						do_cm_CopyFullDetailsToClip();
 						break;
+
 					case 2050: // 命令ID=2050,Name = cm_gotofirstfile
 						do_cm_gotofirstfile();
 						break;
@@ -395,6 +403,7 @@ namespace CmdProcessor
 					case 2086:
 						do_cm_gotodrivez();
 						break;
+
 					case 2121:
 						do_cm_opendesktop();
 						break;
@@ -413,6 +422,7 @@ namespace CmdProcessor
 					case 2127:
 						do_cm_openrecycled();
 						break;
+
 					case 2400: // cm_multirename
 						ShowMultiRenameDialog();
 						break;
@@ -425,6 +435,7 @@ namespace CmdProcessor
 					case 2950:
 						owner.ThemeToggle();
 						break;
+
 					case 3001:  //add new bookmark
 						owner.AddCurrentPathToBookmarks();
 						break;
@@ -449,9 +460,11 @@ namespace CmdProcessor
 					case 3012:  //lock the bookmark
 						owner.uiManager.BookmarkManager.ToggleCurrentBookmarkLock(owner.uiManager.isleft);
 						break;
+
 					case 3026: // cm_listExternal
 						do_cm_listExternal(param);
 						break;
+
 					case 5001: // 命令ID=5001,Name =cm_srcactivatetab1
 					case 5002:
 					case 5003:
@@ -474,6 +487,7 @@ namespace CmdProcessor
 					case 5109:
 						owner.uiManager.BookmarkManager.SwitchToNthTab(cmdId - 5100, true);
 						break;
+
 					case 11434: //命令ID=11434,Name=cm_ollama
 						do_cm_llm_helper(param);
 						break;
@@ -484,6 +498,7 @@ namespace CmdProcessor
 						var licensegen = new LicenseGeneratorForm();
 						licensegen.ShowDialog();
 						break;
+
 					default:
 						var cmdItem = cmdTable.GetByCmdId(cmdId);
 						if (cmdItem != null)

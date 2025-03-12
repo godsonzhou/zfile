@@ -449,6 +449,9 @@ namespace CmdProcessor
 					case 3012:  //lock the bookmark
 						owner.uiManager.BookmarkManager.ToggleCurrentBookmarkLock(owner.uiManager.isleft);
 						break;
+					case 3026: // cm_listExternal
+						do_cm_listExternal(param);
+						break;
 					case 5001: // 命令ID=5001,Name =cm_srcactivatetab1
 					case 5002:
 					case 5003:
@@ -494,6 +497,13 @@ namespace CmdProcessor
 			//{
 			//	throw new KeyNotFoundException("命令ID不存在");
 			//}
+		}
+		private void do_cm_listExternal(string param)
+		{
+			string externalViewer = owner.configLoader.FindConfigValue("Configuration", "Viewer");
+			var str = externalViewer.Split(' ');
+			var str1 = string.Join(" ", str[1..]);
+			ExecCmd(str[0], param);
 		}
 		private void do_cm_ftpdownloadlist()
 		{

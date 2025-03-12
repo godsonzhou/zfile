@@ -1935,7 +1935,7 @@ namespace CmdProcessor
 				Dock = DockStyle.Top,
 				Height = 40
 			};
-
+			var btnWidth = 100;
 			var searchBox = new TextBox
 			{
 				Location = new Point(10, 10),
@@ -1944,32 +1944,32 @@ namespace CmdProcessor
 			};
 			var btnNew = new Button
 			{
-				Location = new Point(220, 10),
-				Width = 50,
+				Location = new Point(300, 10),
+				Width = btnWidth,
 				Text = "New"
 			};
 			var btnEdit = new Button
 			{
-				Location = new Point(270, 10),
-				Width = 50,
+				Location = new Point(400, 10),
+				Width = btnWidth,
 				Text = "Edit"
 			};
 			var btnDel = new Button
 			{
-				Location = new Point(320, 10),
-				Width = 50,
+				Location = new Point(500, 10),
+				Width = btnWidth,
 				Text = "Delete"
 			};
 			var btnCopy = new Button
 			{
-				Location = new Point(370, 10),
-				Width = 50,
+				Location = new Point(600, 10),
+				Width = btnWidth,
 				Text = "Copy"
 			};
 			var btnRename = new Button
 			{
-				Location = new Point(420, 10),
-				Width = 50,
+				Location = new Point(700, 10),
+				Width = btnWidth,
 				Text = "Rename"
 			};
 			//var searchTypeCombo = new ComboBox

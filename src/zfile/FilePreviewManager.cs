@@ -1,5 +1,4 @@
 using CSCore;
-using CSCore.MediaFoundation;
 using CSCore.SoundOut;
 using LibVLCSharp.Shared;
 using SharpCompress.Archives;

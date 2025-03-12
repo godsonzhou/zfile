@@ -1,7 +1,6 @@
 ﻿using Microsoft.Win32;
 using System.Collections;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using WinShell;

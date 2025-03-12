@@ -1,13 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Text;
-using System.Windows.Forms;
-using System.Threading.Tasks;
 using System.Drawing.Imaging;
-using Timer = System.Windows.Forms.Timer;
 using System.Runtime.InteropServices;
+using System.Text;
+using Timer = System.Windows.Forms.Timer;
 
 namespace zfile
 {

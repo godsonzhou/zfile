@@ -1,9 +1,6 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
+﻿using System.Diagnostics;
 using System.Net;
 using System.Reflection;
-using System.Threading.Tasks;
 using System.Xml;
 
 public class AutoUpdater

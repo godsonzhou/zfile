@@ -1,11 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
 using System.Diagnostics;
-using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using zfile;
 namespace zfile
 {
 	public class AIassistDlg : Form

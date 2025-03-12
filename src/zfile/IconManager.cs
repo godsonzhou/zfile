@@ -1,11 +1,8 @@
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using WinShell;
-using System.Collections.Generic;
-using System.Reflection.Metadata.Ecma335;
-using System.Windows.Forms;
 using System.Text;
+using WinShell;
 
 namespace zfile
 {

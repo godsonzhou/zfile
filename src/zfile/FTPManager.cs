@@ -1,8 +1,6 @@
-﻿using zfile;
-using FluentFTP;
+﻿using FluentFTP;
 using System.Diagnostics;
 using System.Net;
-using zfile;
 
 namespace zfile
 {

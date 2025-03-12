@@ -1,15 +1,9 @@
-using zfile;
+using Shell32;
 using System.Diagnostics;
-using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
 using WinShell;
-using zfile;
 using Keys = System.Windows.Forms.Keys;
-using Shell32;
-using SharpCompress.Compressors.Explode;
-using System.Collections.Generic;
-using System.IO;
 namespace zfile
 {
 	public partial class Form1 : Form

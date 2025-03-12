@@ -1,5 +1,5 @@
- /*
- 主要特点：
+/*
+主要特点：
 完整的Unicode支持：
 优先使用Unicode版本的函数
 自动回退到ANSI版本
@@ -20,31 +20,27 @@ XML格式配置文件
 支持添加新插件
 动态加载/卸载
 配置即时保存
- // 创建插件管理器
+// 创建插件管理器
 using (var moduleList = new WfxModuleList("plugins.xml"))
 {
-    // 加载插件
-    moduleList.AddModule(@"C:\Plugins\ftp.wfx");
-    
-    // 查找插件
-    var ftpModule = moduleList.FindModule("ftp");
-    if (ftpModule != null)
-    {
-        // 使用插件功能
-        foreach (var file in ftpModule.FindFiles("/"))
-        {
-            Console.WriteLine(file.FileName);
-        }
-    }
+   // 加载插件
+   moduleList.AddModule(@"C:\Plugins\ftp.wfx");
+
+   // 查找插件
+   var ftpModule = moduleList.FindModule("ftp");
+   if (ftpModule != null)
+   {
+	   // 使用插件功能
+	   foreach (var file in ftpModule.FindFiles("/"))
+	   {
+		   Console.WriteLine(file.FileName);
+	   }
+   }
 }
- */
- using System;
-using System.Collections.Generic;
+*/
 using System.Runtime.InteropServices;
 using System.Text;
-using System.IO;
 using System.Xml.Linq;
-using System.Linq;
 
 namespace zfile
 {

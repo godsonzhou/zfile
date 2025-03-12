@@ -1,21 +1,15 @@
-using System;
-using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Drawing;
-using System.IO;
+using Ghostscript.NET.Rasterizer;
 //using iTextSharp.text.pdf;
 //using iTextSharp.text.pdf.parser;
 //using Microsoft.WindowsAPICodePack.Shell;
 //using OpenQA.Selenium;
 //using OpenQA.Selenium.Chrome;
 using Microsoft.WindowsAPICodePack.Shell;
-using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
-using System;
-using System.Drawing;
-using System.Drawing.Imaging;
 using PdfiumViewer;
-using Ghostscript.NET.Rasterizer;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 
 public class ThumbnailGenerator
 {

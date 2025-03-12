@@ -1,12 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
-using System.Windows.Forms;
-using zfile;
 /*
 核心功能：
 缩略图生成和缓存管理

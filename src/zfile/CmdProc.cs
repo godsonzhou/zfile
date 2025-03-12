@@ -5,9 +5,6 @@ using FluentFTP;
 
 namespace zfile
 {
-	
-	// 首先定义一个FTP连接配置的数据结构
-
 	public struct CmdTableItem(string cmdName, int cmdId, string description, string zhDesc)
 	{
 		public string CmdName = cmdName;

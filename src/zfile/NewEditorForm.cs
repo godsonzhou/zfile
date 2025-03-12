@@ -1,10 +1,6 @@
-using System;
-using System.IO;
-using System.Text;
-using System.Windows.Forms;
-using System.Drawing;
 using ICSharpCode.TextEditor;
 using ICSharpCode.TextEditor.Document;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace zfile

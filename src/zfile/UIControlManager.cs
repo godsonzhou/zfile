@@ -1,10 +1,7 @@
-using SharpCompress.Compressors.Explode;
 using Sheng.Winform.Controls;
 using System.Diagnostics;
 using System.Text;
 using WinShell;
-using ZstdSharp.Unsafe;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace zfile
 {

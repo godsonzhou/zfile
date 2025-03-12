@@ -61,7 +61,6 @@ namespace zfile
 				Width = 260,
 				Checked = true
 			};
-			chkboxSave.Click += chkboxSave_Click;
 
 			// 文件列表
 			lstFiles = new ListView
@@ -134,10 +133,6 @@ namespace zfile
 			}
 		}
 
-		private void chkboxSave_Click(object sender, EventArgs e)
-		{
-			//chkboxSave.Checked = true;
-		}
 		private async void BtnRefresh_Click(object sender, EventArgs e)
 		{
 			btnRefresh.Enabled = false;

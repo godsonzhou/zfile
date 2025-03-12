@@ -111,6 +111,11 @@ namespace zfile
 			}
 			return string.Empty; 
 		}
+		public static void WriteConfigToFile( string path, List<MenuInfo> list)
+		{
+			var cfg = Write_em_Config(list);
+			File.WriteAllText(path, cfg);
+		}
 		public static List<MenuInfo> ReadConfigFromFile(string filePath)
 		{
 			try
@@ -147,31 +152,6 @@ namespace zfile
 				string[] lines = sectionContent.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
 				foreach (string line in lines)
 				{
-					//string[] parts = line.Split('=');
-					//if (parts.Length == 2)
-					{
-						//string key = parts[0].Trim();
-						//string value = parts[1].Trim();
-
-						//switch (key)
-						//{
-						//	case "cmd":
-						//		cmd = value;
-						//		break;
-						//	case "path":
-						//		path = value;
-						//		break;
-						//	case "param":
-						//		param = value;
-						//		break;
-						//	case "menu":
-						//		menu = value;
-						//		break;
-						//	case "button":
-						//		button = value;
-						//		break;
-						//}
-					}
 					if (line.StartsWith("cmd="))
 						cmd = line[4..];
 					else if (line.StartsWith("path="))
@@ -191,6 +171,54 @@ namespace zfile
 			}
 
 			return menuInfos;
+		}
+		public static string Write_em_Config(List<MenuInfo> menuInfos)
+		{
+			StringBuilder configBuilder = new StringBuilder();
+
+			foreach (MenuInfo menuInfo in menuInfos)
+			{
+				// 写入节名
+				configBuilder.AppendLine($"[{menuInfo.Name}]");
+
+				// 写入 cmd 行
+				if (!string.IsNullOrEmpty(menuInfo.Cmd))
+				{
+					configBuilder.AppendLine($"cmd={menuInfo.Cmd}");
+				}
+
+				// 写入 path 行
+				if (!string.IsNullOrEmpty(menuInfo.Path))
+				{
+					configBuilder.AppendLine($"path={menuInfo.Path}");
+				}
+
+				// 写入 param 行
+				if (!string.IsNullOrEmpty(menuInfo.Param))
+				{
+					configBuilder.AppendLine($"param={menuInfo.Param}");
+				}
+
+				// 写入 menu 行
+				if (!string.IsNullOrEmpty(menuInfo.Menu))
+				{
+					configBuilder.AppendLine($"menu={menuInfo.Menu}");
+				}
+
+				// 写入 button 行
+				if (!string.IsNullOrEmpty(menuInfo.Button))
+				{
+					configBuilder.AppendLine($"button={menuInfo.Button}");
+				}
+
+				// 写入 iconic 行
+				configBuilder.AppendLine($"iconic={menuInfo.Iconic}");
+
+				// 写入空行分隔不同的节
+				configBuilder.AppendLine();
+			}
+
+			return configBuilder.ToString();
 		}
 		public static string ReplaceEnvironmentVariables(string input)
 		{

@@ -10,10 +10,15 @@ namespace zfile
         private Button btnDel;
         private Button btnCopy;
         private Button btnRename;
+		private Button btnSave;
+		private Button btnChoose;
+		private Button btnClose;
         private CmdProc cmdProcessor;
+        private bool isChooseMode;
 
-        public CommandBrowserForm(CmdProc cmdProcessor)
+        public CommandBrowserForm(CmdProc cmdProcessor, bool isChooseMode = false)
         {
+            this.isChooseMode = isChooseMode;
             this.cmdProcessor = cmdProcessor;
             InitializeComponent();
             LoadCommands();
@@ -42,43 +47,74 @@ namespace zfile
                 Width = 200,
                 PlaceholderText = "搜索命令..."
             };
+			if (isChooseMode)
+			{
+				btnChoose = new Button
+				{
+					Location = new Point(300, 10),
+					Width = btnWidth,
+					Text = "Choose"
+				};
+				btnClose = new Button
+				{
+					Location = new Point(400, 10),
+					Width = btnWidth,
+					Text = "Close"
+				};
+			    searchPanel.Controls.AddRange(new Control[] { searchBox, btnChoose, btnClose });
+           
+			}
+			else
+			{
+				btnNew = new Button
+				{
+					Location = new Point(300, 10),
+					Width = btnWidth,
+					Text = "New"
+				};
 
-            btnNew = new Button
-            {
-                Location = new Point(300, 10),
-                Width = btnWidth,
-                Text = "New"
-            };
+				btnEdit = new Button
+				{
+					Location = new Point(400, 10),
+					Width = btnWidth,
+					Text = "Edit"
+				};
 
-            btnEdit = new Button
-            {
-                Location = new Point(400, 10),
-                Width = btnWidth,
-                Text = "Edit"
-            };
+				btnDel = new Button
+				{
+					Location = new Point(500, 10),
+					Width = btnWidth,
+					Text = "Delete"
+				};
 
-            btnDel = new Button
-            {
-                Location = new Point(500, 10),
-                Width = btnWidth,
-                Text = "Delete"
-            };
+				btnCopy = new Button
+				{
+					Location = new Point(600, 10),
+					Width = btnWidth,
+					Text = "Copy"
+				};
 
-            btnCopy = new Button
-            {
-                Location = new Point(600, 10),
-                Width = btnWidth,
-                Text = "Copy"
-            };
-
-            btnRename = new Button
-            {
-                Location = new Point(700, 10),
-                Width = btnWidth,
-                Text = "Rename"
-            };
-
-            searchPanel.Controls.AddRange(new Control[] { searchBox, btnNew, btnEdit, btnDel, btnCopy, btnRename });
+				btnRename = new Button
+				{
+					Location = new Point(700, 10),
+					Width = btnWidth,
+					Text = "Rename"
+				};
+                btnSave = new Button
+                {
+                    Location = new Point(800, 10),
+                    Width = btnWidth,
+                    Text = "Save"
+                };
+                
+		    	searchPanel.Controls.AddRange(new Control[] { searchBox, btnNew, btnEdit, btnDel, btnCopy, btnRename, btnSave });
+                btnNew.Click += BtnNew_Click;
+                btnEdit.Click += BtnEdit_Click;
+                btnDel.Click += BtnDel_Click;
+                btnCopy.Click += BtnCopy_Click;
+                btnRename.Click += BtnRename_Click;
+                btnSave.Click += BtnSave_Click;
+            }
 
             // 创建ListView用于显示命令
             listView = new ListView
@@ -106,11 +142,7 @@ namespace zfile
             // 添加事件处理
             searchBox.TextChanged += SearchBox_TextChanged;
             listView.DoubleClick += ListView_DoubleClick;
-            btnNew.Click += BtnNew_Click;
-            btnEdit.Click += BtnEdit_Click;
-            btnDel.Click += BtnDel_Click;
-            btnCopy.Click += BtnCopy_Click;
-            btnRename.Click += BtnRename_Click;
+        
 
             // 添加右键菜单
             var contextMenu = new ContextMenuStrip();
@@ -126,17 +158,32 @@ namespace zfile
 
         private void LoadCommands()
         {
-            // 获取所有命令并填充ListView
-            var commands = cmdProcessor.cmdTable.GetAll();
-            foreach (var cmd in commands)
-            {
-                var item = new ListViewItem(cmd.CmdId.ToString());
-                item.SubItems.Add(cmd.CmdName);
-                item.SubItems.Add(cmd.Description);
-                item.SubItems.Add(cmd.ZhDesc);
-                listView.Items.Add(item);
-            }
-        }
+			if (isChooseMode)
+			{
+				// 获取所有命令并填充ListView
+				var commands = cmdProcessor.cmdTable.GetAll();
+				foreach (var cmd in commands)
+				{
+					var item = new ListViewItem(cmd.CmdId.ToString());
+					item.SubItems.Add(cmd.CmdName);
+					item.SubItems.Add(cmd.Description);
+					item.SubItems.Add(cmd.ZhDesc);
+					listView.Items.Add(item);
+				}
+			}else
+			{
+                // 从cmdprocessor.emcmds获取所有em命令并填充ListView
+                var emcmds = cmdProcessor.emCmds;
+                foreach (var cmd in emcmds)
+                {
+                    var item = new ListViewItem(" ");
+                    item.SubItems.Add(cmd.Name);
+                    item.SubItems.Add(cmd.Menu);
+                    item.SubItems.Add(cmd.Menu);
+                    listView.Items.Add(item);
+                }
+			}
+		}
 
         private void SearchBox_TextChanged(object sender, EventArgs e)
         {
@@ -231,7 +278,11 @@ namespace zfile
                 MessageBox.Show("请先选择一个命令", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
-
+        private void BtnSave_Click(object sender, EventArgs e)
+        {
+            // 保存命令
+            cmdProcessor.SaveEmCmdCfg();
+        }
         private void BtnDel_Click(object sender, EventArgs e)
         {
             // 删除选中的命令

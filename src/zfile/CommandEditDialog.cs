@@ -39,6 +39,7 @@ namespace zfile
                 // 其他字段需要从配置中获取
                 // 这里假设命令是em_开头的自定义命令
                 var emCmds = Helper.ReadConfigFromFile(Constants.ZfileCfgPath + "Wcmd_chn.ini");
+                // var emCmds = cmdProcessor.emCmds;
                 var emCmd = emCmds.Find(x => x.Name.Equals(cmdItem.Value.CmdName));
                 if (emCmd != null)
                 {
@@ -177,7 +178,7 @@ namespace zfile
                     else
                     {
                         // DLL或EXE文件中的图标
-                        icons = ExtractIconsFromFile(filePath);
+                        icons = IconManager.ExtractIconsFromFile(filePath);
                     }
 
                     if (icons != null && icons.Length > 0)
@@ -217,13 +218,7 @@ namespace zfile
             }
         }
 
-        private Icon[] ExtractIconsFromFile(string filePath)
-        {
-            // 这里需要实现从DLL或EXE文件中提取图标的逻辑
-            // 可以使用Win32 API或第三方库
-            // 简化起见，这里返回一个空数组
-            return new Icon[0];
-        }
+     
 
         private void BtnOK_Click(object sender, EventArgs e)
         {

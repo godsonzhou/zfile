@@ -305,6 +305,20 @@ namespace zfile
 			phiconSmall.ToList().ForEach(x => API.DestroyIcon(x));
 			return imageList;
 		}
+		public static Icon[] ExtractIconsFromFile(string filePath)
+		{
+			// 这里需要实现从DLL或EXE文件中提取图标的逻辑
+			// 可以使用Win32 API或第三方库
+			// 简化起见，这里返回一个空数组
+			List<Icon> icons = new();
+			var imagelist = IconManager.LoadIconsFromFile1(filePath);
+			foreach (var i in imagelist.Images.Cast<Image>())
+			{
+				var icon = IconManager.ConvertImageToIcon(i);
+				icons.Add(icon);
+			}
+			return icons.ToArray();
+		}
 
 		public static Icon GetIconByFileName(string fileName, bool isLarge = true)
 		{

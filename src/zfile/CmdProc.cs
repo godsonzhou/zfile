@@ -42,8 +42,8 @@ namespace zfile
 	public class CmdProc
 	{
 		public CmdTable cmdTable;
-		private Form1 owner;
-		private List<MenuInfo> emCmds;
+		public Form1 owner;
+		public List<MenuInfo> emCmds;
 		private int targetIndex = 0;
 
 		public CmdProc(Form1 owner)
@@ -52,6 +52,9 @@ namespace zfile
 			InitializeCmdTable(Constants.ZfileCfgPath + "TOTALCMD.INC", Constants.ZfileCfgPath + "WCMD_CHN.INC");//读取cm_开头的内部命令与ID的对应关系
 			emCmds = Helper.ReadConfigFromFile(Constants.ZfileCfgPath + "Wcmd_chn.ini");
 			this.owner = owner;
+		}
+		public void SaveEmCmdCfg() {
+			Helper.WriteConfigToFile(Constants.ZfileCfgPath + "Wcmd_chn.ini", emCmds);
 		}
 
 		public void InitializeCmdTable(string totalCmdPath, string wcmIconsPath)

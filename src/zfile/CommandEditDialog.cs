@@ -38,22 +38,14 @@ namespace zfile
             if (cmdItem != null)
             {
                 txtCommand.Text = cmdItem.Cmd;
-                // 其他字段需要从配置中获取
-                // 这里假设命令是em_开头的自定义命令
-                //var emCmds = Helper.ReadConfigFromFile(Constants.ZfileCfgPath + "Wcmd_chn.ini");
-                
-                var emCmd = cmdProcessor.emCmds.Find(x => x.Name.Equals(cmdItem.Name));
-                if (emCmd != null)
+                txtParams.Text = cmdItem.Param;
+                txtWorkingDir.Text = cmdItem.Path;
+                txtTooltip.Text = cmdItem.Menu;
+                // 加载图标文件
+                if (!string.IsNullOrEmpty((string)cmdItem.Button))
                 {
-                    txtParams.Text = emCmd.Param;
-                    txtWorkingDir.Text = emCmd.Path;
-                    txtTooltip.Text = emCmd.Menu;
-                    // 加载图标文件
-                    if (!string.IsNullOrEmpty(emCmd.Button))
-                    {
-                        txtIconFile.Text = emCmd.Button;
-                        LoadIconsFromFile(emCmd.Button);
-                    }
+					txtIconFile.Text = cmdItem.Button;
+					LoadIconsFromFile((string)cmdItem.Button);
                 }
             }
         }

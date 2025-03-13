@@ -26,9 +26,10 @@ namespace zfile
 		public string Path { get; set; } = string.Empty;
 		public int Iconic { get; set; }
 		public string Menu { get; set; } = string.Empty;
-		public MenuInfo()
+		public MenuInfo() { }
+		public MenuInfo(string name)
 		{
-
+			Name = name;
 		}
 		public MenuInfo(string name, string button, string cmd, string param, string path, int iconic, string menu)
 		{
@@ -39,6 +40,10 @@ namespace zfile
 			Path = path;
 			Iconic = iconic;
 			Menu = menu;
+		}
+		public MenuInfo Clone()
+		{
+			return new MenuInfo(Name, Button, Cmd, Param, Path, Iconic, Menu);
 		}
 	}
 	

@@ -66,6 +66,10 @@ namespace zfile
 		{
 			return cmdTable.GetByCmdName(cmdName);
 		}
+		public MenuInfo? GetEmdByName(string emdName)
+		{
+			return emCmds.Find(e => e.Name.Equals(emdName));
+		}
 
 		public CmdTableItem? GetCmdById(int cmdId)
 		{

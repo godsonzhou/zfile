@@ -19,6 +19,7 @@ namespace zfile
         private Button btnOK;
         private Button btnCancel;
         private CmdProc cmdProcessor;
+		private MenuInfo? _cmdItem;
 
         public string Command { get; private set; }
         public string Parameters { get; private set; }
@@ -27,20 +28,21 @@ namespace zfile
         public string Tooltip { get; private set; }
         public int SelectedIconIndex { get; private set; } = -1;
 
-        public CommandEditDialog(CmdProc cmdProcessor, CmdTableItem? cmdItem = null)
+        public CommandEditDialog(CmdProc cmdProcessor, MenuInfo? cmdItem = null)
         {
+			this._cmdItem = cmdItem;
             this.cmdProcessor = cmdProcessor;
             InitializeComponents();
 
             // 如果是编辑现有命令，则填充表单
             if (cmdItem != null)
             {
-                txtCommand.Text = cmdItem.Value.CmdName;
+                txtCommand.Text = cmdItem.Cmd;
                 // 其他字段需要从配置中获取
                 // 这里假设命令是em_开头的自定义命令
-                var emCmds = Helper.ReadConfigFromFile(Constants.ZfileCfgPath + "Wcmd_chn.ini");
-                // var emCmds = cmdProcessor.emCmds;
-                var emCmd = emCmds.Find(x => x.Name.Equals(cmdItem.Value.CmdName));
+                //var emCmds = Helper.ReadConfigFromFile(Constants.ZfileCfgPath + "Wcmd_chn.ini");
+                
+                var emCmd = cmdProcessor.emCmds.Find(x => x.Name.Equals(cmdItem.Name));
                 if (emCmd != null)
                 {
                     txtParams.Text = emCmd.Param;
@@ -59,7 +61,7 @@ namespace zfile
         private void InitializeComponents()
         {
             // 设置窗体属性
-            this.Text = "编辑命令";
+            this.Text = "编辑命令" + (_cmdItem != null ? _cmdItem.Name : "");
             this.Size = new Size(600, 500);
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;

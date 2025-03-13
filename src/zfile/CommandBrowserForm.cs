@@ -40,7 +40,8 @@ namespace zfile
                 Height = 40
             };
 
-            var btnWidth = 100;
+            var btnWidth = 70;
+			var startx = 300;
             searchBox = new TextBox
             {
                 Location = new Point(10, 10),
@@ -51,13 +52,13 @@ namespace zfile
 			{
 				btnChoose = new Button
 				{
-					Location = new Point(300, 10),
+					Location = new Point(startx, 10),
 					Width = btnWidth,
 					Text = "Choose"
 				};
 				btnClose = new Button
 				{
-					Location = new Point(400, 10),
+					Location = new Point(startx+btnWidth, 10),
 					Width = btnWidth,
 					Text = "Close"
 				};
@@ -68,41 +69,41 @@ namespace zfile
 			{
 				btnNew = new Button
 				{
-					Location = new Point(300, 10),
+					Location = new Point(startx, 10),
 					Width = btnWidth,
 					Text = "New"
 				};
 
 				btnEdit = new Button
 				{
-					Location = new Point(400, 10),
+					Location = new Point(startx+btnWidth, 10),
 					Width = btnWidth,
 					Text = "Edit"
 				};
 
 				btnDel = new Button
 				{
-					Location = new Point(500, 10),
+					Location = new Point(startx + btnWidth*2, 10),
 					Width = btnWidth,
 					Text = "Delete"
 				};
 
 				btnCopy = new Button
 				{
-					Location = new Point(600, 10),
+					Location = new Point(startx + btnWidth*3, 10),
 					Width = btnWidth,
 					Text = "Copy"
 				};
 
 				btnRename = new Button
 				{
-					Location = new Point(700, 10),
+					Location = new Point(startx + btnWidth*4, 10),
 					Width = btnWidth,
 					Text = "Rename"
 				};
                 btnSave = new Button
                 {
-                    Location = new Point(800, 10),
+                    Location = new Point(startx + btnWidth*5, 10),
                     Width = btnWidth,
                     Text = "Save"
                 };
@@ -257,8 +258,11 @@ namespace zfile
 
         private void BtnNew_Click(object sender, EventArgs e)
         {
-            // 创建新命令
-            ShowCommandEditDialog(null);
+			// 创建新命令
+			var newName = InputCommandName(false);
+			if (newName == null) return;
+
+            ShowCommandEditDialog(new MenuInfo(newName), false);
         }
 
         private void BtnEdit_Click(object sender, EventArgs e)
@@ -267,10 +271,10 @@ namespace zfile
             if (listView.SelectedItems.Count > 0)
             {
                 string cmdName = listView.SelectedItems[0].SubItems[1].Text;
-                var cmdItem = cmdProcessor.GetCmdByName(cmdName);
+                var cmdItem = cmdProcessor.GetEmdByName(cmdName);
                 if (cmdItem != null)
                 {
-                    ShowCommandEditDialog(cmdItem);
+                    ShowCommandEditDialog(cmdItem, true);
                 }
             }
             else
@@ -294,7 +298,9 @@ namespace zfile
                 
                 if (result == DialogResult.Yes)
                 {
-                    // 这里应该添加删除命令的逻辑
+					// 这里应该添加删除命令的逻辑
+					var cmd = cmdProcessor.emCmds.Find(x => x.Name.Equals(cmdName));
+					cmdProcessor.emCmds.Remove(cmd);
                     // 删除后刷新列表
                     listView.Items.Remove(listView.SelectedItems[0]);
                 }
@@ -311,13 +317,14 @@ namespace zfile
             if (listView.SelectedItems.Count > 0)
             {
                 string cmdName = listView.SelectedItems[0].SubItems[1].Text;
-                var cmdItem = cmdProcessor.GetCmdByName(cmdName);
+                var cmdItem = cmdProcessor.GetEmdByName(cmdName);
                 if (cmdItem != null)
                 {
                     // 创建一个新的命令，基于选中的命令
-                    var newCmdItem = cmdItem.Value;
-                    newCmdItem.CmdName = $"{newCmdItem.CmdName}_copy";
-                    ShowCommandEditDialog(newCmdItem);
+                    var newCmdItem = cmdItem.Clone();
+                    newCmdItem.Name = $"{newCmdItem.Name}_copy";
+					//cmdProcessor.emCmds.Add(newCmdItem);
+                    ShowCommandEditDialog(newCmdItem, false);
                 }
             }
             else
@@ -325,73 +332,86 @@ namespace zfile
                 MessageBox.Show("请先选择一个命令", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
+	
+		private string InputCommandName(bool isRename = true)
+		{
+			string newName = null;
+			string cmdName = string.Empty;
+			MenuInfo? cmdItem = null;
+			if (listView.SelectedItems.Count > 0) {
+				cmdName = listView.SelectedItems[0].SubItems[1].Text;
+				cmdItem = cmdProcessor.GetEmdByName(cmdName);
+			}
+			// 重命名选中的命令
+			if (isRename && listView.SelectedItems.Count == 0)
+				return null;
+			
+			// 显示重命名对话框
+			var inputDialog = new Form
+			{
+				Width = 400,
+				Height = 150,
+				FormBorderStyle = FormBorderStyle.FixedDialog,
+				Text = isRename ? "重命名命令" : "新命令名称",
+				StartPosition = FormStartPosition.CenterParent,
+				MaximizeBox = false,
+				MinimizeBox = false
+			};
 
+			var textBox = new TextBox
+			{
+				Left = 50,
+				Top = 20,
+				Width = 300,
+				Text = isRename ? cmdName : ""
+			};
+
+			var okButton = new Button
+			{
+				Text = "确定",
+				Left = 100,
+				Width = 100,
+				Top = 70,
+				DialogResult = DialogResult.OK
+			};
+
+			var cancelButton = new Button
+			{
+				Text = "取消",
+				Left = 220,
+				Width = 100,
+				Top = 70,
+				DialogResult = DialogResult.Cancel
+			};
+
+			inputDialog.Controls.Add(textBox);
+			inputDialog.Controls.Add(okButton);
+			inputDialog.Controls.Add(cancelButton);
+			inputDialog.AcceptButton = okButton;
+			inputDialog.CancelButton = cancelButton;
+
+			var result = inputDialog.ShowDialog();
+			if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(textBox.Text))
+			{
+				newName = textBox.Text;
+				if (isRename)
+				{
+					// 这里应该添加重命名命令的逻辑
+					cmdItem.Name = newName;
+					// 重命名后刷新列表
+					listView.SelectedItems[0].SubItems[1].Text = newName;
+				}
+			}
+			
+			
+			return newName;
+		}
         private void BtnRename_Click(object sender, EventArgs e)
         {
-            // 重命名选中的命令
-            if (listView.SelectedItems.Count > 0)
-            {
-                string cmdName = listView.SelectedItems[0].SubItems[1].Text;
-                var cmdItem = cmdProcessor.GetCmdByName(cmdName);
-                if (cmdItem != null)
-                {
-                    // 显示重命名对话框
-                    var inputDialog = new Form
-                    {
-                        Width = 400,
-                        Height = 150,
-                        FormBorderStyle = FormBorderStyle.FixedDialog,
-                        Text = "重命名命令",
-                        StartPosition = FormStartPosition.CenterParent,
-                        MaximizeBox = false,
-                        MinimizeBox = false
-                    };
-
-                    var textBox = new TextBox
-                    {
-                        Left = 50,
-                        Top = 20,
-                        Width = 300,
-                        Text = cmdName
-                    };
-
-                    var okButton = new Button
-                    {
-                        Text = "确定",
-                        Left = 100,
-                        Width = 100,
-                        Top = 70,
-                        DialogResult = DialogResult.OK
-                    };
-
-                    var cancelButton = new Button
-                    {
-                        Text = "取消",
-                        Left = 220,
-                        Width = 100,
-                        Top = 70,
-                        DialogResult = DialogResult.Cancel
-                    };
-
-                    inputDialog.Controls.Add(textBox);
-                    inputDialog.Controls.Add(okButton);
-                    inputDialog.Controls.Add(cancelButton);
-                    inputDialog.AcceptButton = okButton;
-                    inputDialog.CancelButton = cancelButton;
-
-                    var result = inputDialog.ShowDialog();
-                    if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(textBox.Text))
-                    {
-                        string newName = textBox.Text;
-                        // 这里应该添加重命名命令的逻辑
-                        // 重命名后刷新列表
-                        listView.SelectedItems[0].SubItems[1].Text = newName;
-                    }
-                }
-            }
+			InputCommandName();
         }
 
-        private void ShowCommandEditDialog(CmdTableItem? cmdItem)
+        private void ShowCommandEditDialog(MenuInfo? cmdItem, bool isRename)
         {
             // 创建并显示命令编辑对话框
             var editDialog = new CommandEditDialog(cmdProcessor, cmdItem);
@@ -406,22 +426,34 @@ namespace zfile
                 int iconIndex = editDialog.SelectedIconIndex;
 
                 // 保存命令
-                SaveCommand(command, parameters, workingDir, iconFile, iconIndex, tooltip);
+                SaveCommand(cmdItem, command, parameters, workingDir, iconFile, iconIndex, tooltip, isRename);
 
                 // 刷新命令列表
                 RefreshCommandList();
             }
         }
 
-        private void SaveCommand(string command, string parameters, string workingDir, string iconFile, int iconIndex, string tooltip)
+        private void SaveCommand(MenuInfo? cmd, string command, string parameters, string workingDir, string iconFile, int iconIndex, string tooltip, bool isRename)
         {
-            // 这里应该实现保存命令到配置文件的逻辑
-            // 例如，将命令保存到Wcmd_chn.ini文件中
-            // 简化起见，这里只显示一个消息框
-            MessageBox.Show($"命令 {command} 已保存", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
+			// 这里应该实现保存命令到配置文件的逻辑
+			// 例如，将命令保存到Wcmd_chn.ini文件中
+			// 简化起见，这里只显示一个消息框
+			//var cmd = cmdProcessor.emCmds.Find(e => e.Name.Equals(command));
+			if (cmd == null)
+				cmd = new MenuInfo(command);
 
-        private void RefreshCommandList()
+			cmd.Menu = tooltip;
+			cmd.Param = parameters;
+			cmd.Path = workingDir;
+			cmd.Button = iconFile;
+			cmd.Iconic = iconIndex;
+			cmd.Cmd = command;
+			if(!isRename) 
+				cmdProcessor.emCmds.Add(cmd);
+			//MessageBox.Show($"命令 {command} 已保存", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+		}
+
+		private void RefreshCommandList()
         {
             // 清空并重新加载命令列表
             listView.Items.Clear();

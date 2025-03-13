@@ -128,11 +128,12 @@ namespace zfile
         private void BtnSelectCommand_Click(object sender, EventArgs e)
         {
             // 打开命令浏览器
-            var commandBrowser = new CommandBrowserForm(cmdProcessor);
+            var commandBrowser = new CommandBrowserForm(cmdProcessor, true);
             if (commandBrowser.ShowDialog() == DialogResult.OK)
             {
-                // 获取选中的命令
-                // 这里需要修改CommandBrowserForm以支持返回选中的命令
+				// 获取选中的命令
+				// 这里需要修改CommandBrowserForm以支持返回选中的命令
+				txtCommand.Text = commandBrowser.CmdRet;
             }
         }
 

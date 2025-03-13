@@ -15,6 +15,7 @@ namespace zfile
 		private Button btnClose;
         private CmdProc cmdProcessor;
         private bool isChooseMode;
+		public string CmdRet;
 
         public CommandBrowserForm(CmdProc cmdProcessor, bool isChooseMode = false)
         {
@@ -63,7 +64,8 @@ namespace zfile
 					Text = "Close"
 				};
 			    searchPanel.Controls.AddRange(new Control[] { searchBox, btnChoose, btnClose });
-           
+				btnChoose.Click += BtnChoose_Click;
+				btnClose.Click += BtnClose_Click;
 			}
 			else
 			{
@@ -143,6 +145,7 @@ namespace zfile
             // 添加事件处理
             searchBox.TextChanged += SearchBox_TextChanged;
             listView.DoubleClick += ListView_DoubleClick;
+			listView.Click += ListView_Click;
         
 
             // 添加右键菜单
@@ -157,7 +160,28 @@ namespace zfile
             listView.ContextMenuStrip = contextMenu;
         }
 
-        private void LoadCommands()
+		private void ListView_Click(object? sender, EventArgs e)
+		{
+			CmdRet = listView.SelectedItems[0].SubItems[1].Text;
+		}
+
+		private void BtnClose_Click(object? sender, EventArgs e)
+		{
+			CmdRet = string.Empty;
+			DialogResult = DialogResult.None;
+			this.Close();
+		}
+
+		private void BtnChoose_Click(object? sender, EventArgs e)
+		{
+			//设置dialogresult = ok
+			if (listView.SelectedItems.Count == 0)
+				return;
+			DialogResult = DialogResult.OK;
+			this.Close();
+		}
+
+		private void LoadCommands()
         {
 			if (isChooseMode)
 			{
@@ -287,6 +311,7 @@ namespace zfile
             // 保存命令
             cmdProcessor.SaveEmCmdCfg();
         }
+	
         private void BtnDel_Click(object sender, EventArgs e)
         {
             // 删除选中的命令

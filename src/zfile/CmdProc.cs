@@ -493,6 +493,12 @@ namespace zfile
 					case 11434: //命令ID=11434,Name=cm_ollama
 						do_cm_llm_helper(param);
 						break;
+					case 11435: //网络爬虫
+						do_cm_netCrawler(param);
+						break;
+					case 11436: //动态网页爬虫，利用chromedriver和selenium
+						do_cm_ChromeCrawler(param);
+						break;
 					case 24340:
 						Form1.ExitApp();
 						break;
@@ -514,6 +520,42 @@ namespace zfile
 			//{
 			//	throw new KeyNotFoundException("命令ID不存在");
 			//}
+		}
+		private void do_cm_ChromeCrawler(string param)
+		{
+
+		}
+		private void do_cm_netCrawler(string param)
+		{
+			Task.Run(async () => { await netCrawler(param); } );
+			Debug.Print("crawler run started...");
+		}
+		static async Task netCrawler(string url)
+		{
+			try
+			{
+				// 要爬取的网址
+				//string url = "https://www.example.com";
+				string content = await FetchWebContent(url);
+				Debug.Print(content);
+			}
+			catch (Exception ex)
+			{
+				Debug.Print($"发生错误: {ex.Message}");
+			}
+		}
+
+		static async Task<string> FetchWebContent(string url)
+		{
+			using (HttpClient client = new HttpClient())
+			{
+				// 发送HTTP请求获取响应
+				HttpResponseMessage response = await client.GetAsync(url);
+				// 确保请求成功
+				response.EnsureSuccessStatusCode();
+				// 读取响应内容
+				return await response.Content.ReadAsStringAsync();
+			}
 		}
 		private void do_cm_listExternal(string param)
 		{

@@ -1,7 +1,9 @@
 using System.Diagnostics;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using FluentFTP;
+using Newtonsoft.Json;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 
@@ -501,6 +503,14 @@ namespace zfile
 					case 11436: //动态网页爬虫，利用chromedriver和selenium
 						do_cm_ChromeCrawler(param);
 						break;
+					case 11437: // API caller
+						var parameters = param.Split(' ');
+						if (parameters.Length < 3)
+							MessageBox.Show("the parameters should contain url key other at least");
+						else
+							do_cm_apicaller(parameters[0], parameters[1], parameters[2]);	//
+						break;
+
 					case 24340:
 						Form1.ExitApp();
 						break;
@@ -522,6 +532,53 @@ namespace zfile
 			//{
 			//	throw new KeyNotFoundException("命令ID不存在");
 			//}
+		}
+		private string do_cm_apicaller(string url, string apiKey, string param)
+		{
+			//string url = "http://v.juhe.cn/toutiao/index";
+			//string apiKey = "您申请的调用APIkey";
+
+			Dictionary<string, string> data = new Dictionary<string, string>();
+			data.Add("key", apiKey);
+			if (!param.Equals(string.Empty))
+			{
+				var _params = param.Split(',');
+				foreach (var _param in _params)
+				{
+					//data.Add("type", "top");
+					//data.Add("page", "20");
+					//data.Add("page_size", "");
+					//data.Add("is_filter", "");
+					var x = _param.Split('=');
+					data.Add(x[0], x[1]);
+				}
+			}
+			using (WebClient client = new WebClient())
+			{
+				string fullUrl = url + "?" + string.Join("&", data.Select(x => x.Key + "=" + x.Value));
+
+				try
+				{
+					string responseContent = client.DownloadString(fullUrl);
+					dynamic responseData = JsonConvert.DeserializeObject(responseContent);
+
+					if (responseData != null)
+					{
+						Debug.Print("Return Code: " + responseData["error_code"]);
+						Debug.Print("Return Message: " + responseData["reason"]);
+						return responseData["reason"];
+					}
+					else
+					{
+						Debug.Print("json解析异常！");
+					}
+				}
+				catch (Exception)
+				{
+					Debug.Print("请检查其它错误");
+				}
+			}
+			return string.Empty;
 		}
 		private string do_cm_ChromeCrawler(string param)
 		{

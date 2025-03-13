@@ -2,8 +2,8 @@ using Ghostscript.NET.Rasterizer;
 //using iTextSharp.text.pdf;
 //using iTextSharp.text.pdf.parser;
 //using Microsoft.WindowsAPICodePack.Shell;
-//using OpenQA.Selenium;
-//using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 using Microsoft.WindowsAPICodePack.Shell;
 using PdfiumViewer;
 using System.Collections.Concurrent;
@@ -415,8 +415,6 @@ public class ThumbnailGenerator
         return Array.IndexOf(htmlMdExtensions, extension) >= 0;
     }
 
-  
-
     private static Image GetDefaultAudioThumbnail()
     {
         // 这里可以返回一个默认的音频图标
@@ -431,23 +429,23 @@ public class ThumbnailGenerator
 
     private static Image GenerateHTMLorMarkdownThumbnail(string filePath)
     {
-		//ChromeOptions options = new ChromeOptions();
-		//options.AddArgument("--headless");
+		ChromeOptions options = new ChromeOptions();
+		options.AddArgument("--headless");
 
-		//using (IWebDriver driver = new ChromeDriver(options))
-		//{
-		//    driver.Navigate().GoToUrl(new Uri(Path.GetFullPath(filePath)));
-		//    Screenshot screenshot = ((ITakesScreenshot)driver).GetScreenshot();
-		//    using (MemoryStream ms = new MemoryStream(screenshot.AsByteArray))
-		//    {
-		//        using (Image fullImage = Image.FromStream(ms))
-		//        {
-		//            int thumbnailWidth = 100;
-		//            int thumbnailHeight = 100;
-		//            return fullImage.GetThumbnailImage(thumbnailWidth, thumbnailHeight, null, IntPtr.Zero);
-		//        }
-		//    }
-		//}
+		using (IWebDriver driver = new ChromeDriver(options))
+		{
+			driver.Navigate().GoToUrl(new Uri(Path.GetFullPath(filePath)));
+			Screenshot screenshot = ((ITakesScreenshot)driver).GetScreenshot();
+			using (MemoryStream ms = new MemoryStream(screenshot.AsByteArray))
+			{
+				using (Image fullImage = Image.FromStream(ms))
+				{
+					int thumbnailWidth = 100;
+					int thumbnailHeight = 100;
+					return fullImage.GetThumbnailImage(thumbnailWidth, thumbnailHeight, null, IntPtr.Zero);
+				}
+			}
+		}
 		return null;
 	}
 }

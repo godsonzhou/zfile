@@ -2,6 +2,8 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using FluentFTP;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 
 namespace zfile
 {
@@ -521,9 +523,36 @@ namespace zfile
 			//	throw new KeyNotFoundException("命令ID不存在");
 			//}
 		}
-		private void do_cm_ChromeCrawler(string param)
+		private string do_cm_ChromeCrawler(string param)
 		{
+			try
+			{
+				// 设置 ChromeDriver 的路径，需要根据实际情况修改
+				string chromeDriverPath = @"C:\Users\zhouy\.cache\selenium\chromedriver\win64\131.0.6778.204";
+				ChromeOptions options = new ChromeOptions();
+				// 可以选择无头模式，不显示浏览器窗口
+				options.AddArgument("--headless");
 
+				using (IWebDriver driver = new ChromeDriver(chromeDriverPath, options))
+				{
+					// 要爬取的网址
+					string url = param;
+					driver.Navigate().GoToUrl(url);
+
+					// 等待页面加载完成，可以根据实际情况调整等待时间
+					System.Threading.Thread.Sleep(5000);
+
+					// 获取页面源代码
+					string content = driver.PageSource;
+					Debug.Print(content);
+					return content;
+				}
+			}
+			catch (Exception ex)
+			{
+				Debug.Print($"发生错误: {ex.Message}");
+			}
+			return string.Empty;
 		}
 		private void do_cm_netCrawler(string param)
 		{

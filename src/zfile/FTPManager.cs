@@ -1753,9 +1753,75 @@ namespace zfile
 		{
 
 		}
+		/// <summary>
+		/// 添加到下载列表
+		/// </summary>
 		public void AddToDownloadList(FtpFileSource source, string path, bool isDirectory)
 		{
+			try
+			{
+				// 创建保存文件对话框
+				SaveFileDialog dialog = new SaveFileDialog
+				{
+					Filter = "文本文件|*.txt",
+					Title = "保存下载列表",
+					FileName = "FTPLIST.TXT"
+				};
 
+				if (dialog.ShowDialog() == DialogResult.OK)
+				{
+					List<string> fileList = new List<string>();
+
+					if (isDirectory)
+					{
+						// 递归获取目录下所有文件
+						var listing = source.Client.GetListing(path, _listOption);
+						foreach (var item in listing)
+						{
+							if (item.Type == FtpObjectType.File)
+							{
+								fileList.Add($"{item.FullName}");
+							}
+							else if (item.Type == FtpObjectType.Directory)
+							{
+								GetDirectoryFiles(source, item.FullName, fileList);
+							}
+						}
+					}
+					else
+					{
+						// 添加单个文件
+						fileList.Add(path);
+					}
+
+					// 写入文件
+					File.WriteAllLines(dialog.FileName, fileList);
+					MessageBox.Show("下载列表已保存", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"保存下载列表失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+
+		/// <summary>
+		/// 递归获取目录下所有文件
+		/// </summary>
+		private void GetDirectoryFiles(FtpFileSource source, string path, List<string> fileList)
+		{
+			var listing = source.Client.GetListing(path, _listOption);
+			foreach (var item in listing)
+			{
+				if (item.Type == FtpObjectType.File)
+				{
+					fileList.Add($"{item.FullName}");
+				}
+				else if (item.Type == FtpObjectType.Directory)
+				{
+					GetDirectoryFiles(source, item.FullName, fileList);
+				}
+			}
 		}
 		private void Init()
 		{

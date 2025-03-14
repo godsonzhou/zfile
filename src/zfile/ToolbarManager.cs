@@ -38,6 +38,7 @@ namespace zfile
 		ToolStripMenuItem deleteItem = new ToolStripMenuItem("删除按钮");
 		ToolStripMenuItem copyItem = new ToolStripMenuItem("复制按钮");
 		ToolStripMenuItem editItem = new ToolStripMenuItem("编辑按钮");
+		private bool isHidden;
 		public void Dispose()
 		{
 			Dispose(true);
@@ -122,6 +123,13 @@ namespace zfile
 			dynamicToolStrip.DragDrop += form.ToolbarButton_DragDrop;
 		}
 
+		public void TogglePanel()
+		{
+			if (isHidden)
+				dynamicToolStrip.Show();
+			else dynamicToolStrip.Hide();
+			isHidden = !isHidden;
+		}
 		public void AddButton(string name, string cmd, string icon, string path, string param, string iconic)
 		{
 			toolbarButtons.Add(new ToolbarButton(name, cmd, icon, path, param, iconic));

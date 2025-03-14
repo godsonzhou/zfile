@@ -21,6 +21,9 @@ namespace zfile
 		private bool isFtpConnected;
 		private bool isBinaryMode = true;
 		private bool disposed = false;
+		private bool isPanelShow = false;
+		private List<string> commandHistory = new List<string>();
+		private int cmdHistoryIndex = 0;
 
 		public FtpController(Form1 parentForm, FTPMGR ftpManager)
 		{
@@ -111,7 +114,29 @@ namespace zfile
 				//replayDetail
 			});
 		}
-
+		public string GetCmdHistory(int i)
+		{	//TODO:
+			if (commandHistory.Count > 0) {
+				return string.Empty;
+			}
+			return string.Empty;
+		}
+		public void SetCmdLine(string cmdLine)
+		{
+			commandInput.Text = cmdLine;
+		}
+		public void SetFocusCmdline()
+		{
+			commandInput.Focus();
+		}
+		public void TogglePanel()
+		{
+			if (isPanelShow)
+				mainPanel.Hide();
+			else
+				mainPanel.Show();
+			isPanelShow = !isPanelShow;
+		}
 		private void TransferModeButton_Click(object? sender, EventArgs e)
 		{
 			isBinaryMode = !isBinaryMode;
@@ -146,7 +171,12 @@ namespace zfile
 		{
 			if (e.KeyChar == (char)Keys.Enter)
 			{
+				string lastcmd = string.Empty;
 				SendCommand(commandInput.Text);
+				if(commandHistory.Count > 0) 
+					lastcmd = commandHistory.Last();
+				if (!lastcmd.Equals(commandInput.Text))
+					commandHistory.Add(commandInput.Text);
 				commandInput.Clear();
 				e.Handled = true;
 			}

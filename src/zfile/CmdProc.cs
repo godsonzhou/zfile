@@ -349,12 +349,28 @@ namespace zfile
 					case 2002:
 						do_cm_gotoparent();
 						break;
+					case 2004:
+						do_cm_clearcommand();
+						break;
+					case 2005:
+						do_cm_nextcommand();
+						break;
+					case 2006:
+						do_cm_prevcommand();
+						break;
+
+					case 2011: //命令ID=2011,Name=cmswitchhidsy
+						do_cm_switchhidsys();
+						break;
 
 					case 2017: // cm_CopyNamesToClip
 						do_cm_CopyNamesToClip();
 						break;
 					case 2018: // cm_CopyFullNamesToClip 
 						do_cm_CopyFullNamesToClip();
+						break;
+					case 2019: // 命令ID = 2019, Name = cm_addpathtocmdline
+						do_cm_addpathtocmdline();
 						break;
 
 					case 2020: // cm_filesync
@@ -432,12 +448,39 @@ namespace zfile
 					case 2400: // cm_multirename
 						ShowMultiRenameDialog();
 						break;
+					case 2901:
+						do_cm_visbuttonbar();
+						break;
+					case 2902: //命令ID=2902,Name=cmvisdrivebuttons
+						do_cm_visdrivebuttons();
+						break;
+					case 2906:
+						do_cm_visdrivecombo();
+						break;
+					case 2909:
+						do_cm_visstatusbar();
+						break;
+
+					case 2910:
+						do_cm_viscmdline();
+						break;
+					case 2911: // 命令ID=2911,Name=cm_viskeybuttons
+						do_cm_viskeybuttons();
+						break;
 					case 2916: // 命令ID=2916,Name=cm_visdirtabs
 						do_cm_visdirtabs();
 						break;
+					case 2917: // 命令ID=2917，Name=cmswitchoverlayicons
+						do_cm_switchoverlayicons();
+						break;
+
 					case 2924:  //命令ID=2924,Name=cm_commandbrowser尚未实现
 						ShowCommandBrowser();
 						break;
+					case 2944:
+						do_cm_visbuttonbar2();
+						break;
+
 					case 2950:
 						owner.ThemeToggle();
 						break;
@@ -469,6 +512,9 @@ namespace zfile
 
 					case 3026: // cm_listExternal
 						do_cm_listExternal(param);
+						break;
+					case 4003:
+						do_cm_focuscmdline();
 						break;
 
 					case 5001: // 命令ID=5001,Name =cm_srcactivatetab1
@@ -533,7 +579,63 @@ namespace zfile
 			//	throw new KeyNotFoundException("命令ID不存在");
 			//}
 		}
-		private string do_cm_apicaller(string url, string apiKey, string param)
+		private void do_cm_switchoverlayicons()
+		{
+
+		}
+		private void do_cm_visstatusbar()
+		{
+
+		}
+		private void do_cm_visdrivecombo()
+		{
+
+		}
+		private void do_cm_visdrivebuttons()
+		{
+
+		}
+		private void do_cm_switchhidsys()
+		{
+
+		}
+		private void do_cm_prevcommand()
+		{
+			owner.uiManager.ftpController.GetCmdHistory(-1);
+		}
+		private void do_cm_nextcommand()
+		{
+			owner.uiManager.ftpController.GetCmdHistory(1);
+		}
+		private void do_cm_clearcommand()
+		{
+			owner.uiManager.ftpController.SetCmdLine("");
+		}
+		private void do_cm_addpathtocmdline()
+		{
+			owner.uiManager.ftpController.SetCmdLine(owner.uiManager.ActivePathTextBox.CurrentNode.UniqueID);
+		}
+		private void do_cm_viskeybuttons()
+		{
+			owner.uiManager.ToggleToolStrip();
+		}
+		private void do_cm_visbuttonbar()
+		{
+			owner.uiManager.toolbarManager.TogglePanel();
+		}
+		private void do_cm_visbuttonbar2()
+		{
+			owner.uiManager.vtoolbarManager.TogglePanel();
+		}
+		private void do_cm_viscmdline()
+		{
+			owner.uiManager.ftpController.TogglePanel();
+		}
+		private void do_cm_focuscmdline()
+		{
+			owner.uiManager.ftpController.SetFocusCmdline();
+		}
+		private string do_cm_apicaller(string url = "http://v.juhe.cn/toutiao/index", string apiKey = "de73e15a67f8b359d4ec409ae3e63aed", string param = "type=keji")
 		{
 			//string url = "http://v.juhe.cn/toutiao/index";
 			//string apiKey = "您申请的调用APIkey";

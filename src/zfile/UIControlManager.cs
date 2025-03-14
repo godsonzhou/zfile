@@ -33,6 +33,7 @@ namespace zfile
 		public ComboBox RightDriveComboBox { get; } = new();
 		public ShengAddressBarStrip LeftPathTextBox { get; } = new();
 		public ShengAddressBarStrip RightPathTextBox { get; } = new();
+		public ShengAddressBarStrip ActivePathTextBox { get => (isleft? LeftPathTextBox : RightPathTextBox); }
 		#endregion
 
 		#region View Controls
@@ -69,6 +70,8 @@ namespace zfile
 		public ToolbarManager toolbarManager;
 		public ToolbarManager vtoolbarManager;
 		public FtpController ftpController;
+		public ToolStrip toolStrip;
+		private bool isToolStripHidden;
 
 		public bool isleft { get; set; } = true;
 		public string leftDir => LeftPathTextBox?.CurrentNode?.UniqueID ;
@@ -672,9 +675,16 @@ namespace zfile
 			button.Click += onClick;
 			return button;
 		}
+		public void ToggleToolStrip()
+		{
+			if (isToolStripHidden)
+				toolStrip.Show();
+			else toolStrip.Hide();
+			isToolStripHidden = !isToolStripHidden;
+		}
 		public void InitializeToolStrip()
 		{
-			ToolStrip toolStrip = new ToolStrip
+			toolStrip = new ToolStrip
 			{
 				Dock = DockStyle.Bottom
 			};

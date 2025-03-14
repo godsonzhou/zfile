@@ -556,7 +556,9 @@ namespace zfile
 						else
 							do_cm_apicaller(parameters[0], parameters[1], parameters[2]);	//
 						break;
-
+					case 11438: // mcp client
+						do_cm_mcpclient(param);
+						break;
 					case 24340:
 						Form1.ExitApp();
 						break;
@@ -578,6 +580,10 @@ namespace zfile
 			//{
 			//	throw new KeyNotFoundException("命令ID不存在");
 			//}
+		}
+		private void do_cm_mcpclient(string param)
+		{
+			Task.Run(async () => { await MCP.Launcher([param]); });
 		}
 		private void do_cm_switchoverlayicons()
 		{

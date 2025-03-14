@@ -1,5 +1,7 @@
 using FluentFTP;
+using System.Diagnostics;
 using System.Text;
+using static OpenQA.Selenium.BiDi.Modules.BrowsingContext.Locator;
 namespace zfile
 {
     /// <summary>
@@ -57,6 +59,7 @@ namespace zfile
             return sb.ToString();
         }
         private FtpClient _client;
+		private AsyncFtpClient _clientAsync;
         private string _currentPath = "/";
         private string _ftpHost;
         private string _connectionName;
@@ -181,7 +184,47 @@ namespace zfile
                 return null;
             }
         }
+		public bool DownloadCanBeResumed()
+		{
+			// 检查服务器是否支持续传
+			if (!_client.HasFeature(FtpCapability.REST))
+			{
+				Debug.Print("服务器不支持断点续传！");
+				return false;
+			}
+			return true;
+		}
+		public CancellationTokenSource DownloadFileAsync(string remotePath)
+		{
+			try
+			{
+				var cts = new CancellationTokenSource();
+				// 创建临时目录
+				string tempDir = Path.Combine(Path.GetTempPath(), "FtpTemp");
+				if (!Directory.Exists(tempDir))
+					Directory.CreateDirectory(tempDir);
 
+				// 生成临时文件路径
+				string fileName = Path.GetFileName(remotePath);
+				string localPath = Path.Combine(tempDir, fileName);
+
+				await _client.DownloadFileAsync(
+					localPath: localPath,
+					remotePath: remotePath,
+					existsMode: FtpRemoteExists.Resume,
+					cancellationToken: cts.Token
+				);
+				Debug.Print("下载完成！");
+			}
+			catch (OperationCanceledException)
+			{
+				Debug.Print("下载已取消，可稍后恢复。");
+			}
+			catch (Exception ex)
+			{
+				Debug.Print($"下载失败: {ex.Message}");
+			}
+		}
         /// <summary>
         /// 上传文件到FTP服务器
         /// </summary>

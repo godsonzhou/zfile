@@ -1,6 +1,7 @@
 namespace zfile
 {
 	using System;
+	using System.ComponentModel;
 
 	public class ThemeManager : IDisposable
 	{
@@ -37,6 +38,39 @@ namespace zfile
 			this.rightPreview = rightPreview;
 			this.leftStatusStrip = leftStatusStrip;
 			this.rightStatusStrip = rightStatusStrip;
+
+			// 注册Application.OpenForms的FormAdded事件
+			//Application.OpenForms.CollectionChanged += OpenForms_CollectionChanged;
+		}
+
+		private void OpenForms_CollectionChanged(object sender, CollectionChangeEventArgs e)
+		{
+			if (e.Action == CollectionChangeAction.Add && e.Element is Form form)
+			{
+				// 当新窗体被添加时，根据当前主题模式应用相应的主题
+				if (IsDarkMode)
+				{
+					ApplyDarkThemeToForm(form);
+				}
+				else
+				{
+					ApplyLightThemeToForm(form);
+				}
+			}
+		}
+
+		private void ApplyDarkThemeToForm(Form form)
+		{
+			form.BackColor = Color.FromArgb(45, 45, 48);
+			form.ForeColor = Color.White;
+			ApplyDarkThemeToControls(form.Controls);
+		}
+
+		private void ApplyLightThemeToForm(Form form)
+		{
+			form.BackColor = SystemColors.Control;
+			form.ForeColor = SystemColors.ControlText;
+			ApplyLightThemeToControls(form.Controls);
 		}
 
 		public void ApplyDarkTheme()
@@ -368,8 +402,8 @@ namespace zfile
 			{
 				if (disposing)
 				{
-					// 释放托管资源
-					// 这里不需要释放控件，因为它们是由 Form 管理的
+					// 取消注册事件处理程序
+					//Application.OpenForms.CollectionChanged -= OpenForms_CollectionChanged;
 				}
 
 				// 释放非托管资源

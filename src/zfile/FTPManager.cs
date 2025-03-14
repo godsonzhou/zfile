@@ -1781,7 +1781,8 @@ namespace zfile
 							string localFilePath = Path.Combine(localPath, fileName);
 
 							// 下载文件
-							_currentFtpSource.Client.DownloadFile(localFilePath, remotePath);
+							//_currentFtpSource.Client.DownloadFile(localFilePath, remotePath);
+							ActiveClient.DownloadFile(localFilePath, remotePath);
 
 							// 从列表中移除已下载文件
 							fileList.RemoveAt(i);

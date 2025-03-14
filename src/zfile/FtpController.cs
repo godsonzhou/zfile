@@ -8,7 +8,7 @@ namespace zfile
 	public class FtpController : IDisposable
 	{
 		private readonly Form1 parentForm;
-		private readonly FTPMGR ftpManager;
+		private readonly AsyncFTPMGR ftpManager;
 
 		// UI Controls
 		private Panel mainPanel;
@@ -25,7 +25,7 @@ namespace zfile
 		private List<string> commandHistory = new List<string>();
 		private int cmdHistoryIndex = 0;
 
-		public FtpController(Form1 parentForm, FTPMGR ftpManager)
+		public FtpController(Form1 parentForm, AsyncFTPMGR ftpManager)
 		{
 			this.parentForm = parentForm;
 			this.ftpManager = ftpManager;
@@ -252,7 +252,7 @@ namespace zfile
 				if (ftpManager.ActiveClient != null && isFtpConnected)
 				{
 					var response = ftpManager.ActiveClient.Execute(command);
-					Debug.Print(response.Message);
+					//Debug.Print(response.Message);
 				}
 				else
 				{

@@ -4,6 +4,19 @@ using System.Net;
 
 namespace zfile
 {
+	public class FtpConnectionConfig
+	{
+		public string SessionName { get; set; } = string.Empty;
+		public string HostName { get; set; } = string.Empty;
+		public int Port { get; set; } = 21;
+		public bool UseSsl { get; set; }
+		public string UserName { get; set; } = string.Empty;
+		public string Password { get; set; } = string.Empty;
+		public string RemoteDirectory { get; set; } = "/";
+		public string LocalDirectory { get; set; } = string.Empty;
+		public bool UsePassiveMode { get; set; } = true;
+		public bool UseFirewall { get; set; }
+	}
 	public class FtpConnectionInfo
 	{
 		/// <summary>
@@ -105,9 +118,664 @@ namespace zfile
 		{
 
 		}
-		public void AddToDownloadList(FtpFileSource source, string path, bool isDirectory)
+	
+		//添加新的私有方法来处理 FTP 连接管理器
+		public void ShowFtpConnectionForm()
 		{
+			ftpConnMgrform = new Form
+			{
+				Text = "FTP 连接管理器",
+				Size = new Size(600, 500),
+				StartPosition = FormStartPosition.CenterParent,
+				FormBorderStyle = FormBorderStyle.FixedDialog,
+				MaximizeBox = false,
+				MinimizeBox = false
+			};
 
+			// 创建按钮面板
+			var buttonPanel = new FlowLayoutPanel
+			{
+				Location = new Point(10, 320),
+				Size = new Size(365, 130),
+				FlowDirection = FlowDirection.TopDown,
+				WrapContents = false,
+				AutoSize = true
+			};
+			var buttonWidth = 150;
+			var btnConnect = new Button { Text = "连接(&C)", Width = buttonWidth };
+			var btnNewConnection = new Button { Text = "新建连接(&N)...", Width = buttonWidth };
+			var btnNewUrl = new Button { Text = "新建网址(&U)...", Width = buttonWidth };
+			var btnCopyConnection = new Button { Text = "复制连接(&P)", Width = buttonWidth };
+			var btnNewFolder = new Button { Text = "新建文件夹(&F)", Width = buttonWidth };
+			var btnEditConnection = new Button { Text = "编辑连接(&E)", Width = buttonWidth };
+			var btnDeleteConnection = new Button { Text = "删除连接(&D)", Width = buttonWidth };
+			var btnEncrypt = new Button { Text = "加密(&Y)", Width = buttonWidth };
+			var btnClose = new Button { Text = "关闭", Width = buttonWidth };
+
+			// 添加按钮事件处理
+			btnConnect.Click += connectButton_click;
+
+			btnNewConnection.Click += (s, e) =>
+			{
+				//  调用 FtpMgr.CreateNewConnection 方法
+				EditConnectionDialog();
+			};
+
+			btnNewUrl.Click += (s, e) =>
+			{
+				// 调用 FtpMgr.CreateNewUrl 方法
+				ShowNewUrlDialog();
+			};
+
+			btnCopyConnection.Click += (s, e) =>
+			{
+				if (ftplistView.SelectedItems.Count > 0)
+				{
+					// 调用 FtpMgr.CopyConnection 方法
+					var selectedItem = ftplistView.SelectedItems[0];
+					CopyFtpConnection(selectedItem.Text);
+				}
+			};
+
+			btnNewFolder.Click += (s, e) =>
+			{
+				// 调用 FtpMgr.CreateNewFolder 方法
+				ShowNewFolderDialog();
+			};
+
+			btnEditConnection.Click += (s, e) =>
+			{
+				if (ftplistView.SelectedItems.Count > 0)
+				{
+					// 调用 FtpMgr.EditConnection 方法
+					var selectedItem = ftplistView.SelectedItems[0];
+					EditFtpConnection(selectedItem.Text);
+				}
+			};
+
+			btnDeleteConnection.Click += (s, e) =>
+			{
+				if (ftplistView.SelectedItems.Count > 0)
+				{
+					if (MessageBox.Show("确定要删除选中的连接吗？", "确认删除",
+						MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+					{
+						//  调用 FtpMgr.DeleteConnection 方法
+						var selectedItem = ftplistView.SelectedItems[0];
+						DeleteFtpConnection(selectedItem.Text);
+						ftplistView.Items.Remove(selectedItem);
+					}
+				}
+			};
+
+			btnEncrypt.Click += (s, e) =>
+			{
+				// 调用 FtpMgr.EncryptConnections 方法
+				EncryptFtpConnections();
+			};
+
+			btnClose.Click += (s, e) => ftpConnMgrform.Close();
+
+			// 将按钮添加到面板
+			buttonPanel.Controls.AddRange(new Control[] {
+							btnConnect, btnNewConnection, btnNewUrl,
+							btnCopyConnection, btnNewFolder, btnEditConnection,
+							btnDeleteConnection, btnEncrypt, btnClose
+						});
+			buttonPanel.Dock = DockStyle.Right;
+			// 添加控件到窗体
+			ftpConnMgrform.Controls.Add(ftplistView);
+			ftpConnMgrform.Controls.Add(buttonPanel);
+
+			// 加载现有FTP连接
+			ReloadListview(ftplistView);
+
+			// 显示窗体
+			ftpConnMgrform.ShowDialog();
+		}
+		private void EditFtpConnection(string connectionName)
+		{
+			EditConnectionDialog(connectionName);
+		}
+
+		private void DeleteFtpConnection(string connectionName)
+		{
+			DeleteConnection(connectionName);
+		}
+		public bool DeleteConnection(string name)
+		{
+			if (!_connections.ContainsKey(name))
+			{
+				return false;
+			}
+
+			// 如果是当前活动连接，先断开
+			if (_activeClient != null && _activeClient.IsConnected &&
+				_connections[name].Host == _activeClient.Host &&
+				_connections[name].Credentials.UserName == _activeClient.Credentials.UserName)
+			{
+				_activeClient.Disconnect();
+				_activeClient = null;
+			}
+
+			return _connections.Remove(name);
+		}
+		private void EncryptFtpConnections()
+		{
+		}
+		private void ShowNewUrlDialog()
+		{
+			// 实现新建URL对话框
+			var form = new Form
+			{
+				Text = "新建 FTP 网址",
+				Size = new Size(400, 200),
+				StartPosition = FormStartPosition.CenterParent,
+				FormBorderStyle = FormBorderStyle.FixedDialog,
+				MaximizeBox = false,
+				MinimizeBox = false
+			};
+
+			// TODO: 添加URL配置界面元素和处理逻辑
+		}
+
+		private void ShowNewFolderDialog()
+		{
+			// 实现新建文件夹对话框
+			var folderName = Microsoft.VisualBasic.Interaction.InputBox(
+				"请输入文件夹名称：",
+				"新建文件夹",
+				"新建文件夹");
+
+			if (!string.IsNullOrEmpty(folderName))
+			{
+				// TODO: 调用 FtpMgr 创建文件夹
+			}
+		}
+
+		private void CopyFtpConnection(string connectionName)
+		{
+			CopyConnection(connectionName, connectionName + "_Copy");
+			ReloadListview(ftplistView);
+		}
+		/// <summary>
+		/// 复制连接配置
+		/// </summary>
+		/// <param name="sourceName">源连接名称</param>
+		/// <param name="targetName">目标连接名称</param>
+		/// <returns>是否复制成功</returns>
+		public bool CopyConnection(string sourceName, string targetName)
+		{
+			if (!_connections.ContainsKey(sourceName) || _connections.ContainsKey(targetName))
+			{
+				return false;
+			}
+
+			var source = _connections[sourceName];
+			var target = new FtpConnectionInfo
+			{
+				Name = targetName,
+				Host = source.Host,
+				Credentials = new NetworkCredential(source.Credentials.UserName, source.Credentials.Password),
+				Port = source.Port,
+				Config = source.Config?.Clone(),
+				EncryptionMode = source.EncryptionMode,
+				Logger = source.Logger
+			};
+
+			_connections.Add(targetName, target);
+			return true;
+		}
+		public void EditConnectionDialog(string connectionName = "")
+		{
+			FtpConnectionInfo connection = new();
+			bool isEditMode = false;
+			if (!string.IsNullOrWhiteSpace(connectionName))
+			{
+				connection = _connections[connectionName];
+				isEditMode = true;
+			}
+
+			var form = new Form
+			{
+				Text = isEditMode ? "编辑FTP连接" : "新建FTP连接",
+				Width = 450,
+				Height = 500,
+				FormBorderStyle = FormBorderStyle.FixedDialog,
+				StartPosition = FormStartPosition.CenterParent,
+				MaximizeBox = false,
+				MinimizeBox = false,
+				Padding = new Padding(10)
+			};
+
+			// 创建界面元素
+			var sessionLabel = new Label { Text = "会话(&S):", Location = new Point(10, 20) };
+			var sessionTextBox = new TextBox
+			{
+				Location = new Point(150, 17),
+				Width = 250,
+				ReadOnly = isEditMode,
+				Text = isEditMode ? connection.Name : ""
+			};
+
+			var hostLabel = new Label { Text = "主机名[端口](&H):", Location = new Point(10, 50) };
+			var hostTextBox = new TextBox
+			{
+				Location = new Point(150, 47),
+				Width = 200,
+				Text = isEditMode ? connection.Host : ""
+			};
+			var portTextBox = new TextBox
+			{
+				Location = new Point(360, 47),
+				Width = 40,
+				Text = isEditMode ? connection.Port.ToString() : "21"
+			};
+
+			var sslCheckBox = new CheckBox
+			{
+				Text = "SSL/TLS",
+				Location = new Point(150, 80),
+				AutoSize = true,
+				Checked = isEditMode ? connection.EncryptionMode.HasValue &&
+				 connection.EncryptionMode.Value != FluentFTP.FtpEncryptionMode.None : false
+			};
+
+			var userLabel = new Label { Text = "用户名(&U):", Location = new Point(10, 110) };
+			var userTextBox = new TextBox
+			{
+				Location = new Point(150, 107),
+				Width = 250,
+				Text = isEditMode ? connection.Credentials.UserName : ""
+			};
+
+			var passwordLabel = new Label { Text = "密码(&P):", Location = new Point(10, 140) };
+			var passwordTextBox = new TextBox
+			{
+				Location = new Point(150, 137),
+				Width = 250,
+				PasswordChar = '*',
+				Text = isEditMode ? connection.Credentials.Password : ""
+			};
+
+			var passwordWarning = new Label
+			{
+				Text = "警告：保存密码不安全！",
+				Location = new Point(150, 167),
+				ForeColor = Color.Red,
+				AutoSize = true
+			};
+
+			var remoteLabel = new Label { Text = "远程文件夹(&D):", Location = new Point(10, 200) };
+			var remoteTextBox = new TextBox
+			{
+				Location = new Point(150, 197),
+				Width = 250,
+				Text = "/"
+			};
+
+			var localLabel = new Label { Text = "本地文件夹(&L):", Location = new Point(10, 230) };
+			var localTextBox = new TextBox
+			{
+				Location = new Point(150, 227),
+				Width = 250
+			};
+			var browseButton = new Button
+			{
+				Text = "...",
+				Location = new Point(410, 226),
+				Width = 30
+			};
+
+			var passiveModeCheckBox = new CheckBox
+			{
+				Text = "使用被动模式传输",
+				Location = new Point(150, 260),
+				AutoSize = true,
+				Checked = true
+			};
+
+			var firewallCheckBox = new CheckBox
+			{
+				Text = "使用防火墙（代理服务）",
+				Location = new Point(150, 290),
+				AutoSize = true
+			};
+
+			// 添加确定和取消按钮
+			var okButton = new Button
+			{
+				Text = "确定",
+				DialogResult = DialogResult.OK,
+				Location = new Point(150, 380)
+			};
+
+			var cancelButton = new Button
+			{
+				Text = "取消",
+				DialogResult = DialogResult.Cancel,
+				Location = new Point(270, 380)
+			};
+
+			// 添加浏览按钮事件处理
+			browseButton.Click += (s, e) =>
+			{
+				using var dialog = new FolderBrowserDialog();
+				if (dialog.ShowDialog() == DialogResult.OK)
+				{
+					localTextBox.Text = dialog.SelectedPath;
+				}
+			};
+
+			// 添加确定按钮事件处理
+			okButton.Click += (s, e) =>
+			{
+				if (string.IsNullOrWhiteSpace(sessionTextBox.Text))
+				{
+					MessageBox.Show("请输入会话名称", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					return;
+				}
+
+				if (string.IsNullOrWhiteSpace(hostTextBox.Text))
+				{
+					MessageBox.Show("请输入主机名", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					return;
+				}
+
+				if (!int.TryParse(portTextBox.Text, out int port) || port <= 0 || port > 65535)
+				{
+					MessageBox.Show("请输入有效的端口号(1-65535)", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					return;
+				}
+				if (isEditMode)
+				{
+					try
+					{
+						// 更新连接配置
+						if (ChangeConnection(
+							connectionName,
+							hostTextBox.Text,
+							userTextBox.Text,
+							passwordTextBox.Text,
+							port,
+							sslCheckBox.Checked ? FluentFTP.FtpEncryptionMode.Explicit : FluentFTP.FtpEncryptionMode.None))
+						{
+							// 如果当前连接是活动连接，则断开重连
+							if (_activeClient != null && _activeClient.IsConnected &&
+								_connections[connectionName].Host == _activeClient.Host &&
+								_connections[connectionName].Credentials.UserName == _activeClient.Credentials.UserName)
+							{
+								try
+								{
+									Connect(connectionName);
+								}
+								catch (Exception ex)
+								{
+									MessageBox.Show($"重新连接时出错: {ex.Message}", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+								}
+							}
+
+							MessageBox.Show("连接配置已更新", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+							form.DialogResult = DialogResult.OK;
+							form.Close();
+						}
+						else
+						{
+							MessageBox.Show("更新连接配置失败", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+						}
+					}
+					catch (Exception ex)
+					{
+						MessageBox.Show($"更新连接时出错: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					}
+				}
+				else
+				{
+					// 创建配置对象
+					var config = new FtpConnectionConfig
+					{
+						SessionName = sessionTextBox.Text,
+						HostName = hostTextBox.Text,
+						Port = port,
+						UseSsl = sslCheckBox.Checked,
+						UserName = userTextBox.Text,
+						Password = passwordTextBox.Text,
+						RemoteDirectory = remoteTextBox.Text,
+						LocalDirectory = localTextBox.Text,
+						UsePassiveMode = passiveModeCheckBox.Checked,
+						UseFirewall = firewallCheckBox.Checked
+					};
+					// 保存配置到FtpMgr
+					SaveFtpConnection(config);
+					form.DialogResult = DialogResult.OK;
+					form.Close();
+				}
+				ReloadListview(ftplistView);
+
+			};
+
+			// 将控件添加到窗体
+			form.Controls.AddRange(new Control[] {
+							sessionLabel, sessionTextBox,
+							hostLabel, hostTextBox, portTextBox,
+							sslCheckBox,
+							userLabel, userTextBox,
+							passwordLabel, passwordTextBox,
+							passwordWarning,
+							remoteLabel, remoteTextBox,
+							localLabel, localTextBox, browseButton,
+							passiveModeCheckBox,
+							firewallCheckBox,
+							okButton, cancelButton
+						});
+
+			form.AcceptButton = okButton;
+			form.CancelButton = cancelButton;
+			form.ShowDialog();
+		}
+		private void connectButton_click(object s, EventArgs e)
+		{
+			if (ftplistView.SelectedItems.Count > 0)
+			{
+				var selectedItem = ftplistView.SelectedItems[0];
+				string connectionName = selectedItem.Text;
+				// 调用 FtpMgr.Connect 方法
+				//Connect(selectedItem.Text);//bugfix: connect 不会维护drivecombobox和ftptreenode,改用registerftpconnection
+				if (RegisterFtpConnection(connectionName))
+				{
+					// 获取新添加的FTP节点并设置为活动树的SelectedNode
+					if (_ftpNodes.TryGetValue(connectionName, out TreeNode ftpNode))
+					{
+						// 设置活动树的SelectedNode为新添加的FTP节点
+						form.activeTreeview.SelectedNode = ftpNode;
+
+						// 触发节点双击事件，加载FTP目录内容
+						if (ftpNode.Tag is FtpNodeTag tag)
+						{
+							// 加载FTP目录内容到活动列表视图
+							LoadFtpDirectory(tag.ConnectionName, tag.Path, form.activeListView);
+						}
+					}
+					ftpConnMgrform.Close();
+				}
+			}
+			else
+			{
+				MessageBox.Show("请选择要连接的FTP站点", "提示");
+			}
+		}
+		/// <summary>
+		/// 新建FTP连接配置
+		/// </summary>
+		/// <param name="name">连接名称</param>
+		/// <param name="host">主机地址</param>
+		/// <param name="username">用户名</param>
+		/// <param name="password">密码</param>
+		/// <param name="port">端口号，默认为21</param>
+		/// <param name="encryptionMode">加密模式，默认为None</param>
+		/// <returns>是否创建成功</returns>
+		public bool CreateConnection(string name, string host, string username, string password, int port = 21, FtpEncryptionMode? encryptionMode = null)
+		{
+			if (_connections.ContainsKey(name))
+			{
+				return false; // 连接名已存在
+			}
+
+			var connectionInfo = new FtpConnectionInfo
+			{
+				Name = name,
+				Host = host,
+				Credentials = new NetworkCredential(username, password),
+				Port = port,
+				EncryptionMode = encryptionMode
+			};
+
+			_connections.Add(name, connectionInfo);
+			return true;
+		}
+		private void SaveFtpConnection(FtpConnectionConfig config)
+		{
+			// 可以保存到配置文件或数据库中
+			CreateConnection(config.SessionName, config.HostName, config.UserName, config.Password, config.Port, config.UseSsl ? FtpEncryptionMode.Explicit : FtpEncryptionMode.None);
+		}
+		/// <summary>
+		/// 编辑连接配置
+		/// </summary>
+		/// <param name="name">连接名称</param>
+		/// <param name="host">主机地址</param>
+		/// <param name="username">用户名</param>
+		/// <param name="password">密码</param>
+		/// <param name="port">端口号</param>
+		/// <param name="encryptionMode">加密模式</param>
+		/// <returns>是否编辑成功</returns>
+		public bool ChangeConnection(string name, string host = null, string username = null, string password = null, int? port = null, FtpEncryptionMode? encryptionMode = null)
+		{
+			if (!_connections.ContainsKey(name))
+			{
+				return false;
+			}
+
+			var connection = _connections[name];
+
+			if (host != null)
+			{
+				connection.Host = host;
+			}
+
+			if (username != null && password != null)
+			{
+				connection.Credentials = new NetworkCredential(username, password);
+			}
+			else if (username != null)
+			{
+				connection.Credentials = new NetworkCredential(username, connection.Credentials.Password);
+			}
+			else if (password != null)
+			{
+				connection.Credentials = new NetworkCredential(connection.Credentials.UserName, password);
+			}
+
+			if (port.HasValue)
+			{
+				connection.Port = port.Value;
+			}
+
+			if (encryptionMode.HasValue)
+			{
+				connection.EncryptionMode = encryptionMode;
+			}
+
+			return true;
+		}
+		public void SaveToCfgloader()
+		{
+			// 保存配置到cfgloader
+			try
+			{
+				var connectionsSection = form.ftpconfigLoader.sections.Find(s => s.Name.Equals("connections"));
+				foreach (var i in connectionsSection.Items)
+				{
+					if (i.Key == "default") continue;
+					// 清除已有的FTP相关配置
+					form.ftpconfigLoader.RemoveSection(i.Value);
+				}
+				form.ftpconfigLoader.RemoveSection("connections");
+
+				// 创建connections节的配置项
+				var connectionItems = new List<ConfigItem>();
+				int index = 1;
+				string defaultConnection = "";
+
+				foreach (var conn in _connections)
+				{
+					string sectionName = $"{conn.Key}";
+					defaultConnection = defaultConnection == "" ? conn.Key : defaultConnection;
+
+					// 添加到connections列表
+					connectionItems.Add(new ConfigItem
+					{
+						Key = index.ToString(),
+						Value = conn.Key
+					});
+
+					// 创建每个连接的配置项
+					var connectionConfig = new List<ConfigItem>
+							{
+								new ConfigItem { Key = "host", Value = conn.Value.Host },
+								new ConfigItem { Key = "username", Value = conn.Value.Credentials.UserName },
+								new ConfigItem { Key = "password", Value = conn.Value.Credentials.Password },
+								new ConfigItem { Key = "port", Value = conn.Value.Port.ToString() },
+								new ConfigItem
+								{
+									Key = "pasvmode",
+									Value = (conn.Value.Config?.DataConnectionType == FtpDataConnectionType.AutoPassive
+											|| conn.Value.Config?.DataConnectionType == FtpDataConnectionType.PASV)
+											? "1" : "0"
+								}
+							};
+
+					// 如果有加密模式，添加加密配置
+					if (conn.Value.EncryptionMode.HasValue)
+					{
+						connectionConfig.Add(new ConfigItem
+						{
+							Key = "encryption",
+							Value = conn.Value.EncryptionMode.Value.ToString()
+						});
+					}
+
+					// 添加该连接的配置节
+					form.ftpconfigLoader.AddOrUpdateSection(sectionName, connectionConfig);
+					index++;
+				}
+
+				// 添加默认连接配置
+				connectionItems.Add(new ConfigItem { Key = "default", Value = defaultConnection });
+
+				// 添加connections节
+				form.ftpconfigLoader.AddOrUpdateSection("connections", connectionItems);
+
+				// 保存到文件
+				form.ftpconfigLoader.SaveConfig();
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"保存FTP配置时发生错误: {ex.Message}", "错误",
+					MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+		private void ReloadListview(ListView listView)
+		{
+			//  从 FtpMgr 获取现有连接列表并填充到 ListView
+			listView.Items.Clear();
+			var connections = GetConnections();
+			foreach (var conn in connections)
+			{
+				var item = new ListViewItem(conn.Name);
+				item.SubItems.Add(conn.Host);
+				listView.Items.Add(item);
+			}
+			listView.Refresh();
 		}
 		/// <summary>
 		/// 显示FTP项目属性

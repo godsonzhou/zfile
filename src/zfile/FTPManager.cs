@@ -1738,7 +1738,75 @@ namespace zfile
 		}
 		public void ProcessDownloadList()
 		{
+			try
+			{
+				// 检查FTPLIST.TXT是否存在
+				string listFilePath = "FTPLIST.TXT";
+				if (!File.Exists(listFilePath))
+				{
+					MessageBox.Show("下载列表文件不存在", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					return;
+				}
 
+				// 读取所有待下载文件
+				List<string> fileList = File.ReadAllLines(listFilePath).ToList();
+				if (fileList.Count == 0)
+				{
+					MessageBox.Show("下载列表为空", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+					File.Delete(listFilePath);
+					return;
+				}
+
+				// 选择保存目录
+				FolderBrowserDialog dialog = new FolderBrowserDialog
+				{
+					Description = "选择下载目录"
+				};
+
+				if (dialog.ShowDialog() == DialogResult.OK)
+				{
+					string localPath = dialog.SelectedPath;
+					_isDownloading = true;
+
+					// 遍历下载每个文件
+					for (int i = fileList.Count - 1; i >= 0; i--)
+					{
+						if (!_isDownloading) break; // 检查是否被中止下载
+
+						string remotePath = fileList[i];
+						try
+						{
+							// 获取文件名
+							string fileName = Path.GetFileName(remotePath);
+							string localFilePath = Path.Combine(localPath, fileName);
+
+							// 下载文件
+							_currentFtpSource.Client.DownloadFile(localFilePath, remotePath);
+
+							// 从列表中移除已下载文件
+							fileList.RemoveAt(i);
+							File.WriteAllLines(listFilePath, fileList);
+						}
+						catch (Exception ex)
+						{
+							MessageBox.Show($"下载文件 {remotePath} 失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+						}
+					}
+
+					_isDownloading = false;
+
+					// 如果所有文件都下载完成，删除列表文件
+					if (fileList.Count == 0)
+					{
+						File.Delete(listFilePath);
+						MessageBox.Show("所有文件下载完成", "完成", MessageBoxButtons.OK, MessageBoxIcon.Information);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"处理下载列表失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
 		}
 		public void AbortDownload()
 		{

@@ -601,11 +601,11 @@ namespace zfile
 		}
 		private void do_cm_prevcommand()
 		{
-			owner.uiManager.ftpController.GetCmdHistory(-1);
+			owner.uiManager.ftpController.SetPrevCmd();
 		}
 		private void do_cm_nextcommand()
 		{
-			owner.uiManager.ftpController.GetCmdHistory(1);
+			owner.uiManager.ftpController.SetNextCmd();
 		}
 		private void do_cm_clearcommand()
 		{

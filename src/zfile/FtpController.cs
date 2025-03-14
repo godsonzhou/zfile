@@ -115,11 +115,26 @@ namespace zfile
 			});
 		}
 		public string GetCmdHistory(int i)
-		{	//TODO:
-			if (commandHistory.Count > 0) {
+		{
+			if (commandHistory.Count == 0) {
 				return string.Empty;
 			}
-			return string.Empty;
+
+			// -1 表示获取上一条命令（向上浏览历史）
+			if (i == -1) {
+				if (cmdHistoryIndex > 0) {
+					cmdHistoryIndex--;
+				}
+			}
+			// 1 表示获取下一条命令（向下浏览历史）
+			else if (i == 1) {
+				if (cmdHistoryIndex < commandHistory.Count - 1) {
+					cmdHistoryIndex++;
+				}
+			}
+
+			// 返回当前索引位置的命令
+			return commandHistory[cmdHistoryIndex];
 		}
 		public void SetCmdLine(string cmdLine)
 		{
@@ -166,7 +181,31 @@ namespace zfile
 		{
 			parentForm.fTPMGR.CloseConnection();
 		}
-
+		public void SetPrevCmd(){
+			if (commandHistory.Count > 0)
+			{
+				string prevCmd = GetCmdHistory(-1);
+				if (!string.IsNullOrEmpty(prevCmd))
+				{
+					SetCmdLine(prevCmd);
+				}
+			}
+		}
+		public void SetNextCmd(){
+		if (commandHistory.Count > 0 && cmdHistoryIndex < commandHistory.Count)
+				{
+					string nextCmd = GetCmdHistory(1);
+					if (!string.IsNullOrEmpty(nextCmd))
+					{
+						SetCmdLine(nextCmd);
+					}
+					else
+					{
+						// 如果已经到达历史记录的末尾，清空输入框
+						SetCmdLine(string.Empty);
+					}
+				}
+		}
 		private void CommandInput_KeyPress(object? sender, KeyPressEventArgs e)
 		{
 			if (e.KeyChar == (char)Keys.Enter)
@@ -175,9 +214,22 @@ namespace zfile
 				SendCommand(commandInput.Text);
 				if(commandHistory.Count > 0) 
 					lastcmd = commandHistory.Last();
-				if (!lastcmd.Equals(commandInput.Text))
+				if (!string.IsNullOrEmpty(commandInput.Text) && !lastcmd.Equals(commandInput.Text))
 					commandHistory.Add(commandInput.Text);
+				
+				// 添加新命令后，将历史索引重置到最新位置
+				cmdHistoryIndex = commandHistory.Count;
 				commandInput.Clear();
+				e.Handled = true;
+			}
+			else if (e.KeyChar == (char)Keys.Up || e.KeyChar == 38) // 上箭头键
+			{
+				SetPrevCmd();
+				e.Handled = true;
+			}
+			else if (e.KeyChar == (char)Keys.Down || e.KeyChar == 40) // 下箭头键
+			{
+				SetNextCmd();
 				e.Handled = true;
 			}
 		}

@@ -680,7 +680,12 @@ namespace zfile
 		{
 			owner.uiManager.ftpController.SetFocusCmdline();
 		}
-		private string do_cm_apicaller(string url = "http://v.juhe.cn/toutiao/index", string apiKey = "de73e15a67f8b359d4ec409ae3e63aed", string param = "type=keji")
+		private void do_cm_apicaller(string url, string key, string param){
+			APICallerForm form = new APICallerForm(url, key, param);
+			form.Tag = this;
+			form.ShowDialog();
+		}
+		public string cm_apicaller(string url = "http://v.juhe.cn/toutiao/index", string apiKey = "de73e15a67f8b359d4ec409ae3e63aed", string param = "type=keji")
 		{
 			//string url = "http://v.juhe.cn/toutiao/index";
 			//string apiKey = "您申请的调用APIkey";

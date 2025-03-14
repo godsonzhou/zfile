@@ -23,14 +23,15 @@
 		}
 		public string GetCmdByKey(string key)
 		{
-			if (keymap.TryGetValue(key, out var keydef))
+			if (keymap.TryGetValue(key.ToUpper(), out var keydef))
 				return keydef.Cmd;
 			return "";
 		}
 		public void Add(string key, string cmd, bool iswin)
 		{
-			var keydef = new KeyDef(iswin ? "#" + key : key, cmd);
-			keymap[key] = keydef;
+			var k = iswin ? "#" + key : key;
+			var keydef = new KeyDef(k, cmd);
+			keymap[k] = keydef;
 			cmdmap[cmd] = keydef;
 		}
 		public KeyDef? GetByKey(string key)

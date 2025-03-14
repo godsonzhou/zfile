@@ -268,38 +268,38 @@ namespace zfile
         }
 		private void Form1_KeyUp(object sender, KeyEventArgs e)
 		{
-			if(e.KeyCode == Keys.Shift)	
+			if(e.Shift)	
 				shiftKeyPressed = false;
-			if (e.KeyCode == Keys.Alt)
+			if (e.Alt)
 				altKeyPressed = false;
-			if (e.KeyCode == Keys.ControlKey)
+			if (e.Control)
 				ctrlKeyPressed = false;
 			if (e.KeyCode == Keys.LWin || e.KeyCode == Keys.RWin)
 				winKeyPressed = false;
 		}
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-			if(e.KeyCode == Keys.Shift) 
+			if(e.Shift) 
 				shiftKeyPressed = true;
-			if (e.KeyCode == Keys.Alt) 
+			if (e.Alt) 
 				altKeyPressed = true;
-			if(e.KeyCode == Keys.ControlKey) 
+			if(e.Control) 
 				ctrlKeyPressed = true;
 			if(e.KeyCode == Keys.LWin || e.KeyCode == Keys.RWin)
 				winKeyPressed = true;
-
-			if (hotkeyMappings.TryGetValue(e.KeyData, out string cmdName))
-                cmdProcessor.ExecCmd(cmdName);
-            //else if (e.KeyCode == Keys.T)
-            //    AddCurrentPathToBookmarks();
-			else
+			
+			var specKey = (winKeyPressed ? "#" : "") + (altKeyPressed ? "A" : "") + (ctrlKeyPressed ? "C" : "") + (shiftKeyPressed ? "S" : "");
+			var mainKey = Helper.ConvertKeyToString(e.KeyCode);
+			if (mainKey.Equals(string.Empty))
 			{
-				var specKey = (winKeyPressed ? "#" : "") + (altKeyPressed ? "A" : "") + (ctrlKeyPressed ? "C" : "") + (shiftKeyPressed ? "S" : "");
-				var mainKey = Helper.ConvertKeyToString(e.KeyCode);
-				var cmd = keyManager.GetCmdByKey(specKey.Length != 0 ? $"{specKey}+{mainKey}" : mainKey);
-				if(!cmd.Equals(string.Empty))
-					cmdProcessor.ExecCmd(cmd);
+				e.Handled = true;
+				return;
 			}
+			var cmd = keyManager.GetCmdByKey(specKey.Length != 0 ? $"{specKey}+{mainKey}" : mainKey);
+			if(!cmd.Equals(string.Empty))
+				cmdProcessor.ExecCmd(cmd);
+			else if (hotkeyMappings.TryGetValue(e.KeyData, out string cmdName))
+				cmdProcessor.ExecCmd(cmdName);
 			e.Handled = true;
 		}
         public void ListView_ItemDrag(object? sender, ItemDragEventArgs e)

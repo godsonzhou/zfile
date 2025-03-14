@@ -16,7 +16,7 @@ namespace zfile
 		public readonly CFGLOADER ftpconfigLoader;
 		public readonly CFGLOADER cmdicons_configloader;
 		public readonly IconManager iconManager = new();
-		private readonly ThemeManager themeManager;
+		public readonly ThemeManager themeManager;
 		private readonly FilePreviewManager previewManager = new();
 		public readonly FileSystemManager fsManager = new();
 		public readonly UIControlManager uiManager;

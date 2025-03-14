@@ -17,6 +17,7 @@ namespace zfile
 		private readonly StatusStrip leftStatusStrip;
 		private readonly StatusStrip rightStatusStrip;
 		private bool disposed = false;
+		public bool IsDarkMode;
 
 		public ThemeManager(Form form, ToolStrip toolStrip, ToolStrip vtoolStrip, MenuStrip menuStrip,
 			TreeView leftTree, TreeView rightTree,
@@ -63,6 +64,7 @@ namespace zfile
 
 			// 应用主题到所有子控件
 			ApplyDarkThemeToControls(mainForm.Controls);
+			IsDarkMode = true;
 		}
 
 		public void ApplyLightTheme()
@@ -90,6 +92,7 @@ namespace zfile
 
 			// 应用主题到所有子控件
 			ApplyLightThemeToControls(mainForm.Controls);
+			IsDarkMode = false;
 		}
 
 		private void ApplyMenuStripDarkTheme(MenuStrip menuStrip)

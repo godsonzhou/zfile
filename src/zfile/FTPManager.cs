@@ -1121,6 +1121,13 @@ namespace zfile
 				MinimizeBox = false
 			};
 
+			// 应用主题
+			if (form.themeManager.IsDarkMode)
+			{
+				ftpConnMgrform.BackColor = Color.FromArgb(45, 45, 48);
+				ftpConnMgrform.ForeColor = Color.White;
+			}
+
 			// 创建按钮面板
 			var buttonPanel = new FlowLayoutPanel
 			{
@@ -1130,6 +1137,11 @@ namespace zfile
 				WrapContents = false,
 				AutoSize = true
 			};
+			if (form.themeManager.IsDarkMode)
+			{
+				buttonPanel.BackColor = Color.FromArgb(45, 45, 48);
+				buttonPanel.ForeColor = Color.White;
+			}
 			var buttonWidth = 150;
 			var btnConnect = new Button { Text = "连接(&C)", Width = buttonWidth };
 			var btnNewConnection = new Button { Text = "新建连接(&N)...", Width = buttonWidth };
@@ -1297,6 +1309,13 @@ namespace zfile
 				MinimizeBox = false,
 				Padding = new Padding(10)
 			};
+
+			// 应用主题
+			if (this.form.themeManager.IsDarkMode)
+			{
+				form.BackColor = Color.FromArgb(45, 45, 48);
+				form.ForeColor = Color.White;
+			}
 
 			// 创建界面元素
 			var sessionLabel = new Label { Text = "会话(&S):", Location = new Point(10, 20) };

@@ -38,11 +38,7 @@ namespace zfile
 			this.rightPreview = rightPreview;
 			this.leftStatusStrip = leftStatusStrip;
 			this.rightStatusStrip = rightStatusStrip;
-
-			// 注册Application.OpenForms的FormAdded事件
-			//Application.OpenForms.CollectionChanged += OpenForms_CollectionChanged;
 		}
-
 		private void OpenForms_CollectionChanged(object sender, CollectionChangeEventArgs e)
 		{
 			if (e.Action == CollectionChangeAction.Add && e.Element is Form form)
@@ -72,6 +68,7 @@ namespace zfile
 			form.ForeColor = SystemColors.ControlText;
 			ApplyLightThemeToControls(form.Controls);
 		}
+
 
 		public void ApplyDarkTheme()
 		{
@@ -402,8 +399,8 @@ namespace zfile
 			{
 				if (disposing)
 				{
-					// 取消注册事件处理程序
-					//Application.OpenForms.CollectionChanged -= OpenForms_CollectionChanged;
+					// 释放托管资源
+					// 这里不需要释放控件，因为它们是由 Form 管理的
 				}
 
 				// 释放非托管资源

@@ -101,108 +101,437 @@ namespace zfile
 			
 			setArgs();
 		}
+		/*
+		注意： 所有参数现在都支持下面表单中的子字段：~开始位置，长度。例如：％N:~2,5 或 ％N:~-8,5。要在长度值之后直接追加数字，请使用另一个 "~" 字符，例如：％N:~2,5~2。负值从字符串的末端开始计算。示例：％P:~0,-1 表示从路径中去除反斜杠。
+开始位置数值 -0 具有特殊意义：%N:~-0,20 表示复制文件名中前20个字符（不含扩展名），%N:~-0,-20 表示复制扩展名的前 20个字符（不含文件名）。
+特殊参数：
+? 作为 第一个 参数时，启动程序前显示 对话框 ，列出下列其他参数。您可以在启动程序之前更改参数。甚至可以阻止程序执行。
+%P 插入来源路径，以反斜杠 (\) 结尾。
+%N 插入光标所在的文件名。
+%T 插入当前目标路径，对压缩程序尤其有用。
+%M 插入目标文件夹的当前文件名。
+%O 插入当前文件名，不含扩展名。
+%E 插入当前文件的 扩展名，无前导句号 (.)。
+%B, %B0..%B9
+从路径中添加文件夹（目录）名称（包括来自分支视图的相对路径或搜索结果）。
+%B 或 %B0 = 上级文件夹（父目录）, %B1 = 上两级文件夹（父目录的上级目录），以此类推。
+%BT, %BT0..%BT9
+从目标路径添加文件夹（目录）名称（不包括来自分支视图的相对路径）。
+%BT 或 %BT0 = 上级文件夹（父目录）, %BT1 = 上两级文件夹（父目录的上级目录），以此类推。
+%B-, %B-0..%B-9
+从路径中添加文件夹（目录）名称（不包括来自分支视图的相对路径和空的搜索结果）。
+%B- 或 %B-0 = 上级文件夹（父目录）, %B-1 = 上两级文件夹（父目录的上级目录），以此类推。
+%B+, %B+0..%B+9
+从路径添加文件夹（目录）名称（包括分支视图），从驱动器/服务器名称开始计算：
+%B+ = 包含 ":" 符号在内的驱动器符，%B+0 = 不包含 ":" 符号在内的驱动器符，%B+1 = 第一个文件夹（目录）或共享，%B+2 = 第二个文件夹（目录），以此类推。
+%S 在命令行中插入所有选中文件的文件名。带有空格的文件名将放在双引号 ("") 中。请注意命令行最大长度是 32767 个字符。
+%S10
+在命令行中插入（最多）前 10 个选中文件的文件名。这样可以限定传递给程序的文件名个数。可指定其它数字。
+%P%S
+将所有选定文件的名称插入命令行，带有完整路径。包含空格的名称将被放入到双引号 ("") 中。请不要自行在 %P%S 前后放置引号！
+%R 与 %S 类似，但插入的是目标面板中选定文件的文件名。
+注意：%N 和 %M 插入长文件名，而 %n 和 %m 插入 8.3 DOS 文件名。%P 和 %T 插入长路径名，%p 和 %t 插入短路径名。（%o，%e 和 %s 也是一样）。
+如果直接在 %S 或 %s 前加上 %P 或 %p，%T 或 %t，每个文件的路径名将和文件名一起插入。例如：%P%S 表示插入所有选中文件的长路径名和长文件名。
+%C1 类似于「比较文件内容」功能的第一个参数：第一个选定的文件，或光标下的文件
+%C2 类似于「比较文件内容」功能的第二个参数：第二个选定的文件，或在目标面板中第一个选定的文件，或者是在目标面板中包含相同名称的文件。注意：如果右侧面板处于活动状态并且选定少于2个文件，则 ％C1 和 ％C2 参数会逆转。
+%C3..%C9
+来源面板中选定的第 3 到 9 个文件，如果没有选定足够的文件，则为空。
+%c1..%c9
+类似于 %C1..%C9，但适用于 8.3 (DOS) 格式的文件和路径
+%% 插入百分号 (%)。
+%L、%l、%F、%f、%D、%d、%WL、%WF、%UL、%UF 在临时文件夹中创建包含选定文件和文件夹名字的列表文件，并在命令行中插入该文件的文件名。列表文件在调用程序退出后自动删除。每个命令仅支持一个列表。可创建以下 10 种类型的列表文件：
+%L 包含完整路径的长文件名，例如：c:\Program Files\Long name.exe
+%l （小写 L）包含完整路径的短文件名，例如：C:\PROGRA~1\LONGNA~1.EXE
+%F 不含路径的长文件名，例如：Long name.exe
+%f 不含路径的短文件名，例如：LONGNA~1.EXE
+%D 包含完整路径的短文件名，但重音使用 DOS 字符集。
+%d 不含路径的短文件名，但重音使用 DOS 字符集。
+%Q 当名称包含空格时，关闭某些参数（如：%P%N）的自动引号。然后用户必须自行放置它们。
+%UL, %UF 与 %L 和 %F 类似，但列表文件是 UTF-8 格式（带有字节顺序标志 BOM）。
+%WL, %WF 与 %L 和 %F 类似，但列表文件是 UTF-16 格式（带有字节顺序标志 BOM）。
+%v 在 “虚拟面板” 等文件系统插件中插入虚拟文件名，其中 %N 粘贴为入口点的真实文件（在文件系统中）的名称
+%V 类似于 %v，但包括完整路径（包括插件名称）
+%X 将本参数后面的下列参数解释为左/右面板而非来源/目标面板的的参数：
+  %P、%p （左侧路径）；%T、%t （右侧路径）；%N、%n （左侧文件名）；%M、%m （右侧文件名）；
+  %S、%s （左侧选定文件）；%R、%r （右侧选定文件）
+  示例： %X%P %T  传递左侧路径和右侧路径到外部同步工具等程序
+%x 将本参数后面的参数仍解释为来源/目标面板参数。
+  示例： %X%P %x%P 传递左侧和来源面板的路径到将要调用的程序
+%Y 参数中的任何位置：使用某个像 %L 这样的列表参数时将空列表传递给程序。否则，将传递光标下的文件。
+%Z 参数中的任何位置：进入压缩文件时，%P 或 %T 代表压缩文件名，并作为路径参数传递给外部程序。
+  示例： %Z%P 将压缩文件名传递给外部工具（当 TC 显示压缩文件内容时）。
+		*/
 		public void setArgs()
 		{
-			/*
-			 * ? 为 第一个 参数时，启动程序前显示对话框，列出其余参数，允许你修改，甚至中止程序运行
-			%P 插入来源路径，以反斜杠() 结尾。
-			%N 插入光标所在的文件名。
-			%T 插入当前目标路径，对压缩程序尤其有用。
-			%M 插入目标文件夹的当前文件名。
-			%O 插入当前文件名，不含扩展名。
-			%E 插入当前文件的 扩展名 （无前导句号）。
-			%S 插入所有选中文件的文件名。包含空格的名字放在双引号中。请注意命令行最大长度是32767个字符。
-			%S10 插入（最多）前10个选中文件的文件名。这样可以限定传递给程序的文件名个数。可指定其它数字。
-			%P%S 插入所有选中文件的全路径文件名。包含空格的名字将放在双引号中。不要自己在%P%S前后加双引号！
-			注释: %N 和 %M 插入长文件名，而%n 和 %m 插入8.3 DOS文件名。%P 和 %T 插入长路径名，%p 和 %t 插入短路径名。（%o，%e和%s同样）
-			如果直接在%S或%s前写%P，%p，%T或%t，将插入每个文件的路径名+文件名。例如：%P%S代表所有选中文件的长路径名和长文件名。
-			%% 插入百分号。
-			%L, %l, %F, %f, %D, %d 在TEMP文件夹创建包含选定文件和文件夹名字的列表文件，并插入该文件的名字。列表文件在调用程序退出后自动删除。可创建以下6种列表文件：
-			%L 包含完整路径的长文件名，如，c:\Program Files\Long name.exe
-			%l (小写L) 包含完整路径的短文件名，如，C:\PROGRA1\LONGNA1.EXE
-			%F 不含路径的长文件名，如，Long name.exe
-			%f 不含路径的短文件名，如，LONGNA~1.EXE
-			%D 包含完整路径的短文件名，重音（accent）使用DOS字符集。
-			%d 不含路径的短文件名，重音（accent）使用DOS字符集。
-			仅用于命令别名：
-			%A 插入已输入的命令行的其余部分。
-			%A1..%A9 插入第1至第9个参数。
-			例如，别名op代表命令：totalcmd.exe 参数：/L=%A1 /R=%A2
-			-> 命令行：op c:\dir1 d:\dir2 等同于: totalcmd.exe /L=c:\dir1 /R=d:\dir2
-			 */
-			//args["%T"] = targetDir;
-			//args["%N"] = srcfiles;
-			//args["%P"] = srcDir;
-			//args["%M"] = targetfiles;
-			//args["%O"] = Path.GetFileNameWithoutExtension(srcfiles);
-			//args["%E"] = Path.GetExtension(srcfiles);
-			//args["%S"] = srcfiles;
-			//args["%F"] = srcfiles;
-			//Debug.Print($"args update>>> \r\n [T]:{targetDir}, \r\n[P]:{srcDir}, \r\n[N]:{srcfiles}, \r\n[M]:{targetfiles}");
-			/*
-			 * 注意： 所有参数现在都支持下面表单中的子字段：~开始位置，长度。例如：％N:~2,5 或 ％N:~-8,5。要在长度值之后直接追加数字，请使用另一个 "~" 字符，例如：％N:~2,5~2。负值从字符串的末端开始计算。示例：％P:~0,-1 表示从路径中去除反斜杠。
-				开始位置数值 -0 具有特殊意义：%N:~-0,20 表示复制文件名中前20个字符（不含扩展名），%N:~-0,-20 表示复制扩展名的前 20个字符（不含文件名）。
-				特殊参数：
-				? 作为 第一个 参数时，启动程序前显示 对话框 ，列出下列其他参数。您可以在启动程序之前更改参数。甚至可以阻止程序执行。
-				%P 插入来源路径，以反斜杠 (\) 结尾。
-				%N 插入光标所在的文件名。
-				%T 插入当前目标路径，对压缩程序尤其有用。
-				%M 插入目标文件夹的当前文件名。
-				%O 插入当前文件名，不含扩展名。
-				%E 插入当前文件的 扩展名，无前导句号 (.)。
-				%B, %B0..%B9
-				从路径中添加文件夹（目录）名称（包括来自分支视图的相对路径或搜索结果）。
-				%B 或 %B0 = 上级文件夹（父目录）, %B1 = 上两级文件夹（父目录的上级目录），以此类推。
-				%BT, %BT0..%BT9
-				从目标路径添加文件夹（目录）名称（不包括来自分支视图的相对路径）。
-				%BT 或 %BT0 = 上级文件夹（父目录）, %BT1 = 上两级文件夹（父目录的上级目录），以此类推。
-				%B-, %B-0..%B-9
-				从路径中添加文件夹（目录）名称（不包括来自分支视图的相对路径和空的搜索结果）。
-				%B- 或 %B-0 = 上级文件夹（父目录）, %B-1 = 上两级文件夹（父目录的上级目录），以此类推。
-				%B+, %B+0..%B+9
-				从路径添加文件夹（目录）名称（包括分支视图），从驱动器/服务器名称开始计算：
-				%B+ = 包含 ":" 符号在内的驱动器符，%B+0 = 不包含 ":" 符号在内的驱动器符，%B+1 = 第一个文件夹（目录）或共享，%B+2 = 第二个文件夹（目录），以此类推。
-				%S 在命令行中插入所有选中文件的文件名。带有空格的文件名将放在双引号 ("") 中。请注意命令行最大长度是 32767 个字符。
-				%S10
-				在命令行中插入（最多）前 10 个选中文件的文件名。这样可以限定传递给程序的文件名个数。可指定其它数字。
-				%P%S
-				将所有选定文件的名称插入命令行，带有完整路径。包含空格的名称将被放入到双引号 ("") 中。请不要自行在 %P%S 前后放置引号！
-				%R 与 %S 类似，但插入的是目标面板中选定文件的文件名。
-				注意：%N 和 %M 插入长文件名，而 %n 和 %m 插入 8.3 DOS 文件名。%P 和 %T 插入长路径名，%p 和 %t 插入短路径名。（%o，%e 和 %s 也是一样）。
-				如果直接在 %S 或 %s 前加上 %P 或 %p，%T 或 %t，每个文件的路径名将和文件名一起插入。例如：%P%S 表示插入所有选中文件的长路径名和长文件名。
-				%C1 类似于「比较文件内容」功能的第一个参数：第一个选定的文件，或光标下的文件
-				%C2 类似于「比较文件内容」功能的第二个参数：第二个选定的文件，或在目标面板中第一个选定的文件，或者是在目标面板中包含相同名称的文件。注意：如果右侧面板处于活动状态并且选定少于2个文件，则 ％C1 和 ％C2 参数会逆转。
-				%C3..%C9
-				来源面板中选定的第 3 到 9 个文件，如果没有选定足够的文件，则为空。
-				%c1..%c9
-				类似于 %C1..%C9，但适用于 8.3 (DOS) 格式的文件和路径
-				%% 插入百分号 (%)。
-				%L、%l、%F、%f、%D、%d、%WL、%WF、%UL、%UF 在临时文件夹中创建包含选定文件和文件夹名字的列表文件，并在命令行中插入该文件的文件名。列表文件在调用程序退出后自动删除。每个命令仅支持一个列表。可创建以下 10 种类型的列表文件：
-				%L 包含完整路径的长文件名，例如：c:\Program Files\Long name.exe
-				%l （小写 L）包含完整路径的短文件名，例如：C:\PROGRA~1\LONGNA~1.EXE
-				%F 不含路径的长文件名，例如：Long name.exe
-				%f 不含路径的短文件名，例如：LONGNA~1.EXE
-				%D 包含完整路径的短文件名，但重音使用 DOS 字符集。
-				%d 不含路径的短文件名，但重音使用 DOS 字符集。
-				%Q 当名称包含空格时，关闭某些参数（如：%P%N）的自动引号。然后用户必须自行放置它们。
-				%UL, %UF 与 %L 和 %F 类似，但列表文件是 UTF-8 格式（带有字节顺序标志 BOM）。
-				%WL, %WF 与 %L 和 %F 类似，但列表文件是 UTF-16 格式（带有字节顺序标志 BOM）。
-				%v 在 “虚拟面板” 等文件系统插件中插入虚拟文件名，其中 %N 粘贴为入口点的真实文件（在文件系统中）的名称
-				%V 类似于 %v，但包括完整路径（包括插件名称）
-				%X 将本参数后面的下列参数解释为左/右面板而非来源/目标面板的的参数：
-				  %P、%p （左侧路径）；%T、%t （右侧路径）；%N、%n （左侧文件名）；%M、%m （右侧文件名）；
-				  %S、%s （左侧选定文件）；%R、%r （右侧选定文件）
-				  示例： %X%P %T  传递左侧路径和右侧路径到外部同步工具等程序
-				%x 将本参数后面的参数仍解释为来源/目标面板参数。
-				  示例： %X%P %x%P 传递左侧和来源面板的路径到将要调用的程序
-				%Y 参数中的任何位置：使用某个像 %L 这样的列表参数时将空列表传递给程序。否则，将传递光标下的文件。
-				%Z 参数中的任何位置：进入压缩文件时，%P 或 %T 代表压缩文件名，并作为路径参数传递给外部程序。
-				  示例： %Z%P 将压缩文件名传递给外部工具（当 TC 显示压缩文件内容时）。
-			 */
+			// 基本参数设置
+			args["%P"] = srcDir;
+			args["%N"] = srcfiles;
+			args["%T"] = targetDir;
+			args["%M"] = targetfiles;
+			args["%O"] = Path.GetFileNameWithoutExtension(srcfiles);
+			args["%E"] = Path.GetExtension(srcfiles)?.TrimStart('.');
+			args["%S"] = srcfiles;
+			args["%R"] = targetfiles;
+			args["%%"] = "%";
+
+			// 处理小写版本（短文件名）
+			args["%p"] = GetShortPath(srcDir);
+			args["%n"] = GetShortFileName(srcfiles);
+			args["%t"] = GetShortPath(targetDir);
+			args["%m"] = GetShortFileName(targetfiles);
+			args["%o"] = GetShortFileName(Path.GetFileNameWithoutExtension(srcfiles));
+			args["%e"] = GetShortFileName(Path.GetExtension(srcfiles)?.TrimStart('.'));
+			args["%s"] = GetShortFileName(srcfiles);
+			args["%r"] = GetShortFileName(targetfiles);
+
+			// 处理目录参数
+			ProcessDirectoryParams(srcDir, "%B", "%B-", "%B+");
+			ProcessDirectoryParams(targetDir, "%BT", null, null);
+
+			// 处理比较文件参数
+			ProcessCompareParams();
+
+			// 处理列表文件参数
+			// 注意：实际创建列表文件的操作应在需要时执行
+			// 这里只是设置参数占位符
+			args["%L"] = "<长文件名列表文件>";
+			args["%l"] = "<短文件名列表文件>";
+			args["%F"] = "<不含路径的长文件名列表文件>";
+			args["%f"] = "<不含路径的短文件名列表文件>";
+			args["%D"] = "<DOS字符集的长文件名列表文件>";
+			args["%d"] = "<DOS字符集的短文件名列表文件>";
+			args["%UL"] = "<UTF-8格式的长文件名列表文件>";
+			args["%UF"] = "<UTF-8格式的不含路径的长文件名列表文件>";
+			args["%WL"] = "<UTF-16格式的长文件名列表文件>";
+			args["%WF"] = "<UTF-16格式的不含路径的长文件名列表文件>";
+
+			// 其他特殊参数
+			args["%Q"] = "<关闭自动引号>";
+			args["%v"] = "<虚拟文件名>";
+			args["%V"] = "<完整路径的虚拟文件名>";
+			args["%X"] = "<切换为左/右面板参数>";
+			args["%x"] = "<切换回来源/目标面板参数>";
+			args["%Y"] = "<空列表或光标下文件>";
+			args["%Z"] = "<压缩文件名作为路径参数>";
+
+			// 组合参数
+			args["%P%S"] = CombinePaths(srcDir, srcfiles);
+			args["%p%s"] = CombinePaths(GetShortPath(srcDir), GetShortFileName(srcfiles));
+			args["%T%R"] = CombinePaths(targetDir, targetfiles);
+			args["%t%r"] = CombinePaths(GetShortPath(targetDir), GetShortFileName(targetfiles));
 		}
-		private void updateArg(string arg, string value)
+
+		// 处理子字段语法：~开始位置,长度
+		public string ProcessSubfield(string value, string subfieldSpec)
 		{
-			args[arg] = value;
+			if (string.IsNullOrEmpty(value) || string.IsNullOrEmpty(subfieldSpec) || !subfieldSpec.StartsWith("~"))
+				return value;
+
+			try
+			{
+				// 移除开头的~
+				subfieldSpec = subfieldSpec.Substring(1);
+				
+				// 处理多个~分隔的部分
+				string[] parts = subfieldSpec.Split('~');
+				string result = value;
+				
+				foreach (string part in parts)
+				{
+					if (string.IsNullOrEmpty(part))
+						continue;
+					
+					// 解析开始位置和长度
+					string[] parameters = part.Split(',');
+					if (parameters.Length < 1)
+						continue;
+					
+					// 解析开始位置
+					if (!int.TryParse(parameters[0], out int startPos))
+						continue;
+					
+					// 解析长度（如果提供）
+					int length = result.Length - Math.Abs(startPos);
+					if (parameters.Length > 1 && int.TryParse(parameters[1], out int specifiedLength))
+						length = specifiedLength;
+					
+					// 处理特殊情况：-0表示不含扩展名的文件名或仅扩展名
+					if (startPos == -0)
+					{
+						// 获取不含扩展名的文件名
+						string fileNameWithoutExt = Path.GetFileNameWithoutExtension(result);
+						
+						// 如果长度为负数，则获取扩展名
+						if (length < 0)
+						{
+							string extension = Path.GetExtension(result).TrimStart('.');
+							result = extension.Substring(0, Math.Min(Math.Abs(length), extension.Length));
+						}
+						else
+						{
+							result = fileNameWithoutExt.Substring(0, Math.Min(length, fileNameWithoutExt.Length));
+						}
+					}
+					else
+					{
+						// 处理正常的子字段
+						if (startPos < 0) // 从末尾开始计算
+						{
+							startPos = result.Length + startPos;
+							if (startPos < 0)
+								startPos = 0;
+						}
+						
+						if (startPos >= result.Length)
+							result = "";
+						else if (length < 0) // 负长度表示从末尾向前取
+						{
+							int endPos = result.Length + length;
+							if (endPos <= startPos)
+								result = "";
+							else
+								result = result.Substring(startPos, endPos - startPos);
+						}
+						else // 正常长度
+						{
+							if (startPos + length > result.Length)
+								length = result.Length - startPos;
+							
+							result = result.Substring(startPos, length);
+						}
+					}
+				}
+				
+				return result;
+			}
+			catch
+			{
+				// 出现任何异常，返回原始值
+				return value;
+			}
+		}
+
+		// 获取参数值，支持子字段处理
+		public string GetArgValue(string arg)
+		{
+			if (string.IsNullOrEmpty(arg))
+				return string.Empty;
+
+			// 检查是否包含子字段规范
+			int colonPos = arg.IndexOf(':');
+			if (colonPos <= 0)
+			{
+				// 没有子字段，直接返回参数值
+				return args.TryGetValue(arg, out string value) ? value : string.Empty;
+			}
+
+			// 提取基本参数和子字段规范
+			string baseArg = arg.Substring(0, colonPos);
+			string subfieldSpec = arg.Substring(colonPos + 1);
+
+			// 获取基本参数值
+			string baseValue = args.TryGetValue(baseArg, out string val) ? val : string.Empty;
+
+			// 应用子字段处理
+			return ProcessSubfield(baseValue, subfieldSpec);
+		}
+
+		// 获取短路径名
+		private string GetShortPath(string path)
+		{
+			// 实际实现应使用Windows API获取短文件名
+			// 这里简化处理
+			return path;
+		}
+
+		// 获取短文件名
+		private string GetShortFileName(string fileName)
+		{
+			// 实际实现应使用Windows API获取短文件名
+			// 这里简化处理
+			return fileName;
+		}
+
+		// 处理目录参数
+		private void ProcessDirectoryParams(string path, string basePrefix, string noRelativePrefix, string drivePrefix)
+		{
+			if (string.IsNullOrEmpty(path))
+				return;
+
+			try
+			{
+				// 分割路径为目录部分
+				string[] parts = path.TrimEnd('\\').Split('\\');
+				
+				// 处理基本目录参数 (%B, %B0..%B9)
+				if (!string.IsNullOrEmpty(basePrefix))
+				{
+					// %B 或 %B0 = 上级文件夹（父目录）
+					args[$"{basePrefix}"] = args[$"{basePrefix}0"] = parts.Length > 1 ? parts[parts.Length - 2] : "";
+					
+					// %B1..%B9 = 上两级文件夹及以上
+					for (int i = 1; i <= 9; i++)
+					{
+						int index = parts.Length - 2 - i;
+						args[$"{basePrefix}{i}"] = index >= 0 ? parts[index] : "";
+					}
+				}
+				
+				// 处理无相对路径的目录参数 (%B-, %B-0..%B-9)
+				if (!string.IsNullOrEmpty(noRelativePrefix))
+				{
+					// %B- 或 %B-0 = 上级文件夹（父目录）
+					args[$"{noRelativePrefix}"] = args[$"{noRelativePrefix}0"] = parts.Length > 1 ? parts[parts.Length - 2] : "";
+					
+					// %B-1..%B-9 = 上两级文件夹及以上
+					for (int i = 1; i <= 9; i++)
+					{
+						int index = parts.Length - 2 - i;
+						args[$"{noRelativePrefix}{i}"] = index >= 0 ? parts[index] : "";
+					}
+				}
+				
+				// 处理从驱动器开始的目录参数 (%B+, %B+0..%B+9)
+				if (!string.IsNullOrEmpty(drivePrefix))
+				{
+					// 处理驱动器部分
+					if (parts.Length > 0 && parts[0].EndsWith(":"))
+					{
+						// %B+ = 包含 ":" 符号在内的驱动器符
+						args[$"{drivePrefix}"] = parts[0];
+						
+						// %B+0 = 不包含 ":" 符号在内的驱动器符
+						args[$"{drivePrefix}0"] = parts[0].TrimEnd(':');
+					}
+					else
+					{
+						args[$"{drivePrefix}"] = "";
+						args[$"{drivePrefix}0"] = "";
+					}
+					
+					// %B+1..%B+9 = 第一个文件夹及以上
+					for (int i = 1; i <= 9; i++)
+					{
+						int index = i;
+						args[$"{drivePrefix}{i}"] = index < parts.Length ? parts[index] : "";
+					}
+				}
+			}
+			catch
+			{
+				// 出现异常时，设置空值
+				if (!string.IsNullOrEmpty(basePrefix))
+				{
+					args[$"{basePrefix}"] = args[$"{basePrefix}0"] = "";
+					for (int i = 1; i <= 9; i++)
+						args[$"{basePrefix}{i}"] = "";
+				}
+				
+				if (!string.IsNullOrEmpty(noRelativePrefix))
+				{
+					args[$"{noRelativePrefix}"] = args[$"{noRelativePrefix}0"] = "";
+					for (int i = 1; i <= 9; i++)
+						args[$"{noRelativePrefix}{i}"] = "";
+				}
+				
+				if (!string.IsNullOrEmpty(drivePrefix))
+				{
+					args[$"{drivePrefix}"] = args[$"{drivePrefix}0"] = "";
+					for (int i = 1; i <= 9; i++)
+						args[$"{drivePrefix}{i}"] = "";
+				}
+			}
+		}
+
+		// 处理比较文件参数
+		private void ProcessCompareParams()
+		{
+			try
+			{
+				// 获取源面板中选中的文件
+				var selectedFiles = isleft ? LeftList.SelectedItems : RightList.SelectedItems;
+				var targetSelectedFiles = !isleft ? LeftList.SelectedItems : RightList.SelectedItems;
+				
+				// 如果右侧面板处于活动状态并且选定少于2个文件，则 %C1 和 %C2 参数会逆转
+				bool reverseParams = !isleft && selectedFiles.Count < 2;
+				
+				// 处理 %C1..%C9 参数
+				for (int i = 1; i <= 9; i++)
+				{
+					string paramName = $"%C{i}";
+					string shortParamName = $"%c{i}";
+					
+					if (i == 1 && reverseParams) // 第一个参数，可能需要逆转
+					{
+						// 使用目标面板的第一个选中文件
+						args[paramName] = targetSelectedFiles.Count > 0 ? 
+							((ListViewItem)targetSelectedFiles[0]).SubItems[0].Text : "";
+						args[shortParamName] = GetShortFileName(args[paramName]);
+					}
+					else if (i == 2 && reverseParams) // 第二个参数，可能需要逆转
+					{
+						// 使用源面板的第一个选中文件
+						args[paramName] = selectedFiles.Count > 0 ? 
+							((ListViewItem)selectedFiles[0]).SubItems[0].Text : "";
+						args[shortParamName] = GetShortFileName(args[paramName]);
+					}
+					else // 正常处理
+					{
+						// 获取源面板中第i个选中的文件
+						int index = i - 1;
+						args[paramName] = index < selectedFiles.Count ? 
+							((ListViewItem)selectedFiles[index]).SubItems[0].Text : "";
+						args[shortParamName] = GetShortFileName(args[paramName]);
+					}
+				}
+			}
+			catch
+			{
+				// 出现异常时，设置空值
+				for (int i = 1; i <= 9; i++)
+				{
+					args[$"%C{i}"] = "";
+					args[$"%c{i}"] = "";
+				}
+			}
+		}
+
+		// 组合路径和文件名
+		private string CombinePaths(string path, string files)
+		{
+			if (string.IsNullOrEmpty(path) || string.IsNullOrEmpty(files))
+				return string.Empty;
+
+			try
+			{
+				// 确保路径以反斜杠结尾
+				if (!path.EndsWith("\\"))
+					path += "\\";
+
+				// 处理多个文件名（以|分隔）
+				string[] fileNames = files.Split('|');
+				var combinedPaths = new List<string>();
+
+				foreach (string fileName in fileNames)
+				{
+					if (!string.IsNullOrEmpty(fileName))
+					{
+						string fullPath = Path.Combine(path, fileName);
+						
+						// 如果路径包含空格，添加引号
+						if (fullPath.Contains(" "))
+							fullPath = $"\"{fullPath}\"";
+						
+						combinedPaths.Add(fullPath);
+					}
+				}
+
+				return string.Join(" ", combinedPaths);
+			}
+			catch
+			{
+				return string.Empty;
+			}
 		}
 
 		private void LeftPathTextBox_PathChanged(object? sender, EventArgs e)
@@ -786,14 +1115,7 @@ namespace zfile
 			RightPanel.Panel2.Controls.SetChildIndex(rightBookmarkPanel, 0);
 			RightPanel.Panel2.Controls.SetChildIndex(RightPreview, 1);
 		}
-		//private void BookmarkPanel_DoubleClick(object? sender,  EventArgs e)
-		//{
-		//	Debug.Print("书签双击1");
-		//	var s = sender as FlowLayoutPanel;
-		//	isleft = s == leftBookmarkPanel;
-		//	BookmarkManager.AddBookmark(form.currentDirectory, form.activeTreeview.SelectedNode, isleft);
-		//}
-		//从环境变量获取%COMMANDER_PATH%
+		//from环境变量获取%COMMANDER_PATH%
 		private string GetCommanderPath()
 		{
 			string commanderPath = Environment.GetEnvironmentVariable("COMMANDER_PATH") ?? string.Empty;

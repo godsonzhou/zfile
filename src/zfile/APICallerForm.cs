@@ -9,6 +9,7 @@ namespace zfile
 		private ListView listViewParams;
 		private Button btnAdd;
 		private Button btnDelete;
+		private Button btnEdit;
 		private Button btnConnect;
 		private Button btnClose;
 		private TextBox txtResult;
@@ -35,6 +36,7 @@ namespace zfile
 			listViewParams = new ListView();
 			btnAdd = new Button();
 			btnDelete = new Button();
+			btnEdit = new Button();
 			btnConnect = new Button();
 			btnClose = new Button();
 			txtResult = new TextBox();
@@ -108,6 +110,15 @@ namespace zfile
 			btnDelete.UseVisualStyleBackColor = true;
 			btnDelete.Click += new EventHandler(btnDelete_Click);
 			// 
+			// btnEdit
+			// 
+			btnEdit.Location = new Point(174, 226);
+			btnEdit.Name = "btnEdit";
+			btnEdit.Size = new Size(75, 23);
+			btnEdit.TabIndex = 5;
+			btnEdit.Text = "编辑";
+			btnEdit.UseVisualStyleBackColor = true;
+			btnEdit.Click += new EventHandler(btnEdit_Click);
 			// btnConnect
 			// 
 			btnConnect.Location = new Point(316, 226);
@@ -148,6 +159,7 @@ namespace zfile
 			Controls.Add(btnConnect);
 			Controls.Add(btnDelete);
 			Controls.Add(btnAdd);
+			Controls.Add(btnEdit);
 			Controls.Add(listViewParams);
 			Controls.Add(txtApiKey);
 			Controls.Add(txtUrl);
@@ -229,6 +241,19 @@ namespace zfile
 		private void btnClose_Click(object sender, EventArgs e)
 		{
 			Close();
+		}
+
+		private void btnEdit_Click(object sender, EventArgs e)
+		{
+			if (listViewParams.SelectedItems.Count > 0)
+			{
+				ListViewItem item = listViewParams.SelectedItems[0];
+				if (item.SubItems.Count > 1)
+				{
+					item.SubItems[1].Text = "";
+					item.BeginEdit();
+				}
+			}
 		}
 	}
 }

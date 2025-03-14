@@ -44,8 +44,13 @@ namespace zfile
 			mainForm.ForeColor = Color.White;
 			toolStrip.BackColor = Color.FromArgb(28, 28, 28);
 			toolStrip.ForeColor = Color.White;
+			vtoolStrip.BackColor = Color.FromArgb(28, 28, 28);
+			vtoolStrip.ForeColor = Color.White;
 			menuStrip.BackColor = Color.FromArgb(28, 28, 28);
 			menuStrip.ForeColor = Color.White;
+
+			// 应用主题到所有下拉菜单
+			ApplyMenuStripDarkTheme(menuStrip);
 
 			SetTreeViewDarkTheme(leftTree);
 			SetTreeViewDarkTheme(rightTree);
@@ -55,6 +60,9 @@ namespace zfile
 			SetPreviewDarkTheme(rightPreview);
 			SetStatusStripDarkTheme(leftStatusStrip);
 			SetStatusStripDarkTheme(rightStatusStrip);
+
+			// 应用主题到所有子控件
+			ApplyDarkThemeToControls(mainForm.Controls);
 		}
 
 		public void ApplyLightTheme()
@@ -63,8 +71,13 @@ namespace zfile
 			mainForm.ForeColor = SystemColors.ControlText;
 			toolStrip.BackColor = SystemColors.Control;
 			toolStrip.ForeColor = SystemColors.ControlText;
+			vtoolStrip.BackColor = SystemColors.Control;
+			vtoolStrip.ForeColor = SystemColors.ControlText;
 			menuStrip.BackColor = SystemColors.Control;
 			menuStrip.ForeColor = SystemColors.ControlText;
+
+			// 应用主题到所有下拉菜单
+			ApplyMenuStripLightTheme(menuStrip);
 
 			SetTreeViewLightTheme(leftTree);
 			SetTreeViewLightTheme(rightTree);
@@ -74,6 +87,165 @@ namespace zfile
 			SetPreviewLightTheme(rightPreview);
 			SetStatusStripLightTheme(leftStatusStrip);
 			SetStatusStripLightTheme(rightStatusStrip);
+
+			// 应用主题到所有子控件
+			ApplyLightThemeToControls(mainForm.Controls);
+		}
+
+		private void ApplyMenuStripDarkTheme(MenuStrip menuStrip)
+		{
+			foreach (ToolStripMenuItem item in menuStrip.Items)
+			{
+				ApplyToolStripMenuItemDarkTheme(item);
+			}
+		}
+
+		private void ApplyMenuStripLightTheme(MenuStrip menuStrip)
+		{
+			foreach (ToolStripMenuItem item in menuStrip.Items)
+			{
+				ApplyToolStripMenuItemLightTheme(item);
+			}
+		}
+
+		private void ApplyToolStripMenuItemDarkTheme(ToolStripMenuItem item)
+		{
+			item.BackColor = Color.FromArgb(28, 28, 28);
+			item.ForeColor = Color.White;
+			
+			if (item.DropDown is ToolStripDropDown dropDown)
+			{
+				dropDown.BackColor = Color.FromArgb(28, 28, 28);
+				dropDown.ForeColor = Color.White;
+			}
+
+			foreach (ToolStripItem subItem in item.DropDownItems)
+			{
+				if (subItem is ToolStripMenuItem menuItem)
+				{
+					ApplyToolStripMenuItemDarkTheme(menuItem);
+				}
+			}
+		}
+
+		private void ApplyToolStripMenuItemLightTheme(ToolStripMenuItem item)
+		{
+			item.BackColor = SystemColors.Control;
+			item.ForeColor = SystemColors.ControlText;
+
+			if (item.DropDown is ToolStripDropDown dropDown)
+			{
+				dropDown.BackColor = SystemColors.Control;
+				dropDown.ForeColor = SystemColors.ControlText;
+			}
+
+			foreach (ToolStripItem subItem in item.DropDownItems)
+			{
+				if (subItem is ToolStripMenuItem menuItem)
+				{
+					ApplyToolStripMenuItemLightTheme(menuItem);
+				}
+			}
+		}
+
+		private void ApplyDarkThemeToControls(Control.ControlCollection controls)
+		{
+			foreach (Control control in controls)
+			{
+				if (control is ComboBox comboBox)
+				{
+					comboBox.BackColor = Color.FromArgb(37, 37, 38);
+					comboBox.ForeColor = Color.White;
+				}
+				else if (control is TextBox textBox)
+				{
+					textBox.BackColor = Color.FromArgb(37, 37, 38);
+					textBox.ForeColor = Color.White;
+				}
+				else if (control is Form form)
+				{
+					form.BackColor = Color.FromArgb(45, 45, 48);
+					form.ForeColor = Color.White;
+				}
+				else if (control is ListView listView)
+				{
+					SetListViewDarkTheme(listView);
+				}
+				else if (control is TreeView treeView)
+				{
+					SetTreeViewDarkTheme(treeView);
+				}
+
+				// 递归处理子控件
+				if (control.Controls.Count > 0)
+				{
+					ApplyDarkThemeToControls(control.Controls);
+				}
+
+				// 处理右键菜单
+				if (control.ContextMenuStrip != null)
+				{
+					control.ContextMenuStrip.BackColor = Color.FromArgb(28, 28, 28);
+					control.ContextMenuStrip.ForeColor = Color.White;
+					foreach (ToolStripItem item in control.ContextMenuStrip.Items)
+					{
+						if (item is ToolStripMenuItem menuItem)
+						{
+							ApplyToolStripMenuItemDarkTheme(menuItem);
+						}
+					}
+				}
+			}
+		}
+
+		private void ApplyLightThemeToControls(Control.ControlCollection controls)
+		{
+			foreach (Control control in controls)
+			{
+				if (control is ComboBox comboBox)
+				{
+					comboBox.BackColor = SystemColors.Window;
+					comboBox.ForeColor = SystemColors.WindowText;
+				}
+				else if (control is TextBox textBox)
+				{
+					textBox.BackColor = SystemColors.Window;
+					textBox.ForeColor = SystemColors.WindowText;
+				}
+				else if (control is Form form)
+				{
+					form.BackColor = SystemColors.Control;
+					form.ForeColor = SystemColors.ControlText;
+				}
+				else if (control is ListView listView)
+				{
+					SetListViewLightTheme(listView);
+				}
+				else if (control is TreeView treeView)
+				{
+					SetTreeViewLightTheme(treeView);
+				}
+
+				// 递归处理子控件
+				if (control.Controls.Count > 0)
+				{
+					ApplyLightThemeToControls(control.Controls);
+				}
+
+				// 处理右键菜单
+				if (control.ContextMenuStrip != null)
+				{
+					control.ContextMenuStrip.BackColor = SystemColors.Control;
+					control.ContextMenuStrip.ForeColor = SystemColors.ControlText;
+					foreach (ToolStripItem item in control.ContextMenuStrip.Items)
+					{
+						if (item is ToolStripMenuItem menuItem)
+						{
+							ApplyToolStripMenuItemLightTheme(menuItem);
+						}
+					}
+				}
+			}
 		}
 
 		private void SetTreeViewDarkTheme(TreeView treeView)
@@ -150,4 +322,4 @@ namespace zfile
 			Dispose(false);
 		}
 	}
-} 
+}

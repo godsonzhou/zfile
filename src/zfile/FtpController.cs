@@ -8,7 +8,8 @@ namespace zfile
 	public class FtpController : IDisposable
 	{
 		private readonly Form1 parentForm;
-		private readonly AsyncFTPMGR ftpManager;
+		private readonly AsyncFTPMGR asyncFtpManager;
+		private readonly FTPMGR ftpManager;
 
 		// UI Controls
 		private Panel mainPanel;
@@ -25,10 +26,11 @@ namespace zfile
 		private List<string> commandHistory = new List<string>();
 		private int cmdHistoryIndex = 0;
 
-		public FtpController(Form1 parentForm, AsyncFTPMGR ftpManager)
+		public FtpController(Form1 parentForm, AsyncFTPMGR asyncFtpManager, FTPMGR ftpManager)
 		{
 			this.parentForm = parentForm;
 			this.ftpManager = ftpManager;
+			this.asyncFtpManager = asyncFtpManager;
 
 			// ���������
 			mainPanel = new Panel

@@ -10,6 +10,7 @@ namespace zfile
 	{
 		const int ILD_TRANSPARENT = 0x00000001;
 		public readonly FTPMGR fTPMGR;
+		public readonly AsyncFTPMGR asyncFtpMgr;
 		public readonly LLM_Helper lLM_Helper;
 		public readonly CFGLOADER configLoader;
 		public readonly CFGLOADER ftpconfigLoader;

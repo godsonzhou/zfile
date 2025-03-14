@@ -944,7 +944,7 @@ namespace zfile
 					string driveId = $"{driveLetter}:";
 
 					// 创建FTP文件源
-					var ftpSource = new AsyncFtpFileSource(form, connectionName, form.fTPMGR.ActiveClient);
+					var ftpSource = new AsyncFtpFileSource(form, connectionName, form.fTPMGR.ActiveClientAsync);
 					_ftpSources[connectionName] = ftpSource;
 
 					// 创建FTP节点

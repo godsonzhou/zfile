@@ -9,7 +9,7 @@ namespace zfile
 	public partial class Form1 : Form
 	{
 		const int ILD_TRANSPARENT = 0x00000001;
-		public readonly AsyncFTPMGR fTPMGR;
+		public readonly FTPMGR fTPMGR;
 		public readonly LLM_Helper lLM_Helper;
 		public readonly CFGLOADER configLoader;
 		public readonly CFGLOADER ftpconfigLoader;
@@ -138,7 +138,7 @@ namespace zfile
 			configLoader = new CFGLOADER(Constants.ZfileCfgPath+"wincmd.ini");
 			ftpconfigLoader = new CFGLOADER(Constants.ZfileCfgPath + "wcx_ftp.ini");
 			cmdicons_configloader = new CFGLOADER(Constants.ZfileCfgPath + "wcmicons.inc");
-			fTPMGR = new AsyncFTPMGR(this);
+			fTPMGR = new FTPMGR(this);
 		    cmdProcessor = new CmdProc(this);
 			lLM_Helper = new LLM_Helper(this);
 			InitializeComponent();
@@ -2141,7 +2141,7 @@ namespace zfile
 			{
 				// 从当前目录中提取连接名称
 				string connectionName = ExtractFtpConnectionName(currentDirectory);
-				if (!string.IsNullOrEmpty(connectionName) && fTPMGR.ftpSources.TryGetValue(connectionName, out AsyncFtpFileSource source))
+				if (!string.IsNullOrEmpty(connectionName) && fTPMGR.ftpSources.TryGetValue(connectionName, out FtpFileSource source))
 				{
 					// 对于FTP文件，先下载到本地临时目录
 					return activeListView.SelectedItems.Cast<ListViewItem>()

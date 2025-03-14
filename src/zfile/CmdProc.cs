@@ -3,9 +3,13 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using FluentFTP;
+using MCPSharp;
+using MCPSharp.Model.Schemas;
+using MCPSharp.Model;
 using Newtonsoft.Json;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using Microsoft.Extensions.AI;
 
 namespace zfile
 {
@@ -559,6 +563,12 @@ namespace zfile
 					case 11438: // mcp client
 						do_cm_mcpclient(param);
 						break;
+					case 11439: // mcp client with mcpsharp
+						var lst = Task.Run(async () => { await do_cm_mcpclient1(param); });
+						break;
+					case 11440: // launch mcp server
+						Task.Run(async () => { await do_cm_mcpserver(param); } );
+						break;
 					case 24340:
 						Form1.ExitApp();
 						break;
@@ -580,6 +590,33 @@ namespace zfile
 			//{
 			//	throw new KeyNotFoundException("命令ID不存在");
 			//}
+		}
+		private async Task do_cm_mcpserver(string param)
+		{
+			MCPServer.AddToolHandler(new Tool()
+			{
+				Name = "dynamicTool",
+				Description = "A dynamic tool",
+				InputSchema = new InputSchema
+				{
+					Type = "object",
+					Required = ["input"],
+					Properties = new Dictionary<string, ParameterSchema>{
+						{"input", new ParameterSchema{Type="string", Description="Input value"}}
+					}
+				}
+			}, (string input) => { return $"You provided: {input}"; });
+
+			// Register with MCPServer
+			MCPServer.Register<MySkillClass>();
+			await MCPServer.StartAsync(param, "1.0.0");
+		}
+		private async Task<IList<AIFunction>> do_cm_mcpclient1(string param)
+		{
+			// Client-side integration
+			MCPClient client = new("AIClient", "1.0", "path/to/mcp/server");
+			IList<AIFunction> functions = await client.GetFunctionsAsync();
+			return functions;
 		}
 		private void do_cm_mcpclient(string param)
 		{

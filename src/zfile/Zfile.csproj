@@ -30,6 +30,7 @@
     <PackageReference Include="Ghostscript.NET" Version="1.2.3.1" />
     <PackageReference Include="LibVLCSharp" Version="3.9.2" />
     <PackageReference Include="LibVLCSharp.WinForms" Version="3.9.2" />
+    <PackageReference Include="MCPSharp" Version="1.0.6" />
     <PackageReference Include="Microsoft.WindowsAPICodePack.Shell" Version="1.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="PdfiumViewer" Version="2.13.0" />

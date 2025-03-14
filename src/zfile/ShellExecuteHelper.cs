@@ -57,6 +57,12 @@ namespace zfile
 
 		public List<string> ReplaceVariableParams(string cmd, string[] files, string currentPath, bool useQuotes = true)
         {
+			bool debugMode = false;
+			if (cmd.StartsWith('?'))
+			{
+				debugMode = true;
+				cmd = cmd.TrimStart('?');
+			}
 			var cmds = new List<string>();
 			
             // 处理提示框变量 %[prompt]
@@ -79,7 +85,8 @@ namespace zfile
             {
                 cmd = cmd.Replace("%\"0", "").Replace("%\"1", "\"");
             }
-
+			if (debugMode)
+				MessageBox.Show(string.Join(' ', cmds));
             return cmds;
         }
 		private List<string> processEachcmd(string pattern, List<string> cmds)

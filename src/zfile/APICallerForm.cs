@@ -16,6 +16,9 @@ namespace zfile
 		private readonly string key;
 		private readonly string param;
 
+		private Label lblUrl;
+		private Label lblApiKey;
+
 		public APICallerForm(string url, string key, string param)
 		{
 			this.url = url;
@@ -35,7 +38,27 @@ namespace zfile
 			btnConnect = new Button();
 			btnClose = new Button();
 			txtResult = new TextBox();
+			lblUrl = new Label();
+			lblApiKey = new Label();
 			SuspendLayout();
+			// 
+			// lblUrl
+			// 
+			lblUrl.AutoSize = true;
+			lblUrl.Location = new Point(12, 15);
+			lblUrl.Name = "lblUrl";
+			lblUrl.Size = new Size(72, 15);
+			lblUrl.TabIndex = 8;
+			lblUrl.Text = "API地址：";
+			// 
+			// lblApiKey
+			// 
+			lblApiKey.AutoSize = true;
+			lblApiKey.Location = new Point(12, 44);
+			lblApiKey.Name = "lblApiKey";
+			lblApiKey.Size = new Size(72, 15);
+			lblApiKey.TabIndex = 9;
+			lblApiKey.Text = "API密钥：";
 			// 
 			// txtUrl
 			// 
@@ -128,6 +151,8 @@ namespace zfile
 			Controls.Add(listViewParams);
 			Controls.Add(txtApiKey);
 			Controls.Add(txtUrl);
+			Controls.Add(lblUrl);
+			Controls.Add(lblApiKey);
 			FormBorderStyle = FormBorderStyle.FixedDialog;
 			MaximizeBox = false;
 			MinimizeBox = false;
@@ -142,6 +167,24 @@ namespace zfile
 		{
 			_ = listViewParams.Columns.Add("参数", 220);
 			_ = listViewParams.Columns.Add("值", 220);
+			listViewParams.LabelEdit = true;
+			listViewParams.AfterLabelEdit += listViewParams_AfterLabelEdit;
+		}
+
+		private void listViewParams_AfterLabelEdit(object sender, LabelEditEventArgs e)
+		{
+			if (e.Label == null)
+			{
+				e.CancelEdit = true;
+				return;
+			}
+			
+			ListViewItem item = listViewParams.Items[e.Item];
+			if (item.SubItems.Count > 1)
+			{
+				item.SubItems[0].Text = e.Label;
+			}
+			e.CancelEdit = true;
 		}
 
 		private void btnAdd_Click(object sender, EventArgs e)

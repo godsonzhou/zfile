@@ -814,74 +814,7 @@ namespace zfile
 
 			UpdateStatusBar();
 		}
-		private void LoadHex1()
-		{
-			_hexPanel.Visible = true;
-			_textPanel.Visible = false;
-			_imagePanel.Visible = false;
-
-			try
-			{
-				// 清空现有内容
-				_hexViewer.Clear();
-
-				// 读取文件内容
-				byte[] fileBytes = File.ReadAllBytes(_fileName);
-				StringBuilder hexContent = new StringBuilder();
-
-				// 设置字体和颜色
-				_hexViewer.Font = new Font("Consolas", 10);
-
-				// 每行显示16个字节
-				const int bytesPerLine = 16;
-
-				for (int i = 0; i < fileBytes.Length; i += bytesPerLine)
-				{
-					// 添加偏移量
-					hexContent.AppendFormat("{0:X8}:  ", i);
-
-					// 添加16进制内容
-					StringBuilder hexPart = new StringBuilder();
-					StringBuilder asciiPart = new StringBuilder();
-
-					for (int j = 0; j < bytesPerLine; j++)
-					{
-						if (i + j < fileBytes.Length)
-						{
-							byte b = fileBytes[i + j];
-
-							// 添加16进制值
-							hexPart.AppendFormat("{0:X2} ", b);
-
-							// 添加ASCII字符（如果可打印）
-							if (b >= 32 && b <= 126)
-							{
-								asciiPart.Append((char)b);
-							}
-							else
-							{
-								asciiPart.Append('.');
-							}
-						}
-						else
-						{
-							// 填充空白
-							hexPart.Append("   ");
-							asciiPart.Append(" ");
-						}
-					}
-
-					// 组合一行
-					hexContent.AppendFormat("{0}  {1}\r\n", hexPart.ToString(), asciiPart.ToString());
-				}
-
-				_hexViewer.Text = hexContent.ToString();
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show($"加载16进制视图失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-			}
-		}
+	
 		private void LoadHex()
 		{
 			_hexPanel.Visible = true;

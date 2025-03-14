@@ -1600,59 +1600,59 @@ namespace zfile
 		#endregion
 
 		#region 辅助类
-		public class FtpConnectionConfig
-		{
-			public string SessionName { get; set; } = string.Empty;
-			public string HostName { get; set; } = string.Empty;
-			public int Port { get; set; } = 21;
-			public bool UseSsl { get; set; }
-			public string UserName { get; set; } = string.Empty;
-			public string Password { get; set; } = string.Empty;
-			public string RemoteDirectory { get; set; } = "/";
-			public string LocalDirectory { get; set; } = string.Empty;
-			public bool UsePassiveMode { get; set; } = true;
-			public bool UseFirewall { get; set; }
-		}
-		/// <summary>
-		/// FTP连接信息类
-		/// </summary>
-		public class FtpConnectionInfo
-		{
-			/// <summary>
-			/// 连接名称
-			/// </summary>
-			public string Name { get; set; }
+		//public class FtpConnectionConfig
+		//{
+		//	public string SessionName { get; set; } = string.Empty;
+		//	public string HostName { get; set; } = string.Empty;
+		//	public int Port { get; set; } = 21;
+		//	public bool UseSsl { get; set; }
+		//	public string UserName { get; set; } = string.Empty;
+		//	public string Password { get; set; } = string.Empty;
+		//	public string RemoteDirectory { get; set; } = "/";
+		//	public string LocalDirectory { get; set; } = string.Empty;
+		//	public bool UsePassiveMode { get; set; } = true;
+		//	public bool UseFirewall { get; set; }
+		//}
+		///// <summary>
+		///// FTP连接信息类
+		///// </summary>
+		//public class FtpConnectionInfo
+		//{
+		//	/// <summary>
+		//	/// 连接名称
+		//	/// </summary>
+		//	public string Name { get; set; }
 
-			/// <summary>
-			/// 主机地址
-			/// </summary>
-			public string Host { get; set; }
+		//	/// <summary>
+		//	/// 主机地址
+		//	/// </summary>
+		//	public string Host { get; set; }
 
-			/// <summary>
-			/// 凭证（用户名和密码）
-			/// </summary>
-			public NetworkCredential Credentials { get; set; }
+		//	/// <summary>
+		//	/// 凭证（用户名和密码）
+		//	/// </summary>
+		//	public NetworkCredential Credentials { get; set; }
 
-			/// <summary>
-			/// 端口号
-			/// </summary>
-			public int Port { get; set; } = 21;
+		//	/// <summary>
+		//	/// 端口号
+		//	/// </summary>
+		//	public int Port { get; set; } = 21;
 
-			/// <summary>
-			/// FTP配置
-			/// </summary>
-			public FtpConfig Config { get; set; }
+		//	/// <summary>
+		//	/// FTP配置
+		//	/// </summary>
+		//	public FtpConfig Config { get; set; }
 
-			/// <summary>
-			/// 加密模式
-			/// </summary>
-			public FtpEncryptionMode? EncryptionMode { get; set; }
+		//	/// <summary>
+		//	/// 加密模式
+		//	/// </summary>
+		//	public FtpEncryptionMode? EncryptionMode { get; set; }
 
-			/// <summary>
-			/// 日志记录器
-			/// </summary>
-			public IFtpLogger Logger { get; set; }
-		}
+		//	/// <summary>
+		//	/// 日志记录器
+		//	/// </summary>
+		//	public IFtpLogger Logger { get; set; }
+		//}
 
 		#endregion
 		public void SaveToCfgloader()

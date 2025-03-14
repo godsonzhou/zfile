@@ -151,6 +151,56 @@ namespace zfile
 			}
 		}
 
+		private void SetToolStripDarkTheme(ToolStrip toolStrip)
+		{
+			toolStrip.BackColor = Color.FromArgb(28, 28, 28);
+			toolStrip.ForeColor = Color.White;
+
+			foreach (ToolStripItem item in toolStrip.Items)
+			{
+				if (item is ToolStripDropDownItem dropDownItem)
+				{
+					dropDownItem.BackColor = Color.FromArgb(28, 28, 28);
+					dropDownItem.ForeColor = Color.White;
+					if (dropDownItem.DropDown != null)
+					{
+						dropDownItem.DropDown.BackColor = Color.FromArgb(28, 28, 28);
+						dropDownItem.DropDown.ForeColor = Color.White;
+					}
+				}
+				else
+				{
+					item.BackColor = Color.FromArgb(28, 28, 28);
+					item.ForeColor = Color.White;
+				}
+			}
+		}
+
+		private void SetToolStripLightTheme(ToolStrip toolStrip)
+		{
+			toolStrip.BackColor = SystemColors.Control;
+			toolStrip.ForeColor = SystemColors.ControlText;
+
+			foreach (ToolStripItem item in toolStrip.Items)
+			{
+				if (item is ToolStripDropDownItem dropDownItem)
+				{
+					dropDownItem.BackColor = SystemColors.Control;
+					dropDownItem.ForeColor = SystemColors.ControlText;
+					if (dropDownItem.DropDown != null)
+					{
+						dropDownItem.DropDown.BackColor = SystemColors.Control;
+						dropDownItem.DropDown.ForeColor = SystemColors.ControlText;
+					}
+				}
+				else
+				{
+					item.BackColor = SystemColors.Control;
+					item.ForeColor = SystemColors.ControlText;
+				}
+			}
+		}
+
 		private void ApplyDarkThemeToControls(Control.ControlCollection controls)
 		{
 			foreach (Control control in controls)
@@ -177,6 +227,10 @@ namespace zfile
 				else if (control is TreeView treeView)
 				{
 					SetTreeViewDarkTheme(treeView);
+				}
+				else if (control is ToolStrip toolStrip)
+				{
+					SetToolStripDarkTheme(toolStrip);
 				}
 
 				// 递归处理子控件
@@ -228,7 +282,10 @@ namespace zfile
 				{
 					SetTreeViewLightTheme(treeView);
 				}
-
+				else if (control is ToolStrip toolStrip)
+				{
+					SetToolStripLightTheme(toolStrip);
+				}
 				// 递归处理子控件
 				if (control.Controls.Count > 0)
 				{

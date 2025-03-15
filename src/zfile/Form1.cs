@@ -1174,7 +1174,29 @@ namespace zfile
 				}
             }
         }
-
+		public TreeNode? FindTreeNodeByFullPath(TreeNodeCollection nodes, string path)
+		{
+			//var pathpart = Helper.getFSpath(path).Split('\\', StringSplitOptions.RemoveEmptyEntries);
+			var pathpart = path.Split('\\', StringSplitOptions.RemoveEmptyEntries);
+			foreach (var n in nodes)
+			{
+				var node = n as TreeNode;
+				if (node.Text == pathpart[0])
+				{
+					if (pathpart.Length == 1)
+						return node;
+					LoadSubDirectories(node);
+					node.Expand();
+					TreeNode? foundNode = FindTreeNodeByFullPath(node.Nodes, path.Substring(path.IndexOf('\\') + 1));
+					if (foundNode != null)
+					{
+						//Debug.Print("FindTreeNode -> foundNode: {0}", foundNode.Text);
+						return foundNode;
+					}
+				}
+			}
+			return null;
+		}
         public TreeNode? FindTreeNode(TreeNodeCollection nodes, string path)
         {
 			//Debug.Print("FindTreeNode -> {0}", path);
@@ -1191,58 +1213,60 @@ namespace zfile
 					//Debug.Print("FindTreeNode -> node: {0}, {1}", node.Text, node.FullPath);
 					//bug fix: node.fullpath=桌面\此电脑\system (C:)\aDrive, path=c:\\
 					if (path.Equals(node.Text, StringComparison.OrdinalIgnoreCase)) return node;
-					if (!deepSearch) continue;
-					if (node.Parent != null && node.Tag != null)
-					{
-						var pidl = ((ShellItem)node.Tag).PIDL;
-						var pf = ((ShellItem)(node.Parent.Tag)).ShellFolder;
-						var p = w32.GetPathByIShell(pf, pidl);      ////子节点path -> 此电脑\\迅雷下载, c:\\
-																	//var n = w32.GetNameByIShell(pf, pidl);    //子节点name -> 迅雷下载, system (c:)
-						if (p.Equals(path, StringComparison.OrdinalIgnoreCase))
-							return node;
+					//if (!deepSearch) continue;
+					//if (node.Parent != null && node.Tag != null)
+					//{
+					//	var pidl = ((ShellItem)node.Tag).PIDL;
+					//	var pf = ((ShellItem)(node.Parent.Tag)).ShellFolder;
+					//	var p = w32.GetPathByIShell(pf, pidl);      ////子节点path -> 此电脑\\迅雷下载, c:\\
+					//												//var n = w32.GetNameByIShell(pf, pidl);    //子节点name -> 迅雷下载, system (c:)
+					//	if (p.Equals(path, StringComparison.OrdinalIgnoreCase))
+					//		return node;
 
-						if (!(p.Equals("此电脑") && path.Contains(':')))
-						{
-							if (!path.Contains(p))
-								continue;
-						}
-					}
-					LoadSubDirectories(node);
-					node.Expand();
+					//	if (!(p.Equals("此电脑") && path.Contains(':')))
+					//	{
+					//		if (!path.Contains(p))
+					//			continue;
+					//	}
+					//}
+					//LoadSubDirectories(node);
+					//node.Expand();
 
-					TreeNode? foundNode = FindTreeNode(node.Nodes, path);
-					if (foundNode != null)
-					{
-						//Debug.Print("FindTreeNode -> foundNode: {0}", foundNode.Text);
-						return foundNode;
-					}
+					//TreeNode? foundNode = FindTreeNode(node.Nodes, path);
+					//if (foundNode != null)
+					//{
+					//	//Debug.Print("FindTreeNode -> foundNode: {0}", foundNode.Text);
+					//	return foundNode;
+					//}
 				}
 			}
 			else
 			{   // Get the first part of the path, find the node, expand it, and call FindTreeNode recursively
 				//TODO : 优化查找算法
-				var pathpart = Helper.getFSpath(path).Split('\\', StringSplitOptions.RemoveEmptyEntries);
-				foreach(var n in nodes)
-				{
-					var node = n as TreeNode;
-					if (node.Text == pathpart[0])
-					{
-						if (pathpart.Length == 1)
-							return node;
-						LoadSubDirectories(node);
-						node.Expand();
-						TreeNode? foundNode = FindTreeNode(node.Nodes, path.Substring(path.IndexOf('\\') + 1));
-						if (foundNode != null)
-						{
-							//Debug.Print("FindTreeNode -> foundNode: {0}", foundNode.Text);
-							return foundNode;
-						}
-					}
-				}
+				//var pathpart = Helper.getFSpath(path).Split('\\', StringSplitOptions.RemoveEmptyEntries);
+				//foreach(var n in nodes)
+				//{
+				//	var node = n as TreeNode;
+				//	if (node.Text == pathpart[0])
+				//	{
+				//		if (pathpart.Length == 1)
+				//			return node;
+				//		LoadSubDirectories(node);
+				//		node.Expand();
+				//		TreeNode? foundNode = FindTreeNode(node.Nodes, path.Substring(path.IndexOf('\\') + 1));
+				//		if (foundNode != null)
+				//		{
+				//			//Debug.Print("FindTreeNode -> foundNode: {0}", foundNode.Text);
+				//			return foundNode;
+				//		}
+				//	}
+				//}
+				TreeNode? foundNode = FindTreeNodeByFullPath(nodes, path);
+				if (foundNode != null) return foundNode;
 			}
 			return null;
         }
-      
+        
         public void ToolbarButton_DragEnter(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -1469,12 +1493,9 @@ namespace zfile
 					existingNodes[path] = existingNode;
 				}
 				else if (existingNode.Tag is FtpRootNodeTag)
-				{
 					existingNodes["ftproot"] = existingNode;
-				}
 				else if (existingNode.Tag is FtpNodeTag ftptag)
 				{
-
 				}
 			}
 			
@@ -1566,13 +1587,12 @@ namespace zfile
 						
 						// 如果是新创建的节点，才添加到父节点
 						if (!existingNodes.ContainsValue(nodeSub))
-						{
 							node.Nodes.Add(nodeSub);
-						}
 						
 						// 将节点添加到保留列表
 						nodesToKeep.Add(nodeSub);
-						if(nodeSub.Text.Equals("此电脑"))
+						if(subItem.parsepath.Equals("::{20D04FE0-3AEA-1069-A2D8-08002B30309D}"))
+						//if(nodeSub.Text.Equals("此电脑"))
 						{
 							if (isleft)
 								thispcL = nodeSub;
@@ -1604,8 +1624,8 @@ namespace zfile
 						// 使用路径作为唯一标识符进行比较
 						if (!newPidls.Contains(existingPair.Key) && !existingPair.Key.Equals("ftproot"))
 						{
-							// 从父节点中移除不再存在的节点
-							node.Nodes.Remove(existingPair.Value);
+							Debug.Print(existingPair.Key.ToString() + " removed");
+							node.Nodes.Remove(existingPair.Value);// 从父节点中移除不再存在的节点
 						}
 					}
 					

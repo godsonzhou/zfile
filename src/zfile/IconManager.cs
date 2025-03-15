@@ -252,7 +252,14 @@ namespace zfile
 			}
 			
 			//TODO: check windows\system32 from env:
-
+			var system32 = Environment.GetFolderPath(Environment.SpecialFolder.System);
+			path = Path.Combine(system32, path);
+			if (File.Exists(path))
+			{
+				//return GetIconByFilenameAndIndex(iconPath, 0);
+				using var icon = Icon.ExtractAssociatedIcon(path);
+				return icon?.ToBitmap();
+			}
 			return null;
 		}
 		public static Icon ExtractIconFromFile(string file, int iconIndex)

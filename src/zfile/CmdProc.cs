@@ -1343,7 +1343,7 @@ namespace zfile
 
 			foreach (ListViewItem item in listView.SelectedItems)
 			{
-				var filePath = Path.Combine(owner.currentDirectory, item.Text);
+				var filePath = Path.Combine(owner.currentDirectory[owner.isleft], item.Text);
 				var extension = Path.GetExtension(filePath).ToLower();
 
 				if (extension == ".sfv" || extension == ".md5" || extension == ".sha1" || extension == ".sha256" || extension == ".sha512")
@@ -1490,7 +1490,7 @@ namespace zfile
 
 				foreach (ListViewItem item in listView.SelectedItems)
 				{
-					var path = Path.Combine(owner.currentDirectory, item.Text);
+					var path = Path.Combine(owner.currentDirectory[owner.isleft], item.Text);
 					if (Directory.Exists(path) && createSingleFolder)
 					{
 						GenerateChecksumForDirectory(path, selectedAlgorithm, useUtf8, useUnixFormat);
@@ -1573,7 +1573,7 @@ namespace zfile
 
 				// 获取选中的第一个文件
 				var firstFile = listView.SelectedItems[0].Text;
-				var directory = owner.currentDirectory;
+				var directory = owner.currentDirectory[owner.isleft];
 				var fileNameWithoutExt = Path.GetFileNameWithoutExtension(firstFile);
 
 				// 如果文件名包含.part，则去掉.part及后面的数字
@@ -1685,7 +1685,7 @@ namespace zfile
 					return;
 				}
 				filesToSplit = listView.SelectedItems.Cast<ListViewItem>()
-					.Select(item => Path.Combine(owner.currentDirectory, item.Text))
+					.Select(item => Path.Combine(owner.currentDirectory[owner.isleft], item.Text))
 					.ToList();
 			}
 			else
@@ -1839,11 +1839,11 @@ namespace zfile
 				//if (dialog.ShowDialog() != DialogResult.OK) return;
 
 				string targetPath = string.IsNullOrEmpty(dialog.TargetPath) ?
-					owner.currentDirectory : dialog.TargetPath;
+					owner.currentDirectory[owner.isleft] : dialog.TargetPath;
 
 				foreach (ListViewItem item in listView.SelectedItems)
 				{
-					var sourcePath = Path.Combine(owner.currentDirectory, item.Text);
+					var sourcePath = Path.Combine(owner.currentDirectory[owner.isleft], item.Text);
 					string decodedContent;
 					try
 					{
@@ -1868,10 +1868,10 @@ namespace zfile
 			else
 			{
 				var files = owner.se.PrepareParameter(param, null, "");
-				var targetPath = owner.currentDirectory;
+				var targetPath = owner.currentDirectory[owner.isleft];
 				foreach(var file in files)
 				{
-					var sourcePath = Path.Combine(owner.currentDirectory, file);
+					var sourcePath = Path.Combine(owner.currentDirectory[owner.isleft], file);
 					string decodedContent;
 					try
 					{
@@ -1990,11 +1990,11 @@ namespace zfile
 				if (dialog.ShowDialog() != DialogResult.OK) return;
 
 				string targetPath = string.IsNullOrEmpty(dialog.TargetPath) ?
-					owner.currentDirectory : dialog.TargetPath;
+					owner.currentDirectory[owner.isleft] : dialog.TargetPath;
 
 				foreach (ListViewItem item in listView.SelectedItems)
 				{
-					var sourcePath = Path.Combine(owner.currentDirectory, item.Text);
+					var sourcePath = Path.Combine(owner.currentDirectory[owner.isleft], item.Text);
 					string extension = dialog.SelectedEncoding switch
 					{
 						"MIME (Base64)" => ".B64",
@@ -2049,11 +2049,11 @@ namespace zfile
 				if (dialog.ShowDialog() != DialogResult.OK) return;
 
 				string targetPath = string.IsNullOrEmpty(dialog.TargetPath) ?
-					owner.currentDirectory : dialog.TargetPath;
+					owner.currentDirectory[owner.isleft] : dialog.TargetPath;
 
 				var files = owner.se.PrepareParameter(param, null, "");
 				foreach (var file in files) {
-					var sourcePath = Path.Combine(owner.currentDirectory, file);
+					var sourcePath = Path.Combine(owner.currentDirectory[owner.isleft], file);
 					string extension = dialog.SelectedEncoding switch
 					{
 						"MIME (Base64)" => ".B64",
@@ -2218,7 +2218,7 @@ namespace zfile
 		private void ShowDirectoryTreeSearch()
 		{
 			// 获取当前驱动器
-			string currentDrive = Path.GetPathRoot(owner.currentDirectory);
+			string currentDrive = Path.GetPathRoot(owner.currentDirectory[owner.isleft]);
 			if (string.IsNullOrEmpty(currentDrive))
 				currentDrive = "C:\\";
 
@@ -2357,7 +2357,7 @@ namespace zfile
 
 			var paths = string.Join(Environment.NewLine,
 				lv.SelectedItems.Cast<ListViewItem>()
-					.Select(i => Path.Combine(owner.currentDirectory, i.Text)));
+					.Select(i => Path.Combine(owner.currentDirectory[owner.isleft], i.Text)));
 			Clipboard.SetText(paths);
 		}
 
@@ -2384,7 +2384,7 @@ namespace zfile
 			var details = new StringBuilder();
 			foreach (ListViewItem item in lv.SelectedItems)
 			{
-				details.AppendLine(Path.Combine(owner.currentDirectory, item.Text) + "\t" +
+				details.AppendLine(Path.Combine(owner.currentDirectory[owner.isleft], item.Text) + "\t" +
 					string.Join("\t", item.SubItems.Cast<ListViewItem.ListViewSubItem>().Skip(1).Select(si => si.Text)));
 			}
 			Clipboard.SetText(details.ToString());
@@ -2395,7 +2395,7 @@ namespace zfile
 			if (owner.backStack.Count > 0)
 			{
 				// 将当前目录存入前进栈
-				owner.forwardStack.Push(owner.currentDirectory);
+				owner.forwardStack.Push(owner.currentDirectory[owner.isleft]);
 				// 从后退栈获取上一个目录
 				string previousPath = owner.backStack.Pop();
 				// 导航到该目录，但不记录到历史（避免重复记录）
@@ -2408,7 +2408,7 @@ namespace zfile
 			if (owner.forwardStack.Count > 0)
 			{
 				// 将当前目录存入后退栈
-				owner.backStack.Push(owner.currentDirectory);
+				owner.backStack.Push(owner.currentDirectory[owner.isleft]);
 				// 从前进栈获取下一个目录
 				string nextPath = owner.forwardStack.Pop();
 				// 导航到该目录，但不记录到历史（避免重复记录）
@@ -2418,7 +2418,7 @@ namespace zfile
 
 		private void do_cm_gotoparent()
 		{
-			string? parentPath = Path.GetDirectoryName(owner.currentDirectory);
+			string? parentPath = Path.GetDirectoryName(owner.currentDirectory[owner.isleft]);
 			if (!string.IsNullOrEmpty(parentPath))
 			{
 				// 记录当前目录到历史
@@ -2537,11 +2537,11 @@ namespace zfile
 			{
 				try
 				{
-					if (owner.IsArchiveFile(owner.currentDirectory))
+					if (owner.IsArchiveFile(owner.currentDirectory[owner.isleft]))
 					{
-						if (owner.DeleteFromArchive(owner.currentDirectory, files.ToArray()))
+						if (owner.DeleteFromArchive(owner.currentDirectory[owner.isleft], files.ToArray()))
 						{
-							var items = owner.LoadArchiveContents(owner.currentDirectory);
+							var items = owner.LoadArchiveContents(owner.currentDirectory[owner.isleft]);
 							owner.activeListView.Items.Clear();
 							owner.activeListView.Items.AddRange(items.ToArray());
 						}
@@ -2563,7 +2563,7 @@ namespace zfile
 		// 创建新文件夹
 		private void CreateNewFolder(string folderName = "新建文件夹")
 		{
-			var path = owner.currentDirectory;
+			var path = owner.currentDirectory[owner.isleft];
 			var newFolderPath = Path.Combine(path, folderName);
 
 			FileSystemManager.CreateDirectory(newFolderPath);
@@ -2615,7 +2615,7 @@ namespace zfile
 			if (searchForm.ShowDialog() == DialogResult.OK && !string.IsNullOrWhiteSpace(searchBox.Text))
 			{
 				var searchPattern = searchBox.Text;
-				var searchPath = owner.currentDirectory;
+				var searchPath = owner.currentDirectory[owner.isleft];
 
 				try
 				{
@@ -2660,7 +2660,7 @@ namespace zfile
 			if (listView == null || listView.SelectedItems.Count <= 0) return;
 
 			var selectedItem = listView.SelectedItems[0];
-			var filePath = Path.Combine(owner.currentDirectory, selectedItem.Text);
+			var filePath = Path.Combine(owner.currentDirectory[owner.isleft], selectedItem.Text);
 
 			try
 			{
@@ -2707,8 +2707,8 @@ namespace zfile
 				return;
 			}
 
-			var file1 = Path.Combine(owner.currentDirectory, listView.SelectedItems[0].Text);
-			var file2 = Path.Combine(owner.currentDirectory, listView.SelectedItems[1].Text);
+			var file1 = Path.Combine(owner.currentDirectory[owner.isleft], listView.SelectedItems[0].Text);
+			var file2 = Path.Combine(owner.currentDirectory[owner.isleft], listView.SelectedItems[1].Text);
 
 			try
 			{
@@ -2799,7 +2799,7 @@ namespace zfile
 		{
 			var listView = owner.activeListView;
 			if (listView == null || listView.SelectedItems.Count == 0) return;
-			var targetfile = Path.Combine(owner.currentDirectory, listView.SelectedItems[0].Text) + ".zip";
+			var targetfile = Path.Combine(owner.currentDirectory[owner.isleft], listView.SelectedItems[0].Text) + ".zip";
 			if (File.Exists(targetfile))
 			{
 				if (MessageBox.Show($"{targetfile} 已存在，是否替换？", "Warning", MessageBoxButtons.YesNo) != DialogResult.Yes)
@@ -2823,7 +2823,7 @@ namespace zfile
 						.ToArray();
 
 					System.IO.Compression.ZipFile.CreateFromDirectory(
-						owner.currentDirectory,
+						owner.currentDirectory[owner.isleft],
 						//saveDialog.FileName,
 						targetfile,
 						System.IO.Compression.CompressionLevel.Optimal,
@@ -2846,7 +2846,7 @@ namespace zfile
 			if (listView == null || listView.SelectedItems.Count == 0) return;
 
 			var selectedItem = listView.SelectedItems[0];
-			var zipPath = Path.Combine(owner.currentDirectory, selectedItem.Text);
+			var zipPath = Path.Combine(owner.currentDirectory[owner.isleft], selectedItem.Text);
 
 			if (!zipPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))      //TODO:其他压缩格式的支持，使用插件
 			{
@@ -2886,7 +2886,7 @@ namespace zfile
 				MessageBox.Show("没有选中文件");
 				return;
 			}
-			using var dialog = new MultiRenameForm(listView, owner.currentDirectory);
+			using var dialog = new MultiRenameForm(listView, owner.currentDirectory[owner.isleft]);
 			if (dialog.ShowDialog() == DialogResult.OK)
 			{
 				owner.RefreshPanel(listView);

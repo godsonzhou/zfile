@@ -1151,7 +1151,7 @@ namespace zfile
 					listView.EndUpdate();
 
 					// 更新当前目录
-					form.currentDirectory = $"ftp://{source.Host}{path}";
+					form.currentDirectory[form.isleft] = $"ftp://{source.Host}{path}";
 				}
 			}
 			catch (Exception ex)

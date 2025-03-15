@@ -261,7 +261,7 @@ namespace zfile
 					// if ftp is not connected, send command to cmdproc
 					var cmdparts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 					var param = cmdparts.Length > 1 ? string.Join(' ', cmdparts[1..]) : string.Empty;
-					parentForm.cmdProcessor.ExecCmd(cmdparts[0], param, parentForm.currentDirectory);
+					parentForm.cmdProcessor.ExecCmd(cmdparts[0], param, parentForm.currentDirectory[parentForm.isleft]);
 				}
 				//AddReplayToList(command, response);
 			}

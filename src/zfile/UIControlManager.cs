@@ -584,7 +584,7 @@ namespace zfile
 		}
 		private void InitializeFtpController()
 		{
-			ftpController = new FtpController(form, form.asyncFtpMgr, form.fTPMGR);
+			ftpController = new FtpController(form, form.asyncfTPMGR, form.fTPMGR);
 		}
 		public void InitializeLayout()
 		{

@@ -1,6 +1,8 @@
 using FluentFTP;
+using Microsoft.VisualStudio.Threading;
 using System.Diagnostics;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace zfile
 {
@@ -86,11 +88,12 @@ namespace zfile
 		#endregion
 		private readonly Dictionary<string, TreeNode> _ftpNodesL = new Dictionary<string, TreeNode>();
 		private readonly Dictionary<string, TreeNode> _ftpNodesR = new Dictionary<string, TreeNode>();
-		private Dictionary<string, TreeNode> _ftpNodes => form.uiManager.isleft ? _ftpNodesL : _ftpNodesR;
+		private Dictionary<string, TreeNode> _ftpNodes => form.isleft ? _ftpNodesL : _ftpNodesR;
 		private readonly Dictionary<string, AsyncFtpFileSource> _ftpSources = new Dictionary<string, AsyncFtpFileSource>();
 		private readonly List<string> _registeredDrives = new List<string>();
 		private TreeNode _ftpRootNodeL, _ftpRootNodeR;
-		public TreeNode ftpRootNode => form.uiManager.isleft ? _ftpRootNodeL : _ftpRootNodeR;
+		public TreeNode ftpRootNode => form.isleft ? _ftpRootNodeL : _ftpRootNodeR;
+		public TreeNode unactiveFtpRootNode => form.isleft ? _ftpRootNodeR : _ftpRootNodeL;
 		private VfsModuleManager _vfsManager;
 		public Dictionary<string, AsyncFtpFileSource> ftpSources => _ftpSources;
 		private bool _isDownloading = false;
@@ -118,7 +121,116 @@ namespace zfile
 		{
 
 		}
-	
+		public void DownloadList(AsyncFtpFileSource source, string path, bool isDirectory)
+		{
+			try
+			{
+				// 显示目标选择对话框
+				FolderBrowserDialog dialog = new FolderBrowserDialog();
+				if (dialog.ShowDialog() == DialogResult.OK)
+				{
+					string targetPath = dialog.SelectedPath;
+					string fileName = Path.GetFileName(path);
+					string localTargetPath = Path.Combine(targetPath, fileName);
+
+					// 这里可以实现一个下载队列管理器
+					// 简单实现：直接下载
+					if (isDirectory)
+					{
+						// 创建目标文件夹
+						Directory.CreateDirectory(localTargetPath);
+						// 异步下载文件夹
+						_ = Task.Run(() =>
+						{
+							try
+							{
+								DownloadDirectory(source, path, localTargetPath);
+								form.Invoke(new Action(() =>
+								{
+									MessageBox.Show("文件夹下载完成", "下载完成", MessageBoxButtons.OK, MessageBoxIcon.Information);
+								}));
+							}
+							catch (Exception ex)
+							{
+								form.Invoke(new Action(() =>
+								{
+									MessageBox.Show($"下载失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+								}));
+							}
+						});
+					}
+					else
+					{
+						// 异步下载文件
+						_ = Task.Run(() =>
+						{
+							try
+							{
+								source.Client.DownloadFile(localTargetPath, path);
+								form.Invoke(new Action(() =>
+								{
+									MessageBox.Show("文件下载完成", "下载完成", MessageBoxButtons.OK, MessageBoxIcon.Information);
+								}));
+							}
+							catch (Exception ex)
+							{
+								form.Invoke(new Action(() =>
+								{
+									MessageBox.Show($"下载失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+								}));
+							}
+						});
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"添加到下载列表失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+		public void ShowFtpContextMenu(string connectionName, ListViewItem item)
+		{
+			if (_ftpSources.TryGetValue(connectionName, out AsyncFtpFileSource source))
+			{
+				bool isDirectory = item.SubItems[3].Text == "<DIR>";
+				string path = item.SubItems[1].Text;
+
+				// 创建右键菜单
+				var contextMenu = new ContextMenuStrip();
+
+				// 添加通用菜单项
+				if (isDirectory)
+				{
+					// 文件夹菜单项
+					contextMenu.Items.Add("复制", null, (s, e) => CopyFtpItem(source, path));
+					contextMenu.Items.Add("重命名", null, (s, e) => RenameFtpItem(source, path));
+					contextMenu.Items.Add("删除", null, (s, e) => DeleteFtpItem(source, path, true));
+					contextMenu.Items.Add("下载", null, (s, e) => DownloadList(source, path, true));
+					contextMenu.Items.Add("添加到下载列表", null, (s, e) => AddToDownloadList(source, path, true));
+					contextMenu.Items.Add("属性", null, (s, e) => ShowFtpItemProperties(source, path, true));
+				}
+				else
+				{
+					// 文件菜单项
+					contextMenu.Items.Add("查看", null, (s, e) => ViewFtpFile(source, path));
+					contextMenu.Items.Add("编辑", null, (s, e) => EditFtpFile(source, path));
+					contextMenu.Items.Add("复制", null, (s, e) => CopyFtpItem(source, path));
+					contextMenu.Items.Add("重命名", null, (s, e) => RenameFtpItem(source, path));
+					contextMenu.Items.Add("删除", null, (s, e) => DeleteFtpItem(source, path, false));
+					contextMenu.Items.Add("下载", null, (s, e) => DownloadList(source, path, false));
+					contextMenu.Items.Add("添加到下载列表", null, (s, e) => AddToDownloadList(source, path, false));
+					contextMenu.Items.Add("属性", null, (s, e) => ShowFtpItemProperties(source, path, false));
+				}
+
+				// 显示菜单
+				contextMenu.Show(Cursor.Position);
+			}
+		}
+		public AsyncFtpFileSource? GetFtpFileSourceByConnectionName(string connectionName)
+		{
+			_ftpSources.TryGetValue(connectionName, out AsyncFtpFileSource? source);
+			return source;
+		}
 		//添加新的私有方法来处理 FTP 连接管理器
 		public void ShowFtpConnectionForm()
 		{
@@ -573,7 +685,7 @@ namespace zfile
 			form.CancelButton = cancelButton;
 			form.ShowDialog();
 		}
-		private void connectButton_click(object s, EventArgs e)
+		private async void connectButton_click(object s, EventArgs e)
 		{
 			if (ftplistView.SelectedItems.Count > 0)
 			{
@@ -581,7 +693,7 @@ namespace zfile
 				string connectionName = selectedItem.Text;
 				// 调用 FtpMgr.Connect 方法
 				//Connect(selectedItem.Text);//bugfix: connect 不会维护drivecombobox和ftptreenode,改用registerftpconnection
-				if (RegisterFtpConnection(connectionName))
+				if (await RegisterFtpConnection(connectionName))
 				{
 					// 获取新添加的FTP节点并设置为活动树的SelectedNode
 					if (_ftpNodes.TryGetValue(connectionName, out TreeNode ftpNode))
@@ -927,6 +1039,8 @@ namespace zfile
 		/// </summary>
 		public async Task<bool> RegisterFtpConnectionAsync(string connectionName)
 		{
+			var Result = false;
+
 			// 检查是否已达到最大连接数
 			if (_registeredDrives.Count >= 5)
 			{
@@ -944,7 +1058,7 @@ namespace zfile
 					string driveId = $"{driveLetter}:";
 
 					// 创建FTP文件源
-					var ftpSource = new AsyncFtpFileSource(form, connectionName, form.fTPMGR.ActiveClientAsync);
+					var ftpSource = new AsyncFtpFileSource(form, connectionName, form.asyncfTPMGR.ActiveClient);
 					_ftpSources[connectionName] = ftpSource;
 
 					// 创建FTP节点
@@ -964,7 +1078,7 @@ namespace zfile
 
 					// 添加到DriveComboBox
 					AddToDriveComboBox(connectionName, driveId);
-
+					Result = true;
 					return true;
 				}
 			}
@@ -979,9 +1093,13 @@ namespace zfile
 		/// <summary>
 		/// 同步版本的注册FTP连接为虚拟盘（为了兼容性）
 		/// </summary>
-		public bool RegisterFtpConnection(string connectionName)
+		public async Task<bool> RegisterFtpConnection(string connectionName)
 		{
-			return RegisterFtpConnectionAsync(connectionName).GetAwaiter().GetResult();
+			//return RegisterFtpConnectionAsync(connectionName).GetAwaiter().GetResult();
+			var isRegistered = await RegisterFtpConnectionAsync(connectionName);
+			return isRegistered;
+			//JoinableTaskFactory.Run(RegisterFtpConnectionAsync(connectionName).GetAwaiter())
+			//Task.Run(async () => { await RegisterFtpConnectionAsync(connectionName); } );
 		}
 
 		private void AddFtpNode(TreeNode ftpNode, bool isleft = false)
@@ -1625,20 +1743,23 @@ namespace zfile
 				{
 					_activeClient.Config.EncryptionMode = connectionInfo.EncryptionMode.Value;
 				}
+				var token = new CancellationToken();
 
+				//using (var conn = new AsyncFtpClient())
+				//{
+				//	conn.Host = "localhost";
+				//	conn.Credentials = new NetworkCredential("ftptest", "ftptest");
+
+				//	await conn.Connect(token);
+				//}
 				// 连接到服务器
-				var profile = await _activeClient.AutoConnect();  //connect()
-				if (profile != null) {
-					Debug.Print("ftp auto connect success.");
-					form.uiManager.ftpController.UpdateStatus(true);
+				await _activeClient.Connect(token);  
 
-					// 添加到连接监视器进行监控
-					_connectionMonitor.AddConnection(connectionName, _activeClient);
-				}
-				else
-				{
-					Debug.Print("ftp auto connect failed.");
-				}
+				form.uiManager.ftpController.UpdateStatus(true);
+
+				// 添加到连接监视器进行监控
+				_connectionMonitor.AddConnection(connectionName, _activeClient);
+
 				return _activeClient.IsConnected;
 			}
 			catch (Exception ex)
@@ -1704,8 +1825,106 @@ namespace zfile
 		{
 			// 从配置文件加载FTP连接信息
 			// 这里可以实现从配置文件加载连接信息的逻辑
-		}
+			var defaultConnName = form.ftpconfigLoader.FindConfigValue("connections", "default");
+			//init _connection by ftp.configloader.sections:
+			/*
+			 * [connections]
+				1=tt
+				default=tt
+				[tt]
+				host=localhost
+				username=isa
+				password=713A3D5726ACF87D597A0283
+				pasvmode=0
+			 */
+			if (string.IsNullOrEmpty(defaultConnName))
+			{
+				return; // 没有配置默认连接
+			}
 
+			// 读取指定连接名称的配置
+			var host = form.ftpconfigLoader.FindConfigValue(defaultConnName, "host");
+			var username = form.ftpconfigLoader.FindConfigValue(defaultConnName, "username");
+			var password = form.ftpconfigLoader.FindConfigValue(defaultConnName, "password");
+			var pasvModeStr = form.ftpconfigLoader.FindConfigValue(defaultConnName, "pasvmode");
+
+			// 验证必要参数
+			if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(username))
+			{
+				return; // 缺少必要参数
+			}
+
+			// 转换被动模式设置
+			bool usePasvMode = true; // 默认使用被动模式
+			if (!string.IsNullOrEmpty(pasvModeStr) && int.TryParse(pasvModeStr, out int pasvMode))
+			{
+				usePasvMode = pasvMode != 0;
+			}
+
+			// 创建FTP连接配置
+			var connectionInfo = new FtpConnectionInfo
+			{
+				Name = defaultConnName,
+				Host = host,
+				Credentials = new NetworkCredential(username, password),
+				Port = 21, // 使用默认端口
+				Config = new FtpConfig
+				{
+					DataConnectionType = usePasvMode ?
+						FtpDataConnectionType.AutoPassive :
+						FtpDataConnectionType.AutoActive
+				}
+			};
+
+			// 添加到连接字典
+			_connections[defaultConnName] = connectionInfo;
+
+			// 读取所有配置的连接
+			// 先获取 connections 段下的所有键值对
+			var connections = form.ftpconfigLoader.GroupConfigItemsByNumberOrName()
+				.Where(x => x.Key == "connections")
+				.SelectMany(x => x.Value)
+				.Where(x => x.Key != "default"); // 排除default配置项
+
+			// 遍历添加其他连接
+			foreach (var conn in connections)
+			{
+				var connName = conn.Value;
+				if (connName == defaultConnName) continue; // 跳过已添加的默认连接
+
+				// 读取连接配置
+				host = form.ftpconfigLoader.FindConfigValue(connName, "host");
+				username = form.ftpconfigLoader.FindConfigValue(connName, "username");
+				password = form.ftpconfigLoader.FindConfigValue(connName, "password");
+				pasvModeStr = form.ftpconfigLoader.FindConfigValue(connName, "pasvmode");
+
+				// 验证必要参数
+				if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(username))
+					continue;
+
+				// 转换被动模式设置
+				usePasvMode = true;
+				if (!string.IsNullOrEmpty(pasvModeStr) && int.TryParse(pasvModeStr, out pasvMode))
+				{
+					usePasvMode = pasvMode != 0;
+				}
+
+				// 创建并添加连接配置
+				_connections[connName] = new FtpConnectionInfo
+				{
+					Name = connName,
+					Host = host,
+					Credentials = new NetworkCredential(username, password),
+					Port = 21,
+					Config = new FtpConfig
+					{
+						DataConnectionType = usePasvMode ?
+							FtpDataConnectionType.AutoPassive :
+							FtpDataConnectionType.AutoActive
+					}
+				};
+			}
+		}
 		/// <summary>
 		/// 获取所有FTP连接信息
 		/// </summary>

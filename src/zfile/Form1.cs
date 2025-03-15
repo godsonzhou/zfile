@@ -33,6 +33,9 @@ namespace zfile
 		public TreeNode activeRoot { get => (isleft ? leftRoot : rightRoot); }
 		public TreeNode unactiveRoot { get => (!isleft ? leftRoot : rightRoot); }
 		private TreeNode thispcL, thispcR;
+		//private TreeNode ftprootL, ftprootR;
+		private TreeNode activeFtpRoot { get => fTPMGR.ftpRootNode; }
+		private TreeNode unactiveFtpRoot { get => fTPMGR.unactiveFtpRootNode; }
 		public TreeNode activeThispc { get { return isleft ? thispcL : thispcR; } }
 		public TreeNode unactiveThispc { get { return !isleft ? thispcL : thispcR; } }
 
@@ -89,7 +92,8 @@ namespace zfile
 		{
 			thispc = 0,
 			desktop = 1,
-			full = 2
+			ftproot = 2,
+			full = 3
 		}
 		// 导航到指定路径
 		public void NavigateToPath(string path, bool recordHistory = true, TreeSearchScope scope = TreeSearchScope.thispc , bool isactive = true)
@@ -103,7 +107,8 @@ namespace zfile
 			{
 				TreeSearchScope.thispc => isactive ? activeThispc.Nodes : unactiveThispc.Nodes,
 				TreeSearchScope.full => isactive ? activeTreeview.Nodes : unactiveTreeview.Nodes,
-				TreeSearchScope.desktop => isactive ? activeRoot.Nodes : unactiveRoot.Nodes
+				TreeSearchScope.desktop => isactive ? activeRoot.Nodes : unactiveRoot.Nodes,
+				TreeSearchScope.ftproot => isactive ? activeFtpRoot.Nodes : unactiveFtpRoot.Nodes
 			};
 			
 			var node = FindTreeNode(searchtarget, path);

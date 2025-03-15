@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using Microsoft.Extensions.AI;
+using WinShell;
 
 namespace zfile
 {
@@ -1283,11 +1284,33 @@ namespace zfile
 		}
 		private void do_cm_matchsrc()
 		{
-			//var node = owner.FindTreeNode(owner.unactiveTreeview.Nodes, owner.uiManager.srcDir);
-			//if (node != null) { 
-			//	owner.unactiveTreeview.SelectedNode = node;
-			//}
-			owner.NavigateToPath(owner.uiManager.srcDir, true, Form1.TreeSearchScope.desktop, false);
+			Form1.TreeSearchScope scope;
+			ShellItem shitem;
+			string path = owner.uiManager.srcDir;
+			var tag = owner.activeTreeview.SelectedNode.Tag;
+			if (tag is ShellItem)
+			{
+				shitem = (ShellItem)tag;
+				if (shitem.IsVirtual)
+				{
+					if (shitem.parsepath.Equals("::{00021400-0000-0000-C000-000000000046}"))	// is desktop
+						scope = Form1.TreeSearchScope.full;
+					else					
+						scope = Form1.TreeSearchScope.desktop;
+					path = owner.activeTreeview.SelectedNode.Text;
+				}
+				else
+					scope = Form1.TreeSearchScope.thispc;
+			}
+			else if (tag is FtpRootNodeTag)
+			{
+				scope = Form1.TreeSearchScope.desktop;
+				path = owner.activeTreeview.SelectedNode.Text;
+			}
+			else //is ftpnode
+				scope = Form1.TreeSearchScope.ftproot;
+
+			owner.NavigateToPath(path, true, scope, false);
 		}
 		private void ShowFtpConnectionManager()
 		{

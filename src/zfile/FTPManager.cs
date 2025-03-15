@@ -37,11 +37,12 @@ namespace zfile
 		#endregion
 		private readonly Dictionary<string, TreeNode> _ftpNodesL = new Dictionary<string, TreeNode>();
 		private readonly Dictionary<string, TreeNode> _ftpNodesR = new Dictionary<string, TreeNode>();
-		private Dictionary<string, TreeNode> _ftpNodes => form.uiManager.isleft ? _ftpNodesL : _ftpNodesR;
+		private Dictionary<string, TreeNode> _ftpNodes => form.isleft ? _ftpNodesL : _ftpNodesR;
 		private readonly Dictionary<string, FtpFileSource> _ftpSources = new Dictionary<string, FtpFileSource>();
 		private readonly List<string> _registeredDrives = new List<string>();
 		private TreeNode _ftpRootNodeL, _ftpRootNodeR;
-		public TreeNode ftpRootNode => form.uiManager.isleft ? _ftpRootNodeL : _ftpRootNodeR;
+		public TreeNode ftpRootNode => form.isleft ? _ftpRootNodeL : _ftpRootNodeR;
+		public TreeNode unactiveFtpRootNode => form.isleft ? _ftpRootNodeR : _ftpRootNodeL;
 		private VfsModuleManager _vfsManager;
 		public Dictionary<string, FtpFileSource> ftpSources => _ftpSources;
 		private bool _isDownloading = false;
@@ -1834,14 +1835,14 @@ namespace zfile
 			try
 			{
 				// 创建保存文件对话框
-				SaveFileDialog dialog = new SaveFileDialog
-				{
-					Filter = "文本文件|*.txt",
-					Title = "保存下载列表",
-					FileName = "FTPLIST.TXT"
-				};
+				//SaveFileDialog dialog = new SaveFileDialog
+				//{
+				//	Filter = "文本文件|*.txt",
+				//	Title = "保存下载列表",
+				//	FileName = "FTPLIST.TXT"
+				//};
 
-				if (dialog.ShowDialog() == DialogResult.OK)
+				//if (dialog.ShowDialog() == DialogResult.OK)
 				{
 					List<string> fileList = new List<string>();
 
@@ -1868,7 +1869,7 @@ namespace zfile
 					}
 
 					// 写入文件
-					File.WriteAllLines(dialog.FileName, fileList);
+					File.WriteAllLines("ftplist.txt", fileList);
 					MessageBox.Show("下载列表已保存", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
 				}
 			}

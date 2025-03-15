@@ -552,12 +552,20 @@ namespace zfile
 			if (snode.tNode != null)
 				node = snode.tNode;
 			else
-				node = form.FindTreeNode(form.activeThispc.Nodes, snode.UniqueID);  //应该用绝对路径查找，而不是相对路径，否则遇到相同名称的文件夫目录会出现问题
+			{
+				if (snode.UniqueID.Equals(string.Empty))
+					node = form.FindTreeNode(form.activeRoot.Nodes, snode.DisplayName);  //应该用绝对路径查找，而不是相对路径，否则遇到相同名称的文件夫目录会出现问题
+				else
+					node = form.FindTreeNode(form.activeThispc.Nodes, snode.UniqueID);
+			}
 			if (node != null)
 			{
 				treeView.SelectedNode = node;
+				Debug.Print($"set {treeView.Name} selected node to {node.FullPath}");
 				node.EnsureVisible();
 			}
+			else
+				Debug.Print($"can not find {treeView.Name} node for {snode.UniqueID}");
 		}
 		public void InitializeUI()
 		{

@@ -374,6 +374,11 @@ namespace zfile
 			}
 		}
 
+		public FtpFileSource? GetFtpFileSourceByConnectionName(string connectionName)
+		{
+			_ftpSources.TryGetValue(connectionName, out FtpFileSource? source);
+			return source;
+		}
 		/// <summary>
 		/// 加载FTP目录内容到ListView
 		/// </summary>
@@ -427,8 +432,7 @@ namespace zfile
 		/// <param name="form">主窗体</param>
 		/// <param name="connectionName">连接名称</param>
 		/// <param name="item">选中的ListViewItem</param>
-		/// <param name="location">鼠标位置</param>
-		public void ShowFtpContextMenu(string connectionName, ListViewItem item, Point location)
+		public void ShowFtpContextMenu(string connectionName, ListViewItem item)
 		{
 			if (_ftpSources.TryGetValue(connectionName, out FtpFileSource source))
 			{
@@ -463,7 +467,7 @@ namespace zfile
 				}
 
 				// 显示菜单
-				contextMenu.Show(location);
+				contextMenu.Show(Cursor.Position);
 			}
 		}
 

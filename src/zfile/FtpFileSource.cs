@@ -9,6 +9,13 @@ namespace zfile
 	/// </summary>
 	public class FtpFileSource : FileSourceBase
 	{
+		private FtpClient _client;
+		private AsyncFtpClient _clientAsync;
+		private string _currentPath = "/";
+		private string _ftpHost;
+		private string _connectionName;
+		private Form1 _owner;
+
 		/// <summary>
 		/// 将FTP文件属性转换为L777格式的字符串
 		/// </summary>
@@ -58,12 +65,7 @@ namespace zfile
 
 			return sb.ToString();
 		}
-		private FtpClient _client;
-		private AsyncFtpClient _clientAsync;
-		private string _currentPath = "/";
-		private string _ftpHost;
-		private string _connectionName;
-		private Form1 _owner;
+
 
 		public FtpFileSource()
 		{

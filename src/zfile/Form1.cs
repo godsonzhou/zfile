@@ -746,7 +746,9 @@ namespace zfile
 				fTPMGR.HandleFtpNodeDoubleClick( eNode, activeListView);
 				activeListView.Refresh();
 				// 更新当前目录和路径显示
-				currentDirectory = $"ftp://{ftpTag.ConnectionName}{ftpTag.Path}";
+				var ftpsrc = fTPMGR.GetFtpFileSourceByConnectionName(ftpTag.ConnectionName);
+				//currentDirectory = $"ftp://{ftpTag.ConnectionName}{ftpTag.Path}";
+				currentDirectory = $"ftp://{ftpsrc?.Host}{ftpTag.Path}";		//bugfix: currentdir can not be set to connection name, use host instead,
 				//if (isleft)
 				//	uiManager.LeftPathTextBox.Text = currentDirectory;
 				//else
@@ -1008,7 +1010,7 @@ namespace zfile
                         if (!string.IsNullOrEmpty(connectionName))
                         {
                             // 显示FTP右键菜单
-                            fTPMGR.ShowFtpContextMenu(connectionName, item, e.Location);
+                            fTPMGR.ShowFtpContextMenu(connectionName, item);
                             return;
                         }
                     }
@@ -1024,9 +1026,7 @@ namespace zfile
                         // Get corresponding TreeNode for this path
                         TreeNode? targetNode = FindTreeNode(node.Nodes, item.Text);
                         if (targetNode != null)
-                        {
                             ShowContextMenuOnTreeview(targetNode, e.Location);
-                        }
                         else
                         {
                             // If no corresponding node found, use path to show context menu
@@ -1043,18 +1043,14 @@ namespace zfile
             foreach (ListViewItem item in listView.Items)
             {
                 if (item.Bounds.IntersectsWith(rect))
-                {
                     item.Selected = true;
-                }
             }
         }
 
         private void ListView_DrawItem(object sender, DrawListViewItemEventArgs e)
         {
             if (isSelecting && e.Bounds.IntersectsWith(selectionRectangle))
-            {
                 e.Graphics.FillRectangle(Brushes.LightBlue, e.Bounds);
-            }
             e.DrawDefault = true;
         }
 

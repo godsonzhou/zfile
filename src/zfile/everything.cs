@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 
 public class EverythingWrapper
@@ -220,6 +221,7 @@ public class EverythingWrapper
 		}
 		catch
 		{
+			Debug.Print("everything is running check exception");
 			return false;
 		}
 	}

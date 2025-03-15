@@ -1579,7 +1579,10 @@ namespace zfile
 									if (subdir.Length != 0 && nodeSub.Nodes.Count == 0)
 										nodeSub.Nodes.Add("...");
 								}
-								catch { }
+								catch 
+								{
+									Debug.Print("windows csc no priv exception");
+								}
 							}
 						}
 						nodeSub.ImageKey = iconkey;
@@ -1951,6 +1954,7 @@ namespace zfile
             }
             catch
             {
+				Debug.Print("exception in createlistview item");
                 return null;
             }
         }

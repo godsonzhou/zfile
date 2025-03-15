@@ -1643,7 +1643,7 @@ namespace zfile
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine($"连接失败: {ex.Message}");
+				Debug.Print($"连接失败: {ex.Message}");
 				return false;
 			}
 		}

@@ -238,7 +238,7 @@ namespace zfile
 			}
 			catch (UnauthorizedAccessException)
 			{
-				// 忽略访问受限的目录
+				Debug.Print(" 忽略访问受限的目录");
 			}
 			return result;
 		}

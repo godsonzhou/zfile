@@ -451,13 +451,13 @@ namespace zfile
                     }
                     catch (UnauthorizedAccessException)
                     {
-                        // 忽略无权限访问的目录
+						Debug.Print(" 忽略无权限访问的目录");
                     }
                 }
             }
             catch (UnauthorizedAccessException)
             {
-                // 忽略无权限访问的目录
+				Debug.Print(" 忽略无权限访问的目录");
             }
         }
 

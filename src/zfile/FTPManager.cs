@@ -688,7 +688,7 @@ namespace zfile
 						// 创建目标文件夹
 						Directory.CreateDirectory(localTargetPath);
 						// 异步下载文件夹
-						Task.Run(() =>
+						_ = Task.Run(() =>
 						{
 							try
 							{
@@ -710,7 +710,7 @@ namespace zfile
 					else
 					{
 						// 异步下载文件
-						Task.Run(() =>
+						_ = Task.Run(() =>
 						{
 							try
 							{
@@ -826,7 +826,7 @@ namespace zfile
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine($"连接失败: {ex.Message}");
+				Debug.Print($"连接失败: {ex.Message}");
 				return false;
 			}
 		}
@@ -1110,6 +1110,7 @@ namespace zfile
 			}
 			catch
 			{
+				Debug.Print("create directory failed.");
 				return false;
 			}
 		}

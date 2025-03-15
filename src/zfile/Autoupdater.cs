@@ -38,6 +38,7 @@ public class AutoUpdater
 		{
 			//LogError($"Update failed: {ex.Message}");
 			//if (!silentCheck) ShowErrorDialog("更新检查失败");
+			MessageBox.Show("更新检查失败");
 		}
 	}
 	private static bool ShowUpdatePrompt(Version version)

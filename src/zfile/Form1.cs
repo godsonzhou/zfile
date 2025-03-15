@@ -1,4 +1,5 @@
 using Shell32;
+using System.Collections;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -15,7 +16,7 @@ namespace zfile
 		public readonly CFGLOADER configLoader;
 		public readonly CFGLOADER ftpconfigLoader;
 		public readonly CFGLOADER cmdicons_configloader;
-		public readonly IconManager iconManager = new();
+		public readonly IconManager iconManager;
 		public readonly ThemeManager themeManager;
 		private readonly FilePreviewManager previewManager = new();
 		public readonly FileSystemManager fsManager = new();
@@ -62,6 +63,8 @@ namespace zfile
 		private string lastDirectory = string.Empty; // 上一次访问的目录
 		public ShellExecuteHelper se;
 		private bool shiftKeyPressed, altKeyPressed, ctrlKeyPressed, winKeyPressed;
+		public IDictionary env;
+		public Dictionary<string, string> specialpaths = new();
 		public IEnumerable<string> GetRecycleBinFilenames()
 		{
 			Shell shell = new Shell();
@@ -141,12 +144,15 @@ namespace zfile
 
 		public Form1()
 		{
+			env = Helper.getEnv();
+			specialpaths = Helper.GetSpecFolderPaths();
 			configLoader = new CFGLOADER(Constants.ZfileCfgPath+"wincmd.ini");
 			ftpconfigLoader = new CFGLOADER(Constants.ZfileCfgPath + "wcx_ftp.ini");
 			cmdicons_configloader = new CFGLOADER(Constants.ZfileCfgPath + "wcmicons.inc");
 			fTPMGR = new FTPMGR(this);
 		    cmdProcessor = new CmdProc(this);
 			lLM_Helper = new LLM_Helper(this);
+			iconManager = new IconManager(this);
 			InitializeComponent();
 		    this.Size = new Size(1920, 1080);
 
@@ -1243,7 +1249,7 @@ namespace zfile
             {
                 var files = (string[])e.Data.GetData(DataFormats.FileDrop);
                 // 只允许可执行文件或目录
-                if (files.Any(f => File.Exists(f) && (Path.GetExtension(f).Equals(".exe", StringComparison.OrdinalIgnoreCase) || Directory.Exists(f))))
+                //if (files.Any(f => File.Exists(f) && (Path.GetExtension(f).Equals(".exe", StringComparison.OrdinalIgnoreCase) || Directory.Exists(f))))
                 {
                     e.Effect = DragDropEffects.Copy;
                     return;

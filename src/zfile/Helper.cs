@@ -697,42 +697,45 @@ namespace zfile
 			specFolderPaths["迅雷下载"] = (downloadPath);
 			return specFolderPaths;
 		}
-		public static void GetSpecPathFromReg()
+		public static Dictionary<string, string> GetSpecPathFromReg()
 		{
+			Dictionary<string, string> specialpaths = new Dictionary<string, string>();
 			RegistryKey folders;
 			folders = OpenRegistryPath(Registry.CurrentUser, @"\software\microsoft\windows\currentversion\explorer\shell folders");
 			//Windows用户桌面路径
-			string desktopPath = folders.GetValue("Desktop").ToString();
+			specialpaths["deskktop"] = folders.GetValue("Desktop").ToString();
 			//Windows用户字体目录路径
-			string fontsPath = folders.GetValue("Fonts").ToString();
+			specialpaths["fonts"] = folders.GetValue("Fonts").ToString();
 			//Windows用户网络邻居路径
-			string nethoodPath = folders.GetValue("Nethood").ToString();
+			specialpaths["nethood"] = folders.GetValue("Nethood").ToString();
 			//Windows用户我的文档路径
-			string personalPath = folders.GetValue("Personal").ToString();
+			specialpaths["personal"] = folders.GetValue("Personal").ToString();
 			//Windows用户开始菜单程序路径
-			string programsPath = folders.GetValue("Programs").ToString();
+			specialpaths["programs"] = folders.GetValue("Programs").ToString();
 			//Windows用户存放用户最近访问文档快捷方式的目录路径
-			string recentPath = folders.GetValue("Recent").ToString();
+			specialpaths["recent"] = folders.GetValue("Recent").ToString();
 			//Windows用户发送到目录路径
-			string sendtoPath = folders.GetValue("Sendto").ToString();
+			specialpaths["sendto"] = folders.GetValue("Sendto").ToString();
 			//Windows用户开始菜单目录路径
-			string startmenuPath = folders.GetValue("Start menu").ToString();
+			specialpaths["startmenu"] = folders.GetValue("Start menu").ToString();
 			//Windows用户开始菜单启动项目录路径
-			string startupPath = folders.GetValue("Startup").ToString();
+			specialpaths["startup"] = folders.GetValue("Startup").ToString();
 			//Windows用户收藏夹目录路径
-			string favoritesPath = folders.GetValue("Favorites").ToString();
+			specialpaths["favorites"] = folders.GetValue("Favorites").ToString();
 			//Windows用户网页历史目录路径
-			string historyPath = folders.GetValue("History").ToString();
+			specialpaths["history"] = folders.GetValue("History").ToString();
 			//Windows用户Cookies目录路径
-			string cookiesPath = folders.GetValue("Cookies").ToString();
+			specialpaths["cookies"] = folders.GetValue("Cookies").ToString();
 			//Windows用户Cache目录路径
-			string cachePath = folders.GetValue("Cache").ToString();
+			specialpaths["cache"] = folders.GetValue("Cache").ToString();
 			//Windows用户应用程式数据目录路径
-			string appdataPath = folders.GetValue("Appdata").ToString();
+			specialpaths["appdata"] = folders.GetValue("Appdata").ToString();
 			//Windows用户打印目录路径
-			string printhoodPath = folders.GetValue("Printhood").ToString();
+			specialpaths["printhood"] = folders.GetValue("Printhood").ToString();
 			String Path = Environment.GetFolderPath(Environment.SpecialFolder.Favorites);//返回收藏夹位置
-			Console.WriteLine(Path);
+			foreach(var p in specialpaths)
+				Debug.Print(p.Key + ":" + p.Value);
+			return specialpaths;
 		}
 		private static RegistryKey OpenRegistryPath(RegistryKey root, string s)
 		{
@@ -744,18 +747,16 @@ namespace zfile
 			}
 			return root;
 		}
-		public static void getEnv()
+		public static IDictionary getEnv()
 		{
 			//把环境变量中所有的值取出来，放到变量environment中
 			IDictionary environment = Environment.GetEnvironmentVariables();
 			//打印表头
-			Console.WriteLine("环境变量名\t=\t环境变量值");
+			Debug.Print("环境变量名\t=\t环境变量值");
 			//遍历environment中所有键值
-			foreach (string environmentKey in environment.Keys)
-			{
-				//打印出所有环境变量的名称和值
-				Console.WriteLine("(0}\t=\t{(1}", environmentKey, environment[environmentKey].ToString());
-			}
+			foreach (string environmentKey in environment.Keys)//打印出所有环境变量的名称和值
+				Debug.Print($"{environmentKey}={environment[environmentKey].ToString()}");
+			return environment;
 		}
 	
 		public static string GetListItemPath(ListViewItem item)

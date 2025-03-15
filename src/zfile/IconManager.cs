@@ -18,6 +18,7 @@ namespace zfile
 		private bool disposed = false;
 		private Size largesize = new Size(64, 64);
 		private Size smallsize = new Size(16, 16);
+		private Form1 form;
 		public void Dispose()
 		{
 			Dispose(true);
@@ -44,8 +45,9 @@ namespace zfile
 		{
 			Dispose(false);
 		}
-		public IconManager()
+		public IconManager(Form1 form)
 		{
+			this.form = form;
 			InitIconCache(true);
 			InitIconCache(false);
 		}
@@ -227,31 +229,29 @@ namespace zfile
 			return string.Empty;
 		}
 	
-		public Image? LoadIcon(string iconPath)
+		public Image? LoadIcon(string path)
 		{
-			if (string.IsNullOrEmpty(iconPath))
+			if (string.IsNullOrEmpty(path))
 				return null;
 
-			if (iconPath.ToLower().StartsWith("wcmicon"))
-				iconPath = Constants.ZfileCfgPath + iconPath;
+			if (path.ToLower().StartsWith("wcmicon"))
+				path = Constants.ZfileCfgPath + path;
 
-			if (iconPath.Contains(","))
+			if (path.Contains(","))
 			{
-				string[] parts = iconPath.Split(',');
+				string[] parts = path.Split(',');
 				if (parts.Length == 2 && int.TryParse(parts[1], out int iconIndex))
-				{
 					return GetIconByFilenameAndIndex(parts[0], iconIndex);
-				}
-				else if (parts.Length == 1)
-				{
-					using var icon = Icon.ExtractAssociatedIcon(parts[0]);
-					return icon?.ToBitmap();
-				}
+				Debug.Print("icon path.length > 2?! pls check");
 			}
-			else if (File.Exists(iconPath))
+			if (File.Exists(path))
 			{
-				return GetIconByFilenameAndIndex(iconPath, 0);
+				//return GetIconByFilenameAndIndex(iconPath, 0);
+				using var icon = Icon.ExtractAssociatedIcon(path);
+				return icon?.ToBitmap();
 			}
+			
+			//TODO: check windows\system32 from env:
 
 			return null;
 		}
@@ -311,10 +311,10 @@ namespace zfile
 			// 可以使用Win32 API或第三方库
 			// 简化起见，这里返回一个空数组
 			List<Icon> icons = new();
-			var imagelist = IconManager.LoadIconsFromFile1(filePath);
+			var imagelist = LoadIconsFromFile1(filePath);
 			foreach (var i in imagelist.Images.Cast<Image>())
 			{
-				var icon = IconManager.ConvertImageToIcon(i);
+				var icon = ConvertImageToIcon(i);
 				icons.Add(icon);
 			}
 			return icons.ToArray();
@@ -456,7 +456,8 @@ namespace zfile
 		private Image? GetIconByFilenameAndIndex(string path, int index)
 		{
 			if (iconsCache.TryGetValue(path, out ImageList imglst))
-				return imglst.Images[index];
+				if(index < imglst.Images.Count)
+					return imglst.Images[index];
 			ImageList images = LoadIconsFromFile(path);
 			if (images != null )
 			{

@@ -536,11 +536,13 @@ namespace zfile
 
 		private void LeftPathTextBox_PathChanged(object? sender, EventArgs e)
 		{
+			isleft = true;
 			UpdateTreeViewSelection(LeftTree, LeftPathTextBox.CurrentNode);
 		}
 
 		private void RightPathTextBox_PathChanged(object? sender, EventArgs e)
 		{
+			isleft = false;
 			UpdateTreeViewSelection(RightTree, RightPathTextBox.CurrentNode);
 		}
 

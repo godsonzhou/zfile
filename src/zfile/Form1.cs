@@ -1504,13 +1504,13 @@ namespace zfile
 			// 创建一个集合，用于存储新的PIDL，以便后续比较
 			HashSet<string> newPidls = new HashSet<string>();
 			IEnumIDList Enum;
-			
-			if (root.EnumObjects(this.Handle, SHCONTF.FOLDERS, out nint EnumPtr) == w32.S_OK)    // 循环查找子项
+			try
 			{
-				if (EnumPtr == IntPtr.Zero)  //如果node=程序和功能,则EnumPtr=0，直接返回
-					return;
-				try
+				if (root.EnumObjects(this.Handle, SHCONTF.FOLDERS, out nint EnumPtr) == w32.S_OK)    // 循环查找子项
 				{
+					if (EnumPtr == IntPtr.Zero)  //如果node=程序和功能,则EnumPtr=0，直接返回
+						return;
+
 					Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
 					while (Enum.Next(1, out nint pidlSub, out uint celtFetched) == 0 && celtFetched == w32.S_FALSE) //获取子节点的pidl
 					{
@@ -1520,11 +1520,11 @@ namespace zfile
 						var pathPart = path.Split('\\');
 						name = !pathPart[^1].Equals(string.Empty) ? pathPart[^1] : pathPart[^2];
 						var subItem = new ShellItem(pidlSub, iSub, root); //子节点的tag存放pidl和ishellfolder接口
-						
+
 						// 使用路径作为唯一标识符，而不是PIDL的内存地址
 						string nodeKey = path;
 						newPidls.Add(nodeKey);
-						
+
 						// 检查是否已存在相同路径的节点
 						TreeNode nodeSub;
 						if (existingNodes.TryGetValue(nodeKey, out TreeNode existingNode))
@@ -1549,17 +1549,17 @@ namespace zfile
 						if (subItem.IsVirtual || (subItem.GetAttributes() & SFGAO.FILESYSTEM) == 0)
 						{
 							if (!getIconByShellItem(ref subItem, out iconkey))
-								if(!getIconBySysImageList(ref subItem, out iconkey))
+								if (!getIconBySysImageList(ref subItem, out iconkey))
 								{
 									var icon = IconManager.ExtractIconFromPIDL(iCtrlPanel, pidlSub);
-									if(icon != null)
+									if (icon != null)
 										iconManager.AddIcon(pidlSub.ToString(), icon, false);
 									else
 										getIconByIconLocation(ref subItem, out iconkey);
 								}
-										
+
 							iconManager.LoadIconFromCacheByKey(iconkey, node.TreeView.ImageList);
-						
+
 							SFGAO subattr = subItem.GetAttributes();    // 如果是文件夹且不是虚拟文件夹，则添加"..."节点
 							if (subattr.HasFlag(SFGAO.FOLDER) && nodeSub.Nodes.Count == 0)
 								nodeSub.Nodes.Add("...");
@@ -1568,33 +1568,26 @@ namespace zfile
 						{
 							iconkey = IconManager.GetNodeIconKey(nodeSub);
 							iconManager.LoadIconFromCacheByKey(iconkey, node.TreeView.ImageList);
-							
+
 							// 如果有子文件夹，则添加"..."节点
 							if (Directory.Exists(path))
 							{
-								try
-								{
-									var dirinfo = new DirectoryInfo(path);  //压缩文件处理到此处引发异常
-									var subdir = dirinfo.GetDirectories();	//windows目录CSC无权限异常
-									if (subdir.Length != 0 && nodeSub.Nodes.Count == 0)
-										nodeSub.Nodes.Add("...");
-								}
-								catch 
-								{
-									Debug.Print("windows csc no priv exception");
-								}
+								var dirinfo = new DirectoryInfo(path);  //压缩文件处理到此处引发异常
+								var subdir = dirinfo.GetDirectories();  //windows目录CSC无权限异常
+								if (subdir.Length != 0 && nodeSub.Nodes.Count == 0)
+									nodeSub.Nodes.Add("...");
 							}
 						}
 						nodeSub.ImageKey = iconkey;
 						nodeSub.SelectedImageKey = iconkey;
-						
+
 						// 如果是新创建的节点，才添加到父节点
 						if (!existingNodes.ContainsValue(nodeSub))
 							node.Nodes.Add(nodeSub);
-						
+
 						// 将节点添加到保留列表
 						nodesToKeep.Add(nodeSub);
-						if(subItem.parsepath.Equals("::{20D04FE0-3AEA-1069-A2D8-08002B30309D}"))
+						if (subItem.parsepath.Equals("::{20D04FE0-3AEA-1069-A2D8-08002B30309D}"))
 						//if(nodeSub.Text.Equals("此电脑"))
 						{
 							if (isleft)
@@ -1608,7 +1601,7 @@ namespace zfile
 							string[] s = ["", name, "", name.Contains(':') ? "本地磁盘" : "<CLS>", "", ""];
 							var i = new ListViewItem(s);
 							var ico = IconManager.GetIconKey(subItem);
-							if(lv.View == View.Tile)
+							if (lv.View == View.Tile)
 							{
 								getIconByShellItem(ref subItem, out ico, true);
 								iconManager.LoadIconFromCacheByKey(ico, lv.LargeImageList, true);
@@ -1631,13 +1624,16 @@ namespace zfile
 							node.Nodes.Remove(existingPair.Value);// 从父节点中移除不再存在的节点
 						}
 					}
-					
-					//lv?.EndUpdate();
 				}
-				finally
-				{
-				}
-            }
+			}
+			catch (Exception)
+			{
+				Debug.Print("exception raised in loadsubdir");
+			}
+			finally
+			{
+
+			}
         }
        
         private static bool IsChildrenExist(TreeNode node, bool includefile = false)

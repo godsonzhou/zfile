@@ -409,7 +409,7 @@ namespace zfile
 		private void ShowDirectoryTreeSearch()
 		{
 			// 获取当前驱动器
-			string currentDrive = Path.GetPathRoot(owner.currentDirectory[owner.isleft]);
+			string currentDrive = Path.GetPathRoot(owner.uiManager.srcDir);
 			if (string.IsNullOrEmpty(currentDrive))
 				currentDrive = "C:\\";
 
@@ -1310,34 +1310,131 @@ namespace zfile
 			if (listView == null || listView.SelectedItems.Count == 0) return;
 
 			var selectedItem = listView.SelectedItems[0];
-			var zipPath = Path.Combine(owner.currentDirectory[owner.isleft], selectedItem.Text);
+			var sourcePath = owner.uiManager.srcDir;
+			var targetPath = owner.uiManager.targetDir;
 
-			if (!zipPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))      //TODO:其他压缩格式的支持，使用插件
-			{
-				MessageBox.Show("请选择 ZIP 文件", "提示");
-				return;
-			}
+			// 检查源路径和目标路径是否为FTP路径
+			bool isSourceFtp = owner.fTPMGR.IsFtpPath(sourcePath);
+			bool isTargetFtp = owner.fTPMGR.IsFtpPath(targetPath);
 
-			var folderDialog = new FolderBrowserDialog
-			{
-				Description = "选择解压目标文件夹"
-			};
+			// 显示解压选项对话框
+			using var optionDialog = new UnpackOptionDialog();
+			if (optionDialog.ShowDialog() != DialogResult.OK) return;
 
-			if (folderDialog.ShowDialog() == DialogResult.OK)
+			string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+			string zipPath = Path.Combine(sourcePath, selectedItem.Text);
+			string extractPath = targetPath;
+
+			try
 			{
-				try
+				if (isSourceFtp)
 				{
-					System.IO.Compression.ZipFile.ExtractToDirectory(
-						zipPath,
-						folderDialog.SelectedPath,
-						Encoding.GetEncoding("GB2312"),
-						true);
+					// 如果源是FTP，先下载到临时目录
+					var ftpSource = owner.fTPMGR.GetFtpSource(sourcePath);
+					if (ftpSource == null)
+					{
+						MessageBox.Show("无法获取FTP源");
+						return;
+					}
 
-					MessageBox.Show("文件解压完成", "提示");
+					string tempFile = ftpSource.DownloadFile(selectedItem.Text);
+					if (string.IsNullOrEmpty(tempFile) || !File.Exists(tempFile))
+					{
+						MessageBox.Show($"下载文件失败: {selectedItem.Text}");
+						return;
+					}
+					zipPath = tempFile;
 				}
-				catch (Exception ex)
+
+				if (isTargetFtp)
 				{
-					MessageBox.Show($"解压文件时出错: {ex.Message}", "错误");
+					// 如果目标是FTP，先解压到临时目录
+					Directory.CreateDirectory(tempDir);
+					extractPath = tempDir;
+				}
+
+				// 如果需要创建同名子文件夹
+				if (optionDialog.SeparateFolder)
+				{
+					extractPath = Path.Combine(extractPath, Path.GetFileNameWithoutExtension(selectedItem.Text));
+					if (!isTargetFtp) Directory.CreateDirectory(extractPath);
+				}
+
+				// 根据文件扩展名选择解压方法
+				string extension = Path.GetExtension(selectedItem.Text).ToLower();
+				switch (extension)
+				{
+					case ".zip":
+						System.IO.Compression.ZipFile.ExtractToDirectory(
+							zipPath,
+							extractPath,
+							Encoding.GetEncoding("GB2312"),
+							optionDialog.Overwrite);
+						break;
+					default:
+						var wcxModule = owner.wcxModuleList.GetModuleByExt(extension.TrimStart('.'));
+						if (wcxModule != null)
+						{
+							int flags = 0;
+							if (optionDialog.IncludePath) flags |= 1;
+							if (optionDialog.Overwrite) flags |= 2;
+							wcxModule.UnpackFiles(zipPath, extractPath, "", flags);
+						}
+						else
+						{
+							MessageBox.Show($"不支持的压缩格式: {extension}", "错误");
+							return;
+						}
+						break;
+				}
+
+				if (isTargetFtp)
+				{
+					// 如果目标是FTP，上传解压后的文件
+					var ftpTarget = owner.fTPMGR.GetFtpSource(targetPath);
+					if (ftpTarget == null)
+					{
+						MessageBox.Show("无法获取FTP目标");
+						return;
+					}
+
+					// 递归上传所有文件
+					foreach (string file in Directory.GetFiles(extractPath, "*.*", SearchOption.AllDirectories))
+					{
+						string relativePath = Path.GetRelativePath(extractPath, file);
+						string remotePath = Path.Combine(targetPath, relativePath).Replace("\\", "/");
+
+						// 确保远程目录存在
+						string remoteDir = Path.GetDirectoryName(remotePath)?.Replace("\\", "/");
+						if (!string.IsNullOrEmpty(remoteDir))
+						{
+							ftpTarget.CreateDirectory(remoteDir);
+						}
+
+						if (!ftpTarget.UploadFile(file, remotePath))
+						{
+							MessageBox.Show($"上传文件失败: {relativePath}");
+						}
+					}
+				}
+
+				MessageBox.Show("文件解压完成", "提示");
+				owner.RefreshPanel();
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"解压文件时出错: {ex.Message}", "错误");
+			}
+			finally
+			{
+				// 清理临时文件和目录
+				if (isSourceFtp && File.Exists(zipPath))
+				{
+					File.Delete(zipPath);
+				}
+				if (Directory.Exists(tempDir))
+				{
+					Directory.Delete(tempDir, true);
 				}
 			}
 		}
@@ -1350,7 +1447,7 @@ namespace zfile
 				MessageBox.Show("没有选中文件");
 				return;
 			}
-			using var dialog = new MultiRenameForm(listView, owner.currentDirectory[owner.isleft]);
+			using var dialog = new MultiRenameForm(listView, owner.uiManager.srcDir);
 			if (dialog.ShowDialog() == DialogResult.OK)
 			{
 				owner.RefreshPanel(listView);
@@ -1392,6 +1489,90 @@ namespace zfile
 				}
 			}
 			return response;
+		}
+
+		private class UnpackOptionDialog : Form
+		{
+			private CheckBox chkIncludePath;
+			private CheckBox chkOverwrite;
+			private CheckBox chkSeparateFolder;
+			private Button btnOK;
+			private Button btnCancel;
+
+			public bool IncludePath => chkIncludePath.Checked;
+			public bool Overwrite => chkOverwrite.Checked;
+			public bool SeparateFolder => chkSeparateFolder.Checked;
+
+			public UnpackOptionDialog()
+			{
+				InitializeComponents();
+			}
+
+			private void InitializeComponents()
+			{
+				Text = "解压选项";
+				Size = new Size(400, 250);
+				StartPosition = FormStartPosition.CenterParent;
+				FormBorderStyle = FormBorderStyle.FixedDialog;
+				MaximizeBox = false;
+				MinimizeBox = false;
+
+				var panel = new Panel
+				{
+					Dock = DockStyle.Fill,
+					Padding = new Padding(10)
+				};
+
+				chkIncludePath = new CheckBox
+				{
+					Text = "包括路径名(&U)",
+					Location = new Point(20, 20),
+					AutoSize = true
+				};
+
+				chkOverwrite = new CheckBox
+				{
+					Text = "替换现有文件(&O)",
+					Location = new Point(20, 50),
+					AutoSize = true
+				};
+
+				chkSeparateFolder = new CheckBox
+				{
+					Text = "将各压缩文件分别解压缩到同名的子文件夹(&S)",
+					Location = new Point(20, 80),
+					AutoSize = true
+				};
+
+				var buttonPanel = new FlowLayoutPanel
+				{
+					FlowDirection = FlowDirection.RightToLeft,
+					Location = new Point(0, 150),
+					Width = 380,
+					Height = 40
+				};
+
+				btnCancel = new Button
+				{
+					Text = "取消",
+					DialogResult = DialogResult.Cancel,
+					Width = 80
+				};
+
+				btnOK = new Button
+				{
+					Text = "确定",
+					DialogResult = DialogResult.OK,
+					Width = 80
+				};
+
+				buttonPanel.Controls.AddRange(new Control[] { btnCancel, btnOK });
+				panel.Controls.AddRange(new Control[] { chkIncludePath, chkOverwrite, chkSeparateFolder, buttonPanel });
+
+				Controls.Add(panel);
+				AcceptButton = btnOK;
+				CancelButton = btnCancel;
+			}
 		}
 	}
 }

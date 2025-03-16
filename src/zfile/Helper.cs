@@ -610,7 +610,7 @@ namespace zfile
 			{
 				// 读取文件内容
 				string fileContent = File.ReadAllText(filePath, Encoding.GetEncoding("GB2312"));
-				// 查找目标节��起始位置
+				// 查找目标节起始位置
 				int sectionStartIndex = fileContent.IndexOf(sectionContent);
 				if (sectionStartIndex == -1)
 				{
@@ -761,16 +761,20 @@ namespace zfile
 	
 		public static string GetListItemPath(ListViewItem item)
 		{
-			TreeNode node = (TreeNode)item.Tag;
-			var path = getFSpath(node.FullPath);
-			var return1 = Path.Combine(path, item.Text);
-			var sitem = (ShellItem)node.Tag;
-			var return2 = sitem.parsepath;
-			if (return1 != return2)
+			if (item.Tag is TreeNode node)
 			{
-				Debug.Print($"get listitem path diff >>> getfspath:{return1}, sitem.parsepath:{return2}");
+				// 对于本地文件系统
+				var path = getFSpath(node?.FullPath);
+				return Path.Combine(path, item.Text);
 			}
-			return return1;
+			
+			// 检查是否是FTP节点
+			if (item?.Tag is FtpNodeTag || item?.Tag is FtpRootNodeTag)
+			{
+				// 对于FTP项，直接使用SubItems[1]中存储的完整路径
+				return item.SubItems[1].Text;
+			}
+			return string.Empty;
 		}
 		public static string getFSpath(string path)
 		{

@@ -622,19 +622,18 @@ namespace zfile
 			if (listView == null || listView.SelectedItems.Count <= 0) return false;
 
 			var srcPath = Helper.getFSpath(!owner.uiManager.isleft ? owner.uiManager.RightTree.SelectedNode.FullPath : owner.uiManager.LeftTree.SelectedNode.FullPath);
+			var targetTree = owner.uiManager.isleft ? owner.uiManager.RightTree : owner.uiManager.LeftTree;
+			var targetPath = Helper.getFSpath(targetTree.SelectedNode.FullPath);
+			var isSamePath = targetPath.Equals(srcPath);
 
 			var sourceFiles = listView.SelectedItems.Cast<ListViewItem>()
 				.Select(item => Helper.GetListItemPath(item))
 				.ToArray();
 
-			// TODO: 显示复制对话框，让用户选择目标路径
-			var targetTree = owner.uiManager.isleft ? owner.uiManager.RightTree : owner.uiManager.LeftTree;
-			var targetPath = Helper.getFSpath(targetTree.SelectedNode.FullPath);
-			var isSamePath = targetPath.Equals(srcPath);
-
 			var targetlist = owner.uiManager.isleft ? owner.uiManager.RightList : owner.uiManager.LeftList;
 			try
 			{
+				// 处理压缩文件的情况
 				if (owner.IsArchiveFile(srcPath))
 				{
 					foreach (string fileName in sourceFiles)
@@ -655,7 +654,86 @@ namespace zfile
 					return true;
 				}
 
-				FileSystemManager.CopyFilesAndDirectories(sourceFiles, targetPath);
+				// 检查源路径和目标路径是否为FTP路径
+				bool isSourceFtp = owner.fTPMGR.IsFtpPath(srcPath);
+				bool isTargetFtp = owner.fTPMGR.IsFtpPath(targetPath);
+
+				if (isSourceFtp && !isTargetFtp)
+				{
+					// 从FTP下载到本地
+					var ftpSource = owner.fTPMGR.GetFtpSource(srcPath);
+					if (ftpSource != null)
+					{
+						foreach (string remotePath in sourceFiles)
+						{
+							string fileName = Path.GetFileName(remotePath);
+							string localPath = Path.Combine(targetPath, fileName);
+							string tempFile = ftpSource.DownloadFile(remotePath);
+							if (!string.IsNullOrEmpty(tempFile))
+							{
+								try
+								{
+									File.Copy(tempFile, localPath, true);
+								}
+								finally
+								{
+									// 清理临时文件
+									if (File.Exists(tempFile))
+										File.Delete(tempFile);
+								}
+							}
+						}
+					}
+				}
+				else if (!isSourceFtp && isTargetFtp)
+				{
+					// 从本地上传到FTP
+					var ftpTarget = owner.fTPMGR.GetFtpSource(targetPath);
+					if (ftpTarget != null)
+					{
+						foreach (string localFile in sourceFiles)
+						{
+							string fileName = Path.GetFileName(localFile);
+							string remotePath = Path.Combine(targetPath, fileName).Replace("\\", "/");
+							ftpTarget.UploadFile(localFile, remotePath);
+						}
+					}
+				}
+				else if (isSourceFtp && isTargetFtp)
+				{
+					// FTP到FTP的复制
+					var sourceFtp = owner.fTPMGR.GetFtpSource(srcPath);
+					var targetFtp = owner.fTPMGR.GetFtpSource(targetPath);
+					if (sourceFtp != null && targetFtp != null)
+					{
+						foreach (string remotePath in sourceFiles)
+						{
+							// 先下载到临时目录
+							string tempFile = sourceFtp.DownloadFile(remotePath);
+							if (!string.IsNullOrEmpty(tempFile))
+							{
+								try
+								{
+									// 再上传到目标FTP
+									string fileName = Path.GetFileName(remotePath);
+									string targetRemotePath = Path.Combine(targetPath, fileName).Replace("\\", "/");
+									targetFtp.UploadFile(tempFile, targetRemotePath);
+								}
+								finally
+								{
+									// 清理临时文件
+									if (File.Exists(tempFile))
+										File.Delete(tempFile);
+								}
+							}
+						}
+					}
+				}
+				else
+				{
+					// 本地文件之间的复制
+					FileSystemManager.CopyFilesAndDirectories(sourceFiles, targetPath);
+				}
 
 				owner.RefreshPanel(targetlist);
 				return true;
@@ -692,8 +770,40 @@ namespace zfile
 
 			try
 			{
-				if (CopySelectedFiles())
-					DeleteSelectedFiles(false);
+				// 检查源路径和目标路径是否为FTP路径
+				bool isSourceFtp = owner.fTPMGR.IsFtpPath(srcpath);
+				bool isTargetFtp = owner.fTPMGR.IsFtpPath(targetPath);
+
+				if (isSourceFtp || isTargetFtp)
+				{
+					// 如果涉及FTP，先复制后删除
+					if (CopySelectedFiles())
+					{
+						// 如果源是FTP，使用FTP删除
+						if (isSourceFtp)
+						{
+							var ftpSource = owner.fTPMGR.GetFtpSource(srcpath);
+							if (ftpSource != null)
+							{
+								foreach (string remotePath in sourceFiles)
+								{
+									ftpSource.DeleteFile(remotePath);
+								}
+							}
+						}
+						else
+						{
+							// 源是本地文件，使用本地删除
+							DeleteSelectedFiles(false);
+						}
+					}
+				}
+				else
+				{
+					// 本地文件之间的移动
+					if (CopySelectedFiles())
+						DeleteSelectedFiles(false);
+				}
 			}
 			catch (Exception ex)
 			{
@@ -711,6 +821,8 @@ namespace zfile
 			var files = listView.SelectedItems.Cast<ListViewItem>()
 				.Select(item => Helper.GetListItemPath(item))
 				.ToArray();
+
+			var currentPath = owner.currentDirectory[owner.isleft];
 			var result = DialogResult.Yes;
 			if (needConfirm)
 			{
@@ -735,9 +847,26 @@ namespace zfile
 						}
 						return;
 					}
-					foreach (var file in files)
+
+					// 检查是否为FTP路径
+					if (owner.fTPMGR.IsFtpPath(currentPath))
 					{
-						FileSystemManager.DeleteFile(file);
+						var ftpSource = owner.fTPMGR.GetFtpSource(currentPath);
+						if (ftpSource != null)
+						{
+							foreach (string remotePath in files)
+							{
+								ftpSource.DeleteFile(remotePath);
+							}
+						}
+					}
+					else
+					{
+						// 本地文件删除
+						foreach (var file in files)
+						{
+							FileSystemManager.DeleteFile(file);
+						}
 					}
 					owner.RefreshPanel(listView);
 				}
@@ -752,10 +881,34 @@ namespace zfile
 		private void CreateNewFolder(string folderName = "新建文件夹")
 		{
 			var path = owner.currentDirectory[owner.isleft];
-			var newFolderPath = Path.Combine(path, folderName);
 
-			FileSystemManager.CreateDirectory(newFolderPath);
-			owner.RefreshPanel(owner.activeListView);
+			try
+			{
+				if (owner.fTPMGR.IsFtpPath(path))
+				{
+					// FTP创建文件夹
+					var ftpSource = owner.fTPMGR.GetFtpSource(path);
+					if (ftpSource != null)
+					{
+						string newFolderPath = Path.Combine(path, folderName).Replace("\\", "/");
+						if (ftpSource.CreateDirectory(newFolderPath))
+						{
+							owner.RefreshPanel(owner.activeListView);
+						}
+					}
+				}
+				else
+				{
+					// 本地创建文件夹
+					var newFolderPath = Path.Combine(path, folderName);
+					FileSystemManager.CreateDirectory(newFolderPath);
+					owner.RefreshPanel(owner.activeListView);
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"创建文件夹失败: {ex.Message}", "错误");
+			}
 		}
 
 		// 重命名选中的文件或文件夹

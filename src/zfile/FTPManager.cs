@@ -2007,5 +2007,52 @@ namespace zfile
 			}
 
 		}
+
+		/// <summary>
+		/// 判断给定路径是否为FTP路径
+		/// </summary>
+		/// <param name="path">要检查的路径</param>
+		/// <returns>如果是FTP路径则返回true，否则返回false</returns>
+		public bool IsFtpPath(string path)
+		{
+			// 检查路径是否以FTP驱动器标识开头
+			foreach (var drive in _registeredDrives)
+			{
+				if (path.StartsWith(drive, StringComparison.OrdinalIgnoreCase))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
+		/// <summary>
+		/// 根据路径获取对应的FtpFileSource
+		/// </summary>
+		/// <param name="path">FTP路径</param>
+		/// <returns>对应的FtpFileSource，如果未找到则返回null</returns>
+		public FtpFileSource GetFtpSource(string path)
+		{
+			// 遍历所有注册的FTP连接
+			foreach (var kvp in _ftpSources)
+			{
+				var connectionName = kvp.Key;
+				var ftpSource = kvp.Value;
+
+				// 检查路径是否属于此FTP连接
+				foreach (var node in _ftpNodesL.Values.Concat(_ftpNodesR.Values))
+				{
+					if (node.Tag is FtpNodeTag tag && tag.ConnectionName == connectionName)
+					{
+						var drivePath = node.Text.Split('[')[0].Trim();
+						if (path.StartsWith(drivePath, StringComparison.OrdinalIgnoreCase))
+						{
+							return ftpSource;
+						}
+					}
+				}
+			}
+			return null;
+		}
 	}
 }

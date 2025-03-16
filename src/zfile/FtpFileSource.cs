@@ -141,7 +141,7 @@ namespace zfile
 
 					// 设置图标
 					listItem.ImageKey = item.Type == FtpObjectType.Directory ? "folder" : GetFileIconKey(item.Name);
-
+					
 					// 添加到列表
 					items.Add(listItem);
 				}

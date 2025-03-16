@@ -326,7 +326,7 @@ namespace zfile
             // 收集拖拽项路径
             draggedItems = listView.SelectedItems
                 .Cast<ListViewItem>()
-                .Select(item => Helper.GetListItemPath(item))
+                .Select(item => GetListItemPath(item))
                 .ToArray();
             // 启动拖拽操作
             listView.DoDragDrop(new DataObject(DataFormats.FileDrop, draggedItems), DragDropEffects.Copy);
@@ -399,7 +399,7 @@ namespace zfile
 			// 使用 GetNodeAt 获取目标节点
 			var targetItem = listView.GetItemAt(clientPoint.X, clientPoint.Y);
 			if (targetItem != null)
-				targetPath = Helper.GetListItemPath(targetItem);
+				targetPath = GetListItemPath(targetItem);
 			else
 			{
 				var targetTree = (listView == uiManager.LeftList) ? uiManager.LeftTree : uiManager.RightTree;
@@ -2531,5 +2531,23 @@ namespace zfile
             var listView = selectedDrive != null && watcher.Path.StartsWith(selectedDrive) ? uiManager.LeftList : uiManager.RightList;
 			//RefreshPanel(listView);//TODO:BUGFIX 线程异常操作，
         }
-    }
+		public string GetListItemPath(ListViewItem item)
+		{
+			if (item.Tag is TreeNode node)
+			{
+				// 对于本地文件系统
+				var path = Helper.getFSpath(node?.FullPath);
+				return Path.Combine(path, item.Text);
+			}
+
+			// 检查是否是FTP节点
+			//if (item?.Tag is FtpNodeTag || item?.Tag is FtpRootNodeTag)
+			if(uiManager.activeTreeview.SelectedNode.Tag is FtpNodeTag ftpnode)
+			{
+				// 对于FTP项，直接使用SubItems[1]中存储的完整路径
+				return item.SubItems[1].Text;
+			}
+			return string.Empty;
+		}
+	}
 }

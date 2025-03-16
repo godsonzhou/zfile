@@ -759,23 +759,7 @@ namespace zfile
 			return environment;
 		}
 	
-		public static string GetListItemPath(ListViewItem item)
-		{
-			if (item.Tag is TreeNode node)
-			{
-				// 对于本地文件系统
-				var path = getFSpath(node?.FullPath);
-				return Path.Combine(path, item.Text);
-			}
-			
-			// 检查是否是FTP节点
-			if (item?.Tag is FtpNodeTag || item?.Tag is FtpRootNodeTag)
-			{
-				// 对于FTP项，直接使用SubItems[1]中存储的完整路径
-				return item.SubItems[1].Text;
-			}
-			return string.Empty;
-		}
+	
 		public static string getFSpath(string path)
 		{
 			if (path.Contains(':'))

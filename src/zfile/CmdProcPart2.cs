@@ -627,7 +627,7 @@ namespace zfile
 			var isSamePath = targetPath.Equals(srcPath);
 
 			var sourceFiles = listView.SelectedItems.Cast<ListViewItem>()
-				.Select(item => Helper.GetListItemPath(item))
+				.Select(item => owner.GetListItemPath(item))
 				.ToArray();
 
 			var targetlist = owner.uiManager.isleft ? owner.uiManager.RightList : owner.uiManager.LeftList;
@@ -753,7 +753,7 @@ namespace zfile
 
 			var srcpath = Helper.getFSpath(owner.activeTreeview.SelectedNode.FullPath);
 			var sourceFiles = listView.SelectedItems.Cast<ListViewItem>()
-				.Select(item => Helper.GetListItemPath(item))
+				.Select(item => owner.GetListItemPath(item))
 				.ToArray();
 
 			var targettree = owner.uiManager.isleft ? owner.uiManager.RightTree : owner.uiManager.LeftTree;
@@ -819,7 +819,7 @@ namespace zfile
 			if (listView == null || listView.SelectedItems.Count <= 0) return;
 
 			var files = listView.SelectedItems.Cast<ListViewItem>()
-				.Select(item => Helper.GetListItemPath(item))
+				.Select(item => owner.GetListItemPath(item))
 				.ToArray();
 
 			var currentPath = owner.currentDirectory[owner.isleft];
@@ -1160,7 +1160,7 @@ namespace zfile
 				try
 				{
 					var files = listView.SelectedItems.Cast<ListViewItem>()
-						.Select(item => Helper.GetListItemPath(item))
+						.Select(item => owner.GetListItemPath(item))
 						.ToArray();
 
 					System.IO.Compression.ZipFile.CreateFromDirectory(

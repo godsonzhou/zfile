@@ -1411,7 +1411,7 @@ namespace zfile
 				}
 
 				MessageBox.Show("文件解压完成", "提示");
-				owner.RefreshPanel();
+				owner.RefreshPanel(!owner.isleft);//refresh target view
 			}
 			catch (Exception ex)
 			{

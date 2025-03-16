@@ -121,6 +121,9 @@ namespace zfile
 		// 添加插件配置面板
 		private Panel pluginPanel;
 		private WcxModuleList wcxModuleList;
+		// 添加压缩程序配置面板
+		private Panel compressPanel;
+		private Dictionary<string, Panel> compressPanels = new();
 		public OptionsForm(Form1 mainForm)
         {
             InitializeComponent();
@@ -138,6 +141,7 @@ namespace zfile
             InitializeFontPanel();
             InitializeTreeView();
 			InitializePluginPanel();  // 添加插件配置面板初始化
+			InitializeCompressPanel();  // 添加压缩程序配置面板初始化
 		}
 		private void InitializePluginPanel()
 		{
@@ -619,20 +623,30 @@ namespace zfile
             TreeNode rootNode = new TreeNode("设置");
             TreeNode hotkeyNode = new TreeNode("快捷键设置");
             TreeNode fontNode = new TreeNode("字体设置");
-			TreeNode pluginNode = new TreeNode("插件设置");  // 新增插件设置节点
+            TreeNode pluginNode = new TreeNode("插件设置");
+            TreeNode compressNode = new TreeNode("压缩程序");  // 新增压缩程序节点
 
+            // 添加压缩程序的子节点
+            compressNode.Nodes.Add(new TreeNode("ARJ"));
+            compressNode.Nodes.Add(new TreeNode("LHA"));
+            compressNode.Nodes.Add(new TreeNode("RAR"));
+            compressNode.Nodes.Add(new TreeNode("UC2"));
+            compressNode.Nodes.Add(new TreeNode("ACE"));
+            compressNode.Nodes.Add(new TreeNode("TAR"));
+            compressNode.Nodes.Add(new TreeNode("其他压缩程序"));
 
-			rootNode.Nodes.Add(hotkeyNode);
+            rootNode.Nodes.Add(hotkeyNode);
             rootNode.Nodes.Add(fontNode);
-			rootNode.Nodes.Add(pluginNode);  // 添加到树中
-			treeView.Nodes.Add(rootNode);
-			treeView.SelectedNode = hotkeyNode;
+            rootNode.Nodes.Add(pluginNode);
+            rootNode.Nodes.Add(compressNode);  // 添加到树中
+            treeView.Nodes.Add(rootNode);
+            treeView.SelectedNode = hotkeyNode;
 
-			treeView.AfterSelect += TreeView_AfterSelect;
+            treeView.AfterSelect += TreeView_AfterSelect;
 
             splitContainer1.Panel1.Controls.Clear();
             splitContainer1.Panel1.Controls.Add(treeView);
-			rootNode.Expand();
+            rootNode.Expand();
             treeView.BringToFront();
         }
 
@@ -640,11 +654,45 @@ namespace zfile
         {
             if (e.Node != null)
             {
-				// 修改现有的选择处理逻辑，添加插件设置面板的显示控制
-				optionPanel.Visible = e.Node.Text == "快捷键设置";
-				fontPanel.Visible = e.Node.Text == "字体设置";
-				pluginPanel.Visible = e.Node.Text == "插件设置";
-			}
+                // 隐藏所有面板
+                optionPanel.Visible = false;
+                fontPanel.Visible = false;
+                pluginPanel.Visible = false;
+                compressPanel.Visible = false;
+                foreach (var panel in compressPanels.Values)
+                {
+                    panel.Visible = false;
+                }
+
+                // 根据选中的节点显示相应的面板
+                switch (e.Node.Text)
+                {
+                    case "快捷键设置":
+                        optionPanel.Visible = true;
+                        break;
+                    case "字体设置":
+                        fontPanel.Visible = true;
+                        break;
+                    case "插件设置":
+                        pluginPanel.Visible = true;
+                        break;
+                    case "压缩程序":
+                        compressPanel.Visible = true;
+                        break;
+                    default:
+                        // 处理压缩程序的子节点
+                        if (e.Node.Parent?.Text == "压缩程序")
+                        {
+                            compressPanel.Visible = true;
+                            if (compressPanels.ContainsKey(e.Node.Text))
+                            {
+                                compressPanels[e.Node.Text].Visible = true;
+                                compressPanels[e.Node.Text].BringToFront();
+                            }
+                        }
+                        break;
+                }
+            }
         }
 
         private void UpdateHotkey(string cmdName, ComboBox comboBox)
@@ -734,6 +782,214 @@ namespace zfile
 			this.Close();
         }
 
-        // 其他代码...
+        // 添加压缩程序配置面板
+        private void InitializeCompressPanel()
+        {
+            compressPanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                AutoScroll = true,
+                Visible = false
+            };
+
+            // 通用选项
+            var commonPanel = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 40,
+                Padding = new Padding(10)
+            };
+
+            var chkFolderProcess = new CheckBox
+            {
+                Text = "将压缩文件按文件夹处理(&D)",
+                AutoSize = true,
+                Location = new Point(10, 10)
+            };
+            commonPanel.Controls.Add(chkFolderProcess);
+            compressPanel.Controls.Add(commonPanel);
+
+            // 初始化各压缩程序的面板
+            InitializeArjPanel();
+            InitializeLhaPanel();
+            InitializeRarPanel();
+            InitializeUc2Panel();
+            InitializeAcePanel();
+            InitializeTarPanel();
+            InitializeOtherCompressPanel();
+
+            // 添加按钮面板
+            var buttonPanel = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Bottom,
+                FlowDirection = FlowDirection.RightToLeft,
+                Height = 40,
+                Padding = new Padding(5)
+            };
+
+            var btnHelp = new Button { Text = "帮助", Width = 80 };
+            var btnApply = new Button { Text = "应用", Width = 80 };
+            var btnCancel = new Button { Text = "取消", Width = 80, DialogResult = DialogResult.Cancel };
+            var btnOK = new Button { Text = "确定", Width = 80, DialogResult = DialogResult.OK };
+
+            buttonPanel.Controls.AddRange(new Control[] { btnOK, btnCancel, btnApply, btnHelp });
+            compressPanel.Controls.Add(buttonPanel);
+
+            splitContainer1.Panel2.Controls.Add(compressPanel);
+        }
+
+        private void InitializeArjPanel()
+        {
+            var panel = CreateCompressPanel("ARJ");
+
+            var pathLabel = new Label { Text = "ARJ压缩程序(A):", AutoSize = true, Location = new Point(10, 10) };
+            var pathBox = new TextBox { Text = "arj32.exe", Width = 300, Location = new Point(150, 10) };
+            var browseBtn = new Button { Text = "...", Width = 30, Location = new Point(460, 10) };
+            browseBtn.Click += (s, e) => BrowseCompressFile(pathBox);
+
+            var chkInternalArj = new CheckBox
+            {
+                Text = "是否尽量使用内部ARJ解压缩程序(U)",
+                AutoSize = true,
+                Location = new Point(10, 40)
+            };
+
+            var chkLongNames = new CheckBox
+            {
+                Text = "是否向 ARJ 传递长文件名(需要 ARJ 2.55 或更新的版本）(P)",
+                AutoSize = true,
+                Location = new Point(10, 70)
+            };
+
+            panel.Controls.AddRange(new Control[] { pathLabel, pathBox, browseBtn, chkInternalArj, chkLongNames });
+            compressPanels["ARJ"] = panel;
+        }
+
+        private void InitializeLhaPanel()
+        {
+            var panel = CreateCompressPanel("LHA");
+
+            var pathLabel = new Label { Text = "LHA 压缩程序(L):", AutoSize = true, Location = new Point(10, 10) };
+            var pathBox = new TextBox { Text = "lha32.exe", Width = 300, Location = new Point(150, 10) };
+            var browseBtn = new Button { Text = "...", Width = 30, Location = new Point(460, 10) };
+            browseBtn.Click += (s, e) => BrowseCompressFile(pathBox);
+
+            var chkInternalLzh = new CheckBox
+            {
+                Text = "是否尽量使用内部LZH解压缩程序(I)",
+                AutoSize = true,
+                Location = new Point(10, 40)
+            };
+
+            panel.Controls.AddRange(new Control[] { pathLabel, pathBox, browseBtn, chkInternalLzh });
+            compressPanels["LHA"] = panel;
+        }
+
+        private void InitializeRarPanel()
+        {
+            var panel = CreateCompressPanel("RAR");
+
+            var pathLabel = new Label { Text = "RAR压缩程序(R):", AutoSize = true, Location = new Point(10, 10) };
+            var pathBox = new TextBox { Text = "%COMMANDER_PATH%\\Plugins\\Wcx\\Rar\\Rar.exe", Width = 300, Location = new Point(150, 10) };
+            var browseBtn = new Button { Text = "...", Width = 30, Location = new Point(460, 10) };
+            browseBtn.Click += (s, e) => BrowseCompressFile(pathBox);
+
+            var chkInternalRar = new CheckBox
+            {
+                Text = "是否尽量使用内部RAR解压缩程序(U)",
+                AutoSize = true,
+                Location = new Point(10, 40)
+            };
+
+            panel.Controls.AddRange(new Control[] { pathLabel, pathBox, browseBtn, chkInternalRar });
+            compressPanels["RAR"] = panel;
+        }
+
+        private void InitializeUc2Panel()
+        {
+            var panel = CreateCompressPanel("UC2");
+
+            var pathLabel = new Label { Text = "UC2 压缩程序(2):", AutoSize = true, Location = new Point(10, 10) };
+            var pathBox = new TextBox { Text = "uc.exe", Width = 300, Location = new Point(150, 10) };
+            var browseBtn = new Button { Text = "...", Width = 30, Location = new Point(460, 10) };
+            browseBtn.Click += (s, e) => BrowseCompressFile(pathBox);
+
+            panel.Controls.AddRange(new Control[] { pathLabel, pathBox, browseBtn });
+            compressPanels["UC2"] = panel;
+        }
+
+        private void InitializeAcePanel()
+        {
+            var panel = CreateCompressPanel("ACE");
+
+            var pathLabel = new Label { Text = "ACE (>= 2.04):", AutoSize = true, Location = new Point(10, 10) };
+            var pathBox = new TextBox { Text = "winace.exe", Width = 300, Location = new Point(150, 10) };
+            var browseBtn = new Button { Text = "...", Width = 30, Location = new Point(460, 10) };
+            browseBtn.Click += (s, e) => BrowseCompressFile(pathBox);
+
+            var chkInternalAce = new CheckBox
+            {
+                Text = "是否尽量使用内部ACE解压缩程序(U)",
+                AutoSize = true,
+                Location = new Point(10, 40)
+            };
+
+            panel.Controls.AddRange(new Control[] { pathLabel, pathBox, browseBtn, chkInternalAce });
+            compressPanels["ACE"] = panel;
+        }
+
+        private void InitializeTarPanel()
+        {
+            var panel = CreateCompressPanel("TAR");
+
+            var chkLinuxFormat = new CheckBox
+            {
+                Text = "是否创建 Linux 格式的 TAR 压缩文件(不选：SunOS 格式）(T)",
+                AutoSize = true,
+                Location = new Point(10, 10)
+            };
+
+            panel.Controls.Add(chkLinuxFormat);
+            compressPanels["TAR"] = panel;
+        }
+
+        private void InitializeOtherCompressPanel()
+        {
+            var panel = CreateCompressPanel("其他压缩程序");
+
+            var configBtn = new Button
+            {
+                Text = "配置压缩插件(C)",
+                AutoSize = true,
+                Location = new Point(10, 10)
+            };
+
+            panel.Controls.Add(configBtn);
+            compressPanels["其他压缩程序"] = panel;
+        }
+
+        private Panel CreateCompressPanel(string name)
+        {
+            return new Panel
+            {
+                Dock = DockStyle.Fill,
+                Visible = false,
+                Tag = name
+            };
+        }
+
+        private void BrowseCompressFile(TextBox pathBox)
+        {
+            using var dialog = new OpenFileDialog
+            {
+                Filter = "可执行文件 (*.exe)|*.exe|所有文件 (*.*)|*.*",
+                FilterIndex = 1
+            };
+
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                pathBox.Text = dialog.FileName;
+            }
+        }
     }
 }

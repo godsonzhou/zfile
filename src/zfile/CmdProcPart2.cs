@@ -4,6 +4,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
+using System.IO.Compression;
+using System.Windows.Forms;
 
 namespace zfile
 {
@@ -1140,44 +1143,164 @@ namespace zfile
 		{
 			var listView = owner.activeListView;
 			if (listView == null || listView.SelectedItems.Count == 0) return;
-			var targetfile = Path.Combine(owner.currentDirectory[owner.isleft], listView.SelectedItems[0].Text) + ".zip";
-			if (File.Exists(targetfile))
+
+			// 显示压缩选项对话框
+			var packOptionDialog = new PackOptionDialog();
+			if (packOptionDialog.ShowDialog() != DialogResult.OK)
+				return;
+
+			// 获取源面板和目标面板
+			var sourcePanel = owner.activeListView;
+			var targetPanel = owner.unactiveListView;
+			var sourcePath = owner.uiManager.srcDir;
+			var targetPath = owner.uiManager.targetDir;
+
+			// 检查源路径和目标路径是否为FTP路径
+			bool isSourceFtp = owner.fTPMGR.IsFtpPath(sourcePath);
+			bool isTargetFtp = owner.fTPMGR.IsFtpPath(targetPath);
+
+			string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+			string targetFile = "";
+
+			try
 			{
-				if (MessageBox.Show($"{targetfile} 已存在，是否替换？", "Warning", MessageBoxButtons.YesNo) != DialogResult.Yes)
-					return;
+				var selectedFiles = listView.SelectedItems.Cast<ListViewItem>()
+					.Select(item => owner.GetListItemPath(item))
+					.ToArray();
+
+				if (isSourceFtp)
+				{
+					// 如果源路径是FTP路径，先下载到临时目录
+					Directory.CreateDirectory(tempDir);
+					var ftpSource = owner.fTPMGR.GetFtpSource(sourcePath);
+					if (ftpSource == null)
+					{
+						MessageBox.Show("无法获取FTP源");
+						return;
+					}
+					foreach (var file in selectedFiles)
+					{
+						var localfile = ftpSource.DownloadFile(file);
+						if (!File.Exists(localfile))
+						{
+							MessageBox.Show($"下载文件失败: {file}");
+							Directory.Delete(tempDir, true);
+							return;
+						}
+					}
+					sourcePath = tempDir;
+				}
+
+				// 根据压缩选项对话框的选择决定目标文件名和压缩方式
+				string extension = packOptionDialog.CompressMethod.ToLower() switch
+				{
+					"zip" => ".zip",
+					"rar" => ".rar",
+					"tar" => ".tar",
+					"arj" => ".arj",
+					"uc2" => ".uc2",
+					"gz" => ".gz",
+					"lha" => ".lha",
+					"ace" => ".ace",
+					"tgz" => ".tgz",
+					_ => ".zip"
+				};
+
+				if (packOptionDialog.SeparateArchives)
+				{
+					// 每个文件创建单独的压缩包
+					foreach (var file in selectedFiles)
+					{
+						string singleTargetFile = Path.Combine(targetPath, Path.GetFileNameWithoutExtension(file) + extension);
+						if (File.Exists(singleTargetFile))
+						{
+							var result = MessageBox.Show($"文件 {singleTargetFile} 已存在，是否覆盖？", "确认", MessageBoxButtons.YesNoCancel);
+							if (result == DialogResult.No) continue;
+							if (result == DialogResult.Cancel) return;
+						}
+
+						var wcxModule = owner.wcxModuleList.GetModuleByExt(extension.TrimStart('.'));
+						if (wcxModule != null)
+						{
+							int flags = packOptionDialog.IncludePath ? 1 : 0;
+							wcxModule.PackFiles(singleTargetFile, "", sourcePath, file, flags);
+						}
+					}
+				}
 				else
-					File.Delete(targetfile);    //delete the old zip file
-			}
-			//var saveDialog = new SaveFileDialog
-			//{
-			//    Filter = "ZIP 文件|*.zip|所有文件|*.*",
-			//    Title = "选择保存位置"
-			//};
+				{
+					// 创建单个压缩包
+					targetFile = Path.Combine(targetPath, Path.GetFileNameWithoutExtension(selectedFiles[0]) + extension);
+					if (File.Exists(targetFile))
+					{
+						var result = MessageBox.Show($"文件 {targetFile} 已存在，是否覆盖？", "确认", MessageBoxButtons.YesNo);
+						if (result == DialogResult.No) return;
+					}
 
-			//if (saveDialog.ShowDialog() == DialogResult.OK)
-			//File.Delete(targetfile);	//delete the old zip file
+					var wcxModule = owner.wcxModuleList.GetModuleByExt(extension.TrimStart('.'));
+					if (wcxModule != null)
+					{
+						int flags = packOptionDialog.IncludePath ? 1 : 0;
+						string fileList = string.Join("\n", selectedFiles);
+						wcxModule.PackFiles(targetFile, "", sourcePath, fileList, flags);
+					}
+				}
+
+				// 如果源路径是临时目录，删除它
+				if (sourcePath == tempDir)
+				{
+					Directory.Delete(tempDir, true);
+				}
+
+				// 如果目标路径是FTP路径，上传压缩文件
+				if (isTargetFtp)
+				{
+					var ftpTarget = owner.fTPMGR.GetFtpSource(targetPath);
+					if (ftpTarget == null)
+					{
+						MessageBox.Show("无法获取FTP目标");
+						return;
+					}
+
+					if (packOptionDialog.SeparateArchives)
+					{
+						foreach (var file in selectedFiles)
+						{
+							string singleTargetFile = Path.Combine(targetPath, Path.GetFileNameWithoutExtension(file) + extension);
+							string localFile = Path.Combine(Path.GetTempPath(), Path.GetFileName(singleTargetFile));
+							if (!ftpTarget.UploadFile(localFile, singleTargetFile))
+							{
+								MessageBox.Show($"上传文件失败: {singleTargetFile}");
+								return;
+							}
+							File.Delete(localFile);
+						}
+					}
+					else
+					{
+						string localFile = Path.Combine(Path.GetTempPath(), Path.GetFileName(targetFile));
+						if (!ftpTarget.UploadFile(localFile, targetFile))
+						{
+							MessageBox.Show($"上传文件失败: {targetFile}");
+							return;
+						}
+						File.Delete(localFile);
+					}
+				}
+			}
+			catch (Exception ex)
 			{
-				try
-				{
-					var files = listView.SelectedItems.Cast<ListViewItem>()
-						.Select(item => owner.GetListItemPath(item))
-						.ToArray();
-
-					System.IO.Compression.ZipFile.CreateFromDirectory(
-						owner.currentDirectory[owner.isleft],
-						//saveDialog.FileName,
-						targetfile,
-						System.IO.Compression.CompressionLevel.Optimal,
-						true);
-
-					MessageBox.Show("文件打包完成", "提示");
-				}
-				catch (Exception ex)
-				{
-					MessageBox.Show($"打包文件时出错: {ex.Message}", "错误");
-				}
+				MessageBox.Show($"压缩文件时出错: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
 			}
-			owner.RefreshPanel(listView);
+			finally
+			{
+				// 清理临时目录
+				if (Directory.Exists(tempDir))
+					Directory.Delete(tempDir, true);
+			}
+
+			// 刷新面板
+			owner.RefreshPanel();
 		}
 
 		// 解压文件
@@ -1272,3 +1395,4 @@ namespace zfile
 		}
 	}
 }
+

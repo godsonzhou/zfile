@@ -1362,30 +1362,22 @@ namespace zfile
 
 				// 根据文件扩展名选择解压方法
 				string extension = Path.GetExtension(selectedItem.Text).ToLower();
-				switch (extension)
+				if (extension == ".zip")
 				{
-					case ".zip":
-						System.IO.Compression.ZipFile.ExtractToDirectory(
-							zipPath,
-							extractPath,
-							Encoding.GetEncoding("GB2312"),
-							optionDialog.Overwrite);
-						break;
-					default:
-						var wcxModule = owner.wcxModuleList.GetModuleByExt(extension.TrimStart('.'));
-						if (wcxModule != null)
-						{
-							int flags = 0;
-							if (optionDialog.IncludePath) flags |= 1;
-							if (optionDialog.Overwrite) flags |= 2;
-							wcxModule.UnpackFiles(zipPath, extractPath, "", flags);
-						}
-						else
-						{
-							MessageBox.Show($"不支持的压缩格式: {extension}", "错误");
-							return;
-						}
-						break;
+					System.IO.Compression.ZipFile.ExtractToDirectory(
+						zipPath,
+						extractPath,
+						Encoding.GetEncoding("GB2312"),
+						optionDialog.Overwrite);
+				}
+				else
+				{
+					// 使用Form1的ExtractArchiveFile方法
+					if (!owner.ExtractArchiveFile(zipPath, "", extractPath))
+					{
+						MessageBox.Show($"不支持的压缩格式: {extension}", "错误");
+						return;
+					}
 				}
 
 				if (isTargetFtp)

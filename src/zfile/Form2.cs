@@ -654,11 +654,13 @@ namespace zfile
         {
             if (e.Node != null)
             {
-                // 隐藏所有面板
+                // 首先隐藏所有面板
                 optionPanel.Visible = false;
                 fontPanel.Visible = false;
                 pluginPanel.Visible = false;
                 compressPanel.Visible = false;
+
+                // 隐藏所有压缩程序子面板
                 foreach (var panel in compressPanels.Values)
                 {
                     panel.Visible = false;
@@ -684,10 +686,11 @@ namespace zfile
                         if (e.Node.Parent?.Text == "压缩程序")
                         {
                             compressPanel.Visible = true;
-                            if (compressPanels.ContainsKey(e.Node.Text))
+                            if (compressPanels.TryGetValue(e.Node.Text, out var panel))
                             {
-                                compressPanels[e.Node.Text].Visible = true;
-                                compressPanels[e.Node.Text].BringToFront();
+                                panel.Parent = compressPanel;
+                                panel.Visible = true;
+                                panel.BringToFront();
                             }
                         }
                         break;

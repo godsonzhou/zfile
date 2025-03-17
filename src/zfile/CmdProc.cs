@@ -8,6 +8,7 @@ using OpenQA.Selenium.Chrome;
 using System.Diagnostics;
 using System.Net;
 using System.Drawing;
+using System.IO;
 
 namespace zfile
 {
@@ -860,7 +861,155 @@ namespace zfile
 		}
 		private void do_cm_CompareDirsWithSubdirs(string param)
 		{
+			// 获取左右面板的ListView
+			ListView leftList = owner.uiManager.LeftList;
+			ListView rightList = owner.uiManager.RightList;
 
+			// 获取左右面板的路径
+			string leftPath = owner.uiManager.leftDir;
+			string rightPath = owner.uiManager.rightDir;
+
+			// 解析参数
+			int compareMode = 0;
+			if (!string.IsNullOrEmpty(param))
+			{
+				int.TryParse(param, out compareMode);
+			}
+
+			// 创建文件信息字典，键为相对路径
+			Dictionary<string, (string FullPath, long Size, DateTime ModTime)> leftFiles = new();
+			Dictionary<string, (string FullPath, long Size, DateTime ModTime)> rightFiles = new();
+
+			// 递归获取所有文件信息
+			GetAllFiles(leftPath, leftPath, leftFiles);
+			GetAllFiles(rightPath, rightPath, rightFiles);
+
+			// 清除所有现有选择
+			leftList.SelectedItems.Clear();
+			rightList.SelectedItems.Clear();
+
+			// 比较文件并选择符合条件的文件
+			foreach (ListViewItem leftItem in leftList.Items)
+			{
+				if (leftItem.SubItems[3].Text.Equals("<DIR>")) continue;
+				string fileName = leftItem.Text;
+				string leftFullPath = Path.Combine(leftPath, fileName);
+				FileInfo leftFileInfo = new FileInfo(leftFullPath);
+
+				if (rightFiles.ContainsKey(fileName))
+				{
+					var rightInfo = rightFiles[fileName];
+					bool select = false;
+
+					switch (compareMode)
+					{
+						case 0: // 不存在或更新或大小不同
+							if (leftFileInfo.LastWriteTime != rightInfo.ModTime)
+							{
+								if (leftFileInfo.LastWriteTime > rightInfo.ModTime)
+									select = true;
+							}
+							else if (leftFileInfo.Length != rightInfo.Size)
+							{
+								select = true;
+							}
+							break;
+						case 1: // 仅选择不存在的文件
+							select = false;
+							break;
+						case 2: // 选择大小不同的文件
+							if (leftFileInfo.Length != rightInfo.Size)
+							{
+								select = true;
+							}
+							break;
+					}
+
+					if (select)
+					{
+						leftItem.Selected = true;
+						leftItem.BackColor = Color.LightYellow;
+					}
+				}
+				else // 文件在右边不存在
+				{
+					leftItem.Selected = true;
+					leftItem.BackColor = Color.LightPink;
+				}
+			}
+
+			foreach (ListViewItem rightItem in rightList.Items)
+			{
+				if (rightItem.SubItems[3].Text.Equals("<DIR>")) continue;
+				string fileName = rightItem.Text;
+				string rightFullPath = Path.Combine(rightPath, fileName);
+				FileInfo rightFileInfo = new FileInfo(rightFullPath);
+
+				if (leftFiles.ContainsKey(fileName))
+				{
+					var leftInfo = leftFiles[fileName];
+					bool select = false;
+
+					switch (compareMode)
+					{
+						case 0: // 不存在或更新或大小不同
+							if (rightFileInfo.LastWriteTime != leftInfo.ModTime)
+							{
+								if (rightFileInfo.LastWriteTime > leftInfo.ModTime)
+									select = true;
+							}
+							else if (rightFileInfo.Length != leftInfo.Size)
+							{
+								select = true;
+							}
+							break;
+						case 1: // 仅选择不存在的文件
+							select = false;
+							break;
+						case 2: // 选择大小不同的文件
+							if (rightFileInfo.Length != leftInfo.Size)
+							{
+								select = true;
+							}
+							break;
+					}
+
+					if (select)
+					{
+						rightItem.Selected = true;
+						rightItem.BackColor = Color.LightYellow;
+					}
+				}
+				else // 文件在左边不存在
+				{
+					rightItem.Selected = true;
+					rightItem.BackColor = Color.LightPink;
+				}
+			}
+		}
+
+		private void GetAllFiles(string basePath, string currentPath, Dictionary<string, (string FullPath, long Size, DateTime ModTime)> files)
+		{
+			try
+			{
+				// 获取当前目录下的所有文件
+				foreach (string file in Directory.GetFiles(currentPath))
+				{
+					FileInfo fileInfo = new FileInfo(file);
+					string relativePath = Path.GetRelativePath(basePath, file);
+					files[relativePath] = (file, fileInfo.Length, fileInfo.LastWriteTime);
+				}
+
+				// 递归处理子目录
+				foreach (string dir in Directory.GetDirectories(currentPath))
+				{
+					GetAllFiles(basePath, dir, files);
+				}
+			}
+			catch (Exception ex)
+			{
+				Debug.Print($"获取文件列表时出错: {ex.Message}");
+			}
 		}
 	}
 }

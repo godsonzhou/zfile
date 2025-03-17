@@ -9,7 +9,7 @@ namespace zfile
         private FlowLayoutPanel toolbarPanel;
         private Button btnAdd;
         private Button btnDelete;
-        private ComboBox cmdComboBox;
+        private TextBox cmdTextBox;
         private TextBox paramTextBox;
         private TextBox pathTextBox;
         private TextBox iconFileTextBox;
@@ -84,14 +84,14 @@ namespace zfile
 
             // 命令
             var cmdLabel = new Label { Text = "命令(&C):", Location = new Point(10, 25), AutoSize = true };
-            cmdComboBox = new ComboBox
+            cmdTextBox = new TextBox
             {
                 Location = new Point(120, 22),
-                Width = 300,
-                DropDownStyle = ComboBoxStyle.DropDownList
+                Width = 300
+                //DropDownStyle = ComboBoxStyle.DropDownList
             };
-            cmdComboBox.SelectedIndexChanged += PropertyChanged;
-            propertiesGroup.Controls.AddRange(new Control[] { cmdLabel, cmdComboBox });
+            //cmdTextBox.SelectedIndexChanged += PropertyChanged;
+            propertiesGroup.Controls.AddRange(new Control[] { cmdLabel, cmdTextBox });
 
             // 参数
             var paramLabel = new Label { Text = "参数(&P):", Location = new Point(10, 60), AutoSize = true };
@@ -163,7 +163,7 @@ namespace zfile
             var cmdTable = toolbarManager.form.cmdProcessor.cmdTable;
             foreach (var cmd in cmdTable.GetAll())
             {
-                cmdComboBox.Items.Add(cmd.CmdName);
+                //cmdTextBox.Items.Add(cmd.CmdName);
             }
         }
 
@@ -199,7 +199,7 @@ namespace zfile
                 btnDelete.Enabled = true;
 
                 // 更新属性显示
-                cmdComboBox.Text = button.cmd;
+                cmdTextBox.Text = button.cmd;
                 paramTextBox.Text = button.param;
                 pathTextBox.Text = button.path;
                 iconFileTextBox.Text = button.icon;
@@ -222,7 +222,7 @@ namespace zfile
         {
             if (currentButton != null)
             {
-                toolbarManager.toolbarButtons.Remove(currentButton);
+                toolbarManager.toolbarButtons.Remove((ToolbarButton)currentButton);
                 LoadToolbarButtons();
                 currentButton = null;
                 btnDelete.Enabled = false;
@@ -235,12 +235,12 @@ namespace zfile
         {
             if (currentButton != null)
             {
-                var index = toolbarManager.toolbarButtons.IndexOf(currentButton);
+                var index = toolbarManager.toolbarButtons.IndexOf((ToolbarButton)currentButton);
                 if (index >= 0)
                 {
                     toolbarManager.toolbarButtons[index] = new ToolbarButton(
                         tooltipTextBox.Text,
-                        cmdComboBox.Text,
+                        cmdTextBox.Text,
                         iconFileTextBox.Text,
                         pathTextBox.Text,
                         paramTextBox.Text,
@@ -282,7 +282,8 @@ namespace zfile
 
         private void ClearProperties()
         {
-            cmdComboBox.SelectedIndex = -1;
+			//cmdTextBox.SelectedIndex = -1;
+			cmdTextBox.Text = "";
             paramTextBox.Text = "";
             pathTextBox.Text = "";
             iconFileTextBox.Text = "";

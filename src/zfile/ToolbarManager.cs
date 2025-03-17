@@ -22,7 +22,7 @@ namespace zfile
 	}
 	public class ToolbarManager : IDisposable
 	{
-		private Form1 form;
+		public Form1 form;
 		//private UIControlManager uiControlManager;
 
 		private ToolStrip dynamicToolStrip;
@@ -54,6 +54,7 @@ namespace zfile
 					// 取消事件订阅
 					dynamicToolStrip.DragEnter -= form.ToolbarButton_DragEnter;
 					dynamicToolStrip.DragDrop -= form.ToolbarButton_DragDrop;
+					DynamicToolStrip.MouseClick -= form.ToolbarStrip_Click;
 					// 取消DriveBox事件订阅
 					// 取消所有按钮的事件订阅
 					deleteItem.Click -= DeleteButton_Click;
@@ -121,6 +122,7 @@ namespace zfile
 			dynamicToolStrip.AllowDrop = true;
 			dynamicToolStrip.DragEnter += form.ToolbarButton_DragEnter;
 			dynamicToolStrip.DragDrop += form.ToolbarButton_DragDrop;
+			DynamicToolStrip.MouseClick += form.ToolbarStrip_Click;
 		}
 
 		public void TogglePanel()

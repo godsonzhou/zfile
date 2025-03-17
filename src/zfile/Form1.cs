@@ -2551,5 +2551,24 @@ namespace zfile
 			}
 			return string.Empty;
 		}
+		public void ToolbarStrip_Click(object sender, EventArgs e)
+		{
+			var mouse_event = e as MouseEventArgs;
+			if (mouse_event.Button == MouseButtons.Right)
+			{
+				if (sender is ToolStrip)
+				{
+					ToolStrip toolStrip = sender as ToolStrip;
+					if (toolStrip == uiManager.toolbarManager.DynamicToolStrip)
+					{
+						uiManager.toolbarManager.EditToolbar();
+					}
+					else if (toolStrip == uiManager.vtoolbarManager.DynamicToolStrip)
+					{
+						uiManager.vtoolbarManager.EditToolbar();
+					}
+				}
+			}
+		}
 	}
 }

@@ -174,6 +174,12 @@ namespace zfile
 					case 490:   //cm_config
 						owner.OpenOptions();
 						break;
+					case 498: // 命令ID = 498, Name = cm_buttonconfig
+						owner.uiManager.toolbarManager.EditToolbar();
+						break;
+					case 583: // cm_buttonconfig2
+						owner.uiManager.vtoolbarManager.EditToolbar();
+						break;
 					case 500:   //cm_cdtree
 						ShowDirectoryTreeSearch();
 						break;

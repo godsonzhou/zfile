@@ -1286,10 +1286,20 @@ namespace zfile
 									var ms = Helper.GetMenuInfoFromList(str.ToArray());
 									foreach(var m in ms)
 									{
-										var ddi = new ToolStripMenuItem(m.Menu);
-										ddi.Click += form.MenuItem_Click;
-										ddi.Tag = m.Cmd + " " + m.Param;
-										userpop.DropDownItems.Add(ddi);
+										if (m.Menu.Equals("-"))
+											userpop.DropDownItems.Add(new ToolStripSeparator());
+										else
+										{
+											if (m.Menu.StartsWith("-")) { }	//process submenu start
+											else if (m.Menu.Equals("--")) { } // process submenu end
+											else
+											{
+												var ddi = new ToolStripMenuItem(m.Menu);
+												ddi.Click += form.MenuItem_Click;
+												ddi.Tag = m;
+												userpop.DropDownItems.Add(ddi);
+											}
+										}
 									}
 								}
 							}

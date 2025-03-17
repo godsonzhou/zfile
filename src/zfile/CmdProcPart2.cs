@@ -1372,11 +1372,14 @@ namespace zfile
 				}
 				else
 				{
-					// 使用Form1的ExtractArchiveFile方法
-					if (!owner.ExtractArchiveFile(zipPath, "", extractPath))
+					if (owner.OpenArchive(zipPath))
 					{
-						MessageBox.Show($"不支持的压缩格式: {extension}", "错误");
-						return;
+						// 使用Form1的ExtractArchiveFile方法
+						if (!owner.ExtractArchiveFile(zipPath, "", extractPath))
+						{
+							MessageBox.Show($"不支持的压缩格式: {extension}", "错误");
+							return;
+						}
 					}
 				}
 

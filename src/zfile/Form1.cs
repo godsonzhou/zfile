@@ -1528,7 +1528,8 @@ namespace zfile
 						var pathPart = path.Split('\\');
 						name = !pathPart[^1].Equals(string.Empty) ? pathPart[^1] : pathPart[^2];
 						var subItem = new ShellItem(pidlSub, iSub, root); //子节点的tag存放pidl和ishellfolder接口
-
+						if (subItem.parsepath.Equals("::{645FF040-5081-101B-9F08-00AA002F954E}") || subItem.parsepath.Equals("::{26EE0668-A00A-44D7-9371-BEB064C98683}"))//回收站||控制面板，还有些问题, 忽略不做处理
+							continue;
 						// 使用路径作为唯一标识符，而不是PIDL的内存地址
 						string nodeKey = path;
 						newPidls.Add(nodeKey);
@@ -2414,7 +2415,7 @@ namespace zfile
 			return wcxModuleList.GetModuleByExt(ext) != null;
 		}
 
-		private bool OpenArchive(string archivePath)
+		public bool OpenArchive(string archivePath)
 		{
 			if (openArchives.ContainsKey(archivePath))
 				return true;

@@ -1288,6 +1288,7 @@ namespace zfile
 									{
 										var ddi = new ToolStripMenuItem(m.Menu);
 										ddi.Click += form.MenuItem_Click;
+										ddi.Tag = m.Cmd + " " + m.Param;
 										userpop.DropDownItems.Add(ddi);
 									}
 								}

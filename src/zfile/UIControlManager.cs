@@ -86,6 +86,7 @@ namespace zfile
 
 		public Dictionary<string, string> args = new();
 		public Dictionary<string, string> lastVisitedPaths = new ();
+		public Dictionary<string, MenuInfo> usermenuMap = new();
 		private bool disposed = false;
 
 		public UIControlManager(Form1 form)
@@ -1253,7 +1254,20 @@ namespace zfile
 								var lineSplit = line.Split(',');
 								var menutxt = lineSplit[0].Trim('"');
 								ToolStripMenuItem menuItem = new ToolStripMenuItem(menutxt);
+								
 								var cmdid = lineSplit[1].Trim();
+								if (int.TryParse(cmdid, out var id))
+								{
+									var cti = form.cmdProcessor.GetCmdById(id);
+									if (cti != null && !menutxt.Equals(string.Empty))
+										usermenuMap[menutxt] = new MenuInfo("", "", ((CmdTableItem)cti).CmdName, "", "", 0, "");
+								}
+								else
+								{
+									var emd = form.cmdProcessor.GetEmdByName(cmdid);
+									if(emd != null && !menutxt.Equals(string.Empty))
+										usermenuMap[menutxt] = emd;
+								}
 								menuItem.Tag = cmdid;
 								menuItem.Click += form.MenuItem_Click;
 								var iconidx = form.cmdicons_configloader.FindConfigValue("mappings", cmdid);
@@ -1264,25 +1278,22 @@ namespace zfile
 						}
 						else if (!line.Trim().Equals(string.Empty))
 						{
-							Debug.Print($"user menu: {line}");
+							//Debug.Print($"user menu: {line}");
 							if(line == "STARTMENU")
 							{
 								string UserMenuName = line;
 								if (!line.Contains("menu", StringComparison.OrdinalIgnoreCase))
 									continue;
-								if (UserMenuName == "STARTMENU")
-									UserMenuName = "User";
+								if (UserMenuName == "STARTMENU") UserMenuName = "User";
 								var usermenu = form.userConfigLoader.GetConfigSection(UserMenuName);
-								//TODO: CONSTRUCT MENU BY USING CONFIGSECTION NAMED "USER"
+								//CONSTRUCT MENU BY USING CONFIGSECTION NAMED "USER"
 								if (usermenu != null)
 								{
 									var userpop = new ToolStripMenuItem("开始");
 									dynamicMenuStrip.Items.Add(userpop);
 									List<string> str = new();
 									foreach (var i in usermenu.Items)
-									{
 										str.Add(i.Key + "=" + i.Value);
-									}
 									var ms = Helper.GetMenuInfoFromList(str.ToArray());
 									foreach(var m in ms)
 									{
@@ -1290,14 +1301,30 @@ namespace zfile
 											userpop.DropDownItems.Add(new ToolStripSeparator());
 										else
 										{
-											if (m.Menu.StartsWith("-")) { }	//process submenu start
-											else if (m.Menu.Equals("--")) { } // process submenu end
+											if (m.Menu.StartsWith("-") && !m.Menu.StartsWith("--")) 
+											{
+												// 处理子菜单起始项
+												var submenu = new ToolStripMenuItem(m.Menu.Substring(1));
+												submenu.Tag = m;
+												usermenuMap[submenu.Text] = m;
+												userpop.DropDownItems.Add(submenu);
+												currentPopup = submenu;
+											}
+											else if (m.Menu.Equals("--")) 
+											{
+												// 处理子菜单结束项
+												currentPopup = userpop;
+											}
 											else
 											{
 												var ddi = new ToolStripMenuItem(m.Menu);
+												usermenuMap[m.Menu] = m;
 												ddi.Click += form.MenuItem_Click;
 												ddi.Tag = m;
-												userpop.DropDownItems.Add(ddi);
+												if (currentPopup != null)
+													currentPopup.DropDownItems.Add(ddi);
+												else
+													userpop.DropDownItems.Add(ddi);
 											}
 										}
 									}

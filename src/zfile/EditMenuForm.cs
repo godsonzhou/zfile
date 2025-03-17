@@ -380,56 +380,16 @@ namespace zfile
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     string newTitle = dialog.InputText;
-                    if (currentMenuType == "usermenu")
+                    if (selectedItem.StartsWith("-") && !selectedItem.StartsWith("--"))
                     {
-                        if (selectedItem.Contains("="))
-                        {
-                            string[] parts = selectedItem.Split('=');
-                            if (parts.Length == 2)
-                            {
-                                if (selectedItem.StartsWith("-") && !selectedItem.StartsWith("--"))
-                                {
-                                    string newItem = $"-{newTitle}";
-                                    menuItems[selectedIndex] = newItem;
-                                    menuItemsListBox.Items[selectedIndex] = newItem;
-                                }
-                                else if (!selectedItem.StartsWith("--"))
-                                {
-                                    string newItem = $"{newTitle}";
-                                    menuItems[selectedIndex] = newItem;
-                                    menuItemsListBox.Items[selectedIndex] = newItem;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            if (selectedItem.StartsWith("-") && !selectedItem.StartsWith("--"))
-                            {
-                                string newItem = $"-{newTitle}";
-                                menuItems[selectedIndex] = newItem;
-                                menuItemsListBox.Items[selectedIndex] = newItem;
-                            }
-                            else if (!selectedItem.StartsWith("--"))
-                            {
-                                string newItem = $"{newTitle}";
-                                menuItems[selectedIndex] = newItem;
-                                menuItemsListBox.Items[selectedIndex] = newItem;
-                            }
-                        }
+                        string newItem = $"-{newTitle}";
+                        menuItems[selectedIndex] = newItem;
+                        menuItemsListBox.Items[selectedIndex] = newItem;
                     }
-                    else
+                    else if (!selectedItem.StartsWith("--"))
                     {
-                        if (selectedItem.StartsWith("-") && !selectedItem.StartsWith("--"))
-                        {
-                            string newItem = $"-{newTitle}";
-                            menuItems[selectedIndex] = newItem;
-                            menuItemsListBox.Items[selectedIndex] = newItem;
-                        }
-                        else if (!selectedItem.StartsWith("--"))
-                        {
-                            menuItems[selectedIndex] = newTitle;
-                            menuItemsListBox.Items[selectedIndex] = newTitle;
-                        }
+                        menuItems[selectedIndex] = newTitle;
+                        menuItemsListBox.Items[selectedIndex] = newTitle;
                     }
                 }
             }

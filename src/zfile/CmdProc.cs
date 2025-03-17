@@ -232,6 +232,9 @@ namespace zfile
 					case 534: // 命令ID=534，Name=cm_dirmatch
 						do_cm_dirmatch();
 						break;
+					case 536: // cm_CompareDirsWithSubdirs
+						do_cm_CompareDirsWithSubdirs(param);
+						break;
 					case 540: // cm_rereadsource
 						do_cm_rereadsource();
 						break;
@@ -855,9 +858,9 @@ namespace zfile
 				return await response.Content.ReadAsStringAsync();
 			}
 		}
-		private void do_cm_matchsrc(bool hideIdentical = false)
+		private void do_cm_CompareDirsWithSubdirs(string param)
 		{
-	
+
 		}
 	}
 }

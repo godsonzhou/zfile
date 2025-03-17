@@ -397,11 +397,6 @@ namespace zfile
 
         private void OkButton_Click(object sender, EventArgs e)
         {
-            SaveMenuItems();
-        }
-
-        private void SaveMenuItems()
-        {
             if (currentMenuType == "usermenu")
             {
                 // 保存用户菜单

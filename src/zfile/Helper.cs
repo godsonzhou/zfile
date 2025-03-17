@@ -264,22 +264,19 @@ namespace zfile
 			}
 			return path;
 		}
-		public static List<MenuInfo> ReadButtonbarFile(string filePath)
+		public static List<MenuInfo> GetMenuInfoFromList(string[] lines)
 		{
 			List<MenuInfo> menuInfos = new List<MenuInfo>();
 
 			try
 			{
-				// 读取文件的所有行
-				string[] lines = File.ReadAllLines(filePath);
-
 				// 用于匹配按钮信息的正则表达式
 				Regex buttonRegex = new Regex(@"button(\d+)=(.*)");
-				Regex cmdRegex = new Regex(@"cmd(\d+)=(.*)");
-				Regex paramRegex = new Regex(@"param(\d+)=(.*)");
+				Regex cmdRegex = new Regex(@"cmd(\d+)=(.*)"); //also can be used by dynamic menu contruction
+				Regex paramRegex = new Regex(@"param(\d+)=(.*)"); //also can be used by dynamic menu contruction
 				Regex pathRegex = new Regex(@"path(\d+)=(.*)");
 				Regex iconicRegex = new Regex(@"iconic(\d+)=(\d+)");
-				Regex menuRegex = new Regex(@"menu(\d+)=(.*)");
+				Regex menuRegex = new Regex(@"menu(\d+)=(.*)"); // also can be used by dynamic menu contruction
 
 				// 用于存储每个按钮的信息
 				Dictionary<int, MenuInfo> buttonInfoMap = new Dictionary<int, MenuInfo>();
@@ -382,12 +379,12 @@ namespace zfile
 					var mi = kvp.Value;
 					if (mi.Cmd.Equals(string.Empty) || mi.Cmd.EndsWith("default.bar", StringComparison.OrdinalIgnoreCase))
 						continue;
-					
+
 					if (mi.Path.Equals(string.Empty))
 						mi.Path = Path.GetDirectoryName(mi.Cmd) ?? string.Empty;
 					if (mi.Path.Equals(string.Empty))
 						mi.Path = Path.GetDirectoryName(mi.Button) ?? string.Empty;
-					if(mi.Path.Equals(string.Empty))
+					if (mi.Path.Equals(string.Empty))
 						Debug.Print($"{mi.Button} for {mi.Cmd} > path is empty!");
 					menuInfos.Add(mi);//TODO: BUGFIX PATH=. will cause Problem
 				}
@@ -396,8 +393,12 @@ namespace zfile
 			{
 				Console.WriteLine($"读取文件时发生错误: {ex.Message}");
 			}
-
 			return menuInfos;
+		}
+		public static List<MenuInfo> ReadButtonbarFile(string filePath)
+		{
+			// 读取文件的所有行
+			return GetMenuInfoFromList(File.ReadAllLines(filePath));
 		}
 		public static string ConvertKeyToString(Keys k, bool excludeSpecKey = true)
 		{

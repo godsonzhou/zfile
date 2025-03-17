@@ -15,6 +15,7 @@ namespace zfile
 		public readonly LLM_Helper lLM_Helper;
 		public readonly CFGLOADER configLoader;
 		public readonly CFGLOADER ftpconfigLoader;
+		public readonly CFGLOADER userConfigLoader;
 		public readonly CFGLOADER cmdicons_configloader;
 		public readonly IconManager iconManager;
 		public readonly ThemeManager themeManager;
@@ -153,6 +154,7 @@ namespace zfile
 			configLoader = new CFGLOADER(Constants.ZfileCfgPath+"wincmd.ini");
 			ftpconfigLoader = new CFGLOADER(Constants.ZfileCfgPath + "wcx_ftp.ini");
 			cmdicons_configloader = new CFGLOADER(Constants.ZfileCfgPath + "wcmicons.inc");
+			userConfigLoader = new CFGLOADER(Constants.ZfileCfgPath + "user.ini");
 			fTPMGR = new FTPMGR(this);
 		    cmdProcessor = new CmdProc(this);
 			lLM_Helper = new LLM_Helper(this);

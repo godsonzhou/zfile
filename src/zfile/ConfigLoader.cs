@@ -119,6 +119,10 @@ namespace zfile
 			var section = sections.FirstOrDefault(s => s.Name == sectionName);
 			return section?.FindValue(key);
 		}
+		public ConfigSection? GetConfigSection(string sectionName)
+		{
+			return sections.FirstOrDefault(s => s.Name == sectionName);
+		}
 
 		// 根据编号或名字归类配置项
 		public Dictionary<string, List<ConfigItem>> GroupConfigItemsByNumberOrName()

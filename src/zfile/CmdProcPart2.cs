@@ -1364,7 +1364,7 @@ namespace zfile
 				string extension = Path.GetExtension(selectedItem.Text).ToLower();
 				if (extension == ".zip")
 				{
-					System.IO.Compression.ZipFile.ExtractToDirectory(
+					ZipFile.ExtractToDirectory(
 						zipPath,
 						extractPath,
 						Encoding.GetEncoding("GB2312"),

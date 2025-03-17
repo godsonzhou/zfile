@@ -1,6 +1,7 @@
 using Sheng.Winform.Controls;
 using System.Diagnostics;
 using System.Text;
+//using System.Windows.Controls;
 using WinShell;
 
 namespace zfile
@@ -1163,42 +1164,13 @@ namespace zfile
 			{
 				return;
 			}
-			dropdownFilePath = Helper.GetPathByEnv(dropdownFilePath);//.ToUpper().Replace("%COMMANDER_PATH%", Constants.ZfileCfgPath );//commanderPath + "\\..\\..\\..\\..\\config"
+			dropdownFilePath = Helper.GetPathByEnv(dropdownFilePath);
 			if (!File.Exists(dropdownFilePath))
 			{
 				MessageBox.Show("下拉菜单配置文件不存在" + dropdownFilePath, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
 			}
 
-			//try
-			//{
-			//	using (StreamReader reader = new StreamReader(dropdownFilePath, Encoding.GetEncoding("GB2312")))
-			//	{
-			//		string? line;
-			//		while ((line = reader.ReadLine()) != null)
-			//		{
-			//			line = line.Trim();
-			//			if (line.StartsWith("button"))
-			//			{
-			//				string menuText = reader.ReadLine()?.Trim() ?? string.Empty;
-			//				string cmd = reader.ReadLine()?.Trim() ?? string.Empty;
-
-			//				ToolStripMenuItem menuItem = new ToolStripMenuItem
-			//				{
-			//					Text = menuText,
-
-			//					Tag = cmd
-			//				};
-			//				menuItem.Click += ToolbarButton_Click;
-			//				dropdownButton.DropDownItems.Add(menuItem);
-			//			}
-			//		}
-			//	}
-			//}
-			//catch (Exception ex)
-			//{
-			//	MessageBox.Show($"加载下拉菜单失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-			//}
 			var menulist = Helper.ReadButtonbarFile(dropdownFilePath);
 			foreach (var item in menulist)
 			{
@@ -1222,6 +1194,7 @@ namespace zfile
 		}
 		public void InitializeDynamicMenu()
 		{
+			
 			var menu = form.configLoader.FindConfigValue("Configuration", "Mainmenu");
 			string menuFilePath = Constants.ZfileCfgPath + menu;// "WCMD_CHN.MNU";
 			if (!File.Exists(menuFilePath))
@@ -1287,6 +1260,37 @@ namespace zfile
 								if(iconidx != null)
 									menuItem.Image = form.iconManager.LoadIcon($"wcmicon2.dll,{iconidx}");
 								currentPopup.DropDownItems.Add(menuItem);
+							}
+						}
+						else if (!line.Trim().Equals(string.Empty))
+						{
+							Debug.Print($"user menu: {line}");
+							if(line == "STARTMENU")
+							{
+								string UserMenuName = line;
+								if (!line.Contains("menu", StringComparison.OrdinalIgnoreCase))
+									continue;
+								if (UserMenuName == "STARTMENU")
+									UserMenuName = "User";
+								var usermenu = form.userConfigLoader.GetConfigSection(UserMenuName);
+								//TODO: CONSTRUCT MENU BY USING CONFIGSECTION NAMED "USER"
+								if (usermenu != null)
+								{
+									var userpop = new ToolStripMenuItem("开始");
+									dynamicMenuStrip.Items.Add(userpop);
+									List<string> str = new();
+									foreach (var i in usermenu.Items)
+									{
+										str.Add(i.Key + "=" + i.Value);
+									}
+									var ms = Helper.GetMenuInfoFromList(str.ToArray());
+									foreach(var m in ms)
+									{
+										var ddi = new ToolStripMenuItem(m.Menu);
+										ddi.Click += form.MenuItem_Click;
+										userpop.DropDownItems.Add(ddi);
+									}
+								}
 							}
 						}
 					}

@@ -499,6 +499,12 @@ namespace zfile
 					case 3026: // cm_listExternal
 						do_cm_listExternal(param);
 						break;
+					case 4001: // 命令ID = 4001, Name = cm_focusleft
+						owner.uiManager.LeftList.Focus();
+						break;
+					case 4002: // cm_focusright
+						owner.uiManager.RightList.Focus();
+						break;
 					case 4003:
 						do_cm_focuscmdline();
 						break;
@@ -590,18 +596,21 @@ namespace zfile
 			// 收集左面板文件名
 			foreach (ListViewItem item in leftList.Items)
 			{
-				leftFiles.Add(item.Text);
+				if (!item.SubItems[3].Text.Equals("<DIR>"))
+					leftFiles.Add(item.Text);
 			}
 
 			// 收集右面板文件名
 			foreach (ListViewItem item in rightList.Items)
 			{
-				rightFiles.Add(item.Text);
+				if (!item.SubItems[3].Text.Equals("<DIR>"))
+					rightFiles.Add(item.Text);
 			}
 
 			// 遍历左面板文件，标记差异
 			foreach (ListViewItem item in leftList.Items)
 			{
+				if (item.SubItems[3].Text.Equals("<DIR>")) continue;
 				if (!rightFiles.Contains(item.Text))
 				{
 					// 文件只存在于左面板，高亮显示
@@ -624,6 +633,7 @@ namespace zfile
 			// 遍历右面板文件，标记差异
 			foreach (ListViewItem item in rightList.Items)
 			{
+				if (item.SubItems[3].Text.Equals("<DIR>")) continue;
 				if (!leftFiles.Contains(item.Text))
 				{
 					// 文件只存在于右面板，高亮显示

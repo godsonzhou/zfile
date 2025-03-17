@@ -7,6 +7,7 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using System.Diagnostics;
 using System.Net;
+using System.Drawing;
 
 namespace zfile
 {
@@ -574,11 +575,73 @@ namespace zfile
 		}
 		private void do_cm_comparedirs()
 		{
-
+			do_cm_dirmatch(false);
 		}
-		private void do_cm_dirmatch()
+		private void do_cm_dirmatch(bool hideIdentical = true)
 		{
+			// 获取左右面板的ListView
+			ListView leftList = owner.uiManager.LeftList;
+			ListView rightList = owner.uiManager.RightList;
 
+			// 创建文件名集合
+			HashSet<string> leftFiles = new HashSet<string>();
+			HashSet<string> rightFiles = new HashSet<string>();
+
+			// 收集左面板文件名
+			foreach (ListViewItem item in leftList.Items)
+			{
+				leftFiles.Add(item.Text);
+			}
+
+			// 收集右面板文件名
+			foreach (ListViewItem item in rightList.Items)
+			{
+				rightFiles.Add(item.Text);
+			}
+
+			// 遍历左面板文件，标记差异
+			foreach (ListViewItem item in leftList.Items)
+			{
+				if (!rightFiles.Contains(item.Text))
+				{
+					// 文件只存在于左面板，高亮显示
+					item.BackColor = Color.LightPink;
+					item.Selected = true;
+				}
+				else if (hideIdentical)
+				{
+					// 如果需要隐藏相同文件
+					item.ForeColor = Color.LightGray;
+				}
+				else
+				{
+					// 重置颜色
+					item.BackColor = SystemColors.Window;
+					item.ForeColor = SystemColors.WindowText;
+				}
+			}
+
+			// 遍历右面板文件，标记差异
+			foreach (ListViewItem item in rightList.Items)
+			{
+				if (!leftFiles.Contains(item.Text))
+				{
+					// 文件只存在于右面板，高亮显示
+					item.BackColor = Color.LightPink;
+					item.Selected = true;
+				}
+				else if (hideIdentical)
+				{
+					// 如果需要隐藏相同文件
+					item.ForeColor = Color.LightGray;
+				}
+				else
+				{
+					// 重置颜色
+					item.BackColor = SystemColors.Window;
+					item.ForeColor = SystemColors.WindowText;
+				}
+			}
 		}
 		private async Task do_cm_mcpserver(string param)
 		{
@@ -782,7 +845,10 @@ namespace zfile
 				return await response.Content.ReadAsStringAsync();
 			}
 		}
+		private void do_cm_matchsrc(bool hideIdentical = false)
+		{
 	
+		}
 	}
 }
 

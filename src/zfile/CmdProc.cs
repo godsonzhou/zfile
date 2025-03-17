@@ -225,6 +225,12 @@ namespace zfile
 					case 532: // cm_matchsrc
 						do_cm_matchsrc();
 						break;
+					case 533: // 命令ID=533,Name=cm_comparedirs
+						do_cm_comparedirs();
+						break;
+					case 534: // 命令ID=534，Name=cm_dirmatch
+						do_cm_dirmatch();
+						break;
 					case 540: // cm_rereadsource
 						do_cm_rereadsource();
 						break;
@@ -565,6 +571,14 @@ namespace zfile
 			//{
 			//	throw new KeyNotFoundException("命令ID不存在");
 			//}
+		}
+		private void do_cm_comparedirs()
+		{
+
+		}
+		private void do_cm_dirmatch()
+		{
+
 		}
 		private async Task do_cm_mcpserver(string param)
 		{

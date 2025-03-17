@@ -1,4 +1,5 @@
 using System.Text;
+using System.Windows.Forms;
 
 namespace zfile
 {
@@ -15,10 +16,12 @@ namespace zfile
         private Form1 mainForm;
         private string currentMenuType = "usermenu";
         private List<string> menuItems = new();
+		private int menu_id;	//0-usermenu, 1-mainmenu
 
-        public EditMenuForm(Form1 form)
+        public EditMenuForm(Form1 form, int menuid)
         {
             mainForm = form;
+			menu_id = menuid;
             InitializeComponent();
             LoadMenuItems();
         }
@@ -37,7 +40,7 @@ namespace zfile
                 DropDownStyle = ComboBoxStyle.DropDownList
             };
             menuTypeComboBox.Items.AddRange(new string[] { "usermenu", "mainmenu" });
-            menuTypeComboBox.SelectedIndex = 0;
+            menuTypeComboBox.SelectedIndex = menu_id;
             menuTypeComboBox.SelectedIndexChanged += MenuTypeComboBox_SelectedIndexChanged;
 
             // 创建菜单项ListBox
@@ -123,12 +126,23 @@ namespace zfile
                 var userMenu = mainForm.userConfigLoader.GetConfigSection("User");
                 if (userMenu != null)
                 {
-                    foreach (var item in userMenu.Items)
-                    {
-                        menuItems.Add(item.Key + "=" + item.Value);
-                        menuItemsListBox.Items.Add(item.Key);
-                    }
-                }
+                    //foreach (var item in userMenu.Items)
+                    //{
+                    //    menuItems.Add(item.Key + "=" + item.Value);
+                    //    menuItemsListBox.Items.Add(item.Value);
+                    //}
+					List<string> str = new();
+					foreach (var i in userMenu.Items)
+						str.Add(i.Key + "=" + i.Value);
+					var ms = Helper.GetMenuInfoFromList(str.ToArray());
+					foreach (var m in ms)
+					{
+						//var ddi = new ToolStripMenuItem(m.Menu);
+						//ddi.Tag = m.Cmd + " " + m.Param;
+						menuItems.Add(m.Menu);
+						menuItemsListBox.Items.Add(m.Menu);
+					}
+				}
             }
             else
             {
@@ -145,8 +159,9 @@ namespace zfile
                             line = line.Trim();
                             if (!string.IsNullOrEmpty(line))
                             {
-                                menuItems.Add(line);
-                                menuItemsListBox.Items.Add(line);
+								var linepart = line.Replace("MENUITEM ", "").Replace("END_POPUP", "--").Replace("POPUP ", "-").Replace("\"", "").Replace("SEPARATOR", "-").Split(',');
+								menuItems.Add(linepart[0]);
+								menuItemsListBox.Items.Add(linepart[0]);
                             }
                         }
                     }
@@ -359,10 +374,10 @@ namespace zfile
                         string[] parts = item.Split('=');
                         if (parts.Length == 2)
                         {
-                            userSection.Items[parts[0]] = parts[1];
+                            //userSection.Items[parts[0]] = parts[1];
                         }
                     }
-                    mainForm.userConfigLoader.Save();
+                    mainForm.userConfigLoader.SaveConfig();
                 }
             }
             else

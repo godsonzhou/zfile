@@ -1306,9 +1306,9 @@ namespace zfile
 			}
 		}
 
-		public void EditMenu()
+		public void EditMenu(int menuID)
 		{
-			using (var editMenuForm = new EditMenuForm(form))
+			using (var editMenuForm = new EditMenuForm(form, menuID))
 			{
 				if (editMenuForm.ShowDialog() == DialogResult.OK)
 				{

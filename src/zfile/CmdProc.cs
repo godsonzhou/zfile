@@ -288,6 +288,9 @@ namespace zfile
 					case 690: // cm_about
 						MessageBox.Show("Zfile v0.1.3.14 \r\n Author: zhou yaping \r\n Email: zhouyaping822@gmail.com");
 						break;
+					case 700: // cm_ChangeStartMenu
+						owner.uiManager.EditMenu(0);//set to 1 to change mainmenu
+						break;
 					case 903: //cm_list
 						owner.do_cm_list(param);
 						break;

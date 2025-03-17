@@ -1306,6 +1306,20 @@ namespace zfile
 			}
 		}
 
+		public void EditMenu()
+		{
+			using (var editMenuForm = new EditMenuForm(form))
+			{
+				if (editMenuForm.ShowDialog() == DialogResult.OK)
+				{
+					// 重新初始化菜单
+					form.Controls.Remove(dynamicMenuStrip);
+					dynamicMenuStrip.Dispose();
+					InitializeDynamicMenu();
+				}
+			}
+		}
+
 		public void Dispose()
 		{
 			Dispose(true);

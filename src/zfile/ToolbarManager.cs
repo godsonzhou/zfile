@@ -496,5 +496,16 @@ namespace zfile
 				}
 			}
 		}
+
+		public void EditToolbar()
+		{
+			using var editForm = new EditToolbarForm(this);
+			if (editForm.ShowDialog() == DialogResult.OK && editForm.IsModified)
+			{
+				// 保存更改并刷新工具栏
+				SaveToconfig();
+				GenerateDynamicToolbar();
+			}
+		}
 	}
 }

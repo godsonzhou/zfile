@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Drawing;
 using System.IO;
+using System.Security.Policy;
 
 namespace zfile
 {
@@ -547,11 +548,15 @@ namespace zfile
 						break;
 					case 11437: // API caller
 						var parameters = param.Split(' ');
-						if (parameters.Length < 3)
-							MessageBox.Show("the parameters should contain url key other at least");
-						else
-							do_cm_apicaller(parameters[0], parameters[1], parameters[2]);	//
+						var paramcount = param.Length;
+						string url = "http://v.juhe.cn/toutiao/index", key = "de73e15a67f8b359d4ec409ae3e63aed", par = "type=keji";
+						
+						if(paramcount> 0) url = parameters[0];
+						if(paramcount> 1) key = parameters[1];
+						if(paramcount> 2) par = parameters[2];
+						do_cm_apicaller(url, key, par);   
 						break;
+
 					case 11438: // mcp client
 						do_cm_mcpclient(param);
 						break;
@@ -559,8 +564,9 @@ namespace zfile
 						var lst = Task.Run(async () => { await do_cm_mcpclient1(param); });
 						break;
 					case 11440: // launch mcp server
-						Task.Run(async () => { await do_cm_mcpserver(param); } );
+						Task.Run(async () => { await do_cm_mcpserver(param); } ); // param is servername
 						break;
+
 					case 24340:
 						Form1.ExitApp();
 						break;
@@ -749,7 +755,7 @@ namespace zfile
 			form.Tag = this;
 			form.ShowDialog();
 		}
-		public string cm_apicaller(string url = "http://v.juhe.cn/toutiao/index", string apiKey = "de73e15a67f8b359d4ec409ae3e63aed", string param = "type=keji")
+		public string cm_apicaller(string url, string apiKey, string param)
 		{
 			//string url = "http://v.juhe.cn/toutiao/index";
 			//string apiKey = "您申请的调用APIkey";
@@ -775,19 +781,17 @@ namespace zfile
 
 				try
 				{
-					string responseContent = client.DownloadString(fullUrl);
-					dynamic responseData = JsonConvert.DeserializeObject(responseContent);
+					var responseContent = client.DownloadString(fullUrl);
+					//dynamic responseData = JsonConvert.DeserializeObject(responseContent);
 
-					if (responseData != null)
+					if (responseContent != null)
 					{
-						Debug.Print("Return Code: " + responseData["error_code"]);
-						Debug.Print("Return Message: " + responseData["reason"]);
-						return responseData["reason"];
+						//Debug.Print("Return Code: " + responseData["error_code"]);
+						//Debug.Print("Return Message: " + responseData["reason"]);//-> success
+						return responseContent;
 					}
 					else
-					{
 						Debug.Print("json解析异常！");
-					}
 				}
 				catch (Exception)
 				{

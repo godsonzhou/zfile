@@ -1,7 +1,48 @@
+using Newtonsoft.Json;
 using Sheng.Winform.Controls;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Diagnostics;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace zfile
 {
+	public class Data
+	{
+		public string uniquekey { get; set; }
+		public string title { get; set; }
+		public string date { get; set; }
+		public string category { get; set; }
+		public string author_name { get; set; }
+		public string url { get; set; }
+		public string thumbnail_pic_s { get; set; }
+		public string thumbnail_pic_s02 { get; set; }
+		public string thumbnail_pic_s03 { get; set; }
+		public string is_content { get; set; }
+	}
+
+	public class Result
+	{
+		public string stat { get; set; }
+		public List<Data> data { get; set; }
+		public string page { get; set; }
+		public string pageSize { get; set; }
+	}
+
+	public class RootObject
+	{
+		public string reason { get; set; }
+		public Result result { get; set; }
+		public int error_code { get; set; }
+	}
 	public partial class APICallerForm : ShengForm
 	{
 		private TextBox txtUrl;
@@ -12,7 +53,8 @@ namespace zfile
 		private Button btnEdit;
 		private Button btnConnect;
 		private Button btnClose;
-		private TextBox txtResult;
+		//private TextBox txtResult;
+		private ListView txtResult;
 		private readonly string url;
 		private readonly string key;
 		private readonly string param;
@@ -39,7 +81,7 @@ namespace zfile
 			btnEdit = new Button();
 			btnConnect = new Button();
 			btnClose = new Button();
-			txtResult = new TextBox();
+			txtResult = new ListView();
 			lblUrl = new Label();
 			lblApiKey = new Label();
 			SuspendLayout();
@@ -68,7 +110,7 @@ namespace zfile
 			txtUrl.Name = "txtUrl";
 			txtUrl.Size = new Size(382, 23);
 			txtUrl.TabIndex = 0;
-			txtUrl.Text = "http://v.juhe.cn/toutiao/index";
+			txtUrl.Text = url;
 			// 
 			// txtApiKey
 			// 
@@ -76,7 +118,7 @@ namespace zfile
 			txtApiKey.Name = "txtApiKey";
 			txtApiKey.Size = new Size(382, 23);
 			txtApiKey.TabIndex = 1;
-			txtApiKey.Text = "de73e15a67f8b359d4ec409ae3e63aed";
+			txtApiKey.Text = key;
 			// 
 			// listViewParams
 			// 
@@ -142,10 +184,10 @@ namespace zfile
 			// txtResult
 			// 
 			txtResult.Location = new Point(12, 255);
-			txtResult.Multiline = true;
+			//txtResult.Multiline = true;
 			txtResult.Name = "txtResult";
-			txtResult.ReadOnly = true;
-			txtResult.ScrollBars = ScrollBars.Vertical;
+			//txtResult.ReadOnly = true;
+			//txtResult.ScrollBars = ScrollBars.Vertical;
 			txtResult.Size = new Size(460, 100);
 			txtResult.TabIndex = 7;
 			// 
@@ -234,10 +276,49 @@ namespace zfile
 				}
 			}
 
-			string result = ((CmdProc)Tag).cm_apicaller(txtUrl.Text, txtApiKey.Text, string.Join(",", parameters));
+			var result = ((CmdProc)Tag).cm_apicaller(txtUrl.Text, txtApiKey.Text, string.Join(",", parameters));
+			processResult(result);
 			txtResult.Text = result;
 		}
 
+		private void processResult(string json)
+		{
+			// 解析JSON数据
+			var root = JsonConvert.DeserializeObject<RootObject>(json);
+
+			// 配置ListView
+			txtResult.View = View.Details;
+			txtResult.Columns.Add("Title", 200);
+			txtResult.Columns.Add("Date", 150);
+			txtResult.Columns.Add("Category", 100);
+			txtResult.Columns.Add("Author Name", 150);
+
+			// 填充ListView
+			foreach (var item in root.result.data)
+			{
+				var listItem = new ListViewItem(item.title);
+				listItem.SubItems.Add(item.date);
+				listItem.SubItems.Add(item.category);
+				listItem.SubItems.Add(item.author_name);
+				listItem.Tag = item.url;
+				txtResult.Items.Add(listItem);
+			}
+
+			// 绑定点击事件
+			txtResult.ItemActivate += ListView1_ItemActivate;
+		}
+		private void ListView1_ItemActivate(object sender, EventArgs e)
+		{
+			if (txtResult.SelectedItems.Count > 0)
+			{
+				string url = txtResult.SelectedItems[0].Tag as string;
+				if (!string.IsNullOrEmpty(url))
+				{
+					var args = new ProcessStartInfo() {FileName=url,UseShellExecute=true};
+					Process.Start(args);
+				}
+			}
+		}
 		private void btnClose_Click(object sender, EventArgs e)
 		{
 			Close();
@@ -247,11 +328,15 @@ namespace zfile
 		{
 			if (listViewParams.SelectedItems.Count > 0)
 			{
-				ListViewItem item = listViewParams.SelectedItems[0];
-				if (item.SubItems.Count > 1)
+				var dialog = new InputDialog("参数", "请输入参数值");
+				if (dialog.ShowDialog() == DialogResult.OK)
 				{
-					item.SubItems[1].Text = "";
-					item.BeginEdit();
+					ListViewItem item = listViewParams.SelectedItems[0];
+					if (item.SubItems.Count > 1)
+					{
+						item.SubItems[1].Text = dialog.InputText;
+						//item.BeginEdit();
+					}
 				}
 			}
 		}

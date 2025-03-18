@@ -44,6 +44,16 @@ namespace zfile
 		private readonly FileSystemWatcher watcher = new();
 		public Dictionary<bool, string> currentDirectory = new();
 		private TreeNode? selectedNode = null;
+		public TreeNode? SelectedNode {  
+			get { return selectedNode; }  
+			set { selectedNode = value;
+				if (value != null && value.Tag is ShellItem sitem)
+				{
+					if (Directory.Exists(sitem.parsepath))
+						updateNavHistory(sitem.parsepath);
+				}
+			} 
+		}
 		private int sortColumn = -1;
 		private SortOrder sortOrder = SortOrder.None;
 		private readonly ContextMenuStrip contextMenuStrip = new();
@@ -152,20 +162,19 @@ namespace zfile
 
 			// 更新路径访问历史
 			if (recordHistory && Directory.Exists(path))
-			{
-				string normalizedPath = Path.GetFullPath(path).TrimEnd('\\');
-				if (pathAccessHistory.ContainsKey(normalizedPath))
-				{
-					var (count, _) = pathAccessHistory[normalizedPath];
-					pathAccessHistory[normalizedPath] = (count + 1, DateTime.Now);
-				}
-				else
-				{
-					pathAccessHistory[normalizedPath] = (1, DateTime.Now);
-				}
-			}
+				updateNavHistory(path);
 		}
-
+		private void updateNavHistory(string path)
+		{
+			string normalizedPath = Path.GetFullPath(path).TrimEnd('\\');
+			if (pathAccessHistory.ContainsKey(normalizedPath))
+			{
+				var (count, _) = pathAccessHistory[normalizedPath];
+				pathAccessHistory[normalizedPath] = (count + 1, DateTime.Now);
+			}
+			else
+				pathAccessHistory[normalizedPath] = (1, DateTime.Now);
+		}
 		public Form1()
 		{
 			env = Helper.getEnv();
@@ -755,7 +764,7 @@ namespace zfile
 					var treeView = sender as TreeView;
 					var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
 					currentDirectory[isleft] = path;
-					selectedNode = e.Node;
+					SelectedNode = e.Node;
 					// 更新监视器
 					watcher.Path = path;
 					watcher.EnableRaisingEvents = true;
@@ -790,7 +799,7 @@ namespace zfile
 																						//else
 																						//	uiManager.RightPathTextBox.Text = currentDirectory[isleft];
 
-				selectedNode = eNode;
+				SelectedNode = eNode;
 				//uiManager.BookmarkManager.UpdateActiveBookmark(currentDirectory[isleft], selectedNode, isleft);
 				UpdatePathTextAndDriveComboBox(eNode, currentDirectory[isleft], isleft);
 				uiManager.setArgs();
@@ -832,7 +841,7 @@ namespace zfile
 
 					//uiManager.lastVisitedPaths[path.Substring(0,2)] = path;
 					uiManager.UpdateLastVisitedPath(path);
-					selectedNode = e.Node;
+					SelectedNode = e.Node;
 					if (Directory.Exists(path))
 					{
 						watcher.Path = path;
@@ -1152,7 +1161,7 @@ namespace zfile
 						node.Expand();
 
 						// 更新当前目录和ListView
-						selectedNode = node;
+						SelectedNode = node;
 						RefreshPanel(listView);
 					}
 

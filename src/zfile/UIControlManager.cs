@@ -1391,7 +1391,18 @@ namespace zfile
 				}
 			}
 			menu.Items.Add(envItem);
+			if (hotDirManager.HotDirs.Count > 0)
+				menu.Items.Add(new ToolStripSeparator());
+			foreach (var hotdir in hotDirManager.HotDirs)
+			{
+				var hotdirmenu = new ToolStripMenuItem(hotdir.Key);
+				hotdirmenu.Click += (s, e) =>
+				{
+					form.NavigateToPath(hotdir.Value);
+				};
+				menu.Items.Add(hotdirmenu);
 
+			}
 			menu.Show(new Point(Cursor.Position.X, Cursor.Position.Y));
 		}
 

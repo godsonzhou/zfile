@@ -8,6 +8,8 @@ namespace zfile
         private readonly Dictionary<string, string> hotDirs = new(); // 键为文件夹名称，值为完整路径
         private bool isConfigChanged = false;
         private const string CONFIG_SECTION = "HotDirs";
+        public Dictionary<string, string> HotDirs => hotDirs;
+
 
         public HotDirManager(Form1 form)
         {

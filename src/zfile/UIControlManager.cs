@@ -87,6 +87,7 @@ namespace zfile
 		public Dictionary<string, string> args = new();
 		public Dictionary<string, string> lastVisitedPaths = new ();
 		public Dictionary<string, MenuInfo> usermenuMap = new();
+		public bool isThumbs;
 		private bool disposed = false;
 
 		public UIControlManager(Form1 form)

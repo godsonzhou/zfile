@@ -304,6 +304,7 @@ namespace zfile
 					Text = "",  //menuText,
 					ToolTipText = b.name,
 					Image = form.iconManager.LoadIcon(b.icon),
+					CheckOnClick = b.cmd.Equals("cm_srcthumbs"),	//缩略图按钮为切换模式的按钮
 					Tag = b.cmd
 				};
 

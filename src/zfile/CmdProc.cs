@@ -146,7 +146,11 @@ namespace zfile
 				switch (cmdId)
 				{
 					case 269:   //cm_srcthumbs
-						owner.SetViewMode(View.Tile);
+						if(!owner.uiManager.isThumbs)
+							owner.SetViewMode(View.Tile);
+						else
+							owner.SetViewMode(View.Details);
+						owner.uiManager.isThumbs = !owner.uiManager.isThumbs;
 						break;
 					case 301:   //cm_srcshort
 						owner.SetViewMode(View.List);

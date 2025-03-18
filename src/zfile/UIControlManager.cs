@@ -1129,7 +1129,7 @@ namespace zfile
 			RightPanel.Panel2.Controls.SetChildIndex(RightPreview, 1);
 		}
 		//from环境变量获取%COMMANDER_PATH%
-		private string GetCommanderPath()
+		public string GetCommanderPath()
 		{
 			string commanderPath = Environment.GetEnvironmentVariable("COMMANDER_PATH") ?? string.Empty;
 			//if (string.IsNullOrEmpty(commanderPath))
@@ -1159,34 +1159,7 @@ namespace zfile
 				}
 			}
 		}
-		public void InitializeDropdownMenu(ToolStripDropDownButton dropdownButton, string dropdownFilePath)
-		{
-			var commanderPath = GetCommanderPath();
-			if (string.IsNullOrEmpty(commanderPath))
-			{
-				return;
-			}
-			dropdownFilePath = Helper.GetPathByEnv(dropdownFilePath);
-			if (!File.Exists(dropdownFilePath))
-			{
-				MessageBox.Show("下拉菜单配置文件不存在" + dropdownFilePath, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-				return;
-			}
-
-			var menulist = Helper.ReadButtonbarFile(dropdownFilePath);
-			foreach (var item in menulist)
-			{
-				ToolStripMenuItem menuItem = new ToolStripMenuItem
-				{
-					Text = item.Menu,
-					Tag = item,
-					Image = form.iconManager.LoadIcon(item.Button)
-				};
-				menuItem.Click += ToolbarButton_Click;
-				dropdownButton.DropDownItems.Add(menuItem);
-			}
-
-		}
+	
 		public void InitializeDynamicToolbar()
 		{
 			var bar = form.configLoader.FindConfigValue("ButtonBar", "Buttonbar");

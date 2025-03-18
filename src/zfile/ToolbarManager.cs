@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Collections.Generic;
+using System.Text;
 namespace zfile
 {
 
@@ -28,6 +29,7 @@ namespace zfile
 		private ToolStrip dynamicToolStrip;
 		public ToolStrip DynamicToolStrip => dynamicToolStrip;
 		public List<ToolbarButton> toolbarButtons = new List<ToolbarButton>();
+		public Dictionary<string, List<MenuInfo>> toolbarsDict= new();
 		public int ButtonCount => toolbarButtons.Count;
 		private string configfile;
 		// 添加上下文菜单属性
@@ -38,6 +40,7 @@ namespace zfile
 		ToolStripMenuItem deleteItem = new ToolStripMenuItem("删除按钮");
 		ToolStripMenuItem copyItem = new ToolStripMenuItem("复制按钮");
 		ToolStripMenuItem editItem = new ToolStripMenuItem("编辑按钮");
+		ToolStripMenuItem editGroupItem = new ToolStripMenuItem("编辑按钮组");
 		private bool isHidden;
 		public void Dispose()
 		{
@@ -60,6 +63,7 @@ namespace zfile
 					deleteItem.Click -= DeleteButton_Click;
 					copyItem.Click -= CopyButton_Click;
 					editItem.Click -= EditButton_Click;
+					editGroupItem.Click -= EditGroupButton_Click;
 					foreach (ToolStripItem item in dynamicToolStrip.Items)
 					{
 						if (item is ToolStripButton button)
@@ -99,10 +103,12 @@ namespace zfile
 			deleteItem.Click += DeleteButton_Click;
 			copyItem.Click += CopyButton_Click;
 			editItem.Click += EditButton_Click;
+			editGroupItem.Click += EditGroupButton_Click;
 
 			buttonContextMenu.Items.Add(deleteItem);
 			buttonContextMenu.Items.Add(copyItem);
 			buttonContextMenu.Items.Add(editItem);
+			buttonContextMenu.Items.Add(editGroupItem);
 
 			Init(configfile);
 			GenerateDynamicToolbar();
@@ -315,11 +321,12 @@ namespace zfile
 					{
 						Text = "", //menuText,
 						ToolTipText = b.name,
+						Tag = dropdownFilePath,
 						Image = form.iconManager.LoadIcon(b.icon)
 					};
 					// 为下拉按钮添加右键菜单
 					dropdownButton.MouseUp += Button_MouseUp;
-					form.uiManager.InitializeDropdownMenu(dropdownButton, dropdownFilePath);
+					InitializeDropdownMenu(dropdownButton, dropdownFilePath);
 					dynamicToolStrip.Items.Add(dropdownButton);
 				}
 				else
@@ -333,17 +340,48 @@ namespace zfile
 			dynamicToolStrip.Refresh();
 
 		}
+		public void InitializeDropdownMenu(ToolStripDropDownButton dropdownButton, string dropdownFilePath)
+		{
+			var commanderPath = form.uiManager.GetCommanderPath();
+			if (string.IsNullOrEmpty(commanderPath))
+				return;
+			dropdownFilePath = Helper.GetPathByEnv(dropdownFilePath);
+			if (!File.Exists(dropdownFilePath))
+			{
+				MessageBox.Show("下拉菜单配置文件不存在" + dropdownFilePath, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return;
+			}
+
+			var menulist = Helper.ReadButtonbarFile(dropdownFilePath);
+			foreach (var item in menulist)
+			{
+				ToolStripMenuItem menuItem = new ToolStripMenuItem
+				{
+					Text = item.Menu,
+					Tag = item,
+					Image = form.iconManager.LoadIcon(item.Button)
+				};
+				menuItem.Click += form.uiManager.ToolbarButton_Click;
+				dropdownButton.DropDownItems.Add(menuItem);
+				if (toolbarsDict.TryGetValue(dropdownFilePath, out _))
+					toolbarsDict[dropdownFilePath].Add(item); 
+				else
+					toolbarsDict[dropdownFilePath] = [item];
+			}
+		}
 		// 处理按钮的鼠标事件
 		private void Button_MouseUp(object? sender, MouseEventArgs e)
 		{
 			if (e.Button == MouseButtons.Right)
 			{
-				if (sender is ToolStripItem button)
+				if (sender is ToolStripButton button)
 				{
-					currentButton = button as ToolStripButton;
+					currentButton = button;
 					//buttonContextMenu.Show(dynamicToolStrip.PointToScreen(new Point(e.X, e.Y)));
 					// 获取鼠标的屏幕坐标
 					Point screenPoint = Cursor.Position;
+					editItem.Visible = true;
+					editGroupItem.Visible = false;
 					buttonContextMenu.Show(screenPoint);
 				}
 				else if (sender is ToolStripDropDownButton dropDownButton)  //TODO: BUGFIX: 为下拉按钮添加右键菜单, 但是右键菜单不显示
@@ -352,6 +390,8 @@ namespace zfile
 					//buttonContextMenu.Show(dynamicToolStrip.PointToScreen(new Point(e.X, e.Y)));
 					// 获取鼠标的屏幕坐标
 					Point screenPoint = Cursor.Position;
+					editItem.Visible = false;
+					editGroupItem.Visible = true;
 					buttonContextMenu.Show(screenPoint);
 				}
 			}
@@ -370,6 +410,12 @@ namespace zfile
 					GenerateDynamicToolbar();
 				}
 			}
+		}
+		public void EditGroupButton_Click(object sender, EventArgs e)
+		{
+			var barfile = currentDropDownButton.Tag.ToString();
+			var editbarform = new EditToolbarForm(this, barfile);
+			editbarform.Show();
 		}
 		private void EditButton_Click(object? sender, EventArgs e)
 		{
@@ -502,7 +548,7 @@ namespace zfile
 
 		public void EditToolbar()
 		{
-			using var editForm = new EditToolbarForm(this);
+			using var editForm = new EditToolbarForm(this, "default");
 			if (editForm.ShowDialog() == DialogResult.OK && editForm.IsModified)
 			{
 				// 保存更改并刷新工具栏

@@ -18,13 +18,16 @@ namespace zfile
         private Button btnOK;
         private Button btnCancel;
         private ToolbarButton? currentButton;
+		private MenuInfo? currentMenuInfo;
+		private string _target;
         public bool IsModified { get; private set; }
 
-        public EditToolbarForm(ToolbarManager manager)
+        public EditToolbarForm(ToolbarManager manager, string target)
         {
+			_target = Helper.GetPathByEnv(target);
             toolbarManager = manager;
             InitializeComponents();
-            LoadToolbarButtons();
+            LoadToolbarButtons(_target);
         }
 
         private void InitializeComponents()
@@ -149,6 +152,7 @@ namespace zfile
                 Location = new Point(690, 520),
                 Width = 80
             };
+			btnCancel.Click += BtnCancel_Click;
 
             Controls.Add(btnOK);
             Controls.Add(btnCancel);
@@ -167,13 +171,17 @@ namespace zfile
             }
         }
 
-        private void LoadToolbarButtons()
+        private void LoadToolbarButtons(string target)
         {
             toolbarPanel.Controls.Clear();
-            foreach (var button in toolbarManager.toolbarButtons)
-            {
-                AddToolbarButtonToPanel(button);
-            }
+			if(target.Equals("default"))
+				foreach (var button in toolbarManager.toolbarButtons)
+					AddToolbarButtonToPanel(button);
+			else
+			{
+				foreach (var button in toolbarManager.toolbarsDict[target])
+					AddToolbarButtonToPanel(button);
+			}
         }
 
         private void AddToolbarButtonToPanel(ToolbarButton button)
@@ -189,46 +197,96 @@ namespace zfile
             btn.Click += ToolbarButton_Click;
             toolbarPanel.Controls.Add(btn);
         }
-
-        private void ToolbarButton_Click(object? sender, EventArgs e)
+		private void AddToolbarButtonToPanel(MenuInfo button)
+		{
+			var btn = new Button
+			{
+				Image = toolbarManager.form.iconManager.LoadIcon(button.Button),
+				ImageAlign = ContentAlignment.MiddleCenter,
+				Size = new Size(32, 32),
+				Tag = button,
+				Margin = new Padding(2)
+			};
+			btn.Click += ToolbarButton_Click;
+			toolbarPanel.Controls.Add(btn);
+		}
+		private void ToolbarButton_Click(object? sender, EventArgs e)
         {
-            if (sender is Button btn && btn.Tag is ToolbarButton button)
-            {
-                // 更新当前选中的按钮
-                currentButton = button;
-                btnDelete.Enabled = true;
+			if (sender is Button btn)
+			{
+				if (btn.Tag is ToolbarButton button)
+				{
+					// 更新当前选中的按钮
+					currentButton = button;
+					btnDelete.Enabled = true;
 
-                // 更新属性显示
-                cmdTextBox.Text = button.cmd;
-                paramTextBox.Text = button.param;
-                pathTextBox.Text = button.path;
-                iconFileTextBox.Text = button.icon;
-                tooltipTextBox.Text = button.name;
+					// 更新属性显示
+					cmdTextBox.Text = button.cmd;
+					paramTextBox.Text = button.param;
+					pathTextBox.Text = button.path;
+					iconFileTextBox.Text = button.icon;
+					tooltipTextBox.Text = button.name;
 
-                // 更新图标预览
-                iconPreview.Image = toolbarManager.form.iconManager.LoadIcon(button.icon);
-            }
+					// 更新图标预览
+					iconPreview.Image = toolbarManager.form.iconManager.LoadIcon(button.icon);
+				}
+				else if (btn.Tag is MenuInfo x)
+				{
+					// 更新当前选中的按钮
+					currentMenuInfo = x;
+					btnDelete.Enabled = true;
+
+					// 更新属性显示
+					cmdTextBox.Text = x.Cmd;
+					paramTextBox.Text = x.Param;
+					pathTextBox.Text = x.Path;
+					iconFileTextBox.Text = x.Button;
+					tooltipTextBox.Text = x.Menu;
+
+					// 更新图标预览
+					iconPreview.Image = toolbarManager.form.iconManager.LoadIcon(x.Button);
+				}
+			}
         }
 
         private void BtnAdd_Click(object? sender, EventArgs e)
         {
-            var newButton = new ToolbarButton("新按钮", "", "", "", "", "0");
-            toolbarManager.toolbarButtons.Add(newButton);
-            AddToolbarButtonToPanel(newButton);
-            IsModified = true;
-        }
+			if (_target.Equals("default"))
+			{
+				var newButton = new ToolbarButton("新按钮", "", "", "", "", "0");
+				toolbarManager.toolbarButtons.Add(newButton);
+				AddToolbarButtonToPanel(newButton);
+			}
+			else
+			{
+				var newButton = new MenuInfo("新按钮", "", "", "", "", 0, "");
+				toolbarManager.toolbarsDict[_target].Add(newButton);
+				AddToolbarButtonToPanel(newButton);
+			}
+			IsModified = true;
+		}
 
-        private void BtnDelete_Click(object? sender, EventArgs e)
+		private void BtnDelete_Click(object? sender, EventArgs e)
         {
-            if (currentButton != null)
-            {
-                toolbarManager.toolbarButtons.Remove((ToolbarButton)currentButton);
-                LoadToolbarButtons();
-                currentButton = null;
-                btnDelete.Enabled = false;
-                ClearProperties();
-                IsModified = true;
-            }
+			if (currentButton != null && _target.Equals("default"))
+			{
+				toolbarManager.toolbarButtons.Remove((ToolbarButton)currentButton);
+				LoadToolbarButtons(_target);
+				currentButton = null;
+				btnDelete.Enabled = false;
+				ClearProperties();
+				IsModified = true; 
+				return;
+			}
+			if(currentMenuInfo != null && !_target.Equals("default"))
+			{
+				toolbarManager.toolbarsDict[_target].Remove(currentMenuInfo);
+				LoadToolbarButtons(_target);
+				currentMenuInfo = null;
+				btnDelete.Enabled = false;
+				ClearProperties();
+				IsModified = true;
+			}
         }
 
         private void PropertyChanged(object? sender, EventArgs e)
@@ -246,11 +304,30 @@ namespace zfile
                         paramTextBox.Text,
                         "0" // 这里可以根据需要修改iconic值
                     );
-                    LoadToolbarButtons();
+                    LoadToolbarButtons(_target);
                     IsModified = true;
                 }
+				return;
             }
-        }
+			if (currentMenuInfo != null)
+			{
+				var index = toolbarManager.toolbarsDict[_target].IndexOf(currentMenuInfo);
+				if (index >= 0)
+				{
+					toolbarManager.toolbarsDict[_target][index] = new MenuInfo(
+						tooltipTextBox.Text,
+						cmdTextBox.Text,
+						iconFileTextBox.Text,
+						pathTextBox.Text,
+						paramTextBox.Text,
+						0, // 这里可以根据需要修改iconic值
+						""
+					);
+					LoadToolbarButtons(_target);
+					IsModified = true;
+				}
+			}
+		}
 
         private void BrowseIcon_Click(object? sender, EventArgs e)
         {
@@ -280,7 +357,12 @@ namespace zfile
             Close();
         }
 
-        private void ClearProperties()
+		private void BtnCancel_Click(object? sender, EventArgs eventArgs)
+		{
+			Close();
+		}
+
+		private void ClearProperties()
         {
 			//cmdTextBox.SelectedIndex = -1;
 			cmdTextBox.Text = "";

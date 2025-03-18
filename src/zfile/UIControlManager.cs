@@ -742,6 +742,7 @@ namespace zfile
 					ShowHistoryMenu(button, isLeft);
 					break;
 				case "frequentdir":
+					ShowSpecialDirsMenu(new Point(button.Bounds.Left, button.Bounds.Bottom));
 					break;
 				case "anotherdir":
 					form.NavigateToPath(isleft ? RightPathTextBox.CurrentNode?.UniqueID : LeftPathTextBox.CurrentNode?.UniqueID);
@@ -1311,6 +1312,87 @@ namespace zfile
 			toolbarManager = new ToolbarManager(form, bar, false);//"DEFAULT.BAR"
 			vtoolbarManager = new ToolbarManager(form, bar1, true);//"VERTICAL.BAR"
 		}
+
+		public void ShowSpecialDirsMenu(Point location)
+		{
+			var menu = new ContextMenuStrip();
+
+			// 1. 添加所选文件夹
+			var addSelectedItem = new ToolStripMenuItem("添加所选文件夹");
+			addSelectedItem.Click += (s, e) =>
+			{
+				var selectedItems = activeListView.SelectedItems;
+				foreach (ListViewItem item in selectedItems)
+				{
+					if (item.SubItems[3].Text == "<DIR>")
+					{
+						var fullPath = Path.Combine(srcDir, item.Text);
+						//BookmarkManager.AddBookmark(fullPath);
+					}
+				}
+			};
+			menu.Items.Add(addSelectedItem);
+
+			// 2. 添加当前文件夹
+			var addCurrentItem = new ToolStripMenuItem("添加当前文件夹");
+			addCurrentItem.Click += (s, e) =>
+			{
+				//BookmarkManager.AddBookmark(srcDir);
+			};
+			menu.Items.Add(addCurrentItem);
+
+			// 3. 常用文件夹列表配置
+			var configureItem = new ToolStripMenuItem("常用文件夹列表配置...");
+			configureItem.Click += (s, e) =>
+			{
+				BookmarkManager.ShowConfigDialog();
+			};
+			menu.Items.Add(configureItem);
+
+			// 分割线
+			menu.Items.Add(new ToolStripSeparator());
+
+			// 4. 转到 Double Commander 特殊路径
+			var dcItem = new ToolStripMenuItem("转到 Double Commander 特殊路径..");
+			dcItem.Click += (s, e) =>
+			{
+				// TODO: 实现Double Commander特殊路径功能
+			};
+			menu.Items.Add(dcItem);
+
+			// 5. 转到 Windows 特殊文件夹
+			var winSpecialItem = new ToolStripMenuItem("转到 Windows 特殊文件夹...");
+			foreach (var path in form.specialpaths)
+			{
+				var subItem = new ToolStripMenuItem(path.Key);
+				subItem.Click += (s, e) =>
+				{
+					form.NavigateToPath(path.Value);
+				};
+				winSpecialItem.DropDownItems.Add(subItem);
+			}
+			menu.Items.Add(winSpecialItem);
+
+			// 6. 转到环境变量
+			var envItem = new ToolStripMenuItem("转到环境变量..");
+			foreach (string key in form.env.Keys)
+			{
+				var value = form.env[key]?.ToString();
+				if (!string.IsNullOrEmpty(value) && Directory.Exists(value))
+				{
+					var subItem = new ToolStripMenuItem(key);
+					subItem.Click += (s, e) =>
+					{
+						form.NavigateToPath(value);
+					};
+					envItem.DropDownItems.Add(subItem);
+				}
+			}
+			menu.Items.Add(envItem);
+
+			menu.Show(location);
+		}
+
 		public void InitializeDynamicMenu()
 		{
 

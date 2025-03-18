@@ -672,6 +672,9 @@ namespace zfile
 			var navigationStrip = isleft ? LeftNavigationStrip : RightNavigationStrip;
 			navigationStrip.Dock = DockStyle.Right;
 			navigationStrip.GripStyle = ToolStripGripStyle.Hidden;
+			navigationStrip.AutoSize = true;
+			navigationStrip.Width = 150; // 设置足够的宽度以显示所有按钮
+			navigationStrip.LayoutStyle = ToolStripLayoutStyle.HorizontalStackWithOverflow;
 
 			// 添加导航按钮
 			var gotoParentDir = new ToolStripButton("..", null, NavigationButton_Click)

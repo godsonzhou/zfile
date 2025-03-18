@@ -34,11 +34,11 @@ namespace zfile
 		public ComboBox RightDriveComboBox { get; } = new() { Name = "RightDriveCombo" };
 		public ShengAddressBarStrip LeftPathTextBox { get; } = new() { Name = "LeftPath" };
 		public ShengAddressBarStrip RightPathTextBox { get; } = new() { Name = "RightPath" };
-		public ShengAddressBarStrip ActivePathTextBox { get => (isleft? LeftPathTextBox : RightPathTextBox); }
+		public ShengAddressBarStrip ActivePathTextBox { get => (isleft ? LeftPathTextBox : RightPathTextBox); }
 		#endregion
 		// 添加导航按钮控件
-		public ToolStrip LeftNavigationStrip { get; } = new() { Name = "LeftNav", Width=100};
-		public ToolStrip RightNavigationStrip { get; } = new() { Name = "RightNav", Width=100};
+		public ToolStrip LeftNavigationStrip { get; } = new() { Name = "LeftNav", Width = 100 };
+		public ToolStrip RightNavigationStrip { get; } = new() { Name = "RightNav", Width = 100 };
 
 		#region View Controls
 		public TreeView LeftTree { get; } = new() { Name = "LeftTree" };
@@ -48,18 +48,18 @@ namespace zfile
 		#endregion
 
 		#region Preview Controls
-		public TextBox LeftPreview { get; } = new() { Name = "LeftPreview"};
+		public TextBox LeftPreview { get; } = new() { Name = "LeftPreview" };
 		public TextBox RightPreview { get; } = new() { Name = "RightPreview" };
 		#endregion
 
 		#region Status Controls
-		public StatusStrip LeftStatusStrip { get; } = new() { Name = "LeftStatus"};
-		public StatusStrip RightStatusStrip { get; } = new() { Name = "RightStatus"};
+		public StatusStrip LeftStatusStrip { get; } = new() { Name = "LeftStatus" };
+		public StatusStrip RightStatusStrip { get; } = new() { Name = "RightStatus" };
 		#endregion
 
 		#region Bookmark Controls
-		public readonly FlowLayoutPanel leftBookmarkPanel = new() { Name = "LeftBookmark"};
-		public readonly FlowLayoutPanel rightBookmarkPanel = new() { Name = "RightBookmark"};
+		public readonly FlowLayoutPanel leftBookmarkPanel = new() { Name = "LeftBookmark" };
+		public readonly FlowLayoutPanel rightBookmarkPanel = new() { Name = "RightBookmark" };
 		public BookmarkManager BookmarkManager { get; private set; }
 		#endregion
 
@@ -85,10 +85,10 @@ namespace zfile
 		public string targetDir => isleft ? rightDir : leftDir;
 		public string srcDir => isleft ? leftDir : rightDir;
 		public string targetfiles => isleft ? rightfiles : leftfiles;
-		public string srcfiles => isleft ? leftfiles : rightfiles; 
+		public string srcfiles => isleft ? leftfiles : rightfiles;
 
 		public Dictionary<string, string> args = new();
-		public Dictionary<string, string> lastVisitedPaths = new ();
+		public Dictionary<string, string> lastVisitedPaths = new();
 		public Dictionary<string, MenuInfo> usermenuMap = new();
 		public bool isThumbs;
 		private bool disposed = false;
@@ -101,10 +101,10 @@ namespace zfile
 			thumbnailImageListL = new ImageList();
 			thumbnailImageListR = new ImageList();
 			BookmarkManager = new BookmarkManager(form, leftBookmarkPanel, rightBookmarkPanel);
-			
+
 			LeftPathTextBox.SelectionChange += LeftPathTextBox_PathChanged;
 			RightPathTextBox.SelectionChange += RightPathTextBox_PathChanged;
-			
+
 			setArgs();
 		}
 		/*
@@ -155,7 +155,7 @@ namespace zfile
 		%Q 当名称包含空格时，关闭某些参数（如：%P%N）的自动引号。然后用户必须自行放置它们。
 		%UL, %UF 与 %L 和 %F 类似，但列表文件是 UTF-8 格式（带有字节顺序标志 BOM）。
 		%WL, %WF 与 %L 和 %F 类似，但列表文件是 UTF-16 格式（带有字节顺序标志 BOM）。
-		%v 在 “虚拟面板” 等文件系统插件中插入虚拟文件名，其中 %N 粘贴为入口点的真实文件（在文件系统中）的名称
+		%v 在 "虚拟面板" 等文件系统插件中插入虚拟文件名，其中 %N 粘贴为入口点的真实文件（在文件系统中）的名称
 		%V 类似于 %v，但包括完整路径（包括插件名称）
 		%X 将本参数后面的下列参数解释为左/右面板而非来源/目标面板的的参数：
 		  %P、%p （左侧路径）；%T、%t （右侧路径）；%N、%n （左侧文件名）；%M、%m （右侧文件名）；
@@ -237,36 +237,36 @@ namespace zfile
 			{
 				// 移除开头的~
 				subfieldSpec = subfieldSpec.Substring(1);
-				
+
 				// 处理多个~分隔的部分
 				string[] parts = subfieldSpec.Split('~');
 				string result = value;
-				
+
 				foreach (string part in parts)
 				{
 					if (string.IsNullOrEmpty(part))
 						continue;
-					
+
 					// 解析开始位置和长度
 					string[] parameters = part.Split(',');
 					if (parameters.Length < 1)
 						continue;
-					
+
 					// 解析开始位置
 					if (!int.TryParse(parameters[0], out int startPos))
 						continue;
-					
+
 					// 解析长度（如果提供）
 					int length = result.Length - Math.Abs(startPos);
 					if (parameters.Length > 1 && int.TryParse(parameters[1], out int specifiedLength))
 						length = specifiedLength;
-					
+
 					// 处理特殊情况：-0表示不含扩展名的文件名或仅扩展名
 					if (startPos == -0)
 					{
 						// 获取不含扩展名的文件名
 						string fileNameWithoutExt = Path.GetFileNameWithoutExtension(result);
-						
+
 						// 如果长度为负数，则获取扩展名
 						if (length < 0)
 						{
@@ -287,7 +287,7 @@ namespace zfile
 							if (startPos < 0)
 								startPos = 0;
 						}
-						
+
 						if (startPos >= result.Length)
 							result = "";
 						else if (length < 0) // 负长度表示从末尾向前取
@@ -302,12 +302,12 @@ namespace zfile
 						{
 							if (startPos + length > result.Length)
 								length = result.Length - startPos;
-							
+
 							result = result.Substring(startPos, length);
 						}
 					}
 				}
-				
+
 				return result;
 			}
 			catch
@@ -368,13 +368,13 @@ namespace zfile
 			{
 				// 分割路径为目录部分
 				string[] parts = path.TrimEnd('\\').Split('\\');
-				
+
 				// 处理基本目录参数 (%B, %B0..%B9)
 				if (!string.IsNullOrEmpty(basePrefix))
 				{
 					// %B 或 %B0 = 上级文件夹（父目录）
 					args[$"{basePrefix}"] = args[$"{basePrefix}0"] = parts.Length > 1 ? parts[parts.Length - 2] : "";
-					
+
 					// %B1..%B9 = 上两级文件夹及以上
 					for (int i = 1; i <= 9; i++)
 					{
@@ -382,13 +382,13 @@ namespace zfile
 						args[$"{basePrefix}{i}"] = index >= 0 ? parts[index] : "";
 					}
 				}
-				
+
 				// 处理无相对路径的目录参数 (%B-, %B-0..%B-9)
 				if (!string.IsNullOrEmpty(noRelativePrefix))
 				{
 					// %B- 或 %B-0 = 上级文件夹（父目录）
 					args[$"{noRelativePrefix}"] = args[$"{noRelativePrefix}0"] = parts.Length > 1 ? parts[parts.Length - 2] : "";
-					
+
 					// %B-1..%B-9 = 上两级文件夹及以上
 					for (int i = 1; i <= 9; i++)
 					{
@@ -396,7 +396,7 @@ namespace zfile
 						args[$"{noRelativePrefix}{i}"] = index >= 0 ? parts[index] : "";
 					}
 				}
-				
+
 				// 处理从驱动器开始的目录参数 (%B+, %B+0..%B+9)
 				if (!string.IsNullOrEmpty(drivePrefix))
 				{
@@ -405,7 +405,7 @@ namespace zfile
 					{
 						// %B+ = 包含 ":" 符号在内的驱动器符
 						args[$"{drivePrefix}"] = parts[0];
-						
+
 						// %B+0 = 不包含 ":" 符号在内的驱动器符
 						args[$"{drivePrefix}0"] = parts[0].TrimEnd(':');
 					}
@@ -414,7 +414,7 @@ namespace zfile
 						args[$"{drivePrefix}"] = "";
 						args[$"{drivePrefix}0"] = "";
 					}
-					
+
 					// %B+1..%B+9 = 第一个文件夹及以上
 					for (int i = 1; i <= 9; i++)
 					{
@@ -432,14 +432,14 @@ namespace zfile
 					for (int i = 1; i <= 9; i++)
 						args[$"{basePrefix}{i}"] = "";
 				}
-				
+
 				if (!string.IsNullOrEmpty(noRelativePrefix))
 				{
 					args[$"{noRelativePrefix}"] = args[$"{noRelativePrefix}0"] = "";
 					for (int i = 1; i <= 9; i++)
 						args[$"{noRelativePrefix}{i}"] = "";
 				}
-				
+
 				if (!string.IsNullOrEmpty(drivePrefix))
 				{
 					args[$"{drivePrefix}"] = args[$"{drivePrefix}0"] = "";
@@ -457,27 +457,27 @@ namespace zfile
 				// 获取源面板中选中的文件
 				var selectedFiles = isleft ? LeftList.SelectedItems : RightList.SelectedItems;
 				var targetSelectedFiles = !isleft ? LeftList.SelectedItems : RightList.SelectedItems;
-				
+
 				// 如果右侧面板处于活动状态并且选定少于2个文件，则 %C1 和 %C2 参数会逆转
 				bool reverseParams = !isleft && selectedFiles.Count < 2;
-				
+
 				// 处理 %C1..%C9 参数
 				for (int i = 1; i <= 9; i++)
 				{
 					string paramName = $"%C{i}";
 					string shortParamName = $"%c{i}";
-					
+
 					if (i == 1 && reverseParams) // 第一个参数，可能需要逆转
 					{
 						// 使用目标面板的第一个选中文件
-						args[paramName] = targetSelectedFiles.Count > 0 ? 
+						args[paramName] = targetSelectedFiles.Count > 0 ?
 							((ListViewItem)targetSelectedFiles[0]).SubItems[0].Text : "";
 						args[shortParamName] = GetShortFileName(args[paramName]);
 					}
 					else if (i == 2 && reverseParams) // 第二个参数，可能需要逆转
 					{
 						// 使用源面板的第一个选中文件
-						args[paramName] = selectedFiles.Count > 0 ? 
+						args[paramName] = selectedFiles.Count > 0 ?
 							((ListViewItem)selectedFiles[0]).SubItems[0].Text : "";
 						args[shortParamName] = GetShortFileName(args[paramName]);
 					}
@@ -485,7 +485,7 @@ namespace zfile
 					{
 						// 获取源面板中第i个选中的文件
 						int index = i - 1;
-						args[paramName] = index < selectedFiles.Count ? 
+						args[paramName] = index < selectedFiles.Count ?
 							((ListViewItem)selectedFiles[index]).SubItems[0].Text : "";
 						args[shortParamName] = GetShortFileName(args[paramName]);
 					}
@@ -523,11 +523,11 @@ namespace zfile
 					if (!string.IsNullOrEmpty(fileName))
 					{
 						string fullPath = Path.Combine(path, fileName);
-						
+
 						// 如果路径包含空格，添加引号
 						if (fullPath.Contains(" "))
 							fullPath = $"\"{fullPath}\"";
-						
+
 						combinedPaths.Add(fullPath);
 					}
 				}
@@ -718,7 +718,7 @@ namespace zfile
 		{
 			if (sender is not ToolStripButton button) return;
 
-			var isLeft = button.GetCurrentParent() == LeftNavigationStrip;//todo: bugfix:!!
+			var isLeft = button.GetCurrentParent() == LeftNavigationStrip;
 			isleft = isLeft;
 
 			switch (button.Tag?.ToString())
@@ -739,12 +739,73 @@ namespace zfile
 					}
 					break;
 				case "historydir":
+					ShowHistoryMenu(button, isLeft);
 					break;
 				case "frequentdir":
 					break;
 				case "anotherdir":
 					form.NavigateToPath(isleft ? RightPathTextBox.CurrentNode?.UniqueID : LeftPathTextBox.CurrentNode?.UniqueID);
 					break;
+			}
+		}
+
+		private void ShowHistoryMenu(ToolStripButton button, bool isLeft)
+		{
+			var historyMenu = new ContextMenuStrip();
+			var pathHistory = form.GetPathHistory();
+
+			// 第一部分：高频访问的文件夹
+			var frequentPaths = pathHistory
+				.GroupBy(p => p)
+				.Select(g => new { Path = g.Key, Count = g.Count() })
+				.OrderByDescending(x => x.Count)
+				.Take(10); // 显示前10个高频访问的文件夹
+
+			foreach (var item in frequentPaths)
+			{
+				var menuItem = new ToolStripMenuItem(
+					$"{Path.GetFileName(item.Path.TrimEnd('\\'))} ({item.Count}次)")
+				{
+					Tag = item.Path,
+					ToolTipText = item.Path
+				};
+				menuItem.Click += (s, e) => form.NavigateToPath(item.Path);
+				historyMenu.Items.Add(menuItem);
+			}
+
+			// 添加分隔线
+			if (frequentPaths.Any())
+			{
+				historyMenu.Items.Add(new ToolStripSeparator());
+			}
+
+			// 第二部分：最近访问的文件夹
+			var recentPaths = pathHistory
+				.Distinct()
+				.Reverse() // 最新的记录在前面
+				.Take(15); // 显示最近15个访问的文件夹
+
+			foreach (var path in recentPaths)
+			{
+				// 避免重复显示已经在高频列表中的项目
+				if (!frequentPaths.Any(f => f.Path == path))
+				{
+					var menuItem = new ToolStripMenuItem(Path.GetFileName(path.TrimEnd('\\')))
+					{
+						Tag = path,
+						ToolTipText = path
+					};
+					menuItem.Click += (s, e) => form.NavigateToPath(path);
+					historyMenu.Items.Add(menuItem);
+				}
+			}
+
+			// 如果菜单有项目，则显示
+			if (historyMenu.Items.Count > 0)
+			{
+				// 获取按钮在屏幕上的位置
+				var buttonPos = button.Owner.PointToScreen(new Point(button.Bounds.Left, button.Bounds.Bottom));
+				historyMenu.Show(buttonPos);
 			}
 		}
 
@@ -765,14 +826,14 @@ namespace zfile
 				RightDriveComboBox.SelectedIndex = 0;
 			}
 		}
-	
+
 		private void DriveComboBox_SelectedIndexChanged(object? sender, EventArgs e)
 		{
 			if (sender is not ComboBox comboBox) return;
 			isleft = comboBox == LeftDriveComboBox;
 			if (comboBox.SelectedItem is string drivePath)
 			{
-				if (lastVisitedPaths.TryGetValue(drivePath, out var lastPath)) 
+				if (lastVisitedPaths.TryGetValue(drivePath, out var lastPath))
 					form.NavigateToPath(lastPath);
 				else
 					form.LoadDriveIntoTree(form.activeTreeview, drivePath);
@@ -859,11 +920,13 @@ namespace zfile
 			CleanupTreeViewResources();
 
 			// 创建新的ImageList实例
-			LeftTree.ImageList = new ImageList {
+			LeftTree.ImageList = new ImageList
+			{
 				ColorDepth = ColorDepth.Depth32Bit,
 				ImageSize = new Size(16, 16)
 			};
-			RightTree.ImageList = new ImageList {
+			RightTree.ImageList = new ImageList
+			{
 				ColorDepth = ColorDepth.Depth32Bit,
 				ImageSize = new Size(16, 16)
 			};
@@ -1008,7 +1071,8 @@ namespace zfile
 			parent.Controls.Add(listView);
 			listView.BringToFront();
 		}
-		private void UnregisterListViewEvents(ListView listView){
+		private void UnregisterListViewEvents(ListView listView)
+		{
 			listView.ItemDrag -= form.ListView_ItemDrag;
 			listView.DragOver -= form.ListView_DragOver;
 			listView.DragDrop -= form.ListView_DragDrop;
@@ -1232,13 +1296,14 @@ namespace zfile
 					Debug.Print($"执行命令: {cmd} <信息");
 					form.cmdProcessor.ExecCmd(cmd);
 				}
-				else if (item.Tag is MenuInfo mi){
+				else if (item.Tag is MenuInfo mi)
+				{
 					form.cmdProcessor.ExecCmdByMenuInfo(mi);
 					Debug.Print($"执行命令: {mi.Cmd} <信息");
 				}
 			}
 		}
-	
+
 		public void InitializeDynamicToolbar()
 		{
 			var bar = form.configLoader.FindConfigValue("ButtonBar", "Buttonbar");
@@ -1248,7 +1313,7 @@ namespace zfile
 		}
 		public void InitializeDynamicMenu()
 		{
-			
+
 			var menu = form.configLoader.FindConfigValue("Configuration", "Mainmenu");
 			string menuFilePath = Constants.ZfileCfgPath + menu;// "WCMD_CHN.MNU";
 			if (!File.Exists(menuFilePath))
@@ -1307,7 +1372,7 @@ namespace zfile
 								var lineSplit = line.Split(',');
 								var menutxt = lineSplit[0].Trim('"');
 								ToolStripMenuItem menuItem = new ToolStripMenuItem(menutxt);
-								
+
 								var cmdid = lineSplit[1].Trim();
 								if (int.TryParse(cmdid, out var id))
 								{
@@ -1318,13 +1383,13 @@ namespace zfile
 								else
 								{
 									var emd = form.cmdProcessor.GetEmdByName(cmdid);
-									if(emd != null && !menutxt.Equals(string.Empty))
+									if (emd != null && !menutxt.Equals(string.Empty))
 										usermenuMap[menutxt] = emd;
 								}
 								menuItem.Tag = cmdid;
 								menuItem.Click += form.MenuItem_Click;
 								var iconidx = form.cmdicons_configloader.FindConfigValue("mappings", cmdid);
-								if(iconidx != null)
+								if (iconidx != null)
 									menuItem.Image = form.iconManager.LoadIcon($"wcmicon2.dll,{iconidx}");
 								currentPopup.DropDownItems.Add(menuItem);
 							}
@@ -1332,7 +1397,7 @@ namespace zfile
 						else if (!line.Trim().Equals(string.Empty))
 						{
 							//Debug.Print($"user menu: {line}");
-							if(line == "STARTMENU")
+							if (line == "STARTMENU")
 							{
 								string UserMenuName = line;
 								if (!line.Contains("menu", StringComparison.OrdinalIgnoreCase))
@@ -1348,13 +1413,13 @@ namespace zfile
 									foreach (var i in usermenu.Items)
 										str.Add(i.Key + "=" + i.Value);
 									var ms = Helper.GetMenuInfoFromList(str.ToArray());
-									foreach(var m in ms)
+									foreach (var m in ms)
 									{
 										if (m.Menu.Equals("-"))
 											userpop.DropDownItems.Add(new ToolStripSeparator());
 										else
 										{
-											if (m.Menu.StartsWith("-") && !m.Menu.StartsWith("--")) 
+											if (m.Menu.StartsWith("-") && !m.Menu.StartsWith("--"))
 											{
 												// 处理子菜单起始项
 												var submenu = new ToolStripMenuItem(m.Menu.Substring(1));
@@ -1363,7 +1428,7 @@ namespace zfile
 												userpop.DropDownItems.Add(submenu);
 												currentPopup = submenu;
 											}
-											else if (m.Menu.Equals("--")) 
+											else if (m.Menu.Equals("--"))
 											{
 												// 处理子菜单结束项
 												currentPopup = userpop;
@@ -1446,7 +1511,7 @@ namespace zfile
 					UnregisterTreeViewEvents(RightTree);
 					UnregisterListViewEvents(LeftList);
 					UnregisterListViewEvents(RightList);
-					
+
 					// 释放所有 TreeView 节点中的 ShellItem
 					ReleaseTreeNodes(LeftTree.Nodes);
 					ReleaseTreeNodes(RightTree.Nodes);
@@ -1471,7 +1536,7 @@ namespace zfile
 					toolbarManager?.Dispose();
 					vtoolbarManager?.Dispose();
 					dynamicMenuStrip?.Dispose();
-					BookmarkManager?.Dispose(); 
+					BookmarkManager?.Dispose();
 				}
 
 				// 释放非托管资源

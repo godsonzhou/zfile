@@ -66,6 +66,10 @@ namespace zfile
 		private bool shiftKeyPressed, altKeyPressed, ctrlKeyPressed, winKeyPressed;
 		public IDictionary env;
 		public Dictionary<string, string> specialpaths = new();
+		// 添加一个新的字段来存储路径访问历史
+		private readonly Dictionary<string, (int count, DateTime lastAccess)> pathAccessHistory = new();
+		private const int MAX_HISTORY_COUNT = 100; // 限制历史记录数量
+
 		public IEnumerable<string> GetRecycleBinFilenames()
 		{
 			Shell shell = new Shell();
@@ -100,7 +104,7 @@ namespace zfile
 			full = 3
 		}
 		// 导航到指定路径
-		public void NavigateToPath(string path, bool recordHistory = true, TreeSearchScope scope = TreeSearchScope.thispc , bool isactive = true)
+		public void NavigateToPath(string path, bool recordHistory = true, TreeSearchScope scope = TreeSearchScope.thispc, bool isactive = true)
 		{
 			Debug.Print($"start to navigate to path {path}");
 			//scope : thispc, desktop, full
@@ -115,7 +119,7 @@ namespace zfile
 				TreeSearchScope.desktop => isactive ? activeRoot.Nodes : unactiveRoot.Nodes,
 				TreeSearchScope.ftproot => isactive ? activeFtpRoot.Nodes : unactiveFtpRoot.Nodes
 			};
-			
+
 			var node = FindTreeNode(searchtarget, path);
 			if (node != null)
 			{
@@ -143,60 +147,75 @@ namespace zfile
 				}
 			}
 			// 更新最后访问路径
-			if(isactive)
+			if (isactive)
 				uiManager.UpdateLastVisitedPath(path);
+
+			// 更新路径访问历史
+			if (recordHistory && Directory.Exists(path))
+			{
+				string normalizedPath = Path.GetFullPath(path).TrimEnd('\\');
+				if (pathAccessHistory.ContainsKey(normalizedPath))
+				{
+					var (count, _) = pathAccessHistory[normalizedPath];
+					pathAccessHistory[normalizedPath] = (count + 1, DateTime.Now);
+				}
+				else
+				{
+					pathAccessHistory[normalizedPath] = (1, DateTime.Now);
+				}
+			}
 		}
 
 		public Form1()
 		{
 			env = Helper.getEnv();
 			specialpaths = Helper.GetSpecFolderPaths();
-			configLoader = new CFGLOADER(Constants.ZfileCfgPath+"wincmd.ini");
+			configLoader = new CFGLOADER(Constants.ZfileCfgPath + "wincmd.ini");
 			ftpconfigLoader = new CFGLOADER(Constants.ZfileCfgPath + "wcx_ftp.ini");
 			cmdicons_configloader = new CFGLOADER(Constants.ZfileCfgPath + "wcmicons.inc");
 			userConfigLoader = new CFGLOADER(Constants.ZfileCfgPath + "user.ini");
 			fTPMGR = new FTPMGR(this);
-		    cmdProcessor = new CmdProc(this);
+			cmdProcessor = new CmdProc(this);
 			lLM_Helper = new LLM_Helper(this);
 			iconManager = new IconManager(this);
 			InitializeComponent();
-		    this.Size = new Size(1920, 1080);
+			this.Size = new Size(1920, 1080);
 
-		    // 初始化COM组件
-		    InitializeCOMComponents();
-		    keyManager = new KeyMgr();
-		    
-		    // 创建UIManager并初始化
-		    uiManager = new UIControlManager(this);
-		    uiManager.InitializeUI();
-		    
-		    // 创建默认书签
-		    uiManager.BookmarkManager.CreateDefaultBookmarks();
+			// 初始化COM组件
+			InitializeCOMComponents();
+			keyManager = new KeyMgr();
+
+			// 创建UIManager并初始化
+			uiManager = new UIControlManager(this);
+			uiManager.InitializeUI();
+
+			// 创建默认书签
+			uiManager.BookmarkManager.CreateDefaultBookmarks();
 
 			// 设置活动视图
 			//isleft = true;
-            thumbnailManager.RegisterProvider(ThumbnailGenerator.GetThumbnail);
-    
-            // 其他初始化
-            InitializeFileSystemWatcher();
-            InitializeHotkeys();
+			thumbnailManager.RegisterProvider(ThumbnailGenerator.GetThumbnail);
 
-            // 初始化主题管理器
-            themeManager = new ThemeManager(
-                this,
-                uiManager.toolbarManager.DynamicToolStrip,
+			// 其他初始化
+			InitializeFileSystemWatcher();
+			InitializeHotkeys();
+
+			// 初始化主题管理器
+			themeManager = new ThemeManager(
+				this,
+				uiManager.toolbarManager.DynamicToolStrip,
 				uiManager.vtoolbarManager.DynamicToolStrip,
 				uiManager.dynamicMenuStrip,
-                uiManager.LeftTree,
-                uiManager.RightTree,
-                uiManager.LeftList,
-                uiManager.RightList,
-                uiManager.LeftPreview,
-                uiManager.RightPreview,
-                uiManager.LeftStatusStrip,
-                uiManager.RightStatusStrip
-            );
-            specFolderPaths = Helper.GetSpecFolderPaths();
+				uiManager.LeftTree,
+				uiManager.RightTree,
+				uiManager.LeftList,
+				uiManager.RightList,
+				uiManager.LeftPreview,
+				uiManager.RightPreview,
+				uiManager.LeftStatusStrip,
+				uiManager.RightStatusStrip
+			);
+			specFolderPaths = Helper.GetSpecFolderPaths();
 			WdxModuleList wdxModuleList = new WdxModuleList("");
 			WfxModuleList wfxModuleList = new WfxModuleList("");
 			wcxModuleList = new WcxModuleList();
@@ -208,53 +227,53 @@ namespace zfile
 
 			se = new ShellExecuteHelper(this);
 		}
-         private void InitializeCOMComponents()
-        {
-            // 初始化COM组件
-            IntPtr deskTopPtr;
-            w32.InitializeCOM();
-            iDeskTop = w32.GetDesktopFolder(out deskTopPtr);
-            if (iDeskTop == null)
-                throw new Exception("无法初始化桌面Shell接口");
+		private void InitializeCOMComponents()
+		{
+			// 初始化COM组件
+			IntPtr deskTopPtr;
+			w32.InitializeCOM();
+			iDeskTop = w32.GetDesktopFolder(out deskTopPtr);
+			if (iDeskTop == null)
+				throw new Exception("无法初始化桌面Shell接口");
 			iCtrlPanel = w32.GetControlPanelFolder();
 		}
 
 		protected override void Dispose(bool disposing)
 		{
-		    if (disposing)
-		    {   
-		        // 释放其他资源
-		        watcher.Dispose();
-		        previewManager.Dispose();
-		        thumbnailManager.Dispose();
+			if (disposing)
+			{
+				// 释放其他资源
+				watcher.Dispose();
+				previewManager.Dispose();
+				thumbnailManager.Dispose();
 				iconManager.Dispose();
-		        uiManager.Dispose();
-		        themeManager.Dispose();
-		        contextMenuStrip.Dispose();
+				uiManager.Dispose();
+				themeManager.Dispose();
+				contextMenuStrip.Dispose();
 
-                // 释放打开的压缩文件句柄
+				// 释放打开的压缩文件句柄
 				foreach (var archive in openArchives)
 					CloseArchive(archive.Key);
 				openArchives.Clear();
 				archivePaths.Clear();
 
 				unInitializeHotkeys();
-                // 释放托管资源
-                if (components != null)
-                    components.Dispose();
-                
-                if (iDeskTop != null)
-                {
-                    Marshal.ReleaseComObject(iDeskTop);
-                    iDeskTop = null;
-                }
+				// 释放托管资源
+				if (components != null)
+					components.Dispose();
+
+				if (iDeskTop != null)
+				{
+					Marshal.ReleaseComObject(iDeskTop);
+					iDeskTop = null;
+				}
 				if (iCtrlPanel != null)
 				{
 					Marshal.ReleaseComObject(iCtrlPanel);
 					iCtrlPanel = null;
 				}
-                
-                w32.UninitializeCOM();
+
+				w32.UninitializeCOM();
 			}
 			base.Dispose(disposing);
 		}
@@ -264,29 +283,29 @@ namespace zfile
 			this.KeyUp -= Form1_KeyUp;
 		}
 		private void InitializeHotkeys()
-        {
-            hotkeyMappings = new Dictionary<Keys, string>
-            {
+		{
+			hotkeyMappings = new Dictionary<Keys, string>
+			{
 				{ Keys.F2, "cm_RenameOnly" },
 				{ Keys.F3, "cm_List" },
-                { Keys.F4, "cm_Edit" },
-                { Keys.F5, "cm_Copy" },
-                { Keys.F6, "cm_renmov" },
-                { Keys.F7, "cm_mkdir" },
-                { Keys.F8, "cm_Delete" },
+				{ Keys.F4, "cm_Edit" },
+				{ Keys.F5, "cm_Copy" },
+				{ Keys.F6, "cm_renmov" },
+				{ Keys.F7, "cm_mkdir" },
+				{ Keys.F8, "cm_Delete" },
 				{ Keys.Delete, "cm_Delete" },
 				{ Keys.F9, "cm_ExecuteDOS" },
 				{ Keys.Escape, "cm_ClearAll"},
-                { Keys.Alt | Keys.X, "cm_Exit" }
-            };
+				{ Keys.Alt | Keys.X, "cm_Exit" }
+			};
 
-            this.KeyPreview = true;
-            this.KeyDown += new KeyEventHandler(Form1_KeyDown);
+			this.KeyPreview = true;
+			this.KeyDown += new KeyEventHandler(Form1_KeyDown);
 			this.KeyUp += new KeyEventHandler(Form1_KeyUp);
-        }
+		}
 		private void Form1_KeyUp(object sender, KeyEventArgs e)
 		{
-			if(e.Shift)	
+			if (e.Shift)
 				shiftKeyPressed = false;
 			if (e.Alt)
 				altKeyPressed = false;
@@ -295,17 +314,17 @@ namespace zfile
 			if (e.KeyCode == Keys.LWin || e.KeyCode == Keys.RWin)
 				winKeyPressed = false;
 		}
-        private void Form1_KeyDown(object sender, KeyEventArgs e)
-        {
-			if(e.Shift) 
+		private void Form1_KeyDown(object sender, KeyEventArgs e)
+		{
+			if (e.Shift)
 				shiftKeyPressed = true;
-			if (e.Alt) 
+			if (e.Alt)
 				altKeyPressed = true;
-			if(e.Control) 
+			if (e.Control)
 				ctrlKeyPressed = true;
-			if(e.KeyCode == Keys.LWin || e.KeyCode == Keys.RWin)
+			if (e.KeyCode == Keys.LWin || e.KeyCode == Keys.RWin)
 				winKeyPressed = true;
-			
+
 			var specKey = (winKeyPressed ? "#" : "") + (altKeyPressed ? "A" : "") + (ctrlKeyPressed ? "C" : "") + (shiftKeyPressed ? "S" : "");
 			var mainKey = Helper.ConvertKeyToString(e.KeyCode);
 			if (mainKey.Equals(string.Empty))
@@ -314,30 +333,30 @@ namespace zfile
 				return;
 			}
 			var cmd = keyManager.GetCmdByKey(specKey.Length != 0 ? $"{specKey}+{mainKey}" : mainKey);
-			if(!cmd.Equals(string.Empty))
+			if (!cmd.Equals(string.Empty))
 				cmdProcessor.ExecCmd(cmd);
 			else if (hotkeyMappings.TryGetValue(e.KeyData, out string cmdName))
 				cmdProcessor.ExecCmd(cmdName);
 			e.Handled = true;
 		}
-        public void ListView_ItemDrag(object? sender, ItemDragEventArgs e)
-        {
-            var listView = sender as ListView;
-            if (listView?.SelectedItems.Count == 0) return;
+		public void ListView_ItemDrag(object? sender, ItemDragEventArgs e)
+		{
+			var listView = sender as ListView;
+			if (listView?.SelectedItems.Count == 0) return;
 
-            // 收集拖拽项路径
-            draggedItems = listView.SelectedItems
-                .Cast<ListViewItem>()
-                .Select(item => GetListItemPath(item))
-                .ToArray();
-            // 启动拖拽操作
-            listView.DoDragDrop(new DataObject(DataFormats.FileDrop, draggedItems), DragDropEffects.Copy);
-        }
+			// 收集拖拽项路径
+			draggedItems = listView.SelectedItems
+				.Cast<ListViewItem>()
+				.Select(item => GetListItemPath(item))
+				.ToArray();
+			// 启动拖拽操作
+			listView.DoDragDrop(new DataObject(DataFormats.FileDrop, draggedItems), DragDropEffects.Copy);
+		}
 
-        private string GetTreeNodePath(TreeNode node)
-        {
-            return Helper.getFSpathbyTree(node);
-        }
+		private string GetTreeNodePath(TreeNode node)
+		{
+			return Helper.getFSpathbyTree(node);
+		}
 		private bool IsValidTarget(TreeView treeView, DragEventArgs e, out string targetPath)
 		{
 			targetPath = string.Empty;
@@ -346,46 +365,46 @@ namespace zfile
 			var clientPoint = treeView.PointToClient(new Point(e.X, e.Y));
 			// 使用 GetNodeAt 获取目标节点
 			var targetNode = treeView.GetNodeAt(clientPoint);
-			if (targetNode == null) {  return false; }
+			if (targetNode == null) { return false; }
 			targetPath = GetTreeNodePath(targetNode);
 			return FileSystemManager.IsValidFileSystemPath(targetPath);
 		}
-        public void TreeView_DragOver(object? sender, DragEventArgs e)
-        {
-            // 检查目标是否为有效文件系统路径
-            var treeView = sender as TreeView;
-            treeView?.Update();
-            e.Effect = IsValidTarget(treeView, e, out _) ? DragDropEffects.Copy : DragDropEffects.None;
-            return;
-        }
-        public void TreeView_DragDrop(object? sender, DragEventArgs e)
-        {
-            var treeView = sender as TreeView;     
+		public void TreeView_DragOver(object? sender, DragEventArgs e)
+		{
+			// 检查目标是否为有效文件系统路径
+			var treeView = sender as TreeView;
+			treeView?.Update();
+			e.Effect = IsValidTarget(treeView, e, out _) ? DragDropEffects.Copy : DragDropEffects.None;
+			return;
+		}
+		public void TreeView_DragDrop(object? sender, DragEventArgs e)
+		{
+			var treeView = sender as TreeView;
 			if (treeView == null) { return; }
-            //if (!e.Data.GetDataPresent(DataFormats.FileDrop))
-            //{
-            //    draggedItems = e.Data.GetData(DataFormats.FileDrop) as string[];
-            //}
-            if (draggedItems == null || !IsValidTarget(treeView, e, out string targetPath)) return;
-            // 复制文件/目录到目标路径
-            foreach (var sourcePath in draggedItems)
-            {
-                try
-                {
-                    var destPath = Path.Combine(targetPath, Path.GetFileName(sourcePath));
-                    if (Directory.Exists(sourcePath))
-                        FileSystemManager.CopyDirectory(sourcePath, destPath);
-                    else
-                        File.Copy(sourcePath, destPath, true);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"复制失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-            // 刷新目标视图
+			//if (!e.Data.GetDataPresent(DataFormats.FileDrop))
+			//{
+			//    draggedItems = e.Data.GetData(DataFormats.FileDrop) as string[];
+			//}
+			if (draggedItems == null || !IsValidTarget(treeView, e, out string targetPath)) return;
+			// 复制文件/目录到目标路径
+			foreach (var sourcePath in draggedItems)
+			{
+				try
+				{
+					var destPath = Path.Combine(targetPath, Path.GetFileName(sourcePath));
+					if (Directory.Exists(sourcePath))
+						FileSystemManager.CopyDirectory(sourcePath, destPath);
+					else
+						File.Copy(sourcePath, destPath, true);
+				}
+				catch (Exception ex)
+				{
+					MessageBox.Show($"复制失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			}
+			// 刷新目标视图
 			RefreshPanel(treeView);
-        }
+		}
 		public void ListView_DragOver(object? sender, DragEventArgs e)
 		{
 			// 检查目标是否为有效文件系统路径
@@ -410,46 +429,46 @@ namespace zfile
 			return FileSystemManager.IsValidFileSystemPath(targetPath);
 		}
 		public void ListView_DragDrop(object? sender, DragEventArgs e)
-        {
+		{
 			if (draggedItems == null) return;
 			var listView = sender as ListView;
 			if (!IsValidTarget(listView, e, out string targetPath)) return;
-			
+
 			// 复制文件/目录到目标路径
 			foreach (var sourcePath in draggedItems)
 				FileSystemManager.CopyFilesAndDirectories(sourcePath, targetPath);
 
-            // 刷新目标视图
-            listView.Refresh();
+			// 刷新目标视图
+			listView.Refresh();
 			RefreshPanel(listView);
-        }
-        public void AddCurrentPathToBookmarks()
-        {
+		}
+		public void AddCurrentPathToBookmarks()
+		{
 			//if (string.IsNullOrEmpty(currentDirectory[isleft])) return;
 			var node = activeTreeview.SelectedNode;
-			if(node == null) return;
+			if (node == null) return;
 			uiManager.BookmarkManager.AddBookmark(node, isleft);
-        }
+		}
 
-        public void OpenOptions()
-        {
-            // 打开Options窗口
-            OptionsForm optionsForm = new OptionsForm(this);
-            if (optionsForm.ShowDialog() == DialogResult.OK)
-            {
-                // 更新热键映射
-                //hotkeyMappings = optionsForm.commandHotkeys.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
-            }
-        }
-        private void InitializeContextMenu()
-        {
-            // 初始化ContextMenuStrip
-            contextMenuStrip.Opening += ContextMenuStrip_Opening;
-        }
-        public void ContextMenuStrip_Opening(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            // 在这里可以添加自定义的菜单项
-        }
+		public void OpenOptions()
+		{
+			// 打开Options窗口
+			OptionsForm optionsForm = new OptionsForm(this);
+			if (optionsForm.ShowDialog() == DialogResult.OK)
+			{
+				// 更新热键映射
+				//hotkeyMappings = optionsForm.commandHotkeys.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
+			}
+		}
+		private void InitializeContextMenu()
+		{
+			// 初始化ContextMenuStrip
+			contextMenuStrip.Opening += ContextMenuStrip_Opening;
+		}
+		public void ContextMenuStrip_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+		{
+			// 在这里可以添加自定义的菜单项
+		}
 		private void 加载文件ToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			FolderBrowserDialog dlg = new FolderBrowserDialog();
@@ -481,84 +500,84 @@ namespace zfile
 		}
 
 		public interface IActiveListViewChangeable
-        {
-            void ActiveListViewChange(View view);
-        }
-        public void TreeView_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Right)
-            {
-                TreeView Tree1 = sender as TreeView;
-                rightClickBegin = Tree1.GetNodeAt(e.X, e.Y);
+		{
+			void ActiveListViewChange(View view);
+		}
+		public void TreeView_MouseDown(object sender, MouseEventArgs e)
+		{
+			if (e.Button == MouseButtons.Right)
+			{
+				TreeView Tree1 = sender as TreeView;
+				rightClickBegin = Tree1.GetNodeAt(e.X, e.Y);
 				if (Tree1.SelectedNode != rightClickBegin)
 					Tree1.SelectedNode = rightClickBegin;
-            }
-        }
+			}
+		}
 
-        public void TreeView_MouseUp(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Right)
-            {
-                TreeView treeView = sender as TreeView;
-                TreeNode node = treeView.GetNodeAt(e.X, e.Y);
-                if (node != null && node == rightClickBegin)
-                {
-                    treeView.SelectedNode = node;
-                    ShowContextMenuOnTreeview(node, e.Location);
-                }
-            }
-        }
+		public void TreeView_MouseUp(object sender, MouseEventArgs e)
+		{
+			if (e.Button == MouseButtons.Right)
+			{
+				TreeView treeView = sender as TreeView;
+				TreeNode node = treeView.GetNodeAt(e.X, e.Y);
+				if (node != null && node == rightClickBegin)
+				{
+					treeView.SelectedNode = node;
+					ShowContextMenuOnTreeview(node, e.Location);
+				}
+			}
+		}
 
-        private void ShowCtxMenuOnListview(string path, Point location)
-        {
-            // 先获取路径的父目录
-            if (!File.Exists(path) && !Directory.Exists(path))
-            {
-                MessageBox.Show("文件或目录不存在: " + path);
-                return;
-            }
-            //HandleRegistryContextMenuItems(path);
-            var parentFolder = iDeskTop;
-            IntPtr pidl;
-            var strpath = string.Empty;
-            if (Directory.Exists(path))
-            {
-                // 如果是文件夹,直接获取其 PIDL
-                pidl = API.ILCreateFromPath(path);
-                strpath = path;
-            }
-            else
-            {
-                // 如果是文件,先获取其父文件夹
-                var parentPath = Path.GetDirectoryName(path);
-                var fileName = Path.GetFileName(path);
-                parentFolder = w32.GetParentFolder(parentPath);
-                w32.GetShellFolder(parentFolder, fileName, out pidl, false);
-                strpath = parentPath;
-            }
+		private void ShowCtxMenuOnListview(string path, Point location)
+		{
+			// 先获取路径的父目录
+			if (!File.Exists(path) && !Directory.Exists(path))
+			{
+				MessageBox.Show("文件或目录不存在: " + path);
+				return;
+			}
+			//HandleRegistryContextMenuItems(path);
+			var parentFolder = iDeskTop;
+			IntPtr pidl;
+			var strpath = string.Empty;
+			if (Directory.Exists(path))
+			{
+				// 如果是文件夹,直接获取其 PIDL
+				pidl = API.ILCreateFromPath(path);
+				strpath = path;
+			}
+			else
+			{
+				// 如果是文件,先获取其父文件夹
+				var parentPath = Path.GetDirectoryName(path);
+				var fileName = Path.GetFileName(path);
+				parentFolder = w32.GetParentFolder(parentPath);
+				w32.GetShellFolder(parentFolder, fileName, out pidl, false);
+				strpath = parentPath;
+			}
 
-            if (pidl == IntPtr.Zero)
-            {
-                MessageBox.Show("无法获取文件 PIDL");
-                return;
-            }
+			if (pidl == IntPtr.Zero)
+			{
+				MessageBox.Show("无法获取文件 PIDL");
+				return;
+			}
 
-            // 存放 PIDL 的数组
-            IntPtr[] pidls = new IntPtr[1];
-            pidls[0] = pidl;
+			// 存放 PIDL 的数组
+			IntPtr[] pidls = new IntPtr[1];
+			pidls[0] = pidl;
 
-            try
-            {
-                // 得到 IContextMenu 接口
-                IntPtr iContextMenuPtr = IntPtr.Zero;
-                iContextMenuPtr = parentFolder.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length, pidls, ref Guids.IID_IContextMenu, out iContextMenuPtr);
-                if (iContextMenuPtr == IntPtr.Zero)
-                {
-                    MessageBox.Show("无法获取上下文菜单接口");
-                    return;
-                }
+			try
+			{
+				// 得到 IContextMenu 接口
+				IntPtr iContextMenuPtr = IntPtr.Zero;
+				iContextMenuPtr = parentFolder.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length, pidls, ref Guids.IID_IContextMenu, out iContextMenuPtr);
+				if (iContextMenuPtr == IntPtr.Zero)
+				{
+					MessageBox.Show("无法获取上下文菜单接口");
+					return;
+				}
 
-                IContextMenu iContextMenu = (IContextMenu)Marshal.GetObjectForIUnknown(iContextMenuPtr);
+				IContextMenu iContextMenu = (IContextMenu)Marshal.GetObjectForIUnknown(iContextMenuPtr);
 				try
 				{
 					// 提供一个弹出式菜单的句柄
@@ -581,71 +600,71 @@ namespace zfile
 					if (iContextMenuPtr != IntPtr.Zero)
 						Marshal.Release(iContextMenuPtr);
 				}
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"执行命令时出错: {ex.Message}", "错误");
-            }
-            finally
-            {
-                if (pidl != IntPtr.Zero)
-                    API.ILFree(pidl);
-            }
-        }
-        private void HandleRegistryContextMenuItems(string path)
-        {
-            string[] registryPaths = new[]
-            {
-                @"*\shellex\ContextMenuHandlers",
-                @"Directory\shell\",
-                @"Directory\shellex\ContextMenuHandlers",
-                @"Folder\shell",
-                @"Folder\shellex\ContextMenuHandlers"
-            };
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"执行命令时出错: {ex.Message}", "错误");
+			}
+			finally
+			{
+				if (pidl != IntPtr.Zero)
+					API.ILFree(pidl);
+			}
+		}
+		private void HandleRegistryContextMenuItems(string path)
+		{
+			string[] registryPaths = new[]
+			{
+				@"*\shellex\ContextMenuHandlers",
+				@"Directory\shell\",
+				@"Directory\shellex\ContextMenuHandlers",
+				@"Folder\shell",
+				@"Folder\shellex\ContextMenuHandlers"
+			};
 
-            foreach (string registryPath in registryPaths)
-            {
-                Guid? guid = ContextMenuHandler.GetContextMenuHandlerGuid(registryPath);
-                if (guid.HasValue)
-                {
-                    object? comObject = ContextMenuHandler.CreateComObject(guid.Value);
-                    if (comObject != null)
-                    {
-                        ContextMenuHandler.InvokeComMethod(comObject, "InvokeCommand", path);
-                    }
-                }
-            }
-        }
+			foreach (string registryPath in registryPaths)
+			{
+				Guid? guid = ContextMenuHandler.GetContextMenuHandlerGuid(registryPath);
+				if (guid.HasValue)
+				{
+					object? comObject = ContextMenuHandler.CreateComObject(guid.Value);
+					if (comObject != null)
+					{
+						ContextMenuHandler.InvokeComMethod(comObject, "InvokeCommand", path);
+					}
+				}
+			}
+		}
 
-        private void ShowContextMenuOnTreeview(TreeNode node, Point location)
-        {
-			if(node.Tag is not ShellItem)
+		private void ShowContextMenuOnTreeview(TreeNode node, Point location)
+		{
+			if (node.Tag is not ShellItem)
 			{
 				//ftp node process
 				return;
 			}
 			//获得当前节点的 PIDL
 			ShellItem sItem = (ShellItem)node.Tag;
-            IntPtr PIDL = sItem.PIDL;
+			IntPtr PIDL = sItem.PIDL;
 
-            //获得父节点的 IShellFolder 接口
-            IShellFolder IParent = iDeskTop;
-            if (node.Parent != null)
-                IParent = ((ShellItem)node.Parent.Tag).ShellFolder;
-            else
-            {
-                //桌面的真实路径的 PIDL
-                string path = w32.GetSpecialFolderPath(this.Handle, ShellSpecialFolders.DESKTOPDIRECTORY);
-                w32.GetShellFolder(iDeskTop, path, out PIDL);
-            }
+			//获得父节点的 IShellFolder 接口
+			IShellFolder IParent = iDeskTop;
+			if (node.Parent != null)
+				IParent = ((ShellItem)node.Parent.Tag).ShellFolder;
+			else
+			{
+				//桌面的真实路径的 PIDL
+				string path = w32.GetSpecialFolderPath(this.Handle, ShellSpecialFolders.DESKTOPDIRECTORY);
+				w32.GetShellFolder(iDeskTop, path, out PIDL);
+			}
 
-            //存放 PIDL 的数组
-            IntPtr[] pidls = [PIDL];
+			//存放 PIDL 的数组
+			IntPtr[] pidls = [PIDL];
 
 			//得到 IContextMenu 接口
 			IntPtr iContextMenuPtr = IntPtr.Zero;
-            iContextMenuPtr = IParent.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length, pidls, ref Guids.IID_IContextMenu, out iContextMenuPtr);
-            IContextMenu iContextMenu = (IContextMenu)Marshal.GetObjectForIUnknown(iContextMenuPtr);
+			iContextMenuPtr = IParent.GetUIObjectOf(IntPtr.Zero, (uint)pidls.Length, pidls, ref Guids.IID_IContextMenu, out iContextMenuPtr);
+			IContextMenu iContextMenu = (IContextMenu)Marshal.GetObjectForIUnknown(iContextMenuPtr);
 			try
 			{
 				//提供一个弹出式菜单的句柄
@@ -668,108 +687,108 @@ namespace zfile
 				if (iContextMenuPtr != IntPtr.Zero)
 					Marshal.Release(iContextMenuPtr);
 			}
-        }
+		}
 
-        public void myShellExe(string path = "c:\\windows\\system32")
-        {
-            API.ShellExecute(IntPtr.Zero, "open", path, "", path, (int)SW.SHOWNORMAL);
-            //Window wnd = Window.GetWindow(this); //获取当前窗口
-            //var wih = new WindowInteropHelper(wnd); //该类支持获取hWnd
-            //IntPtr hWnd = wih.Handle;    //获取窗口句柄
-            //var result = ShellExecute(hWnd, "open", "需要打开的路径如C:\\Users\\Desktop\\xx.exe", null, null, (int)ShowWindowCommands.SW_SHOW);
-        }
-        public void TreeView_DrawNode(object? sender, DrawTreeNodeEventArgs e)
-        {
-            if (e.Node == null) return;
+		public void myShellExe(string path = "c:\\windows\\system32")
+		{
+			API.ShellExecute(IntPtr.Zero, "open", path, "", path, (int)SW.SHOWNORMAL);
+			//Window wnd = Window.GetWindow(this); //获取当前窗口
+			//var wih = new WindowInteropHelper(wnd); //该类支持获取hWnd
+			//IntPtr hWnd = wih.Handle;    //获取窗口句柄
+			//var result = ShellExecute(hWnd, "open", "需要打开的路径如C:\\Users\\Desktop\\xx.exe", null, null, (int)ShowWindowCommands.SW_SHOW);
+		}
+		public void TreeView_DrawNode(object? sender, DrawTreeNodeEventArgs e)
+		{
+			if (e.Node == null) return;
 
-            // 获取节点的绘制区域
-            Rectangle bounds = e.Bounds;
+			// 获取节点的绘制区域
+			Rectangle bounds = e.Bounds;
 
-            // 使用节点的背景色和前景色
-            Color backColor = e.Node.BackColor;
-            Color foreColor = e.Node.ForeColor;
+			// 使用节点的背景色和前景色
+			Color backColor = e.Node.BackColor;
+			Color foreColor = e.Node.ForeColor;
 
-            if ((e.State & TreeNodeStates.Selected) != 0 && backColor == SystemColors.Window)
-            {
-                backColor = SystemColors.Highlight;
-                foreColor = SystemColors.HighlightText;
-            }
+			if ((e.State & TreeNodeStates.Selected) != 0 && backColor == SystemColors.Window)
+			{
+				backColor = SystemColors.Highlight;
+				foreColor = SystemColors.HighlightText;
+			}
 
-            // 绘制节点背景
-            using (SolidBrush backgroundBrush = new(backColor))
-            {
-                e.Graphics.FillRectangle(backgroundBrush, bounds);
-            }
+			// 绘制节点背景
+			using (SolidBrush backgroundBrush = new(backColor))
+			{
+				e.Graphics.FillRectangle(backgroundBrush, bounds);
+			}
 
-            // 计算文本的垂直居中位置，并向下偏移2像素
-            int textY = bounds.Y + (bounds.Height - e.Node.TreeView.ItemHeight) / 2 + 2;
+			// 计算文本的垂直居中位置，并向下偏移2像素
+			int textY = bounds.Y + (bounds.Height - e.Node.TreeView.ItemHeight) / 2 + 2;
 
-            // 绘制节点文本
-            TextRenderer.DrawText(
-                e.Graphics,
-                e.Node.Text,
-                e.Node.TreeView.Font,
-                new Point(bounds.X + 2, textY),
-                foreColor,
-                TextFormatFlags.GlyphOverhangPadding | TextFormatFlags.SingleLine
-            );
+			// 绘制节点文本
+			TextRenderer.DrawText(
+				e.Graphics,
+				e.Node.Text,
+				e.Node.TreeView.Font,
+				new Point(bounds.X + 2, textY),
+				foreColor,
+				TextFormatFlags.GlyphOverhangPadding | TextFormatFlags.SingleLine
+			);
 
-            // 如果节点处于焦点状态，绘制焦点矩形
-            if ((e.State & TreeNodeStates.Focused) != 0)
-            {
-                ControlPaint.DrawFocusRectangle(e.Graphics, bounds);
-            }
+			// 如果节点处于焦点状态，绘制焦点矩形
+			if ((e.State & TreeNodeStates.Focused) != 0)
+			{
+				ControlPaint.DrawFocusRectangle(e.Graphics, bounds);
+			}
 
-            e.DrawDefault = false;
-        }
+			e.DrawDefault = false;
+		}
 
-        public void TreeView_NodeMouseClick(object? sender, TreeNodeMouseClickEventArgs e)
-        {
+		public void TreeView_NodeMouseClick(object? sender, TreeNodeMouseClickEventArgs e)
+		{
 			if (e.Node?.Tag == null) return;
-            //try
-            {
-                string path = e.Node.Text ?? string.Empty;
-                if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
-                {
+			//try
+			{
+				string path = e.Node.Text ?? string.Empty;
+				if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
+				{
 					//Debug.Print("TreeView_NodeMouseClick：{0}", path);
 					// 如果path是文件夹，则加载子目录
 					var treeView = sender as TreeView;
-                    var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
+					var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
 					currentDirectory[isleft] = path;
-                    selectedNode = e.Node;
-                    // 更新监视器
-                    watcher.Path = path;
-                    watcher.EnableRaisingEvents = true;
-                }
-            }
-            //catch (Exception ex)
-            //{
-            //    MessageBox.Show($"TreeView_NodeMouseClick加载目录失败: {ex.Message}", "错误");
-            //}
-        }
-        public void TreeView_BeforeExpand(object sender, TreeViewCancelEventArgs e)
-        {
+					selectedNode = e.Node;
+					// 更新监视器
+					watcher.Path = path;
+					watcher.EnableRaisingEvents = true;
+				}
+			}
+			//catch (Exception ex)
+			//{
+			//    MessageBox.Show($"TreeView_NodeMouseClick加载目录失败: {ex.Message}", "错误");
+			//}
+		}
+		public void TreeView_BeforeExpand(object sender, TreeViewCancelEventArgs e)
+		{
 			if (e.Node.Nodes.Count == 1 && e.Node.FirstNode.Text == "...")
 			{
 				LoadSubDirectories(e.Node);
 			}
-        }
+		}
 		private bool ftpNodeSelect(TreeNode eNode)
 		{
 			// 检查是否是FTP节点
 			if (eNode.Tag is FtpNodeTag ftpTag)
 			{
 				// 处理FTP节点双击事件
-				fTPMGR.HandleFtpNodeDoubleClick( eNode, activeListView);
+				fTPMGR.HandleFtpNodeDoubleClick(eNode, activeListView);
 				activeListView.Refresh();
 				// 更新当前目录和路径显示
 				var ftpsrc = fTPMGR.GetFtpFileSourceByConnectionName(ftpTag.ConnectionName);
 				//currentDirectory[isleft] = $"ftp://{ftpTag.ConnectionName}{ftpTag.Path}";
-				currentDirectory[isleft] = $"ftp://{ftpsrc?.Host}{ftpTag.Path}";		//bugfix: currentdir can not be set to connection name, use host instead,
-				//if (isleft)
-				//	uiManager.LeftPathTextBox.Text = currentDirectory[isleft];
-				//else
-				//	uiManager.RightPathTextBox.Text = currentDirectory[isleft];
+				currentDirectory[isleft] = $"ftp://{ftpsrc?.Host}{ftpTag.Path}";        //bugfix: currentdir can not be set to connection name, use host instead,
+																						//if (isleft)
+																						//	uiManager.LeftPathTextBox.Text = currentDirectory[isleft];
+																						//else
+																						//	uiManager.RightPathTextBox.Text = currentDirectory[isleft];
 
 				selectedNode = eNode;
 				//uiManager.BookmarkManager.UpdateActiveBookmark(currentDirectory[isleft], selectedNode, isleft);
@@ -779,29 +798,29 @@ namespace zfile
 			}
 			return false;
 		}
-        public void TreeView_AfterSelect(object? sender, TreeViewEventArgs e)
-        {
-            if (e.Node?.Tag == null) return;
+		public void TreeView_AfterSelect(object? sender, TreeViewEventArgs e)
+		{
+			if (e.Node?.Tag == null) return;
 
-            //try
-            {
-                if (sender is TreeView treeView)
-                {
-                    // 清除所有节点的高亮状态
-                    ClearTreeViewHighlight(treeView);
-                    e.Node.BackColor = SystemColors.Highlight;
-                    e.Node.ForeColor = SystemColors.HighlightText;
-                    treeView.Refresh(); // 强制重绘
+			//try
+			{
+				if (sender is TreeView treeView)
+				{
+					// 清除所有节点的高亮状态
+					ClearTreeViewHighlight(treeView);
+					e.Node.BackColor = SystemColors.Highlight;
+					e.Node.ForeColor = SystemColors.HighlightText;
+					treeView.Refresh(); // 强制重绘
 					uiManager.isleft = treeView == uiManager.LeftTree;
 
 					if (ftpNodeSelect(e.Node)) return;
 
 					LoadSubDirectories(e.Node, activeListView);
 					e.Node.Expand();
-                    var path = Helper.getFSpathbyTree(e.Node);
-                    if (string.IsNullOrEmpty(path)) return;
+					var path = Helper.getFSpathbyTree(e.Node);
+					if (string.IsNullOrEmpty(path)) return;
 
-					if (!currentDirectory.TryGetValue(isleft,out string p))
+					if (!currentDirectory.TryGetValue(isleft, out string p))
 						currentDirectory[isleft] = path;
 					else if (!currentDirectory[isleft].Equals(path))
 						// 记录目录历史
@@ -813,21 +832,21 @@ namespace zfile
 
 					//uiManager.lastVisitedPaths[path.Substring(0,2)] = path;
 					uiManager.UpdateLastVisitedPath(path);
-                    selectedNode = e.Node;
-                    if (Directory.Exists(path))
-                    {
-                        watcher.Path = path;
-                        watcher.EnableRaisingEvents = true;
-                    }
+					selectedNode = e.Node;
+					if (Directory.Exists(path))
+					{
+						watcher.Path = path;
+						watcher.EnableRaisingEvents = true;
+					}
 					UpdatePathTextAndDriveComboBox(e.Node, path, isleft);
 				}
-            }
+			}
 			uiManager.setArgs();
-            //catch (Exception ex)
-            //{
-            //    MessageBox.Show($"TreeView_AfterSelect加载目录失败: {ex.Message}", "错误");
-            //}
-        }
+			//catch (Exception ex)
+			//{
+			//    MessageBox.Show($"TreeView_AfterSelect加载目录失败: {ex.Message}", "错误");
+			//}
+		}
 		private void UpdatePathTextAndDriveComboBox(TreeNode eNode, string path, bool isleft)
 		{
 			if (isleft)
@@ -847,7 +866,7 @@ namespace zfile
 		{
 			foreach (var i in cb.Items)
 			{
-				if (value.Contains(i.ToString().Substring(0,2)))
+				if (value.Contains(i.ToString().Substring(0, 2)))
 				{
 					cb.SelectedItem = i;
 					return;
@@ -856,25 +875,25 @@ namespace zfile
 		}
 
 		private void ClearTreeViewHighlight(TreeView treeView)
-        {
-            foreach (TreeNode node in treeView.Nodes)
-                ClearNodeHighlight(node);
-        }
-        private void ClearNodeHighlight(TreeNode node)
-        {
-            node.BackColor = SystemColors.Window;
-            node.ForeColor = SystemColors.WindowText;
-            foreach (TreeNode childNode in node.Nodes)
-                ClearNodeHighlight(childNode);
-        }
-       
-        public void LoadDriveIntoTree(TreeView treeView, string drivepath)
-        {
-            try
-            {
-                //treeView.BeginUpdate();
-                //treeView.Nodes.Clear();
-				if(treeView.Nodes.Count == 0)
+		{
+			foreach (TreeNode node in treeView.Nodes)
+				ClearNodeHighlight(node);
+		}
+		private void ClearNodeHighlight(TreeNode node)
+		{
+			node.BackColor = SystemColors.Window;
+			node.ForeColor = SystemColors.WindowText;
+			foreach (TreeNode childNode in node.Nodes)
+				ClearNodeHighlight(childNode);
+		}
+
+		public void LoadDriveIntoTree(TreeView treeView, string drivepath)
+		{
+			try
+			{
+				//treeView.BeginUpdate();
+				//treeView.Nodes.Clear();
+				if (treeView.Nodes.Count == 0)
 				{
 					//获得桌面 PIDL
 					IntPtr deskTopPtr;
@@ -887,7 +906,7 @@ namespace zfile
 					};
 					treeView.Nodes.Add(rootNode);
 					uiManager.isleft = (treeView == uiManager.LeftTree);
-					if(isleft)
+					if (isleft)
 						leftRoot = rootNode;
 					else
 						rightRoot = rootNode;
@@ -903,22 +922,22 @@ namespace zfile
 					node = FindTreeNode(fTPMGR.ftpRootNode.Nodes, drivepath);
 				treeView.SelectedNode = node;
 				//treeView.EndUpdate();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"加载驱动器目录失败: {ex.Message}", "错误");
-            }
-        }
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"加载驱动器目录失败: {ex.Message}", "错误");
+			}
+		}
 
-        public void ListView_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left)
-            {
+		public void ListView_MouseDown(object sender, MouseEventArgs e)
+		{
+			if (e.Button == MouseButtons.Left)
+			{
 				var v = sender as ListView;
 				uiManager.isleft = v == uiManager.LeftList;
 				uiManager.setArgs();
-            }
-        }
+			}
+		}
 		public void ListView_BeforeLabelEdit(object sender, EventArgs e)
 		{
 			ListView listView = sender as ListView;
@@ -972,133 +991,133 @@ namespace zfile
 			RefreshPanel(listView);
 		}
 		public void ListView_MouseMove(object sender, MouseEventArgs e)
-        {
-         
-        }
-        /// <summary>
-        /// 从FTP路径中提取连接名称
-        /// </summary>
-        private string ExtractFtpConnectionName(string ftpPath)
-        {
-            // 从FTP路径中提取主机名
-            if (ftpPath.StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
-            {
-                string host = ftpPath.Substring(6).Split('/')[0];
-                
-                // 查找匹配的连接名称
-                var connections = fTPMGR.GetConnections();
-                foreach (var conn in connections)
-                {
-                    if (conn.Host.Equals(host, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return conn.Name;
-                    }
-                }
-            }
-            return string.Empty;
-        }
-        
-        public void ListView_MouseUp(object sender, MouseEventArgs e)
-        {
-            //if (isSelecting)
-            //{
-            //    isSelecting = false;
-            //    if (selectionRectangle.Width > 0 && selectionRectangle.Height > 0)
-            //        SelectItemsInRectangle(activeListView, selectionRectangle);
-            //    activeListView.Invalidate();
-            //    selectionRectangle = Rectangle.Empty;
-            //}
+		{
 
-            if (sender is not ListView listView)
-                return;
-            ListViewItem item = listView.GetItemAt(e.X, e.Y);
-            if (item != null)
-                item.Selected = true;
+		}
+		/// <summary>
+		/// 从FTP路径中提取连接名称
+		/// </summary>
+		private string ExtractFtpConnectionName(string ftpPath)
+		{
+			// 从FTP路径中提取主机名
+			if (ftpPath.StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
+			{
+				string host = ftpPath.Substring(6).Split('/')[0];
 
-            if (e.Button == MouseButtons.Right)
-            {
-                if (item != null)
-                {
-                    listView.FocusedItem = item;
+				// 查找匹配的连接名称
+				var connections = fTPMGR.GetConnections();
+				foreach (var conn in connections)
+				{
+					if (conn.Host.Equals(host, StringComparison.OrdinalIgnoreCase))
+					{
+						return conn.Name;
+					}
+				}
+			}
+			return string.Empty;
+		}
 
-                    // 检查是否是FTP路径
-                    if (currentDirectory[isleft].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
-                    {
-                        // 从当前目录中提取连接名称
-                        string connectionName = ExtractFtpConnectionName(currentDirectory[isleft]);
-                        if (!string.IsNullOrEmpty(connectionName))
-                        {
-                            // 显示FTP右键菜单
-                            fTPMGR.ShowFtpContextMenu(connectionName, item);
-                            return;
-                        }
-                    }
+		public void ListView_MouseUp(object sender, MouseEventArgs e)
+		{
+			//if (isSelecting)
+			//{
+			//    isSelecting = false;
+			//    if (selectionRectangle.Width > 0 && selectionRectangle.Height > 0)
+			//        SelectItemsInRectangle(activeListView, selectionRectangle);
+			//    activeListView.Invalidate();
+			//    selectionRectangle = Rectangle.Empty;
+			//}
 
-                    var tree1 = listView == uiManager.LeftList ? uiManager.LeftTree : uiManager.RightTree;
-                    // Find corresponding TreeNode for the clicked ListView item
-                    TreeNode? node = tree1.SelectedNode;
-                    if (node != null)
-                    {
-                        // Get the full path by combining current directory and selected item name
-                        //string iPath = Path.Combine(currentDirectory[isleft], item.Text);
+			if (sender is not ListView listView)
+				return;
+			ListViewItem item = listView.GetItemAt(e.X, e.Y);
+			if (item != null)
+				item.Selected = true;
+
+			if (e.Button == MouseButtons.Right)
+			{
+				if (item != null)
+				{
+					listView.FocusedItem = item;
+
+					// 检查是否是FTP路径
+					if (currentDirectory[isleft].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
+					{
+						// 从当前目录中提取连接名称
+						string connectionName = ExtractFtpConnectionName(currentDirectory[isleft]);
+						if (!string.IsNullOrEmpty(connectionName))
+						{
+							// 显示FTP右键菜单
+							fTPMGR.ShowFtpContextMenu(connectionName, item);
+							return;
+						}
+					}
+
+					var tree1 = listView == uiManager.LeftList ? uiManager.LeftTree : uiManager.RightTree;
+					// Find corresponding TreeNode for the clicked ListView item
+					TreeNode? node = tree1.SelectedNode;
+					if (node != null)
+					{
+						// Get the full path by combining current directory and selected item name
+						//string iPath = Path.Combine(currentDirectory[isleft], item.Text);
 						string iPath = item.SubItems[1].Text;
-                        // Get corresponding TreeNode for this path
-                        TreeNode? targetNode = FindTreeNode(node.Nodes, item.Text);
-                        if (targetNode != null)
-                            ShowContextMenuOnTreeview(targetNode, e.Location);
-                        else
-                        {
-                            // If no corresponding node found, use path to show context menu
-                            //TreeNode? parentNode = (TreeNode)item.Tag;
-                            ShowCtxMenuOnListview(iPath, e.Location);
-                        }
-                    }
-                }
-                return;
-            }
-        }
-        private void SelectItemsInRectangle(ListView listView, Rectangle rect)
-        {
-            foreach (ListViewItem item in listView.Items)
-            {
-                if (item.Bounds.IntersectsWith(rect))
-                    item.Selected = true;
-            }
-        }
+						// Get corresponding TreeNode for this path
+						TreeNode? targetNode = FindTreeNode(node.Nodes, item.Text);
+						if (targetNode != null)
+							ShowContextMenuOnTreeview(targetNode, e.Location);
+						else
+						{
+							// If no corresponding node found, use path to show context menu
+							//TreeNode? parentNode = (TreeNode)item.Tag;
+							ShowCtxMenuOnListview(iPath, e.Location);
+						}
+					}
+				}
+				return;
+			}
+		}
+		private void SelectItemsInRectangle(ListView listView, Rectangle rect)
+		{
+			foreach (ListViewItem item in listView.Items)
+			{
+				if (item.Bounds.IntersectsWith(rect))
+					item.Selected = true;
+			}
+		}
 
-        private void ListView_DrawItem(object sender, DrawListViewItemEventArgs e)
-        {
-            if (isSelecting && e.Bounds.IntersectsWith(selectionRectangle))
-                e.Graphics.FillRectangle(Brushes.LightBlue, e.Bounds);
-            e.DrawDefault = true;
-        }
+		private void ListView_DrawItem(object sender, DrawListViewItemEventArgs e)
+		{
+			if (isSelecting && e.Bounds.IntersectsWith(selectionRectangle))
+				e.Graphics.FillRectangle(Brushes.LightBlue, e.Bounds);
+			e.DrawDefault = true;
+		}
 
-        public void ListView_MouseDoubleClick(object? sender, MouseEventArgs e)
-        {
-            if (sender is not ListView listView)
-                return;
-            ListViewItem item = listView.GetItemAt(e.X, e.Y);
-            if (item != null)
-                item.Selected = true;
-            if (listView.SelectedItems.Count == 0) return;
+		public void ListView_MouseDoubleClick(object? sender, MouseEventArgs e)
+		{
+			if (sender is not ListView listView)
+				return;
+			ListViewItem item = listView.GetItemAt(e.X, e.Y);
+			if (item != null)
+				item.Selected = true;
+			if (listView.SelectedItems.Count == 0) return;
 
-            ListViewItem selectedItem = listView.SelectedItems[0];
-            //Debug.Print("listview_mousedoubleclick:{0}, currentDir={1}", selectedItem.Text, currentDirectory[isleft]);
-            
-            // 检查是否是FTP路径
-            if (currentDirectory[isleft].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
-            {
-                // 从当前目录中提取连接名称
-                string connectionName = ExtractFtpConnectionName(currentDirectory[isleft]);
-                if (!string.IsNullOrEmpty(connectionName))
-                {
-                    // 处理FTP列表项双击事件
-                    fTPMGR.HandleFtpListItemDoubleClick(connectionName, selectedItem, listView);
-                    return;
-                }
-            }
-            
-            string path = Path.Combine(currentDirectory[isleft], selectedItem.Text);
+			ListViewItem selectedItem = listView.SelectedItems[0];
+			//Debug.Print("listview_mousedoubleclick:{0}, currentDir={1}", selectedItem.Text, currentDirectory[isleft]);
+
+			// 检查是否是FTP路径
+			if (currentDirectory[isleft].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
+			{
+				// 从当前目录中提取连接名称
+				string connectionName = ExtractFtpConnectionName(currentDirectory[isleft]);
+				if (!string.IsNullOrEmpty(connectionName))
+				{
+					// 处理FTP列表项双击事件
+					fTPMGR.HandleFtpListItemDoubleClick(connectionName, selectedItem, listView);
+					return;
+				}
+			}
+
+			string path = Path.Combine(currentDirectory[isleft], selectedItem.Text);
 			if (IsArchiveFile(path))
 			{
 				if (OpenArchive(path))
@@ -1114,64 +1133,64 @@ namespace zfile
 			// 获取关联的TreeView
 			TreeView treeView = listView == uiManager.LeftList ? uiManager.LeftTree : uiManager.RightTree;
 			if (selectedItem.SubItems[3].Text.Equals("<DIR>") || selectedItem.SubItems[3].Text == "本地磁盘")
-            {
-                //try
-                {
-                    // 查找并选择对应的TreeNode
-                    treeView.SelectedNode.Expand();
-                    TreeNode? node = FindTreeNode(treeView.SelectedNode.Nodes, selectedItem.Text);
-                    //TreeNode? node = (TreeNode)selectedItem.Tag;
-                    if (node != null)
-                    {
-                        // 设置选中状态并高亮显示
-                        treeView.SelectedNode = node;
-                        ClearTreeViewHighlight(treeView);
-                        node.BackColor = SystemColors.Highlight;
-                        node.ForeColor = SystemColors.HighlightText;
-                        treeView.Refresh(); // 强制重绘
-                        node.EnsureVisible(); // 确保节点可见
-                        node.Expand();
+			{
+				//try
+				{
+					// 查找并选择对应的TreeNode
+					treeView.SelectedNode.Expand();
+					TreeNode? node = FindTreeNode(treeView.SelectedNode.Nodes, selectedItem.Text);
+					//TreeNode? node = (TreeNode)selectedItem.Tag;
+					if (node != null)
+					{
+						// 设置选中状态并高亮显示
+						treeView.SelectedNode = node;
+						ClearTreeViewHighlight(treeView);
+						node.BackColor = SystemColors.Highlight;
+						node.ForeColor = SystemColors.HighlightText;
+						treeView.Refresh(); // 强制重绘
+						node.EnsureVisible(); // 确保节点可见
+						node.Expand();
 
-                        // 更新当前目录和ListView
-                        selectedNode = node;
+						// 更新当前目录和ListView
+						selectedNode = node;
 						RefreshPanel(listView);
-                    }
+					}
 
-                    // 更新监视器
-                    if (Directory.Exists(path))
-                    {
-                        currentDirectory[isleft] = path;    //IF ITEMPATH IS DIR, UPDATE currentDirectory[isleft], ELSE NOT
-                        watcher.Path = path;
-                        watcher.EnableRaisingEvents = true;
-                    }
-                }
-                //catch (Exception ex)
-                //{
-                //    MessageBox.Show($"访问文件夹失败741: {ex.Message}", "错误");
-                //}
-            }
-            else // 处理文件
-            {
-                path = Helper.getFSpath(path);
-                if (File.Exists(path))
-                {
-                    try
-                    {
-                        // 如果是可执行文件，直接执行
-                        if (Path.GetExtension(path).Equals(".exe", StringComparison.OrdinalIgnoreCase))
-                        {
-                            Process.Start(path);
-                        }
-                        else
-                        {
-                            // 使用系统默认关联程序打开文件
-                            Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"无法打开文件: {ex.Message}", "错误");
-                    }
+					// 更新监视器
+					if (Directory.Exists(path))
+					{
+						currentDirectory[isleft] = path;    //IF ITEMPATH IS DIR, UPDATE currentDirectory[isleft], ELSE NOT
+						watcher.Path = path;
+						watcher.EnableRaisingEvents = true;
+					}
+				}
+				//catch (Exception ex)
+				//{
+				//    MessageBox.Show($"访问文件夹失败741: {ex.Message}", "错误");
+				//}
+			}
+			else // 处理文件
+			{
+				path = Helper.getFSpath(path);
+				if (File.Exists(path))
+				{
+					try
+					{
+						// 如果是可执行文件，直接执行
+						if (Path.GetExtension(path).Equals(".exe", StringComparison.OrdinalIgnoreCase))
+						{
+							Process.Start(path);
+						}
+						else
+						{
+							// 使用系统默认关联程序打开文件
+							Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
+						}
+					}
+					catch (Exception ex)
+					{
+						MessageBox.Show($"无法打开文件: {ex.Message}", "错误");
+					}
 				}
 				else
 				{
@@ -1180,8 +1199,8 @@ namespace zfile
 					TreeNode? node = FindTreeNode(treeView.SelectedNode.Nodes, selectedItem.Text);
 					Process.Start(new ProcessStartInfo(((ShellItem)node.Tag).parsepath) { UseShellExecute = true });
 				}
-            }
-        }
+			}
+		}
 		public TreeNode? FindTreeNodeByFullPath(TreeNodeCollection nodes, string path)
 		{
 			//var pathpart = Helper.getFSpath(path).Split('\\', StringSplitOptions.RemoveEmptyEntries);
@@ -1205,8 +1224,8 @@ namespace zfile
 			}
 			return null;
 		}
-        public TreeNode? FindTreeNode(TreeNodeCollection nodes, string path)
-        {
+		public TreeNode? FindTreeNode(TreeNodeCollection nodes, string path)
+		{
 			//Debug.Print("FindTreeNode -> {0}", path);
 			//if (nodes.Count == 1 && nodes[0].Text.Equals("..."))
 			//{
@@ -1273,119 +1292,119 @@ namespace zfile
 				if (foundNode != null) return foundNode;
 			}
 			return null;
-        }
-        
-        public void ToolbarButton_DragEnter(object sender, DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                var files = (string[])e.Data.GetData(DataFormats.FileDrop);
-                // 只允许可执行文件或目录
-                //if (files.Any(f => File.Exists(f) && (Path.GetExtension(f).Equals(".exe", StringComparison.OrdinalIgnoreCase) || Directory.Exists(f))))
-                {
-                    e.Effect = DragDropEffects.Copy;
-                    return;
-                }
-            }
-            e.Effect = DragDropEffects.None;
-        }
+		}
 
-        public void ToolbarButton_DragDrop(object sender, DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-                var strip = sender as ToolStrip;//文件可以拖动到按钮上
-                if (strip != null && uiManager != null)
-                {
-                    var bar = strip?.LayoutStyle == ToolStripLayoutStyle.VerticalStackWithOverflow
-                                ? uiManager.vtoolbarManager
-                                : uiManager.toolbarManager;
-                    foreach (string file in files)
-                    {
-                        try
-                        {
-                            FileInfo fi = new FileInfo(file);
-                            // 获取文件显示名称
-                            string displayName = Path.GetFileNameWithoutExtension(file);
+		public void ToolbarButton_DragEnter(object sender, DragEventArgs e)
+		{
+			if (e.Data.GetDataPresent(DataFormats.FileDrop))
+			{
+				var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+				// 只允许可执行文件或目录
+				//if (files.Any(f => File.Exists(f) && (Path.GetExtension(f).Equals(".exe", StringComparison.OrdinalIgnoreCase) || Directory.Exists(f))))
+				{
+					e.Effect = DragDropEffects.Copy;
+					return;
+				}
+			}
+			e.Effect = DragDropEffects.None;
+		}
 
-                            // 设置按钮参数
-                            //var buttonParams = new Dictionary<string, object>
-                            //{
-                            //    {"Command", "Execute"},
-                            //    {"Path", file},
-                            //    {"WorkingDirectory", fi.DirectoryName},
-                            //    {"Icon", Icon.ExtractAssociatedIcon(file)?.ToBitmap()}
-                            //};
+		public void ToolbarButton_DragDrop(object sender, DragEventArgs e)
+		{
+			if (e.Data.GetDataPresent(DataFormats.FileDrop))
+			{
+				string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+				var strip = sender as ToolStrip;//文件可以拖动到按钮上
+				if (strip != null && uiManager != null)
+				{
+					var bar = strip?.LayoutStyle == ToolStripLayoutStyle.VerticalStackWithOverflow
+								? uiManager.vtoolbarManager
+								: uiManager.toolbarManager;
+					foreach (string file in files)
+					{
+						try
+						{
+							FileInfo fi = new FileInfo(file);
+							// 获取文件显示名称
+							string displayName = Path.GetFileNameWithoutExtension(file);
 
-                            // 添加或更新工具栏按钮
-                            //uiManager.toolbarManager.AddButton(
-                            //    displayName,
-                            //    buttonParams,
-                            //    (s, args) => ExecuteToolbarCommand(file)
-                            //);
+							// 设置按钮参数
+							//var buttonParams = new Dictionary<string, object>
+							//{
+							//    {"Command", "Execute"},
+							//    {"Path", file},
+							//    {"WorkingDirectory", fi.DirectoryName},
+							//    {"Icon", Icon.ExtractAssociatedIcon(file)?.ToBitmap()}
+							//};
 
-                            //TODO: 如何判定当前是toolbarmanager还是vtoolbarmanager?
-                            // 通过工具栏的停靠方向判断是水平还是垂直工具栏
-                            
-                            bar.AddButton(displayName, file, file + ",0", "", "", "0");
+							// 添加或更新工具栏按钮
+							//uiManager.toolbarManager.AddButton(
+							//    displayName,
+							//    buttonParams,
+							//    (s, args) => ExecuteToolbarCommand(file)
+							//);
 
-                            // 设置按钮显示属性
-                            //button.Text = displayName;
-                            //button.ToolTipText = $"启动 {displayName}";
-                            //if (buttonParams["Icon"] is Image icon)
-                            //{
-                            //    button.Image = icon;
-                            //}
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.Print($"添加工具栏按钮失败: {ex.Message}");
-                        }
-                    }
+							//TODO: 如何判定当前是toolbarmanager还是vtoolbarmanager?
+							// 通过工具栏的停靠方向判断是水平还是垂直工具栏
 
-                    // 刷新工具栏
-                    bar.GenerateDynamicToolbar();
-                    return;
-                }
-                var button1 = sender as ToolStripButton;//文件可以拖动到按钮上
-                if (button1 != null && uiManager != null)
-                {
-                    //拖到了一个按钮上，执行用这个按钮的CMD 并将选中的文件作为参数传入的逻辑 TODO
+							bar.AddButton(displayName, file, file + ",0", "", "", "0");
 
-                }
-            }
-        }
+							// 设置按钮显示属性
+							//button.Text = displayName;
+							//button.ToolTipText = $"启动 {displayName}";
+							//if (buttonParams["Icon"] is Image icon)
+							//{
+							//    button.Image = icon;
+							//}
+						}
+						catch (Exception ex)
+						{
+							Debug.Print($"添加工具栏按钮失败: {ex.Message}");
+						}
+					}
 
-        //private void ExecuteToolbarCommand(string filePath)
-        //{
-        //    try
-        //    {
-        //        if (Directory.Exists(filePath))
-        //        {
-        //            Process.Start("explorer.exe", filePath);
-        //        }
-        //        else if (File.Exists(filePath))
-        //        {
-        //            Process.Start(new ProcessStartInfo(filePath)
-        //            {
-        //                UseShellExecute = true,
-        //                WorkingDirectory = Path.GetDirectoryName(filePath)
-        //            });
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show($"执行失败: {ex.Message}", "错误",
-        //            MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //    }
-        //}
-        //}
+					// 刷新工具栏
+					bar.GenerateDynamicToolbar();
+					return;
+				}
+				var button1 = sender as ToolStripButton;//文件可以拖动到按钮上
+				if (button1 != null && uiManager != null)
+				{
+					//拖到了一个按钮上，执行用这个按钮的CMD 并将选中的文件作为参数传入的逻辑 TODO
 
-        public static void ExitApp()
-        {
-            Application.Exit();
-        }
+				}
+			}
+		}
+
+		//private void ExecuteToolbarCommand(string filePath)
+		//{
+		//    try
+		//    {
+		//        if (Directory.Exists(filePath))
+		//        {
+		//            Process.Start("explorer.exe", filePath);
+		//        }
+		//        else if (File.Exists(filePath))
+		//        {
+		//            Process.Start(new ProcessStartInfo(filePath)
+		//            {
+		//                UseShellExecute = true,
+		//                WorkingDirectory = Path.GetDirectoryName(filePath)
+		//            });
+		//        }
+		//    }
+		//    catch (Exception ex)
+		//    {
+		//        MessageBox.Show($"执行失败: {ex.Message}", "错误",
+		//            MessageBoxButtons.OK, MessageBoxIcon.Error);
+		//    }
+		//}
+		//}
+
+		public static void ExitApp()
+		{
+			Application.Exit();
+		}
 		private bool getIconByShellItem(ref ShellItem subItem, out string iconKey, bool islarge = false)
 		{
 			var shellInfo = new SHFILEINFO();
@@ -1413,7 +1432,7 @@ namespace zfile
 		{
 			var IID_IImageList = new Guid("46EB5926-582E-4017-9FDF-E8998DAA0950");
 			IImageList hImageList = null;
-			
+
 			API.SHGetImageList(islarge ? SHIL.SHIL_LARGE : SHIL.SHIL_SMALL, ref IID_IImageList, ref hImageList);
 			if (hImageList != null)
 			{
@@ -1467,7 +1486,7 @@ namespace zfile
 					var icon = IconManager.ExtractIconFromFile(shellInfo.szTypeName, shellInfo.iIcon);
 					iconManager.AddIcon(iconKey, icon, islarge);
 				}
-			
+
 				return true;
 			}
 			iconKey = string.Empty;
@@ -1486,9 +1505,9 @@ namespace zfile
 			ShellItem sItem = (ShellItem)node.Tag;
 			if (sItem == null) return;
 			IShellFolder root = sItem.ShellFolder;
-			if (root == null ) return;
-			
-			if(node.Nodes.Count == 1 && node.Nodes[0].Text.Equals("...")) 
+			if (root == null) return;
+
+			if (node.Nodes.Count == 1 && node.Nodes[0].Text.Equals("..."))
 				node.Nodes.RemoveAt(0);
 			// 保存现有节点的引用，以便后续比较
 			Dictionary<string, TreeNode> existingNodes = new Dictionary<string, TreeNode>();
@@ -1506,7 +1525,7 @@ namespace zfile
 				{
 				}
 			}
-			
+
 			// 创建一个新的节点集合，用于存储需要保留的节点
 			List<TreeNode> nodesToKeep = new List<TreeNode>();
 			// 创建一个集合，用于存储新的PIDL，以便后续比较
@@ -1643,17 +1662,17 @@ namespace zfile
 			{
 
 			}
-        }
-       
-        private static bool IsChildrenExist(TreeNode node, bool includefile = false)
-        {
-            ShellItem sItem = (ShellItem)node.Tag;
+		}
+
+		private static bool IsChildrenExist(TreeNode node, bool includefile = false)
+		{
+			ShellItem sItem = (ShellItem)node.Tag;
 			if (sItem != null)
 			{
 				return sItem.IsChildrenExist();
 			}
 			return false;
-        }
+		}
 		private static void LoadRecycleBinbak(ListView listview)
 		{
 			int MAX_PATH = 260;
@@ -1663,8 +1682,8 @@ namespace zfile
 			API.SHQueryRecycleBin(null, ref shQueryRBInfo);
 
 			uint dwFlags = 0;
-			StringBuilder sbDisplayName = new (MAX_PATH);
-			StringBuilder sbOriginalPath = new (MAX_PATH);
+			StringBuilder sbDisplayName = new(MAX_PATH);
+			StringBuilder sbOriginalPath = new(MAX_PATH);
 
 			while (API.SHEnumRecycleBin(null, 0, ref dwFlags, sbDisplayName, MAX_PATH, sbOriginalPath, MAX_PATH) == 0)
 			{
@@ -1689,8 +1708,8 @@ namespace zfile
 			recycleBinFolder.EnumObjects(IntPtr.Zero, SHCONTF.FOLDERS | SHCONTF.NONFOLDERS | SHCONTF.INCLUDEHIDDEN, out nint enumIDs);
 			enumIDList = (IEnumIDList)Marshal.GetObjectForIUnknown(enumIDs);
 			var files = GetRecycleBinFilenames();
-			foreach (var originalPath in files) 
-			{ 
+			foreach (var originalPath in files)
+			{
 				//Debug.Print(file.ToString()); 
 				var originalName = Path.GetFileName(originalPath);
 				var extension = Path.GetExtension(originalPath);
@@ -1712,18 +1731,18 @@ namespace zfile
 			// 遍历回收站中的文件和文件夹
 			while (enumIDList.Next(1, out nint pidl, out uint fetched) == 0)
 			{
-				try 
+				try
 				{
 					SHFILEINFO shfi = new();
 					// 获取文件基本信息
-					API.SHGetFileInfoPIDL(pidl, 0, ref shfi, Marshal.SizeOf(shfi), 
-						SHGFI.PIDL | SHGFI.DISPLAYNAME | SHGFI.TYPENAME | SHGFI.ATTRIBUTES | 
+					API.SHGetFileInfoPIDL(pidl, 0, ref shfi, Marshal.SizeOf(shfi),
+						SHGFI.PIDL | SHGFI.DISPLAYNAME | SHGFI.TYPENAME | SHGFI.ATTRIBUTES |
 						SHGFI.ICON | SHGFI.SMALLICON);
 
 					// 获取原始路径
 					IShellItem shellItem;
 					API.SHCreateItemFromIDList(pidl, ref Guids.IID_IShellItem, out shellItem);
-					
+
 					string originalPath = string.Empty;
 					if (shellItem != null)
 					{
@@ -1739,10 +1758,10 @@ namespace zfile
 					// 获取文件大小和日期信息
 					WIN32_FIND_DATA findData = new WIN32_FIND_DATA();
 					IntPtr findHandle = API.FindFirstFile(originalPath, out findData);
-					
+
 					string fileSize = "<未知>";
 					string lastModified = "<未知>";
-					
+
 					if (findHandle != new IntPtr(-1))
 					{
 						if ((findData.dwFileAttributes & FileAttributes.Directory) != FileAttributes.Directory)
@@ -1754,18 +1773,18 @@ namespace zfile
 						{
 							fileSize = "<DIR>";
 						}
-						
+
 						lastModified = DateTime.FromFileTime(
-							((long)findData.ftLastWriteTime.dwHighDateTime << 32) | 
+							((long)findData.ftLastWriteTime.dwHighDateTime << 32) |
 							(uint)findData.ftLastWriteTime.dwLowDateTime).ToString("yyyy-MM-dd HH:mm:ss");
-						
+
 						API.FindClose(findHandle);
 					}
 
 					// 创建 ListViewItem 并添加信息
 					var originalName = Path.GetFileName(originalPath);
 					var extension = Path.GetExtension(originalPath);
-					
+
 					ListViewItem item = new ListViewItem(new string[] {
 						originalName,                    // 原始文件名
 						originalPath,                    // 原始完整路径
@@ -1782,7 +1801,7 @@ namespace zfile
 					if (shellItem != null)
 						Marshal.ReleaseComObject(shellItem);
 				}
-				finally 
+				finally
 				{
 					if (pidl != IntPtr.Zero)
 						Marshal.FreeCoTaskMem(pidl);
@@ -1838,20 +1857,20 @@ namespace zfile
 						}
 					}
 				}
-				
+
 			}
 		}
 		// 加载文件列表
 		private async Task LoadListViewByFilesystem(string path, ListView listView, TreeNode parentnode)
-        {
-			if(ftpNodeSelect(parentnode)) return;
+		{
+			if (ftpNodeSelect(parentnode)) return;
 
 			var sitem = (ShellItem)parentnode.Tag;
 			if (sitem.IsVirtual) return;
-            if (string.IsNullOrEmpty(path)) return;
-            if (!path.Contains(':')) return;
+			if (string.IsNullOrEmpty(path)) return;
+			if (!path.Contains(':')) return;
 			path = Helper.getFSpath(path);
-            if (path.EndsWith(':')) path += "\\";
+			if (path.EndsWith(':')) path += "\\";
 			if (IsArchiveFile(path))
 			{
 				if (OpenArchive(path))
@@ -1866,305 +1885,305 @@ namespace zfile
 			}
 			//try
 			{
-                var items = await Task.Run(() => fsManager.GetDirectoryContents(path));
-                listView.BeginUpdate();
-                listView.Items.Clear();
+				var items = await Task.Run(() => fsManager.GetDirectoryContents(path));
+				listView.BeginUpdate();
+				listView.Items.Clear();
 				var subkey = (listView.View == View.Tile ? "l" : "s");
 				foreach (var item in items)
-                {
-                    if ((item.Attributes & FileAttributes.Hidden) != 0) continue;
-                    var lvItem = CreateListViewItem(item);
+				{
+					if ((item.Attributes & FileAttributes.Hidden) != 0) continue;
+					var lvItem = CreateListViewItem(item);
 					SetIconForListViewItem(lvItem, listView, subkey);
 					lvItem.Tag = parentnode;
 					listView.Items.Add(lvItem);
 				}
-                listView.EndUpdate();
+				listView.EndUpdate();
 				listView.Refresh();
-            }
+			}
 			var status = (listView == uiManager.LeftList) ? uiManager.LeftStatusStrip : uiManager.RightStatusStrip;
 			uiManager.UpdateStatusBar(listView, status);
-			
+
 			//catch (Exception ex)
 			//{
 			//    MessageBox.Show($"加载文件列表失败: {ex.Message}", "错误",
 			//        MessageBoxButtons.OK, MessageBoxIcon.Error);
 			//}
 		}
-      
-        // 将文件属性转换为RAHSC格式的字符串
-        private string GetFileAttributesString(FileAttributes attributes)
-        {
-            StringBuilder sb = new StringBuilder("-----");
-            
-            // 检查各种属性并设置对应的字符
-            if ((attributes & FileAttributes.ReadOnly) != 0)
-                sb[0] = 'R';
-            if ((attributes & FileAttributes.Hidden) != 0)
-                sb[1] = 'H';
-            if ((attributes & FileAttributes.System) != 0)
-                sb[2] = 'S';
-            if ((attributes & FileAttributes.Compressed) != 0)
-                sb[4] = 'C';
-            if ((attributes & FileAttributes.Archive) != 0)
-                sb[3] = 'A';
-                
-            return sb.ToString();
-        }
-        
-        private ListViewItem? CreateListViewItem(FileSystemInfo item)
-        {
-            try
-            {
-                string[] itemData;
-                if (item is DirectoryInfo)
-                {
+
+		// 将文件属性转换为RAHSC格式的字符串
+		private string GetFileAttributesString(FileAttributes attributes)
+		{
+			StringBuilder sb = new StringBuilder("-----");
+
+			// 检查各种属性并设置对应的字符
+			if ((attributes & FileAttributes.ReadOnly) != 0)
+				sb[0] = 'R';
+			if ((attributes & FileAttributes.Hidden) != 0)
+				sb[1] = 'H';
+			if ((attributes & FileAttributes.System) != 0)
+				sb[2] = 'S';
+			if ((attributes & FileAttributes.Compressed) != 0)
+				sb[4] = 'C';
+			if ((attributes & FileAttributes.Archive) != 0)
+				sb[3] = 'A';
+
+			return sb.ToString();
+		}
+
+		private ListViewItem? CreateListViewItem(FileSystemInfo item)
+		{
+			try
+			{
+				string[] itemData;
+				if (item is DirectoryInfo)
+				{
 					var showFolderSize = configLoader.FindConfigValue("Configuration", "EverythingForSize").Equals("1");
 					var size = showFolderSize ? EverythingWrapper.CalculateDirectorySize(item.FullName) : 0;
-					
+
 					// 获取目录属性并格式化为RAHSC格式
 					string attrStr = GetFileAttributesString(item.Attributes);
-					
+
 					itemData = new[]
-                    {
-                        item.Name,
-                        item.FullName,
-                        showFolderSize && EverythingWrapper.IsEverythingServiceRunning() ? FileSystemManager.FormatFileSize(size, true) : "",
-                        "<DIR>",
-                        item.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),
+					{
+						item.Name,
+						item.FullName,
+						showFolderSize && EverythingWrapper.IsEverythingServiceRunning() ? FileSystemManager.FormatFileSize(size, true) : "",
+						"<DIR>",
+						item.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),
 						size.ToString(),
 						attrStr
 					};
-                }
-                else if (item is FileInfo fileInfo)
-                {
-                    // 获取文件属性并格式化为RAHSC格式
-                    string attrStr = GetFileAttributesString(item.Attributes);
-                    
-                    itemData = new[]
-                    {
-                        item.Name,
-                        item.FullName,	//真实完整路径
+				}
+				else if (item is FileInfo fileInfo)
+				{
+					// 获取文件属性并格式化为RAHSC格式
+					string attrStr = GetFileAttributesString(item.Attributes);
+
+					itemData = new[]
+					{
+						item.Name,
+						item.FullName,	//真实完整路径
                         FileSystemManager.FormatFileSize(fileInfo.Length, true),
-                        fileInfo.Extension.ToUpperInvariant(),
-                        item.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),
+						fileInfo.Extension.ToUpperInvariant(),
+						item.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),
 						fileInfo.Length.ToString(),
 						attrStr
 					};
-                }
-                else
-                    return null;
+				}
+				else
+					return null;
 
 				var i = new ListViewItem(itemData);
 				return i;
-            }
-            catch
-            {
+			}
+			catch
+			{
 				Debug.Print("exception in createlistview item");
-                return null;
-            }
-        }
+				return null;
+			}
+		}
 
-        // 预览文件内容
-        private async Task PreviewFileAsync(string filePath, TextBox previewPanel)
-        {
-            if (!File.Exists(filePath))
-            {
-                previewPanel.Clear();
-                return;
-            }
+		// 预览文件内容
+		private async Task PreviewFileAsync(string filePath, TextBox previewPanel)
+		{
+			if (!File.Exists(filePath))
+			{
+				previewPanel.Clear();
+				return;
+			}
 
-            try
-            {
-                if (FileSystemManager.IsTextFile(Path.GetExtension(filePath)))
-                {
-                    using var stream = new StreamReader(filePath);
-                    // 仅读取前1MB内容
-                    var buffer = new char[1024 * 1024];
-                    var read = await stream.ReadAsync(buffer, 0, buffer.Length);
-                    previewPanel.Text = new string(buffer, 0, read);
-                    if (stream.Peek() != -1)
-                    {
-                        previewPanel.Text += "\r\n[文件过大，仅显示前1MB内容...]";
-                    }
-                }
-                else
-                {
-                    previewPanel.Text = "[二进制文件]";
-                }
-            }
-            catch (Exception ex)
-            {
-                previewPanel.Text = $"无法预览文件: {ex.Message}";
-            }
-        }
-        public async void ListView_SelectedIndexChanged(object? sender, EventArgs e)
-        {
-            if (sender is not ListView listView) return;
-            var previewPanel = listView == uiManager.LeftList ? uiManager.LeftPreview : uiManager.RightPreview;
+			try
+			{
+				if (FileSystemManager.IsTextFile(Path.GetExtension(filePath)))
+				{
+					using var stream = new StreamReader(filePath);
+					// 仅读取前1MB内容
+					var buffer = new char[1024 * 1024];
+					var read = await stream.ReadAsync(buffer, 0, buffer.Length);
+					previewPanel.Text = new string(buffer, 0, read);
+					if (stream.Peek() != -1)
+					{
+						previewPanel.Text += "\r\n[文件过大，仅显示前1MB内容...]";
+					}
+				}
+				else
+				{
+					previewPanel.Text = "[二进制文件]";
+				}
+			}
+			catch (Exception ex)
+			{
+				previewPanel.Text = $"无法预览文件: {ex.Message}";
+			}
+		}
+		public async void ListView_SelectedIndexChanged(object? sender, EventArgs e)
+		{
+			if (sender is not ListView listView) return;
+			var previewPanel = listView == uiManager.LeftList ? uiManager.LeftPreview : uiManager.RightPreview;
 
-            if (listView.SelectedItems.Count > 0)
-            {
-                ListViewItem selectedItem = listView.SelectedItems[0];
-                string filePath = Helper.getFSpath(Path.Combine(currentDirectory[isleft], selectedItem.Text));
+			if (listView.SelectedItems.Count > 0)
+			{
+				ListViewItem selectedItem = listView.SelectedItems[0];
+				string filePath = Helper.getFSpath(Path.Combine(currentDirectory[isleft], selectedItem.Text));
 
-                if (File.Exists(filePath))
-                    await PreviewFileAsync(filePath, previewPanel);
-            }
+				if (File.Exists(filePath))
+					await PreviewFileAsync(filePath, previewPanel);
+			}
 			Debug.Print("selection index changed");
 			uiManager.setArgs();
-        }
+		}
 
-        public void ListView_ColumnClick(object? sender, ColumnClickEventArgs e)
-        {
-            if (sender is not ListView listView) return;
+		public void ListView_ColumnClick(object? sender, ColumnClickEventArgs e)
+		{
+			if (sender is not ListView listView) return;
 
-            // 如果点击的是同一列，切换排序顺序
-            if (e.Column == sortColumn)
-            {
-                sortOrder = sortOrder == SortOrder.Ascending ?
-                           SortOrder.Descending : SortOrder.Ascending;
-            }
-            else
-            {
-                sortColumn = e.Column;
-                sortOrder = SortOrder.Ascending;
-            }
+			// 如果点击的是同一列，切换排序顺序
+			if (e.Column == sortColumn)
+			{
+				sortOrder = sortOrder == SortOrder.Ascending ?
+						   SortOrder.Descending : SortOrder.Ascending;
+			}
+			else
+			{
+				sortColumn = e.Column;
+				sortOrder = SortOrder.Ascending;
+			}
 
-            // 应用排序
-            listView.ListViewItemSorter = new ListViewItemComparer(sortColumn, sortOrder);
-        }
+			// 应用排序
+			listView.ListViewItemSorter = new ListViewItemComparer(sortColumn, sortOrder);
+		}
 
-        // 排序比较器类
-        private class ListViewItemComparer : System.Collections.IComparer
-        {
-            private readonly int column;
-            private readonly SortOrder order;
-            public ListViewItemComparer(int column, SortOrder order)
-            {
-                this.column = column;
-                this.order = order;
-            }
+		// 排序比较器类
+		private class ListViewItemComparer : System.Collections.IComparer
+		{
+			private readonly int column;
+			private readonly SortOrder order;
+			public ListViewItemComparer(int column, SortOrder order)
+			{
+				this.column = column;
+				this.order = order;
+			}
 
-            public int Compare(object? x, object? y)
-            {
-                if (x is not ListViewItem item1 || y is not ListViewItem item2)
-                    return 0;
+			public int Compare(object? x, object? y)
+			{
+				if (x is not ListViewItem item1 || y is not ListViewItem item2)
+					return 0;
 
-                int result;
+				int result;
 
-                // 根据列类型进行比较
-                switch (column)
-                {
-                    case 1: // 名称列
-                        result = string.Compare(item1.SubItems[column].Text,
-                                             item2.SubItems[column].Text);
-                        break;
+				// 根据列类型进行比较
+				switch (column)
+				{
+					case 1: // 名称列
+						result = string.Compare(item1.SubItems[column].Text,
+											 item2.SubItems[column].Text);
+						break;
 
-                    case 2: // 大小列
-                        var size1 = item1.SubItems[column].Text;
-                        var size2 = item2.SubItems[column].Text;
-                        if (size1 == "<DIR>" && size2 == "<DIR>")
-                            result = 0;
-                        else if (size1 == "<DIR>")
-                            result = -1;
-                        else if (size2 == "<DIR>")
-                            result = 1;
-                        else
-                            result = CompareFileSize(size1, size2);
-                        break;
+					case 2: // 大小列
+						var size1 = item1.SubItems[column].Text;
+						var size2 = item2.SubItems[column].Text;
+						if (size1 == "<DIR>" && size2 == "<DIR>")
+							result = 0;
+						else if (size1 == "<DIR>")
+							result = -1;
+						else if (size2 == "<DIR>")
+							result = 1;
+						else
+							result = CompareFileSize(size1, size2);
+						break;
 
-                    case 4: // 日期列
-                        result = DateTime.Compare(
-                            DateTime.Parse(item1.SubItems[column].Text),
-                            DateTime.Parse(item2.SubItems[column].Text));
-                        break;
+					case 4: // 日期列
+						result = DateTime.Compare(
+							DateTime.Parse(item1.SubItems[column].Text),
+							DateTime.Parse(item2.SubItems[column].Text));
+						break;
 
-                    default: // 其他列
-                        result = string.Compare(item1.SubItems[column].Text,
-                                             item2.SubItems[column].Text);
-                        break;
-                }
+					default: // 其他列
+						result = string.Compare(item1.SubItems[column].Text,
+											 item2.SubItems[column].Text);
+						break;
+				}
 
-                // 根据排序顺序返回结果
-                return order == SortOrder.Ascending ? result : -result;
-            }
-            private int CompareFileSize(string size1, string size2)
-            {
-                try
-                {
-                    var s1 = ParseFileSize(size1);
-                    var s2 = ParseFileSize(size2);
-                    return s1.CompareTo(s2);
-                }
-                catch
-                {
-                    return string.Compare(size1, size2);
-                }
-            }
+				// 根据排序顺序返回结果
+				return order == SortOrder.Ascending ? result : -result;
+			}
+			private int CompareFileSize(string size1, string size2)
+			{
+				try
+				{
+					var s1 = ParseFileSize(size1);
+					var s2 = ParseFileSize(size2);
+					return s1.CompareTo(s2);
+				}
+				catch
+				{
+					return string.Compare(size1, size2);
+				}
+			}
 
-            private double ParseFileSize(string size)
-            {
-                var parts = size.Split(' ');
-                if (parts.Length != 2) return 0;
+			private double ParseFileSize(string size)
+			{
+				var parts = size.Split(' ');
+				if (parts.Length != 2) return 0;
 
-                var value = double.Parse(parts[0]);
-                var unit = parts[1].ToUpper();
+				var value = double.Parse(parts[0]);
+				var unit = parts[1].ToUpper();
 
-                return unit switch
-                {
-                    "B" => value,
-                    "KB" => value * 1024,
-                    "MB" => value * 1024 * 1024,
-                    "GB" => value * 1024 * 1024 * 1024,
-                    "TB" => value * 1024 * 1024 * 1024 * 1024,
-                    _ => 0
-                };
-            }
-        }
+				return unit switch
+				{
+					"B" => value,
+					"KB" => value * 1024,
+					"MB" => value * 1024 * 1024,
+					"GB" => value * 1024 * 1024 * 1024,
+					"TB" => value * 1024 * 1024 * 1024 * 1024,
+					_ => 0
+				};
+			}
+		}
 
 		// 优化文件系统监视器配置
 		private void InitializeFileSystemWatcher()
-        {
-            watcher.NotifyFilter = NotifyFilters.DirectoryName
-                                 | NotifyFilters.FileName
-                                 | NotifyFilters.LastWrite
-                                 | NotifyFilters.Size;
-            watcher.Changed += Watcher_Changed;
-            watcher.Created += Watcher_Changed;
-            watcher.Deleted += Watcher_Changed;
-            watcher.Renamed += Watcher_Changed;
-            watcher.Filter = "*.*";
-            watcher.IncludeSubdirectories = false;
-        }
+		{
+			watcher.NotifyFilter = NotifyFilters.DirectoryName
+								 | NotifyFilters.FileName
+								 | NotifyFilters.LastWrite
+								 | NotifyFilters.Size;
+			watcher.Changed += Watcher_Changed;
+			watcher.Created += Watcher_Changed;
+			watcher.Deleted += Watcher_Changed;
+			watcher.Renamed += Watcher_Changed;
+			watcher.Filter = "*.*";
+			watcher.IncludeSubdirectories = false;
+		}
 
-        private void InitializeThemeToggleButton()
-        {
-            ToolStripButton themeToggleButton = new ToolStripButton
-            {
-                Text = "切换主题",
-                DisplayStyle = ToolStripItemDisplayStyle.Text
-            };
-            themeToggleButton.Click += ThemeToggleButton_Click;
-            uiManager.toolbarManager.DynamicToolStrip.Items.Add(themeToggleButton);
-        }
+		private void InitializeThemeToggleButton()
+		{
+			ToolStripButton themeToggleButton = new ToolStripButton
+			{
+				Text = "切换主题",
+				DisplayStyle = ToolStripItemDisplayStyle.Text
+			};
+			themeToggleButton.Click += ThemeToggleButton_Click;
+			uiManager.toolbarManager.DynamicToolStrip.Items.Add(themeToggleButton);
+		}
 
-        private void ThemeToggleButton_Click(object? sender, EventArgs e)
-        {
-            ThemeToggle();
-        }
-        public void ThemeToggle()
-        {
-            if (BackColor == SystemColors.Control)
-                themeManager.ApplyDarkTheme();
-            else
-                themeManager.ApplyLightTheme();
-        }
+		private void ThemeToggleButton_Click(object? sender, EventArgs e)
+		{
+			ThemeToggle();
+		}
+		public void ThemeToggle()
+		{
+			if (BackColor == SystemColors.Control)
+				themeManager.ApplyDarkTheme();
+			else
+				themeManager.ApplyLightTheme();
+		}
 
-        // 查看按钮点击处理逻辑
-        public void ViewButton_Click(object? sender, EventArgs e)
-        {
-            do_cm_list();
-        }
+		// 查看按钮点击处理逻辑
+		public void ViewButton_Click(object? sender, EventArgs e)
+		{
+			do_cm_list();
+		}
 		private List<string> GetFileListByViewOrParam(string param)
 		{
 			if (!param.Equals(string.Empty))
@@ -2172,7 +2191,7 @@ namespace zfile
 			List<string> result = new();
 			if (activeListView.SelectedItems.Count == 0)
 				return result;
-			
+
 			// 检查是否是FTP路径
 			if (currentDirectory[isleft].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
 			{
@@ -2183,7 +2202,8 @@ namespace zfile
 					// 对于FTP文件，先下载到本地临时目录
 					return activeListView.SelectedItems.Cast<ListViewItem>()
 						.Where(i => i.SubItems[3].Text != "<DIR>") // 排除目录
-						.Select(i => {
+						.Select(i =>
+						{
 							string remotePath = i.SubItems[1].Text;
 							return source.DownloadFile(remotePath);
 						})
@@ -2191,12 +2211,12 @@ namespace zfile
 						.ToList();
 				}
 			}
-			
+
 			// 非FTP路径或FTP处理失败，使用原来的逻辑
 			return activeListView.SelectedItems.Cast<ListViewItem>().Select(i => i.SubItems[1].Text).ToList();
 		}
-        public void do_cm_edit(string param = "")
-        {
+		public void do_cm_edit(string param = "")
+		{
 
 			//var listView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
 			//if (listView.SelectedItems.Count == 0) return;
@@ -2204,8 +2224,8 @@ namespace zfile
 			//var selectedItem = listView.SelectedItems[0];
 			//var filePath = Helper.getFSpath(Path.Combine(currentDirectory[isleft], selectedItem.Text));
 			var files = GetFileListByViewOrParam(param);
-            //if (File.Exists(filePath))
-            {
+			//if (File.Exists(filePath))
+			{
 				//Form viewerForm = new Form
 				//{
 				//    Text = $"查看文件 - {selectedItem.Text}",
@@ -2222,8 +2242,8 @@ namespace zfile
 				};
 				editorForm.Show();
 			}
-        }
-		public void do_cm_list(string param="")
+		}
+		public void do_cm_list(string param = "")
 		{
 			// 编辑按钮点击处理逻辑
 			// OPEN VIEWERFORM
@@ -2271,57 +2291,57 @@ namespace zfile
 			viewerForm.Show();
 		}
 		public void EditButton_Click(object? sender, EventArgs e)
-        {
+		{
 			do_cm_edit();
 		}
 
-        public void CopyButton_Click(object? sender, EventArgs e)
-        {
+		public void CopyButton_Click(object? sender, EventArgs e)
+		{
 			cmdProcessor.ExecCmd("cm_copy");
-        }
-        public void DeleteButton_Click(object? sender, EventArgs e)
-        {
+		}
+		public void DeleteButton_Click(object? sender, EventArgs e)
+		{
 			cmdProcessor.ExecCmd("cm_delete");
-        }
+		}
 
-        public void FolderButton_Click(object? sender, EventArgs e)
-        {
-            string input = Microsoft.VisualBasic.Interaction.InputBox("请输入新文件夹名称: eg. dir1,dir2\\dir3", "新建文件夹", "新建文件夹");
-            if (string.IsNullOrWhiteSpace(input)) return;
+		public void FolderButton_Click(object? sender, EventArgs e)
+		{
+			string input = Microsoft.VisualBasic.Interaction.InputBox("请输入新文件夹名称: eg. dir1,dir2\\dir3", "新建文件夹", "新建文件夹");
+			if (string.IsNullOrWhiteSpace(input)) return;
 			var dirs = input.Split(',');
-			foreach(var dir in dirs)
+			foreach (var dir in dirs)
 			{
 				string newFolderPath = Path.Combine(currentDirectory[isleft], dir);
 				FileSystemManager.CreateDirectory(newFolderPath);
 			}
 			RefreshPanel(activeListView);
-        }
+		}
 
-        public void MoveButton_Click(object? sender, EventArgs e)
-        {
+		public void MoveButton_Click(object? sender, EventArgs e)
+		{
 			cmdProcessor.ExecCmd("cm_renmov");
-        }
+		}
 
-        public void RefreshTreeViewAndListView(ListView listView, string path)
-        {
-			if(listView == null) return;
-			
+		public void RefreshTreeViewAndListView(ListView listView, string path)
+		{
+			if (listView == null) return;
+
 			var node = listView == uiManager.LeftList ? uiManager.LeftTree.SelectedNode : uiManager.RightTree.SelectedNode;
-			
-            LoadSubDirectories(node, listView);
+
+			LoadSubDirectories(node, listView);
 			if (node.Text == "回收站")
 				LoadRecycleBin(listView);
 			else if (node.Tag is FtpNodeTag)
 			{
 				ftpNodeSelect(node);
-			} 
+			}
 			else
 				LoadListViewByFilesystem(path, listView, node);
-        }
+		}
 		public void RefreshPanel(TreeView treeView)
 		{
 			if (treeView == null) return;
-			RefreshPanel(treeView==uiManager.LeftTree? RefreshPanelMode.Left: RefreshPanelMode.Right);
+			RefreshPanel(treeView == uiManager.LeftTree ? RefreshPanelMode.Left : RefreshPanelMode.Right);
 		}
 		public void RefreshPanel(ListView listView)
 		{
@@ -2334,42 +2354,42 @@ namespace zfile
 		}
 		public void RefreshPanel(bool isleft)
 		{
-			RefreshPanel(isleft? RefreshPanelMode.Left: RefreshPanelMode.Right);
+			RefreshPanel(isleft ? RefreshPanelMode.Left : RefreshPanelMode.Right);
 		}
 		public void RefreshPanel(RefreshPanelMode mode)
 		{
-			if (mode.HasFlag(RefreshPanelMode.Left)) 
+			if (mode.HasFlag(RefreshPanelMode.Left))
 			{
 				RefreshTreeViewAndListView(uiManager.LeftList, uiManager.LeftPathTextBox.CurrentNode.UniqueID);
 				//Debug.Print("refresh left panel");
 			}
-			if (mode.HasFlag(RefreshPanelMode.Right))	
+			if (mode.HasFlag(RefreshPanelMode.Right))
 			{
-				if(uiManager.RightTree.SelectedNode.Tag is ShellItem)
+				if (uiManager.RightTree.SelectedNode.Tag is ShellItem)
 					RefreshTreeViewAndListView(uiManager.RightList, ((ShellItem)uiManager.RightTree.SelectedNode.Tag).parsepath);
 				//Debug.Print("refresh right panel");
 			}
 		}
-        public void TerminalButton_Click(object? sender, EventArgs e)
-        {
-            // 终端按钮点击处理逻辑
-        }
+		public void TerminalButton_Click(object? sender, EventArgs e)
+		{
+			// 终端按钮点击处理逻辑
+		}
 
-        public void ExitButton_Click(object? sender, EventArgs e)
-        {
-            Application.Exit();
-        }
+		public void ExitButton_Click(object? sender, EventArgs e)
+		{
+			Application.Exit();
+		}
 
-        public void OpenCommandPrompt(string cmdstring = "", string cmdMode = "/k", bool isRunas = true)
-        {
-            try
-            {
-                //Process.Start("cmd.exe");
-                //w32.ShellExecute(IntPtr.Zero, "open", "notepad.exe", "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
-                //WinExec(path, 1);
-                //System.Diagnostics.Process.Start(path);
-                //System.Diagnostics.Process.Start("explorer.exe", path);
-                //Process.Start("cmd.exe", "/c start explorer.exe /select,");
+		public void OpenCommandPrompt(string cmdstring = "", string cmdMode = "/k", bool isRunas = true)
+		{
+			try
+			{
+				//Process.Start("cmd.exe");
+				//w32.ShellExecute(IntPtr.Zero, "open", "notepad.exe", "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
+				//WinExec(path, 1);
+				//System.Diagnostics.Process.Start(path);
+				//System.Diagnostics.Process.Start("explorer.exe", path);
+				//Process.Start("cmd.exe", "/c start explorer.exe /select,");
 				var processInfo = new ProcessStartInfo("cmd.exe")
 				{
 					Arguments = $"{cmdMode} {cmdstring}",
@@ -2382,31 +2402,31 @@ namespace zfile
 				//Process.Start("cmd.exe", $"{cmdMode} {cmdstring}");
 				Process.Start(processInfo);
 			}
-            catch (Exception ex)
-            {
-                MessageBox.Show($"无法打开命令提示符: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
+			catch (Exception ex)
+			{
+				MessageBox.Show($"无法打开命令提示符: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
 
-        public void MenuItem_Click(object? sender, EventArgs e)
-        {
-            if (sender is ToolStripMenuItem menuItem)
-            {
+		public void MenuItem_Click(object? sender, EventArgs e)
+		{
+			if (sender is ToolStripMenuItem menuItem)
+			{
 				if (menuItem != null && menuItem.Tag != null)
 				{
 					var cmd = (string)menuItem.Tag;//51 or cm_xx
 					Debug.Print($"点击了菜单项: {menuItem.Text} , cmd : {cmd}");
 					cmdProcessor.ExecCmd(cmd);
 				}
-            }
-        }
-		
+			}
+		}
+
 		public void SetViewMode(View viewMode)
 		{
-			if(viewMode == activeListView.View) return;
+			if (viewMode == activeListView.View) return;
 			var needupdate = viewMode == View.Tile || activeListView.View == View.Tile;
 			activeListView.View = viewMode;
-			if (needupdate) 
+			if (needupdate)
 				RefreshPanel();//update imagekey 
 		}
 		public bool IsArchiveFile(string filePath)
@@ -2424,7 +2444,7 @@ namespace zfile
 			var wcxModule = wcxModuleList.GetModuleByExt(ext);
 			if (wcxModule == null)
 				return false;
-			if(!wcxModule.CanYouHandleThisFile(archivePath))
+			if (!wcxModule.CanYouHandleThisFile(archivePath))
 				return false;
 			IntPtr handle = wcxModule.OpenArchive(archivePath, 0, out var openResult);//TODO: BUGFIX: zip.wcx 的函数openarchive 对于zip压缩文件为何不起作用
 			if (handle == IntPtr.Zero)
@@ -2525,15 +2545,15 @@ namespace zfile
 			string fileList = string.Join("\n", files);
 			return wcxModule.DeleteFiles(archivePath, fileList) == 0;
 		}
-		
-		private void Watcher_Changed(object sender, FileSystemEventArgs e)
-        {
-            Control.CheckForIllegalCrossThreadCalls = false;//设置该属性 为false
 
-            var selectedDrive = uiManager.LeftDriveComboBox.SelectedItem?.ToString();
-            var listView = selectedDrive != null && watcher.Path.StartsWith(selectedDrive) ? uiManager.LeftList : uiManager.RightList;
+		private void Watcher_Changed(object sender, FileSystemEventArgs e)
+		{
+			Control.CheckForIllegalCrossThreadCalls = false;//设置该属性 为false
+
+			var selectedDrive = uiManager.LeftDriveComboBox.SelectedItem?.ToString();
+			var listView = selectedDrive != null && watcher.Path.StartsWith(selectedDrive) ? uiManager.LeftList : uiManager.RightList;
 			//RefreshPanel(listView);//TODO:BUGFIX 线程异常操作，
-        }
+		}
 		public string GetListItemPath(ListViewItem item)
 		{
 			if (item.Tag is TreeNode node)
@@ -2545,7 +2565,7 @@ namespace zfile
 
 			// 检查是否是FTP节点
 			//if (item?.Tag is FtpNodeTag || item?.Tag is FtpRootNodeTag)
-			if(uiManager.activeTreeview.SelectedNode.Tag is FtpNodeTag ftpnode)
+			if (uiManager.activeTreeview.SelectedNode.Tag is FtpNodeTag ftpnode)
 			{
 				// 对于FTP项，直接使用SubItems[1]中存储的完整路径
 				return item.SubItems[1].Text;
@@ -2570,6 +2590,33 @@ namespace zfile
 					}
 				}
 			}
+		}
+
+		// 获取路径访问历史
+		public List<string> GetPathHistory()
+		{
+			// 清理超过100条的旧记录
+			if (pathAccessHistory.Count > MAX_HISTORY_COUNT)
+			{
+				var oldestPaths = pathAccessHistory
+					.OrderBy(x => x.Value.lastAccess)
+					.Take(pathAccessHistory.Count - MAX_HISTORY_COUNT)
+					.Select(x => x.Key)
+					.ToList();
+
+				foreach (var path in oldestPaths)
+				{
+					pathAccessHistory.Remove(path);
+				}
+			}
+
+			return pathAccessHistory.Keys.ToList();
+		}
+
+		// 可选：添加一个清理历史记录的方法
+		public void ClearPathHistory()
+		{
+			pathAccessHistory.Clear();
 		}
 	}
 }

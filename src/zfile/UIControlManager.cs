@@ -720,7 +720,8 @@ namespace zfile
 		{
 			if (sender is not ToolStripButton button) return;
 
-			var isLeft = button.GetCurrentParent() == LeftNavigationStrip;
+			// 使用 Owner 属性来判断按钮属于哪个导航栏
+			var isLeft = button.Owner == LeftNavigationStrip;
 			isleft = isLeft;
 
 			switch (button.Tag?.ToString())

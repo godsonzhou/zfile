@@ -30,12 +30,15 @@ namespace zfile
 		#endregion
 
 		#region Drive Controls
-		public ComboBox LeftDriveComboBox { get; } = new();
-		public ComboBox RightDriveComboBox { get; } = new();
-		public ShengAddressBarStrip LeftPathTextBox { get; } = new();
-		public ShengAddressBarStrip RightPathTextBox { get; } = new();
+		public ComboBox LeftDriveComboBox { get; } = new() { Name = "LeftDriveCombo" };
+		public ComboBox RightDriveComboBox { get; } = new() { Name = "RightDriveCombo" };
+		public ShengAddressBarStrip LeftPathTextBox { get; } = new() { Name = "LeftPath" };
+		public ShengAddressBarStrip RightPathTextBox { get; } = new() { Name = "RightPath" };
 		public ShengAddressBarStrip ActivePathTextBox { get => (isleft? LeftPathTextBox : RightPathTextBox); }
 		#endregion
+		// 添加导航按钮控件
+		public ToolStrip LeftNavigationStrip { get; } = new() { Name = "LeftNav", Width=100};
+		public ToolStrip RightNavigationStrip { get; } = new() { Name = "RightNav", Width=100};
 
 		#region View Controls
 		public TreeView LeftTree { get; } = new() { Name = "LeftTree" };
@@ -45,18 +48,18 @@ namespace zfile
 		#endregion
 
 		#region Preview Controls
-		public TextBox LeftPreview { get; } = new();
-		public TextBox RightPreview { get; } = new();
+		public TextBox LeftPreview { get; } = new() { Name = "LeftPreview"};
+		public TextBox RightPreview { get; } = new() { Name = "RightPreview" };
 		#endregion
 
 		#region Status Controls
-		public StatusStrip LeftStatusStrip { get; } = new();
-		public StatusStrip RightStatusStrip { get; } = new();
+		public StatusStrip LeftStatusStrip { get; } = new() { Name = "LeftStatus"};
+		public StatusStrip RightStatusStrip { get; } = new() { Name = "RightStatus"};
 		#endregion
 
 		#region Bookmark Controls
-		public readonly FlowLayoutPanel leftBookmarkPanel = new();
-		public readonly FlowLayoutPanel rightBookmarkPanel = new();
+		public readonly FlowLayoutPanel leftBookmarkPanel = new() { Name = "LeftBookmark"};
+		public readonly FlowLayoutPanel rightBookmarkPanel = new() { Name = "RightBookmark"};
 		public BookmarkManager BookmarkManager { get; private set; }
 		#endregion
 
@@ -662,11 +665,87 @@ namespace zfile
 			driveBox.Dock = DockStyle.Left;
 			driveBox.DropDownStyle = ComboBoxStyle.DropDownList;
 			driveBox.SelectedIndexChanged += DriveComboBox_SelectedIndexChanged;
+			// 创建并配置导航按钮工具栏
+			var isleft = pathTextBox == LeftPathTextBox;
+			var navigationStrip = isleft ? LeftNavigationStrip : RightNavigationStrip;
+			navigationStrip.Dock = DockStyle.Right;
+			navigationStrip.GripStyle = ToolStripGripStyle.Hidden;
 
+			// 添加导航按钮
+			var gotoParentDir = new ToolStripButton("..", null, NavigationButton_Click)
+			{
+				ToolTipText = "转到父目录",
+				Tag = "parentdir"
+			};
+			var gotoHomeDir = new ToolStripButton("~", null, NavigationButton_Click)
+			{
+				ToolTipText = "转到用户主目录",
+				Tag = "homedir"
+			};
+			var gotoRootDir = new ToolStripButton("\\", null, NavigationButton_Click)
+			{
+				ToolTipText = "转到根目录",
+				Tag = "rootdir"
+			};
+			var gotoFrequentDir = new ToolStripButton("*", null, NavigationButton_Click)
+			{
+				ToolTipText = "常用目录",
+				Tag = "frequentdir"
+			};
+			var gotoHistoryDir = new ToolStripButton("^", null, NavigationButton_Click)
+			{
+				ToolTipText = "历史目录",
+				Tag = "historydir"
+			};
+			var gotoAnotherDir = new ToolStripButton(isleft ? "<" : ">", null, NavigationButton_Click)
+			{
+				ToolTipText = "转到对面面板当前目录",
+				Tag = "anotherdir"
+			};
+			navigationStrip.Items.AddRange(new ToolStripItem[] {
+				gotoParentDir, gotoHomeDir, gotoRootDir, gotoFrequentDir, gotoHistoryDir,gotoAnotherDir
+			});
 			pathTextBox.Dock = DockStyle.Fill;
 
+			parent.Controls.Add(navigationStrip);
 			parent.Controls.Add(pathTextBox);
 			parent.Controls.Add(driveBox);
+			//parent.Controls.SetChildIndex(driveBox, 0);
+			//parent.Controls.SetChildIndex(navigationStrip, 1);
+			//parent.Controls.SetChildIndex(pathTextBox, 2);
+		}
+		private void NavigationButton_Click(object? sender, EventArgs e)
+		{
+			if (sender is not ToolStripButton button) return;
+
+			var isLeft = button.GetCurrentParent() == LeftNavigationStrip;//todo: bugfix:!!
+			isleft = isLeft;
+
+			switch (button.Tag?.ToString())
+			{
+				case "homedir":
+					form.NavigateToPath(Helper.GetPathByEnv("%userprofile%"));
+					break;
+				case "rootdir":
+					form.NavigateToPath(Helper.GetPathByEnv("\\"));
+					break;
+				case "parentdir":
+					var currentPath = isLeft ? LeftPathTextBox.CurrentNode?.UniqueID : RightPathTextBox.CurrentNode?.UniqueID;
+					if (!string.IsNullOrEmpty(currentPath))
+					{
+						var parentPath = Path.GetDirectoryName(currentPath);
+						if (!string.IsNullOrEmpty(parentPath))
+							form.NavigateToPath(parentPath);
+					}
+					break;
+				case "historydir":
+					break;
+				case "frequentdir":
+					break;
+				case "anotherdir":
+					form.NavigateToPath(isleft ? RightPathTextBox.CurrentNode?.UniqueID : LeftPathTextBox.CurrentNode?.UniqueID);
+					break;
+			}
 		}
 
 		private void LoadDrives()
@@ -1382,7 +1461,9 @@ namespace zfile
 					CleanupTreeViewResources();
 					LeftTree?.Dispose();
 					RightTree?.Dispose();
-
+					// 释放导航按钮工具栏
+					LeftNavigationStrip?.Dispose();
+					RightNavigationStrip?.Dispose();
 					LeftPreview?.Dispose();
 					RightPreview?.Dispose();
 					LeftStatusStrip?.Dispose();

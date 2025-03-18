@@ -60,7 +60,6 @@ namespace zfile
 		public CmdProc cmdProcessor;
 		public KeyMgr keyManager;
 		private IShellFolder iDeskTop, iCtrlPanel;
-		private Dictionary<string, string> specFolderPaths = new();
 		private string[] draggedItems;
 		private TreeNode rightClickBegin;
 		private string oldname;
@@ -76,6 +75,7 @@ namespace zfile
 		private bool shiftKeyPressed, altKeyPressed, ctrlKeyPressed, winKeyPressed;
 		public IDictionary env;
 		public Dictionary<string, string> specialpaths = new();
+		private Dictionary<string, string> specFolderPaths = new();
 		// 添加一个新的字段来存储路径访问历史
 		private readonly Dictionary<string, (int count, DateTime lastAccess)> pathAccessHistory = new();
 		private const int MAX_HISTORY_COUNT = 100; // 限制历史记录数量
@@ -179,6 +179,7 @@ namespace zfile
 		{
 			env = Helper.getEnv();
 			specialpaths = Helper.GetSpecFolderPaths();
+			specFolderPaths = Helper.GetSpecPathFromReg(); //favarite
 			configLoader = new CFGLOADER(Constants.ZfileCfgPath + "wincmd.ini");
 			ftpconfigLoader = new CFGLOADER(Constants.ZfileCfgPath + "wcx_ftp.ini");
 			cmdicons_configloader = new CFGLOADER(Constants.ZfileCfgPath + "wcmicons.inc");
@@ -224,7 +225,6 @@ namespace zfile
 				uiManager.LeftStatusStrip,
 				uiManager.RightStatusStrip
 			);
-			specFolderPaths = Helper.GetSpecFolderPaths();
 			WdxModuleList wdxModuleList = new WdxModuleList("");
 			WfxModuleList wfxModuleList = new WfxModuleList("");
 			wcxModuleList = new WcxModuleList();

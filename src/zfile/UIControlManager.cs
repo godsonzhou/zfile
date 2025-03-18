@@ -92,6 +92,7 @@ namespace zfile
 		public Dictionary<string, MenuInfo> usermenuMap = new();
 		public bool isThumbs;
 		private bool disposed = false;
+		public HotDirManager hotDirManager;
 
 		public UIControlManager(Form1 form)
 		{
@@ -101,6 +102,7 @@ namespace zfile
 			thumbnailImageListL = new ImageList();
 			thumbnailImageListR = new ImageList();
 			BookmarkManager = new BookmarkManager(form, leftBookmarkPanel, rightBookmarkPanel);
+			hotDirManager = new HotDirManager(form);
 
 			LeftPathTextBox.SelectionChange += LeftPathTextBox_PathChanged;
 			RightPathTextBox.SelectionChange += RightPathTextBox_PathChanged;
@@ -1327,7 +1329,7 @@ namespace zfile
 					if (item.SubItems[3].Text == "<DIR>")
 					{
 						var fullPath = Path.Combine(srcDir, item.Text);
-						//BookmarkManager.AddBookmark(fullPath);
+						hotDirManager.AddFolder(fullPath);
 					}
 				}
 			};
@@ -1337,7 +1339,7 @@ namespace zfile
 			var addCurrentItem = new ToolStripMenuItem("添加当前文件夹");
 			addCurrentItem.Click += (s, e) =>
 			{
-				//BookmarkManager.AddBookmark(srcDir);
+				hotDirManager.AddFolder(srcDir);
 			};
 			menu.Items.Add(addCurrentItem);
 
@@ -1345,7 +1347,7 @@ namespace zfile
 			var configureItem = new ToolStripMenuItem("常用文件夹列表配置...");
 			configureItem.Click += (s, e) =>
 			{
-				BookmarkManager.ShowConfigDialog();
+				hotDirManager.ShowConfigDialog();
 			};
 			menu.Items.Add(configureItem);
 
@@ -1390,7 +1392,7 @@ namespace zfile
 			}
 			menu.Items.Add(envItem);
 
-			menu.Show(location);
+			menu.Show(new Point(Cursor.Position.X, Cursor.Position.Y));
 		}
 
 		public void InitializeDynamicMenu()

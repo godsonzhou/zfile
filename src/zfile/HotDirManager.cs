@@ -114,6 +114,9 @@ namespace zfile
 
         public void ShowConfigDialog()
         {
+            // 创建临时字典用于存储编辑过程中的更改
+            var tempHotDirs = new Dictionary<string, string>(hotDirs);
+
             using var form = new Form
             {
                 Text = "常用文件夹配置",
@@ -164,11 +167,27 @@ namespace zfile
                 Location = new Point(180, 8)
             };
 
+            var okButton = new Button
+            {
+                Text = "确定",
+                Width = 75,
+                Location = new Point(400, 8),
+                DialogResult = DialogResult.OK
+            };
+
+            var cancelButton = new Button
+            {
+                Text = "取消",
+                Width = 75,
+                Location = new Point(485, 8),
+                DialogResult = DialogResult.Cancel
+            };
+
             // 刷新列表视图
             void RefreshListView()
             {
                 listView.Items.Clear();
-                foreach (var dir in hotDirs)
+                foreach (var dir in tempHotDirs)
                 {
                     var item = new ListViewItem(dir.Key);
                     item.SubItems.Add(dir.Value);
@@ -188,7 +207,7 @@ namespace zfile
                     if (MessageBox.Show($"确定要删除 {name} 吗？", "确认删除",
                         MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                     {
-                        DeleteFolder(name);
+                        tempHotDirs.Remove(name);
                         RefreshListView();
                     }
                 }
@@ -249,10 +268,8 @@ namespace zfile
 
                     if (editForm.ShowDialog() == DialogResult.OK)
                     {
-                        DeleteFolder(name);
-                        hotDirs[nameTextBox.Text] = pathTextBox.Text;
-                        isConfigChanged = true;
-                        SaveToCfg();
+                        tempHotDirs.Remove(name);
+                        tempHotDirs[nameTextBox.Text] = pathTextBox.Text;
                         RefreshListView();
                     }
                 }
@@ -264,14 +281,48 @@ namespace zfile
                 using var folderBrowser = new FolderBrowserDialog();
                 if (folderBrowser.ShowDialog() == DialogResult.OK)
                 {
-                    AddFolder(folderBrowser.SelectedPath);
+                    string path = folderBrowser.SelectedPath;
+                    string name = Path.GetFileName(path.TrimEnd('\\'));
+                    if (string.IsNullOrEmpty(name))
+                        name = path;
+
+                    // 如果已存在相同名称的文件夹，添加数字后缀
+                    string originalName = name;
+                    int counter = 1;
+                    while (tempHotDirs.ContainsKey(name))
+                    {
+                        name = $"{originalName}_{counter++}";
+                    }
+
+                    tempHotDirs[name] = path;
                     RefreshListView();
                 }
             };
 
-            buttonPanel.Controls.AddRange(new Control[] { deleteButton, editButton, addButton });
+            // 确定按钮点击事件
+            okButton.Click += (s, e) =>
+            {
+                hotDirs.Clear();
+                foreach (var item in tempHotDirs)
+                {
+                    hotDirs[item.Key] = item.Value;
+                }
+                isConfigChanged = true;
+                SaveToCfg();
+                form.DialogResult = DialogResult.OK;
+            };
+
+            // 取消按钮点击事件
+            cancelButton.Click += (s, e) =>
+            {
+                form.DialogResult = DialogResult.Cancel;
+            };
+
+            buttonPanel.Controls.AddRange(new Control[] { deleteButton, editButton, addButton, okButton, cancelButton });
             form.Controls.Add(listView);
             form.Controls.Add(buttonPanel);
+            form.AcceptButton = okButton;
+            form.CancelButton = cancelButton;
 
             form.ShowDialog();
         }

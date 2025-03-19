@@ -1539,7 +1539,17 @@ namespace zfile
 			IEnumIDList Enum;
 			try
 			{
-				if (root.EnumObjects(this.Handle, SHCONTF.FOLDERS, out nint EnumPtr) == w32.S_OK)    // 循环查找子项
+				//get the config showhiddensystem 
+				var shcontf = SHCONTF.FOLDERS;
+				if (int.TryParse(configLoader.FindConfigValue("Configuration", "ShowHiddenSystem"), out var showhiddensystem))
+				{
+					if((showhiddensystem & 2) != 0)
+					{
+						shcontf |= SHCONTF.INCLUDEHIDDEN;
+					}
+				}
+				
+				if (root.EnumObjects(this.Handle, shcontf, out nint EnumPtr) == w32.S_OK)    // 循环查找子项
 				{
 					if (EnumPtr == IntPtr.Zero)  //如果node=程序和功能,则EnumPtr=0，直接返回
 						return;

@@ -41,8 +41,8 @@ namespace zfile
             {
                 try
                 {
-                    var client = new MCPClient();
-                    await client.ConnectAsync(serverConfig.Command, serverConfig.Args);
+                    var client = new MCPClient("aiclient", "1.0.0", "postgres", "helloworld!");
+                    //client.ConnectAsync(serverConfig.Command, serverConfig.Args);
                     mcpClients[serverName] = client;
                     return true;
                 }
@@ -61,8 +61,8 @@ namespace zfile
             {
                 try
                 {
-                    // 尝试执行一个简单的查询来检查服务器状态
-                    await client.DescribeTableAsync("dummy");
+					// 尝试执行一个简单的查询来检查服务器状态
+					await client.SendPingAsync();//client.DescribeTableAsync("dummy");
                     return true;
                 }
                 catch
@@ -80,11 +80,11 @@ namespace zfile
                 try
                 {
                     var tools = new List<string>();
-                    // 获取服务器支持的所有工具
-                    var capabilities = await client.GetCapabilitiesAsync();
+					// 获取服务器支持的所有工具
+					var capabilities = await client.GetFunctionsAsync();// client.GetCapabilitiesAsync();
                     foreach (var capability in capabilities)
                     {
-                        tools.Add(capability.Key);
+                        tools.Add(capability.JsonSchema.ToString());
                     }
                     return tools;
                 }

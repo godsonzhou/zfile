@@ -1048,18 +1048,7 @@ namespace zfile
 			}
 		}
 
-		private void do_cm_mcpclient()
-		{
-			var configPath = Path.Combine(Constants.ZfileCfgPath, "zfile_mcp_settings.json");
-			var mcpClientForm = new MCPClientForm(configPath);
-			mcpClientForm.Show();
-		}
-
-		private void do_cm_mcpclient1()
-		{
-			// 保留此方法以兼容现有代码，但实际功能与do_cm_mcpclient相同
-			do_cm_mcpclient();
-		}
+	
 
 	}
 }

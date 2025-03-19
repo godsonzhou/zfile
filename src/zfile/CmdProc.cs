@@ -579,13 +579,16 @@ namespace zfile
 						break;
 
 					case 11438: // mcp client
-						do_cm_mcpclient(param);
+						do_cm_mcpConfigUI(param);
 						break;
 					case 11439: // mcp client with mcpsharp
-						var lst = Task.Run(async () => { await do_cm_mcpclient1(param); });
+						var lst = Task.Run(async () => { await do_cm_GetInfoFromMcpServer(param); });
 						break;
 					case 11440: // launch mcp server
-						Task.Run(async () => { await do_cm_mcpserver(param); } ); // param is servername
+						Task.Run(async () => { await do_cm_StartMcpServer(param); } ); // param is servername
+						break;
+					case 11441:
+						do_cm_QueryMcpServer(param);
 						break;
 
 					case 24340:
@@ -692,7 +695,7 @@ namespace zfile
 				}
 			}
 		}
-		private async Task do_cm_mcpserver(string param)
+		private async Task do_cm_StartMcpServer(string param = "mymcpserver")
 		{
 			MCPServer.AddToolHandler(new Tool()
 			{
@@ -712,16 +715,28 @@ namespace zfile
 			MCPServer.Register<MySkillClass>();
 			await MCPServer.StartAsync(param, "1.0.0");
 		}
-		private async Task<IList<AIFunction>> do_cm_mcpclient1(string param)
+		private void do_cm_mcpConfigUI(string mcp_settings_file = "zfile_mcp_settings.json")
+		{
+			var configPath = Path.Combine(Constants.ZfileCfgPath, mcp_settings_file);
+			var mcpClientForm = new MCPClientForm(configPath);
+			mcpClientForm.Show();
+		}
+
+
+		private async Task<IList<AIFunction>> do_cm_GetInfoFromMcpServer(string param = "mymcpserver")
 		{
 			// Client-side integration
-			MCPClient client = new("AIClient", "1.0", "path/to/mcp/server");
+			MCPClient client = new("AIClient", "1.0", param);
 			IList<AIFunction> functions = await client.GetFunctionsAsync();
+			var prompts = await client.GetPromptListAsync();
+			var resources = await client.GetResourcesAsync();
+			var tools = await client.GetToolsAsync();
+			var resourceTemplates = await client.GetResourceTemplatesAsync();
 			return functions;
 		}
-		private void do_cm_mcpclient(string param)
+		private void do_cm_QueryMcpServer(string param)
 		{
-			Task.Run(async () => { await MCP.Launcher([param]); });
+			Task.Run(async () => { await MCP.Launcher([param]); }); //create session and execute query on mcp server
 		}
 		private void do_cm_switchoverlayicons()
 		{

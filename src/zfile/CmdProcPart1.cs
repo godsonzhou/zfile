@@ -15,8 +15,8 @@ using WinShell;
 
 namespace zfile
 {
-    public partial class CmdProc
-    {
+	public partial class CmdProc
+	{
 		private void do_cm_listExternal(string param)
 		{
 			string externalViewer = owner.configLoader.FindConfigValue("Configuration", "Viewer");
@@ -474,14 +474,16 @@ namespace zfile
 				filePaths = owner.se.PrepareParameter(param, new string[] { }, "");
 
 			// 使用异步方式处理，避免UI线程阻塞
-			_ = Task.Run(async () => {
+			_ = Task.Run(async () =>
+			{
 				try
 				{
 					if (!owner.lLM_Helper.IsPrepared)
 						await owner.lLM_Helper.Prepare().ConfigureAwait(false);
 					var response = await owner.lLM_Helper.CallOllamaApiAsync("介绍一下你自己。").ConfigureAwait(false);
 					// 使用Invoke确保在UI线程上显示消息框
-					owner.Invoke(() => {
+					owner.Invoke(() =>
+					{
 						Debug.Print($"{owner.lLM_Helper.currentModel}: {response}");
 					});
 					response = await ShowAIassistDialog(filePaths, "请描述以下内容：\r\n", false);
@@ -489,7 +491,8 @@ namespace zfile
 				}
 				catch (Exception ex)
 				{
-					owner.Invoke(() => {
+					owner.Invoke(() =>
+					{
 						MessageBox.Show($"Ollama操作失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
 					});
 				}
@@ -1043,6 +1046,19 @@ namespace zfile
 			{
 				outputStream?.Dispose();
 			}
+		}
+
+		private void do_cm_mcpclient()
+		{
+			var configPath = Path.Combine(Constants.ZfileCfgPath, "zfile_mcp_settings.json");
+			var mcpClientForm = new MCPClientForm(configPath);
+			mcpClientForm.Show();
+		}
+
+		private void do_cm_mcpclient1()
+		{
+			// 保留此方法以兼容现有代码，但实际功能与do_cm_mcpclient相同
+			do_cm_mcpclient();
 		}
 
 	}

@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "postgres": {
+      "command": "cmd.exe",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://localhost/postgres"
+      ]
+    },
+    "github.com/modelcontextprotocol/servers/tree/main/src/sqlite": {
+      "command": "cmd.exe",
+      "args": [
+        "/c",
+        "uv",
+        "--directory",
+        "d:/gitrepos/Files/mcp_servers/sqlite/src/sqlite",
+        "run",
+        "mcp-server-sqlite",
+        "--db-path",
+        "C:\\Users\\zhouy\\AppData\\Roaming\\NeatDM\\NeatDB.db"
+      ],
+      "disabled": false,
+      "autoApprove": [
+        "read_query",
+        "describe_table"
+      ]
+    }
+  }
+}

@@ -1323,64 +1323,12 @@ namespace zfile
 			if (e.Data.GetDataPresent(DataFormats.FileDrop))
 			{
 				string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-				var strip = sender as ToolStrip;//文件可以拖动到按钮上
-				if (strip != null && uiManager != null)
+
+				// 首先检查是否拖放到按钮上
+				var button = sender as ToolStripButton;
+				if (button != null && uiManager != null)
 				{
-					var bar = strip?.LayoutStyle == ToolStripLayoutStyle.VerticalStackWithOverflow
-								? uiManager.vtoolbarManager
-								: uiManager.toolbarManager;
-					foreach (string file in files)
-					{
-						try
-						{
-							FileInfo fi = new FileInfo(file);
-							// 获取文件显示名称
-							string displayName = Path.GetFileNameWithoutExtension(file);
-
-							// 设置按钮参数
-							//var buttonParams = new Dictionary<string, object>
-							//{
-							//    {"Command", "Execute"},
-							//    {"Path", file},
-							//    {"WorkingDirectory", fi.DirectoryName},
-							//    {"Icon", Icon.ExtractAssociatedIcon(file)?.ToBitmap()}
-							//};
-
-							// 添加或更新工具栏按钮
-							//uiManager.toolbarManager.AddButton(
-							//    displayName,
-							//    buttonParams,
-							//    (s, args) => ExecuteToolbarCommand(file)
-							//);
-
-							//TODO: 如何判定当前是toolbarmanager还是vtoolbarmanager?
-							// 通过工具栏的停靠方向判断是水平还是垂直工具栏
-
-							bar.AddButton(displayName, file, file + ",0", "", "", "0");
-
-							// 设置按钮显示属性
-							//button.Text = displayName;
-							//button.ToolTipText = $"启动 {displayName}";
-							//if (buttonParams["Icon"] is Image icon)
-							//{
-							//    button.Image = icon;
-							//}
-						}
-						catch (Exception ex)
-						{
-							Debug.Print($"添加工具栏按钮失败: {ex.Message}");
-						}
-					}
-
-					// 刷新工具栏
-					bar.GenerateDynamicToolbar();
-					return;
-				}
-				var button1 = sender as ToolStripButton;//文件可以拖动到按钮上
-				if (button1 != null && uiManager != null)
-				{
-					//拖到了一个按钮上，执行用这个按钮的CMD 并将选中的文件作为参数传入的逻辑
-					string cmd = button1.Tag?.ToString() ?? "";
+					string cmd = button.Tag?.ToString() ?? "";
 					if (!string.IsNullOrEmpty(cmd))
 					{
 						foreach (string file in files)
@@ -1397,7 +1345,31 @@ namespace zfile
 								cmdProcessor.ExecCmd(cmd, file);
 							}
 						}
+						return;
 					}
+				}
+
+				// 如果不是拖放到按钮上，则处理拖放到工具栏的情况
+				var strip = sender as ToolStrip;
+				if (strip != null && uiManager != null)
+				{
+					var bar = strip?.LayoutStyle == ToolStripLayoutStyle.VerticalStackWithOverflow
+								? uiManager.vtoolbarManager
+								: uiManager.toolbarManager;
+					foreach (string file in files)
+					{
+						try
+						{
+							FileInfo fi = new FileInfo(file);
+							string displayName = Path.GetFileNameWithoutExtension(file);
+							bar.AddButton(displayName, file, file + ",0", "", "", "0");
+						}
+						catch (Exception ex)
+						{
+							Debug.Print($"添加工具栏按钮失败: {ex.Message}");
+						}
+					}
+					bar.GenerateDynamicToolbar();
 				}
 			}
 		}

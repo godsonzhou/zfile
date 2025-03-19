@@ -29,7 +29,7 @@ namespace zfile
 		private ToolStrip dynamicToolStrip;
 		public ToolStrip DynamicToolStrip => dynamicToolStrip;
 		public List<ToolbarButton> toolbarButtons = new List<ToolbarButton>();
-		public Dictionary<string, List<MenuInfo>> toolbarsDict= new();
+		public Dictionary<string, List<MenuInfo>> toolbarsDict = new();
 		public int ButtonCount => toolbarButtons.Count;
 		private string configfile;
 		// 添加上下文菜单属性
@@ -310,8 +310,9 @@ namespace zfile
 					Text = "",  //menuText,
 					ToolTipText = b.name,
 					Image = form.iconManager.LoadIcon(b.icon),
-					CheckOnClick = b.cmd.Equals("cm_srcthumbs"),	//缩略图按钮为切换模式的按钮
-					Tag = b.cmd
+					CheckOnClick = b.cmd.Equals("cm_srcthumbs"),    //缩略图按钮为切换模式的按钮
+					Tag = b.cmd,
+					AllowDrop = true  // 允许按钮接收拖拽
 				};
 
 				if (b.cmd.StartsWith("openbar"))
@@ -322,23 +323,27 @@ namespace zfile
 						Text = "", //menuText,
 						ToolTipText = b.name,
 						Tag = dropdownFilePath,
-						Image = form.iconManager.LoadIcon(b.icon)
+						Image = form.iconManager.LoadIcon(b.icon),
+						AllowDrop = true  // 允许下拉按钮接收拖拽
 					};
-					// 为下拉按钮添加右键菜单
+					// 为下拉按钮添加右键菜单和拖拽事件
 					dropdownButton.MouseUp += Button_MouseUp;
+					dropdownButton.DragEnter += form.ToolbarButton_DragEnter;
+					dropdownButton.DragDrop += form.ToolbarButton_DragDrop;
 					InitializeDropdownMenu(dropdownButton, dropdownFilePath);
 					dynamicToolStrip.Items.Add(dropdownButton);
 				}
 				else
 				{
 					button.Click += form.uiManager.ToolbarButton_Click;
-					// 为普通按钮添加右键菜单
+					// 为普通按钮添加右键菜单和拖拽事件
 					button.MouseUp += Button_MouseUp;
+					button.DragEnter += form.ToolbarButton_DragEnter;
+					button.DragDrop += form.ToolbarButton_DragDrop;
 					dynamicToolStrip.Items.Add(button);
 				}
 			}
 			dynamicToolStrip.Refresh();
-
 		}
 		public void InitializeDropdownMenu(ToolStripDropDownButton dropdownButton, string dropdownFilePath)
 		{
@@ -364,7 +369,7 @@ namespace zfile
 				menuItem.Click += form.uiManager.ToolbarButton_Click;
 				dropdownButton.DropDownItems.Add(menuItem);
 				if (toolbarsDict.TryGetValue(dropdownFilePath, out _))
-					toolbarsDict[dropdownFilePath].Add(item); 
+					toolbarsDict[dropdownFilePath].Add(item);
 				else
 					toolbarsDict[dropdownFilePath] = [item];
 			}

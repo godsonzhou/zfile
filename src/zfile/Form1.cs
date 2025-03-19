@@ -163,7 +163,7 @@ namespace zfile
 		}
 		private void updateNavHistory(string path)
 		{
-			string normalizedPath = Path.GetFullPath(path).TrimEnd('\\');
+			string normalizedPath = Path.GetFullPath(path).TrimEnd('\\'); //todo: manual input dir may be insert into history redunantly
 			if (pathAccessHistory.ContainsKey(normalizedPath))
 			{
 				var (count, _) = pathAccessHistory[normalizedPath];

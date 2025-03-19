@@ -745,7 +745,7 @@ namespace zfile
 					}
 					break;
 				case "historydir":
-					ShowHistoryMenu(button, isLeft);
+					ShowHistoryMenu(button);
 					break;
 				case "frequentdir":
 					ShowSpecialDirsMenu(new Point(button.Bounds.Left, button.Bounds.Bottom));
@@ -756,7 +756,7 @@ namespace zfile
 			}
 		}
 
-		private void ShowHistoryMenu(ToolStripButton button, bool isLeft)
+		public void ShowHistoryMenu(ToolStripButton button = null)
 		{
 			var historyMenu = new ContextMenuStrip();
 			var pathHistory = form.GetPathHistory();
@@ -811,8 +811,13 @@ namespace zfile
 			if (historyMenu.Items.Count > 0)
 			{
 				// 获取按钮在屏幕上的位置
-				var buttonPos = button.Owner.PointToScreen(new Point(button.Bounds.Left, button.Bounds.Bottom));
-				historyMenu.Show(buttonPos);
+				if (button != null)
+				{
+					var buttonPos = button.Owner.PointToScreen(new Point(button.Bounds.Left, button.Bounds.Bottom));
+					historyMenu.Show(buttonPos);
+				}
+				else
+					historyMenu.Show(new Point(Cursor.Position.X, Cursor.Position.Y));
 			}
 		}
 

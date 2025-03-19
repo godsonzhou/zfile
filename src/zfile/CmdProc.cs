@@ -224,6 +224,9 @@ namespace zfile
 					case 525: // cm_InvertSelection
 						do_cm_InvertSelection();
 						break;
+					case 526: // cm_directoryhotlist
+						do_cm_directoryhotlist();
+						break;
 					case 527: // cm_SelectByExt
 						do_cm_SelectByExt();
 						break;
@@ -303,6 +306,9 @@ namespace zfile
 					case 571:
 						do_cm_gotonextdir();
 						break;
+					case 572: // 命令ID=572,Name=cm_directoryhistory
+						do_cm_directoryhistory();
+						break;
 					case 580:
 						do_cm_configsavesettings();
 						break;
@@ -381,6 +387,12 @@ namespace zfile
 						break;
 					case 2026:
 						do_cm_DirBranch();
+						break;
+					case 2031: // 命令ID=2031，Name = cmsaveselectiontofile
+						do_cm_saveselectiontofile();
+						break;
+					case 2032:
+						do_cm_loadselectionfromfile();
 						break;
 					case 2036: // cm_CopyDetailsToClip
 						do_cm_CopyDetailsToClip();
@@ -597,6 +609,14 @@ namespace zfile
 			//{
 			//	throw new KeyNotFoundException("命令ID不存在");
 			//}
+		}
+		private void do_cm_directoryhotlist()
+		{
+			owner.uiManager.ShowSpecialDirsMenu(new Point(Cursor.Position.X, Cursor.Position.Y));
+		}
+		private void do_cm_directoryhistory()
+		{
+			owner.uiManager.ShowHistoryMenu();
 		}
 		private void do_cm_comparedirs()
 		{

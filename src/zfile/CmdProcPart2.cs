@@ -502,7 +502,26 @@ namespace zfile
 
 		// 存储的选择集合
 		private List<string> savedSelection = new();
-
+		private void do_cm_saveselectiontofile()
+		{
+			OpenFileDialog openFileDialog = new OpenFileDialog() { Title = "选择导出的文件", FileName = $"filelist.txt", Filter = $"文本文件 (*.txt)|*.txt|所有文件 (*.*)|*.*" };
+			DialogResult result = openFileDialog.ShowDialog();
+			if (result == DialogResult.OK)
+			{
+				do_cm_SaveSelection();
+				File.WriteAllLines(openFileDialog.FileName, savedSelection);
+			}
+		}
+		private void do_cm_loadselectionfromfile()
+		{
+			OpenFileDialog openFileDialog = new OpenFileDialog() { Title = "选择导入的文件", FileName = "filelist.txt", Filter = "文本文件 (*.txt)|*.txt|所有文件 (*.*)|*.*" };
+			if (openFileDialog.ShowDialog() == DialogResult.OK)
+			{
+				savedSelection = File.ReadAllLines(openFileDialog.FileName).ToList();
+				do_cm_ClearAll();
+				do_cm_RestoreSelection();
+			}
+		}
 		// 保存选择
 		private void do_cm_SaveSelection()
 		{

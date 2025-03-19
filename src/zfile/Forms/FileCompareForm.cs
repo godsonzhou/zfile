@@ -351,6 +351,7 @@ namespace zfile
                 target.SelectionStart = firstCharIndex;
                 target.ScrollToCaret();
                 UpdateLineNumbers(sourceLineNumbers, source);
+                UpdateLineNumbers(target == txtLeftContent ? leftLineNumbers : rightLineNumbers, target);
             }
             finally
             {
@@ -594,6 +595,8 @@ namespace zfile
                 currentFont = fontDialog.Font;
                 txtLeftContent.Font = currentFont;
                 txtRightContent.Font = currentFont;
+                leftLineNumbers.Font = currentFont;
+                rightLineNumbers.Font = currentFont;
             }
         }
 

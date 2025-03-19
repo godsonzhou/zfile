@@ -28,29 +28,40 @@ namespace zfile
         {
             sourceListView = sourceList;
             currentDirectory = currentDir;
-            
+
             // 初始化窗体
             Text = "批量重命名";
-            Size = new Size(1024, 768);
+            Size = new Size(1200, 768);
             StartPosition = FormStartPosition.CenterParent;
 
-            // 创建分隔容器
-            var splitContainer = new SplitContainer
+            // 创建表格布局
+            var tableLayout = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                Orientation = Orientation.Vertical,
-                SplitterDistance = 450,
-                FixedPanel = FixedPanel.Panel1
+                ColumnCount = 2,
+                RowCount = 1
             };
+
+            // 设置列宽度比例
+            tableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 600));
+            tableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
 
             // 创建左侧预览面板
             previewList = new ListBox
             {
                 Dock = DockStyle.Fill,
-				Width = 450,
-                Font = new Font("Consolas", 9F)
+                Font = new Font("Consolas", 9F),
+                HorizontalScrollbar = true
             };
-            splitContainer.Panel1.Controls.Add(previewList);
+
+            // 创建一个容器Panel来包含previewList
+            var leftPanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                Width = 600,
+                MinimumSize = new Size(600, 0)
+            };
+            leftPanel.Controls.Add(previewList);
 
             // 创建右侧控制面板
             var rightPanel = new Panel
@@ -58,8 +69,11 @@ namespace zfile
                 Dock = DockStyle.Fill,
                 Padding = new Padding(10)
             };
-            splitContainer.Panel2.Controls.Add(rightPanel);
-            Controls.Add(splitContainer);
+
+            // 添加面板到表格布局
+            tableLayout.Controls.Add(leftPanel, 0, 0);
+            tableLayout.Controls.Add(rightPanel, 1, 0);
+            Controls.Add(tableLayout);
 
             // 创建控件
             var templateGroup = new GroupBox
@@ -296,7 +310,7 @@ namespace zfile
                 }
                 else
                 {
-                    var comparison = caseSensitiveBox.Checked ? 
+                    var comparison = caseSensitiveBox.Checked ?
                         StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
                     newName = newName.Replace(findBox.Text, replaceBox.Text, comparison);
                 }
@@ -316,7 +330,7 @@ namespace zfile
                 1 => text.ToUpper(),
                 2 => text.ToLower(),
                 3 => char.ToUpper(text[0]) + text.Substring(1).ToLower(),
-                4 => string.Join(" ", text.Split(' ').Select(w => 
+                4 => string.Join(" ", text.Split(' ').Select(w =>
                     w.Length > 0 ? char.ToUpper(w[0]) + w.Substring(1).ToLower() : w)),
                 _ => text
             };
@@ -398,4 +412,4 @@ namespace zfile
             }
         }
     }
-} 
+}

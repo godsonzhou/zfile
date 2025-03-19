@@ -69,7 +69,7 @@ namespace zfile
                 RowCount = 4,
                 Padding = new Padding(5)
             };
-            mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 30F));
+            mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
             mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 25F));
             mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
@@ -80,7 +80,7 @@ namespace zfile
                 Dock = DockStyle.Fill,
                 ColumnCount = 2,
                 RowCount = 1,
-                Padding = new Padding(5)
+                Padding = new Padding(0)
             };
             topPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
             topPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
@@ -103,8 +103,8 @@ namespace zfile
 
             btnSelectLeft = new Button
             {
-                Text = "选择文件",
-                Dock = DockStyle.Fill
+                Text = "选择文件"
+                //Dock = DockStyle.Fill
             };
             btnSelectLeft.Click += BtnSelectLeft_Click;
 
@@ -129,8 +129,8 @@ namespace zfile
 
             btnSelectRight = new Button
             {
-                Text = "选择文件",
-                Dock = DockStyle.Fill
+                Text = "选择文件"
+                //Dock = DockStyle.Fill
             };
             btnSelectRight.Click += BtnSelectRight_Click;
 

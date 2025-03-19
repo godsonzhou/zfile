@@ -44,15 +44,18 @@ namespace zfile
 		private readonly FileSystemWatcher watcher = new();
 		public Dictionary<bool, string> currentDirectory = new();
 		private TreeNode? selectedNode = null;
-		public TreeNode? SelectedNode {  
-			get { return selectedNode; }  
-			set { selectedNode = value;
+		public TreeNode? SelectedNode
+		{
+			get { return selectedNode; }
+			set
+			{
+				selectedNode = value;
 				if (value != null && value.Tag is ShellItem sitem)
 				{
 					if (Directory.Exists(sitem.parsepath))
 						updateNavHistory(sitem.parsepath);
 				}
-			} 
+			}
 		}
 		private int sortColumn = -1;
 		private SortOrder sortOrder = SortOrder.None;
@@ -1376,8 +1379,25 @@ namespace zfile
 				var button1 = sender as ToolStripButton;//文件可以拖动到按钮上
 				if (button1 != null && uiManager != null)
 				{
-					//拖到了一个按钮上，执行用这个按钮的CMD 并将选中的文件作为参数传入的逻辑 TODO
-
+					//拖到了一个按钮上，执行用这个按钮的CMD 并将选中的文件作为参数传入的逻辑
+					string cmd = button1.Tag?.ToString() ?? "";
+					if (!string.IsNullOrEmpty(cmd))
+					{
+						foreach (string file in files)
+						{
+							// 执行按钮命令，将拖拽的文件作为参数
+							if (cmd.StartsWith("openbar"))
+							{
+								// 如果是下拉菜单按钮，不执行任何操作
+								continue;
+							}
+							else
+							{
+								// 执行普通按钮命令
+								cmdProcessor.ExecCmd(cmd, file);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -1543,12 +1563,12 @@ namespace zfile
 				var shcontf = SHCONTF.FOLDERS;
 				if (int.TryParse(configLoader.FindConfigValue("Configuration", "ShowHiddenSystem"), out var showhiddensystem))
 				{
-					if((showhiddensystem & 2) != 0)
+					if ((showhiddensystem & 2) != 0)
 					{
 						shcontf |= SHCONTF.INCLUDEHIDDEN;
 					}
 				}
-				
+
 				if (root.EnumObjects(this.Handle, shcontf, out nint EnumPtr) == w32.S_OK)    // 循环查找子项
 				{
 					if (EnumPtr == IntPtr.Zero)  //如果node=程序和功能,则EnumPtr=0，直接返回

@@ -40,6 +40,10 @@ namespace zfile
         private TableLayoutPanel topPanel;
         private TableLayoutPanel contentPanel;
         private TableLayoutPanel bottomPanel;
+        private RichTextBox leftLineNumbers;
+        private RichTextBox rightLineNumbers;
+        private ToolStripComboBox bytesPerLineCombo;
+        private bool isHighlighting = false;
 
         public FileCompareForm(string leftFile, string rightFile)
         {
@@ -65,7 +69,7 @@ namespace zfile
                 RowCount = 4,
                 Padding = new Padding(5)
             };
-            mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
+            mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 30F));
             mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 25F));
             mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
@@ -138,6 +142,14 @@ namespace zfile
 
             // 创建工具栏
             toolStrip = new ToolStrip();
+            bytesPerLineCombo = new ToolStripComboBox("每行字节数")
+            {
+                Width = 60,
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Items = { "16", "24", "32" }
+            };
+            bytesPerLineCombo.SelectedIndex = 0;
+            bytesPerLineCombo.SelectedIndexChanged += BytesPerLineCombo_SelectedIndexChanged;
             toolStrip.Items.AddRange(new ToolStripItem[]
             {
                 new ToolStripButton("比较", null, BtnCompare_Click),
@@ -145,7 +157,7 @@ namespace zfile
                 new ToolStripButton("上一个差异", null, BtnPrevDiff_Click),
                 new ToolStripButton("字体", null, BtnFont_Click),
                 new ToolStripButton("16进制模式", null, BtnHexMode_Click) { CheckOnClick = true },
-                new ToolStripComboBox("每行字节数") { Width = 60 },
+                bytesPerLineCombo,
                 new ToolStripButton("区分大小写", null, BtnCaseSensitive_Click) { CheckOnClick = true },
                 new ToolStripButton("忽略空格", null, BtnIgnoreWhitespace_Click) { CheckOnClick = true },
                 new ToolStripButton("忽略常见行", null, BtnIgnoreCommonLines_Click) { CheckOnClick = true },
@@ -178,13 +190,14 @@ namespace zfile
             leftContentPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 40F));
             leftContentPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
 
-            var leftLineNumbers = new RichTextBox
+            leftLineNumbers = new RichTextBox
             {
                 Dock = DockStyle.Fill,
                 ReadOnly = true,
                 BackColor = Color.LightGray,
                 Font = new Font("Consolas", 10),
-                 //= HorizontalAlignment.Right,
+                WordWrap = false,
+                ScrollBars = RichTextBoxScrollBars.None,
                 BorderStyle = BorderStyle.None
             };
 
@@ -193,7 +206,10 @@ namespace zfile
                 Dock = DockStyle.Fill,
                 Font = new Font("Consolas", 10),
                 ReadOnly = true,
-                BorderStyle = BorderStyle.None
+                BorderStyle = BorderStyle.None,
+                WordWrap = false,
+                ScrollBars = RichTextBoxScrollBars.Both,
+                HideSelection = false
             };
 
             leftContentPanel.Controls.Add(leftLineNumbers, 0, 0);
@@ -209,13 +225,14 @@ namespace zfile
             rightContentPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 40F));
             rightContentPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
 
-            var rightLineNumbers = new RichTextBox
+            rightLineNumbers = new RichTextBox
             {
                 Dock = DockStyle.Fill,
                 ReadOnly = true,
                 BackColor = Color.LightGray,
                 Font = new Font("Consolas", 10),
-                //TextAlign = HorizontalAlignment.Right,
+                WordWrap = false,
+                ScrollBars = RichTextBoxScrollBars.None,
                 BorderStyle = BorderStyle.None
             };
 
@@ -224,7 +241,10 @@ namespace zfile
                 Dock = DockStyle.Fill,
                 Font = new Font("Consolas", 10),
                 ReadOnly = true,
-                BorderStyle = BorderStyle.None
+                BorderStyle = BorderStyle.None,
+                WordWrap = false,
+                ScrollBars = RichTextBoxScrollBars.Both,
+                HideSelection = false
             };
 
             rightContentPanel.Controls.Add(rightLineNumbers, 0, 0);
@@ -282,22 +302,109 @@ namespace zfile
             rightLineNumbers.Font = currentFont;
 
             // 注册事件
-            txtLeftContent.VScroll += (s, e) => SyncScroll(txtLeftContent, txtRightContent);
-            txtRightContent.VScroll += (s, e) => SyncScroll(txtRightContent, txtLeftContent);
+            txtLeftContent.VScroll += (s, e) => SyncScroll(txtLeftContent, txtRightContent, leftLineNumbers);
+            txtRightContent.VScroll += (s, e) => SyncScroll(txtRightContent, txtLeftContent, rightLineNumbers);
             txtLeftContent.TextChanged += (s, e) => UpdateLineNumbers(leftLineNumbers, txtLeftContent);
             txtRightContent.TextChanged += (s, e) => UpdateLineNumbers(rightLineNumbers, txtRightContent);
             FormClosing += FileCompareForm_FormClosing;
         }
 
+        private void BytesPerLineCombo_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (int.TryParse(bytesPerLineCombo.SelectedItem.ToString(), out int newBytesPerLine))
+            {
+                bytesPerLine = newBytesPerLine;
+                if (isHexMode)
+                {
+                    LoadFiles();
+                }
+            }
+        }
+
         private void UpdateLineNumbers(RichTextBox lineNumbers, RichTextBox content)
         {
-            var lines = content.Lines;
+            var firstVisibleLine = content.GetLineFromCharIndex(content.GetCharIndexFromPosition(new Point(0, 0)));
+            var visibleLines = content.Height / content.Font.Height;
             var sb = new StringBuilder();
-            for (int i = 0; i < lines.Length; i++)
+
+            for (int i = firstVisibleLine; i <= firstVisibleLine + visibleLines + 1; i++)
             {
-                sb.AppendLine((i + 1).ToString());
+                if (i < content.Lines.Length)
+                {
+                    sb.AppendLine($"{i + 1,4}");
+                }
             }
+
             lineNumbers.Text = sb.ToString();
+            lineNumbers.SelectAll();
+            lineNumbers.SelectionAlignment = HorizontalAlignment.Right;
+        }
+
+        private void SyncScroll(RichTextBox source, RichTextBox target, RichTextBox sourceLineNumbers)
+        {
+            if (isScrolling) return;
+            try
+            {
+                isScrolling = true;
+                int firstVisibleLine = source.GetLineFromCharIndex(source.GetCharIndexFromPosition(new Point(0, 0)));
+                int firstCharIndex = target.GetFirstCharIndexFromLine(firstVisibleLine);
+                target.SelectionStart = firstCharIndex;
+                target.ScrollToCaret();
+                UpdateLineNumbers(sourceLineNumbers, source);
+            }
+            finally
+            {
+                isScrolling = false;
+            }
+        }
+
+        private void HighlightDifferences()
+        {
+            if (isHighlighting || differences == null) return;
+            try
+            {
+                isHighlighting = true;
+
+                // 清除现有高亮
+                txtLeftContent.SelectAll();
+                txtLeftContent.SelectionBackColor = SystemColors.Window;
+                txtRightContent.SelectAll();
+                txtRightContent.SelectionBackColor = SystemColors.Window;
+
+                // 高亮差异
+                foreach (var diff in differences)
+                {
+                    // 高亮左侧
+                    int leftStart = txtLeftContent.GetFirstCharIndexFromLine(diff.LeftStart);
+                    int leftEnd = diff.LeftStart + 1 < txtLeftContent.Lines.Length ?
+                        txtLeftContent.GetFirstCharIndexFromLine(diff.LeftStart + 1) - 1 :
+                        txtLeftContent.TextLength;
+                    if (leftStart >= 0 && leftEnd >= leftStart)
+                    {
+                        txtLeftContent.Select(leftStart, leftEnd - leftStart);
+                        txtLeftContent.SelectionBackColor = Color.LightPink;
+                    }
+
+                    // 高亮右侧
+                    int rightStart = txtRightContent.GetFirstCharIndexFromLine(diff.RightStart);
+                    int rightEnd = diff.RightStart + 1 < txtRightContent.Lines.Length ?
+                        txtRightContent.GetFirstCharIndexFromLine(diff.RightStart + 1) - 1 :
+                        txtRightContent.TextLength;
+                    if (rightStart >= 0 && rightEnd >= rightStart)
+                    {
+                        txtRightContent.Select(rightStart, rightEnd - rightStart);
+                        txtRightContent.SelectionBackColor = Color.LightPink;
+                    }
+                }
+
+                // 恢复原始选择
+                txtLeftContent.SelectionLength = 0;
+                txtRightContent.SelectionLength = 0;
+            }
+            finally
+            {
+                isHighlighting = false;
+            }
         }
 
         private void LoadFiles()
@@ -346,20 +453,14 @@ namespace zfile
             return sb.ToString();
         }
 
-        private void SyncScroll(RichTextBox source, RichTextBox target)
+        private string GetHexLine(byte[] bytes, int startIndex)
         {
-            if (isScrolling) return;
-            try
+            var sb = new StringBuilder();
+            for (int i = 0; i < bytesPerLine && startIndex + i < bytes.Length; i++)
             {
-                isScrolling = true;
-                var sourcePos = source.GetPositionFromCharIndex(source.SelectionStart);
-                var targetPos = target.GetPositionFromCharIndex(target.SelectionStart);
-                target.ScrollToCaret();
+                sb.Append($"{bytes[startIndex + i]:X2} ");
             }
-            finally
-            {
-                isScrolling = false;
-            }
+            return sb.ToString().TrimEnd();
         }
 
         private void CompareFiles()
@@ -374,6 +475,7 @@ namespace zfile
                 CompareTextMode();
             }
             UpdateStatus();
+            HighlightDifferences();
             if (differences.Count > 0)
             {
                 currentDifferenceIndex = 0;
@@ -402,16 +504,6 @@ namespace zfile
                     });
                 }
             }
-        }
-
-        private string GetHexLine(byte[] bytes, int startIndex)
-        {
-            var sb = new StringBuilder();
-            for (int i = 0; i < bytesPerLine && startIndex + i < bytes.Length; i++)
-            {
-                sb.Append($"{bytes[startIndex + i]:X2} ");
-            }
-            return sb.ToString().TrimEnd();
         }
 
         private void CompareTextMode()

@@ -10,8 +10,8 @@ using System.Windows.Forms;
 
 namespace zfile
 {
-    public partial class CmdProc
-    {
+	public partial class CmdProc
+	{
 
 		private void do_cm_decode(string param)
 		{
@@ -1061,100 +1061,40 @@ namespace zfile
 		}
 
 		// 比较文件
-		private void CompareFiles()
+		private void CompareFiles(string param)
 		{
-			var listView = owner.activeListView;
-			if (listView == null || listView.SelectedItems.Count != 2)
+			string[] files;
+			if (string.IsNullOrEmpty(param))
 			{
-				MessageBox.Show("请选择两个文件进行比较", "提示");
+				var listView = owner.activeListView;
+				if (listView == null || listView.SelectedItems.Count != 2)
+				{
+					MessageBox.Show("请选择两个文件进行比较", "提示");
+					return;
+				}
+				files = new[] { listView.SelectedItems[0].Text, listView.SelectedItems[1].Text };
+			}
+			else
+			{
+				files = owner.se.PrepareParameter(param, null, "").ToArray();
+				if (files.Length != 2)
+				{
+					MessageBox.Show("请指定两个文件进行比较", "提示");
+					return;
+				}
+			}
+
+			var leftFile = Path.Combine(owner.currentDirectory[owner.isleft], files[0]);
+			var rightFile = Path.Combine(owner.currentDirectory[owner.isleft], files[1]);
+
+			if (!File.Exists(leftFile) || !File.Exists(rightFile))
+			{
+				MessageBox.Show("所选文件不存在", "错误");
 				return;
 			}
 
-			var file1 = Path.Combine(owner.currentDirectory[owner.isleft], listView.SelectedItems[0].Text);
-			var file2 = Path.Combine(owner.currentDirectory[owner.isleft], listView.SelectedItems[1].Text);
-
-			try
-			{
-				if (!File.Exists(file1) || !File.Exists(file2))
-				{
-					MessageBox.Show("所选文件不存在", "错误");
-					return;
-				}
-
-				var form = new Form
-				{
-					Text = "文件比较",
-					Size = new Size(800, 600),
-					StartPosition = FormStartPosition.CenterScreen
-				};
-
-				var splitContainer = new SplitContainer
-				{
-					Dock = DockStyle.Fill,
-					Orientation = Orientation.Horizontal
-				};
-
-				var textBox1 = new RichTextBox
-				{
-					Dock = DockStyle.Fill,
-					ReadOnly = true,
-					Font = new Font("Consolas", 10)
-				};
-
-				var textBox2 = new RichTextBox
-				{
-					Dock = DockStyle.Fill,
-					ReadOnly = true,
-					Font = new Font("Consolas", 10)
-				};
-
-				splitContainer.Panel1.Controls.Add(textBox1);
-				splitContainer.Panel2.Controls.Add(textBox2);
-				form.Controls.Add(splitContainer);
-
-				// 读取文件内容
-				textBox1.Text = File.ReadAllText(file1);
-				textBox2.Text = File.ReadAllText(file2);
-
-				// 高亮显示差异
-				HighlightDifferences(textBox1, textBox2);
-
-				form.Show();
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show($"比较文件时出错: {ex.Message}", "错误");
-			}
-		}
-
-		// 高亮显示文本差异
-		private void HighlightDifferences(RichTextBox box1, RichTextBox box2)
-		{
-			var lines1 = box1.Text.Split('\n');
-			var lines2 = box2.Text.Split('\n');
-
-			box1.Text = "";
-			box2.Text = "";
-
-			for (int i = 0; i < Math.Max(lines1.Length, lines2.Length); i++)
-			{
-				var line1 = i < lines1.Length ? lines1[i] : "";
-				var line2 = i < lines2.Length ? lines2[i] : "";
-
-				if (line1 != line2)
-				{
-					box1.SelectionBackColor = Color.LightPink;
-					box2.SelectionBackColor = Color.LightPink;
-				}
-				else
-				{
-					box1.SelectionBackColor = Color.White;
-					box2.SelectionBackColor = Color.White;
-				}
-
-				box1.AppendText(line1 + "\n");
-				box2.AppendText(line2 + "\n");
-			}
+			var form = new FileCompareForm(leftFile, rightFile);
+			form.Show();
 		}
 
 		// 打包文件

@@ -383,7 +383,7 @@ namespace zfile
 						ShowSyncDirsDialog();
 						break;
 					case 2022: // cm_comparefilesbycontent
-						CompareFiles();
+						CompareFiles(param);
 						break;
 					case 2026:
 						do_cm_DirBranch();

@@ -116,7 +116,7 @@ namespace zfile
 		// 导航到指定路径
 		public void NavigateToPath(string path, bool recordHistory = true, TreeSearchScope scope = TreeSearchScope.thispc, bool isactive = true)
 		{
-			Debug.Print($"start to navigate to path {path}");
+			//Debug.Print($"start to navigate to path {path}");
 			//scope : thispc, desktop, full
 			if (string.IsNullOrEmpty(path))
 				return;
@@ -138,22 +138,19 @@ namespace zfile
 					if (recordHistory)
 						RecordDirectoryHistory(path);
 					else
-					{
-						// 直接更新当前目录，不记录历史
-						currentDirectory[isleft] = path;
-					}
+						currentDirectory[isleft] = path; // 直接更新当前目录，不记录历史
 				}
 				if (isactive)
 				{
 					activeTreeview.SelectedNode = node;
 					RefreshPanel(activeListView);
-					Debug.Print($" for {activeListView.Name}");
+					//Debug.Print($" for {activeListView.Name}");
 				}
 				else
 				{
 					unactiveTreeview.SelectedNode = node;
 					RefreshPanel(unactiveListView);
-					Debug.Print($" for {unactiveListView.Name}");
+					//Debug.Print($" for {unactiveListView.Name}");
 				}
 			}
 			// 更新最后访问路径
@@ -1217,7 +1214,7 @@ namespace zfile
 			foreach (var n in nodes)
 			{
 				var node = n as TreeNode;
-				if (node.Text == pathpart[0])
+				if (node.Text.Equals(pathpart[0], StringComparison.OrdinalIgnoreCase))
 				{
 					if (pathpart.Length == 1)
 						return node;

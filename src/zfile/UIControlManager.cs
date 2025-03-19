@@ -733,7 +733,7 @@ namespace zfile
 					form.NavigateToPath(Helper.GetPathByEnv("%userprofile%"));
 					break;
 				case "rootdir":
-					form.NavigateToPath(Helper.GetPathByEnv("\\"));
+					form.NavigateToPath(Helper.GetPathByEnv(Path.GetPathRoot(form.uiManager.srcDir)));
 					break;
 				case "parentdir":
 					var currentPath = isLeft ? LeftPathTextBox.CurrentNode?.UniqueID : RightPathTextBox.CurrentNode?.UniqueID;
@@ -770,8 +770,8 @@ namespace zfile
 
 			foreach (var item in frequentPaths)
 			{
-				var menuItem = new ToolStripMenuItem(
-					$"{Path.GetFileName(item.Path.TrimEnd('\\'))} ({item.Count}次)")
+				var menuItem = new ToolStripMenuItem(Path.GetPathRoot(item.Path)+
+					$" ... {Path.GetFileName(item.Path.TrimEnd('\\'))}      ({item.Count})")
 				{
 					Tag = item.Path,
 					ToolTipText = item.Path
@@ -797,7 +797,7 @@ namespace zfile
 				// 避免重复显示已经在高频列表中的项目
 				if (!frequentPaths.Any(f => f.Path == path))
 				{
-					var menuItem = new ToolStripMenuItem(Path.GetFileName(path.TrimEnd('\\')))
+					var menuItem = new ToolStripMenuItem(Path.GetPathRoot(path)+Path.GetFileName(path.TrimEnd('\\')))
 					{
 						Tag = path,
 						ToolTipText = path

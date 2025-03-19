@@ -59,7 +59,12 @@ namespace zfile
 		{
 			cmdName = cmdName.Trim();
 			if (cmdName.Equals(string.Empty)) return;
-			//support cm_xx, em_xx, "xx, cmdid", regedit.exe, control.exe xxx.cpl, cmdid
+			//support cm_xx, em_xx, "xx, cmdid", regedit.exe, control.exe xxx.cpl, cmdid param, cd
+			if(cmdName.Equals("cd", StringComparison.OrdinalIgnoreCase))
+			{
+				owner.NavigateToPath(param);
+				return;
+			}
 			if (cmdName.StartsWith("em_"))
 			{
 				var emCmd = emCmds.Find(x => x.Name.Equals(cmdName));

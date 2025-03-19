@@ -31,15 +31,15 @@ namespace zfile
             
             // 初始化窗体
             Text = "批量重命名";
-            Size = new Size(800, 800);
+            Size = new Size(1024, 768);
             StartPosition = FormStartPosition.CenterParent;
 
             // 创建分隔容器
             var splitContainer = new SplitContainer
             {
                 Dock = DockStyle.Fill,
-                Orientation = Orientation.Horizontal,
-                SplitterDistance = 200,
+                Orientation = Orientation.Vertical,
+                SplitterDistance = 450,
                 FixedPanel = FixedPanel.Panel1
             };
 
@@ -47,6 +47,7 @@ namespace zfile
             previewList = new ListBox
             {
                 Dock = DockStyle.Fill,
+				Width = 450,
                 Font = new Font("Consolas", 9F)
             };
             splitContainer.Panel1.Controls.Add(previewList);
@@ -80,12 +81,13 @@ namespace zfile
                 new Label { Text = "扩展名:", Location = new Point(10, 50) },
                 extensionTemplateBox,
                 insertExtButton
+				//new Label { Text = "注: [N][C][E][Y][M][D]"}
             });
 
             nameTemplateBox.Location = new Point(170, 20);
-            insertNameButton.Location = new Point(380, 20);
+            insertNameButton.Location = new Point(480, 20);
             extensionTemplateBox.Location = new Point(170, 50);
-            insertExtButton.Location = new Point(380, 50);
+            insertExtButton.Location = new Point(480, 50);
 
             var searchGroup = new GroupBox
             {

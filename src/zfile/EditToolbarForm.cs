@@ -93,8 +93,10 @@ namespace zfile
                 Width = 300
                 //DropDownStyle = ComboBoxStyle.DropDownList
             };
+			var cmdSelButton = new Button() { Text = "..." , Location = new Point(450, 22)};
+			cmdSelButton.Click += CmdSelButton_Click;
             //cmdTextBox.SelectedIndexChanged += PropertyChanged;
-            propertiesGroup.Controls.AddRange(new Control[] { cmdLabel, cmdTextBox });
+            propertiesGroup.Controls.AddRange(new Control[] { cmdLabel, cmdTextBox, cmdSelButton });
 
             // 参数
             var paramLabel = new Label { Text = "参数(&P):", Location = new Point(10, 60), AutoSize = true };
@@ -161,7 +163,17 @@ namespace zfile
             LoadCommands();
         }
 
-        private void LoadCommands()
+		private void CmdSelButton_Click(object? sender, EventArgs e)
+		{
+			//throw new NotImplementedException();
+			var selcmdform = new CommandBrowserForm(toolbarManager.form.cmdProcessor, true);
+			if (selcmdform.ShowDialog() == DialogResult.OK) 
+			{ 
+				cmdTextBox.Text = selcmdform.CmdRet;
+			}
+		}
+
+		private void LoadCommands()
         {
             // 从toolbarManager.form.cmdProcessor.cmdTable获取命令列表
             var cmdTable = toolbarManager.form.cmdProcessor.cmdTable;

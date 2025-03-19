@@ -1047,8 +1047,5 @@ namespace zfile
 				outputStream?.Dispose();
 			}
 		}
-
-	
-
 	}
 }

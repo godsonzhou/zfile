@@ -35,6 +35,11 @@ namespace zfile
         private Font currentFont;
         private string searchText;
         private int currentSearchIndex = -1;
+        private bool isScrolling = false;
+        private TableLayoutPanel mainLayout;
+        private TableLayoutPanel topPanel;
+        private TableLayoutPanel contentPanel;
+        private TableLayoutPanel bottomPanel;
 
         public FileCompareForm(string leftFile, string rightFile)
         {
@@ -52,45 +57,84 @@ namespace zfile
             Size = new Size(1200, 800);
             StartPosition = FormStartPosition.CenterScreen;
 
-            // 创建顶部文件选择区域
-            var topPanel = new Panel
+            // 创建主布局
+            mainLayout = new TableLayoutPanel
             {
-                Dock = DockStyle.Top,
-                Height = 40,
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 4,
                 Padding = new Padding(5)
             };
+            mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
+            mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 25F));
+            mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
+
+            // 创建顶部文件选择区域
+            topPanel = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 1,
+                Padding = new Padding(5)
+            };
+            topPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            topPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+
+            // 左侧文件选择区域
+            var leftFilePanel = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 1
+            };
+            leftFilePanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 80F));
+            leftFilePanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
 
             txtLeftFile = new TextBox
             {
-                Location = new Point(5, 5),
-                Width = 400,
+                Dock = DockStyle.Fill,
                 ReadOnly = true
             };
 
             btnSelectLeft = new Button
             {
                 Text = "选择文件",
-                Location = new Point(410, 4),
-                Width = 80
+                Dock = DockStyle.Fill
             };
             btnSelectLeft.Click += BtnSelectLeft_Click;
 
+            leftFilePanel.Controls.Add(txtLeftFile, 0, 0);
+            leftFilePanel.Controls.Add(btnSelectLeft, 1, 0);
+
+            // 右侧文件选择区域
+            var rightFilePanel = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 1
+            };
+            rightFilePanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 80F));
+            rightFilePanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
+
             txtRightFile = new TextBox
             {
-                Location = new Point(500, 5),
-                Width = 400,
+                Dock = DockStyle.Fill,
                 ReadOnly = true
             };
 
             btnSelectRight = new Button
             {
                 Text = "选择文件",
-                Location = new Point(905, 4),
-                Width = 80
+                Dock = DockStyle.Fill
             };
             btnSelectRight.Click += BtnSelectRight_Click;
 
-            topPanel.Controls.AddRange(new Control[] { txtLeftFile, btnSelectLeft, txtRightFile, btnSelectRight });
+            rightFilePanel.Controls.Add(txtRightFile, 0, 0);
+            rightFilePanel.Controls.Add(btnSelectRight, 1, 0);
+
+            topPanel.Controls.Add(leftFilePanel, 0, 0);
+            topPanel.Controls.Add(rightFilePanel, 1, 0);
 
             // 创建工具栏
             toolStrip = new ToolStrip();
@@ -114,74 +158,146 @@ namespace zfile
                 new ToolStripButton("查找下一个", null, BtnFindNext_Click)
             });
 
-            // 创建主分割容器
-            var splitContainer = new SplitContainer
+            // 创建内容区域
+            contentPanel = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                Orientation = Orientation.Horizontal
+                ColumnCount = 2,
+                RowCount = 1
+            };
+            contentPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            contentPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+
+            // 创建左侧内容区域
+            var leftContentPanel = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 1
+            };
+            leftContentPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 40F));
+            leftContentPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+
+            var leftLineNumbers = new RichTextBox
+            {
+                Dock = DockStyle.Fill,
+                ReadOnly = true,
+                BackColor = Color.LightGray,
+                Font = new Font("Consolas", 10),
+                 //= HorizontalAlignment.Right,
+                BorderStyle = BorderStyle.None
             };
 
-            // 创建内容区域
-            var contentPanel = new Panel { Dock = DockStyle.Fill };
             txtLeftContent = new RichTextBox
             {
-                Dock = DockStyle.Left,
-                Width = 600,
+                Dock = DockStyle.Fill,
                 Font = new Font("Consolas", 10),
-                ReadOnly = true
+                ReadOnly = true,
+                BorderStyle = BorderStyle.None
             };
+
+            leftContentPanel.Controls.Add(leftLineNumbers, 0, 0);
+            leftContentPanel.Controls.Add(txtLeftContent, 1, 0);
+
+            // 创建右侧内容区域
+            var rightContentPanel = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 1
+            };
+            rightContentPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 40F));
+            rightContentPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+
+            var rightLineNumbers = new RichTextBox
+            {
+                Dock = DockStyle.Fill,
+                ReadOnly = true,
+                BackColor = Color.LightGray,
+                Font = new Font("Consolas", 10),
+                //TextAlign = HorizontalAlignment.Right,
+                BorderStyle = BorderStyle.None
+            };
+
             txtRightContent = new RichTextBox
             {
-                Dock = DockStyle.Right,
-                Width = 600,
+                Dock = DockStyle.Fill,
                 Font = new Font("Consolas", 10),
-                ReadOnly = true
+                ReadOnly = true,
+                BorderStyle = BorderStyle.None
             };
-            contentPanel.Controls.AddRange(new Control[] { txtLeftContent, txtRightContent });
+
+            rightContentPanel.Controls.Add(rightLineNumbers, 0, 0);
+            rightContentPanel.Controls.Add(txtRightContent, 1, 0);
+
+            contentPanel.Controls.Add(leftContentPanel, 0, 0);
+            contentPanel.Controls.Add(rightContentPanel, 1, 0);
 
             // 创建底部按钮区域
-            var bottomPanel = new Panel
+            bottomPanel = new TableLayoutPanel
             {
-                Dock = DockStyle.Bottom,
-                Height = 40,
-                Padding = new Padding(5)
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 1
             };
+            bottomPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            bottomPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
 
             var btnSaveLeft = new Button
             {
                 Text = "保存左侧",
-                Location = new Point(5, 5),
-                Width = 80
+                Dock = DockStyle.Fill
             };
             btnSaveLeft.Click += BtnSaveLeft_Click;
 
             var btnSaveRight = new Button
             {
                 Text = "保存右侧",
-                Location = new Point(95, 5),
-                Width = 80
+                Dock = DockStyle.Fill
             };
             btnSaveRight.Click += BtnSaveRight_Click;
 
-            bottomPanel.Controls.AddRange(new Control[] { btnSaveLeft, btnSaveRight });
+            bottomPanel.Controls.Add(btnSaveLeft, 0, 0);
+            bottomPanel.Controls.Add(btnSaveRight, 1, 0);
 
             // 创建状态栏
             statusStrip = new StatusStrip();
             lblStatus = new ToolStripStatusLabel();
             statusStrip.Items.Add(lblStatus);
 
-            // 添加所有控件到窗体
-            Controls.AddRange(new Control[] { topPanel, toolStrip, contentPanel, bottomPanel, statusStrip });
+            // 添加所有控件到主布局
+            mainLayout.Controls.Add(topPanel, 0, 0);
+            mainLayout.Controls.Add(toolStrip, 0, 1);
+            mainLayout.Controls.Add(contentPanel, 0, 2);
+            mainLayout.Controls.Add(bottomPanel, 0, 3);
+
+            Controls.Add(mainLayout);
+            Controls.Add(statusStrip);
 
             // 设置默认字体
             currentFont = new Font("Consolas", 10);
             txtLeftContent.Font = currentFont;
             txtRightContent.Font = currentFont;
+            leftLineNumbers.Font = currentFont;
+            rightLineNumbers.Font = currentFont;
 
             // 注册事件
             txtLeftContent.VScroll += (s, e) => SyncScroll(txtLeftContent, txtRightContent);
             txtRightContent.VScroll += (s, e) => SyncScroll(txtRightContent, txtLeftContent);
+            txtLeftContent.TextChanged += (s, e) => UpdateLineNumbers(leftLineNumbers, txtLeftContent);
+            txtRightContent.TextChanged += (s, e) => UpdateLineNumbers(rightLineNumbers, txtRightContent);
             FormClosing += FileCompareForm_FormClosing;
+        }
+
+        private void UpdateLineNumbers(RichTextBox lineNumbers, RichTextBox content)
+        {
+            var lines = content.Lines;
+            var sb = new StringBuilder();
+            for (int i = 0; i < lines.Length; i++)
+            {
+                sb.AppendLine((i + 1).ToString());
+            }
+            lineNumbers.Text = sb.ToString();
         }
 
         private void LoadFiles()
@@ -190,17 +306,59 @@ namespace zfile
             {
                 if (File.Exists(leftFilePath))
                 {
-                    txtLeftContent.Text = File.ReadAllText(leftFilePath);
+                    if (isHexMode)
+                    {
+                        var bytes = File.ReadAllBytes(leftFilePath);
+                        txtLeftContent.Text = GetHexContent(bytes);
+                    }
+                    else
+                    {
+                        txtLeftContent.Text = File.ReadAllText(leftFilePath);
+                    }
                 }
                 if (File.Exists(rightFilePath))
                 {
-                    txtRightContent.Text = File.ReadAllText(rightFilePath);
+                    if (isHexMode)
+                    {
+                        var bytes = File.ReadAllBytes(rightFilePath);
+                        txtRightContent.Text = GetHexContent(bytes);
+                    }
+                    else
+                    {
+                        txtRightContent.Text = File.ReadAllText(rightFilePath);
+                    }
                 }
                 CompareFiles();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"加载文件时出错: {ex.Message}", "错误");
+            }
+        }
+
+        private string GetHexContent(byte[] bytes)
+        {
+            var sb = new StringBuilder();
+            for (int i = 0; i < bytes.Length; i += bytesPerLine)
+            {
+                sb.AppendLine(GetHexLine(bytes, i));
+            }
+            return sb.ToString();
+        }
+
+        private void SyncScroll(RichTextBox source, RichTextBox target)
+        {
+            if (isScrolling) return;
+            try
+            {
+                isScrolling = true;
+                var sourcePos = source.GetPositionFromCharIndex(source.SelectionStart);
+                var targetPos = target.GetPositionFromCharIndex(target.SelectionStart);
+                target.ScrollToCaret();
+            }
+            finally
+            {
+                isScrolling = false;
             }
         }
 
@@ -308,11 +466,6 @@ namespace zfile
             txtRightContent.ScrollToCaret();
         }
 
-        private void SyncScroll(RichTextBox source, RichTextBox target)
-        {
-            target.ScrollToCaret();
-        }
-
         private void UpdateStatus()
         {
             lblStatus.Text = $"共发现 {differences.Count} 个差异";
@@ -355,7 +508,7 @@ namespace zfile
         private void BtnHexMode_Click(object sender, EventArgs e)
         {
             isHexMode = !isHexMode;
-            CompareFiles();
+            LoadFiles();
         }
 
         private void BtnCaseSensitive_Click(object sender, EventArgs e)

@@ -245,7 +245,7 @@ namespace Sheng.Winform.Controls
             this.parent = null;
 
             //get our drives
-            string[] drives = Environment.GetLogicalDrives();
+            string[] drives = Environment.GetLogicalDrives();//TODO: NEED ADD FTP VIRTUAL DRIVE
 
             //create space for the children
             children = new ShengFileSystemNode[drives.Length];

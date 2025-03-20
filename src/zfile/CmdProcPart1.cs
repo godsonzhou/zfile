@@ -997,6 +997,14 @@ namespace zfile
 				{
 					try
 					{
+						//TODO: IF FTP REMOTE FILE, DOWNLOAD IT FIRST, THEN CALL SPLITFILE
+						if (filePath.StartsWith("ftp:", StringComparison.OrdinalIgnoreCase))
+						{
+							var file = Path.GetFileName(filePath);
+							var localfile = $"{owner.uiManager.targetDir}{file}";
+							var ftpsrc = owner.fTPMGR.GetFtpSource(filePath);
+							owner.fTPMGR.ActiveClient.DownloadFile(localfile, filePath);
+						}
 						SplitFile(filePath, selectedSize);
 					}
 					catch (Exception ex)

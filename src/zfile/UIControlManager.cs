@@ -78,8 +78,8 @@ namespace zfile
 		private bool isToolStripHidden;
 
 		public bool isleft { get; set; } = true;
-		public string leftDir => LeftPathTextBox?.CurrentNode?.UniqueID + "\\";
-		public string rightDir => RightPathTextBox?.CurrentNode?.UniqueID + "\\";
+		public string leftDir => LeftTree.SelectedNode?.Tag is FtpNodeTag ftpnode ? ftpnode.Path :  LeftPathTextBox?.CurrentNode?.UniqueID + "\\";
+		public string rightDir => RightTree.SelectedNode?.Tag is FtpNodeTag ftpnode ? ftpnode.Path : RightPathTextBox?.CurrentNode?.UniqueID + "\\";
 		public string leftfiles => string.Join("|", LeftList.SelectedItems.Cast<ListViewItem>()?.Select(item => item.SubItems[0].Text));
 		public string rightfiles => string.Join("|", RightList.SelectedItems.Cast<ListViewItem>()?.Select(item => item.SubItems[0].Text));
 		public string targetDir => isleft ? rightDir : leftDir;

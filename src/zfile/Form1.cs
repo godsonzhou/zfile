@@ -501,6 +501,7 @@ namespace zfile
 		// 复制选中的文件
 		public bool cm_copy(string param = null)
 		{
+			var files1 = GetFileListByViewOrParam(param);
 			var listView = activeListView;
 			if (listView == null || listView.SelectedItems.Count <= 0) return false;
 
@@ -1588,12 +1589,6 @@ namespace zfile
 		}
 		public TreeNode? FindTreeNode(TreeNodeCollection nodes, string path)
 		{
-			//Debug.Print("FindTreeNode -> {0}", path);
-			//if (nodes.Count == 1 && nodes[0].Text.Equals("..."))
-			//{
-			//	LoadSubDirectories(nodes[0]);
-			//	nodes[0].Expand();
-			//}
 			var deepSearch = path.Contains("\\");
 			if (!deepSearch)
 			{
@@ -1608,48 +1603,11 @@ namespace zfile
 					//	var pidl = ((ShellItem)node.Tag).PIDL;
 					//	var pf = ((ShellItem)(node.Parent.Tag)).ShellFolder;
 					//	var p = w32.GetPathByIShell(pf, pidl);      ////子节点path -> 此电脑\\迅雷下载, c:\\
-					//												//var n = w32.GetNameByIShell(pf, pidl);    //子节点name -> 迅雷下载, system (c:)
-					//	if (p.Equals(path, StringComparison.OrdinalIgnoreCase))
-					//		return node;
-
-					//	if (!(p.Equals("此电脑") && path.Contains(':')))
-					//	{
-					//		if (!path.Contains(p))
-					//			continue;
-					//	}
-					//}
-					//LoadSubDirectories(node);
-					//node.Expand();
-
-					//TreeNode? foundNode = FindTreeNode(node.Nodes, path);
-					//if (foundNode != null)
-					//{
-					//	//Debug.Print("FindTreeNode -> foundNode: {0}", foundNode.Text);
-					//	return foundNode;
-					//}
+					//var n = w32.GetNameByIShell(pf, pidl);    //子节点name -> 迅雷下载, system (c:)
 				}
 			}
 			else
 			{   // Get the first part of the path, find the node, expand it, and call FindTreeNode recursively
-				//TODO : 优化查找算法
-				//var pathpart = Helper.getFSpath(path).Split('\\', StringSplitOptions.RemoveEmptyEntries);
-				//foreach(var n in nodes)
-				//{
-				//	var node = n as TreeNode;
-				//	if (node.Text == pathpart[0])
-				//	{
-				//		if (pathpart.Length == 1)
-				//			return node;
-				//		LoadSubDirectories(node);
-				//		node.Expand();
-				//		TreeNode? foundNode = FindTreeNode(node.Nodes, path.Substring(path.IndexOf('\\') + 1));
-				//		if (foundNode != null)
-				//		{
-				//			//Debug.Print("FindTreeNode -> foundNode: {0}", foundNode.Text);
-				//			return foundNode;
-				//		}
-				//	}
-				//}
 				TreeNode? foundNode = FindTreeNodeByFullPath(nodes, path);
 				if (foundNode != null) return foundNode;
 			}
@@ -1849,7 +1807,6 @@ namespace zfile
 			{
 				lv.SmallImageList ??= new ImageList();
 				lv.LargeImageList ??= new ImageList();
-				//lv.BeginUpdate();
 				lv.Items.Clear();
 			}
 			if (node.Tag is not ShellItem) return; //eg, if it is ftp virtual node, do not load subnode
@@ -1928,10 +1885,7 @@ namespace zfile
 						else
 						{
 							// 创建新节点
-							nodeSub = new TreeNode(name)
-							{
-								Tag = subItem
-							};
+							nodeSub = new TreeNode(name) { Tag = subItem };
 						}
 						// 为虚拟文件夹或非文件系统项设置特定图标
 						string iconkey;
@@ -2002,8 +1956,7 @@ namespace zfile
 							lv.Items.Add(i);
 						}
 					}
-					// 处理需要删除的节点
-					// 找出所有不在新路径集合中的现有节点，这些节点需要被删除
+					// 处理需要删除的节点, 找出所有不在新路径集合中的现有节点，这些节点需要被删除
 					foreach (var existingPair in existingNodes)
 					{
 						// 使用路径作为唯一标识符进行比较
@@ -2401,8 +2354,7 @@ namespace zfile
 			// 如果点击的是同一列，切换排序顺序
 			if (e.Column == sortColumn)
 			{
-				sortOrder = sortOrder == SortOrder.Ascending ?
-						   SortOrder.Descending : SortOrder.Ascending;
+				sortOrder = sortOrder == SortOrder.Ascending ? SortOrder.Descending : SortOrder.Ascending;
 			}
 			else
 			{
@@ -2415,7 +2367,7 @@ namespace zfile
 		}
 
 		// 排序比较器类
-		private class ListViewItemComparer : System.Collections.IComparer
+		private class ListViewItemComparer : IComparer
 		{
 			private readonly int column;
 			private readonly SortOrder order;
@@ -2576,72 +2528,10 @@ namespace zfile
 			// 非FTP路径或FTP处理失败，使用原来的逻辑
 			return activeListView.SelectedItems.Cast<ListViewItem>().Select(i => i.SubItems[1].Text).ToList();
 		}
-		public void cm_edit(string param = "")
-		{
-
-			//var listView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
-			//if (listView.SelectedItems.Count == 0) return;
-
-			//var selectedItem = listView.SelectedItems[0];
-			//var filePath = Helper.getFSpath(Path.Combine(currentDirectory[isleft], selectedItem.Text));
-			var files = GetFileListByViewOrParam(param);
-			//if (File.Exists(filePath))
-			{
-				//Form viewerForm = new Form
-				//{
-				//    Text = $"查看文件 - {selectedItem.Text}",
-				//    Size = new Size(800, 600)
-				//};
-
-				//Control viewerControl = previewManager.CreatePreviewControl(filePath);
-				//viewerForm.Controls.Add(viewerControl);
-				//viewerForm.Show();
-				var editorForm = new NewEditorForm(files)
-				{
-					Text = $"编辑文件 - {files[0]}",
-					Size = new Size(800, 600)
-				};
-				editorForm.Show();
-			}
-		}
+	
 		public void cm_list(string param = "")
 		{
 			// 编辑按钮点击处理逻辑
-			// OPEN VIEWERFORM
-			//string filePath;
-			//List<string> filePaths;
-			//ListView listView;
-			//if (param.Equals(string.Empty))
-			//{
-			//	var listView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
-			//	if (listView.SelectedItems.Count == 0) return;
-			//	var selectedItemText = listView.SelectedItems[0].Text;
-			//	filePath = Helper.getFSpath(Path.Combine(currentDirectory[isleft], selectedItemText));
-			//	if (File.Exists(filePath))
-			//	{
-			//		Form viewerForm = new ViewerForm(filePath, wlxModuleList)
-			//		{
-			//			Text = $"查看文件 - {filePath}",
-			//			Size = new Size(800, 600)
-			//		};
-			//		viewerForm.Show();
-			//		//Control viewerControl = previewManager.CreatePreviewControl(filePath);
-			//		//viewerForm.Controls.Add(viewerControl);
-			//	}
-			//}
-			//else
-			//{
-			//	//se = new ShellExecuteHelper(this);
-			//	filePaths = se.PrepareParameter(param, new string[] { }, "");
-			//	Form viewerForm = new ViewerForm(filePaths, wlxModuleList)
-			//	{
-			//		Text = $"查看文件 - {filePaths}",
-			//		Size = new Size(800, 600)
-			//	};
-			//	viewerForm.Show();
-			//	//Control viewerControl = previewManager.CreatePreviewControl(filePath);
-			//	//viewerForm.Controls.Add(viewerControl);
-			//}
 			var filePaths = GetFileListByViewOrParam(param);
 			if (filePaths.Count == 0) return;
 			Form viewerForm = new ViewerForm(filePaths, wlxModuleList)
@@ -2655,14 +2545,25 @@ namespace zfile
 		{
 			cm_edit();
 		}
-
+		public void cm_edit(string param = "")
+		{
+			var files = GetFileListByViewOrParam(param);
+			var editorForm = new NewEditorForm(files)
+			{
+				Text = $"编辑文件 - {files[0]}",
+				Size = new Size(800, 600)
+			};
+			editorForm.Show();
+		}
 		public void CopyButton_Click(object? sender, EventArgs e)
 		{
-			cmdProcessor.ExecCmd("cm_copy");
+			//cmdProcessor.ExecCmd("cm_copy");
+			cm_copy();
 		}
 		public void DeleteButton_Click(object? sender, EventArgs e)
 		{
-			cmdProcessor.ExecCmd("cm_delete");
+			//cmdProcessor.ExecCmd("cm_delete");
+			cm_delete();
 		}
 
 		public void FolderButton_Click(object? sender, EventArgs e)
@@ -2680,7 +2581,8 @@ namespace zfile
 
 		public void MoveButton_Click(object? sender, EventArgs e)
 		{
-			cmdProcessor.ExecCmd("cm_renmov");
+			//cmdProcessor.ExecCmd("cm_renmov");
+			cm_renmov();
 		}
 
 		public void RefreshTreeViewAndListView(ListView listView, string path)

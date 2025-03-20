@@ -159,18 +159,21 @@ namespace zfile
 		/// </summary>
 		/// <param name="remotePath">远程文件路径</param>
 		/// <returns>本地临时文件路径</returns>
-		public string DownloadFile(string remotePath)
+		public string DownloadFile(string remotePath, string? localpath=null)
 		{
 			try
 			{
-				// 创建临时目录
-				string tempDir = Path.Combine(Path.GetTempPath(), "FtpTemp");
-				if (!Directory.Exists(tempDir))
-					Directory.CreateDirectory(tempDir);
-
+				string? tempDir = null;
+				if (localpath == null)
+				{
+					// 创建临时目录
+					tempDir = Path.Combine(Path.GetTempPath(), "FtpTemp");
+					if (!Directory.Exists(tempDir))
+						Directory.CreateDirectory(tempDir);
+				}
 				// 生成临时文件路径
 				string fileName = Path.GetFileName(remotePath);
-				string localPath = Path.Combine(tempDir, fileName);
+				string localPath = Path.Combine(tempDir ?? localpath, fileName);
 
 				// 下载文件
 				var success = _client.DownloadFile(localPath, remotePath);

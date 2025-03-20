@@ -445,22 +445,12 @@ namespace zfile
 
 				// 添加通用菜单项
 				if (!isDirectory)
-				//{
-				//	// 文件夹菜单项
-				//	//contextMenu.Items.Add("复制", null, (s, e) => CopyFtpItem(source, path));
-				//	//contextMenu.Items.Add("重命名", null, (s, e) => RenameFtpItem(source, path));
-				//	//contextMenu.Items.Add("删除", null, (s, e) => DeleteFtpItem(source, path, true));
-				//	//contextMenu.Items.Add("下载", null, (s, e) => DownloadList(source, path, true));
-				//	//contextMenu.Items.Add("添加到下载列表", null, (s, e) => AddToDownloadList(source, path, true));
-				//	//contextMenu.Items.Add("属性", null, (s, e) => ShowFtpItemProperties(source, path, true));
-				//}
-				//else
 				{
 					// 文件菜单项
 					contextMenu.Items.Add("查看", null, (s, e) => ViewFtpFile(source, path));
 					contextMenu.Items.Add("编辑", null, (s, e) => EditFtpFile(source, path));
 				}
-				contextMenu.Items.Add("复制", null, (s, e) => CopyFtpItem(source, path));
+				contextMenu.Items.Add("复制...", null, (s, e) => CopyFtpItemToLocal(source, path));
 				contextMenu.Items.Add("重命名", null, (s, e) => RenameFtpItem(source, path)); 
 				contextMenu.Items.Add("删除", null, (s, e) => DeleteFtpItem(source, path, isDirectory));
 				contextMenu.Items.Add("下载", null, (s, e) => DownloadList(source, path, isDirectory));
@@ -515,7 +505,7 @@ namespace zfile
 						if (e.ChangeType == WatcherChangeTypes.Changed)
 						{
 							// 确保文件不再被占用
-							System.Threading.Thread.Sleep(500);
+							Thread.Sleep(500);
 							source.UploadFile(localPath, path);
 						}
 					};
@@ -531,35 +521,38 @@ namespace zfile
 		/// <summary>
 		/// 复制FTP项目
 		/// </summary>
-		private void CopyFtpItem(FtpFileSource source, string path)
+		private void CopyFtpItemToLocal(FtpFileSource source, string path, string? targetPath = null)
 		{
 			try
 			{
-				// 显示目标选择对话框
-				FolderBrowserDialog dialog = new FolderBrowserDialog();
-				if (dialog.ShowDialog() == DialogResult.OK)
+				if (string.IsNullOrEmpty(targetPath))
 				{
-					string targetPath = dialog.SelectedPath;
-					string fileName = Path.GetFileName(path);
-					string localTargetPath = Path.Combine(targetPath, fileName);
-
-					// 下载文件或文件夹
-					if (path.EndsWith("/"))
-					{
-						// 创建目标文件夹
-						Directory.CreateDirectory(localTargetPath);
-
-						// 递归下载文件夹内容
-						DownloadDirectory(source, path, localTargetPath);
-					}
+					FolderBrowserDialog dialog = new FolderBrowserDialog();
+					if (dialog.ShowDialog() == DialogResult.OK)
+						targetPath = dialog.SelectedPath;
 					else
-					{
-						// 下载单个文件
-						source.Client.DownloadFile(localTargetPath, path);
-					}
-
-					MessageBox.Show($"复制完成", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+						return;
 				}
+				
+				string fileName = Path.GetFileName(path);
+				string localTargetPath = Path.Combine(targetPath, fileName);
+				// 下载文件或文件夹
+				if (path.EndsWith("/"))
+				{
+					// 创建目标文件夹
+					Directory.CreateDirectory(localTargetPath);
+
+					// 递归下载文件夹内容
+					DownloadDirectory(source, path, localTargetPath);
+				}
+				else
+				{
+					// 下载单个文件
+					source.Client.DownloadFile(localTargetPath, path);
+				}
+
+				MessageBox.Show($"复制完成", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				
 			}
 			catch (Exception ex)
 			{
@@ -1606,59 +1599,7 @@ namespace zfile
 		#endregion
 
 		#region 辅助类
-		//public class FtpConnectionConfig
-		//{
-		//	public string SessionName { get; set; } = string.Empty;
-		//	public string HostName { get; set; } = string.Empty;
-		//	public int Port { get; set; } = 21;
-		//	public bool UseSsl { get; set; }
-		//	public string UserName { get; set; } = string.Empty;
-		//	public string Password { get; set; } = string.Empty;
-		//	public string RemoteDirectory { get; set; } = "/";
-		//	public string LocalDirectory { get; set; } = string.Empty;
-		//	public bool UsePassiveMode { get; set; } = true;
-		//	public bool UseFirewall { get; set; }
-		//}
-		///// <summary>
-		///// FTP连接信息类
-		///// </summary>
-		//public class FtpConnectionInfo
-		//{
-		//	/// <summary>
-		//	/// 连接名称
-		//	/// </summary>
-		//	public string Name { get; set; }
-
-		//	/// <summary>
-		//	/// 主机地址
-		//	/// </summary>
-		//	public string Host { get; set; }
-
-		//	/// <summary>
-		//	/// 凭证（用户名和密码）
-		//	/// </summary>
-		//	public NetworkCredential Credentials { get; set; }
-
-		//	/// <summary>
-		//	/// 端口号
-		//	/// </summary>
-		//	public int Port { get; set; } = 21;
-
-		//	/// <summary>
-		//	/// FTP配置
-		//	/// </summary>
-		//	public FtpConfig Config { get; set; }
-
-		//	/// <summary>
-		//	/// 加密模式
-		//	/// </summary>
-		//	public FtpEncryptionMode? EncryptionMode { get; set; }
-
-		//	/// <summary>
-		//	/// 日志记录器
-		//	/// </summary>
-		//	public IFtpLogger Logger { get; set; }
-		//}
+	
 
 		#endregion
 		public void SaveToCfgloader()

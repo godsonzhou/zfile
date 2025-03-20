@@ -28,11 +28,11 @@ namespace zfile
 				//if (dialog.ShowDialog() != DialogResult.OK) return;
 
 				string targetPath = string.IsNullOrEmpty(dialog.TargetPath) ?
-					owner.currentDirectory[owner.isleft] : dialog.TargetPath;
+					owner.CurrentDir[owner.isleft] : dialog.TargetPath;
 
 				foreach (ListViewItem item in listView.SelectedItems)
 				{
-					var sourcePath = Path.Combine(owner.currentDirectory[owner.isleft], item.Text);
+					var sourcePath = Path.Combine(owner.CurrentDir[owner.isleft], item.Text);
 					string decodedContent;
 					try
 					{
@@ -57,10 +57,10 @@ namespace zfile
 			else
 			{
 				var files = owner.se.PrepareParameter(param, null, "");
-				var targetPath = owner.currentDirectory[owner.isleft];
+				var targetPath = owner.CurrentDir[owner.isleft];
 				foreach (var file in files)
 				{
-					var sourcePath = Path.Combine(owner.currentDirectory[owner.isleft], file);
+					var sourcePath = Path.Combine(owner.CurrentDir[owner.isleft], file);
 					string decodedContent;
 					try
 					{
@@ -179,11 +179,11 @@ namespace zfile
 				if (dialog.ShowDialog() != DialogResult.OK) return;
 
 				string targetPath = string.IsNullOrEmpty(dialog.TargetPath) ?
-					owner.currentDirectory[owner.isleft] : dialog.TargetPath;
+					owner.CurrentDir[owner.isleft] : dialog.TargetPath;
 
 				foreach (ListViewItem item in listView.SelectedItems)
 				{
-					var sourcePath = Path.Combine(owner.currentDirectory[owner.isleft], item.Text);
+					var sourcePath = Path.Combine(owner.CurrentDir[owner.isleft], item.Text);
 					string extension = dialog.SelectedEncoding switch
 					{
 						"MIME (Base64)" => ".B64",
@@ -239,12 +239,12 @@ namespace zfile
 				if (dialog.ShowDialog() != DialogResult.OK) return;
 
 				string targetPath = string.IsNullOrEmpty(dialog.TargetPath) ?
-					owner.currentDirectory[owner.isleft] : dialog.TargetPath;
+					owner.CurrentDir[owner.isleft] : dialog.TargetPath;
 
 				var files = owner.se.PrepareParameter(param, null, "");
 				foreach (var file in files)
 				{
-					var sourcePath = Path.Combine(owner.currentDirectory[owner.isleft], file);
+					var sourcePath = Path.Combine(owner.CurrentDir[owner.isleft], file);
 					string extension = dialog.SelectedEncoding switch
 					{
 						"MIME (Base64)" => ".B64",
@@ -567,7 +567,7 @@ namespace zfile
 
 			var paths = string.Join(Environment.NewLine,
 				lv.SelectedItems.Cast<ListViewItem>()
-					.Select(i => Path.Combine(owner.currentDirectory[owner.isleft], i.Text)));
+					.Select(i => Path.Combine(owner.CurrentDir[owner.isleft], i.Text)));
 			Clipboard.SetText(paths);
 		}
 
@@ -594,7 +594,7 @@ namespace zfile
 			var details = new StringBuilder();
 			foreach (ListViewItem item in lv.SelectedItems)
 			{
-				details.AppendLine(Path.Combine(owner.currentDirectory[owner.isleft], item.Text) + "\t" +
+				details.AppendLine(Path.Combine(owner.CurrentDir[owner.isleft], item.Text) + "\t" +
 					string.Join("\t", item.SubItems.Cast<ListViewItem.ListViewSubItem>().Skip(1).Select(si => si.Text)));
 			}
 			Clipboard.SetText(details.ToString());
@@ -605,7 +605,7 @@ namespace zfile
 			if (owner.backStack.Count > 0)
 			{
 				// 将当前目录存入前进栈
-				owner.forwardStack.Push(owner.currentDirectory[owner.isleft]);
+				owner.forwardStack.Push(owner.CurrentDir[owner.isleft]);
 				// 从后退栈获取上一个目录
 				string previousPath = owner.backStack.Pop();
 				// 导航到该目录，但不记录到历史（避免重复记录）
@@ -618,7 +618,7 @@ namespace zfile
 			if (owner.forwardStack.Count > 0)
 			{
 				// 将当前目录存入后退栈
-				owner.backStack.Push(owner.currentDirectory[owner.isleft]);
+				owner.backStack.Push(owner.CurrentDir[owner.isleft]);
 				// 从前进栈获取下一个目录
 				string nextPath = owner.forwardStack.Pop();
 				// 导航到该目录，但不记录到历史（避免重复记录）
@@ -628,7 +628,7 @@ namespace zfile
 
 		private void do_cm_gotoparent()
 		{
-			string? parentPath = Path.GetDirectoryName(owner.currentDirectory[owner.isleft]);
+			string? parentPath = Path.GetDirectoryName(owner.CurrentDir[owner.isleft]);
 			if (!string.IsNullOrEmpty(parentPath))
 			{
 				// 记录当前目录到历史
@@ -671,7 +671,7 @@ namespace zfile
 			if (searchForm.ShowDialog() == DialogResult.OK && !string.IsNullOrWhiteSpace(searchBox.Text))
 			{
 				var searchPattern = searchBox.Text;
-				var searchPath = owner.currentDirectory[owner.isleft];
+				var searchPath = owner.CurrentDir[owner.isleft];
 
 				try
 				{
@@ -716,7 +716,7 @@ namespace zfile
 			if (listView == null || listView.SelectedItems.Count <= 0) return;
 
 			var selectedItem = listView.SelectedItems[0];
-			var filePath = Path.Combine(owner.currentDirectory[owner.isleft], selectedItem.Text);
+			var filePath = Path.Combine(owner.CurrentDir[owner.isleft], selectedItem.Text);
 
 			try
 			{
@@ -777,8 +777,8 @@ namespace zfile
 				}
 			}
 
-			var leftFile = Path.Combine(owner.currentDirectory[owner.isleft], files[0]);
-			var rightFile = Path.Combine(owner.currentDirectory[owner.isleft], files[1]);
+			var leftFile = Path.Combine(owner.CurrentDir[owner.isleft], files[0]);
+			var rightFile = Path.Combine(owner.CurrentDir[owner.isleft], files[1]);
 
 			if (!File.Exists(leftFile) || !File.Exists(rightFile))
 			{

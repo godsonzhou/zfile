@@ -444,6 +444,7 @@ namespace zfile
 			if (!IsValidTarget(listView, e, out string targetPath)) return;
 
 			// 检查源路径是否是 FTP 路径
+
 			bool isSourceFtp = draggedItems[0].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase);
 			// 检查目标路径是否是 FTP 路径
 			bool isTargetFtp = targetPath.StartsWith("ftp://", StringComparison.OrdinalIgnoreCase);
@@ -458,7 +459,7 @@ namespace zfile
 
 					if (!string.IsNullOrEmpty(sourceConnection) && !string.IsNullOrEmpty(targetConnection))
 					{
-						fTPMGR.HandleFtpToFtpTransfer(sourceConnection, targetConnection, draggedItems, targetPath);
+						fTPMGR.HandleFtpToFtpTransfer(sourceConnection, targetPath, draggedItems);
 					}
 				}
 				else if (isSourceFtp)

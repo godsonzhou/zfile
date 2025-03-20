@@ -444,28 +444,28 @@ namespace zfile
 				var contextMenu = new ContextMenuStrip();
 
 				// 添加通用菜单项
-				if (isDirectory)
-				{
-					// 文件夹菜单项
-					contextMenu.Items.Add("复制", null, (s, e) => CopyFtpItem(source, path));
-					contextMenu.Items.Add("重命名", null, (s, e) => RenameFtpItem(source, path));
-					contextMenu.Items.Add("删除", null, (s, e) => DeleteFtpItem(source, path, true));
-					contextMenu.Items.Add("下载", null, (s, e) => DownloadList(source, path, true));
-					contextMenu.Items.Add("添加到下载列表", null, (s, e) => AddToDownloadList(source, path, true));
-					contextMenu.Items.Add("属性", null, (s, e) => ShowFtpItemProperties(source, path, true));
-				}
-				else
+				if (!isDirectory)
+				//{
+				//	// 文件夹菜单项
+				//	//contextMenu.Items.Add("复制", null, (s, e) => CopyFtpItem(source, path));
+				//	//contextMenu.Items.Add("重命名", null, (s, e) => RenameFtpItem(source, path));
+				//	//contextMenu.Items.Add("删除", null, (s, e) => DeleteFtpItem(source, path, true));
+				//	//contextMenu.Items.Add("下载", null, (s, e) => DownloadList(source, path, true));
+				//	//contextMenu.Items.Add("添加到下载列表", null, (s, e) => AddToDownloadList(source, path, true));
+				//	//contextMenu.Items.Add("属性", null, (s, e) => ShowFtpItemProperties(source, path, true));
+				//}
+				//else
 				{
 					// 文件菜单项
 					contextMenu.Items.Add("查看", null, (s, e) => ViewFtpFile(source, path));
 					contextMenu.Items.Add("编辑", null, (s, e) => EditFtpFile(source, path));
-					contextMenu.Items.Add("复制", null, (s, e) => CopyFtpItem(source, path));
-					contextMenu.Items.Add("重命名", null, (s, e) => RenameFtpItem(source, path));
-					contextMenu.Items.Add("删除", null, (s, e) => DeleteFtpItem(source, path, false));
-					contextMenu.Items.Add("下载", null, (s, e) => DownloadList(source, path, false));
-					contextMenu.Items.Add("添加到下载列表", null, (s, e) => AddToDownloadList(source, path, false));
-					contextMenu.Items.Add("属性", null, (s, e) => ShowFtpItemProperties(source, path, false));
 				}
+				contextMenu.Items.Add("复制", null, (s, e) => CopyFtpItem(source, path));
+				contextMenu.Items.Add("重命名", null, (s, e) => RenameFtpItem(source, path)); 
+				contextMenu.Items.Add("删除", null, (s, e) => DeleteFtpItem(source, path, isDirectory));
+				contextMenu.Items.Add("下载", null, (s, e) => DownloadList(source, path, isDirectory));
+				contextMenu.Items.Add("添加到下载列表", null, (s, e) => AddToDownloadList(source, path, isDirectory));
+				contextMenu.Items.Add("属性", null, (s, e) => ShowFtpItemProperties(source, path, isDirectory));
 
 				// 显示菜单
 				contextMenu.Show(Cursor.Position);
@@ -2084,11 +2084,11 @@ namespace zfile
 				}
 
 				// 遍历源文件列表进行传输
-				foreach (string remotePath in sourceFiles)
+				foreach (string srcfile in sourceFiles)
 				{
 					// 检查是否为目录
-					bool isDirectory = remotePath.EndsWith("/");
-					string fileName = Path.GetFileName(remotePath.TrimEnd('/'));
+					bool isDirectory = srcfile.EndsWith("/");
+					string fileName = Path.GetFileName(srcfile.TrimEnd('/'));
 					string targetRemotePath = Path.Combine(targetPath, fileName).Replace("\\", "/");
 
 					if (isDirectory)
@@ -2096,14 +2096,14 @@ namespace zfile
 						// 创建目标目录
 						targetClient.CreateDirectory(targetRemotePath);
 						// 递归传输目录内容
-						TransferDirectory(sourceClient, targetClient, remotePath, targetRemotePath);
+						TransferDirectory(sourceClient, targetClient, srcfile, targetRemotePath);
 					}
 					else
 					{
 						// 使用FXP(服务器到服务器)传输
 						if (sourceClient.HasFeature(FtpCapability.PRET))
 						{
-							sourceClient.TransferFile(remotePath, targetClient, targetRemotePath);
+							sourceClient.TransferFile(srcfile, targetClient, targetRemotePath);
 						}
 						else
 						{
@@ -2112,7 +2112,7 @@ namespace zfile
 							try
 							{
 								// 从源FTP下载到临时文件
-								sourceClient.DownloadFile(remotePath, tempFile);
+								sourceClient.DownloadFile(srcfile, tempFile);
 								// 从临时文件上传到目标FTP
 								targetClient.UploadFile(tempFile, targetRemotePath);
 							}
@@ -2226,7 +2226,7 @@ namespace zfile
 						// 创建本地目录
 						Directory.CreateDirectory(localPath);
 						// 递归下载目录内容
-						DownloadDirectory(sourceClient, remotePath, localPath);
+						DownloadDirectory(GetFtpSource(sourcePath), remotePath, localPath);
 					}
 					else
 					{

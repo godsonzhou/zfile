@@ -443,13 +443,59 @@ namespace zfile
 			var listView = sender as ListView;
 			if (!IsValidTarget(listView, e, out string targetPath)) return;
 
-			// 复制文件/目录到目标路径
-			foreach (var sourcePath in draggedItems)
-				FileSystemManager.CopyFilesAndDirectories(sourcePath, targetPath);
+			// 检查源路径是否是 FTP 路径
+			bool isSourceFtp = draggedItems[0].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase);
+			// 检查目标路径是否是 FTP 路径
+			bool isTargetFtp = targetPath.StartsWith("ftp://", StringComparison.OrdinalIgnoreCase);
 
-			// 刷新目标视图
-			listView.Refresh();
-			RefreshPanel(listView);
+			try
+			{
+				if (isSourceFtp && isTargetFtp)
+				{
+					// FTP 到 FTP 的传输
+					string sourceConnection = ExtractFtpConnectionName(draggedItems[0]);
+					string targetConnection = ExtractFtpConnectionName(targetPath);
+
+					if (!string.IsNullOrEmpty(sourceConnection) && !string.IsNullOrEmpty(targetConnection))
+					{
+						fTPMGR.HandleFtpToFtpTransfer(sourceConnection, targetConnection, draggedItems, targetPath);
+					}
+				}
+				else if (isSourceFtp)
+				{
+					// FTP 到本地的传输
+					string sourceConnection = ExtractFtpConnectionName(draggedItems[0]);
+					if (!string.IsNullOrEmpty(sourceConnection))
+					{
+						fTPMGR.HandleFtpToLocalTransfer(sourceConnection, draggedItems, targetPath);
+					}
+				}
+				else if (isTargetFtp)
+				{
+					// 本地到 FTP 的传输
+					string targetConnection = ExtractFtpConnectionName(targetPath);
+					if (!string.IsNullOrEmpty(targetConnection))
+					{
+						fTPMGR.HandleLocalToFtpTransfer(targetConnection, draggedItems, targetPath);
+					}
+				}
+				else
+				{
+					// 本地到本地的传输
+					foreach (var sourcePath in draggedItems)
+					{
+						FileSystemManager.CopyFilesAndDirectories(sourcePath, targetPath);
+					}
+				}
+
+				// 刷新目标视图
+				listView.Refresh();
+				RefreshPanel(listView);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"传输失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
 		}
 		public void AddCurrentPathToBookmarks()
 		{

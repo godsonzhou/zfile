@@ -377,9 +377,42 @@ namespace zfile
 		{
 			// 检查目标是否为有效文件系统路径
 			var listView = sender as ListView;
+			if (listView == null) return;
+
 			listView.Update();
-			e.Effect = IsValidTarget(listView, e, out _) ? DragDropEffects.Copy : DragDropEffects.None;
-			return;
+			if (!IsValidTarget(listView, e, out string targetPath))
+			{
+				e.Effect = DragDropEffects.None;
+				return;
+			}
+
+			// 检查目标路径是否为FTP或压缩文件
+			if (fTPMGR.IsFtpPath(targetPath) || IsArchiveFile(targetPath))
+			{
+				e.Effect = DragDropEffects.None;
+				return;
+			}
+
+			// 获取目标项
+			var clientPoint = listView.PointToClient(new Point(e.X, e.Y));
+			var targetItem = listView.GetItemAt(clientPoint.X, clientPoint.Y);
+
+			if (targetItem != null)
+			{
+				string itemPath = GetListItemPath(targetItem);
+				if (File.Exists(itemPath))
+				{
+					// 检查是否为可执行文件
+					string ext = Path.GetExtension(itemPath).ToLower();
+					if (ext == ".exe" || ext == ".com" || ext == ".bat" || ext == ".cmd")
+					{
+						e.Effect = DragDropEffects.Link; // 使用Link效果表示将作为参数启动程序
+						return;
+					}
+				}
+			}
+
+			e.Effect = DragDropEffects.Copy;
 		}
 		private bool IsValidTarget(ListView listView, DragEventArgs e, out string targetPath)
 		{
@@ -402,7 +435,49 @@ namespace zfile
 			var listView = sender as ListView;
 			if (!IsValidTarget(listView, e, out string targetPath)) return;
 
-			// 使用cm_copy方法处理拖放操作
+			// 检查目标路径是否为FTP或压缩文件
+			if (fTPMGR.IsFtpPath(targetPath) || IsArchiveFile(targetPath))
+			{
+				MessageBox.Show("不能拖放到FTP或压缩文件中", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return;
+			}
+
+			// 获取目标项
+			var clientPoint = listView.PointToClient(new Point(e.X, e.Y));
+			var targetItem = listView.GetItemAt(clientPoint.X, clientPoint.Y);
+
+			if (targetItem != null)
+			{
+				string itemPath = GetListItemPath(targetItem);
+				if (File.Exists(itemPath))
+				{
+					// 检查是否为可执行文件
+					string ext = Path.GetExtension(itemPath).ToLower();
+					if (ext == ".exe" || ext == ".com" || ext == ".bat" || ext == ".cmd")
+					{
+						try
+						{
+							// 构建启动参数
+							var processInfo = new ProcessStartInfo
+							{
+								FileName = itemPath,
+								Arguments = string.Join(" ", draggedItems.Select(path => $"\"{path}\"")),
+								UseShellExecute = true,
+								WorkingDirectory = Path.GetDirectoryName(itemPath)
+							};
+							Process.Start(processInfo);
+							return;
+						}
+						catch (Exception ex)
+						{
+							MessageBox.Show($"启动程序失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+							return;
+						}
+					}
+				}
+			}
+
+			// 如果不是拖放到可执行文件，则执行普通的复制操作
 			cm_copy(null, targetPath);
 
 			// 刷新目标视图
@@ -2000,7 +2075,7 @@ namespace zfile
 		}
 		private List<string> GetFileListByViewOrParam(string param)
 		{
-			if (!param.Equals(string.Empty))
+			if (!string.IsNullOrWhiteSpace(param))
 				return se.PrepareParameter(param, new string[] { }, "");
 			List<string> result = new();
 			if (activeListView.SelectedItems.Count == 0)

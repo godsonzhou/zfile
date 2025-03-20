@@ -1293,7 +1293,7 @@ namespace zfile
 				if (!string.IsNullOrEmpty(localPath))
 				{
 					// 调用CmdProc的do_cm_list方法查看文件
-					form.do_cm_list(localPath);
+					form.cm_list(localPath);
 				}
 			}
 			catch (Exception ex)
@@ -1322,7 +1322,7 @@ namespace zfile
 				if (!string.IsNullOrEmpty(localPath))
 				{
 					// 调用CmdProc的do_cm_edit方法编辑文件
-					form.do_cm_edit(localPath);
+					form.cm_edit(localPath);
 
 					// 监视文件变化，如果有修改则上传
 					FileSystemWatcher watcher = new FileSystemWatcher(Path.GetDirectoryName(localPath), Path.GetFileName(localPath));

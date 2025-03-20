@@ -454,7 +454,7 @@ namespace zfile
 		}
 		private void do_cm_configchangeinifiles()
 		{
-			owner.do_cm_edit(Constants.ZfileCfgPath + "wincmd.ini");
+			owner.cm_edit(Constants.ZfileCfgPath + "wincmd.ini");
 		}
 		private void do_cm_configsavesettings()
 		{

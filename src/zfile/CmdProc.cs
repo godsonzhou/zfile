@@ -325,25 +325,25 @@ namespace zfile
 						owner.uiManager.EditMenu(0);//set to 1 to change mainmenu
 						break;
 					case 903: //cm_list
-						owner.do_cm_list(param);
+						owner.cm_list(param);
 						break;
 					case 904: //cm_edit
-						owner.do_cm_edit(param);
+						owner.cm_edit(param);
 						break;
 					case 905: // cm_copy
-						CopySelectedFiles();
+						owner.cm_copy(param);
 						break;
 					case 906: // cm_renmov
-						MoveSelectedFiles();
+						owner.cm_renmov();
 						break;
 					case 907: // cm_mkdir
-						CreateNewFolder();
+						owner.cm_mkdir(param);
 						break;
 					case 908: // cm_delete
-						DeleteSelectedFiles();
+						owner.cm_delete();
 						break;
 					case 1002: // cm_renameonly
-						RenameSelected();
+						owner.cm_renameonly();
 						break;
 					case 1003: // cm_properties
 						ShowFileProperties();

@@ -498,6 +498,312 @@ namespace zfile
 				MessageBox.Show($"传输失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
 			}
 		}
+		// 复制选中的文件
+		public bool cm_copy(string param = null)
+		{
+			var listView = activeListView;
+			if (listView == null || listView.SelectedItems.Count <= 0) return false;
+
+			var srcPath = Helper.getFSpath(!uiManager.isleft ? uiManager.RightTree.SelectedNode.FullPath : uiManager.LeftTree.SelectedNode.FullPath);
+			var targetTree = uiManager.isleft ? uiManager.RightTree : uiManager.LeftTree;
+			var targetPath = Helper.getFSpath(targetTree.SelectedNode.FullPath);
+			var isSamePath = targetPath.Equals(srcPath);
+
+			var sourceFiles = listView.SelectedItems.Cast<ListViewItem>()
+				.Select(item => GetListItemPath(item))
+				.ToArray();
+
+			var targetlist = uiManager.isleft ? uiManager.RightList : uiManager.LeftList;
+			try
+			{
+				// 处理压缩文件的情况
+				if (IsArchiveFile(srcPath))
+				{
+					foreach (string fileName in sourceFiles)
+					{
+						ExtractArchiveFile(srcPath, fileName, targetPath);
+					}
+					return true;
+				}
+
+				if (IsArchiveFile(targetPath))
+				{
+					string[] files = sourceFiles.Select(f => Path.Combine(srcPath, f)).ToArray();
+					AddToArchive(targetPath, files);
+					var items = LoadArchiveContents(targetPath);
+					var targetListView = (uiManager.isleft ? uiManager.RightList : uiManager.LeftList);
+					targetListView.Items.Clear();
+					targetListView.Items.AddRange(items.ToArray());
+					return true;
+				}
+
+				// 检查源路径和目标路径是否为FTP路径
+				bool isSourceFtp = fTPMGR.IsFtpPath(srcPath);
+				bool isTargetFtp = fTPMGR.IsFtpPath(targetPath);
+
+				if (isSourceFtp && !isTargetFtp)
+				{
+					// 从FTP下载到本地
+					var ftpSource = fTPMGR.GetFtpSource(srcPath);
+					if (ftpSource != null)
+					{
+						foreach (string remotePath in sourceFiles)
+						{
+							string fileName = Path.GetFileName(remotePath);
+							string localPath = Path.Combine(targetPath, fileName);
+							string tempFile = ftpSource.DownloadFile(remotePath);
+							if (!string.IsNullOrEmpty(tempFile))
+							{
+								try
+								{
+									File.Copy(tempFile, localPath, true);
+								}
+								finally
+								{
+									// 清理临时文件
+									if (File.Exists(tempFile))
+										File.Delete(tempFile);
+								}
+							}
+						}
+					}
+				}
+				else if (!isSourceFtp && isTargetFtp)
+				{
+					// 从本地上传到FTP
+					var ftpTarget = fTPMGR.GetFtpSource(targetPath);
+					if (ftpTarget != null)
+					{
+						foreach (string localFile in sourceFiles)
+						{
+							string fileName = Path.GetFileName(localFile);
+							string remotePath = Path.Combine(targetPath, fileName).Replace("\\", "/");
+							ftpTarget.UploadFile(localFile, remotePath);
+						}
+					}
+				}
+				else if (isSourceFtp && isTargetFtp)
+				{
+					// FTP到FTP的复制
+					var sourceFtp = fTPMGR.GetFtpSource(srcPath);
+					var targetFtp = fTPMGR.GetFtpSource(targetPath);
+					if (sourceFtp != null && targetFtp != null)
+					{
+						foreach (string remotePath in sourceFiles)
+						{
+							// 先下载到临时目录
+							string tempFile = sourceFtp.DownloadFile(remotePath);
+							if (!string.IsNullOrEmpty(tempFile))
+							{
+								try
+								{
+									// 再上传到目标FTP
+									string fileName = Path.GetFileName(remotePath);
+									string targetRemotePath = Path.Combine(targetPath, fileName).Replace("\\", "/");
+									targetFtp.UploadFile(tempFile, targetRemotePath);
+								}
+								finally
+								{
+									// 清理临时文件
+									if (File.Exists(tempFile))
+										File.Delete(tempFile);
+								}
+							}
+						}
+					}
+				}
+				else
+				{
+					// 本地文件之间的复制
+					FileSystemManager.CopyFilesAndDirectories(sourceFiles, targetPath);
+				}
+
+				RefreshPanel(targetlist);
+				return true;
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"复制文件失败: {ex.Message}", "错误");
+				return false;
+			}
+		}
+		// 移动选中的文件
+		public void cm_renmov()
+		{
+			var listView = activeListView;
+			if (listView == null || listView.SelectedItems.Count <= 0) return;
+
+			var srcpath = Helper.getFSpath(activeTreeview.SelectedNode.FullPath);
+			var sourceFiles = listView.SelectedItems.Cast<ListViewItem>()
+				.Select(item => GetListItemPath(item))
+				.ToArray();
+
+			var targettree = uiManager.isleft ? uiManager.RightTree : uiManager.LeftTree;
+			var targetPath = Helper.getFSpath(targettree.SelectedNode.FullPath);
+			if (string.IsNullOrEmpty(targetPath))
+			{
+				MessageBox.Show("无效的目标路径", "错误");
+				return;
+			}
+			if (srcpath.Equals(targetPath))
+			{
+				return;     //if srcpath eq targetpath, do not need move, do rename 
+			}
+
+			try
+			{
+				// 检查源路径和目标路径是否为FTP路径
+				bool isSourceFtp = fTPMGR.IsFtpPath(srcpath);
+				bool isTargetFtp = fTPMGR.IsFtpPath(targetPath);
+
+				if (isSourceFtp || isTargetFtp)
+				{
+					// 如果涉及FTP，先复制后删除
+					if (cm_copy())
+					{
+						// 如果源是FTP，使用FTP删除
+						if (isSourceFtp)
+						{
+							var ftpSource = fTPMGR.GetFtpSource(srcpath);
+							if (ftpSource != null)
+							{
+								foreach (string remotePath in sourceFiles)
+								{
+									ftpSource.DeleteFile(remotePath);
+								}
+							}
+						}
+						else
+						{
+							// 源是本地文件，使用本地删除
+							cm_delete(false);
+						}
+					}
+				}
+				else
+				{
+					// 本地文件之间的移动
+					if (cm_copy())
+						cm_delete(false);
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"移动文件失败: {ex.Message}", "错误");
+			}
+		}
+
+		// 删除选中的文件
+		public void cm_delete(bool needConfirm = true)
+		{
+			//Debug.Print("Delete files : >>");
+			var listView = activeListView;
+			if (listView == null || listView.SelectedItems.Count <= 0) return;
+
+			var files = listView.SelectedItems.Cast<ListViewItem>()
+				.Select(item => GetListItemPath(item))
+				.ToArray();
+
+			var currentPath = currentDirectory[isleft];
+			var result = DialogResult.Yes;
+			if (needConfirm)
+			{
+				result = MessageBox.Show(
+					$"确定要删除选中的 {files.Length} 个文件吗？",
+					"确认删除",
+					MessageBoxButtons.YesNo,
+					MessageBoxIcon.Question
+				);
+			}
+			if (result == DialogResult.Yes)
+			{
+				try
+				{
+					if (IsArchiveFile(currentDirectory[isleft]))
+					{
+						if (DeleteFromArchive(currentDirectory[isleft], files.ToArray()))
+						{
+							var items = LoadArchiveContents(currentDirectory[isleft]);
+							activeListView.Items.Clear();
+							activeListView.Items.AddRange(items.ToArray());
+						}
+						return;
+					}
+
+					// 检查是否为FTP路径
+					if (fTPMGR.IsFtpPath(currentPath))
+					{
+						var ftpSource = fTPMGR.GetFtpSource(currentPath);
+						if (ftpSource != null)
+						{
+							foreach (string remotePath in files)
+							{
+								ftpSource.DeleteFile(remotePath);
+							}
+						}
+					}
+					else
+					{
+						// 本地文件删除
+						foreach (var file in files)
+						{
+							FileSystemManager.DeleteFile(file);
+						}
+					}
+					RefreshPanel(listView);
+				}
+				catch (Exception ex)
+				{
+					MessageBox.Show($"删除文件失败: {ex.Message}", "错误");
+				}
+			}
+		}
+
+		// 创建新文件夹
+		public void cm_mkdir(string folderName = "新建文件夹")
+		{
+			var path = currentDirectory[isleft];
+
+			try
+			{
+				if (fTPMGR.IsFtpPath(path))
+				{
+					// FTP创建文件夹
+					var ftpSource = fTPMGR.GetFtpSource(path);
+					if (ftpSource != null)
+					{
+						string newFolderPath = Path.Combine(path, folderName).Replace("\\", "/");
+						if (ftpSource.CreateDirectory(newFolderPath))
+						{
+							RefreshPanel(activeListView);
+						}
+					}
+				}
+				else
+				{
+					// 本地创建文件夹
+					var newFolderPath = Path.Combine(path, folderName);
+					FileSystemManager.CreateDirectory(newFolderPath);
+					RefreshPanel(activeListView);
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"创建文件夹失败: {ex.Message}", "错误");
+			}
+		}
+
+		// 重命名选中的文件或文件夹
+		public void cm_renameonly()
+		{
+			var listView = activeListView;
+			if (listView == null || listView.SelectedItems.Count <= 0) return;
+
+			var selectedItem = listView.SelectedItems[0];
+
+			// 启用编辑模式
+			selectedItem.BeginEdit();
+		}
 		public void AddCurrentPathToBookmarks()
 		{
 			//if (string.IsNullOrEmpty(currentDirectory[isleft])) return;
@@ -2237,7 +2543,7 @@ namespace zfile
 		// 查看按钮点击处理逻辑
 		public void ViewButton_Click(object? sender, EventArgs e)
 		{
-			do_cm_list();
+			cm_list();
 		}
 		private List<string> GetFileListByViewOrParam(string param)
 		{
@@ -2270,7 +2576,7 @@ namespace zfile
 			// 非FTP路径或FTP处理失败，使用原来的逻辑
 			return activeListView.SelectedItems.Cast<ListViewItem>().Select(i => i.SubItems[1].Text).ToList();
 		}
-		public void do_cm_edit(string param = "")
+		public void cm_edit(string param = "")
 		{
 
 			//var listView = uiManager.LeftList.Focused ? uiManager.LeftList : uiManager.RightList;
@@ -2298,7 +2604,7 @@ namespace zfile
 				editorForm.Show();
 			}
 		}
-		public void do_cm_list(string param = "")
+		public void cm_list(string param = "")
 		{
 			// 编辑按钮点击处理逻辑
 			// OPEN VIEWERFORM
@@ -2347,7 +2653,7 @@ namespace zfile
 		}
 		public void EditButton_Click(object? sender, EventArgs e)
 		{
-			do_cm_edit();
+			cm_edit();
 		}
 
 		public void CopyButton_Click(object? sender, EventArgs e)

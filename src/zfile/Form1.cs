@@ -467,7 +467,7 @@ namespace zfile
 					string sourceConnection = ExtractFtpConnectionName(draggedItems[0]);
 					if (!string.IsNullOrEmpty(sourceConnection))
 					{
-						fTPMGR.HandleFtpToLocalTransfer(sourceConnection, draggedItems, targetPath);
+						fTPMGR.HandleFtpToLocalTransfer(draggedItems[0], targetPath, draggedItems);
 					}
 				}
 				else if (isTargetFtp)
@@ -476,7 +476,7 @@ namespace zfile
 					string targetConnection = ExtractFtpConnectionName(targetPath);
 					if (!string.IsNullOrEmpty(targetConnection))
 					{
-						fTPMGR.HandleLocalToFtpTransfer(targetConnection, draggedItems, targetPath);
+						fTPMGR.HandleLocalToFtpTransfer(draggedItems[0], targetPath, draggedItems);
 					}
 				}
 				else

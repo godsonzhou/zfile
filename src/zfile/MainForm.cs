@@ -1279,10 +1279,10 @@ namespace zfile
 				var ftpsrc = fTPMGR.GetFtpFileSourceByConnectionName(ftpTag.ConnectionName);
 				//currentDirectory[isleft] = $"ftp://{ftpTag.ConnectionName}{ftpTag.Path}";
 				currentDirectory[isleft] = $"ftp://{ftpsrc?.Host}{ftpTag.Path}";        //bugfix: currentdir can not be set to connection name, use host instead,
-																						//if (isleft)
-																						//	uiManager.LeftPathTextBox.Text = currentDirectory[isleft];
-																						//else
-																						//	uiManager.RightPathTextBox.Text = currentDirectory[isleft];
+				//if (isleft)
+				//	uiManager.LeftPathTextBox.Text = currentDirectory[isleft];
+				//else
+				//	uiManager.RightPathTextBox.Text = currentDirectory[isleft];
 
 				SelectedNode = eNode;
 				//uiManager.BookmarkManager.UpdateActiveBookmark(currentDirectory[isleft], selectedNode, isleft);

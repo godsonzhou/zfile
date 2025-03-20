@@ -15,7 +15,41 @@ namespace zfile
 		private string _ftpHost;
 		private string _connectionName;
 		private Form1 _owner;
+		/// <summary>
+		/// 获取FTP连接名称
+		/// </summary>
+		public string ConnectionName => _connectionName;
 
+		/// <summary>
+		/// 获取FTP主机地址
+		/// </summary>
+		public string Host => _ftpHost;
+
+		/// <summary>
+		/// 获取或设置当前FTP路径
+		/// </summary>
+		public string CurrentPath
+		{
+			get => _currentPath;
+			set => _currentPath = value;
+		}
+
+		/// <summary>
+		/// 获取FTP客户端实例
+		/// </summary>
+		public FtpClient Client => _client;
+
+		public FtpFileSource()
+		{
+		}
+
+		public FtpFileSource(Form1 owner, string connectionName, FtpClient client)
+		{
+			_owner = owner;
+			_connectionName = connectionName;
+			_client = client;
+			_ftpHost = client.Host;
+		}
 		/// <summary>
 		/// 将FTP文件属性转换为L777格式的字符串
 		/// </summary>
@@ -64,19 +98,6 @@ namespace zfile
 			sb[3] = othersValue.ToString()[0];
 
 			return sb.ToString();
-		}
-
-
-		public FtpFileSource()
-		{
-		}
-
-		public FtpFileSource(Form1 owner, string connectionName, FtpClient client)
-		{
-			_owner = owner;
-			_connectionName = connectionName;
-			_client = client;
-			_ftpHost = client.Host;
 		}
 
 		public override bool IsSupportedPath(string path)
@@ -327,25 +348,6 @@ namespace zfile
 			}
 		}
 
-		/// <summary>
-		/// 格式化文件大小显示
-		/// </summary>
-		/// <param name="size">文件大小（字节）</param>
-		/// <returns>格式化后的文件大小</returns>
-		//private string FormatFileSize(long size)
-		//{
-		//    string[] units = { "B", "KB", "MB", "GB", "TB" };
-		//    double dSize = size;
-		//    int unitIndex = 0;
-
-		//    while (dSize >= 1024 && unitIndex < units.Length - 1)
-		//    {
-		//        dSize /= 1024;
-		//        unitIndex++;
-		//    }
-
-		//    return $"{dSize:0.##} {units[unitIndex]}";
-		//}
 
 		/// <summary>
 		/// 根据文件名获取图标键
@@ -386,28 +388,6 @@ namespace zfile
 			}
 		}
 
-		/// <summary>
-		/// 获取FTP连接名称
-		/// </summary>
-		public string ConnectionName => _connectionName;
 
-		/// <summary>
-		/// 获取FTP主机地址
-		/// </summary>
-		public string Host => _ftpHost;
-
-		/// <summary>
-		/// 获取或设置当前FTP路径
-		/// </summary>
-		public string CurrentPath
-		{
-			get => _currentPath;
-			set => _currentPath = value;
-		}
-
-		/// <summary>
-		/// 获取FTP客户端实例
-		/// </summary>
-		public FtpClient Client => _client;
 	}
 }

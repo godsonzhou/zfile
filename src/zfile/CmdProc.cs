@@ -579,7 +579,7 @@ namespace zfile
 						break;
 
 					case 11438: // mcp client
-						do_cm_mcpConfigUI(param);
+						do_cm_mcpConfigUI(param); //param is mcp client config file in which various mcp server is defined
 						break;
 					case 11439: // mcp client with mcpsharp
 						var lst = Task.Run(async () => { await do_cm_GetInfoFromMcpServer(param); });
@@ -695,8 +695,10 @@ namespace zfile
 				}
 			}
 		}
-		private async Task do_cm_StartMcpServer(string param = "mymcpserver")
+		private async Task do_cm_StartMcpServer(string param)
 		{
+			if (string.IsNullOrEmpty(param))
+				param = "mymcpserver";
 			MCPServer.AddToolHandler(new Tool()
 			{
 				Name = "dynamicTool",
@@ -715,18 +717,19 @@ namespace zfile
 			MCPServer.Register<MySkillClass>();
 			await MCPServer.StartAsync(param, "1.0.0");
 		}
-		private void do_cm_mcpConfigUI(string mcp_settings_file = "zfile_mcp_settings.json")
+		private void do_cm_mcpConfigUI(string mcp_settings_file)
 		{
-			var configPath = Path.Combine(Constants.ZfileCfgPath, mcp_settings_file);
+			var cfgfile = string.IsNullOrEmpty(mcp_settings_file) ? "zfile_mcp_settings.json" : mcp_settings_file;
+			var configPath = Path.Combine(Constants.ZfileCfgPath, cfgfile);
 			var mcpClientForm = new MCPClientForm(configPath);
 			mcpClientForm.Show();
 		}
 
 
-		private async Task<IList<AIFunction>> do_cm_GetInfoFromMcpServer(string param = "mymcpserver")
+		private async Task<IList<AIFunction>> do_cm_GetInfoFromMcpServer(string param)
 		{
 			// Client-side integration
-			MCPClient client = new("AIClient", "1.0", param);
+			MCPClient client = new("AIClient", "1.0", string.IsNullOrEmpty(param) ? "mymcpserver" : param);
 			IList<AIFunction> functions = await client.GetFunctionsAsync();
 			var prompts = await client.GetPromptListAsync();
 			var resources = await client.GetResourcesAsync();

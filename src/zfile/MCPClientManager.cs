@@ -6,6 +6,8 @@ using MCPSharp.Model;
 using MCPSharp.Model.Schemas;
 using Newtonsoft.Json;
 using System.IO;
+using Microsoft.Extensions.AI;
+using System.Collections;
 
 namespace zfile
 {
@@ -41,9 +43,14 @@ namespace zfile
             {
                 try
                 {
-                    var client = new MCPClient("aiclient", "1.0.0", "postgres", "helloworld!");
-                    //client.ConnectAsync(serverConfig.Command, serverConfig.Args);
-                    mcpClients[serverName] = client;
+                    var client = new MCPClient("aiclient", "1.0.0", serverConfig.Command, string.Join(' ', serverConfig.Args));
+					//client.ConnectAsync(serverConfig.Command, serverConfig.Args);
+					//IList<AIFunction> functions = await client.GetFunctionsAsync();
+					//var prompts = await client.GetPromptListAsync();
+					//var resources = await client.GetResourcesAsync();
+					//var tools = await client.GetToolsAsync();
+					//var resourceTemplates = await client.GetResourceTemplatesAsync();
+					mcpClients[serverName] = client;
                     return true;
                 }
                 catch (Exception ex)
@@ -127,4 +134,39 @@ namespace zfile
         [JsonProperty("autoApprove")]
         public string[] AutoApprove { get; set; }
     }
+	class McpServerConfiguration
+	{
+		public required string Command { get; set; }
+		public string[] Args { get; set; } = [];
+		public Dictionary<string, string> Env { get; set; } = [];
+	}
+	class MCPClientPool : ICollection<MCPClient>
+	{
+		private readonly List<MCPClient> clients = [];
+
+		public List<AITool> GetAllAIFunctions()
+		{
+			var functions = new List<AITool>();
+			clients.ForEach(c => functions.AddRange(c.GetFunctionsAsync().Result));
+			return functions;
+		}
+
+		public int Count => clients.Count;
+		public bool IsReadOnly => false;
+		public void Add(string name, McpServerConfiguration server, Func<Dictionary<string, object>, bool> permissionFunction = null)
+		{
+			clients.Add(new MCPClient(name, "0.1.0", server.Command, string.Join(' ', server.Args ?? []), server.Env)
+			{
+				GetPermission = permissionFunction ?? ((parameters) => true)
+			});
+		}
+
+		public void Add(MCPClient item) => clients.Add(item);
+		public void Clear() => clients.Clear();
+		public bool Contains(MCPClient item) => clients.Contains(item);
+		public void CopyTo(MCPClient[] array, int arrayIndex) => clients.CopyTo(array, arrayIndex);
+		public IEnumerator<MCPClient> GetEnumerator() => clients.GetEnumerator();
+		public bool Remove(MCPClient item) => clients.Remove(item);
+		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+	}
 }

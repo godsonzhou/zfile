@@ -195,19 +195,18 @@ namespace zfile
 					item.SubItems.Add(cmd.ZhDesc);
 					listView.Items.Add(item);
 				}
-			}else
-			{
-                // 从cmdprocessor.emcmds获取所有em命令并填充ListView
-                var emcmds = cmdProcessor.emCmds;
-                foreach (var cmd in emcmds)
-                {
-                    var item = new ListViewItem(" ");
-                    item.SubItems.Add(cmd.Name);
-                    item.SubItems.Add(cmd.Menu);
-                    item.SubItems.Add(cmd.Menu);
-                    listView.Items.Add(item);
-                }
 			}
+
+			// 从cmdprocessor.emcmds获取所有em命令并填充ListView
+			var emcmds = cmdProcessor.emCmds;
+            foreach (var cmd in emcmds)
+            {
+                var item = new ListViewItem(" ");
+                item.SubItems.Add(cmd.Name);
+                item.SubItems.Add(cmd.Menu);
+                item.SubItems.Add(cmd.Menu);
+                listView.Items.Add(item);
+            }
 		}
 
         private void SearchBox_TextChanged(object sender, EventArgs e)

@@ -10,6 +10,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+//using Microsoft.VisualStudio.Threading;
 
 public class ThumbnailGenerator
 {
@@ -266,14 +267,16 @@ public class ThumbnailGenerator
 	}
 	public static bool GetThumbnailForVideo(string filePath, out Image image)
 	{
+		bool res;
+		var starttime = DateTime.Now;
 		if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-		{
-			return GetThumbnailWithWMF(filePath, out image);
-		}
+			res = GetThumbnailWithWMF(filePath, out image);	//<<<0.001-0.18
 		else
-		{
-			return GetThumbnailWithFFmpeg(filePath, out image);
-		}
+			res = GetThumbnailWithFFmpeg(filePath, out image);
+		var endtime = DateTime.Now;
+		var timespan = endtime - starttime;
+		Debug.Print($"get thumbnail : {timespan.TotalSeconds} seconds used");
+		return res;
 	}
 	public static bool GetThumbnailWithFFmpeg(string filePath, out Image image)
 	{

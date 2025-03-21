@@ -2210,9 +2210,7 @@ namespace zfile
 			if (node.Text == "回收站")
 				LoadRecycleBin(listView);
 			else if (node.Tag is FtpNodeTag)
-			{
 				ftpNodeSelect(node);
-			}
 			else
 				LoadListViewByFilesystem(path, listView, node);
 		}
@@ -2243,7 +2241,6 @@ namespace zfile
 				}
 				else
 					RefreshTreeViewAndListView(uiManager.LeftList, uiManager.LeftPathTextBox.CurrentNode.UniqueID);
-				//Debug.Print("refresh left panel");
 			}
 			if (mode.HasFlag(RefreshPanelMode.Right))
 			{
@@ -2251,7 +2248,6 @@ namespace zfile
 					RefreshTreeViewAndListView(uiManager.RightList, ((ShellItem)uiManager.RightTree.SelectedNode.Tag).parsepath);
 				else if(IsActiveFtpPanel(out var ftpnode))
 					RefreshTreeViewAndListView(uiManager.RightList, ftpnode.Path);
-				//Debug.Print("refresh right panel");
 			}
 		}
 		public void TerminalButton_Click(object? sender, EventArgs e)

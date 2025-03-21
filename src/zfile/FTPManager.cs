@@ -96,12 +96,15 @@ namespace zfile
 		/// <summary>
 		/// 处理FTP节点双击事件
 		/// </summary>
-		public void HandleFtpNodeDoubleClick(TreeNode node, ListView listView)
+		public void HandleFtpNodeDoubleClick(TreeNode node, ListView? listView = null)
 		{
 			if (node.Tag is FtpNodeTag tag)
 			{
+				if (listView == null)
+					listView = form.GetListViewByName(node.TreeView.Name);
 				// 加载FTP目录内容
 				LoadFtpDirectory(tag.ConnectionName, tag.Path, listView);
+				listView.Refresh();
 			}
 		}
 

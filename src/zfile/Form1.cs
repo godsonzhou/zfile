@@ -415,12 +415,19 @@ namespace zfile
 
 			e.Effect = DragDropEffects.Copy;
 		}
-		private TreeView GetTreeViewByName(string name)
+		public TreeView GetTreeViewByName(string name)
 		{
-			if (name.Contains("Left"))
+			if (name.Contains("Left", StringComparison.OrdinalIgnoreCase))
 				return uiManager.LeftTree;
 			else
 				return uiManager.RightTree;
+		}
+		public ListView GetListViewByName(string name)
+		{
+			if (name.Contains("left", StringComparison.OrdinalIgnoreCase))
+				return uiManager.LeftList;
+			else
+				return uiManager.RightList;
 		}
 		private bool IsValidTarget(ListView listView, DragEventArgs e, out string targetPath)
 		{
@@ -2264,9 +2271,8 @@ namespace zfile
 		{
 			if (mode.HasFlag(RefreshPanelMode.Left))
 			{
-				if (IsActiveFtpPanel(out var ftpnode)) {
+				if (IsFtpPanel(out var ftpnode, "left")) 
 					RefreshTreeViewAndListView(uiManager.LeftList, ftpnode.Path);
-				}
 				else
 					RefreshTreeViewAndListView(uiManager.LeftList, uiManager.LeftPathTextBox.CurrentNode.UniqueID);
 			}
@@ -2274,7 +2280,7 @@ namespace zfile
 			{
 				if (uiManager.RightTree.SelectedNode.Tag is ShellItem)
 					RefreshTreeViewAndListView(uiManager.RightList, ((ShellItem)uiManager.RightTree.SelectedNode.Tag).parsepath);
-				else if(IsActiveFtpPanel(out var ftpnode))
+				else if(IsFtpPanel(out var ftpnode, "right"))
 					RefreshTreeViewAndListView(uiManager.RightList, ftpnode.Path);
 			}
 		}
@@ -2928,8 +2934,8 @@ namespace zfile
 			if (eNode.Tag is FtpNodeTag ftpTag)
 			{
 				// 处理FTP节点双击事件
-				fTPMGR.HandleFtpNodeDoubleClick(eNode, activeListView);
-				activeListView.Refresh();
+				fTPMGR.HandleFtpNodeDoubleClick(eNode);
+
 				// 更新当前目录和路径显示
 				var ftpsrc = fTPMGR.GetFtpFileSourceByConnectionName(ftpTag.ConnectionName);
 				//currentDirectory[isleft] = $"ftp://{ftpTag.ConnectionName}{ftpTag.Path}";
@@ -3037,6 +3043,15 @@ namespace zfile
 			ftpnode = null;
 			if ((treeview ?? activeTreeview).SelectedNode.Tag is FtpNodeTag _ftpnode)
 			{
+				ftpnode = _ftpnode;
+				return true;
+			}
+			return false;
+		}
+		public bool IsFtpPanel(out FtpNodeTag? ftpnode, string leftright)
+		{
+			ftpnode = null;
+			if (GetTreeViewByName(leftright).SelectedNode.Tag is FtpNodeTag _ftpnode){
 				ftpnode = _ftpnode;
 				return true;
 			}

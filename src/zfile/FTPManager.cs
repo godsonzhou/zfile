@@ -141,6 +141,10 @@ namespace zfile
 				if (recordHistory)
 					form.RecordDirectoryHistory(path);
 				tag.Path = path;
+				
+				// 更新活动书签
+				bool isLeft = listView.Name == "L";
+				form.uiManager.BookmarkManager.UpdateActiveBookmark($"ftp://{connectionName}{path}", node, isLeft);
 			}
 		}
 		/// <summary>
@@ -1065,6 +1069,7 @@ namespace zfile
 			{
 				// 查找当前连接的名称
 				string connectionName = null;
+				TreeNode ftpNode = null;
 				foreach (var node in _ftpNodes)
 				{
 					if (node.Value.Tag is FtpNodeTag tag &&
@@ -1072,6 +1077,7 @@ namespace zfile
 						source.Client == ActiveClient)
 					{
 						connectionName = tag.ConnectionName;
+						ftpNode = node.Value;
 						break;
 					}
 				}
@@ -1080,9 +1086,18 @@ namespace zfile
 				ActiveClient.Disconnect();
 				form.uiManager.ftpController.UpdateStatus(false);
 				form.activeListView.Items.Clear();
+				
 				// 如果找到了连接名称，注销FTP连接
 				if (!string.IsNullOrEmpty(connectionName))
 				{
+					// 移除左右两侧的书签（如果存在）
+					if (ftpNode != null)
+					{
+						var ftpPath = $"ftp://{connectionName}";
+						form.uiManager.BookmarkManager.RemoveBookmarkByPath(ftpPath, true);
+						form.uiManager.BookmarkManager.RemoveBookmarkByPath(ftpPath, false);
+					}
+					
 					UnregisterFtpConnection(connectionName);
 					_connectionMonitor.RemoveConnection(connectionName); //，从监视器中移除
 				}

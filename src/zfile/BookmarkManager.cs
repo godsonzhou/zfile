@@ -440,6 +440,31 @@ namespace zfile
             if (bookmarkList.Count == 0)
                 CreateDefaultBookmarks();
 		}
+		
+		/// <summary>
+		/// 根据路径移除书签
+		/// </summary>
+		/// <param name="path">书签路径</param>
+		/// <param name="isLeft">是否为左侧面板</param>
+		public void RemoveBookmarkByPath(string path, bool isLeft)
+		{
+			var bookmarkList = GetBookmarkList(isLeft);
+			
+			// 查找匹配路径的书签
+			for (int i = bookmarkList.Count - 1; i >= 0; i--)
+			{
+				var bookmark = bookmarkList[i];
+				// 检查书签路径是否以指定路径开头（FTP路径可能包含子目录）
+				if (bookmark.Path.StartsWith(path, StringComparison.OrdinalIgnoreCase))
+				{
+					// 如果书签未锁定，则移除
+					if (!bookmark.IsLocked)
+					{
+						RemoveBookmark(bookmark, isLeft);
+					}
+				}
+			}
+		}
 
         private void SetActiveBookmark(Bookmark bookmark, bool isLeft)
         {
@@ -547,4 +572,4 @@ namespace zfile
             }
         }
     }
-} 
+}

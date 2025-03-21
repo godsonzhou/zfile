@@ -26,7 +26,7 @@ namespace zfile
 		private Dictionary<Keys, string> hotkeyMappings;
 		private bool isSelecting = false;
 		private Rectangle selectionRectangle;
-		public string LRflag => uiManager.isleft ? "left" : "right";
+		public string LRflag => uiManager.isleft ? "L" : "R";
 		public bool isleft => uiManager.isleft;
 		public ListView activeListView { get => uiManager.activeListView; }
 		public ListView unactiveListView { get => uiManager.unactiveListView; }
@@ -2939,7 +2939,7 @@ namespace zfile
 				// 更新当前目录和路径显示
 				var ftpsrc = fTPMGR.GetFtpFileSourceByConnectionName(ftpTag.ConnectionName);
 				//currentDirectory[isleft] = $"ftp://{ftpTag.ConnectionName}{ftpTag.Path}";
-				CurrentDir[LRflag] = $"ftp://{ftpsrc?.Host}{ftpTag.Path}";        //bugfix: currentdir can not be set to connection name, use host instead,
+				//CurrentDir[LRflag] = $"ftp://{ftpsrc?.Host}{ftpTag.Path}";        //bugfix: currentdir can not be set to connection name, use host instead,
 																				  //if (isleft)
 																				  //	uiManager.LeftPathTextBox.Text = currentDirectory[isleft];
 																				  //else

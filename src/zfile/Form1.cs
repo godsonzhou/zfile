@@ -385,7 +385,7 @@ namespace zfile
 				e.Effect = DragDropEffects.None;
 				return;
 			}
-
+			Debug.Print($"{targetPath}");
 			// 检查目标路径是否为FTP或压缩文件
 			if (fTPMGR.IsFtpPath(targetPath) || IsArchiveFile(targetPath))
 			{
@@ -415,20 +415,48 @@ namespace zfile
 
 			e.Effect = DragDropEffects.Copy;
 		}
+		private TreeView GetTreeViewByName(string name)
+		{
+			if (name.Contains("Left"))
+				return uiManager.LeftTree;
+			else
+				return uiManager.RightTree;
+		}
 		private bool IsValidTarget(ListView listView, DragEventArgs e, out string targetPath)
 		{
-			// 将屏幕坐标转换为 TreeView 控件内的坐标
-			var clientPoint = listView.PointToClient(new Point(e.X, e.Y));
-			// 使用 GetNodeAt 获取目标节点
-			var targetItem = listView.GetItemAt(clientPoint.X, clientPoint.Y);
-			if (targetItem != null)
-				targetPath = GetListItemPath(targetItem);
+			if (IsActiveFtpPanel(out var ftpnode, GetTreeViewByName(listView.Name)))
+			{
+				// 将屏幕坐标转换为 TreeView 控件内的坐标
+				var clientPoint = listView.PointToClient(new Point(e.X, e.Y));
+				// 使用 GetNodeAt 获取目标节点
+				var targetItem = listView.GetItemAt(clientPoint.X, clientPoint.Y);
+				if (targetItem != null)
+				{
+					targetPath = GetListItemPath(targetItem);
+					return targetItem.SubItems[3].Text.Equals("<DIR>"); //IN ftp panel, if target is a dir then return true, otherwise return false
+				}
+				else
+				{
+					var targetTree = (listView == uiManager.LeftList) ? uiManager.LeftTree : uiManager.RightTree;
+					targetPath = Helper.getFSpathbyTree(targetTree.SelectedNode);
+				}
+				return true;
+			}
 			else
 			{
-				var targetTree = (listView == uiManager.LeftList) ? uiManager.LeftTree : uiManager.RightTree;
-				targetPath = Helper.getFSpathbyTree(targetTree.SelectedNode);
+				// 将屏幕坐标转换为 TreeView 控件内的坐标
+				var clientPoint = listView.PointToClient(new Point(e.X, e.Y));
+				// 使用 GetNodeAt 获取目标节点
+				var targetItem = listView.GetItemAt(clientPoint.X, clientPoint.Y);
+				if (targetItem != null)
+					targetPath = GetListItemPath(targetItem);
+				else
+				{
+					var targetTree = (listView == uiManager.LeftList) ? uiManager.LeftTree : uiManager.RightTree;
+					targetPath = Helper.getFSpathbyTree(targetTree.SelectedNode);
+				}
+				return FileSystemManager.IsValidFileSystemPath(targetPath);
 			}
-			return FileSystemManager.IsValidFileSystemPath(targetPath);
 		}
 		public void ListView_DragDrop(object? sender, DragEventArgs e)
 		{
@@ -3004,10 +3032,10 @@ namespace zfile
 			//IntPtr hWnd = wih.Handle;    //获取窗口句柄
 			//var result = ShellExecute(hWnd, "open", "需要打开的路径如C:\\Users\\Desktop\\xx.exe", null, null, (int)ShowWindowCommands.SW_SHOW);
 		}
-		public bool IsActiveFtpPanel(out FtpNodeTag? ftpnode)
+		public bool IsActiveFtpPanel(out FtpNodeTag? ftpnode, TreeView? treeview = null)
 		{
 			ftpnode = null;
-			if (activeTreeview.SelectedNode.Tag is FtpNodeTag _ftpnode)
+			if ((treeview ?? activeTreeview).SelectedNode.Tag is FtpNodeTag _ftpnode)
 			{
 				ftpnode = _ftpnode;
 				return true;

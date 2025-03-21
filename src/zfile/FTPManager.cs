@@ -1906,7 +1906,7 @@ namespace zfile
 			var connections = form.ftpconfigLoader.GroupConfigItemsByNumberOrName()
 				.Where(x => x.Key == "connections")
 				.SelectMany(x => x.Value)
-				.Where(x => x.Key != "default"); // 排除default配置项
+				.Where(x => x.Key != "default"); // 排除default配置项  //TODO: BUGFIX : 此处存在bug, 无法读取到connections section种除了default行以外的connection行
 
 			// 遍历添加其他连接
 			foreach (var conn in connections)

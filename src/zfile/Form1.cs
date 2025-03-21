@@ -513,11 +513,10 @@ namespace zfile
 			// 在这里可以添加自定义的菜单项
 		}
 
-
-		public interface IActiveListViewChangeable
-		{
-			void ActiveListViewChange(View view);
-		}
+		//public interface IActiveListViewChangeable
+		//{
+		//	void ActiveListViewChange(View view);
+		//}
 		public void TreeView_MouseDown(object sender, MouseEventArgs e)
 		{
 			if (e.Button == MouseButtons.Right)
@@ -1693,12 +1692,23 @@ namespace zfile
 		// 在目录变更时调用此方法记录历史
 		public void RecordDirectoryHistory(string newPath)
 		{
-			if (string.IsNullOrEmpty(CurrentDir[isleft]) || CurrentDir[isleft].Equals(newPath))
-				return;
+			if (IsActiveFtpPanel(out var ftpnode))
+			{
+				if (string.IsNullOrEmpty(ftpnode.Path) || ftpnode.Path.Equals(newPath))
+					return;
+				backStack.Push(ftpnode.Path);
+				forwardStack.Clear();
+				ftpnode.Path = newPath;
+			}
+			else
+			{
+				if (string.IsNullOrEmpty(CurrentDir[isleft]) || CurrentDir[isleft].Equals(newPath))
+					return;
 
-			backStack.Push(CurrentDir[isleft]);
-			forwardStack.Clear(); // 清除前进历史
-			CurrentDir[isleft] = newPath;
+				backStack.Push(CurrentDir[isleft]);
+				forwardStack.Clear(); // 清除前进历史
+				CurrentDir[isleft] = newPath;
+			}
 		}
 		private void SetIconForListViewItem(ListViewItem lvItem, ListView listView, string subkey)
 		{
@@ -2990,6 +3000,16 @@ namespace zfile
 			//var wih = new WindowInteropHelper(wnd); //该类支持获取hWnd
 			//IntPtr hWnd = wih.Handle;    //获取窗口句柄
 			//var result = ShellExecute(hWnd, "open", "需要打开的路径如C:\\Users\\Desktop\\xx.exe", null, null, (int)ShowWindowCommands.SW_SHOW);
+		}
+		public bool IsActiveFtpPanel(out FtpNodeTag? ftpnode)
+		{
+			ftpnode = null;
+			if (activeTreeview.SelectedNode.Tag is FtpNodeTag _ftpnode)
+			{
+				ftpnode = _ftpnode;
+				return true;
+			}
+			return false;
 		}
 	}
 }

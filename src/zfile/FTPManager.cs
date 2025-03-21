@@ -115,25 +115,31 @@ namespace zfile
 
 			if (isDirectory)
 			{
-				// 如果是目录，进入该目录
-				LoadFtpDirectory(connectionName, path, listView);
-
-				// 更新当前FTP节点的路径
-				if (_ftpNodes.TryGetValue(connectionName, out TreeNode node) && node.Tag is FtpNodeTag tag)
-				{
-					tag.Path = path;
-				}
+				NavigateToPath(connectionName, path, listView);
 			}
 			else
 			{
 				// 如果是文件，查看文件
-				if (_ftpSources.TryGetValue(connectionName, out FtpFileSource source))
+				if (_ftpSources.TryGetValue(connectionName, out FtpFileSource? source))
 				{
 					ViewFtpFile(source, path);
 				}
 			}
 		}
 
+		public void NavigateToPath(string connectionName, string path, ListView listView, bool recordHistory = true)
+		{
+			// 如果是目录，进入该目录
+			LoadFtpDirectory(connectionName, path, listView);
+
+			// 更新当前FTP节点的路径
+			if (_ftpNodes.TryGetValue(connectionName, out TreeNode? node) && node.Tag is FtpNodeTag tag)
+			{
+				if (recordHistory)
+					form.RecordDirectoryHistory(path);
+				tag.Path = path;
+			}
+		}
 		/// <summary>
 		/// 初始化FTP管理器扩展
 		/// </summary>
@@ -2003,123 +2009,123 @@ namespace zfile
 		/// <param name="targetPath">目标FTP路径</param>
 		/// <param name="sourceFiles">要传输的文件列表</param>
 		/// <returns>是否传输成功</returns>
-		public bool HandleFtpToFtpTransfer(string sourcePath, string targetPath, string[] sourceFiles)
-		{
-			try
-			{
-				// 获取源FTP和目标FTP的客户端
-				var sourceClient = GetFtpSource(sourcePath)?.Client;
-				var targetClient = GetFtpSource(targetPath)?.Client;
+		//public bool HandleFtpToFtpTransfer(string sourcePath, string targetPath, string[] sourceFiles)
+		//{
+		//	try
+		//	{
+		//		// 获取源FTP和目标FTP的客户端
+		//		var sourceClient = GetFtpSource(sourcePath)?.Client;
+		//		var targetClient = GetFtpSource(targetPath)?.Client;
 
-				if (sourceClient == null || targetClient == null)
-				{
-					MessageBox.Show("无法获取FTP客户端", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-					return false;
-				}
+		//		if (sourceClient == null || targetClient == null)
+		//		{
+		//			MessageBox.Show("无法获取FTP客户端", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+		//			return false;
+		//		}
 
-				// 确保两个客户端都已连接
-				if (!sourceClient.IsConnected || !targetClient.IsConnected)
-				{
-					MessageBox.Show("FTP客户端未连接", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-					return false;
-				}
+		//		// 确保两个客户端都已连接
+		//		if (!sourceClient.IsConnected || !targetClient.IsConnected)
+		//		{
+		//			MessageBox.Show("FTP客户端未连接", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+		//			return false;
+		//		}
 
-				// 遍历源文件列表进行传输
-				foreach (string srcfile in sourceFiles)
-				{
-					// 检查是否为目录
-					bool isDirectory = srcfile.EndsWith("/");
-					string fileName = Path.GetFileName(srcfile.TrimEnd('/'));
-					string targetRemotePath = Path.Combine(targetPath, fileName).Replace("\\", "/");
+		//		// 遍历源文件列表进行传输
+		//		foreach (string srcfile in sourceFiles)
+		//		{
+		//			// 检查是否为目录
+		//			bool isDirectory = srcfile.EndsWith("/");
+		//			string fileName = Path.GetFileName(srcfile.TrimEnd('/'));
+		//			string targetRemotePath = Path.Combine(targetPath, fileName).Replace("\\", "/");
 
-					if (isDirectory)
-					{
-						// 创建目标目录
-						targetClient.CreateDirectory(targetRemotePath);
-						// 递归传输目录内容
-						TransferDirectory(sourceClient, targetClient, srcfile, targetRemotePath);
-					}
-					else
-					{
-						// 使用FXP(服务器到服务器)传输
-						if (sourceClient.HasFeature(FtpCapability.PRET))
-						{
-							sourceClient.TransferFile(srcfile, targetClient, targetRemotePath);
-						}
-						else
-						{
-							// 如果不支持FXP,则通过本地中转
-							string tempFile = Path.GetTempFileName();
-							try
-							{
-								// 从源FTP下载到临时文件
-								sourceClient.DownloadFile(srcfile, tempFile);
-								// 从临时文件上传到目标FTP
-								targetClient.UploadFile(tempFile, targetRemotePath);
-							}
-							finally
-							{
-								// 清理临时文件
-								if (File.Exists(tempFile))
-									File.Delete(tempFile);
-							}
-						}
-					}
-				}
+		//			if (isDirectory)
+		//			{
+		//				// 创建目标目录
+		//				targetClient.CreateDirectory(targetRemotePath);
+		//				// 递归传输目录内容
+		//				TransferDirectory(sourceClient, targetClient, srcfile, targetRemotePath);
+		//			}
+		//			else
+		//			{
+		//				// 使用FXP(服务器到服务器)传输
+		//				if (sourceClient.HasFeature(FtpCapability.PRET))
+		//				{
+		//					sourceClient.TransferFile(srcfile, targetClient, targetRemotePath);
+		//				}
+		//				else
+		//				{
+		//					// 如果不支持FXP,则通过本地中转
+		//					string tempFile = Path.GetTempFileName();
+		//					try
+		//					{
+		//						// 从源FTP下载到临时文件
+		//						sourceClient.DownloadFile(srcfile, tempFile);
+		//						// 从临时文件上传到目标FTP
+		//						targetClient.UploadFile(tempFile, targetRemotePath);
+		//					}
+		//					finally
+		//					{
+		//						// 清理临时文件
+		//						if (File.Exists(tempFile))
+		//							File.Delete(tempFile);
+		//					}
+		//				}
+		//			}
+		//		}
 
-				return true;
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show($"FTP到FTP传输失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-				return false;
-			}
-		}
+		//		return true;
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		MessageBox.Show($"FTP到FTP传输失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+		//		return false;
+		//	}
+		//}
 
 		/// <summary>
 		/// 递归传输FTP目录内容
 		/// </summary>
-		private void TransferDirectory(FtpClient sourceClient, FtpClient targetClient, string sourcePath, string targetPath)
-		{
-			// 获取目录列表
-			var listing = sourceClient.GetListing(sourcePath, _listOption);
+		//private void TransferDirectory(FtpClient sourceClient, FtpClient targetClient, string sourcePath, string targetPath)
+		//{
+		//	// 获取目录列表
+		//	var listing = sourceClient.GetListing(sourcePath, _listOption);
 
-			foreach (var item in listing)
-			{
-				string remoteFilePath = item.FullName;
-				string targetFilePath = Path.Combine(targetPath, item.Name).Replace("\\", "/");
+		//	foreach (var item in listing)
+		//	{
+		//		string remoteFilePath = item.FullName;
+		//		string targetFilePath = Path.Combine(targetPath, item.Name).Replace("\\", "/");
 
-				if (item.Type == FtpObjectType.Directory)
-				{
-					// 创建目标目录
-					targetClient.CreateDirectory(targetFilePath);
-					// 递归传输子目录
-					TransferDirectory(sourceClient, targetClient, remoteFilePath, targetFilePath);
-				}
-				else
-				{
-					// 传输文件
-					if (sourceClient.HasFeature(FtpCapability.PRET))
-					{
-						sourceClient.TransferFile(remoteFilePath, targetClient, targetFilePath);
-					}
-					else
-					{
-						string tempFile = Path.GetTempFileName();
-						try
-						{
-							sourceClient.DownloadFile(remoteFilePath, tempFile);
-							targetClient.UploadFile(tempFile, targetFilePath);
-						}
-						finally
-						{
-							if (File.Exists(tempFile))
-								File.Delete(tempFile);
-						}
-					}
-				}
-			}
-		}
+		//		if (item.Type == FtpObjectType.Directory)
+		//		{
+		//			// 创建目标目录
+		//			targetClient.CreateDirectory(targetFilePath);
+		//			// 递归传输子目录
+		//			TransferDirectory(sourceClient, targetClient, remoteFilePath, targetFilePath);
+		//		}
+		//		else
+		//		{
+		//			// 传输文件
+		//			if (sourceClient.HasFeature(FtpCapability.PRET))
+		//			{
+		//				sourceClient.TransferFile(remoteFilePath, targetClient, targetFilePath);
+		//			}
+		//			else
+		//			{
+		//				string tempFile = Path.GetTempFileName();
+		//				try
+		//				{
+		//					sourceClient.DownloadFile(remoteFilePath, tempFile);
+		//					targetClient.UploadFile(tempFile, targetFilePath);
+		//				}
+		//				finally
+		//				{
+		//					if (File.Exists(tempFile))
+		//						File.Delete(tempFile);
+		//				}
+		//			}
+		//		}
+		//	}
+		//}
 
 		/// <summary>
 		/// 处理FTP到本地的文件传输
@@ -2128,62 +2134,62 @@ namespace zfile
 		/// <param name="targetPath">目标本地路径</param>
 		/// <param name="sourceFiles">要传输的文件列表</param>
 		/// <returns>是否传输成功</returns>
-		public bool HandleFtpToLocalTransfer(string sourcePath, string targetPath, string[] sourceFiles)
-		{
-			try
-			{
-				// 获取源FTP客户端
-				var sourceClient = GetFtpSource(sourcePath)?.Client;
+		//public bool HandleFtpToLocalTransfer(string sourcePath, string targetPath, string[] sourceFiles)
+		//{
+		//	try
+		//	{
+		//		// 获取源FTP客户端
+		//		var sourceClient = GetFtpSource(sourcePath)?.Client;
 
-				if (sourceClient == null)
-				{
-					MessageBox.Show("无法获取FTP客户端", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-					return false;
-				}
+		//		if (sourceClient == null)
+		//		{
+		//			MessageBox.Show("无法获取FTP客户端", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+		//			return false;
+		//		}
 
-				// 确保FTP客户端已连接
-				if (!sourceClient.IsConnected)
-				{
-					MessageBox.Show("FTP客户端未连接", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-					return false;
-				}
+		//		// 确保FTP客户端已连接
+		//		if (!sourceClient.IsConnected)
+		//		{
+		//			MessageBox.Show("FTP客户端未连接", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+		//			return false;
+		//		}
 
-				// 确保目标目录存在
-				if (!Directory.Exists(targetPath))
-				{
-					Directory.CreateDirectory(targetPath);
-				}
+		//		// 确保目标目录存在
+		//		if (!Directory.Exists(targetPath))
+		//		{
+		//			Directory.CreateDirectory(targetPath);
+		//		}
 
-				// 遍历源文件列表进行传输
-				foreach (string remotePath in sourceFiles)
-				{
-					// 检查是否为目录
-					bool isDirectory = remotePath.EndsWith("/");
-					string fileName = Path.GetFileName(remotePath.TrimEnd('/'));
-					string localPath = Path.Combine(targetPath, fileName);
+		//		// 遍历源文件列表进行传输
+		//		foreach (string remotePath in sourceFiles)
+		//		{
+		//			// 检查是否为目录
+		//			bool isDirectory = remotePath.EndsWith("/");
+		//			string fileName = Path.GetFileName(remotePath.TrimEnd('/'));
+		//			string localPath = Path.Combine(targetPath, fileName);
 
-					if (isDirectory)
-					{
-						// 创建本地目录
-						Directory.CreateDirectory(localPath);
-						// 递归下载目录内容
-						DownloadDirectory(GetFtpSource(sourcePath), remotePath, localPath);
-					}
-					else
-					{
-						// 下载单个文件
-						sourceClient.DownloadFile(remotePath, localPath);
-					}
-				}
+		//			if (isDirectory)
+		//			{
+		//				// 创建本地目录
+		//				Directory.CreateDirectory(localPath);
+		//				// 递归下载目录内容
+		//				DownloadDirectory(GetFtpSource(sourcePath), remotePath, localPath);
+		//			}
+		//			else
+		//			{
+		//				// 下载单个文件
+		//				sourceClient.DownloadFile(remotePath, localPath);
+		//			}
+		//		}
 
-				return true;
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show($"FTP到本地传输失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-				return false;
-			}
-		}
+		//		return true;
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		MessageBox.Show($"FTP到本地传输失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+		//		return false;
+		//	}
+		//}
 
 		/// <summary>
 		/// 处理本地到FTP的文件传输
@@ -2192,56 +2198,56 @@ namespace zfile
 		/// <param name="targetPath">目标FTP路径</param>
 		/// <param name="sourceFiles">要传输的文件列表</param>
 		/// <returns>是否传输成功</returns>
-		public bool HandleLocalToFtpTransfer(string sourcePath, string targetPath, string[] sourceFiles)
-		{
-			try
-			{
-				// 获取目标FTP客户端
-				var targetClient = GetFtpSource(targetPath)?.Client;
+		//public bool HandleLocalToFtpTransfer(string sourcePath, string targetPath, string[] sourceFiles)
+		//{
+		//	try
+		//	{
+		//		// 获取目标FTP客户端
+		//		var targetClient = GetFtpSource(targetPath)?.Client;
 
-				if (targetClient == null)
-				{
-					MessageBox.Show("无法获取FTP客户端", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-					return false;
-				}
+		//		if (targetClient == null)
+		//		{
+		//			MessageBox.Show("无法获取FTP客户端", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+		//			return false;
+		//		}
 
-				// 确保FTP客户端已连接
-				if (!targetClient.IsConnected)
-				{
-					MessageBox.Show("FTP客户端未连接", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-					return false;
-				}
+		//		// 确保FTP客户端已连接
+		//		if (!targetClient.IsConnected)
+		//		{
+		//			MessageBox.Show("FTP客户端未连接", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+		//			return false;
+		//		}
 
-				// 遍历源文件列表进行传输
-				foreach (string localFile in sourceFiles)
-				{
-					// 检查是否为目录
-					bool isDirectory = Directory.Exists(localFile);
-					string fileName = Path.GetFileName(localFile);
-					string remotePath = Path.Combine(targetPath, fileName).Replace("\\", "/");
+		//		// 遍历源文件列表进行传输
+		//		foreach (string localFile in sourceFiles)
+		//		{
+		//			// 检查是否为目录
+		//			bool isDirectory = Directory.Exists(localFile);
+		//			string fileName = Path.GetFileName(localFile);
+		//			string remotePath = Path.Combine(targetPath, fileName).Replace("\\", "/");
 
-					if (isDirectory)
-					{
-						// 创建FTP目录
-						targetClient.CreateDirectory(remotePath);
-						// 递归上传目录内容
-						UploadDirectory(targetClient, localFile, remotePath);
-					}
-					else
-					{
-						// 上传单个文件
-						targetClient.UploadFile(localFile, remotePath);
-					}
-				}
+		//			if (isDirectory)
+		//			{
+		//				// 创建FTP目录
+		//				targetClient.CreateDirectory(remotePath);
+		//				// 递归上传目录内容
+		//				UploadDirectory(targetClient, localFile, remotePath);
+		//			}
+		//			else
+		//			{
+		//				// 上传单个文件
+		//				targetClient.UploadFile(localFile, remotePath);
+		//			}
+		//		}
 
-				return true;
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show($"本地到FTP传输失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-				return false;
-			}
-		}
+		//		return true;
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		MessageBox.Show($"本地到FTP传输失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+		//		return false;
+		//	}
+		//}
 
 		/// <summary>
 		/// 递归上传本地目录到FTP

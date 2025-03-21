@@ -604,12 +604,21 @@ namespace zfile
 		{
 			if (owner.backStack.Count > 0)
 			{
-				// 将当前目录存入前进栈
-				owner.forwardStack.Push(owner.CurrentDir[owner.isleft]);
-				// 从后退栈获取上一个目录
-				string previousPath = owner.backStack.Pop();
-				// 导航到该目录，但不记录到历史（避免重复记录）
-				owner.NavigateToPath(previousPath, false);
+				if (owner.IsActiveFtpPanel(out var ftpnode))
+				{
+					owner.forwardStack.Push(ftpnode.Path);
+					string previousPath = owner.backStack.Pop();
+					owner.fTPMGR.NavigateToPath(ftpnode.ConnectionName, previousPath, owner.activeListView, false);
+				}
+				else
+				{
+					// 将当前目录存入前进栈
+					owner.forwardStack.Push(owner.CurrentDir[owner.isleft]);
+					// 从后退栈获取上一个目录
+					string previousPath = owner.backStack.Pop();
+					// 导航到该目录，但不记录到历史（避免重复记录）
+					owner.NavigateToPath(previousPath, false);
+				}
 			}
 		}
 
@@ -617,24 +626,44 @@ namespace zfile
 		{
 			if (owner.forwardStack.Count > 0)
 			{
-				// 将当前目录存入后退栈
-				owner.backStack.Push(owner.CurrentDir[owner.isleft]);
-				// 从前进栈获取下一个目录
-				string nextPath = owner.forwardStack.Pop();
-				// 导航到该目录，但不记录到历史（避免重复记录）
-				owner.NavigateToPath(nextPath, false);
+				if (owner.IsActiveFtpPanel(out var ftpnode))
+				{
+					owner.backStack.Push(ftpnode.Path);
+					string nextpath = owner.forwardStack.Pop();
+					owner.fTPMGR.NavigateToPath(ftpnode.ConnectionName, nextpath, owner.activeListView,false);
+				}
+				else
+				{
+					// 将当前目录存入后退栈
+					owner.backStack.Push(owner.CurrentDir[owner.isleft]);
+					// 从前进栈获取下一个目录
+					string nextPath = owner.forwardStack.Pop();
+					// 导航到该目录，但不记录到历史（避免重复记录）
+					owner.NavigateToPath(nextPath, false);
+				}
 			}
 		}
 
 		private void do_cm_gotoparent()
 		{
-			string? parentPath = Path.GetDirectoryName(owner.CurrentDir[owner.isleft]);
-			if (!string.IsNullOrEmpty(parentPath))
+			if (owner.IsActiveFtpPanel(out var ftpnode))
 			{
+				string? parentPath = Path.GetDirectoryName(ftpnode.Path);
 				// 记录当前目录到历史
 				owner.RecordDirectoryHistory(parentPath);
 				// 导航到父目录
-				owner.NavigateToPath(parentPath);
+				owner.fTPMGR.NavigateToPath(ftpnode.ConnectionName, parentPath, owner.activeListView);
+			}
+			else
+			{
+				string? parentPath = Path.GetDirectoryName(owner.CurrentDir[owner.isleft]);
+				if (!string.IsNullOrEmpty(parentPath))
+				{
+					// 记录当前目录到历史
+					owner.RecordDirectoryHistory(parentPath);
+					// 导航到父目录
+					owner.NavigateToPath(parentPath);
+				}
 			}
 		}
 

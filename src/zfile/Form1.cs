@@ -406,7 +406,8 @@ namespace zfile
 					string ext = Path.GetExtension(itemPath).ToLower();
 					if (ext == ".exe" || ext == ".com" || ext == ".bat" || ext == ".cmd")
 					{
-						e.Effect = DragDropEffects.Link; // 使用Link效果表示将作为参数启动程序
+						Debug.Print($"sss{itemPath}");
+						e.Effect = DragDropEffects.Copy; // 使用Link效果表示将作为参数启动程序
 						return;
 					}
 				}

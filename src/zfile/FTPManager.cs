@@ -427,7 +427,7 @@ namespace zfile
 					listView.EndUpdate();
 
 					// 更新当前目录
-					form.CurrentDir[form.isleft] = $"ftp://{source.Host}{path}";
+					form.CurrentDir[listView.Name] = $"ftp://{source.Host}{path}";
 				}
 			}
 			catch (Exception ex)
@@ -1937,13 +1937,12 @@ namespace zfile
 		/// <returns>如果是FTP路径则返回true，否则返回false</returns>
 		public bool IsFtpPath(string path)
 		{
+			if (path.StartsWith("ftp://")) return true;
 			// 检查路径是否以FTP驱动器标识开头
 			foreach (var drive in _registeredDrives)
 			{
 				if (path.StartsWith(drive, StringComparison.OrdinalIgnoreCase))
-				{
 					return true;
-				}
 			}
 			return false;
 		}

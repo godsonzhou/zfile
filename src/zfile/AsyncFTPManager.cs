@@ -38,12 +38,12 @@ namespace zfile
 		#endregion
 		private readonly Dictionary<string, TreeNode> _ftpNodesL = new Dictionary<string, TreeNode>();
 		private readonly Dictionary<string, TreeNode> _ftpNodesR = new Dictionary<string, TreeNode>();
-		private Dictionary<string, TreeNode> _ftpNodes => form.isleft ? _ftpNodesL : _ftpNodesR;
+		private Dictionary<string, TreeNode> _ftpNodes => form.LRflag ? _ftpNodesL : _ftpNodesR;
 		private readonly Dictionary<string, AsyncFtpFileSource> _ftpSources = new Dictionary<string, AsyncFtpFileSource>();
 		private readonly List<string> _registeredDrives = new List<string>();
 		private TreeNode _ftpRootNodeL, _ftpRootNodeR;
-		public TreeNode ftpRootNode => form.isleft ? _ftpRootNodeL : _ftpRootNodeR;
-		public TreeNode unactiveFtpRootNode => form.isleft ? _ftpRootNodeR : _ftpRootNodeL;
+		public TreeNode ftpRootNode => form.LRflag ? _ftpRootNodeL : _ftpRootNodeR;
+		public TreeNode unactiveFtpRootNode => form.LRflag ? _ftpRootNodeR : _ftpRootNodeL;
 		private VfsModuleManager _vfsManager;
 		public Dictionary<string, AsyncFtpFileSource> ftpSources => _ftpSources;
 		private bool _isDownloading = false;
@@ -1219,7 +1219,7 @@ namespace zfile
 					listView.EndUpdate();
 
 					// 更新当前目录
-					form.CurrentDir[form.isleft] = $"ftp://{source.Host}{path}";
+					form.CurrentDir[form.LRflag] = $"ftp://{source.Host}{path}";
 				}
 			}
 			catch (Exception ex)

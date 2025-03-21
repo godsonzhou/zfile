@@ -26,6 +26,7 @@ namespace zfile
 		private Dictionary<Keys, string> hotkeyMappings;
 		private bool isSelecting = false;
 		private Rectangle selectionRectangle;
+		public string LRflag => uiManager.isleft ? "left" : "right";
 		public bool isleft => uiManager.isleft;
 		public ListView activeListView { get => uiManager.activeListView; }
 		public ListView unactiveListView { get => uiManager.unactiveListView; }
@@ -42,7 +43,7 @@ namespace zfile
 		public TreeNode unactiveThispc { get { return !isleft ? thispcL : thispcR; } }
 
 		private readonly FileSystemWatcher watcher = new();
-		public Dictionary<bool, string> CurrentDir = new();
+		public Dictionary<string, string> CurrentDir = new();
 		private TreeNode? selectedNode = null;
 		public TreeNode? SelectedNode
 		{
@@ -116,7 +117,7 @@ namespace zfile
 					if (recordHistory)
 						RecordDirectoryHistory(path);
 					else
-						CurrentDir[isleft] = path; // 直接更新当前目录，不记录历史
+						CurrentDir[LRflag] = path; // 直接更新当前目录，不记录历史
 				}
 				if (isactive)
 				{
@@ -417,14 +418,14 @@ namespace zfile
 		}
 		public TreeView GetTreeViewByName(string name)
 		{
-			if (name.Contains("Left", StringComparison.OrdinalIgnoreCase))
+			if (name.Equals("L", StringComparison.OrdinalIgnoreCase))
 				return uiManager.LeftTree;
 			else
 				return uiManager.RightTree;
 		}
 		public ListView GetListViewByName(string name)
 		{
-			if (name.Contains("left", StringComparison.OrdinalIgnoreCase))
+			if (name.Equals("L", StringComparison.OrdinalIgnoreCase))
 				return uiManager.LeftList;
 			else
 				return uiManager.RightList;
@@ -773,7 +774,7 @@ namespace zfile
 					// 如果path是文件夹，则加载子目录
 					var treeView = sender as TreeView;
 					var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
-					CurrentDir[isleft] = path;
+					CurrentDir[LRflag] = path;
 					SelectedNode = e.Node;
 					// 更新监视器
 					watcher.Path = path;
@@ -815,9 +816,9 @@ namespace zfile
 					var path = Helper.getFSpathbyTree(e.Node);
 					if (string.IsNullOrEmpty(path)) return;
 
-					if (!CurrentDir.TryGetValue(isleft, out string p))
-						CurrentDir[isleft] = path;
-					else if (!CurrentDir[isleft].Equals(path))
+					if (!CurrentDir.TryGetValue(LRflag, out string p))
+						CurrentDir[LRflag] = path;
+					else if (!CurrentDir[LRflag].Equals(path))
 						// 记录目录历史
 						RecordDirectoryHistory(path);
 					if (path == "回收站")
@@ -962,8 +963,8 @@ namespace zfile
 				item.Text = oldName;
 				return;
 			}
-			string oldPath = Path.Combine(CurrentDir[isleft], oldName);
-			string newPath = Path.Combine(CurrentDir[isleft], newName);
+			string oldPath = Path.Combine(CurrentDir[LRflag], oldName);
+			string newPath = Path.Combine(CurrentDir[LRflag], newName);
 			if (oldPath == newPath) return;
 			if (File.Exists(newPath) || Directory.Exists(newPath))
 			{
@@ -1014,10 +1015,10 @@ namespace zfile
 					listView.FocusedItem = item;
 
 					// 检查是否是FTP路径
-					if (CurrentDir[isleft].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
+					if (CurrentDir[LRflag].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
 					{
 						// 从当前目录中提取连接名称
-						string connectionName = ExtractFtpConnectionName(CurrentDir[isleft]);
+						string connectionName = ExtractFtpConnectionName(CurrentDir[LRflag]);
 						if (!string.IsNullOrEmpty(connectionName))
 						{
 							// 显示FTP右键菜单
@@ -1078,10 +1079,10 @@ namespace zfile
 			//Debug.Print("listview_mousedoubleclick:{0}, currentDir={1}", selectedItem.Text, currentDirectory[isleft]);
 
 			// 检查是否是FTP路径
-			if (CurrentDir[isleft].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
+			if (CurrentDir[LRflag].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
 			{
 				// 从当前目录中提取连接名称
-				string connectionName = ExtractFtpConnectionName(CurrentDir[isleft]);
+				string connectionName = ExtractFtpConnectionName(CurrentDir[LRflag]);
 				if (!string.IsNullOrEmpty(connectionName))
 				{
 					// 处理FTP列表项双击事件
@@ -1090,16 +1091,16 @@ namespace zfile
 				}
 			}
 
-			string path = Path.Combine(CurrentDir[isleft], selectedItem.Text);
+			string path = Path.Combine(CurrentDir[LRflag], selectedItem.Text);
 			if (IsArchiveFile(path))
 			{
 				if (OpenArchive(path))
 				{
-					archivePaths[path] = CurrentDir[isleft];
+					archivePaths[path] = CurrentDir[LRflag];
 					var items = LoadArchiveContents(path);
 					listView.Items.Clear();
 					listView.Items.AddRange(items.ToArray());
-					CurrentDir[isleft] = path;
+					CurrentDir[LRflag] = path;
 					return;
 				}
 			}
@@ -1132,7 +1133,7 @@ namespace zfile
 					// 更新监视器
 					if (Directory.Exists(path))
 					{
-						CurrentDir[isleft] = path;    //IF ITEMPATH IS DIR, UPDATE currentDirectory[isleft], ELSE NOT
+						CurrentDir[LRflag] = path;    //IF ITEMPATH IS DIR, UPDATE currentDirectory[isleft], ELSE NOT
 						watcher.Path = path;
 						watcher.EnableRaisingEvents = true;
 					}
@@ -1738,12 +1739,12 @@ namespace zfile
 			}
 			else
 			{
-				if (string.IsNullOrEmpty(CurrentDir[isleft]) || CurrentDir[isleft].Equals(newPath))
+				if (string.IsNullOrEmpty(CurrentDir[LRflag]) || CurrentDir[LRflag].Equals(newPath))
 					return;
 
-				backStack.Push(CurrentDir[isleft]);
+				backStack.Push(CurrentDir[LRflag]);
 				forwardStack.Clear(); // 清除前进历史
-				CurrentDir[isleft] = newPath;
+				CurrentDir[LRflag] = newPath;
 			}
 		}
 		private void SetIconForListViewItem(ListViewItem lvItem, ListView listView, string subkey)
@@ -1811,11 +1812,11 @@ namespace zfile
 			{
 				if (OpenArchive(path))
 				{
-					archivePaths[path] = CurrentDir[isleft];
+					archivePaths[path] = CurrentDir[LRflag];
 					var items = LoadArchiveContents(path);
 					listView.Items.Clear();
 					listView.Items.AddRange(items.ToArray());
-					CurrentDir[isleft] = path;
+					CurrentDir[LRflag] = path;
 				}
 				return;
 			}
@@ -1960,7 +1961,7 @@ namespace zfile
 			if (listView.SelectedItems.Count > 0)
 			{
 				ListViewItem selectedItem = listView.SelectedItems[0];
-				string filePath = Helper.getFSpath(Path.Combine(CurrentDir[isleft], selectedItem.Text));
+				string filePath = Helper.getFSpath(Path.Combine(CurrentDir[LRflag], selectedItem.Text));
 
 				if (File.Exists(filePath))
 					await PreviewFileAsync(filePath, previewPanel);
@@ -2128,10 +2129,10 @@ namespace zfile
 				return result;
 
 			// 检查是否是FTP路径
-			if (CurrentDir[isleft].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
+			if (CurrentDir[LRflag].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
 			{
 				// 从当前目录中提取连接名称
-				string connectionName = ExtractFtpConnectionName(CurrentDir[isleft]);
+				string connectionName = ExtractFtpConnectionName(CurrentDir[LRflag]);
 				if (!string.IsNullOrEmpty(connectionName) && fTPMGR.ftpSources.TryGetValue(connectionName, out FtpFileSource source))
 				{
 					// 对于FTP文件，先下载到本地临时目录
@@ -2199,7 +2200,7 @@ namespace zfile
 				folderName = Microsoft.VisualBasic.Interaction.InputBox("请输入新文件夹名称: eg. dir1,dir2\\dir3", "新建文件夹", "新建文件夹");
 			if (string.IsNullOrWhiteSpace(folderName)) return;
 			var dirs = folderName.Split(',');
-			var path = CurrentDir[isleft];
+			var path = CurrentDir[LRflag];
 
 			try
 			{
@@ -2271,7 +2272,7 @@ namespace zfile
 		{
 			if (mode.HasFlag(RefreshPanelMode.Left))
 			{
-				if (IsFtpPanel(out var ftpnode, "left")) 
+				if (IsFtpPanel(out var ftpnode, "L")) 
 					RefreshTreeViewAndListView(uiManager.LeftList, ftpnode.Path);
 				else
 					RefreshTreeViewAndListView(uiManager.LeftList, uiManager.LeftPathTextBox.CurrentNode.UniqueID);
@@ -2280,7 +2281,7 @@ namespace zfile
 			{
 				if (uiManager.RightTree.SelectedNode.Tag is ShellItem)
 					RefreshTreeViewAndListView(uiManager.RightList, ((ShellItem)uiManager.RightTree.SelectedNode.Tag).parsepath);
-				else if(IsFtpPanel(out var ftpnode, "right"))
+				else if(IsFtpPanel(out var ftpnode, "R"))
 					RefreshTreeViewAndListView(uiManager.RightList, ftpnode.Path);
 			}
 		}
@@ -2860,7 +2861,7 @@ namespace zfile
 				.Select(item => GetListItemPath(item))
 				.ToArray();
 
-			var currentPath = CurrentDir[isleft];
+			var currentPath = CurrentDir[LRflag];
 			var result = DialogResult.Yes;
 			if (needConfirm)
 			{
@@ -2875,11 +2876,11 @@ namespace zfile
 			{
 				try
 				{
-					if (IsArchiveFile(CurrentDir[isleft]))
+					if (IsArchiveFile(CurrentDir[LRflag]))
 					{
-						if (DeleteFromArchive(CurrentDir[isleft], files.ToArray()))
+						if (DeleteFromArchive(CurrentDir[LRflag], files.ToArray()))
 						{
-							var items = LoadArchiveContents(CurrentDir[isleft]);
+							var items = LoadArchiveContents(CurrentDir[LRflag]);
 							activeListView.Items.Clear();
 							activeListView.Items.AddRange(items.ToArray());
 						}
@@ -2887,9 +2888,10 @@ namespace zfile
 					}
 
 					// 检查是否为FTP路径
-					if (fTPMGR.IsFtpPath(currentPath))
+					//if (fTPMGR.IsFtpPath(currentPath))
+					if (IsActiveFtpPanel(out var ftpnode))
 					{
-						var ftpSource = fTPMGR.GetFtpSource(currentPath);
+						var ftpSource = fTPMGR.GetFtpFileSourceByConnectionName(ftpnode.ConnectionName); //fTPMGR.GetFtpSource(currentPath);
 						if (ftpSource != null)
 						{
 							foreach (string remotePath in files)
@@ -2915,8 +2917,6 @@ namespace zfile
 			}
 		}
 
-
-
 		// 重命名选中的文件或文件夹
 		public void cm_renameonly()
 		{
@@ -2939,7 +2939,7 @@ namespace zfile
 				// 更新当前目录和路径显示
 				var ftpsrc = fTPMGR.GetFtpFileSourceByConnectionName(ftpTag.ConnectionName);
 				//currentDirectory[isleft] = $"ftp://{ftpTag.ConnectionName}{ftpTag.Path}";
-				CurrentDir[isleft] = $"ftp://{ftpsrc?.Host}{ftpTag.Path}";        //bugfix: currentdir can not be set to connection name, use host instead,
+				CurrentDir[LRflag] = $"ftp://{ftpsrc?.Host}{ftpTag.Path}";        //bugfix: currentdir can not be set to connection name, use host instead,
 																				  //if (isleft)
 																				  //	uiManager.LeftPathTextBox.Text = currentDirectory[isleft];
 																				  //else
@@ -2947,7 +2947,7 @@ namespace zfile
 
 				SelectedNode = eNode;
 				//uiManager.BookmarkManager.UpdateActiveBookmark(currentDirectory[isleft], selectedNode, isleft);
-				UpdatePathTextAndDriveComboBox(eNode, CurrentDir[isleft], isleft);
+				UpdatePathTextAndDriveComboBox(eNode, CurrentDir[LRflag], isleft);
 				uiManager.setArgs();
 				return true;
 			}
@@ -2977,59 +2977,7 @@ namespace zfile
 				}
 			}
 		}
-		//private void 加载文件ToolStripMenuItem_Click(object sender, EventArgs e)
-		//{
-		//	FolderBrowserDialog dlg = new FolderBrowserDialog();
-		//	//if (dlg.ShowDialog() == DialogResult.OK)
-		//	{
-		//		string[] filespath = Directory.GetFiles(dlg.SelectedPath);
-		//		var fileList = new FileInfoList(filespath);
-		//		InitListView(fileList);
-		//	}
-		//}
-		//private void InitListView(FileInfoList fileList)
-		//{
-		//	activeListView.Items.Clear();
-		//	this.activeListView.BeginUpdate();
-		//	foreach (FileInfoWithIcon file in fileList.list)
-		//	{
-		//		ListViewItem item = new ListViewItem();
-		//		item.Text = file.fileInfo.Name.Split('.')[0];
-		//		item.ImageIndex = file.iconIndex;
-		//		item.SubItems.Add(file.fileInfo.LastWriteTime.ToString());
-		//		item.SubItems.Add(file.fileInfo.Extension.Replace(".", ""));
-		//		item.SubItems.Add(string.Format(("{0:N0}"), file.fileInfo.Length));
-		//		activeListView.Items.Add(item);
-		//	}
-		//	activeListView.LargeImageList = fileList.imageListLargeIcon;
-		//	activeListView.SmallImageList = fileList.imageListSmallIcon;
-		//	activeListView.Show();
-		//	this.activeListView.EndUpdate();
-		//}
-		//private void ExecuteToolbarCommand(string filePath)
-		//{
-		//    try
-		//    {
-		//        if (Directory.Exists(filePath))
-		//        {
-		//            Process.Start("explorer.exe", filePath);
-		//        }
-		//        else if (File.Exists(filePath))
-		//        {
-		//            Process.Start(new ProcessStartInfo(filePath)
-		//            {
-		//                UseShellExecute = true,
-		//                WorkingDirectory = Path.GetDirectoryName(filePath)
-		//            });
-		//        }
-		//    }
-		//    catch (Exception ex)
-		//    {
-		//        MessageBox.Show($"执行失败: {ex.Message}", "错误",
-		//            MessageBoxButtons.OK, MessageBoxIcon.Error);
-		//    }
-		//}
-		//}
+	
 		public void myShellExe(string path = "c:\\windows\\system32")
 		{
 			API.ShellExecute(IntPtr.Zero, "open", path, "", path, (int)SW.SHOWNORMAL);

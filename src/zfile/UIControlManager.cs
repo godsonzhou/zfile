@@ -30,36 +30,36 @@ namespace zfile
 		#endregion
 
 		#region Drive Controls
-		public ComboBox LeftDriveComboBox { get; } = new() { Name = "LeftDriveCombo" };
-		public ComboBox RightDriveComboBox { get; } = new() { Name = "RightDriveCombo" };
-		public ShengAddressBarStrip LeftPathTextBox { get; } = new() { Name = "LeftPath" };
-		public ShengAddressBarStrip RightPathTextBox { get; } = new() { Name = "RightPath" };
+		public ComboBox LeftDriveComboBox { get; } = new() { Name = "L" };
+		public ComboBox RightDriveComboBox { get; } = new() { Name = "R" };
+		public ShengAddressBarStrip LeftPathTextBox { get; } = new() { Name = "L" };
+		public ShengAddressBarStrip RightPathTextBox { get; } = new() { Name = "R" };
 		public ShengAddressBarStrip ActivePathTextBox { get => (isleft ? LeftPathTextBox : RightPathTextBox); }
 		#endregion
 		// 添加导航按钮控件
-		public ToolStrip LeftNavigationStrip { get; } = new() { Name = "LeftNav", Width = 100 };
-		public ToolStrip RightNavigationStrip { get; } = new() { Name = "RightNav", Width = 100 };
+		public ToolStrip LeftNavigationStrip { get; } = new() { Name = "L", Width = 100 };
+		public ToolStrip RightNavigationStrip { get; } = new() { Name = "R", Width = 100 };
 
 		#region View Controls
-		public TreeView LeftTree { get; } = new() { Name = "LeftTree" };
-		public TreeView RightTree { get; } = new() { Name = "RightTree" };
-		public ListView LeftList { get; } = new() { Name = "LeftList" };
-		public ListView RightList { get; } = new() { Name = "RightList" };
+		public TreeView LeftTree { get; } = new() { Name = "L" };
+		public TreeView RightTree { get; } = new() { Name = "R" };
+		public ListView LeftList { get; } = new() { Name = "L" };
+		public ListView RightList { get; } = new() { Name = "R" };
 		#endregion
 
 		#region Preview Controls
-		public TextBox LeftPreview { get; } = new() { Name = "LeftPreview" };
-		public TextBox RightPreview { get; } = new() { Name = "RightPreview" };
+		public TextBox LeftPreview { get; } = new() { Name = "L" };
+		public TextBox RightPreview { get; } = new() { Name = "R" };
 		#endregion
 
 		#region Status Controls
-		public StatusStrip LeftStatusStrip { get; } = new() { Name = "LeftStatus" };
-		public StatusStrip RightStatusStrip { get; } = new() { Name = "RightStatus" };
+		public StatusStrip LeftStatusStrip { get; } = new() { Name = "L" };
+		public StatusStrip RightStatusStrip { get; } = new() { Name = "R" };
 		#endregion
 
 		#region Bookmark Controls
-		public readonly FlowLayoutPanel leftBookmarkPanel = new() { Name = "LeftBookmark" };
-		public readonly FlowLayoutPanel rightBookmarkPanel = new() { Name = "RightBookmark" };
+		public readonly FlowLayoutPanel leftBookmarkPanel = new() { Name = "L" };
+		public readonly FlowLayoutPanel rightBookmarkPanel = new() { Name = "R" };
 		public BookmarkManager BookmarkManager { get; private set; }
 		#endregion
 

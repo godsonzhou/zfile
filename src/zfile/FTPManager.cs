@@ -1847,97 +1847,58 @@ namespace zfile
 		}
 		private void Init()
 		{
+			// 读取默认连接名称
 			var defaultConnName = form.ftpconfigLoader.FindConfigValue("connections", "default");
-			//init _connection by ftp.configloader.sections:
-			/*
-			 * [connections]
-				1=tt
-				default=tt
-				[tt]
-				host=localhost
-				username=isa
-				password=713A3D5726ACF87D597A0283
-				pasvmode=0
-			 */
 			if (string.IsNullOrEmpty(defaultConnName))
 			{
 				return; // 没有配置默认连接
 			}
 
-			// 读取指定连接名称的配置
-			var host = form.ftpconfigLoader.FindConfigValue(defaultConnName, "host");
-			var username = form.ftpconfigLoader.FindConfigValue(defaultConnName, "username");
-			var password = form.ftpconfigLoader.FindConfigValue(defaultConnName, "password");
-			var pasvModeStr = form.ftpconfigLoader.FindConfigValue(defaultConnName, "pasvmode");
+			// 获取connections段的所有配置项
+			var connectionsSection = form.ftpconfigLoader.sections.Find(s => s.Name.Equals("connections"));
+			if (connectionsSection == null) return;
 
-			// 验证必要参数
-			if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(username))
+			// 遍历所有连接配置
+			foreach (var item in connectionsSection.Items)
 			{
-				return; // 缺少必要参数
-			}
-
-			// 转换被动模式设置
-			bool usePasvMode = true; // 默认使用被动模式
-			if (!string.IsNullOrEmpty(pasvModeStr) && int.TryParse(pasvModeStr, out int pasvMode))
-			{
-				usePasvMode = pasvMode != 0;
-			}
-
-			// 创建FTP连接配置
-			var connectionInfo = new FtpConnectionInfo
-			{
-				Name = defaultConnName,
-				Host = host,
-				Credentials = new NetworkCredential(username, password),
-				Port = 21, // 使用默认端口
-				Config = new FtpConfig
-				{
-					DataConnectionType = usePasvMode ?
-						FtpDataConnectionType.AutoPassive :
-						FtpDataConnectionType.AutoActive
-				}
-			};
-
-			// 添加到连接字典
-			_connections[defaultConnName] = connectionInfo;
-
-			// 读取所有配置的连接
-			// 先获取 connections 段下的所有键值对
-			var connections = form.ftpconfigLoader.GroupConfigItemsByNumberOrName()
-				.Where(x => x.Key == "connections")
-				.SelectMany(x => x.Value)
-				.Where(x => x.Key != "default"); // 排除default配置项  //TODO: BUGFIX : 此处存在bug, 无法读取到connections section种除了default行以外的connection行
-
-			// 遍历添加其他连接
-			foreach (var conn in connections)
-			{
-				var connName = conn.Value;
-				if (connName == defaultConnName) continue; // 跳过已添加的默认连接
-
+				if (item.Key == "default") continue;
+				
+				string connName = item.Value;
+				
 				// 读取连接配置
-				host = form.ftpconfigLoader.FindConfigValue(connName, "host");
-				username = form.ftpconfigLoader.FindConfigValue(connName, "username");
-				password = form.ftpconfigLoader.FindConfigValue(connName, "password");
-				pasvModeStr = form.ftpconfigLoader.FindConfigValue(connName, "pasvmode");
+				var host = form.ftpconfigLoader.FindConfigValue(connName, "host");
+				var username = form.ftpconfigLoader.FindConfigValue(connName, "username");
+				var password = form.ftpconfigLoader.FindConfigValue(connName, "password");
+				var portStr = form.ftpconfigLoader.FindConfigValue(connName, "port");
+				var pasvModeStr = form.ftpconfigLoader.FindConfigValue(connName, "pasvmode");
+				var encryptionStr = form.ftpconfigLoader.FindConfigValue(connName, "encryption");
 
 				// 验证必要参数
 				if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(username))
 					continue;
 
+				// 转换端口号
+				int port = 21;
+				if (!string.IsNullOrEmpty(portStr) && int.TryParse(portStr, out int p))
+				{
+					port = p;
+				}
+
 				// 转换被动模式设置
-				usePasvMode = true;
-				if (!string.IsNullOrEmpty(pasvModeStr) && int.TryParse(pasvModeStr, out pasvMode))
+				bool usePasvMode = true;
+				if (!string.IsNullOrEmpty(pasvModeStr) && int.TryParse(pasvModeStr, out int pasvMode))
 				{
 					usePasvMode = pasvMode != 0;
 				}
 
 				// 创建并添加连接配置
-				_connections[connName] = new FtpConnectionInfo
+				var connectionInfo = new FtpConnectionInfo
 				{
 					Name = connName,
 					Host = host,
 					Credentials = new NetworkCredential(username, password),
-					Port = 21,
+					
+					Port = port,
 					Config = new FtpConfig
 					{
 						DataConnectionType = usePasvMode ?
@@ -1945,6 +1906,18 @@ namespace zfile
 							FtpDataConnectionType.AutoActive
 					}
 				};
+
+				// 设置加密模式
+				if (!string.IsNullOrEmpty(encryptionStr))
+				{
+					if (Enum.TryParse<FtpEncryptionMode>(encryptionStr, out var encryptionMode))
+					{
+						connectionInfo.EncryptionMode = encryptionMode;
+					}
+				}
+
+				// 添加到连接字典
+				_connections[connName] = connectionInfo;
 			}
 
 			// 刷新ListView显示
@@ -1952,7 +1925,6 @@ namespace zfile
 			{
 				ReloadListview(ftplistView);
 			}
-
 		}
 
 		/// <summary>

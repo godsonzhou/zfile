@@ -733,16 +733,17 @@ namespace zfile
 					form.NavigateToPath(Helper.GetPathByEnv("%userprofile%"));
 					break;
 				case "rootdir":
-					form.NavigateToPath(Helper.GetPathByEnv(Path.GetPathRoot(form.uiManager.srcDir)));
+					form.cmdProcessor.do_cm_gotoroot();//support local and ftp
 					break;
 				case "parentdir":
-					var currentPath = isLeft ? LeftPathTextBox.CurrentNode?.UniqueID : RightPathTextBox.CurrentNode?.UniqueID;
-					if (!string.IsNullOrEmpty(currentPath))
-					{
-						var parentPath = Path.GetDirectoryName(currentPath);
-						if (!string.IsNullOrEmpty(parentPath))
-							form.NavigateToPath(parentPath);
-					}
+					//var currentPath = isLeft ? LeftPathTextBox.CurrentNode?.UniqueID : RightPathTextBox.CurrentNode?.UniqueID;
+					//if (!string.IsNullOrEmpty(currentPath))
+					//{
+					//	var parentPath = Path.GetDirectoryName(currentPath);
+					//	if (!string.IsNullOrEmpty(parentPath))
+					//		form.NavigateToPath(parentPath);
+					//}
+					form.cmdProcessor.do_cm_gotoparent();
 					break;
 				case "historydir":
 					ShowHistoryMenu(button);

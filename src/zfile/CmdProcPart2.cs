@@ -644,7 +644,7 @@ namespace zfile
 			}
 		}
 
-		private void do_cm_gotoparent()
+		public void do_cm_gotoparent()
 		{
 			if (owner.IsActiveFtpPanel(out var ftpnode))
 			{

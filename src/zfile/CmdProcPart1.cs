@@ -11,6 +11,7 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using Microsoft.Extensions.AI;
 using WinShell;
+using System.Windows.Forms;
 
 
 namespace zfile
@@ -275,11 +276,21 @@ namespace zfile
 		{
 			owner.NavigateToPath("桌面", scope: Form1.TreeSearchScope.full);
 		}
-		private void do_cm_gotoroot()
+		public void do_cm_gotoroot()
 		{
-			var currentpath = owner.uiManager.srcDir;
-			var parts = currentpath.Split('\\');
-			owner.NavigateToPath(parts[0]);
+			//if (owner.IsActiveFtpPanel(out var ftpnode)) {
+			//	owner.fTPMGR.NavigateToPath(ftpnode.ConnectionName, "/", owner.activeListView);
+			//}
+			//else
+			//{
+			//	var currentpath = owner.uiManager.srcDir;
+			//	var parts = currentpath.Split('\\');
+			//	owner.NavigateToPath(parts[0]);
+			//}
+			if (owner.IsActiveFtpPanel(out var ftpnode))
+				owner.fTPMGR.NavigateToPath(ftpnode.ConnectionName, "/", owner.activeListView);
+			else
+				owner.NavigateToPath(Helper.GetPathByEnv(Path.GetPathRoot(owner.uiManager.srcDir)));
 		}
 		private void do_cm_gotodrive(string drive)
 		{

@@ -2238,13 +2238,19 @@ namespace zfile
 		{
 			if (mode.HasFlag(RefreshPanelMode.Left))
 			{
-				RefreshTreeViewAndListView(uiManager.LeftList, uiManager.LeftPathTextBox.CurrentNode.UniqueID);
+				if (IsActiveFtpPanel(out var ftpnode)) {
+					RefreshTreeViewAndListView(uiManager.LeftList, ftpnode.Path);
+				}
+				else
+					RefreshTreeViewAndListView(uiManager.LeftList, uiManager.LeftPathTextBox.CurrentNode.UniqueID);
 				//Debug.Print("refresh left panel");
 			}
 			if (mode.HasFlag(RefreshPanelMode.Right))
 			{
 				if (uiManager.RightTree.SelectedNode.Tag is ShellItem)
 					RefreshTreeViewAndListView(uiManager.RightList, ((ShellItem)uiManager.RightTree.SelectedNode.Tag).parsepath);
+				else if(IsActiveFtpPanel(out var ftpnode))
+					RefreshTreeViewAndListView(uiManager.RightList, ftpnode.Path);
 				//Debug.Print("refresh right panel");
 			}
 		}

@@ -76,6 +76,17 @@ namespace zfile
             };
             btnDelete.Click += BtnDelete_Click;
             Controls.Add(btnDelete);
+            
+            // 添加复制按钮
+            var btnCopy = new Button
+            {
+                Text = "复制(&C)",
+                Location = new Point(190, 145),
+                Width = 80,
+                Enabled = false
+            };
+            btnCopy.Click += BtnCopy_Click;
+            Controls.Add(btnCopy);
 
             // 属性面板
             var propertiesGroup = new GroupBox
@@ -204,7 +215,8 @@ namespace zfile
                 ImageAlign = ContentAlignment.MiddleCenter,
                 Size = new Size(32, 32),
                 Tag = button,
-                Margin = new Padding(2)
+                Margin = new Padding(2),
+                FlatStyle = FlatStyle.Standard
             };
             btn.Click += ToolbarButton_Click;
             toolbarPanel.Controls.Add(btn);
@@ -217,20 +229,39 @@ namespace zfile
 				ImageAlign = ContentAlignment.MiddleCenter,
 				Size = new Size(32, 32),
 				Tag = button,
-				Margin = new Padding(2)
+				Margin = new Padding(2),
+				FlatStyle = FlatStyle.Standard
 			};
 			btn.Click += ToolbarButton_Click;
 			toolbarPanel.Controls.Add(btn);
 		}
 		private void ToolbarButton_Click(object? sender, EventArgs e)
         {
+			// 清除所有按钮的高亮显示
+			foreach (Control control in toolbarPanel.Controls)
+			{
+				if (control is Button panelBtn)
+				{
+					panelBtn.FlatStyle = FlatStyle.Standard;
+					panelBtn.FlatAppearance.BorderSize = 1;
+				}
+			}
+
 			if (sender is Button btn)
 			{
+				// 高亮显示当前选中的按钮
+				btn.FlatStyle = FlatStyle.Flat;
+				btn.FlatAppearance.BorderSize = 2;
+				btn.FlatAppearance.BorderColor = Color.Blue;
+
 				if (btn.Tag is ToolbarButton button)
 				{
 					// 更新当前选中的按钮
 					currentButton = button;
 					btnDelete.Enabled = true;
+					// 启用复制按钮
+					var btnCopy = Controls.OfType<Button>().FirstOrDefault(b => b.Text == "复制(&C)");
+					if (btnCopy != null) btnCopy.Enabled = true;
 
 					// 更新属性显示
 					cmdTextBox.Text = button.cmd;
@@ -247,6 +278,9 @@ namespace zfile
 					// 更新当前选中的按钮
 					currentMenuInfo = x;
 					btnDelete.Enabled = true;
+					// 启用复制按钮
+					var btnCopy = Controls.OfType<Button>().FirstOrDefault(b => b.Text == "复制(&C)");
+					if (btnCopy != null) btnCopy.Enabled = true;
 
 					// 更新属性显示
 					cmdTextBox.Text = x.Cmd;
@@ -328,12 +362,12 @@ namespace zfile
 				{
 					toolbarManager.toolbarsDict[_target][index] = new MenuInfo(
 						tooltipTextBox.Text,
+						iconFileTextBox.Text, // 修复：使用iconFileTextBox.Text作为Button属性
 						cmdTextBox.Text,
-						iconFileTextBox.Text,
-						pathTextBox.Text,
 						paramTextBox.Text,
+						pathTextBox.Text,
 						0, // 这里可以根据需要修改iconic值
-						""
+						tooltipTextBox.Text // 使用tooltipTextBox.Text作为Menu属性
 					);
 					LoadToolbarButtons(_target);
 					IsModified = true;
@@ -374,6 +408,41 @@ namespace zfile
 			Close();
 		}
 
+		private void BtnCopy_Click(object? sender, EventArgs e)
+		{
+			if (currentButton != null && _target.Equals("default"))
+			{
+				// 创建新按钮并复制当前按钮的属性
+				var newButton = new ToolbarButton(
+					currentButton?.name + " 副本",
+					currentButton?.cmd,
+					currentButton?.icon,
+					currentButton?.path,
+					currentButton?.param,
+					currentButton?.iconic
+				);
+				toolbarManager.toolbarButtons.Add(newButton);
+				AddToolbarButtonToPanel(newButton);
+				IsModified = true;
+			}
+			else if (currentMenuInfo != null && !_target.Equals("default"))
+			{
+				// 创建新按钮并复制当前按钮的属性
+				var newButton = new MenuInfo(
+					currentMenuInfo.Menu + " 副本",
+					currentMenuInfo.Button,
+					currentMenuInfo.Cmd,
+					currentMenuInfo.Param,
+					currentMenuInfo.Path,
+					currentMenuInfo.Iconic,
+					currentMenuInfo.Menu + " 副本"
+				);
+				toolbarManager.toolbarsDict[_target].Add(newButton);
+				AddToolbarButtonToPanel(newButton);
+				IsModified = true;
+			}
+		}
+
 		private void ClearProperties()
         {
 			//cmdTextBox.SelectedIndex = -1;
@@ -385,4 +454,4 @@ namespace zfile
             iconPreview.Image = null;
         }
     }
-} 
+}

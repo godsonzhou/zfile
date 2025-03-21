@@ -845,6 +845,7 @@ namespace zfile
 		}
 		private void UpdatePathTextAndDriveComboBox(TreeNode eNode, string path, bool isleft)
 		{
+			if (!eNode.TreeView.Name.Equals(isleft ? "L" : "R")) return;
 			if (isleft)
 			{
 				uiManager.LeftPathTextBox.SetAddress(eNode);    // 调用leftpathtextbox的setaddress方法来更新路径
@@ -2947,7 +2948,7 @@ namespace zfile
 
 				SelectedNode = eNode;
 				//uiManager.BookmarkManager.UpdateActiveBookmark(currentDirectory[isleft], selectedNode, isleft);
-				UpdatePathTextAndDriveComboBox(eNode, CurrentDir[LRflag], isleft);
+				UpdatePathTextAndDriveComboBox(eNode, CurrentDir[LRflag], isleft);//TODO: BUGFIX: IF ENODE IS LEFT , LRFLAG IS R, SOME THING ERROR
 				uiManager.setArgs();
 				return true;
 			}

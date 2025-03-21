@@ -297,7 +297,7 @@ namespace zfile
         public async Task<bool> UploadFileAsync(string localPath, string remotePath)
         {
             try
-            {
+            {              
                 var result = await _client.UploadFile(localPath, remotePath);
                 return result.HasFlag(FtpStatus.Success);
             }

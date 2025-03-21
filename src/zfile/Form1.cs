@@ -2684,7 +2684,7 @@ namespace zfile
 						{
 							string fullSourcePath = Path.Combine(srcPath, localFile);
 							string fileName = Path.GetFileName(localFile);
-							string remotePath = Path.Combine(targetPath, fileName).Replace("\\", "/");
+							string remotePath = Path.Combine(ftpTarget.CurrentPath, fileName).Replace("\\", "/");
 							ftpTarget.UploadFile(fullSourcePath, remotePath);
 						}
 					}

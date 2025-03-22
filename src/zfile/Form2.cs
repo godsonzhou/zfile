@@ -126,6 +126,8 @@ namespace zfile
 		private Dictionary<string, Panel> compressPanels = new();
         // 添加自定义视图配置面板
         private Panel customViewPanel;
+        // 添加视图模式配置面板
+        private Panel viewModePanel;
 		public OptionsForm(Form1 mainForm)
         {
             InitializeComponent();
@@ -145,6 +147,7 @@ namespace zfile
 			InitializePluginPanel();  // 添加插件配置面板初始化
 			InitializeCompressPanel();  // 添加压缩程序配置面板初始化
             InitializeCustomViewPanel();  // 添加自定义视图配置面板初始化
+            InitializeViewModePanel();  // 添加视图模式配置面板初始化
 		}
 		private void InitializePluginPanel()
 		{
@@ -629,6 +632,7 @@ namespace zfile
             TreeNode pluginNode = new TreeNode("插件设置");
             TreeNode compressNode = new TreeNode("压缩程序");  // 新增压缩程序节点
             TreeNode customViewNode = new TreeNode("自定义视图");  // 新增自定义视图节点
+            TreeNode viewModeNode = new TreeNode("视图模式");  // 新增视图模式节点
 
             // 添加压缩程序的子节点
             compressNode.Nodes.Add(new TreeNode("ARJ"));
@@ -644,6 +648,7 @@ namespace zfile
             rootNode.Nodes.Add(pluginNode);
             rootNode.Nodes.Add(compressNode);  // 添加到树中
             rootNode.Nodes.Add(customViewNode);  // 添加自定义视图节点到树中
+            rootNode.Nodes.Add(viewModeNode);  // 添加视图模式节点到树中
             treeView.Nodes.Add(rootNode);
             treeView.SelectedNode = hotkeyNode;
 
@@ -665,6 +670,7 @@ namespace zfile
                 pluginPanel.Visible = false;
                 compressPanel.Visible = false;
                 customViewPanel.Visible = false;
+                viewModePanel.Visible = false;
 
                 // 隐藏所有压缩程序子面板
                 foreach (var panel in compressPanels.Values)
@@ -690,7 +696,10 @@ namespace zfile
                     case "自定义视图":
                         customViewPanel.Visible = true;
                         break;
-                    default:
+					case "视图模式":
+						viewModePanel.Visible = true;
+						break;
+					default:
                         // 处理压缩程序的子节点
                         if (e.Node.Parent?.Text == "压缩程序")
                         {
@@ -1024,6 +1033,26 @@ namespace zfile
             customViewPanel.Controls.Add(customViewForm);
             splitContainer1.Panel2.Controls.Add(customViewPanel);
             customViewPanel.Visible = false;
+        }
+
+        // 初始化视图模式配置面板
+        private void InitializeViewModePanel()
+        {
+            viewModePanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                AutoScroll = true
+            };
+
+            // 创建视图模式面板
+            var viewModePanelControl = new ViewModePanel(mainForm);
+            viewModePanelControl.Dock = DockStyle.Fill;
+            viewModePanelControl.Visible = true;
+
+            // 添加到面板中
+            viewModePanel.Controls.Add(viewModePanelControl);
+            splitContainer1.Panel2.Controls.Add(viewModePanel);
+            viewModePanel.Visible = false;
         }
     }
 }

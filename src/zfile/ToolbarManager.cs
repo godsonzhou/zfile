@@ -266,27 +266,48 @@ namespace zfile
 			// 删除指定名称的所有工具栏按钮
 			toolbarButtons.RemoveAll(b => b.name == name);
 		}
-		public void SaveToconfig()
+		public void SaveToconfig(string? barfile = null)
 		{
 			try
 			{
-				string configPath = Path.Combine(Constants.ZfileCfgPath, configfile);
+				string configPath = Path.Combine(Constants.ZfileCfgPath, barfile ?? configfile);
 				using (StreamWriter writer = new StreamWriter(configPath, false, Encoding.GetEncoding("GB2312")))
 				{
-					writer.WriteLine("[Buttonbar]");
-					writer.WriteLine($"Buttoncount={toolbarButtons.Count}");
-
-					for (int i = 0; i < toolbarButtons.Count; i++)
+					if (barfile == null)
 					{
-						int buttonNumber = i + 1;
-						ToolbarButton button = toolbarButtons[i];
+						writer.WriteLine("[Buttonbar]");
+						writer.WriteLine($"Buttoncount={toolbarButtons.Count}");
 
-						writer.WriteLine($"button{buttonNumber}={button.icon}");
-						writer.WriteLine($"cmd{buttonNumber}={button.cmd}");
-						writer.WriteLine($"iconic{buttonNumber}={button.iconic}");
-						writer.WriteLine($"menu{buttonNumber}={button.name}");
-						writer.WriteLine($"path{buttonNumber}={button.path}");
-						writer.WriteLine($"param{buttonNumber}={button.param}");
+						for (int i = 0; i < toolbarButtons.Count; i++)
+						{
+							int buttonNumber = i + 1;
+							ToolbarButton button = toolbarButtons[i];
+
+							writer.WriteLine($"button{buttonNumber}={button.icon}");
+							writer.WriteLine($"cmd{buttonNumber}={button.cmd}");
+							writer.WriteLine($"iconic{buttonNumber}={button.iconic}");
+							writer.WriteLine($"menu{buttonNumber}={button.name}");
+							writer.WriteLine($"path{buttonNumber}={button.path}");
+							writer.WriteLine($"param{buttonNumber}={button.param}");
+						}
+					}
+					else
+					{
+						if (toolbarsDict.TryGetValue(barfile, out var menulist))
+						{
+							writer.WriteLine("[Buttonbar]");
+							writer.WriteLine($"Buttoncount={menulist.Count}");
+							for(int i = 0; i <  menulist.Count; i++)
+							{
+								var item = menulist[i];
+								writer.WriteLine($"button{i + 1}={item.Button}");
+								writer.WriteLine($"cmd{i + 1}={item.Cmd}");
+								writer.WriteLine($"iconic{i + 1}={item.Iconic}");
+								writer.WriteLine($"menu{i + 1}={item.Menu}");
+								writer.WriteLine($"path{i + 1}={item.Path}");
+								writer.WriteLine($"param{i + 1}={item.Param}");
+							}
+						}
 					}
 				}
 			}

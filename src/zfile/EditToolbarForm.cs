@@ -518,7 +518,7 @@ namespace zfile
                 
                 DialogResult = DialogResult.OK;
 				//写入配置文件，并刷新工具栏
-				toolbarManager.SaveToconfig();
+				toolbarManager.SaveToconfig(_target);
 				toolbarManager.GenerateDynamicToolbar();
 			}
 			Close();

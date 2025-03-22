@@ -68,10 +68,10 @@ namespace zfile
 		private ComboBox pluginFieldsComboBox;
 
 		// 插件选项卡控件
-		private ListView pluginsList;
+		
 		private CheckBox usePluginsCheckBox;
-		private Button addPluginButton;
-		private Button removePluginButton;
+		
+		
 
 		// 加减规则选项卡控件
 		private RadioButton andRuleRadioButton;
@@ -180,6 +180,8 @@ namespace zfile
 			duplicateFilesCheckBox.CheckedChanged += DuplicateFilesCheckBox_CheckedChanged;
 			viewButton.Click += ViewButton_Click;
 			editButton.Click += EditButton_Click;
+			addRuleButton.Click += AddRuleButton_Click;
+			removeRuleButton.Click += RemoveRuleButton_Click;
 		}
 		private void CancelButton_Click(object sender, EventArgs e)
 		{
@@ -482,72 +484,20 @@ namespace zfile
 			// 插件选项卡内容
 			usePluginsCheckBox = new CheckBox { Text = "使用插件搜索(I)", Location = new Point(10, 15), AutoSize = true };
 
-			pluginsList = new ListView
-			{
-				Location = new Point(10, 45),
-				Size = new Size(550, 150),
-				View = View.Details,
-				CheckBoxes = true,
-				FullRowSelect = true
-			};
-
-			pluginsList.Columns.Add("插件", 150);
-			pluginsList.Columns.Add("描述", 400);
-
-			addPluginButton = new Button { Text = "添加插件(M)", Location = new Point(10, 205), Width = 100 };
-			removePluginButton = new Button { Text = "减少插件(E)", Location = new Point(120, 205), Width = 100 };
-
-			// 添加控件到插件选项卡
-			pluginsTab.Controls.AddRange(new Control[] {
-				usePluginsCheckBox, pluginsList, addPluginButton, removePluginButton
-			});
-		}
-
-		private void InitializeRulesTab()
-		{
 			// 匹配规则区域
-			var matchRuleLabel = new Label { Text = "匹配规则：", Location = new Point(10, 15), AutoSize = true };
-			andRuleRadioButton = new RadioButton { Text = "与(全部匹配)(A)", Location = new Point(100, 15), AutoSize = true, Checked = true };
-			orRuleRadioButton = new RadioButton { Text = "或(部分匹配)(O)", Location = new Point(250, 15), AutoSize = true };
+			var matchRuleLabel = new Label { Text = "匹配规则：", Location = new Point(10, 45), AutoSize = true };
+			andRuleRadioButton = new RadioButton { Text = "与(全部匹配)(A)", Location = new Point(100, 45), AutoSize = true, Checked = true };
+			orRuleRadioButton = new RadioButton { Text = "或(部分匹配)(O)", Location = new Point(250, 45), AutoSize = true };
 
-			// 规则设置区域
-			var pluginLabel = new Label { Text = "插件(P)：", Location = new Point(10, 45), AutoSize = true };
-			pluginComboBox = new ComboBox
-			{
-				Location = new Point(100, 42),
-				Width = 150,
-				DropDownStyle = ComboBoxStyle.DropDownList
-			};
+			// 规则按钮
+			addRuleButton = new Button { Text = "增加规则(M)", Location = new Point(10, 75), Width = 100 };
+			removeRuleButton = new Button { Text = "减少规则(E)", Location = new Point(120, 75), Width = 100 };
 
-			var attributeLabel = new Label { Text = "属性：", Location = new Point(10, 75), AutoSize = true };
-			attributeComboBox = new ComboBox
-			{
-				Location = new Point(100, 72),
-				Width = 150,
-				DropDownStyle = ComboBoxStyle.DropDownList
-			};
-
-			var operatorLabel = new Label { Text = "操作符：", Location = new Point(10, 105), AutoSize = true };
-			operatorComboBox = new ComboBox
-			{
-				Location = new Point(100, 102),
-				Width = 150,
-				DropDownStyle = ComboBoxStyle.DropDownList
-			};
-			operatorComboBox.Items.AddRange(new object[] { "包含", "等于", "大于", "小于", "开始于", "结束于" });
-			operatorComboBox.SelectedIndex = 0;
-
-			var valueLabel = new Label { Text = "值：", Location = new Point(10, 135), AutoSize = true };
-			valueTextBox = new TextBox { Location = new Point(100, 132), Width = 300 };
-
-			addRuleButton = new Button { Text = "增加规则(M)", Location = new Point(10, 165), Width = 100 };
-			removeRuleButton = new Button { Text = "减少规则(E)", Location = new Point(120, 165), Width = 100 };
-
-			// 规则列表
+			// 规则列表 - 现在直接作为可编辑的表格
 			rulesList = new ListView
 			{
-				Location = new Point(10, 195),
-				Size = new Size(550, 150),
+				Location = new Point(10, 105),
+				Size = new Size(550, 320),
 				View = View.Details,
 				FullRowSelect = true
 			};
@@ -557,13 +507,276 @@ namespace zfile
 			rulesList.Columns.Add("操作符", 80);
 			rulesList.Columns.Add("值", 270);
 
-			// 添加控件到规则选项卡
-			rulesTab.Controls.AddRange(new Control[] {
+			// 添加控件到插件选项卡
+			pluginsTab.Controls.AddRange(new Control[] {
+				usePluginsCheckBox, 
 				matchRuleLabel, andRuleRadioButton, orRuleRadioButton,
-				pluginLabel, pluginComboBox, attributeLabel, attributeComboBox,
-				operatorLabel, operatorComboBox, valueLabel, valueTextBox,
 				addRuleButton, removeRuleButton, rulesList
 			});
+
+			// 绑定事件处理程序
+			addRuleButton.Click += AddRuleButton_Click;
+			removeRuleButton.Click += RemoveRuleButton_Click;
+			rulesList.DoubleClick += RulesList_DoubleClick;
+		}
+		
+
+		private void InitializeRulesTab()
+		{
+			// 加载/保存页面内容留空
+			// 这里的内容已经移动到插件页面
+		}
+
+		// 增加规则按钮点击事件处理程序
+		private void AddRuleButton_Click(object sender, EventArgs e)
+		{
+			// 创建一个新的规则行项目
+			AddRuleItem();
+		}
+
+		// 删除规则按钮点击事件处理程序
+		private void RemoveRuleButton_Click(object sender, EventArgs e)
+		{
+			// 检查是否有选中的项目
+			if (rulesList.SelectedItems.Count > 0)
+			{
+				// 删除选中的项目
+				foreach (ListViewItem item in rulesList.SelectedItems)
+				{
+					rulesList.Items.Remove(item);
+				}
+			}
+			else
+			{
+				MessageBox.Show("请先选择要删除的规则", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			}
+		}
+
+		// 添加规则行项目的辅助方法
+		private void AddRuleItem(string plugin = "", string attribute = "", string op = "包含", string value = "")
+		{
+			// 创建一个新的ListViewItem
+			var item = new ListViewItem(plugin);
+			item.SubItems.Add(attribute);
+			item.SubItems.Add(op);
+			item.SubItems.Add(value);
+
+			// 添加到规则列表
+			rulesList.Items.Add(item);
+
+			// 选中新添加的项目
+			item.Selected = true;
+			item.Focused = true;
+			rulesList.EnsureVisible(rulesList.Items.Count - 1);
+		}
+
+		// 处理规则列表的双击事件，实现单元格编辑功能
+		private void RulesList_DoubleClick(object sender, EventArgs e)
+		{
+			// 检查是否有选中的项目
+			if (rulesList.SelectedItems.Count > 0)
+			{
+				ListViewItem item = rulesList.SelectedItems[0];
+				
+				// 获取鼠标点击的位置
+				Point mousePos = rulesList.PointToClient(Control.MousePosition);
+				
+				// 确定点击的是哪一列
+				ListViewHitTestInfo hitTest = rulesList.HitTest(mousePos);
+				int columnIndex = -1;
+				
+				// 计算点击的列索引
+				int x = 0;
+				for (int i = 0; i < rulesList.Columns.Count; i++)
+				{
+					x += rulesList.Columns[i].Width;
+					if (mousePos.X < x)
+					{
+						columnIndex = i;
+						break;
+					}
+				}
+				
+				// 如果找到了列索引，则显示编辑控件
+				if (columnIndex >= 0)
+				{
+					ShowEditControl(item, columnIndex);
+				}
+			}
+		}
+
+		// 显示编辑控件
+		private void ShowEditControl(ListViewItem item, int columnIndex)
+		{
+			// 获取单元格的矩形区域
+			Rectangle cellRect = GetSubItemRect(item, columnIndex);
+			
+			// 根据列索引选择不同的编辑控件
+			Control editControl = null;
+			
+			switch (columnIndex)
+			{
+				case 0: // 插件列
+					// 创建一个下拉列表
+					ComboBox pluginDropDown = new ComboBox
+					{
+						Bounds = cellRect,
+						DropDownStyle = ComboBoxStyle.DropDownList,
+						Tag = new object[] { item, columnIndex }
+					};
+					
+					// 添加插件列表项
+					pluginDropDown.Items.AddRange(new object[] { "插件1", "插件2", "插件3" });
+					
+					// 设置当前值
+					pluginDropDown.Text = item.Text;
+					
+					// 添加事件处理程序
+					pluginDropDown.SelectedIndexChanged += EditControl_ValueChanged;
+					pluginDropDown.LostFocus += EditControl_LostFocus;
+					
+					editControl = pluginDropDown;
+					break;
+					
+				case 1: // 属性列
+					// 创建一个下拉列表
+					ComboBox attributeDropDown = new ComboBox
+					{
+						Bounds = cellRect,
+						DropDownStyle = ComboBoxStyle.DropDownList,
+						Tag = new object[] { item, columnIndex }
+					};
+					
+					// 添加属性列表项
+					attributeDropDown.Items.AddRange(new object[] { "属性1", "属性2", "属性3" });
+					
+					// 设置当前值
+					attributeDropDown.Text = item.SubItems[columnIndex].Text;
+					
+					// 添加事件处理程序
+					attributeDropDown.SelectedIndexChanged += EditControl_ValueChanged;
+					attributeDropDown.LostFocus += EditControl_LostFocus;
+					
+					editControl = attributeDropDown;
+					break;
+					
+				case 2: // 操作符列
+					// 创建一个下拉列表
+					ComboBox operatorDropDown = new ComboBox
+					{
+						Bounds = cellRect,
+						DropDownStyle = ComboBoxStyle.DropDownList,
+						Tag = new object[] { item, columnIndex }
+					};
+					
+					// 添加操作符列表项
+					operatorDropDown.Items.AddRange(new object[] { "包含", "等于", "大于", "小于", "开始于", "结束于" });
+					
+					// 设置当前值
+					operatorDropDown.Text = item.SubItems[columnIndex].Text;
+					
+					// 添加事件处理程序
+					operatorDropDown.SelectedIndexChanged += EditControl_ValueChanged;
+					operatorDropDown.LostFocus += EditControl_LostFocus;
+					
+					editControl = operatorDropDown;
+					break;
+					
+				case 3: // 值列
+					// 创建一个文本框
+					TextBox valueTextBox = new TextBox
+					{
+						Bounds = cellRect,
+						Text = item.SubItems[columnIndex].Text,
+						Tag = new object[] { item, columnIndex }
+					};
+					
+					// 添加事件处理程序
+					valueTextBox.LostFocus += EditControl_LostFocus;
+					valueTextBox.KeyDown += (s, e) => {
+						if (e.KeyCode == Keys.Enter)
+						{
+							UpdateCellValue((Control)s);
+							plugins.Controls.Remove((Control)s);
+						}
+					};
+					
+					editControl = valueTextBox;
+					break;
+			}
+			
+			if (editControl != null)
+			{
+				// 添加编辑控件到窗体
+				plugins.Controls.Add(editControl);
+				editControl.Focus();
+			}
+		}
+
+		// 获取子项的矩形区域
+		private Rectangle GetSubItemRect(ListViewItem item, int columnIndex)
+		{
+			Rectangle rect = item.Bounds;
+			
+			if (columnIndex > 0)
+			{
+				// 计算前面列的宽度总和
+				int width = 0;
+				for (int i = 0; i < columnIndex; i++)
+				{
+					width += rulesList.Columns[i].Width;
+				}
+				
+				rect.X = width;
+			}
+			
+			rect.Width = rulesList.Columns[columnIndex].Width;
+			
+			return rect;
+		}
+
+		// 编辑控件值变更事件处理程序
+		private void EditControl_ValueChanged(object sender, EventArgs e)
+		{
+			UpdateCellValue((Control)sender);
+		}
+
+		// 编辑控件失去焦点事件处理程序
+		private void EditControl_LostFocus(object sender, EventArgs e)
+		{
+			UpdateCellValue((Control)sender);
+			plugins.Controls.Remove((Control)sender);
+		}
+
+		// 更新单元格值
+		private void UpdateCellValue(Control control)
+		{
+			if (control.Tag is object[] tagArray && tagArray.Length == 2)
+			{
+				ListViewItem item = (ListViewItem)tagArray[0];
+				int columnIndex = (int)tagArray[1];
+				
+				// 根据控件类型获取值
+				string value = "";
+				if (control is ComboBox comboBox)
+				{
+					value = comboBox.Text;
+				}
+				else if (control is TextBox textBox)
+				{
+					value = textBox.Text;
+				}
+				
+				// 更新单元格值
+				if (columnIndex == 0)
+				{
+					item.Text = value;
+				}
+				else
+				{
+					item.SubItems[columnIndex].Text = value;
+				}
+			}
 		}
 
 		private void InitializeResultsArea()

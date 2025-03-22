@@ -21,6 +21,11 @@ namespace zfile
 		private MenuInfo? currentMenuInfo;
 		private string _target;
         public bool IsModified { get; private set; }
+        
+        // 缓冲区，用于存储临时更改
+        private List<ToolbarButton> toolbarButtonsBuffer = new List<ToolbarButton>();
+        private Dictionary<string, List<MenuInfo>> toolbarsDictBuffer = new Dictionary<string, List<MenuInfo>>();
+        private bool isUpdatingUI = false; // 防止UI更新和数据更新之间的循环
 
         public EditToolbarForm(ToolbarManager manager, string target)
         {
@@ -197,14 +202,42 @@ namespace zfile
         private void LoadToolbarButtons(string target)
         {
             toolbarPanel.Controls.Clear();
-			if(target.Equals("default"))
-				foreach (var button in toolbarManager.toolbarButtons)
-					AddToolbarButtonToPanel(button);
-			else
-			{
-				foreach (var button in toolbarManager.toolbarsDict[target])
-					AddToolbarButtonToPanel(button);
-			}
+            
+            // 初始化缓冲区
+            toolbarButtonsBuffer.Clear();
+            toolbarsDictBuffer.Clear();
+            
+            if (target.Equals("default"))
+            {
+                // 创建工具栏按钮的深拷贝到缓冲区
+                foreach (var button in toolbarManager.toolbarButtons)
+                {
+                    toolbarButtonsBuffer.Add(new ToolbarButton(
+                        button.name,
+                        button.cmd,
+                        button.icon,
+                        button.path,
+                        button.param,
+                        button.iconic
+                    ));
+                    AddToolbarButtonToPanel(button);
+                }
+            }
+            else
+            {
+                // 确保目标键存在于字典中
+                if (!toolbarsDictBuffer.ContainsKey(target))
+                {
+                    toolbarsDictBuffer[target] = new List<MenuInfo>();
+                }
+                
+                // 创建菜单信息的深拷贝到缓冲区
+                foreach (var menuInfo in toolbarManager.toolbarsDict[target])
+                {
+                    toolbarsDictBuffer[target].Add(menuInfo.Clone());
+                    AddToolbarButtonToPanel(menuInfo);
+                }
+            }
         }
 
         private void AddToolbarButtonToPanel(ToolbarButton button)
@@ -254,6 +287,9 @@ namespace zfile
 				btn.FlatAppearance.BorderSize = 2;
 				btn.FlatAppearance.BorderColor = Color.Blue;
 
+                // 设置标志，防止UI更新触发PropertyChanged事件
+                isUpdatingUI = true;
+                
 				if (btn.Tag is ToolbarButton button)
 				{
 					// 更新当前选中的按钮
@@ -292,6 +328,9 @@ namespace zfile
 					// 更新图标预览
 					iconPreview.Image = toolbarManager.form.iconManager.LoadIcon(x.Button);
 				}
+                
+                // 重置标志
+                isUpdatingUI = false;
 			}
         }
 
@@ -300,13 +339,20 @@ namespace zfile
 			if (_target.Equals("default"))
 			{
 				var newButton = new ToolbarButton("新按钮", "", "", "", "", "0");
-				toolbarManager.toolbarButtons.Add(newButton);
+				// 添加到缓冲区而不是直接修改原始数据
+				toolbarButtonsBuffer.Add(newButton);
 				AddToolbarButtonToPanel(newButton);
 			}
 			else
 			{
 				var newButton = new MenuInfo("新按钮", "", "", "", "", 0, "");
-				toolbarManager.toolbarsDict[_target].Add(newButton);
+				// 确保目标键存在于缓冲区字典中
+				if (!toolbarsDictBuffer.ContainsKey(_target))
+				{
+					toolbarsDictBuffer[_target] = new List<MenuInfo>();
+				}
+				// 添加到缓冲区而不是直接修改原始数据
+				toolbarsDictBuffer[_target].Add(newButton);
 				AddToolbarButtonToPanel(newButton);
 			}
 			IsModified = true;
@@ -316,8 +362,13 @@ namespace zfile
         {
 			if (currentButton != null && _target.Equals("default"))
 			{
-				toolbarManager.toolbarButtons.Remove((ToolbarButton)currentButton);
+				// 从缓冲区中删除按钮，而不是直接修改原始数据
+				toolbarButtonsBuffer.Remove((ToolbarButton)currentButton);
+				// 更新UI显示
+				isUpdatingUI = true;
 				LoadToolbarButtons(_target);
+				isUpdatingUI = false;
+				
 				currentButton = null;
 				btnDelete.Enabled = false;
 				ClearProperties();
@@ -326,8 +377,18 @@ namespace zfile
 			}
 			if(currentMenuInfo != null && !_target.Equals("default"))
 			{
-				toolbarManager.toolbarsDict[_target].Remove(currentMenuInfo);
+				// 确保目标键存在于缓冲区字典中
+				if (!toolbarsDictBuffer.ContainsKey(_target))
+				{
+					toolbarsDictBuffer[_target] = new List<MenuInfo>();
+				}
+				// 从缓冲区中删除按钮，而不是直接修改原始数据
+				toolbarsDictBuffer[_target].Remove(currentMenuInfo);
+				// 更新UI显示
+				isUpdatingUI = true;
 				LoadToolbarButtons(_target);
+				isUpdatingUI = false;
+				
 				currentMenuInfo = null;
 				btnDelete.Enabled = false;
 				ClearProperties();
@@ -335,41 +396,63 @@ namespace zfile
 			}
         }
 
-        private void PropertyChanged(object? sender, EventArgs e)
-        {
-            if (currentButton != null)
-            {
-                var index = toolbarManager.toolbarButtons.IndexOf((ToolbarButton)currentButton);
-                if (index >= 0)
-                {
-                    toolbarManager.toolbarButtons[index] = new ToolbarButton(
-                        tooltipTextBox.Text,
-                        cmdTextBox.Text,
-                        iconFileTextBox.Text,
-                        pathTextBox.Text,
-                        paramTextBox.Text,
-                        "0" // 这里可以根据需要修改iconic值
-                    );
-                    LoadToolbarButtons(_target);
-                    IsModified = true;
-                }
+		private void PropertyChanged(object? sender, EventArgs e)
+		{
+			// 如果是UI更新触发的事件，不处理以避免循环
+			if (isUpdatingUI)
 				return;
-            }
-			if (currentMenuInfo != null)
+
+			if (currentButton != null && _target.Equals("default"))
 			{
-				var index = toolbarManager.toolbarsDict[_target].IndexOf(currentMenuInfo);
+				// 查找缓冲区中对应的按钮
+				var index = toolbarButtonsBuffer.FindIndex(b => b == currentButton);
 				if (index >= 0)
 				{
-					toolbarManager.toolbarsDict[_target][index] = new MenuInfo(
-						tooltipTextBox.Text,
-						iconFileTextBox.Text, // 修复：使用iconFileTextBox.Text作为Button属性
-						cmdTextBox.Text,
-						paramTextBox.Text,
-						pathTextBox.Text,
-						0, // 这里可以根据需要修改iconic值
-						tooltipTextBox.Text // 使用tooltipTextBox.Text作为Menu属性
-					);
+					// 直接修改现有对象的属性，而不是创建新对象
+					var button = toolbarButtonsBuffer[index];
+					button.name = tooltipTextBox.Text;
+					button.cmd = cmdTextBox.Text;
+					button.icon = iconFileTextBox.Text;
+					button.path = pathTextBox.Text;
+					button.param = paramTextBox.Text;
+					// iconic保持不变
+
+					// 更新UI显示
+					isUpdatingUI = true;
 					LoadToolbarButtons(_target);
+					isUpdatingUI = false;
+
+					IsModified = true;
+				}
+				return;
+			}
+
+			if (currentMenuInfo != null && !_target.Equals("default"))
+			{
+				// 确保目标键存在于缓冲区字典中
+				if (!toolbarsDictBuffer.ContainsKey(_target))
+				{
+					toolbarsDictBuffer[_target] = new List<MenuInfo>();
+				}
+
+				// 查找缓冲区中对应的菜单信息
+				var index = toolbarsDictBuffer[_target].FindIndex(m => m == currentMenuInfo);
+				if (index >= 0)
+				{
+					// 直接修改现有对象的属性，而不是创建新对象
+					var menuInfo = toolbarsDictBuffer[_target][index];
+					menuInfo.Menu = tooltipTextBox.Text;
+					menuInfo.Button = iconFileTextBox.Text;
+					menuInfo.Cmd = cmdTextBox.Text;
+					menuInfo.Param = paramTextBox.Text;
+					menuInfo.Path = pathTextBox.Text;
+					// Iconic保持不变
+
+					// 更新UI显示
+					isUpdatingUI = true;
+					LoadToolbarButtons(_target);
+					isUpdatingUI = false;
+
 					IsModified = true;
 				}
 			}
@@ -397,7 +480,42 @@ namespace zfile
         {
             if (IsModified)
             {
-                // 更新将在ToolbarManager中处理
+                // 将缓冲区中的更改应用到原始数据中
+                if (_target.Equals("default"))
+                {
+                    // 清空原始数据并添加缓冲区中的所有按钮
+                    toolbarManager.toolbarButtons.Clear();
+                    foreach (var button in toolbarButtonsBuffer)
+                    {
+                        toolbarManager.toolbarButtons.Add(new ToolbarButton(
+                            button.name,
+                            button.cmd,
+                            button.icon,
+                            button.path,
+                            button.param,
+                            button.iconic
+                        ));
+                    }
+                }
+                else
+                {
+                    // 确保目标键存在于原始字典中
+                    if (!toolbarManager.toolbarsDict.ContainsKey(_target))
+                    {
+                        toolbarManager.toolbarsDict[_target] = new List<MenuInfo>();
+                    }
+                    
+                    // 清空原始数据并添加缓冲区中的所有菜单信息
+                    toolbarManager.toolbarsDict[_target].Clear();
+                    if (toolbarsDictBuffer.ContainsKey(_target))
+                    {
+                        foreach (var menuInfo in toolbarsDictBuffer[_target])
+                        {
+                            toolbarManager.toolbarsDict[_target].Add(menuInfo.Clone());
+                        }
+                    }
+                }
+                
                 DialogResult = DialogResult.OK;
             }
             Close();
@@ -405,6 +523,8 @@ namespace zfile
 
 		private void BtnCancel_Click(object? sender, EventArgs eventArgs)
 		{
+			// 放弃缓冲区中的更改，直接关闭窗口
+			DialogResult = DialogResult.Cancel;
 			Close();
 		}
 
@@ -421,7 +541,8 @@ namespace zfile
 					currentButton?.param,
 					currentButton?.iconic
 				);
-				toolbarManager.toolbarButtons.Add(newButton);
+				// 添加到缓冲区而不是直接修改原始数据
+				toolbarButtonsBuffer.Add(newButton);
 				AddToolbarButtonToPanel(newButton);
 				IsModified = true;
 			}
@@ -437,7 +558,13 @@ namespace zfile
 					currentMenuInfo.Iconic,
 					currentMenuInfo.Menu + " 副本"
 				);
-				toolbarManager.toolbarsDict[_target].Add(newButton);
+				// 确保目标键存在于缓冲区字典中
+				if (!toolbarsDictBuffer.ContainsKey(_target))
+				{
+					toolbarsDictBuffer[_target] = new List<MenuInfo>();
+				}
+				// 添加到缓冲区而不是直接修改原始数据
+				toolbarsDictBuffer[_target].Add(newButton);
 				AddToolbarButtonToPanel(newButton);
 				IsModified = true;
 			}

@@ -3,7 +3,7 @@ using System.Text;
 namespace zfile
 {
 
-	public struct ToolbarButton
+	public class ToolbarButton
 	{
 		public string name;
 		public string cmd;

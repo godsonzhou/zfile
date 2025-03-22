@@ -7,8 +7,8 @@ namespace zfile
         private Form1 mainForm;
         private CheckBox enableAutoSwitchCheckBox;
         private ComboBox ruleTypeComboBox;
-        private TextBox fileTypeTextBox;
-        private ListBox fileTypeListBox;
+        
+        //private ListBox fileTypeListBox;
 
         public AutoSwitchViewPanel(Form1 mainForm)
         {
@@ -82,47 +82,16 @@ namespace zfile
                 Height = 200
             };
 
-            // 规则类型
-            Label ruleTypeLabel = new Label { Text = "规则类型:", AutoSize = true, Location = new Point(10, 30) };
-            ruleTypeComboBox = new ComboBox
-            {
-                DropDownStyle = ComboBoxStyle.DropDownList,
-                Width = 200,
-                Location = new Point(100, 30)
-            };
-            ruleTypeComboBox.Items.AddRange(new object[] { "文件扩展名", "文件名通配符", "文件夹路径" });
-            ruleTypeComboBox.SelectedIndex = 0;
-
-            // 视图模式
-            Label viewModeLabel = new Label { Text = "视图模式:", AutoSize = true, Location = new Point(350, 30) };
-            ComboBox viewModeComboBox = new ComboBox
-            {
-                DropDownStyle = ComboBoxStyle.DropDownList,
-                Width = 200,
-                Location = new Point(450, 30)
-            };
-            viewModeComboBox.Items.AddRange(new object[] { "默认", "系统", "程序", "图片", "音频", "视频", "源码", "文档" });
-            viewModeComboBox.SelectedIndex = 0;
-
-            // 文件类型
-            Label fileTypeLabel = new Label { Text = "文件类型:", AutoSize = true, Location = new Point(10, 70) };
-            fileTypeTextBox = new TextBox { Width = 200, Location = new Point(100, 70) };
-            Button addFileTypeButton = new Button { Text = "+", Width = 30, Location = new Point(310, 70) };
-            Button removeFileTypeButton = new Button { Text = "-", Width = 30, Location = new Point(350, 70) };
-
+         
             // 文件类型列表
-            fileTypeListBox = new ListBox { Location = new Point(100, 110), Width = 280, Height = 80 };
+            
 
-            // 添加事件处理
-            addFileTypeButton.Click += (s, e) => AddFileType();
-            removeFileTypeButton.Click += (s, e) => RemoveFileType();
+           
 
             // 添加控件到规则配置组
             ruleConfigGroup.Controls.AddRange(new Control[] {
-                ruleTypeLabel, ruleTypeComboBox,
-                viewModeLabel, viewModeComboBox,
-                fileTypeLabel, fileTypeTextBox, addFileTypeButton, removeFileTypeButton,
-                fileTypeListBox
+               
+                
             });
 
             Controls.Add(ruleConfigGroup);
@@ -141,16 +110,8 @@ namespace zfile
 
         private void AddRule()
         {
-            // 获取当前配置的规则类型和文件类型
-            string ruleType = ruleTypeComboBox.SelectedItem.ToString();
-            string fileTypes = string.Join(";", fileTypeListBox.Items.Cast<string>());
-            string viewMode = "默认"; // 默认视图模式
-
-            // 添加到规则列表
-            grid.Rows.Add(ruleType, fileTypes, viewMode);
-
-            // 清空文件类型列表
-            fileTypeListBox.Items.Clear();
+        
+        
         }
 
         private void DeleteRule()
@@ -162,24 +123,6 @@ namespace zfile
             }
         }
 
-        private void AddFileType()
-        {
-            // 添加文件类型到列表
-            string fileType = fileTypeTextBox.Text.Trim();
-            if (!string.IsNullOrEmpty(fileType) && !fileTypeListBox.Items.Contains(fileType))
-            {
-                fileTypeListBox.Items.Add(fileType);
-                fileTypeTextBox.Clear();
-            }
-        }
-
-        private void RemoveFileType()
-        {
-            // 从列表中删除选中的文件类型
-            if (fileTypeListBox.SelectedIndex >= 0)
-            {
-                fileTypeListBox.Items.RemoveAt(fileTypeListBox.SelectedIndex);
-            }
-        }
+     
     }
 }

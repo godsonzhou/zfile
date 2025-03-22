@@ -124,6 +124,8 @@ namespace zfile
 		// 添加压缩程序配置面板
 		private Panel compressPanel;
 		private Dictionary<string, Panel> compressPanels = new();
+        // 添加自定义视图配置面板
+        private Panel customViewPanel;
 		public OptionsForm(Form1 mainForm)
         {
             InitializeComponent();
@@ -142,6 +144,7 @@ namespace zfile
             InitializeTreeView();
 			InitializePluginPanel();  // 添加插件配置面板初始化
 			InitializeCompressPanel();  // 添加压缩程序配置面板初始化
+            InitializeCustomViewPanel();  // 添加自定义视图配置面板初始化
 		}
 		private void InitializePluginPanel()
 		{
@@ -625,6 +628,7 @@ namespace zfile
             TreeNode fontNode = new TreeNode("字体设置");
             TreeNode pluginNode = new TreeNode("插件设置");
             TreeNode compressNode = new TreeNode("压缩程序");  // 新增压缩程序节点
+            TreeNode customViewNode = new TreeNode("自定义视图");  // 新增自定义视图节点
 
             // 添加压缩程序的子节点
             compressNode.Nodes.Add(new TreeNode("ARJ"));
@@ -639,6 +643,7 @@ namespace zfile
             rootNode.Nodes.Add(fontNode);
             rootNode.Nodes.Add(pluginNode);
             rootNode.Nodes.Add(compressNode);  // 添加到树中
+            rootNode.Nodes.Add(customViewNode);  // 添加自定义视图节点到树中
             treeView.Nodes.Add(rootNode);
             treeView.SelectedNode = hotkeyNode;
 
@@ -659,6 +664,7 @@ namespace zfile
                 fontPanel.Visible = false;
                 pluginPanel.Visible = false;
                 compressPanel.Visible = false;
+                customViewPanel.Visible = false;
 
                 // 隐藏所有压缩程序子面板
                 foreach (var panel in compressPanels.Values)
@@ -680,6 +686,9 @@ namespace zfile
                         break;
                     case "压缩程序":
                         compressPanel.Visible = true;
+                        break;
+                    case "自定义视图":
+                        customViewPanel.Visible = true;
                         break;
                     default:
                         // 处理压缩程序的子节点
@@ -993,6 +1002,28 @@ namespace zfile
             {
                 pathBox.Text = dialog.FileName;
             }
+        }
+
+        // 初始化自定义视图配置面板
+        private void InitializeCustomViewPanel()
+        {
+            customViewPanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                AutoScroll = true
+            };
+
+            // 创建自定义视图表单
+            var customViewForm = new CustomViewForm(mainForm);
+            customViewForm.TopLevel = false;
+            customViewForm.FormBorderStyle = FormBorderStyle.None;
+            customViewForm.Dock = DockStyle.Fill;
+            customViewForm.Visible = true;
+
+            // 添加到面板中
+            customViewPanel.Controls.Add(customViewForm);
+            splitContainer1.Panel2.Controls.Add(customViewPanel);
+            customViewPanel.Visible = false;
         }
     }
 }

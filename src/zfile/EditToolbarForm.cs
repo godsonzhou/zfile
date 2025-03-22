@@ -517,8 +517,11 @@ namespace zfile
                 }
                 
                 DialogResult = DialogResult.OK;
-            }
-            Close();
+				//写入配置文件，并刷新工具栏
+				toolbarManager.SaveToconfig();
+				toolbarManager.GenerateDynamicToolbar();
+			}
+			Close();
         }
 
 		private void BtnCancel_Click(object? sender, EventArgs eventArgs)

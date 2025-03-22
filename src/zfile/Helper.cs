@@ -49,6 +49,10 @@ namespace zfile
 	
 	internal static class Helper
 	{
+		public static bool IsTextFile(string filename)
+		{
+			return (Getfiletype(filename).Contains("text", StringComparison.OrdinalIgnoreCase));
+		}
 		public static string ExtractResponseContent(string input)
 		{
 			// 定义正则表达式模式，用于匹配 response 字段的值
@@ -101,17 +105,17 @@ namespace zfile
 					// 获取退出代码
 					int exitCode = process.ExitCode;
 
-					Console.WriteLine("输出内容：\n" + output);
+					Debug.Print("输出内容：\n" + output);
 					if (!string.IsNullOrEmpty(error))
 					{
-						Console.WriteLine("错误信息：\n" + error);
+						Debug.Print("错误信息：\n" + error);
 					}
-					Console.WriteLine($"退出代码：{exitCode}");
+					Debug.Print($"退出代码：{exitCode}");
 					return output;
 				}
 				catch (Exception ex)
 				{
-					Console.WriteLine($"执行出错：{ex.Message}");
+					Debug.Print($"执行出错：{ex.Message}");
 				}
 			}
 			return string.Empty; 

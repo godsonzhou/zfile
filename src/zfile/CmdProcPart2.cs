@@ -1155,11 +1155,10 @@ namespace zfile
 				foreach (var file in filePaths)
 				{
 					//read all text from file if it is a text file
-					var result = Helper.Getfiletype(file);
-					Debug.Print($"{file} => {result}");
-
-					if (!result.Contains("text", StringComparison.OrdinalIgnoreCase)) continue;
-
+					//var result = Helper.Getfiletype(file);
+					//Debug.Print($"{file} => {result}");
+					//if (!result.Contains("text", StringComparison.OrdinalIgnoreCase)) continue;
+					if(!Helper.IsTextFile(file)) continue;
 					var content = File.ReadAllText(file);
 					response = await owner.lLM_Helper.CallOllamaApiAsync(prompt + content);
 				}

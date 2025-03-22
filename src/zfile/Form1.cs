@@ -1,3 +1,4 @@
+using SharpCompress.Common;
 using Shell32;
 using System.Collections;
 using System.Diagnostics;
@@ -2172,6 +2173,12 @@ namespace zfile
 		public void cm_edit(string param = "")
 		{
 			var files = GetFileListByViewOrParam(param);
+			// 检测文件类型，如果是2进制文件则不打开
+			//if (!Helper.IsTextFile(files[0]))
+			//{
+			//	MessageBox.Show($"无法打开二进制文件{files[0]}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			//	return;
+			//}
 			var editorForm = new NewEditorForm(files)
 			{
 				Text = $"编辑文件 - {files[0]}",

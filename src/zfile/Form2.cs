@@ -128,6 +128,8 @@ namespace zfile
         private Panel customViewPanel;
         // 添加视图模式配置面板
         private Panel viewModePanel;
+        // 添加视图自动切换规则配置面板
+        private Panel autoSwitchViewPanel;
 		public OptionsForm(Form1 mainForm)
         {
             InitializeComponent();
@@ -148,6 +150,7 @@ namespace zfile
 			InitializeCompressPanel();  // 添加压缩程序配置面板初始化
             InitializeCustomViewPanel();  // 添加自定义视图配置面板初始化
             InitializeViewModePanel();  // 添加视图模式配置面板初始化
+            InitializeAutoSwitchViewPanel();  // 添加视图自动切换规则配置面板初始化
 		}
 		private void InitializePluginPanel()
 		{
@@ -633,6 +636,7 @@ namespace zfile
             TreeNode compressNode = new TreeNode("压缩程序");  // 新增压缩程序节点
             TreeNode customViewNode = new TreeNode("自定义视图");  // 新增自定义视图节点
             TreeNode viewModeNode = new TreeNode("视图模式");  // 新增视图模式节点
+            TreeNode autoSwitchViewNode = new TreeNode("视图自动切换规则");  // 新增视图自动切换规则节点
 
             // 添加压缩程序的子节点
             compressNode.Nodes.Add(new TreeNode("ARJ"));
@@ -649,6 +653,7 @@ namespace zfile
             rootNode.Nodes.Add(compressNode);  // 添加到树中
             rootNode.Nodes.Add(customViewNode);  // 添加自定义视图节点到树中
             rootNode.Nodes.Add(viewModeNode);  // 添加视图模式节点到树中
+            rootNode.Nodes.Add(autoSwitchViewNode);  // 添加视图自动切换规则节点到树中
             treeView.Nodes.Add(rootNode);
             treeView.SelectedNode = hotkeyNode;
 
@@ -671,6 +676,7 @@ namespace zfile
                 compressPanel.Visible = false;
                 customViewPanel.Visible = false;
                 viewModePanel.Visible = false;
+                autoSwitchViewPanel.Visible = false;
 
                 // 隐藏所有压缩程序子面板
                 foreach (var panel in compressPanels.Values)
@@ -699,6 +705,9 @@ namespace zfile
 					case "视图模式":
 						viewModePanel.Visible = true;
 						break;
+                    case "视图自动切换规则":
+                        autoSwitchViewPanel.Visible = true;
+                        break;
 					default:
                         // 处理压缩程序的子节点
                         if (e.Node.Parent?.Text == "压缩程序")
@@ -1053,6 +1062,26 @@ namespace zfile
             viewModePanel.Controls.Add(viewModePanelControl);
             splitContainer1.Panel2.Controls.Add(viewModePanel);
             viewModePanel.Visible = false;
+        }
+
+        // 初始化视图自动切换规则配置面板
+        private void InitializeAutoSwitchViewPanel()
+        {
+            autoSwitchViewPanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                AutoScroll = true
+            };
+
+            // 创建视图自动切换规则面板
+            var autoSwitchViewPanelControl = new AutoSwitchViewPanel(mainForm);
+            autoSwitchViewPanelControl.Dock = DockStyle.Fill;
+            autoSwitchViewPanelControl.Visible = true;
+
+            // 添加到面板中
+            autoSwitchViewPanel.Controls.Add(autoSwitchViewPanelControl);
+            splitContainer1.Panel2.Controls.Add(autoSwitchViewPanel);
+            autoSwitchViewPanel.Visible = false;
         }
     }
 }

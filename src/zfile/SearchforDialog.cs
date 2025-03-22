@@ -117,7 +117,7 @@ namespace zfile
 		private void InitializeComponent()
 		{
 			this.Text = "搜索文件";
-			this.Size = new Size(800, 600);
+			this.Size = new Size(800, 800);
 			this.StartPosition = FormStartPosition.CenterParent;
 			this.MinimizeBox = true;
 			this.MaximizeBox = true;
@@ -127,7 +127,7 @@ namespace zfile
 			tabControl = new TabControl
 			{
 				Dock = DockStyle.Top,
-				Height = 250,
+				Height = 450,
 				Location = new Point(10, 10)
 			};
 
@@ -135,7 +135,7 @@ namespace zfile
 			generalTab = new TabPage("常规");
 			advancedTab = new TabPage("高级");
 			pluginsTab = new TabPage("插件");
-			rulesTab = new TabPage("加减/保存");
+			rulesTab = new TabPage("加载/保存");
 
 			// 初始化各个选项卡的内容
 			InitializeGeneralTab();

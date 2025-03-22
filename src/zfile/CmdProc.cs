@@ -197,7 +197,7 @@ namespace zfile
 						break;
 
 					case 501: // cm_searchfor
-						SearchFiles();
+						cm_searchfor();
 						break;
 					case 508: // cm_packfiles
 						PackFiles();

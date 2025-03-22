@@ -668,7 +668,7 @@ namespace zfile
 		}
 
 		// 搜索文件
-		private void SearchFiles()
+		private void cm_searchfor()
 		{
 			var searchForm = new Form
 			{
@@ -754,7 +754,7 @@ namespace zfile
 				sb.AppendLine($"名称: {info.Name}");
 				sb.AppendLine($"类型: {(info.Attributes.HasFlag(FileAttributes.Directory) ? "文件夹" : "文件")}");
 				sb.AppendLine($"位置: {info.DirectoryName}");
-				sb.AppendLine($"大小: {FormatFileSize(info.Length)}");
+				sb.AppendLine($"大小: {FileSystemManager.FormatFileSize(info.Length, true)}");
 				sb.AppendLine($"创建时间: {info.CreationTime}");
 				sb.AppendLine($"修改时间: {info.LastWriteTime}");
 				sb.AppendLine($"访问时间: {info.LastAccessTime}");
@@ -768,19 +768,19 @@ namespace zfile
 			}
 		}
 
-		// 格式化文件大小
-		private string FormatFileSize(long bytes)
-		{
-			string[] sizes = { "B", "KB", "MB", "GB", "TB" };
-			int order = 0;
-			double size = bytes;
-			while (size >= 1024 && order < sizes.Length - 1)
-			{
-				order++;
-				size = size / 1024;
-			}
-			return $"{size:0.##} {sizes[order]}";
-		}
+		//// 格式化文件大小
+		//private string FormatFileSize(long bytes)
+		//{
+		//	string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+		//	int order = 0;
+		//	double size = bytes;
+		//	while (size >= 1024 && order < sizes.Length - 1)
+		//	{
+		//		order++;
+		//		size = size / 1024;
+		//	}
+		//	return $"{size:0.##} {sizes[order]}";
+		//}
 
 		// 比较文件
 		private void CompareFiles(string param)

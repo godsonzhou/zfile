@@ -2241,7 +2241,7 @@ namespace zfile
 		/// <summary>
 		/// 递归上传本地目录到FTP
 		/// </summary>
-		private void UploadDirectory(FtpClient client, string localPath, string remotePath)
+		public void UploadDirectory(FtpClient client, string localPath, string remotePath)
 		{
 			// 获取目录中的所有文件和子目录
 			foreach (string item in Directory.GetFileSystemEntries(localPath))

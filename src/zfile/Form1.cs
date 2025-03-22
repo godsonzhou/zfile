@@ -2693,7 +2693,10 @@ namespace zfile
 							string fullSourcePath = Path.Combine(srcPath, localFile);
 							string fileName = Path.GetFileName(localFile);
 							string remotePath = Path.Combine(ftpTarget.CurrentPath, fileName).Replace("\\", "/");
-							ftpTarget.UploadFile(fullSourcePath, remotePath);
+							if (Directory.Exists(fullSourcePath))
+								fTPMGR.UploadDirectory(ftpTarget.Client, fullSourcePath, remotePath);
+							else
+								ftpTarget.UploadFile(fullSourcePath, remotePath);
 						}
 					}
 				}

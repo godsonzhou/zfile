@@ -2172,6 +2172,15 @@ namespace zfile
 		}
 		public void cm_edit(string param = "")
 		{
+			//读取配置文件的editor, 首先调用用户自定义外部编辑器
+			var user_edit = configLoader.FindConfigValue("Configuration", "Editor");
+			Debug.Print(user_edit);
+			if (!string.IsNullOrWhiteSpace(user_edit))
+			{
+				myShellExe(user_edit);
+				return;
+			}
+
 			var files = GetFileListByViewOrParam(param);
 			// 检测文件类型，如果是2进制文件则不打开
 			//if (!Helper.IsTextFile(files[0]))
@@ -2301,34 +2310,6 @@ namespace zfile
 		public void ExitButton_Click(object? sender, EventArgs e)
 		{
 			Application.Exit();
-		}
-
-		public void OpenCommandPrompt(string cmdstring = "", string cmdMode = "/k", bool isRunas = true)
-		{
-			try
-			{
-				//Process.Start("cmd.exe");
-				//w32.ShellExecute(IntPtr.Zero, "open", "notepad.exe", "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
-				//WinExec(path, 1);
-				//System.Diagnostics.Process.Start(path);
-				//System.Diagnostics.Process.Start("explorer.exe", path);
-				//Process.Start("cmd.exe", "/c start explorer.exe /select,");
-				var processInfo = new ProcessStartInfo("cmd.exe")
-				{
-					Arguments = $"{cmdMode} {cmdstring}",
-					RedirectStandardInput = true,
-					RedirectStandardOutput = true,
-					UseShellExecute = false,
-					CreateNoWindow = true,
-					Verb = isRunas ? "runas" : string.Empty
-				};
-				//Process.Start("cmd.exe", $"{cmdMode} {cmdstring}");
-				Process.Start(processInfo);
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show($"无法打开命令提示符: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-			}
 		}
 
 		public void MenuItem_Click(object? sender, EventArgs e)

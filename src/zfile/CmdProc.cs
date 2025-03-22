@@ -128,7 +128,7 @@ namespace zfile
 							if (workingdir != "")
 								startInfo.WorkingDirectory = workingdir;
 							if (cmdName.StartsWith("control.exe", StringComparison.OrdinalIgnoreCase))
-								owner.OpenCommandPrompt(cmdName);   //TODO: SHELLEXECUTEHELPER.EXECUTECOMMAND合并（增加了参数的处理）
+								cm_executedos1(cmdName);   //TODO: SHELLEXECUTEHELPER.EXECUTECOMMAND合并（增加了参数的处理）
 							else
 								Process.Start(startInfo);
 						}
@@ -206,7 +206,7 @@ namespace zfile
 						UnpackFiles();
 						break;
 					case 511: // cm_executedos
-						owner.OpenCommandPrompt();
+						cm_executedos();
 						break;
 					case 512: // cm_netConnect
 						do_cm_netConnect();
@@ -612,6 +612,46 @@ namespace zfile
 			//{
 			//	throw new KeyNotFoundException("命令ID不存在");
 			//}
+		}
+		public void cm_executedos1(string cmdstring = "", string cmdMode = "/k", bool useShell = false, bool isRunas = true)
+		{
+			try
+			{
+				//var comspec = Helper.GetPathByEnv(owner.env["ComSpec"].ToString());
+				//Process.Start(comspec);
+				//w32.ShellExecute(IntPtr.Zero, "open", "notepad.exe", "", "", (int)ShowWindowCommands.SW_SHOWNORMAL);
+				//WinExec(path, 1);
+				//System.Diagnostics.Process.Start(path);
+				//System.Diagnostics.Process.Start("explorer.exe", path);
+				//Process.Start("cmd.exe", "/c start explorer.exe /select,");
+				var processInfo = new ProcessStartInfo("cmd.exe")
+				{
+					Arguments = $"{cmdMode} {cmdstring}",
+					RedirectStandardInput = !useShell,
+					RedirectStandardOutput = !useShell,
+					UseShellExecute = useShell,
+					CreateNoWindow = !useShell,
+					Verb = isRunas ? "runas" : string.Empty
+				};
+				//Process.Start("cmd.exe", $"{cmdMode} {cmdstring}");
+				Process.Start(processInfo);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"无法打开命令提示符: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+		public void cm_executedos(string cmdstring = "dir", string cmdMode = "/k", bool useShell = true, bool isRunas = true)
+		{
+			try
+			{
+				var comspec = Helper.GetPathByEnv(owner.env["ComSpec"].ToString());
+				Process.Start(comspec);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"无法打开命令提示符: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
 		}
 		private void do_cm_directoryhotlist()
 		{

@@ -65,16 +65,9 @@ namespace zfile
 
 		private void LoadCustomViews()
 		{
-			// 加载示例数据
-			grid.Rows.Add("我的视图 (详细信息+LinkInfo+备注)", "文件名,扩展名,大小,属性,修改日期,LinkTarget,备注");
-			grid.Rows.Add("Office 文档", "大小,日期,作者,最后修改,标题,创建时间,保存时间,修订号");
-			grid.Rows.Add("数码照片", "大小,日期,尺寸,拍摄时间,相机型号,光圈大小,曝光时间,ISO");
-			grid.Rows.Add("版本信息", "大小,日期,属性,产品名称,产品版本,公司,文件版本,原始文件名");
-			grid.Rows.Add("系统 - 图标大小", "日期,尺寸,位深,拍摄时间,相机型号,光圈,曝光,属性");
-			grid.Rows.Add("系统 - 音频大小", "日期,艺术家,标题,专辑,年份,曲目,流派,比特率");
-			grid.Rows.Add("系统 - 视频大小", "日期,比特率,类型,属性");
-			grid.Rows.Add("系统 - 文档大小", "日期,作者,标题,主题,创建时间,类型,属性");
-			grid.Rows.Add("系统 - 程序大小", "日期,属性,产品名称,产品版本,公司,文件版本,描述,版权");
+			// 从viewmgr.viewmodes中加载数据
+			foreach(var v in mainForm.viewMgr.colDefDict.Keys)
+				grid.Rows.Add(v, mainForm.viewMgr.GetColDef(v));
 		}
 
 		private void AddCustomView()

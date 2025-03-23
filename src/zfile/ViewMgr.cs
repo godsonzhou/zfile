@@ -15,7 +15,7 @@ namespace Zfile
 		public int width;
 		public string content;
 	}
-	class ViewMode
+	public class ViewMode
 	{
 		public string Name { get; set; }
 		public string Icon { get; set; }
@@ -26,7 +26,7 @@ namespace Zfile
 			return $"ViewMode(name='{Name}', icon='{Icon}', options='{Options}')";
 		}
 	}
-	class ViewSwitchRule
+	public class ViewSwitchRule
 	{
 		public string rules;
 		public string mode;
@@ -36,10 +36,9 @@ namespace Zfile
 	{
 		private Form1 form;
 		private List<ColDef> colDefs = new ();
-		private Dictionary<string, List<ColDef>> colDefDict = new();
-		Dictionary<string, ViewMode> viewModes = new ();
-		Dictionary<string, ViewSwitchRule> viewSwitchRules = new ();
-
+		public Dictionary<string, List<ColDef>> colDefDict = new();
+		public Dictionary<string, ViewMode> viewModes = new ();
+		public Dictionary<string, ViewSwitchRule> viewSwitchRules = new ();
 
 		public ViewMgr(Form1 form)
 		{
@@ -49,13 +48,24 @@ namespace Zfile
 			ParseViewSwitchRule();
 		}
 	
+		public string GetColDef(string viewMode)
+		{
+			if (colDefDict.ContainsKey(viewMode))
+			{
+				var colDefs = colDefDict[viewMode];
+				var result = new StringBuilder();
+				foreach (var colDef in colDefs)
+					result.Append($"[{colDef.header}] ");
+				return result.ToString();
+			}
+			return "";
+		}
 		public void ParseViewSwitchRule()
 		{
 			var section = form.configLoader.GetConfigSection("ViewModeSwitch");
 			foreach (var item in section.Items)
 			{
 				Regex regex = new Regex(@"^(\d+)_(rules|mode)=(.*)$");
-
 				string line = item.Key + "=" + item.Value;
 				{
 					Match match = regex.Match(line);
@@ -66,9 +76,7 @@ namespace Zfile
 						string value = match.Groups[3].Value;
 
 						if (!viewSwitchRules.ContainsKey(index))
-						{
 							viewSwitchRules[index] = new ViewSwitchRule { rules = "", mode = "" };
-						}
 
 						switch (key)
 						{
@@ -78,7 +86,6 @@ namespace Zfile
 							case "mode":
 								viewSwitchRules[index].mode = value;
 								break;
-				
 						}
 					}
 				}
@@ -146,7 +153,6 @@ namespace Zfile
 				colDefDict[t] = parseColDef(heads[idx], widths[idx], contents[idx]);
 				idx++;
 			}
-
 		}
 		private List<ColDef> parseColDef(string headers, string widths, string contents)
 		{

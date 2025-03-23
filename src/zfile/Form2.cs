@@ -189,7 +189,7 @@ namespace zfile
 			}
 
 			pluginPanel.Controls.Add(tabControl);
-			splitContainer1.Panel2.Controls.Add(pluginPanel);
+			splitContainer2.Panel1.Controls.Add(pluginPanel);
 			pluginPanel.Visible = false;
 		}
 		private void InitializeWlxTab(TabPage tabPage)
@@ -513,7 +513,7 @@ namespace zfile
                 y += 26;
             }
 		
-			splitContainer1.Panel2.Controls.Add(optionPanel);
+			splitContainer2.Panel1.Controls.Add(optionPanel);
         }
 		//private CheckBox CreateModifierCheckBox(string text, int x, int y, bool isChecked)
 		//{
@@ -599,7 +599,7 @@ namespace zfile
             fontSizeNumeric.ValueChanged += FontComboBox_SelectedIndexChanged;
             fontPanel.Controls.Add(fontSizeNumeric);
 
-            splitContainer1.Panel2.Controls.Add(fontPanel);
+            splitContainer2.Panel1.Controls.Add(fontPanel);
             fontPanel.Visible = false; // 初始隐藏
         }
 
@@ -882,7 +882,7 @@ namespace zfile
             buttonPanel.Controls.AddRange(new Control[] { btnOK, btnCancel, btnApply, btnHelp });
             compressPanel.Controls.Add(buttonPanel);
 
-            splitContainer1.Panel2.Controls.Add(compressPanel);
+            splitContainer2.Panel1.Controls.Add(compressPanel);
         }
 
         private void InitializeArjPanel()
@@ -1057,7 +1057,7 @@ namespace zfile
 
             // 添加到面板中
             customViewPanel.Controls.Add(customViewForm);
-            splitContainer1.Panel2.Controls.Add(customViewPanel);
+            splitContainer2.Panel1.Controls.Add(customViewPanel);
             customViewPanel.Visible = false;
         }
 
@@ -1077,7 +1077,7 @@ namespace zfile
 
             // 添加到面板中
             viewModePanel.Controls.Add(viewModePanelControl);
-            splitContainer1.Panel2.Controls.Add(viewModePanel);
+            splitContainer2.Panel1.Controls.Add(viewModePanel);
             viewModePanel.Visible = false;
         }
 
@@ -1097,7 +1097,7 @@ namespace zfile
 
             // 添加到面板中
             autoSwitchViewPanel.Controls.Add(autoSwitchViewPanelControl);
-            splitContainer1.Panel2.Controls.Add(autoSwitchViewPanel);
+            splitContainer2.Panel1.Controls.Add(autoSwitchViewPanel);
             autoSwitchViewPanel.Visible = false;
         }
     }

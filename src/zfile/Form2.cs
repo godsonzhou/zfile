@@ -109,7 +109,8 @@ namespace zfile
         private Panel optionPanel;
         private Panel fontPanel;
         private ComboBox fontComboBox;
-        private Form1 mainForm;
+		private NumericUpDown fontSizeNumeric;
+		private Form1 mainForm;
 		public Dictionary<string, KeyDef> commandHotkeys = new();
 		private Dictionary<string, Label> commandLabels;
 		private Dictionary<string, ComboBox> commandComboBoxes; 
@@ -583,7 +584,8 @@ namespace zfile
 			var fontDlg = mainForm.configLoader.FindConfigValue("AllResolutions", "FontNameDialog");
 			var fontWin = mainForm.configLoader.FindConfigValue("AllResolutions", "FontNameWindow");
 			fontComboBox.Text = font;
-            fontComboBox.SelectedIndexChanged += FontComboBox_SelectedIndexChanged;
+			
+			fontComboBox.SelectedIndexChanged += FontComboBox_SelectedIndexChanged;
             fontPanel.Controls.Add(fontComboBox);
 
             Label fontSizeLabel = new Label
@@ -594,14 +596,17 @@ namespace zfile
             };
             fontPanel.Controls.Add(fontSizeLabel);
 
-            NumericUpDown fontSizeNumeric = new NumericUpDown
+			var fontsize = mainForm.configLoader.FindConfigValue("AllResolutions", "FontSize");
+			var fontsizeDlg = mainForm.configLoader.FindConfigValue("AllResolutions", "FontSizeDialog");
+			var fontsizeWin = mainForm.configLoader.FindConfigValue("AllResolutions", "FontSizeWindow");
+			NumericUpDown fontSizeNumeric = new NumericUpDown
             {
                 Location = new Point(10, 110),
                 Width = 100,
                 Minimum = 6,
                 Maximum = 72,
-                Value = 10
-            };
+                Value = int.Parse(fontsize)
+			};
             fontSizeNumeric.ValueChanged += FontComboBox_SelectedIndexChanged;
             fontPanel.Controls.Add(fontSizeNumeric);
 
@@ -823,6 +828,7 @@ namespace zfile
 			mainForm.wcxModuleList.SaveConfiguration();
 			// save font
 			mainForm.configLoader.SetConfigValue("AllResolutions", "FontName", fontComboBox.Text);
+			mainForm.configLoader.SetConfigValue("AllResolutions", "FontSize", fontSizeNumeric.Value.ToString());
 			// 应用视图自动切换规则的更改
 			if (autoSwitchViewPanel.Visible && autoSwitchViewPanel.Controls.Count > 0)
 			{

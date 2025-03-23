@@ -72,7 +72,7 @@ namespace zfile
 
 		private void AddCustomView()
 		{
-			using var addForm = new CustomViewEditForm();
+			using var addForm = new CustomViewEditForm("新建自定义视图", mainForm);
 			if (addForm.ShowDialog() == DialogResult.OK)
 			{
 				// 将所有列标题连接成一个字符串，用逗号分隔
@@ -88,27 +88,71 @@ namespace zfile
 			if (grid.SelectedRows.Count == 0) return;
 
 			var row = grid.SelectedRows[0];
-			using var editForm = new CustomViewEditForm
-			{
-				ViewName = row.Cells["ViewName"].Value?.ToString() ?? ""
-			};
+			string viewName = row.Cells["ViewName"].Value?.ToString() ?? "";
 			
-			// 添加默认列（这里只是示例，实际应用中应该从配置或数据库加载）
-			// 在实际应用中，应该根据保存的配置来初始化列
+			// 从viewMgr.colDefDict中获取选中视图的列定义数据
+			if (!mainForm.viewMgr.colDefDict.ContainsKey(viewName))
+			{
+				MessageBox.Show($"找不到视图 '{viewName}' 的定义", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return;
+			}
+			
+			using var editForm = new CustomViewEditForm(viewName, mainForm);
+			
+			// 从colDefDict中加载列定义数据到CustomViewEditForm
+			var colDefs = mainForm.viewMgr.colDefDict[viewName];
+			editForm.Columns.Clear();
+			foreach (var colDef in colDefs)
+			{
+				string alignment = "<-"; // 默认左对齐
+				// 根据实际情况设置对齐方式
+				if (colDef.content.Contains("->]") || colDef.content.Contains("=tc.大小"))
+				{
+					alignment = "->";
+				}
+				
+				editForm.Columns.Add(new CustomViewEditForm.CustomViewColumn(
+					colDef.header,
+					colDef.width,
+					alignment,
+					colDef.content
+				));
+			}
+			
+			// 保存原始视图名称，用于在视图名称更改时更新字典键
+			string originalViewName = viewName;
 			
 			if (editForm.ShowDialog() == DialogResult.OK)
 			{
+				// 更新UI中的视图名称
 				row.Cells["ViewName"].Value = editForm.ViewName;
 				
-				// 更新列信息（简化处理，只更新列标题）
-				if (editForm.Columns.Count > 0) row.Cells["Size"].Value = editForm.Columns[0].Title;
-				if (editForm.Columns.Count > 1) row.Cells["Date"].Value = editForm.Columns[1].Title;
-				if (editForm.Columns.Count > 2) row.Cells["Type"].Value = editForm.Columns[2].Title;
-				if (editForm.Columns.Count > 3) row.Cells["CreationTime"].Value = editForm.Columns[3].Title;
-				if (editForm.Columns.Count > 4) row.Cells["ModifyTime"].Value = editForm.Columns[4].Title;
-				if (editForm.Columns.Count > 5) row.Cells["AccessTime"].Value = editForm.Columns[5].Title;
-				if (editForm.Columns.Count > 6) row.Cells["Attributes"].Value = editForm.Columns[6].Title;
-				if (editForm.Columns.Count > 7) row.Cells["Comment"].Value = editForm.Columns[7].Title;
+				// 创建新的ColDef列表
+				List<Zfile.ColDef> newColDefs = new List<Zfile.ColDef>();
+				foreach (var column in editForm.Columns)
+				{
+					newColDefs.Add(new Zfile.ColDef
+					{
+						header = column.Title,
+						width = column.Width,
+						content = column.Content
+					});
+				}
+				
+				// 如果视图名称已更改，则需要删除旧键并添加新键
+				if (originalViewName != editForm.ViewName)
+				{
+					mainForm.viewMgr.colDefDict.Remove(originalViewName);
+					mainForm.viewMgr.colDefDict[editForm.ViewName] = newColDefs;
+				}
+				else
+				{
+					// 直接更新现有键的值
+					mainForm.viewMgr.colDefDict[editForm.ViewName] = newColDefs;
+				}
+				
+				// 更新列描述
+				row.Cells["ColumnsDescription"].Value = mainForm.viewMgr.GetColDef(editForm.ViewName);
 			}
 		}
 

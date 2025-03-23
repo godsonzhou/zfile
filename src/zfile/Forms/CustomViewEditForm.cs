@@ -11,6 +11,7 @@ namespace zfile
 
         public string ViewName { get; set; } = "";
         public List<CustomViewColumn> Columns { get; set; } = new List<CustomViewColumn>();
+		private Form1 form;
 
         public class CustomViewColumn
         {
@@ -28,20 +29,28 @@ namespace zfile
             }
         }
 
-        public CustomViewEditForm()
+        public CustomViewEditForm(string viewName, Form1 form)
         {
-            InitializeComponents();
+			this.ViewName = viewName;
+			this.form = form;
+			InitializeComponents();
             // 添加一些默认列作为示例
-            if (Columns.Count == 0)
-            {
-                Columns.Add(new CustomViewColumn("文件名", 150, "<-", "文件名"));
-                Columns.Add(new CustomViewColumn("扩展名", 46, "<-", "扩展名"));
-                Columns.Add(new CustomViewColumn("大小", 55, "->", "[=tc.大小]"));
-                Columns.Add(new CustomViewColumn("属性", 23, "<-", "[=tc.属性]"));
-                Columns.Add(new CustomViewColumn("修改日期", 66, "<-", "[=tc.修改日期]"));
-                Columns.Add(new CustomViewColumn("LinkTarget", 161, "<-", "[=nl_info.Reparse Point Type] [=nl_info.Reparse Point Target]"));
-                Columns.Add(new CustomViewColumn("备注", 151, "<-", "[=tc.备注]"));
-            }
+            //if (Columns.Count == 0)
+            //{
+            //    Columns.Add(new CustomViewColumn("文件名", 150, "<-", "文件名"));
+            //    Columns.Add(new CustomViewColumn("扩展名", 46, "<-", "扩展名"));
+            //    Columns.Add(new CustomViewColumn("大小", 55, "->", "[=tc.大小]"));
+            //    Columns.Add(new CustomViewColumn("属性", 23, "<-", "[=tc.属性]"));
+            //    Columns.Add(new CustomViewColumn("修改日期", 66, "<-", "[=tc.修改日期]"));
+            //    Columns.Add(new CustomViewColumn("LinkTarget", 161, "<-", "[=nl_info.Reparse Point Type] [=nl_info.Reparse Point Target]"));
+            //    Columns.Add(new CustomViewColumn("备注", 151, "<-", "[=tc.备注]"));
+            //}
+			if(form.viewMgr.colDefDict.TryGetValue(viewName, out var colDefs))
+			{
+				foreach (var colDef in colDefs)
+					Columns.Add(new CustomViewColumn(colDef.header, colDef.width, colDef.width > 0 ? "<-" : "->", colDef.content));
+			}
+			LoadColumnsToGrid();
         }
 
         private void InitializeComponents()
@@ -182,7 +191,7 @@ namespace zfile
             Controls.Add(mainLayout);
             
             // 加载列数据到网格
-            LoadColumnsToGrid();
+            //LoadColumnsToGrid();
         }
         
         private void LoadColumnsToGrid()

@@ -4,9 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using zfile;
 
-namespace Zfile
+namespace zfile
 {
 	// 定义 ColDef 类
 	public class ColDef

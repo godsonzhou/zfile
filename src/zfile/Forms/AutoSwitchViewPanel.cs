@@ -10,13 +10,35 @@ namespace zfile
         private ComboBox ruleTypeComboBox;
 		private string ruletypeString = "+:完全符合\n-:完全不符合\n%:至少有一半符合\n2:至少有一个符合\nD:文件夹\nL:含驱动器符\nU:网络路径：IV服务器\nV:虚拟文件夹\nF: FTP 连接\nA:压缩文件\nP:文件系统插件\nS:搜索结果";
 
+        // 修改缓冲区
+        private Dictionary<string, ViewSwitchRule> bufferViewSwitchRules;
+        private Button btnApply;
+        private Button btnCancel;
+
+
 		//private ListBox fileTypeListBox;
 
 		public AutoSwitchViewPanel(Form1 mainForm)
         {
             this.mainForm = mainForm;
+            // 初始化缓冲区
+            InitializeBuffer();
             InitializeComponents();
             LoadRules();
+        }
+
+        private void InitializeBuffer()
+        {
+            // 创建缓冲区并从ViewMgr复制数据
+            bufferViewSwitchRules = new Dictionary<string, ViewSwitchRule>();
+            foreach (var kvp in mainForm.viewMgr.viewSwitchRules)
+            {
+                bufferViewSwitchRules[kvp.Key] = new ViewSwitchRule
+                {
+                    rules = kvp.Value.rules,
+                    mode = kvp.Value.mode
+                };
+            }
         }
 
         private void InitializeComponents()
@@ -159,6 +181,9 @@ namespace zfile
             // 添加事件处理
             btnAddSubRule.Click += (s, e) => AddSubRule();
             btnDeleteSubRule.Click += (s, e) => DeleteSubRule();
+            
+            // 添加子规则直接编辑事件处理
+            ruleDetailGrid.CellValueChanged += RuleDetailGrid_CellValueChanged;
 
             // 添加控件到规则配置组
             ruleConfigGroup.Controls.AddRange(new Control[] {
@@ -167,28 +192,53 @@ namespace zfile
             });
 
             Controls.Add(ruleConfigGroup);
+
+            // 添加确定和取消按钮
+            FlowLayoutPanel confirmButtonPanel = new FlowLayoutPanel
+            {
+                Location = new Point(10, 460),
+                Width = 710,
+                Height = 40,
+                FlowDirection = FlowDirection.RightToLeft,
+                Padding = new Padding(5)
+            };
+
+            btnApply = new Button { Text = "确定", Width = 80 };
+            btnCancel = new Button { Text = "取消", Width = 80 };
+
+            confirmButtonPanel.Controls.AddRange(new Control[] { btnCancel, btnApply });
+
+            // 添加事件处理
+            btnApply.Click += (s, e) => ApplyChanges();
+            btnCancel.Click += (s, e) => CancelChanges();
+
+            Controls.Add(confirmButtonPanel);
         }
 
         private void LoadRules()
         {
-            // 加载示例规则
-			foreach(var r in mainForm.viewMgr.viewSwitchRules.Values)
+            // 从缓冲区加载规则
+			foreach(var r in bufferViewSwitchRules.Values)
 				grid.Rows.Add(r.rules.Substring(0,1), r.rules.Substring(1), r.mode);
-			//grid.Rows.Add("文件扩展名", "*.mp4;*.mkv;*.avi", "视频");
-			//grid.Rows.Add("文件扩展名", "*.jpg;*.png;*.gif", "图片");
-			//grid.Rows.Add("文件扩展名", "*.mp3;*.wav;*.flac", "音频");
-			//grid.Rows.Add("文件扩展名", "*.doc;*.docx;*.pdf", "文档");
-			//grid.Rows.Add("文件名通配符", "*源代码*;*source*", "源码");
-			//grid.Rows.Add("文件夹路径", "C:\\Program Files\\*", "程序");
 		}
 
         private void AddRule()
         {
             // 添加新的规则
-            string newRuleType = "文件扩展名";
+            string newRuleType = "+";
             string newFileTypes = "*.txt";
             string newViewMode = "默认";
-            grid.Rows.Add("且", newRuleType, newFileTypes, newViewMode);
+            
+            // 添加到缓冲区
+            string newKey = (bufferViewSwitchRules.Count + 1).ToString();
+            bufferViewSwitchRules[newKey] = new ViewSwitchRule
+            {
+                rules = newRuleType + newFileTypes,
+                mode = newViewMode
+            };
+            
+            // 更新界面
+            grid.Rows.Add(newRuleType, newFileTypes, newViewMode);
             
             // 选中新添加的行
             int newRowIndex = grid.Rows.Count - 1;
@@ -201,27 +251,142 @@ namespace zfile
             // 删除选中的规则
             if (grid.SelectedRows.Count > 0)
             {
-                grid.Rows.RemoveAt(grid.SelectedRows[0].Index);
+                var selectedRow = grid.SelectedRows[0];
+                string ruleType = selectedRow.Cells[0].Value?.ToString() ?? "";
+                string fileTypes = selectedRow.Cells[1].Value?.ToString() ?? "";
+                string viewMode = selectedRow.Cells[2].Value?.ToString() ?? "";
+                
+                // 从缓冲区中删除
+                string keyToRemove = null;
+                foreach (var kvp in bufferViewSwitchRules)
+                {
+                    if (kvp.Value.rules.Substring(0, 1) == ruleType && 
+                        kvp.Value.rules.Substring(1) == fileTypes && 
+                        kvp.Value.mode == viewMode)
+                    {
+                        keyToRemove = kvp.Key;
+                        break;
+                    }
+                }
+                
+                if (keyToRemove != null)
+                {
+                    bufferViewSwitchRules.Remove(keyToRemove);
+                }
+                
+                // 从界面中删除
+                grid.Rows.RemoveAt(selectedRow.Index);
             }
         }
         
         private void AddSubRule()
         {
-            // 添加新的子规则
-            ruleDetailGrid.Rows.Add("且", "+:完全符合", "*.txt", "默认");
+            // 检查是否有选中的主规则
+            if (grid.SelectedRows.Count == 0)
+                return;
+                
+            var selectedRow = grid.SelectedRows[0];
+            string ruleType = selectedRow.Cells[0].Value?.ToString() ?? "";
+            string fileTypes = selectedRow.Cells[1].Value?.ToString() ?? "";
+            string viewMode = selectedRow.Cells[2].Value?.ToString() ?? "";
             
-            // 选中新添加的行
-            int newRowIndex = ruleDetailGrid.Rows.Count - 1;
-            ruleDetailGrid.ClearSelection();
-            ruleDetailGrid.Rows[newRowIndex].Selected = true;
+            // 查找对应的缓冲区规则
+            string keyToUpdate = null;
+            foreach (var kvp in bufferViewSwitchRules)
+            {
+                if (kvp.Value.rules.Substring(0, 1) == ruleType && 
+                    kvp.Value.rules.Substring(1) == fileTypes && 
+                    kvp.Value.mode == viewMode)
+                {
+                    keyToUpdate = kvp.Key;
+                    break;
+                }
+            }
+            
+            if (keyToUpdate != null)
+            {
+                // 添加新的子规则
+                string newSubRuleType = "+";
+                string newSubRuleValue = "*.txt";
+                
+                // 更新缓冲区中的规则
+                var rule = bufferViewSwitchRules[keyToUpdate];
+                rule.rules += "|" + newSubRuleType + newSubRuleValue;
+                
+                // 更新界面
+                ruleDetailGrid.Rows.Add("或", "+:完全符合", newSubRuleValue, viewMode);
+                
+                // 选中新添加的行
+                int newRowIndex = ruleDetailGrid.Rows.Count - 1;
+                ruleDetailGrid.ClearSelection();
+                ruleDetailGrid.Rows[newRowIndex].Selected = true;
+            }
         }
         
         private void DeleteSubRule()
         {
-            // 删除选中的子规则
-            if (ruleDetailGrid.SelectedRows.Count > 0)
+            // 检查是否有选中的主规则和子规则
+            if (grid.SelectedRows.Count == 0 || ruleDetailGrid.SelectedRows.Count == 0)
+                return;
+                
+            var selectedMainRow = grid.SelectedRows[0];
+            var selectedSubRow = ruleDetailGrid.SelectedRows[0];
+            
+            string ruleType = selectedMainRow.Cells[0].Value?.ToString() ?? "";
+            string fileTypes = selectedMainRow.Cells[1].Value?.ToString() ?? "";
+            string viewMode = selectedMainRow.Cells[2].Value?.ToString() ?? "";
+            
+            // 获取选中的子规则信息
+            string subRuleTypeText = selectedSubRow.Cells[1].Value?.ToString() ?? "";
+            string subRuleValue = selectedSubRow.Cells[2].Value?.ToString() ?? "";
+            
+            // 从子规则文本中提取规则类型字符
+            string subRuleType = subRuleTypeText.Split(':')[0];
+            
+            // 查找对应的缓冲区规则
+            string keyToUpdate = null;
+            foreach (var kvp in bufferViewSwitchRules)
             {
-                ruleDetailGrid.Rows.RemoveAt(ruleDetailGrid.SelectedRows[0].Index);
+                if (kvp.Value.rules.Substring(0, 1) == ruleType && 
+                    kvp.Value.rules.Substring(1) == fileTypes && 
+                    kvp.Value.mode == viewMode)
+                {
+                    keyToUpdate = kvp.Key;
+                    break;
+                }
+            }
+            
+            if (keyToUpdate != null)
+            {
+                // 更新缓冲区中的规则
+                var rule = bufferViewSwitchRules[keyToUpdate];
+                string[] subRules = rule.rules.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+                
+                // 构建新的规则字符串，排除要删除的子规则
+                string newRules = "";
+                for (int i = 0; i < subRules.Length; i++)
+                {
+                    string subRule = subRules[i];
+                    if (subRule.Length > 1)
+                    {
+                        string currentSubRuleType = subRule.Substring(0, 1);
+                        string currentSubRuleValue = subRule.Substring(1);
+                        
+                        // 如果不是要删除的子规则，则添加到新规则中
+                        if (!(currentSubRuleType == subRuleType && currentSubRuleValue == subRuleValue) || i == 0) // 保留主规则
+                        {
+                            if (newRules.Length > 0)
+                                newRules += "|";
+                            newRules += subRule;
+                        }
+                    }
+                }
+                
+                // 更新缓冲区中的规则
+                rule.rules = newRules;
+                
+                // 从界面中删除
+                ruleDetailGrid.Rows.RemoveAt(selectedSubRow.Index);
             }
         }
 
@@ -242,8 +407,8 @@ namespace zfile
                 // 构建完整规则字符串用于查找
                 string fullRule = ruleType + fileTypes;
                 
-                // 在viewSwitchRules字典中查找匹配的规则
-                foreach (var rule in mainForm.viewMgr.viewSwitchRules.Values)
+                // 在缓冲区中查找匹配的规则
+                foreach (var rule in bufferViewSwitchRules.Values)
                 {
                     if (rule.rules.Substring(1) == fileTypes && rule.mode == viewMode)
                     {
@@ -272,6 +437,138 @@ namespace zfile
                         break;
                     }
                 }
+            }
+        }
+        
+        // 应用更改，将缓冲区数据写入ViewMgr
+        private void ApplyChanges()
+        {
+            // 清空ViewMgr中的规则
+            mainForm.viewMgr.viewSwitchRules.Clear();
+            
+            // 将缓冲区数据复制到ViewMgr
+            foreach (var kvp in bufferViewSwitchRules)
+            {
+                mainForm.viewMgr.viewSwitchRules[kvp.Key] = new ViewSwitchRule
+                {
+                    rules = kvp.Value.rules,
+                    mode = kvp.Value.mode
+                };
+            }
+            
+            // 保存配置
+            SaveViewSwitchRules();
+            
+            MessageBox.Show("视图切换规则已保存", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+        
+        // 取消更改，放弃缓冲区数据
+        private void CancelChanges()
+        {
+            // 重新初始化缓冲区
+            InitializeBuffer();
+            
+            // 重新加载规则到界面
+            grid.Rows.Clear();
+            ruleDetailGrid.Rows.Clear();
+            LoadRules();
+        }
+        
+        // 处理子规则直接编辑事件
+        private void RuleDetailGrid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            // 检查是否有选中的主规则
+            if (grid.SelectedRows.Count == 0 || e.RowIndex < 0 || e.ColumnIndex < 0)
+                return;
+                
+            var selectedMainRow = grid.SelectedRows[0];
+            string ruleType = selectedMainRow.Cells[0].Value?.ToString() ?? "";
+            string fileTypes = selectedMainRow.Cells[1].Value?.ToString() ?? "";
+            string viewMode = selectedMainRow.Cells[2].Value?.ToString() ?? "";
+            
+            // 获取修改后的子规则信息
+            var editedRow = ruleDetailGrid.Rows[e.RowIndex];
+            string operatorValue = editedRow.Cells[0].Value?.ToString() ?? "";
+            string subRuleTypeText = editedRow.Cells[1].Value?.ToString() ?? "";
+            string subRuleValue = editedRow.Cells[2].Value?.ToString() ?? "";
+            string subViewMode = editedRow.Cells[3].Value?.ToString() ?? "";
+            
+            // 从子规则文本中提取规则类型字符
+            string subRuleType = subRuleTypeText.Split(':')[0];
+            
+            // 查找对应的缓冲区规则
+            string keyToUpdate = null;
+            foreach (var kvp in bufferViewSwitchRules)
+            {
+                if (kvp.Value.rules.Substring(0, 1) == ruleType && 
+                    kvp.Value.rules.Substring(1) == fileTypes && 
+                    kvp.Value.mode == viewMode)
+                {
+                    keyToUpdate = kvp.Key;
+                    break;
+                }
+            }
+            
+            if (keyToUpdate != null)
+            {
+                // 更新缓冲区中的规则
+                UpdateSubRuleInBuffer(keyToUpdate, e.RowIndex, subRuleType, subRuleValue, subViewMode);
+            }
+        }
+        
+        // 更新缓冲区中的子规则
+        private void UpdateSubRuleInBuffer(string key, int rowIndex, string subRuleType, string subRuleValue, string subViewMode)
+        {
+            var rule = bufferViewSwitchRules[key];
+            string[] subRules = rule.rules.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+            
+            // 如果是第一行（主规则），则更新主规则
+            if (rowIndex == 0 && subRules.Length > 0)
+            {
+                // 更新主规则
+                subRules[0] = subRuleType + subRuleValue;
+                rule.mode = subViewMode;
+            }
+            else if (rowIndex < subRules.Length)
+            {
+                // 更新子规则
+                subRules[rowIndex] = subRuleType + subRuleValue;
+            }
+            
+            // 重建规则字符串
+            rule.rules = string.Join("|", subRules);
+        }
+        
+        // 保存视图切换规则到配置文件
+        private void SaveViewSwitchRules()
+        {
+            try
+            {
+                // 创建配置项列表
+                var items = new List<ConfigItem>();
+                
+                foreach (var kvp in mainForm.viewMgr.viewSwitchRules)
+                {
+                    items.Add(new ConfigItem
+                    {
+                        Key = kvp.Key + "_rules",
+                        Value = kvp.Value.rules
+                    });
+                    
+                    items.Add(new ConfigItem
+                    {
+                        Key = kvp.Key + "_mode",
+                        Value = kvp.Value.mode
+                    });
+                }
+                
+                // 更新配置
+                mainForm.configLoader.AddOrUpdateSection("ViewModeSwitch", items);
+                mainForm.configLoader.SaveConfig();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"保存视图切换规则失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

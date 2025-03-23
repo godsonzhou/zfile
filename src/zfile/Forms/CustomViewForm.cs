@@ -128,10 +128,10 @@ namespace zfile
 				row.Cells["ViewName"].Value = editForm.ViewName;
 				
 				// 创建新的ColDef列表
-				List<Zfile.ColDef> newColDefs = new List<Zfile.ColDef>();
+				List<ColDef> newColDefs = new List<ColDef>();
 				foreach (var column in editForm.Columns)
 				{
-					newColDefs.Add(new Zfile.ColDef
+					newColDefs.Add(new ColDef
 					{
 						header = column.Title,
 						width = column.Width,
@@ -195,10 +195,10 @@ namespace zfile
 
 			// 从colDefDict中加载列定义数据到CustomViewEditForm
 			var colDefs = mainForm.viewMgr.colDefDict[viewName];
-			var newColdefs = new List<Zfile.ColDef>();
+			var newColdefs = new List<ColDef>();
 			foreach (var colDef in colDefs)
 			{
-				newColdefs.Add(new Zfile.ColDef
+				newColdefs.Add(new ColDef
 				{
 					header = colDef.header,
 					width = colDef.width,

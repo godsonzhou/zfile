@@ -106,7 +106,8 @@ namespace zfile
 	}
 	public partial class OptionsForm : Form
     {
-        private Panel optionPanel;
+		private Panel BasicPanel;
+        private Panel HotKeyPanel;
         private Panel fontPanel;
         private ComboBox fontComboBox;
 		private NumericUpDown fontSizeNumeric;
@@ -137,6 +138,7 @@ namespace zfile
         // 添加视图自动切换规则配置面板
         private Panel autoSwitchViewPanel;
 		private string _node;
+		private TreeNode rootNode;
 		public OptionsForm(Form1 mainForm, string node)
         {
 			_node = node;
@@ -152,7 +154,8 @@ namespace zfile
 				ReshowDelay = 0,
 				ShowAlways = true
 			};
-			InitializeOptionPanel();
+			InitializeBasicPanel();
+			InitializeHotkeyPanel();
             InitializeFontPanel();
             InitializeTreeView();
 			InitializePluginPanel();  // 添加插件配置面板初始化
@@ -160,6 +163,9 @@ namespace zfile
             InitializeCustomViewPanel();  // 添加自定义视图配置面板初始化
             InitializeViewModePanel();  // 添加视图模式配置面板初始化
             InitializeAutoSwitchViewPanel();  // 添加视图自动切换规则配置面板初始化
+			Helper.ApplyFontToControls(this, mainForm.myfont); // 设置字体
+			if(!string.IsNullOrEmpty(node))
+				SelectNodeByName(node);
 		}
 		private void InitializePluginPanel()
 		{
@@ -443,9 +449,27 @@ namespace zfile
 			}
 			base.OnFormClosing(e);
 		}
-		private void InitializeOptionPanel()
+		private void InitializeBasicPanel()
+		{
+			BasicPanel = new Panel { Dock = DockStyle.Fill, AutoScroll = true };
+			var F4Label = new Label
+			{
+				Text = "F4键打开命令行",
+				Location = new Point(10, 10),
+				AutoSize = true
+			};
+			var F4textbox = new TextBox
+			{
+				Location = new Point(200, 10),
+				Width = 400,
+				Text = mainForm.configLoader.FindConfigValue("Configuration", "Editor")
+			};
+			BasicPanel.Controls.AddRange([F4Label,F4textbox]);
+			splitContainer2.Panel1.Controls.Add(BasicPanel);
+		}
+		private void InitializeHotkeyPanel()
         {
-            optionPanel = new Panel
+            HotKeyPanel = new Panel
             {
                 Dock = DockStyle.Fill,
                 AutoScroll = true
@@ -482,7 +506,7 @@ namespace zfile
                     AutoSize = true,
 					Width = 180
 				};
-                optionPanel.Controls.Add(label);
+                HotKeyPanel.Controls.Add(label);
 				commandLabels[keydef.Cmd] = label;
 				
 				// 添加修饰键复选框
@@ -496,7 +520,7 @@ namespace zfile
 				altCheckBoxes[keydef.Cmd] = altBox;
 				shiftCheckBoxes[keydef.Cmd] = shiftBox;
 				winCheckBoxes[keydef.Cmd] = winBox;
-				optionPanel.Controls.AddRange([ctrlBox, altBox, shiftBox, winBox]);
+				HotKeyPanel.Controls.AddRange([ctrlBox, altBox, shiftBox, winBox]);
 
 				var comboBox = new ComboBox
 				{
@@ -510,24 +534,15 @@ namespace zfile
 				var mainkey = keys[^1];
 				comboBox.SelectedItem = Helper.ConvertStringToKey(mainkey);
 				comboBox.SelectedIndexChanged += (sender, e) => UpdateHotkey(cmd.Key, comboBox);
-                optionPanel.Controls.Add(comboBox);
+                HotKeyPanel.Controls.Add(comboBox);
                 commandComboBoxes[keydef.Cmd] = comboBox;
 
                 y += 26;
             }
 		
-			splitContainer2.Panel1.Controls.Add(optionPanel);
+			splitContainer2.Panel1.Controls.Add(HotKeyPanel);
         }
-		//private CheckBox CreateModifierCheckBox(string text, int x, int y, bool isChecked)
-		//{
-		//	return new CheckBox
-		//	{
-		//		Text = text,
-		//		Location = new Point(x, y),
-		//		AutoSize = true,
-		//		Checked = isChecked
-		//	};
-		//}
+		
 		// 添加修饰键变化事件
 		private CheckBox CreateModifierCheckBox(string text, int x, int y, bool isChecked)
 		{
@@ -639,8 +654,9 @@ namespace zfile
                 ShowPlusMinus = true
             };
 
-            TreeNode rootNode = new TreeNode("设置");
-            TreeNode hotkeyNode = new TreeNode("快捷键设置");
+            rootNode = new TreeNode("设置");
+			TreeNode BasicNode = new TreeNode("基本设置");
+			TreeNode hotkeyNode = new TreeNode("快捷键设置");
             TreeNode fontNode = new TreeNode("字体设置");
             TreeNode pluginNode = new TreeNode("插件设置");
             TreeNode compressNode = new TreeNode("压缩程序");  // 新增压缩程序节点
@@ -657,6 +673,7 @@ namespace zfile
             compressNode.Nodes.Add(new TreeNode("TAR"));
             compressNode.Nodes.Add(new TreeNode("其他压缩程序"));
 
+			rootNode.Nodes.Add(BasicNode);
             rootNode.Nodes.Add(hotkeyNode);
             rootNode.Nodes.Add(fontNode);
             rootNode.Nodes.Add(pluginNode);
@@ -674,13 +691,25 @@ namespace zfile
             rootNode.Expand();
             treeView.BringToFront();
         }
+		private void SelectNodeByName(string nodeName)
+		{
+			foreach(var node in rootNode.Nodes.Cast<TreeNode>())
+			{
+				if (node.Text == nodeName)
+				{
+					treeView.SelectedNode = node;
+					break;
+				}
+			}
+		}
 
-        private void TreeView_AfterSelect(object sender, TreeViewEventArgs e)
+		private void TreeView_AfterSelect(object sender, TreeViewEventArgs e)
         {
             if (e.Node != null)
             {
                 // 首先隐藏所有面板
-                optionPanel.Visible = false;
+				BasicPanel.Visible = false;
+				HotKeyPanel.Visible = false;
                 fontPanel.Visible = false;
                 pluginPanel.Visible = false;
                 compressPanel.Visible = false;
@@ -690,15 +719,16 @@ namespace zfile
 
                 // 隐藏所有压缩程序子面板
                 foreach (var panel in compressPanels.Values)
-                {
                     panel.Visible = false;
-                }
 
                 // 根据选中的节点显示相应的面板
                 switch (e.Node.Text)
                 {
-                    case "快捷键设置":
-                        optionPanel.Visible = true;
+					case "基本设置":
+						BasicPanel.Visible = true;
+						break;
+					case "快捷键设置":
+                        HotKeyPanel.Visible = true;
                         break;
                     case "字体设置":
                         fontPanel.Visible = true;
@@ -811,8 +841,16 @@ namespace zfile
             // 关闭此表单
             this.Close();
         }
+		private void UpdateBasicSettings()
+		{
+			// 更新基本设置
+			// 更新F4键打开命令行
+			var F4textbox = BasicPanel.Controls.OfType<TextBox>().FirstOrDefault();
+			if (F4textbox != null)
+				mainForm.configLoader.SetConfigValue("Configuration", "Editor", F4textbox.Text);
+		}
 
-        private void Okbutton_Click(object sender, EventArgs e)
+		private void Okbutton_Click(object sender, EventArgs e)
         {
 			// 保存设置
 			mainForm.keyManager.SaveKeyMappingToConfigFile();
@@ -821,7 +859,7 @@ namespace zfile
 			mainForm.wcxModuleList.SaveConfiguration();
 			// save font
 			updateFont();
-		
+			UpdateBasicSettings();
 			// 应用视图自动切换规则的更改
 			if (autoSwitchViewPanel.Visible && autoSwitchViewPanel.Controls.Count > 0)
 			{

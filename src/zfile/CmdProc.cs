@@ -186,6 +186,9 @@ namespace zfile
 					case 490:   //cm_config
 						owner.OpenOptions(param);
 						break;
+					case 492: // cm_FontConfig
+						owner.OpenOptions("字体设置");
+						break;
 					case 498: // 命令ID = 498, Name = cm_buttonconfig
 						owner.uiManager.toolbarManager.EditToolbar();
 						break;

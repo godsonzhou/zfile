@@ -874,12 +874,12 @@ namespace zfile
                 Padding = new Padding(5)
             };
 
-            var btnHelp = new Button { Text = "帮助", Width = 80 };
-            var btnApply = new Button { Text = "应用", Width = 80 };
-            var btnCancel = new Button { Text = "取消", Width = 80, DialogResult = DialogResult.Cancel };
-            var btnOK = new Button { Text = "确定", Width = 80, DialogResult = DialogResult.OK };
+            //var btnHelp = new Button { Text = "帮助", Width = 80 };
+            //var btnApply = new Button { Text = "应用", Width = 80 };
+            //var btnCancel = new Button { Text = "取消", Width = 80, DialogResult = DialogResult.Cancel };
+            //var btnOK = new Button { Text = "确定", Width = 80, DialogResult = DialogResult.OK };
 
-            buttonPanel.Controls.AddRange(new Control[] { btnOK, btnCancel, btnApply, btnHelp });
+            //buttonPanel.Controls.AddRange(new Control[] { btnOK, btnCancel, btnApply, btnHelp });
             compressPanel.Controls.Add(buttonPanel);
 
             splitContainer2.Panel1.Controls.Add(compressPanel);

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using zfile;
 
@@ -14,18 +15,112 @@ namespace Zfile
 		public int width;
 		public string content;
 	}
+	class ViewMode
+	{
+		public string Name { get; set; }
+		public string Icon { get; set; }
+		public string Options { get; set; }
+
+		public override string ToString()
+		{
+			return $"ViewMode(name='{Name}', icon='{Icon}', options='{Options}')";
+		}
+	}
+	class ViewSwitchRule
+	{
+		public string rules;
+		public string mode;
+	}
+
 	public class ViewMgr
 	{
 		private Form1 form;
 		private List<ColDef> colDefs = new ();
 		private Dictionary<string, List<ColDef>> colDefDict = new();
+		Dictionary<string, ViewMode> viewModes = new ();
+		Dictionary<string, ViewSwitchRule> viewSwitchRules = new ();
+
 
 		public ViewMgr(Form1 form)
 		{
 			this.form = form;
 			ParseConfig();
+			ParseViewModeCfg();
+			ParseViewSwitchRule();
 		}
+	
+		public void ParseViewSwitchRule()
+		{
+			var section = form.configLoader.GetConfigSection("ViewModeSwitch");
+			foreach (var item in section.Items)
+			{
+				Regex regex = new Regex(@"^(\d+)_(rules|mode)=(.*)$");
 
+				string line = item.Key + "=" + item.Value;
+				{
+					Match match = regex.Match(line);
+					if (match.Success)
+					{
+						string index = match.Groups[1].Value;
+						string key = match.Groups[2].Value;
+						string value = match.Groups[3].Value;
+
+						if (!viewSwitchRules.ContainsKey(index))
+						{
+							viewSwitchRules[index] = new ViewSwitchRule { rules = "", mode = "" };
+						}
+
+						switch (key)
+						{
+							case "rules":
+								viewSwitchRules[index].rules = value;
+								break;
+							case "mode":
+								viewSwitchRules[index].mode = value;
+								break;
+				
+						}
+					}
+				}
+			}
+		}
+		public void ParseViewModeCfg()
+		{
+			var section = form.configLoader.GetConfigSection("ViewModes");
+			foreach (var item in section.Items)
+			{
+				Regex regex = new Regex(@"^(\d+)_(name|icon|options)=(.*)$");
+
+				string line = item.Key + "=" + item.Value;
+				{
+					Match match = regex.Match(line);
+					if (match.Success)
+					{
+						string index = match.Groups[1].Value;
+						string key = match.Groups[2].Value;
+						string value = match.Groups[3].Value;
+
+						if (!viewModes.ContainsKey(index))
+						{
+							viewModes[index] = new ViewMode { Name = "", Icon = "", Options = "" };
+						}
+
+						switch (key)
+						{
+							case "name":
+								viewModes[index].Name = value;
+								break;
+							case "icon":
+								viewModes[index].Icon = value;
+								break;
+							case "options":
+								viewModes[index].Options = value;
+								break;
+						}
+					}
+				}
+			}
+		}
 		public void ParseConfig()
 		{
 			var titles = form.configLoader.FindConfigValue("CustomFields", "Titles");

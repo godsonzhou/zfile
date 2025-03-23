@@ -12,8 +12,6 @@ namespace zfile
 
         // 修改缓冲区
         private Dictionary<string, ViewSwitchRule> bufferViewSwitchRules;
-        private Button btnApply;
-        private Button btnCancel;
 
 
 		//private ListBox fileTypeListBox;
@@ -193,26 +191,7 @@ namespace zfile
 
             Controls.Add(ruleConfigGroup);
 
-            // 添加确定和取消按钮
-            FlowLayoutPanel confirmButtonPanel = new FlowLayoutPanel
-            {
-                Location = new Point(10, 460),
-                Width = 710,
-                Height = 40,
-                FlowDirection = FlowDirection.RightToLeft,
-                Padding = new Padding(5)
-            };
-
-            btnApply = new Button { Text = "确定", Width = 80 };
-            btnCancel = new Button { Text = "取消", Width = 80 };
-
-            confirmButtonPanel.Controls.AddRange(new Control[] { btnCancel, btnApply });
-
-            // 添加事件处理
-            btnApply.Click += (s, e) => ApplyChanges();
-            btnCancel.Click += (s, e) => CancelChanges();
-
-            Controls.Add(confirmButtonPanel);
+            // 不再需要确定和取消按钮，因为使用OptionsForm中的按钮
         }
 
         private void LoadRules()
@@ -441,7 +420,7 @@ namespace zfile
         }
         
         // 应用更改，将缓冲区数据写入ViewMgr
-        private void ApplyChanges()
+        public void ApplyChanges()
         {
             // 清空ViewMgr中的规则
             mainForm.viewMgr.viewSwitchRules.Clear();
@@ -463,7 +442,7 @@ namespace zfile
         }
         
         // 取消更改，放弃缓冲区数据
-        private void CancelChanges()
+        public void CancelChanges()
         {
             // 重新初始化缓冲区
             InitializeBuffer();

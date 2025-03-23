@@ -815,6 +815,17 @@ namespace zfile
 			// 保存WLX配置
 			mainForm.wlxModuleList.SaveConfiguration();
 			mainForm.wcxModuleList.SaveConfiguration();
+			
+			// 应用视图自动切换规则的更改
+			if (autoSwitchViewPanel.Visible && autoSwitchViewPanel.Controls.Count > 0)
+			{
+				var autoSwitchViewPanelControl = autoSwitchViewPanel.Controls[0] as AutoSwitchViewPanel;
+				if (autoSwitchViewPanelControl != null)
+				{
+					autoSwitchViewPanelControl.ApplyChanges();
+				}
+			}
+			
 			this.Close();
         }
 

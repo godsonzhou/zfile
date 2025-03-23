@@ -179,12 +179,13 @@ namespace zfile
 			int newIndex = grid.Rows.Add();
 			DataGridViewRow newRow = grid.Rows[newIndex];
 
-			foreach (DataGridViewCell cell in row.Cells)
-			{
-				newRow.Cells[cell.ColumnIndex].Value = cell.Value + " (复制)";
-			}
-
 			string viewName = row.Cells["ViewName"].Value?.ToString() ?? "";
+			var newViewName = viewName + " (复制)";
+			foreach (DataGridViewCell cell in row.Cells)
+				newRow.Cells[cell.ColumnIndex].Value = cell.Value;
+
+			newRow.Cells[0].Value = newViewName;
+
 			// 从viewMgr.colDefDict中获取选中视图的列定义数据
 			if (!mainForm.viewMgr.colDefDict.ContainsKey(viewName))
 			{
@@ -194,7 +195,6 @@ namespace zfile
 
 			// 从colDefDict中加载列定义数据到CustomViewEditForm
 			var colDefs = mainForm.viewMgr.colDefDict[viewName];
-			var newViewName = viewName + " (复制)";
 			var newColdefs = new List<Zfile.ColDef>();
 			foreach (var colDef in colDefs)
 			{

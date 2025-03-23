@@ -49,6 +49,12 @@ namespace zfile
 	
 	internal static class Helper
 	{
+		public static void ApplyFontToControls(Control control, Font font)
+		{
+			control.Font = font;
+			foreach (Control child in control.Controls)
+				ApplyFontToControls(child, font);
+		}
 		public static bool IsTextFile(string filename)
 		{
 			return (Getfiletype(filename).Contains("text", StringComparison.OrdinalIgnoreCase));

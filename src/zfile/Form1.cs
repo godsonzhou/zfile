@@ -86,7 +86,7 @@ namespace zfile
 		// 添加一个新的字段来存储路径访问历史
 		private readonly Dictionary<string, (int count, DateTime lastAccess)> pathAccessHistory = new();
 		private const int MAX_HISTORY_COUNT = 100; // 限制历史记录数量
-
+		public Font myfont;
 
 		public enum TreeSearchScope
 		{
@@ -154,6 +154,16 @@ namespace zfile
 			else
 				pathAccessHistory[normalizedPath] = (1, DateTime.Now);
 		}
+		private void GetFontFromCfgloader()
+		{
+			var font = configLoader.FindConfigValue("AllResolutions", "FontName");
+			var fontDlg = configLoader.FindConfigValue("AllResolutions", "FontNameDialog");
+			var fontWin = configLoader.FindConfigValue("AllResolutions", "FontNameWindow");
+			var fontsize = configLoader.FindConfigValue("AllResolutions", "FontSize");
+			var fontsizeDlg = configLoader.FindConfigValue("AllResolutions", "FontSizeDialog");
+			var fontsizeWin = configLoader.FindConfigValue("AllResolutions", "FontSizeWindow");
+			myfont = new Font(font ?? "Consolas", Convert.ToSingle(fontsize));
+		}
 		public Form1()
 		{
 			env = Helper.getEnv();
@@ -163,6 +173,9 @@ namespace zfile
 			ftpconfigLoader = new CFGLOADER(Constants.ZfileCfgPath + "wcx_ftp.ini");
 			cmdicons_configloader = new CFGLOADER(Constants.ZfileCfgPath + "wcmicons.inc");
 			userConfigLoader = new CFGLOADER(Constants.ZfileCfgPath + "user.ini");
+			GetFontFromCfgloader();
+			//apply font 
+			Helper.ApplyFontToControls(this, myfont);
 			viewMgr = new ViewMgr(this);
 			fTPMGR = new FTPMGR(this);
 			cmdProcessor = new CmdProc(this);

@@ -580,10 +580,8 @@ namespace zfile
                 DropDownStyle = ComboBoxStyle.DropDownList
             };
             fontComboBox.Items.AddRange(FontFamily.Families.Select(f => f.Name).ToArray());
-			var font = mainForm.configLoader.FindConfigValue("AllResolutions", "FontName");
-			var fontDlg = mainForm.configLoader.FindConfigValue("AllResolutions", "FontNameDialog");
-			var fontWin = mainForm.configLoader.FindConfigValue("AllResolutions", "FontNameWindow");
-			fontComboBox.Text = font;
+			
+			fontComboBox.Text = mainForm.myfont.Name;
 			
 			fontComboBox.SelectedIndexChanged += FontComboBox_SelectedIndexChanged;
             fontPanel.Controls.Add(fontComboBox);
@@ -595,17 +593,14 @@ namespace zfile
                 AutoSize = true
             };
             fontPanel.Controls.Add(fontSizeLabel);
-
-			var fontsize = mainForm.configLoader.FindConfigValue("AllResolutions", "FontSize");
-			var fontsizeDlg = mainForm.configLoader.FindConfigValue("AllResolutions", "FontSizeDialog");
-			var fontsizeWin = mainForm.configLoader.FindConfigValue("AllResolutions", "FontSizeWindow");
+		
 			NumericUpDown fontSizeNumeric = new NumericUpDown
             {
                 Location = new Point(10, 110),
                 Width = 100,
                 Minimum = 6,
                 Maximum = 72,
-                Value = int.Parse(fontsize)
+                Value = Convert.ToDecimal((mainForm.myfont.Size))
 			};
             fontSizeNumeric.ValueChanged += FontComboBox_SelectedIndexChanged;
             fontPanel.Controls.Add(fontSizeNumeric);
@@ -616,25 +611,23 @@ namespace zfile
 
         private void FontComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (fontComboBox.SelectedItem != null)
-            {
-                string selectedFont = fontComboBox.SelectedItem.ToString();
-                float fontSize = (float)(fontPanel.Controls.OfType<NumericUpDown>().FirstOrDefault()?.Value ?? 10);
-                Font newFont = new Font(selectedFont, fontSize);
-                ApplyFontToControls(this, newFont);
-                ApplyFontToControls(mainForm, newFont);
-            }
+        
         }
 
-        private void ApplyFontToControls(Control control, Font font)
-        {
-            control.Font = font;
-            foreach (Control child in control.Controls)
-            {
-                ApplyFontToControls(child, font);
-            }
-        }
-
+		private void updateFont()
+		{
+			if (fontComboBox.SelectedItem != null)
+			{
+				string selectedFont = fontComboBox.SelectedItem.ToString();
+				float fontSize = (float)(fontPanel.Controls.OfType<NumericUpDown>().FirstOrDefault()?.Value ?? 10);
+				Font newFont = new Font(selectedFont, fontSize);
+				Helper.ApplyFontToControls(this, newFont);
+				Helper.ApplyFontToControls(mainForm, newFont);
+				mainForm.myfont = newFont;
+				mainForm.configLoader.SetConfigValue("AllResolutions", "FontName", fontComboBox.Text);
+				mainForm.configLoader.SetConfigValue("AllResolutions", "FontSize", fontSizeNumeric.Value.ToString());
+			}
+		}
         private void InitializeTreeView()
         {
             treeView = new TreeView
@@ -827,8 +820,8 @@ namespace zfile
 			mainForm.wlxModuleList.SaveConfiguration();
 			mainForm.wcxModuleList.SaveConfiguration();
 			// save font
-			mainForm.configLoader.SetConfigValue("AllResolutions", "FontName", fontComboBox.Text);
-			mainForm.configLoader.SetConfigValue("AllResolutions", "FontSize", fontSizeNumeric.Value.ToString());
+			updateFont();
+		
 			// 应用视图自动切换规则的更改
 			if (autoSwitchViewPanel.Visible && autoSwitchViewPanel.Controls.Count > 0)
 			{

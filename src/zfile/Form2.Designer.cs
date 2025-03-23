@@ -6,7 +6,7 @@
 
         private System.ComponentModel.IContainer components = null;
         private System.Windows.Forms.SplitContainer splitContainer1;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button CancelButton;
         private System.Windows.Forms.Button Okbutton;
 
         protected override void Dispose(bool disposing)
@@ -22,7 +22,7 @@
 		{
 			splitContainer1 = new SplitContainer();
 			treeView = new TreeView();
-			button1 = new Button();
+			CancelButton = new Button();
 			Okbutton = new Button();
 			((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
 			splitContainer1.Panel1.SuspendLayout();
@@ -42,7 +42,7 @@
 			// 
 			// splitContainer1.Panel2
 			// 
-			splitContainer1.Panel2.Controls.Add(button1);
+			splitContainer1.Panel2.Controls.Add(CancelButton);
 			splitContainer1.Panel2.Controls.Add(Okbutton);
 			splitContainer1.Size = new Size(700, 478);
 			splitContainer1.SplitterDistance = 126;
@@ -58,13 +58,13 @@
 			// 
 			// button1
 			// 
-			button1.Location = new Point(624, 3);
-			button1.Name = "button1";
-			button1.Size = new Size(66, 24);
-			button1.TabIndex = 0;
-			button1.Text = "Cancel";
-			button1.UseVisualStyleBackColor = true;
-			button1.Click += button1_Click;
+			CancelButton.Location = new Point(624, 3);
+			CancelButton.Name = "button1";
+			CancelButton.Size = new Size(66, 24);
+			CancelButton.TabIndex = 0;
+			CancelButton.Text = "Cancel";
+			CancelButton.UseVisualStyleBackColor = true;
+			CancelButton.Click += button1_Click;
 			// 
 			// Okbutton
 			// 

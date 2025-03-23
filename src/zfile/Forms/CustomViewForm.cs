@@ -164,6 +164,9 @@ namespace zfile
 					MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
 				{
 					grid.Rows.RemoveAt(grid.SelectedRows[0].Index);
+					// 从viewMgr.colDefDict中删除对应的键
+					string viewName = grid.SelectedRows[0].Cells["ViewName"].Value?.ToString()?? "";
+					mainForm.viewMgr.colDefDict.Remove(viewName);
 				}
 			}
 		}
@@ -180,6 +183,29 @@ namespace zfile
 			{
 				newRow.Cells[cell.ColumnIndex].Value = cell.Value + " (复制)";
 			}
+
+			string viewName = row.Cells["ViewName"].Value?.ToString() ?? "";
+			// 从viewMgr.colDefDict中获取选中视图的列定义数据
+			if (!mainForm.viewMgr.colDefDict.ContainsKey(viewName))
+			{
+				MessageBox.Show($"找不到视图 '{viewName}' 的定义", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return;
+			}
+
+			// 从colDefDict中加载列定义数据到CustomViewEditForm
+			var colDefs = mainForm.viewMgr.colDefDict[viewName];
+			var newViewName = viewName + " (复制)";
+			var newColdefs = new List<Zfile.ColDef>();
+			foreach (var colDef in colDefs)
+			{
+				newColdefs.Add(new Zfile.ColDef
+				{
+					header = colDef.header,
+					width = colDef.width,
+					content = colDef.content
+				});
+			}
+			mainForm.viewMgr.colDefDict[newViewName] = newColdefs;
 
 			grid.ClearSelection();
 			newRow.Selected = true;

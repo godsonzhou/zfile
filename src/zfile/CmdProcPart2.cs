@@ -668,76 +668,10 @@ namespace zfile
 		}
 
 		// 搜索文件
-		private void cm_searchfor()
+		private void cm_searchfor(bool isstandalone = false)
 		{
-			var searchform = new SearchforDialog(owner);
+			var searchform = new SearchforDialog(owner, isstandalone);
 			searchform.ShowDialog();
-			//var searchForm = new Form
-			//{
-			//	Text = "搜索文件",
-			//	Size = new Size(400, 200),
-			//	FormBorderStyle = FormBorderStyle.FixedDialog,
-			//	StartPosition = FormStartPosition.CenterParent,
-			//	MaximizeBox = false,
-			//	MinimizeBox = false
-			//};
-
-			//var searchBox = new TextBox
-			//{
-			//	Location = new Point(10, 10),
-			//	Size = new Size(360, 20),
-			//	PlaceholderText = "输入搜索关键词"
-			//};
-
-			//var searchButton = new Button
-			//{
-			//	Text = "搜索",
-			//	Location = new Point(150, 100),
-			//	DialogResult = DialogResult.OK
-			//};
-
-			//searchForm.Controls.AddRange(new Control[] { searchBox, searchButton });
-			//searchForm.AcceptButton = searchButton;
-
-			//if (searchForm.ShowDialog() == DialogResult.OK && !string.IsNullOrWhiteSpace(searchBox.Text))
-			//{
-			//	var searchPattern = searchBox.Text;
-			//	var searchPath = owner.CurrentDir[owner.LRflag];
-
-			//	try
-			//	{
-			//		var files = Directory.GetFiles(searchPath, $"*{searchPattern}*", SearchOption.AllDirectories);
-			//		var results = new Form
-			//		{
-			//			Text = "搜索结果",
-			//			Size = new Size(600, 400),
-			//			StartPosition = FormStartPosition.CenterParent
-			//		};
-
-			//		var resultList = new ListView
-			//		{
-			//			Dock = DockStyle.Fill,
-			//			View = View.Details
-			//		};
-
-			//		resultList.Columns.Add("文件名", 200);
-			//		resultList.Columns.Add("路径", 350);
-
-			//		foreach (var file in files)
-			//		{
-			//			var item = new ListViewItem(Path.GetFileName(file));
-			//			item.SubItems.Add(Path.GetDirectoryName(file));
-			//			resultList.Items.Add(item);
-			//		}
-
-			//		results.Controls.Add(resultList);
-			//		results.Show();
-			//	}
-			//	catch (Exception ex)
-			//	{
-			//		MessageBox.Show($"搜索文件时出错: {ex.Message}", "错误");
-			//	}
-			//}
 		}
 
 		// 显示文件属性

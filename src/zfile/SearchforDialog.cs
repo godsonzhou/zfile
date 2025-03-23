@@ -101,9 +101,11 @@ namespace zfile
 		private List<string> searchResults = new List<string>();
 
 		private Form owner;
+		private bool isStandalone;
 
-		public SearchforDialog(Form owner)
+		public SearchforDialog(Form owner, bool isstandalone)
 		{
+			isStandalone = isstandalone;
 			this.owner = owner;
 			InitializeComponent();
 			LoadHistory();

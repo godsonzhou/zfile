@@ -252,7 +252,9 @@ namespace zfile
 					case 540: // cm_rereadsource
 						do_cm_rereadsource();
 						break;
-
+					case 545: // cm_searchstandalone
+						do_cm_searchstandalone();
+						break;
 					case 550: // cm_ftpconnect
 						ShowFtpConnectionManager();
 						break;
@@ -612,6 +614,10 @@ namespace zfile
 			//{
 			//	throw new KeyNotFoundException("命令ID不存在");
 			//}
+		}
+		private void do_cm_searchstandalone() 
+		{
+			cm_searchfor(true);
 		}
 		public void cm_executedos1(string cmdstring = "", string cmdMode = "/k", bool useShell = false, bool isRunas = true)
 		{

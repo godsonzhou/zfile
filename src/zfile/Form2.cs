@@ -594,7 +594,7 @@ namespace zfile
             };
             fontPanel.Controls.Add(fontSizeLabel);
 		
-			NumericUpDown fontSizeNumeric = new NumericUpDown
+			fontSizeNumeric = new NumericUpDown
             {
                 Location = new Point(10, 110),
                 Width = 100,

@@ -1,0 +1,126 @@
+Limba Românã (F4Menu)
+; Pentru F4Menu ver 0.55
+; Creat de Eugen ANTAL			(eugensyl@yahoo.com)
+; Data ultimei actualizãri: 05-11-2010
+
+; Cuvinte comune
+0=DA
+1=Nu
+2=OK
+3=Abandon
+4=&Aplicã
+5=Închide
+6=Nume
+7=Cale
+8=Parametri
+9=Mod
+10=Extensii
+11=Iconniþe
+12=Fereastra
+13=Fiºiere executabile (*.exe;*.bat;*.com)
+14=Toate fiºierele (*.*)
+
+; Meniu principal
+15=Alt Program...
+16=Setãri...
+17=Despre F4Menu...
+
+; Common words 2
+18=Cale de Start
+19=Fiºiere cu icon-uri (*.exe;*.dll;*.ico;*.icl)
+
+; Meniu Contextual
+20=&Asociazã extensia ºi Deschide
+21=&Deschide fãrã asocierea extensiei
+22=Seteazã &Editorul ca Implicit
+23=Eliminã As&ocierea
+24=&Eliminare
+25=&Modificare...
+26=Sortare dupã &Nume
+27=Aso&ciere
+28=Aratã &totdeauna în Meniul Principal
+29=&Listã Programe
+
+; Dialog Modificare
+30=F4Menu: Selectare Editor 
+31=&Nume
+32=&Cale
+33=Para&metri
+34=&Mod încãrcare
+35=&Extensii
+36=&Iconiþe
+37=0 - Deschide fiecare fiºier individual
+38=1 - Deschide toate fiºierele ca listã
+39=Cale de &Start
+
+; Dialog setãri
+40=F4Menu: Configurare 
+41=O&pþiuni
+42=&Adãugare
+43=&Modificare
+44=&Eliminare
+45=Fiºier
+46=Listã
+
+; Dialog Despre...
+47=Despre F4Menu
+48=Meniu Principal
+
+; Dialog Opþiuni
+50=F4Menu: Opþiuni 
+51=&Despre
+52=&Limbaj
+53=Numãr &Maxim de fiºiere deschise (0-31)
+54=Meniul &Selectare va apare...
+55=...lângã fiºierul curent
+56=...la cursorul mouse-lui
+57=Aratã &balonul info la selectarea meniului
+58=Mod rulare <-> Combinaþia de taste pentru lansare
+59=Mod &Prim-Plan - (totdeauna va arãta meniul de selectare), altfel se va lansa în fundal
+60=Mod &Fundal    - (aratã meniul numai dacã este necesar), altfel se va lansa în prim-plan
+61=Acþiunea de dupã anularea meniului selectare
+62=&Stop ºi deschide fiºierele &procesate
+63=S&top ºi anuleazã toate selecþiile
+64=S&are fiºierul curent ºi continuã cu urmãtorul
+65=&Deselecteazã fiºierele deschise
+66=Numai Info Balon
+67=Numai Info Editor
+68=Info Balon ºi Editor
+69=Mod &Implicit de lansare (Deschide fiºierele direct cu editorul implicit)
+
+; Baloane info
+70=Deschide fiºierul cu aplicaþia asociatã prin sistemul de operare
+71=Editor implicit
+72=CTRL + Enter/Click: Asociazã ºi Deschide\n           Enter/Click: Deschide fãrã asociere
+73=SPAÞIU: Deschide cu primul editor ce se potriveºte
+74=TRAGE && LASÃ: - Mutare element în listã
+75=CLICK DREAPTA: aratã meniul contextual
+76=Alege altã aplicaþie pentru aceastã extensie
+
+; Mesaje
+80=Vã rugãm lansaþi F4Menu cu urmãtoarea sintaxã:\n\nF4Menu.exe [-q | -m] [lista_fisiere]\n-q\tMod silenþios\n\tIeºire din dialog (dacã nu existã listã de fiºiere).\n-m\tMod Meniu\n\tAratã meniul principal dacã nu existã listã de fiºiere, pentru a crea un fiºier nou\nListaDeFiºiere\tNume de fiºiere separate cu 'Spaþiu'\n\tFiºierele care conþin spaþiu trebuie încadrate între ghilimele.\n\tParametri -q, -m sunt ignoraþi dacã lista de fiºiere existã.\n\nUtilizaþi scurtãtura F4 din Total Commander pentru a lansa F4Menu.\nPuteþi seta via Configuraþie TC -> Opþiuni -> Editare/Vizualizare -> Editor pentru F4.
+81=Vã rugãm selectaþi un element din meniu.
+82=Doriþi sã ºtergeþi acest element?
+83=Doriþi sã ºtergeþi aceste %d elemente?
+84=Vã rog verificaþi numele editorului.
+85=Editorul specificat nu poate fi localizat. Vã rog, verificaþi calea.
+86=Prea multe fiºiere selectate. Doriþi sã le deschideþi pe toate?\n\nDA - Se vor deschide toate fiºierele selectate.\nNU - Se vor deschide doar primele %d fiºiere.
+87=Nu se poate localiza editorul %d "%s", \n\nvã rog alegeþi un alt editor pentru fiºierele de tipul "*.%s"
+88=Editorul "%s" existã deja.\nDoriþi sã salvaþi configuraþia actualã?\n\nDA - pentru încãrcare ºi salvare element.\nNU - pentru crearea unui nou element cu aceeaºi cale.
+89=Nu gãsesc editorul implicit. Vã rog sã îl definiþi din nou.
+
+; Modify Dialog 2
+90=&Fereastra
+91=0 - Normalã
+92=1 - Maximizatã
+93=2 - Minimizatã
+94=&Fiºier Icon-uri
+95=&Totdeauna aratã în meniul principal
+
+; Option Dialog 2
+100=Fixat chiar lângã fiºierul curent
+101=Fixat în fereastra opusã
+102=Centrat în fereatrã
+
+; Messages2
+110=Configuraþia editorului %d este defectã. Vã rog sã o corectaþi.

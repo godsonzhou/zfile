@@ -1,0 +1,113 @@
+Magyar
+; For F4Menu ver 0.150
+; Creator/Translator: Shanny (shannycn@gmail.com)
+; Translation by SanskritFritz (SanskritFritz@gmail.com)
+; Date 2007.10.01
+
+; Common words
+0=Igen
+1=Nem
+2=OK
+3=Mégse
+4=&Alkalmaz
+5=Bezár
+6=Név
+7=Útvonal
+8=Paraméterek
+9=Üzemmód
+10=Kiterjesztések
+11=Ikon
+12=Ablak
+13=Végrehajtható fájlok
+14=Minden fájl
+; Main Menu
+15=Más program...
+16=Beállítások...
+17=F4Menu Névjegy...
+
+; Common words 2
+18=Kiinduló útvonal
+
+; Context Menu
+20=&Társít és megnyit
+21=Csak &megnyit
+22=&Alapértelmezett szerkesztõ
+23=&Társítás megvonása
+24=Törlés
+25=Módosítás...
+26=&Név alapján sorbarendez
+
+; Modify Dialog
+30=F4Menu Editor Módosítások
+31=&Név
+32=Út&vonal
+33=Para&méterek
+34=Megnyitás módja
+35=&Kiterjesztések
+36=&Ikon
+37=0 - Külön nyiss meg minden fájlt
+38=1 - Add át a fájlokat listába szedve
+39=Kiinduló &útvonal
+
+; Settings Dialog
+40=F4Menu beállítások
+41=Beállítások
+42=&Hozzáad
+43=&Módosít
+44=&Töröl
+45=Fájl
+46=Lista
+
+; About Dialog
+47=F4Menu névjegy
+
+; Options Dialog
+50=F4Menu beállítások
+51=&Névjegy
+52=Nyelv
+53=&Megnyitható fájlok maximuma (0-31)
+54=&Választómenü itt jelenjen meg:
+55=Kiválasztott fájl
+56=Egérmutató
+57=Választómenün legyen segítség
+58=Futtatási mód <-> Indító billentyû
+59=&Elõtér mód, mindig mutassa a választómenüt
+60=&Háttér mód, csak akkor mutassa, ha szükséges
+61=Választómenü eldobása esetén
+62=Megáll és megnyitja a kiválasztott fájlokat
+63=Megáll és abbahagyja a feldolgozást
+64=Kihagyja az adott fájlt és folytatja a következõvel
+65=A fájlok megnyitás után ne legyenek kiválasztva
+66=Csak segítség
+67=Csak szerkesztõ infó
+68=Segítség és szerkesztõ infó
+
+; ToolTips
+70=Rendszertársítást használ
+71=Alapértelmezett szerkesztõ
+72=Ctrl + Enter/Kattint: társít és megnyit\nEnter/Kattint: csak megnyit
+73=Szóközzel megnyílik az elsõ alkalmas szerkesztõ
+74=Elemek mozgatása húzd és vidd módszerrel
+75=Jobb egérkattintás a tartalom menüt hívja
+76=Válassz új programot ehhez a kiterjesztéshez
+
+; Messages
+;80=Kérlek használd a Total Commander F4 funkcióját az F4Menu indításához\n\nBeállítások -> Általános beállítások ->   Szerkesztõ/Nézõke -> Szerkesztés F4-gyel
+81=Kérlek válassz egy elemet.
+82=Tényleg törölni akarod?
+83=Tényleg törölni akarod mind a %d elemet?
+84=Ellenõrizd a szerkesztõ nevét.
+85=Nem találom a szerkesztõt, ellenõrizd az útvonalat.
+86=Túl sok fájl volt kiválasztva, mindet meg akarod nyitni?\n\n'Igen'-re mindet megnyitom, 'nem'-re csak az elsõ %d darabot.
+87=Nem találom a "%s" szerkesztõt (%d), \n\nválassz új szerkesztõt a "*.%s" fájloknak.
+88=A "%s" szerkesztõ már ki volt választva egyszer.\nFelülírod a meglevõ beállításait?\n\nHa Igen, akkor betöltöm és felülírom az elõzõt.\nHa Nem, új elemet készítek ugyanazzal az útvonallal.
+
+; Modify Dialog 2
+90=&Ablak
+91=0 - Normál
+92=1 - Teljes méretû
+93=2 - Kicsinyítve
+
+; Option Dialog 2
+100=A kiválasztott fáljtól jobbra
+102=Középre igazítva

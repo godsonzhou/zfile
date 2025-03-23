@@ -1,0 +1,125 @@
+Svenska
+; For F4Menu ver 0.50
+; Translator: Leif Larsson (Leif.Larsson@gmail.com)
+; Date: 11 september 2010
+
+; Common words
+0=Ja
+1=Nej
+2=OK
+3=Avbryt
+4=&Verkställ
+5=Stäng
+6=Namn
+7=Sökväg
+8=Parametrar
+9=Metod
+10=Filtyper
+11=Ikon
+12=Fönster
+13=Körbara filer (*.exe;*.bat;*.com)
+14=Alla filer (*.*)
+
+; Main Menu
+15=&Annat program ...
+16=&Inställningar ...
+17=&Om F4Menu ...
+
+; Common words 2
+18=Starta i
+19=Ikonfiler (*.exe;*.dll;*.ico;*.icl)
+
+; Context Menu
+20=&Associera och öppna
+21=&Endast öppan
+22=&Ange som standardredigerare
+23=&Avassociera
+24=&Ta bort
+25=&Redigera ...
+26=Sortera efter &namn
+27=Asso&ciera
+28=Visa alltid i huvudmenyn
+29=&Fler program
+
+; Modify Dialog
+30=F4Menu - Ändra redigerare
+31=&Namn:
+32=&Sökväg:
+33=&Parametrar:
+34=S&ätt att öppna:
+35=Filtyp&er:
+36=&Ikon:
+37=0 - Öppna varje fil separat
+38=1 - Öppna alla filer som en lista
+39=S&tarta i:
+
+; Settings Dialog
+40=Inställningar för F4Menu
+41=&Alternativ
+42=&Lägg till
+43=&Redigera
+44=&Ta bort
+45=Arkiv
+46=Lista
+
+; About Dialog
+47=Om F4Menu
+48=Huvudmeny
+
+; Options Dialog
+50=Alternativ för F4Menu
+51=&Om
+52=Språk (&Language):
+53=&Max. antal öppna filer (0-31):
+54=&Valmenyn ska öppnas:
+55=Bredvid markerad fil
+56=Vid musmarkören
+57=Visa &hjälptexter i valmenyn
+58=Öppningssätt <-> Kortkommando
+59=&Förgrundsläge: (visa alltid valmenyn), körs annars i bakgrunden
+60=&Bakgrundsläge: (visa endast valmenyn om nödvändigt), körs annars i förgrunden
+61=Åtgärd när valmenyn stängts
+62=Avbry&t och öppna de behandlade filerna
+63=Avbryt o&ch annulera alla val
+64=Hoppa &över aktuell fil och fortsätt med nästa
+65=&Avmarkera öppnade filer
+66=Endast hjälptexter
+67=Endast info om redigeringsprogrammet
+68=Hjälptexter och info om redigeringsprogrammet
+69=&Standardläge för att öppna: (öppna filer direkt med standardredigeraren)
+; ToolTips
+70=Öppna med program associerat av operativsystemet
+71=Standardredigerare
+72=Ctrl+Enter/Klick: Associera och öppna\nEnter/Klick: Endast öppna
+73=Mellanslag: Öppna med den första matchande redigeraren
+74=Drag och släpp: Flytta poster
+75=Höger musklick: Visa kontextmenyn
+76=Välj ett nytt program för denna filtyp
+
+; Messages
+80=Starta F4Menu med följande syntax:\n\nF4Menu.exe [-q | -m] [fillista]\n-q\tTyst läge\n\tAvsluta direkt utan någon dialog om fillista saknas.\n-m\tMenyläge\n\tVisa huvudmenyn om fillista saknas, för att skapa ny fil\n fillista\tMellanslagsseparerade filnamn\n\tFilnamn som innehåller mellanslag bör omges av citattecken.\n\tOch parametrarna -q, -m ignoreras om fillista finns.\n\nEller använd Total Commanders kortkommando F4 för att starta F4Menu.\nDu kan ange det via Konfigurera -> Generella inställningar -> Redigera/Visa -> Redigerare för F4.
+81=Markera en post först.
+82=Vill du verkligen ta bort denna post?
+83=Vill du verkligen ta bort dessa %d poster?
+84=Verifiera namnet på redigeraren.
+85=Hittar inte den angivna redigeraren; verifiera sökvägen.
+86=För många filer är markerade. Vill du öppna alla dessa filer?\n\n'Ja' öppnar alla markerade filer.\n'Nej' öppnar endast de första %d filerna.
+87=Hittar inte redigeraren %d "%s".\n\nVälj en annan redigerare för "*.%s"-filer.
+88=Redigeraren "%s" finns redan.\nVill du uppdatera den befintliga konfigurationen?\n\n'Ja' laddar och uppdaterar den befintliga posten.\n'Nej' skapar en ny post med samma sökväg.
+89=Hittar inte standardredigeraren. Ange den en gång till.
+
+; Modify Dialog 2
+90=&Fönster:
+91=0 - Normalt
+92=1 - Maximerat
+93=2 - Minimerat
+94=I&konfil:
+95=Visa alltid i &huvudmenyn
+
+; Option Dialog 2
+100=Till höger om aktuell fil
+101=I motsatt panel
+102=Mitt i fönstret
+
+; Messages2
+110=Konfigurationen av redigeraren %d är skadad. Vänligen korrigera den.

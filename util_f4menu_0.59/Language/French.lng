@@ -1,0 +1,125 @@
+Français
+; For F4Menu ver 0.50
+; Translator: byblo (byblo@hotmail.com)
+; Date: 2010-09-05
+
+; Common words
+0=Oui
+1=Non
+2=O&K
+3=Annu&ler
+4=Appli&quer
+5=Fermer
+6=Nom
+7=Chemin
+8=Paramètres
+9=Mode
+10=Extentions
+11=Icône
+12=Fenêtre
+13=Fichiers éxécutables
+14=Tous les fichiers
+; Main Menu
+15=Autre Programme...
+16=Réglages...
+17=À propos de F4Menu pour TC...
+
+; Common words 2
+18=Démarrer dans
+19=Fichiers icônes (*.exe;*.dll;*.ico;*.icl)
+
+; Context Menu
+20=&Associer et Ouvrir
+21=&Ouvrir Uniquement
+22=Éditeur par &défaut
+23=D&issocier
+24=&Retirer
+25=&Modifier...
+26=&Trier par Nom
+27=A&ssocier
+28=To&ujours visible ds menu principal
+29=Plus de programmes
+
+; Modify Dialog
+30=F4Menu Editeur de Modification
+31=&Nom
+32=&Chemin
+33=&Paramètres
+34=&Mode
+35=&Extentions
+36=&Icône
+37=0 - Ouvrir chaque fichier séparément
+38=1 - Ouvrir tous les fichiers en tant que liste
+39=Démarrer dans
+
+; Settings Dialog
+40=F4Menu Réglages
+41=&Options
+42=&Ajouter
+43=&Modifier
+44=&Retirer
+45=Fichier
+46=Liste
+
+; About Dialog
+47=À propos de F4Menu
+48=Menu principal
+
+; Options Dialog
+50=F4Menu Options
+51=À p&ropos
+52=Lan&gage
+53=&Nombre maximal de fichiers ouvrables simultanément (0-31)
+54=&Endroit où le Menu de Sélection apparait
+55=Fichier courant
+56=Curseur de la souris
+57=&Voir les tooltips dans le menu de sélection
+58=Mode d'ouverture <-> Touche de lancement
+59=Mode &Premier plan, toujours voir le menu de sélection
+60=Mode &Arrière plan, voir uniquement si nécéssaire
+61=Action en cas d'annulation du menu de sélection
+62=Interrompre et &ouvrir les fichiers en cours
+63=Interrompre et ann&uler toute la sélection
+64=&Ignorer le fichier en cours et passer au suivant
+65=&Désélectionner les fichiers ouverts
+66=Uniquement les astuces
+67=Uniquement infos éditeur
+68=Astuces et infos éditeur
+69=Édi&tion par défaut (ouvrir directement avec l'éditeur par défaut)
+
+; ToolTips
+70=Ouvert par le système d'association d'application
+71=Éditeur par défaut
+72=Ctrl + Entrée/Clic pour associer et ouvrir\nEntrée/Clic pour uniquement ouvrir
+73=[Espace] pour être ouvert par le premier éditeur associé
+74=Glisser et déposer pour déplacer l'item
+75=Clic droit pour voir le menu de contexte
+76=Choisir un nouveau programme pour cette extention
+
+; Messages
+;80=Veuillez utiliser le raccourci F4 de Total Commander pour lancer F4Menu.\n\nVous pouvez le régler dans Configuration -> Options -> Editer/Voir -> Editeur pour F4.
+81=Veuillez sélectionner un item.
+82=Voulez-vous vraiment retirer cet item ?
+83=Voulez-vous vraiment retirer ces %d items ?
+84=Veuillez vérifier le nom de l'éditeur.
+85=Impossible de trouver l'éditeur spécifié, veuillez vérifier le chemin.
+86=Trop de fichiers sélectionnés, seul les premiers %d fichiers seront ouverts.
+87=Ne peut pas trouver l'éditeur %d "%s", \n\nveuillez choisir un nouvel éditeur pour les fichier "*.%s".
+88=L'éditeur "%s" existe déjà.\nVoulez-vous mettre à jour la configuration existante ?\n\nOui pour charger et mettre à jour l'item existant.\nNon pour créer un nouvel item avec un chemin identique.
+89=Ne trouve pas l'éditeur par défaut, veuillez réésayer.
+
+; Modify Dialog 2
+90=&Fenêtre
+91=0 - Normal
+92=1 - Maximisée
+93=2 - Minimisée
+94=Fichier &Icône
+95=&Toujours visible dans le menu principal
+
+; Option Dialog 2
+100=À droite du fichier courant
+101=Panneau opposé
+102=Centré dans la fenêtre
+
+;Messages2
+110=La configuration de l'éditeur %d est endommagée, veuillez la corriger.

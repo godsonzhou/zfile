@@ -36,6 +36,7 @@ namespace zfile
 			// 添加列
 			grid.Columns.Add("ViewName", "视图名称");
 			grid.Columns.Add("ColumnsDescription", "包含的列描述");
+			grid.Columns[0].Width /= 2;
 
 			// 添加按钮面板
 			FlowLayoutPanel buttonPanel = new FlowLayoutPanel

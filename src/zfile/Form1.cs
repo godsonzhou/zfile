@@ -4,6 +4,7 @@ using System.Collections;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using WinShell;
 using Zfile;
 using Keys = System.Windows.Forms.Keys;
@@ -2189,11 +2190,12 @@ namespace zfile
 		public void cm_edit(string param = "")
 		{
 			//读取配置文件的editor, 首先调用用户自定义外部编辑器
-			var user_edit = configLoader.FindConfigValue("Configuration", "Editor");
+			var user_edit = Helper.GetPathByEnv(configLoader.FindConfigValue("Configuration", "Editor"));
 			Debug.Print(user_edit);
 			if (!string.IsNullOrWhiteSpace(user_edit))
 			{
 				myShellExe(user_edit);
+				//cmdProcessor.cm_executedos1(user_edit);
 				return;
 			}
 
@@ -2986,9 +2988,18 @@ namespace zfile
 			}
 		}
 	
-		public void myShellExe(string path = "c:\\windows\\system32")
+		public void myShellExe(string pathWithArgs = "c:\\windows\\system32")
 		{
-			API.ShellExecute(IntPtr.Zero, "open", path, "", path, (int)SW.SHOWNORMAL);
+			pathWithArgs = se.PrepareParameter(pathWithArgs, [uiManager.srcfiles], Path.GetDirectoryName(pathWithArgs))[0];
+
+			// 获取可执行文件路径
+			string executablePath = Path.GetFullPath(Regex.Match(pathWithArgs, @"^.*?\.exe").Value);
+			string executableName = Path.GetFileName(executablePath);
+
+			// 获取运行参数
+			string arguments = pathWithArgs.Substring(executablePath.Length).Trim();
+
+			API.ShellExecute(IntPtr.Zero, "open", executablePath, arguments, Path.GetDirectoryName(executablePath), (int)SW.SHOWNORMAL);
 			//Window wnd = Window.GetWindow(this); //获取当前窗口
 			//var wih = new WindowInteropHelper(wnd); //该类支持获取hWnd
 			//IntPtr hWnd = wih.Handle;    //获取窗口句柄

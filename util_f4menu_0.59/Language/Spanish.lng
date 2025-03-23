@@ -1,0 +1,115 @@
+Castellano
+; Para F4Menu versión 0.150
+;Creado por Shanny (shannycn@gmail.com)
+;Traducido por dott (Daniel.Testa.T@gmail.com)
+;Fecha: 01-10-2007
+
+; Palabras comunes
+0=Si
+1=No
+2=Aceptar
+3=Cancelar
+4=&Aplicar
+5=Cerrar
+6=Nombre
+7=Ruta
+8=Parámetros
+9=Modo
+10=Extensiones
+11=Icono
+12=Ventana
+13=Ejecutables
+14=Todos los archivos
+
+; Menú principal
+15=Otro programa...
+16=Configurar...
+17=Acerca de F4Menu...
+
+; Palabras comunes 2
+18=Ruta de inicio
+
+; Menú contextual
+20=&Asociar y abrir
+21=Abrir &solamente
+22=&Fijar como editor predeterminado
+23=&Desasociar
+24=&Eliminar
+25=&Modificar...
+26=&Ordenar alfabéticamente
+
+; Diálogo Modificar
+30=F4Menu: Modificar Editor
+31=&Nombre
+32=&Ruta
+33=&Parámetros
+34=&Modo
+35=&Extensiones
+36=&Icono
+37=0 - Abrir cada archivo independientemente
+38=1 - Abrir todos como una lista de archivos
+39=R&uta de inicio
+
+; Diálogo Configuración
+40=F4Menu: Configuración
+41=&Opciones
+42=&Añadir
+43=&Modificar
+44=&Eliminar
+45=Archivo
+46=Lista
+
+; Diálogo Acerca de
+47=Acerca de F4Menu
+
+; Diálogo Opciones
+50=F4Menu: Opciones
+51=&Acerca de
+52=&Idioma
+53=Número &máximo de archivo abiertos(0-31)
+54=Menú de &selección aparecerá en la siguiente posición:
+55=Archivo actual
+56=Cursor del mouse
+57=Mostrar &tooltips en el menú de selección
+58=Modo de ejecución <-> Atajo de teclado
+59=M&odo primer plano, mostrar siempre el menú de selección
+60=Modo se&gundo plano, mostrar solamente si es necesario
+61=Acción por interrupción del menú de selección
+62=Detener y abrir los archivos &procesados
+63=D&etener y cancelar todas las selecciones
+64=Salta&r archivo actual y continuar con el siguiente
+65=&Deseleccionar archivos abiertos
+66=Sólo tooltips
+67=Sólo información de editor
+68=Tooltips e información de editor
+
+; ToolTips
+70=Abrir con el programa asociado en Windows
+71=Editor predeterminado
+72=Ctrl + Enter/Click: asociar y abrir\nEnter/Click: abrir solamente
+73=Espacio: para abrir con el primer editor coincidente
+74=Arrastrar y soltar para mover ítem
+75=Clic derecho: para mostrar el menú contextual
+76=Elegir un nuevo programa para esta extensión
+
+; Mensajes
+;80=Por favor usar el atajo F4 de total Commander para lanzar F4Menu.\n\nPuedes fijarlo desde Configuración-> Opciones-> Editar/Ver -> Editor para F4.
+81=Por favor seleccionar un ítem.
+82=¿Realmente quieres borrar este ítem?
+83=¿Realmente quieres borrar estos %d ítems?
+84=Por favor verifica el nombre del editor.
+85=No es posible encontrar el editor especificado, por favor verifica la ruta.
+86=Demasiados archivos seleccionados, ¿quieres abrirlos todos?\n\nSi para abrir todos los archivos seleccionados.\nNo para abrir sólo los primeros %d archivos
+87=No es posible encontrar el editor %d "%s", \n\npor favor elegir un nuevo editor para archivos "*.%s".
+88=El editor "%s" ya existe.\nQuieres actualizar su configuración actual?\n\nSi para cargar y actualizar el ítem existente.\nNo para crear un nuevo ítem con una ruta idéntica.
+
+; Diálogo Modificar 2
+90=&Ventana
+91=0 - Normal
+92=1 - Maximizada
+93=2 - Minimizada
+
+; Diálogo Opciones 2
+100=A la derecha del archivo actual
+101=Panel opuesto
+102=Centro de la ventana

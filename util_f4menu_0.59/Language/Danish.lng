@@ -1,0 +1,127 @@
+Dansk
+; For F4Menu ver 0.58
+; Created by petermad (f4menu@madsenworld.dk)
+; Date: 28-11-2010
+
+; Common words
+0=Ja
+1=Nej
+2=OK
+3=Annuller
+4=&Udfør
+5=Luk
+6=Navn
+7=Sti
+8=Parametre
+9=Metode
+10=Filtyper
+11=Ikon
+12=Vindue
+13=Programfiler (*.exe;*.bat;*.com)
+14=Alle filer (*.*)
+
+; Main Menu
+15=&Andet program...
+16=Op&sætning...
+17=&Om F4Menu...
+
+; Common words 2
+18=Startmappe
+19=Ikonfil (*.exe;*.dll;*.ico;*.icl)
+
+; Context Menu
+20=&Associer og åbn
+21=&Åbn kun
+22=S&æt som standard redigeringsprogram
+23=&Fjern associering
+24=&Slet
+25=&Rediger...
+26=Sorter efter &Navn
+27=Asso&cier
+28=&Vis altid i hovedmenuen
+29=&Flere programmer
+
+; Modify Dialog
+30=F4Menu Opsætning af redigeringsprogram
+31=&Navn
+32=&Sti
+33=&Parametre
+34=&Åbnemetode
+35=&Filtyper
+36=&Ikon
+37=0 - Åbn hver fil separat
+38=1 - Åbn alle filer som en liste
+39=Start&mappe
+
+; Settings Dialog
+40=F4Menu Opsætning
+41=&Indstillinger
+42=&Tilføj
+43=&Rediger
+44=&Slet
+45=Fil
+46=Liste
+
+; About Dialog
+47=Om F4Menu
+48=Hovedmenu
+
+; Options Dialog
+50=F4Menu Indstillinger
+51=O&m
+52=&Sprog
+53=Maksimal&e antal af åbne filer (0-31)
+54=&Valgmenuen skal åbnes
+55=Lige ved markerede fil
+56=Ved musemarkøren
+57=Vis &hjælpetekster på valgmenu
+58=Afviklingsmåde <-> Genvejstast
+59=&Forgrundstilstand (vis altid valgmenu), ellers indlæses i baggrundstilstand
+60=&Baggrundstilstand (vis kun valgmenu hvis nødvendigt), ellers indlæses i forgrundstilstand
+61=Handling efter annullering af valgmenu
+62=Stop og &åbn de behandlede filer
+63=Stop og a&nnuller alle valg
+64=S&kip nuværende fil og fortsæt med næste
+65=Fje&rn markering af åbnede filer
+66=Kun hjælpetekster
+67=Kun info om redigeringsprogram
+68=Hjælpetekster og info om redigeringsprogram
+69=Stan&dard metode for åbning (Åbn filer direkte med standard redigeringsprogram)
+
+; ToolTips
+70=Åbn med program associeret af operativsystemet
+71=Standard redigeringsprogram
+72=Ctrl + Enter/Klik: Associer og åbn\nEnter/Klik: Åbn kun
+73=Mellemrum: åbn med første matchende redigeringsprogram
+74=Træk- og Slip: Flyt element
+75=Højreklik: Vis egenskabsmenu
+76=Vælg et nyt program for denne filtype
+
+; Messages
+
+80=Kør venligst F4Menu med følgende syntaks:\n\nF4Menu.exe [-bdfmpq] [filliste]\n-b\tBaggrund - uanset genvejsindstilling.\n-d\tStandard - uanset genvejsindstilling.\n-f\tForgrund - uanset genvejsindstilling,\n-m\tMenu - vis hovedmenuen, hvis der ikke er nogen filliste - for oprettelse af ny fil.\n-p\tParameter - brug udelukkende filliste fra kommandolinjen ikke fra TC.\n-q\tQuiet - luk direkte uden at vise nogen dialog, hvis der ikke er en filliste.\nfilliste\tMellemrums-separerede filnavne.\n\tFilnavne som indeholder mellemrum skal omkranses af anførselstegn.\n\tParametrene -q, -m ignoreres, hvis der er en filliste.\n\nEller brug Total Commander's genvejstast F4 til at starte F4Menu.\nDu kan indstille dette ved Opsætning -> Indstillinger -> Rediger/Vis -> Redigeringsprogram for F4.
+81=Vælg venligst et element.
+82=Ønsker du virkelig at slette dette element?
+83=Ønsker du virkelig at slette alle %d elementer?
+84=Kontroller venligst navnet på redigeringsprogrammet.
+85=Kan ikke finde det angivne redigeringsprogram, kontroller venligst stien.
+86=Der er valgt for mange filer. Ønsker du at åbne dem alle?\n\nJa - for at åbne alle valgte filer.\nNej - for kun at åbne de første %d filer.
+87=Kan ikke finde redigeringsprogrammet %d "%s", \n\nvælg venligst et nyt redigeringsprogram for "*.%s" filer.
+88=Redigeringsprogrammet "%s" eksisterer allerede.\nØnsker du at opdatere dets nuværende indstillinger?\n\nJa, for at indlæse og opdatere eksisterende element.\nNej, for at oprette et nyt element med samme sti.
+89=Kan ikke finde standard redigeringsprogrammet, angiv det venligst igen.
+
+; Modify Dialog 2
+90=&Vindue
+91=0 - Normal
+92=1 - Maksimeret
+93=2 - Minimeret
+94=Ikon&fil
+95=Vis &altid i hovedmenu
+
+; Option Dialog 2
+100=Dok til højre for markerede fil
+101=Dok i modsatte vindue
+102=Centreret i vinduet
+
+; Messages2
+110=Konfigurationen af redigeringsprogram %d er ødelagt, korriger det venligst.

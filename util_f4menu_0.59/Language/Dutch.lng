@@ -1,0 +1,122 @@
+Nederlands
+; For F4Menu ver 0.50
+; Creator: Shanny (shannycn@gmail.com)
+; Translated by RolandD
+
+; Language Name & Common words
+0=Ja
+1=Nee
+2=&OK
+3=&Annuleren
+4=&Toepassen
+5=Sluiten
+6=Naam
+7=Pad
+8=Parameters
+9=Modus
+10=Extensies
+11=Pictogram
+12=Scherm
+13=Uitvoerbare bestanden
+14=Alle bestanden
+
+; Main Menu
+15=Ander Programma...
+16=Instellingen...
+17=Over F4Menu...
+; Common words 2
+18=Begin pad
+19=Icoon bestanden (*.exe;*.dll;*.ico;*.icl)
+
+; Context Menu
+20=&Koppeling maken en open
+21=&Alleen openen
+22=&Standaard bewerkingsprogramma
+23=&Koppeling verwijderen
+24=&Verwijderen
+25=&Wijzig...
+26=Sorteer op &Naam
+27=Asso&cieer
+28=Altijd &Tonen in Hoofdmenu
+29=&Meer programma's
+
+; Modify Dialog
+30=F4Menu Wijzig Bewerkingsprogramma
+31=&Naam
+32=&Pad
+33=Para&meters
+34=&Open
+35=&Extensies
+36=&Pictogram
+37=0 - Open elk bestand apart
+38=1 - Open alle bestanden als een lijst
+39=&Begin pad
+
+; Settings Dialog
+40=F4Menu Instellingen
+41=O&pties
+42=&Toevoegen
+43=&Wijzig
+44=&Verwijder
+45=Bestand
+46=Lijst
+
+; About Dialog
+47=Over F4Menu
+48=Hoofdmenu
+
+; Options Dialog
+50=F4Menu Opties
+51=&Over
+52=&Taal
+53=&Maximum aantal bestanden openen (0-31)
+54=&Keuze menu tonen op positie van
+55=Huidige bestand
+56=Muis aanwijzer
+57=Toon &aanwijzingen op keuze menu
+58=Werkwijze <-> Activeer toets
+59=&Voorgrond modus, altijd keuze menu tonen
+60=&Achtergrond modus, alleen tonen indien nodig
+61=Actie voor annuleren keuze menu
+62=Annuleer en open &gekozen bestanden
+63=Annulee&r en annuleer alle gekozen bestanden
+64=Hu&idige bestand overslaan en doorgaan met volgende
+65=&Deselecteer geopende bestanden
+66=Alleen aanwijzingen
+67=Alleen bewerkingsprogramma info
+68=Aanwijzingen en bewerkingsprogramma info
+69=&Standaard open modus (Open betanden direct met standaard bewerkingsprogramma)
+
+; ToolTips
+70=Open met systeem geassocieerd programma
+71=Standaard bewerkingsprogramma
+72=Ctrl + Enter/Klik om te associeren en openen\nEnter/Klik om alleen te openen
+73=Spatie om te openen met eerst gevonden bewerkingsprogramma
+74=Klik en sleep om onderdeel te verplaatsen
+75=Rechter muis klik om context menu te tonen
+76=Kies een nieuw programma voor deze extensie
+
+; Messages
+;80=Gebruik Total Commander snelkoppeling toets F4 om F4Menu te starten.\n\nDit kan ingesteld worden bij Configuratie -> Opties -> Wijzig/Toon -> Bewerkingsprogramma voor F4.
+81=Kies een onderdeel.
+82=Weet u zeker dat u dit onderdeel wil verwijderen?
+83=Weet u zeker dat u deze %d onderdelen wil verwijderen?
+84=Controleer naam bewerkingsprogramma.
+85=Kan het opgegeven bewerkingsprogramma niet vinden, controleer het pad.
+86=Teveel bestanden geselecteerd, alleen de eerste %d bestanden worden geopened.
+87=Kan het bewerkingsprogramma %s niet vinden, \n\nKies een nieuw bewerkingsprogramma voor "*.%s" bestanden.
+88=Het bewerkingsprogramma "%s" bestaat al. De bestaande configuratie bijwerken?\n\nJa, om bestaand onderdeel bij te werken.\nNee, om een nieuw onderdeel met identiek pad aan te maken.
+89=Kan standaard bewerkingsprogramma niet vinden, stel het nogmaals in a.u.b.
+; Modify Dialog 2
+90=&Uitvoeren
+91=0 - Normaal venster
+92=1 - Gemaximaliseerd
+93=2 - Geminimaliseerd
+94=Icoon &Bestand
+95=&Altijd tonen in hoofdmenu
+; Option Dialog 2
+100=Rechts geplaatsts van huidig bestand
+101=In tegenovergesteld scherm plaatsen
+102=Gecentreerd scherm
+; Messages2
+110=Configuratie van bewerkingsprogramma %d is beschadigd, herstel dit a.u.b.

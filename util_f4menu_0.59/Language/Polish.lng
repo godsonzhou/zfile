@@ -1,0 +1,128 @@
+Polski
+; For F4Menu ver 0.50
+; Creator/Translator: Shanny (shannycn@gmail.com)
+; Date: 2007-10-01
+; Polish translation: dong
+; Date: 2010-09-06
+
+;Common words
+0=Tak
+1=Nie
+2=OK
+3=Anuluj
+4=&Zastosuj
+5=Zamknij
+6=Nazwa
+7=Œcie¿ka
+8=Parametry
+9=Tryb
+10=Rozszerzenia
+11=Ikona
+12=Okno
+13=Pliki wykonywalne (*.exe;*.bat;*.com)
+14=Wszystkie pliki (*.*)
+
+; Main Menu
+15=I&nny program...
+16=&Ustawienia...
+17=&O programie F4Menu...
+
+; Common words 2
+18=Œcie¿ka pocz¹tkowa
+19=Pliki ikon (*.exe;*.dll;*.ico;*.icl)
+
+; Context Menu
+20=Skojarz i &otwórz
+21=&Tylko otwórz
+22=Ustaw jako edytor &domyœlny
+23=Usuñ &skojarzenie
+24=&Usuñ
+25=&Modyfikuj...
+26=Sortuj wed³ug &nazwy
+27=&Skojarz
+28=&Zawsze pokazuj w g³ównym menu
+29=&Wiêcej programów
+
+; Modify Dialog
+30=Modyfikacja edytora F4Menu
+31=&Nazwa
+32=Œ&cie¿ka
+33=&Parametry
+34=&Tryb otwierania
+35=&Rozszerzenia
+36=&Ikona
+37=0 - Otwórz ka¿dy plik oddzielnie
+38=1 - Otwórz wszystkie pliki jako listê
+39=Œci&e¿ka pocz¹t.
+
+; Settings Dialog
+40=Ustawienia F4Menu
+41=&Opcje
+42=&Dodaj
+43=&Modyfikuj
+44=&Usuñ
+45=Plik
+46=Lista
+
+; About Dialog
+47=O programie F4Menu
+48=Menu g³ówne
+
+; Options Dialog
+50=Opcje F4Menu
+51=O programi&e
+52=&Jêzyk
+53=&Maksymalna liczba otwieranych plików (0-31)
+54=Menu wybierania p&ojawia siê
+55=Z prawej strony, obok aktualnego pliku
+56=Przy kursorze myszki
+57=&Poka¿ podpowiedzi do menu wybierania
+58=Tryb uruchamiania <-> Klawisz skrótu
+59=Tryb pierwszego planu (&zawsze pokazuje menu wybierania), inaczej zostanie uruchomiony w trybie t³a
+60=&Tryb t³a (pokazuje tylko, je¿eli jest to konieczne), inaczej zostanie uruchomiony w trybie pierwszego planu
+61=Dzia³anie po anulowaniu otwarcia zaznaczonego pliku (klawisz: ESC) z menu wybierania
+62=Przer&wij i otwórz przetworzone pliki
+63=Przerwij i an&uluj otwarcie wszystkich zazanaczonych plików
+64=Pomiñ a&ktualny plik i kontynuuj nastêpny
+65=O&dznacz otwierane pliki
+66=Tylko podpowiedzi
+67=Tylko informacje edytora
+68=Podpowiedzi i informacje edytora
+69=Domyœlny tryb otwierania (&bezpoœrednio otwiera pliki domyœlnym edytorem)
+
+; ToolTips
+70=Otwiera programem skojarzonym przez system
+71=Edytor domyœlny
+72=Ctrl + Enter/Klikniêcie: skojarz i otwórz\nEnter/Klikniêcie: tylko otwórz
+73=Spacja: otwórz pierwszym skojarzonym edytorem
+74=Przeci¹gnij i opuœæ, by przesun¹æ pozycjê
+75=Kliknij prawym przyciskiem myszki, by zobaczyæ menu kontekstowe
+76=Wybiera nowy program dla tego rozszerzenia
+
+; Messages
+80=Uruchom F4Menu w nastêpuj¹cy sposób:\n\nF4Menu.exe [-q | -m] [lista_plików]\n-q\t\tTryb cichy\n\t\tJe¿eli nie wyszczególniono plików do otwarcia, nie wyœwietla ¿adnego okna dialogowego.\n-m\t\tTryb menu\n\t\tJe¿eli nie wyszczególniono plików do otwarcia, wyœwietla menu g³ówne.\nlista_plików\tRozdzielone spacjami nazwy plików\n\t\tPlik, który posiada w nazwie spacjê, nale¿y odseparowaæ cudzys³owem.\n\t\tJe¿eli wyszczególniono pliki do otwarcia, parametry '-q' oraz '-m' s¹ ignorowane.\n\nLub te¿ u¿yj klawisza skrtótu 'F4', aby uruchomiæ F4Menu.\nMo¿esz go skonfigurowaæ, wybieraj¹c w programie TC: Konfiguracja -> Opcje -> Podgl¹d/Edycja -> Edytor dla F4.
+81=Zaznacz pozycjê.
+82=Czy na pewno chcesz usun¹æ zaznaczon¹ pozycjê?
+83=Liczba wybranych pozycji: %d. Czy na pewno chcesz usun¹æ wszystkie zaznaczone pozycje?
+84=SprawdŸ nazwê edytora.
+85=Nie mo¿na znaleŸæ okreœlonego edytora. SprawdŸ œcie¿kê dostêpu.
+86=Zaznaczono zbyt du¿o plików. Czy chcesz, aby otworzyæ je wszystkie?\n\nJe¿eli wybierzesz przycisk 'Tak', zostan¹ otwarte wszystkie zaznaczone pliki.\nJe¿eli wybierzesz przycisk 'Nie', zostanie otwartych tylko %d pierwszych plików.
+87=Nie mo¿na znaleŸæ edytora %d "%s", \n\nwybierz nowy edytor dla plików z rozszerzeniem "*.%s".
+88=Edytor "%s" ju¿ istnieje.\nCzy chcesz uaktualniæ istniej¹c¹ konfiguracjê?\n\nWybranie przycisku 'Tak' spowoduje za³adowanie i uaktualnienie istniej¹cej pozycji\nWybranie przycisku 'Nie' spowoduje utworzenie nowej pozycji z tak¹ sam¹ œcie¿k¹ dostêpu.
+89=Nie mo¿na znaleŸæ domyœlnego edytora. Ustaw go ponownie.
+
+; Modify Dialog 2
+90=&Okno
+91=0 - Normalne
+92=1 - Maksymalizuj
+93=2 - Minimalizuj
+94=Plik i&kony
+95=&Zawsze pokazuj w g³ównym menu
+
+; Option Dialog 2
+100=Zadokowany, z prawej strony aktual. pliku
+101=Zadokowany, w przeciwleg³ym panelu
+102=W œrodku okna
+
+; Messages2
+110=Konfiguracja edytora %d jest uszkodzona. Popraw j¹.

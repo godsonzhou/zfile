@@ -14,6 +14,7 @@ namespace zfile
 		
 			_variableHandlers = new Dictionary<string, Func<string[], string>>
             {
+				{ "1", HandleFileNames},
 				{ "F", HandleLongFileNames },         // %F - 长文件名
                 { "f", HandleFileNames },         // %f - 文件名
                 { "d", HandleDirectories },       // %d - 目录路径

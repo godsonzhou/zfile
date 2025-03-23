@@ -182,7 +182,9 @@ namespace zfile
 					case 330: // cm_srcnegorder
 						do_cm_srcnegorder();
 						break;
-
+					case 483: // cm_CustomColumnConfig
+						owner.OpenOptions("自定义视图");
+						break;
 					case 490:   //cm_config
 						owner.OpenOptions(param);
 						break;

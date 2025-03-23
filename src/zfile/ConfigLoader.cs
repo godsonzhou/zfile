@@ -123,6 +123,24 @@ namespace zfile
 		{
 			return sections.FirstOrDefault(s => s.Name == sectionName);
 		}
+		public bool SetConfigValue(string sectionName, string key, string value)
+		{
+			var section = sections.FirstOrDefault(s => s.Name == sectionName);
+			if (section == null)
+			{
+				return false;
+			}
+			var item = section.Items.FirstOrDefault(i => i.Key == key);
+			if (item == null)
+			{
+				section.Items.Add(new ConfigItem { Key = key, Value = value });
+			}
+			else
+			{
+				item.Value = value;
+			}
+			return true;
+		}
 
 		// 根据编号或名字归类配置项
 		public Dictionary<string, List<ConfigItem>> GroupConfigItemsByNumberOrName()

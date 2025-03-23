@@ -534,10 +534,10 @@ namespace zfile
 			uiManager.BookmarkManager.AddBookmark(node, isleft);
 		}
 
-		public void OpenOptions()
+		public void OpenOptions(string param)
 		{
 			// 打开Options窗口
-			OptionsForm optionsForm = new OptionsForm(this);
+			OptionsForm optionsForm = new OptionsForm(this, param);
 			if (optionsForm.ShowDialog() == DialogResult.OK)
 			{
 				// 更新热键映射

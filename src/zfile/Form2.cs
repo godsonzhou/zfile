@@ -135,8 +135,10 @@ namespace zfile
         private Panel viewModePanel;
         // 添加视图自动切换规则配置面板
         private Panel autoSwitchViewPanel;
-		public OptionsForm(Form1 mainForm)
+		private string _node;
+		public OptionsForm(Form1 mainForm, string node)
         {
+			_node = node;
             InitializeComponent();
 			Size = new Size(1024, 768);
             //this.commandHotkeys = commandHotkeys;
@@ -577,6 +579,10 @@ namespace zfile
                 DropDownStyle = ComboBoxStyle.DropDownList
             };
             fontComboBox.Items.AddRange(FontFamily.Families.Select(f => f.Name).ToArray());
+			var font = mainForm.configLoader.FindConfigValue("AllResolutions", "FontName");
+			var fontDlg = mainForm.configLoader.FindConfigValue("AllResolutions", "FontNameDialog");
+			var fontWin = mainForm.configLoader.FindConfigValue("AllResolutions", "FontNameWindow");
+			fontComboBox.Text = font;
             fontComboBox.SelectedIndexChanged += FontComboBox_SelectedIndexChanged;
             fontPanel.Controls.Add(fontComboBox);
 
@@ -815,7 +821,8 @@ namespace zfile
 			// 保存WLX配置
 			mainForm.wlxModuleList.SaveConfiguration();
 			mainForm.wcxModuleList.SaveConfiguration();
-			
+			// save font
+			mainForm.configLoader.SetConfigValue("AllResolutions", "FontName", fontComboBox.Text);
 			// 应用视图自动切换规则的更改
 			if (autoSwitchViewPanel.Visible && autoSwitchViewPanel.Controls.Count > 0)
 			{

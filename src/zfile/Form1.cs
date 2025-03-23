@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using WinShell;
+using Zfile;
 using Keys = System.Windows.Forms.Keys;
 namespace zfile
 {
@@ -18,6 +19,7 @@ namespace zfile
 		public readonly CFGLOADER ftpconfigLoader;
 		public readonly CFGLOADER userConfigLoader;
 		public readonly CFGLOADER cmdicons_configloader;
+		public readonly ViewMgr viewMgr;
 		public readonly IconManager iconManager;
 		public readonly ThemeManager themeManager;
 		private readonly FilePreviewManager previewManager = new();
@@ -161,6 +163,7 @@ namespace zfile
 			ftpconfigLoader = new CFGLOADER(Constants.ZfileCfgPath + "wcx_ftp.ini");
 			cmdicons_configloader = new CFGLOADER(Constants.ZfileCfgPath + "wcmicons.inc");
 			userConfigLoader = new CFGLOADER(Constants.ZfileCfgPath + "user.ini");
+			viewMgr = new ViewMgr(this);
 			fTPMGR = new FTPMGR(this);
 			cmdProcessor = new CmdProc(this);
 			lLM_Helper = new LLM_Helper(this);

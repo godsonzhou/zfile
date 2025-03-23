@@ -12,7 +12,7 @@ namespace zfile
 	// 定义配置节类
 	public class ConfigSection
 	{
-		public string Name { get; set; }
+		public string Name { get; set; }	//section name
 		public List<ConfigItem> Items { get; set; }
 
 		public ConfigSection()

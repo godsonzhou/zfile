@@ -48,6 +48,11 @@ namespace zfile
 
 			Controls.Add(layout);
 		}
+
+		private void InitializeComponent()
+		{
+
+		}
 	}
 	// 添加插件映射对话框
 	public class AddPluginMappingForm : Form
@@ -133,6 +138,7 @@ namespace zfile
 		public OptionsForm(Form1 mainForm)
         {
             InitializeComponent();
+			Size = new Size(1024, 768);
             //this.commandHotkeys = commandHotkeys;
             this.mainForm = mainForm;
 			this.wcxModuleList = mainForm.wcxModuleList;

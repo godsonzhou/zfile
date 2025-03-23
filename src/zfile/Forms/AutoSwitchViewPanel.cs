@@ -8,10 +8,11 @@ namespace zfile
         private Form1 mainForm;
         private CheckBox enableAutoSwitchCheckBox;
         private ComboBox ruleTypeComboBox;
-        
-        //private ListBox fileTypeListBox;
+		private string ruletypeString = "+:完全符合\n-:完全不符合\n%:至少有一半符合\n2:至少有一个符合\nD:文件夹\nL:含驱动器符\nU:网络路径：IV服务器\nV:虚拟文件夹\nF: FTP 连接\nA:压缩文件\nP:文件系统插件\nS:搜索结果";
 
-        public AutoSwitchViewPanel(Form1 mainForm)
+		//private ListBox fileTypeListBox;
+
+		public AutoSwitchViewPanel(Form1 mainForm)
         {
             this.mainForm = mainForm;
             InitializeComponents();
@@ -50,6 +51,7 @@ namespace zfile
             grid.Columns.Add("RuleType", "规则类型");
             grid.Columns.Add("FileTypes", "文件类型");
             grid.Columns.Add("ViewMode", "视图模式");
+			grid.Columns[0].Width = 70;
 
             Controls.Add(grid);
 
@@ -95,15 +97,22 @@ namespace zfile
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 MultiSelect = false
             };
-
-            // 添加规则类型列（ComboBox列）
-            var ruleTypeColumn = new DataGridViewComboBoxColumn
+			// add operator column
+			var operatorColumn = new DataGridViewComboBoxColumn
+			{
+				HeaderText = "操作符",
+				Name = "OperatorColumn",
+				Width = 60
+			};
+			operatorColumn.Items.AddRange(new object[] { "且", "或" });
+			// 添加规则类型列（ComboBox列）
+			var ruleTypeColumn = new DataGridViewComboBoxColumn
             {
                 HeaderText = "规则",
                 Name = "RuleTypeColumn",
                 Width = 100
             };
-            ruleTypeColumn.Items.AddRange(new object[] { "至少有一半符合", "完全符合", "至少有一个符合" });
+            ruleTypeColumn.Items.AddRange(ruletypeString.Split('\n'));
 
             // 添加文件类型列（文本框列）
             var fileTypeColumn = new DataGridViewTextBoxColumn
@@ -122,10 +131,11 @@ namespace zfile
             };
 
             // 添加列到DataGridView
+			ruleDetailGrid.Columns.Add(operatorColumn);
             ruleDetailGrid.Columns.Add(ruleTypeColumn);
             ruleDetailGrid.Columns.Add(fileTypeColumn);
             ruleDetailGrid.Columns.Add(viewModeColumn);
-
+			ruleDetailGrid.Columns[0].Width = 60;
             // 创建按钮面板
             FlowLayoutPanel subRuleButtonPanel = new FlowLayoutPanel
             {
@@ -133,13 +143,15 @@ namespace zfile
                 Width = 600,
                 Height = 30,
                 FlowDirection = FlowDirection.LeftToRight,
-                Padding = new Padding(5)
+                Padding = new Padding(0)
             };
 
             Button btnAddSubRule = new Button { Text = "增加子规则(M)", Width = 120 };
             Button btnDeleteSubRule = new Button { Text = "减少子规则(F)", Width = 120 };
-
-            subRuleButtonPanel.Controls.AddRange(new Control[] { btnAddSubRule, btnDeleteSubRule });
+			Label applytoviewLabel = new Label { Text = "应用到视图", Location = new Point(260, 20),  Width = 120 };
+			ComboBox applytoviewCombo = new ComboBox { Text = "默认", Width = 120 };
+			applytoviewCombo.Items.AddRange(mainForm.viewMgr.viewModes.Values.Select(v => v.Name).ToArray());
+			subRuleButtonPanel.Controls.AddRange(new Control[] { btnAddSubRule, btnDeleteSubRule, applytoviewLabel, applytoviewCombo });
 
             // 添加事件处理
             btnAddSubRule.Click += (s, e) => AddSubRule();
@@ -157,13 +169,15 @@ namespace zfile
         private void LoadRules()
         {
             // 加载示例规则
-            grid.Rows.Add("文件扩展名", "*.mp4;*.mkv;*.avi", "视频");
-            grid.Rows.Add("文件扩展名", "*.jpg;*.png;*.gif", "图片");
-            grid.Rows.Add("文件扩展名", "*.mp3;*.wav;*.flac", "音频");
-            grid.Rows.Add("文件扩展名", "*.doc;*.docx;*.pdf", "文档");
-            grid.Rows.Add("文件名通配符", "*源代码*;*source*", "源码");
-            grid.Rows.Add("文件夹路径", "C:\\Program Files\\*", "程序");
-        }
+			foreach(var r in mainForm.viewMgr.viewSwitchRules.Values)
+				grid.Rows.Add(r.rules.Substring(0,1), r.rules.Substring(1), r.mode);
+			//grid.Rows.Add("文件扩展名", "*.mp4;*.mkv;*.avi", "视频");
+			//grid.Rows.Add("文件扩展名", "*.jpg;*.png;*.gif", "图片");
+			//grid.Rows.Add("文件扩展名", "*.mp3;*.wav;*.flac", "音频");
+			//grid.Rows.Add("文件扩展名", "*.doc;*.docx;*.pdf", "文档");
+			//grid.Rows.Add("文件名通配符", "*源代码*;*source*", "源码");
+			//grid.Rows.Add("文件夹路径", "C:\\Program Files\\*", "程序");
+		}
 
         private void AddRule()
         {
@@ -171,7 +185,7 @@ namespace zfile
             string newRuleType = "文件扩展名";
             string newFileTypes = "*.txt";
             string newViewMode = "默认";
-            grid.Rows.Add(newRuleType, newFileTypes, newViewMode);
+            grid.Rows.Add("且", newRuleType, newFileTypes, newViewMode);
             
             // 选中新添加的行
             int newRowIndex = grid.Rows.Count - 1;
@@ -191,7 +205,7 @@ namespace zfile
         private void AddSubRule()
         {
             // 添加新的子规则
-            ruleDetailGrid.Rows.Add("至少有一半符合", "*.txt", "默认");
+            ruleDetailGrid.Rows.Add("且", "+:完全符合", "*.txt", "默认");
             
             // 选中新添加的行
             int newRowIndex = ruleDetailGrid.Rows.Count - 1;

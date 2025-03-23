@@ -69,7 +69,10 @@ namespace zfile
                 Width = 320,
                 Location = new Point(220, 10)
             };
-            viewTypeCombo.Items.AddRange(new object[] { "默认", "系统", "程序", "图片", "音频", "视频", "源码", "文档" });
+			//todo: get the combobox items from the mainForm.viewmgr.coldefdict
+			//viewTypeCombo.Items.AddRange(new object[] { "默认", "系统", "程序", "图片", "音频", "视频", "源码", "文档" });
+			var viewmodes = mainForm.viewMgr.colDefDict.Keys.ToArray();
+			viewTypeCombo.Items.AddRange(viewmodes);
             viewTypeCombo.SelectedIndex = 0;
 
             // 排序方式设置
@@ -151,14 +154,18 @@ namespace zfile
         private void LoadViewModes()
         {
             // 加载默认视图模式
-            grid.Rows.Add("默认", "默认视图模式");
-            grid.Rows.Add("系统", "系统文件视图模式");
-            grid.Rows.Add("程序", "程序文件视图模式");
-            grid.Rows.Add("图片", "图片文件视图模式");
-            grid.Rows.Add("音频", "音频文件视图模式");
-            grid.Rows.Add("视频", "视频文件视图模式");
-            grid.Rows.Add("源码", "源代码文件视图模式");
-            grid.Rows.Add("文档", "文档文件视图模式");
+            //grid.Rows.Add("默认", "默认视图模式");
+            //grid.Rows.Add("系统", "系统文件视图模式");
+            //grid.Rows.Add("程序", "程序文件视图模式");
+            //grid.Rows.Add("图片", "图片文件视图模式");
+            //grid.Rows.Add("音频", "音频文件视图模式");
+            //grid.Rows.Add("视频", "视频文件视图模式");
+            //grid.Rows.Add("源码", "源代码文件视图模式");
+            //grid.Rows.Add("文档", "文档文件视图模式");
+			foreach(var v in mainForm.viewMgr.viewModes.Values)
+			{
+				grid.Rows.Add(v.Name, v.Options);
+			}
         }
 
         private void AddViewMode()

@@ -52,6 +52,9 @@ namespace zfile
             grid.Columns.Add("FileTypes", "文件类型");
             grid.Columns.Add("ViewMode", "视图模式");
 			grid.Columns[0].Width = 70;
+            
+            // 添加选择变更事件处理
+            grid.SelectionChanged += Grid_SelectionChanged;
 
             Controls.Add(grid);
 
@@ -223,5 +226,53 @@ namespace zfile
         }
 
      
+        private void Grid_SelectionChanged(object sender, EventArgs e)
+        {
+            // 清空子规则表格
+            ruleDetailGrid.Rows.Clear();
+            
+            // 检查是否有选中的行
+            if (grid.SelectedRows.Count > 0)
+            {
+                var selectedRow = grid.SelectedRows[0];
+                string ruleType = selectedRow.Cells[0].Value?.ToString() ?? "";
+                string fileTypes = selectedRow.Cells[1].Value?.ToString() ?? "";
+                string viewMode = selectedRow.Cells[2].Value?.ToString() ?? "";
+                
+                // 构建完整规则字符串用于查找
+                string fullRule = ruleType + fileTypes;
+                
+                // 在viewSwitchRules字典中查找匹配的规则
+                foreach (var rule in mainForm.viewMgr.viewSwitchRules.Values)
+                {
+                    if (rule.rules.Substring(1) == fileTypes && rule.mode == viewMode)
+                    {
+                        // 找到匹配的规则，解析子规则并添加到ruleDetailGrid
+                        string[] subRules = rule.rules.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+                        
+                        // 第一个子规则是主规则类型，从第二个开始是子规则
+                        for (int i = 0; i < subRules.Length; i++)
+                        {
+                            string subRule = subRules[i];
+                            if (subRule.Length > 1)
+                            {
+                                string subRuleType = subRule.Substring(0, 1);
+                                string subRuleValue = subRule.Substring(1);
+                                
+                                // 添加到子规则表格
+                                string operatorValue = i == 1 ? "且" : "或"; // 第一个子规则默认为"且"，其余为"或"
+                                
+                                // 查找规则类型对应的显示文本
+                                string ruleTypeText = ruletypeString.Split('\n')
+                                    .FirstOrDefault(r => r.StartsWith(subRuleType)) ?? subRuleType + ":未知";
+                                
+                                ruleDetailGrid.Rows.Add(operatorValue, ruleTypeText, subRuleValue, viewMode);
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
     }
 }

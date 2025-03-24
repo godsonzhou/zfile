@@ -371,15 +371,22 @@ namespace zfile
 			}
 		}
 
-		public WlxModule FindModuleForFile(string fileName)
+		public WlxModule FindModuleForFile(string fileName, ref int tryModuleIdx)
 		{
+			var i = 0;
 			foreach(var module in _modules)
 			{
-				if (IsModuleSupported(module, fileName))
+				if (i > tryModuleIdx)
 				{
-					return module;
+					if (IsModuleSupported(module, fileName))
+					{
+						tryModuleIdx = i;
+						return module;
+					}
 				}
+				i++;
 			}
+			tryModuleIdx = i;
 			return null;
 			//return _modules.FirstOrDefault(m => IsModuleSupported(m, fileName));//TODO BUGFIX: 应该按照configdict的配置次序依次查找， 而不是_modules的次序（文件系统的顺序）
 		}
@@ -392,12 +399,24 @@ namespace zfile
 				if(_configDict.TryGetValue(module.Name.ToUpper(), out string val))
 					return isModuleSupport(val, fileName);
 				else
-					return false;
+					return true;
 			}
 
 			return isModuleSupport(module.DetectString, fileName);
 		}
-		private bool isModuleSupport(string DetectString, string fileName)
+		private bool isModuleSupport(string DetectString, string filename)
+		{
+			var p = new Dictionary<string, string>();
+			var ext = Path.GetExtension(filename).ToLower().Trim('.');
+			DetectString = DetectString.ToLower().Replace('"', '\'').Replace("[", $"'{ext.Reverse()}'["); //replace " with '
+			var evaluator = new ExpressionEvaluatorClaude();
+			p["ext"] = $"'{ext}'";
+			p["size"] = "1";
+			p["multimedia"] = ".true."; //temp ignore multimedia &
+			p["force"] = ".false."; // temp ignore force |
+			return (bool)evaluator.EvalExpr(DetectString, p);
+		}
+		private bool isModuleSupportBak(string DetectString, string fileName)
 		{
 			DetectString = DetectString.ToLower();
 			var isMultimedia = (DetectString.Contains("multimedia",StringComparison.OrdinalIgnoreCase));

@@ -203,11 +203,23 @@ public class ExpressionEvaluatorDS
 					}
 					break;
 
-				case TokenType.Operator:
-					while (stack.Count > 0 && stack.Peek().Type == TokenType.Operator &&
-						(precedence[token.Value].prec < precedence[stack.Peek().Value].prec ||
-						(precedence[token.Value].prec == precedence[stack.Peek().Value].prec &&
-						!precedence[token.Value].rightAssoc)))
+				//case TokenType.Operator:	// bug #1 exist: (1+2)*3, error: not enough operand
+				//	while (stack.Count > 0 && stack.Peek().Type == TokenType.Operator &&
+				//		(precedence[token.Value].prec < precedence[stack.Peek().Value].prec ||
+				//		(precedence[token.Value].prec == precedence[stack.Peek().Value].prec &&
+				//		!precedence[token.Value].rightAssoc)))
+				//	{
+				//		output.Add(stack.Pop());
+				//	}
+				//	stack.Push(token);
+				//	break;
+				case TokenType.Operator://bugfix #1
+					// 修复优先级判断逻辑
+					while (stack.Count > 0 && stack.Peek().Value != "(" &&
+						(precedence.ContainsKey(stack.Peek().Value) &&
+						 (precedence[token.Value].prec < precedence[stack.Peek().Value].prec ||
+						  (precedence[token.Value].prec == precedence[stack.Peek().Value].prec &&
+						   !precedence[token.Value].rightAssoc))))
 					{
 						output.Add(stack.Pop());
 					}

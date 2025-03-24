@@ -215,13 +215,16 @@ namespace zfile
 				CleanupCurrentView();
 
 				// 检查是否有插件可以处理
-				_currentPlugin = _pluginList.FindModuleForFile(_fileName);
-				if (_currentPlugin != null)
-				{
-					LoadWithPlugin();
-					return;
+				int tryModuleIdx = -1; //依次尝试所有的module
+				while (tryModuleIdx < _pluginList._modules.Count) {
+					_currentPlugin = _pluginList.FindModuleForFile(_fileName, ref tryModuleIdx);
+					if (_currentPlugin != null)
+					{
+						var loadsuccess = LoadWithPlugin();  //should consider load fail
+						if (loadsuccess)
+							return;
+					}
 				}
-
 				// 检查文件类型
 				string extension = Path.GetExtension(_fileName).ToLower();
 				if (IsImageFile(extension))
@@ -265,7 +268,7 @@ namespace zfile
 			}
 		}
 
-		private void LoadWithPlugin()
+		private bool LoadWithPlugin()
 		{
 			_isPlugin = true;
 
@@ -308,7 +311,9 @@ namespace zfile
 				container.Visible = true;
 				// 设置插件窗口位置和大小
 				//SetPluginWindowBounds();
+				return true;
 			}
+			return false;
 		}
 		// 在窗体Resize事件中更新位置
 		protected override void OnResize(EventArgs e)

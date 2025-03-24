@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
 // 表达式求值器 doubao
-class ExpressionEvaluator
+class ExpressionEvaluator1
 {
-	public static object EvaluateExpr(string expr, Dictionary<string, string> parameters)
+	public static object EvaluateExprDoubao(string expr, Dictionary<string, string> parameters)
 	{
 		// 替换参数
 		foreach (var param in parameters)

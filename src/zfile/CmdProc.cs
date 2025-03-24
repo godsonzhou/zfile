@@ -647,7 +647,7 @@ namespace zfile
 						dict[kv[0]] = kv[1];
 				}
 			}
-			var result = ExpressionEvaluator.EvaluateExpr(expr, dict);
+			var result = new ExpressionEvaluatorClaude().EvalExpr(expr, dict);
 			MessageBox.Show($"表达式 {expr} 的计算结果为 {result}", "提示");
 			return result.ToString();
 		}

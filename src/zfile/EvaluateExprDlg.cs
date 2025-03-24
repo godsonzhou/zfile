@@ -216,7 +216,7 @@ namespace zfile
 
             try
             {
-                var result = ExpressionEvaluator.EvaluateExpr(expr, parameters);
+                var result = new ExpressionEvaluatorClaude().EvalExpr(expr, parameters);
                 resultTextBox.Text = result.ToString();
             }
             catch (Exception ex)

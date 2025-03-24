@@ -597,6 +597,12 @@ namespace zfile
 					case 11441:
 						do_cm_QueryMcpServer(param);
 						break;
+					case 11442:
+						do_cm_evaluateExpr(param);
+						break;
+					case 11443:
+						do_cm_evaluateExprDlg(param);
+						break;
 
 					case 24340:
 						Form1.ExitApp();
@@ -619,6 +625,31 @@ namespace zfile
 			//{
 			//	throw new KeyNotFoundException("命令ID不存在");
 			//}
+		}
+		private void do_cm_evaluateExprDlg(string param)
+		{
+			var dlg = new EvaluateExprDlg(param);
+			dlg.ShowDialog();
+		}
+		private string do_cm_evaluateExpr(string param)
+		{
+			var parameters = param.Split(' ');
+			var paramcount = param.Length;
+			string expr = "1+2*3";
+			Dictionary<string, string> dict = new();
+			if (paramcount > 0) expr = parameters[0];
+			if (paramcount > 1)
+			{
+				for (int i = 1; i < paramcount; i++)
+				{
+					var kv = parameters[i].Split('=');
+					if (kv.Length == 2)
+						dict[kv[0]] = kv[1];
+				}
+			}
+			var result = ExpressionEvaluator.EvaluateExpr(expr, dict);
+			MessageBox.Show($"表达式 {expr} 的计算结果为 {result}", "提示");
+			return result.ToString();
 		}
 		private void do_cm_searchstandalone() 
 		{

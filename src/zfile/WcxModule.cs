@@ -485,6 +485,7 @@ namespace zfile
 		{
 			IntPtr result = IntPtr.Zero;
 			openResult = (int)WcxResult.PK_UNKNOWN_FORMAT;
+			archiveName = archiveName.ToUpper();
 			if (_isUnicode && _openArchiveW != null)
 			{
 				var archiveDataW = new TOpenArchiveDataW

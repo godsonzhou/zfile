@@ -2363,17 +2363,35 @@ namespace zfile
 				return true;
 
 			string ext = Path.GetExtension(archivePath).ToLower();
-			var wcxModule = wcxModuleList.GetModuleByExt(ext);
-			if (wcxModule == null)
+			
+			// 获取所有支持该后缀名的插件
+			var modules = wcxModuleList._modules.Where(m => m.DetectStrings.Contains(ext.TrimStart('.')));
+			if (!modules.Any())
+			{
+				// 如果没有找到支持该后缀名的插件，尝试使用GetModuleByExt方法
+				var wcxModule = wcxModuleList.GetModuleByExt(ext);
+				if (wcxModule != null)
+					modules = new[] { wcxModule };
+			}
+			
+			if (!modules.Any())
 				return false;
-			if (!wcxModule.CanYouHandleThisFile(archivePath))
-				return false;
-			IntPtr handle = wcxModule.OpenArchive(archivePath, 0, out var openResult);//TODO: BUGFIX: zip.wcx 的函数openarchive 对于zip压缩文件为何不起作用
-			if (handle == IntPtr.Zero)
-				return false;
-
-			openArchives[archivePath] = handle;
-			return true;
+			
+			// 尝试所有支持该后缀名的插件
+			foreach (var wcxModule in modules)
+			{
+				if (!wcxModule.CanYouHandleThisFile(archivePath))
+					continue; // 如果插件不能处理该文件，尝试下一个插件
+				
+				IntPtr handle = wcxModule.OpenArchive(archivePath, 0, out var openResult);
+				if (handle == IntPtr.Zero)
+					continue; // 如果打开失败，尝试下一个插件
+				
+				openArchives[archivePath] = handle;
+				return true; // 成功打开文件，返回true
+			}
+			
+			return false; // 所有插件都无法处理该文件，返回false
 		}
 		public void CloseAllArchives()
 		{

@@ -9,14 +9,14 @@ public class ExpressionEvaluatorDS
 	private record Token(TokenType Type, string Value);
 
 	// 运算符优先级定义
-	private static readonly Dictionary<string, int> Precedence = new()
-	{
-		{ "!", 7 }, { "^", 6 },
-		{ "*", 5 }, { "/", 5 }, { "%", 5 },
-		{ "+", 4 }, { "-", 4 },
-		{ ">", 3 }, { "<", 3 }, { ">=", 3 }, { "<=", 3 }, { "=", 3 }, {"!=", 3 },
-		{ "&", 2 }, { "|", 1 }
-	};
+	//private static readonly Dictionary<string, int> Precedence = new()
+	//{
+	//	{ "!", 7 }, { "^", 6 },
+	//	{ "*", 5 }, { "/", 5 }, { "%", 5 },
+	//	{ "+", 4 }, { "-", 4 },
+	//	{ ">", 3 }, { "<", 3 }, { ">=", 3 }, { "<=", 3 }, { "=", 3 }, {"!=", 3 },
+	//	{ "&", 2 }, { "|", 1 }
+	//};
 
 	public static object EvalExpr(string expr, Dictionary<string, string> parameters)
 	{

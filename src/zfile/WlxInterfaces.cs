@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 /*
 ********************************************************************
@@ -376,11 +377,12 @@ namespace zfile
 			var i = 0;
 			foreach(var module in _modules)
 			{
-				if (i > tryModuleIdx)
+				if (i > tryModuleIdx) //已经尝试过的模块不再尝试
 				{
 					if (IsModuleSupported(module, fileName))
 					{
 						tryModuleIdx = i;
+						Debug.Print("try to use #{i} module ");
 						return module;
 					}
 				}

@@ -76,9 +76,10 @@ namespace zfile
                 Size = new Size(80, 30),
             };
             clearParamButton.Click += ClearParamButton_Click;
-
-            // 结果输出框
-            Label resultLabel = new Label
+			// 添加双击事件处理
+			paramListView.DoubleClick += ParamListView_DoubleClick;
+			// 结果输出框
+			Label resultLabel = new Label
             {
                 Text = "计算结果:",
                 Location = new Point(10, 300),
@@ -126,13 +127,60 @@ namespace zfile
                 closeButton
             });
         }
+		// 添加新的事件处理方法
+		private void ParamListView_DoubleClick(object sender, EventArgs e)
+		{
+			if (paramListView.SelectedItems.Count > 0)
+			{
+				ListViewItem selectedItem = paramListView.SelectedItems[0];
+				Point mousePos = paramListView.PointToClient(Cursor.Position);
+				ListViewHitTestInfo hitTest = paramListView.HitTest(mousePos);
 
-        private void AddParamButton_Click(object sender, EventArgs e)
+				if (hitTest.SubItem != null)
+				{
+					// 创建文本框进行编辑
+					TextBox editBox = new TextBox
+					{
+						Location = hitTest.SubItem.Bounds.Location,
+						Size = hitTest.SubItem.Bounds.Size,
+						Text = hitTest.SubItem.Text,
+						BorderStyle = BorderStyle.FixedSingle
+					};
+
+					editBox.LostFocus += (s, ev) =>
+					{
+						hitTest.SubItem.Text = editBox.Text;
+						paramListView.Controls.Remove(editBox);
+					};
+
+					editBox.KeyPress += (s, ev) =>
+					{
+						if (ev.KeyChar == (char)Keys.Enter)
+						{
+							hitTest.SubItem.Text = editBox.Text;
+							paramListView.Controls.Remove(editBox);
+							ev.Handled = true;
+						}
+						else if (ev.KeyChar == (char)Keys.Escape)
+						{
+							paramListView.Controls.Remove(editBox);
+							ev.Handled = true;
+						}
+					};
+
+					paramListView.Controls.Add(editBox);
+					editBox.Focus();
+					editBox.SelectAll();
+				}
+			}
+		}
+		private void AddParamButton_Click(object sender, EventArgs e)
         {
             ListViewItem item = new ListViewItem(new[] { "param" + (paramListView.Items.Count + 1), "0" });
             paramListView.Items.Add(item);
 			paramListView.LabelEdit = true;
-            item.BeginEdit();
+			item.Selected = true;
+			item.BeginEdit();
         }
 
         private void DeleteParamButton_Click(object sender, EventArgs e)

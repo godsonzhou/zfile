@@ -18,7 +18,7 @@ namespace zfile
 {
 	public partial class CmdProc
 	{
-		private void do_cm_listExternal(string param)
+		private void cm_listExternal(string param)
 		{
 			string externalViewer = owner.configLoader.FindConfigValue("Configuration", "Viewer");
 			var str = externalViewer.Split(' ');
@@ -203,15 +203,15 @@ namespace zfile
 			var registerForm = new RegisterForm();
 			registerForm.ShowDialog();
 		}
-		private void do_cm_dirtabsshowmenu()
+		private void cm_dirtabsshowmenu()
 		{
 			owner.uiManager.BookmarkManager.OnRightClick();
 		}
-		private void do_cm_visdirtabs()
+		private void cm_visdirtabs()
 		{
 			owner.uiManager.BookmarkManager.ToggleHidePanel(owner.uiManager.isleft);
 		}
-		private void do_cmgotoprevornextselected(bool isprevious = true)
+		private void cm_gotoprevornextselected(bool isprevious = true)
 		{
 			//var selidxs = owner.activeListView.SelectedIndices;
 			var listView = owner.activeListView;
@@ -243,40 +243,40 @@ namespace zfile
 			listView.EnsureVisible(target);
 		}
 
-		private void do_cm_gotofirstfile()
+		private void cm_gotofirstfile()
 		{
 			var firstfile = owner.activeListView.Items.Cast<ListViewItem>().FirstOrDefault(item => !item.SubItems[3].Text.Equals("<DIR>"));
 			//firstfile.Selected = true;
 			var idx = owner.activeListView.Items.IndexOf(firstfile);
 			owner.activeListView.EnsureVisible(idx);
 		}
-		private void do_cm_openrecycled()
+		private void cm_openrecycled()
 		{
 			owner.NavigateToPath("回收站", scope: Form1.TreeSearchScope.desktop);
 		}
-		private void do_cm_openfonts()
+		private void cm_openfonts()
 		{
 
 		}
 
-		private void do_cm_opencontrols()
+		private void cm_opencontrols()
 		{
 			owner.NavigateToPath("控制面板", scope: Form1.TreeSearchScope.desktop);
 		}
 
-		private void do_cm_opennetwork()
+		private void cm_opennetwork()
 		{
 			owner.NavigateToPath("网络", scope: Form1.TreeSearchScope.desktop);
 		}
-		private void do_cm_opendrives()
+		private void cm_opendrives()
 		{
 			owner.NavigateToPath("此电脑", scope: Form1.TreeSearchScope.desktop);
 		}
-		private void do_cm_opendesktop()
+		private void cm_opendesktop()
 		{
 			owner.NavigateToPath("桌面", scope: Form1.TreeSearchScope.full);
 		}
-		public void do_cm_gotoroot()
+		public void cm_gotoroot()
 		{
 			//if (owner.IsActiveFtpPanel(out var ftpnode)) {
 			//	owner.fTPMGR.NavigateToPath(ftpnode.ConnectionName, "/", owner.activeListView);
@@ -296,39 +296,39 @@ namespace zfile
 		{
 			owner.NavigateToPath(drive);
 		}
-		private void do_cm_gotodrivec()
+		private void cm_gotodrivec()
 		{
 			do_cm_gotodrive("c:");
 		}
-		private void do_cm_gotodrived()
+		private void cm_gotodrived()
 		{
 			do_cm_gotodrive("d:");
 		}
-		private void do_cm_gotodrivee()
+		private void cm_gotodrivee()
 		{
 			do_cm_gotodrive("e:");
 		}
-		private void do_cm_gotodrivef()
+		private void cm_gotodrivef()
 		{
 			do_cm_gotodrive("f:");
 		}
-		private void do_cm_gotodriveg()
+		private void cm_gotodriveg()
 		{
 			do_cm_gotodrive("g:");
 		}
-		private void do_cm_gotodriveh()
+		private void cm_gotodriveh()
 		{
 			do_cm_gotodrive("h:");
 		}
-		private void do_cm_gotodrivez()
+		private void cm_gotodrivez()
 		{
 			do_cm_gotodrive("z:");
 		}
-		private void do_cm_gotodrivea()
+		private void cm_gotodrivea()
 		{
 			do_cm_gotodrive("a:");
 		}
-		private void do_cm_gotodriveb()
+		private void cm_gotodriveb()
 		{
 			do_cm_gotodrive("b:");
 		}
@@ -472,7 +472,7 @@ namespace zfile
 			//save ftp config
 			owner.fTPMGR.SaveToCfgloader();
 		}
-		private void do_cm_llm_helper(string param)
+		private void cm_llm_helper(string param)
 		{
 			List<string> filePaths;
 			if (param.Equals(string.Empty))

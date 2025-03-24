@@ -258,7 +258,7 @@ namespace zfile
 						do_cm_rereadsource();
 						break;
 					case 545: // cm_searchstandalone
-						do_cm_searchstandalone();
+						cm_searchstandalone();
 						break;
 					case 550: // cm_ftpconnect
 						ShowFtpConnectionManager();
@@ -353,151 +353,151 @@ namespace zfile
 						owner.cm_renameonly();
 						break;
 					case 1003: // cm_properties
-						ShowFileProperties();
+						cm_properties();
 						break;
 
 					case 2001:
-						do_cm_gotoroot();
+						cm_gotoroot();
 						break;
 					case 2002:
-						do_cm_gotoparent();
+						cm_gotoparent();
 						break;
 					case 2004:
-						do_cm_clearcommand();
+						cm_clearcommand();
 						break;
 					case 2005:
-						do_cm_nextcommand();
+						cm_nextcommand();
 						break;
 					case 2006:
-						do_cm_prevcommand();
+						cm_prevcommand();
 						break;
 
 					case 2011: //命令ID=2011,Name=cmswitchhidsy
-						do_cm_switchhidsys();
+						cm_switchhidsys();
 						break;
 
 					case 2017: // cm_CopyNamesToClip
-						do_cm_CopyNamesToClip();
+						cm_CopyNamesToClip();
 						break;
 					case 2018: // cm_CopyFullNamesToClip 
-						do_cm_CopyFullNamesToClip();
+						cm_CopyFullNamesToClip();
 						break;
 					case 2019: // 命令ID = 2019, Name = cm_addpathtocmdline
-						do_cm_addpathtocmdline();
+						cm_addpathtocmdline();
 						break;
 
 					case 2020: // cm_filesync
-						ShowSyncDirsDialog();
+						cm_filesync();
 						break;
 					case 2022: // cm_comparefilesbycontent
-						CompareFiles(param);
+						cm_comparefilesbycontent(param);
 						break;
 					case 2026:
-						do_cm_DirBranch();
+						cm_DirBranch();
 						break;
 					case 2031: // 命令ID=2031，Name = cmsaveselectiontofile
-						do_cm_saveselectiontofile();
+						cm_saveselectiontofile();
 						break;
 					case 2032:
-						do_cm_loadselectionfromfile();
+						cm_loadselectionfromfile();
 						break;
 					case 2036: // cm_CopyDetailsToClip
-						do_cm_CopyDetailsToClip();
+						cm_CopyDetailsToClip();
 						break;
 					case 2037: // cm_CopyFullDetailsToClip
-						do_cm_CopyFullDetailsToClip();
+						cm_CopyFullDetailsToClip();
 						break;
 
 					case 2050: // 命令ID=2050,Name = cm_gotofirstfile
-						do_cm_gotofirstfile();
+						cm_gotofirstfile();
 						break;
 					case 2053:
-						do_cmgotoprevornextselected(false);
+						cm_gotoprevornextselected(false);
 						break;
 					case 2054: //命令ID=2054,Name = cmgotoprevselected
-						do_cmgotoprevornextselected();
+						cm_gotoprevornextselected();
 						break;
 					case 2061:
-						do_cm_gotodrivea();
+						cm_gotodrivea();
 						break;
 					case 2062:
-						do_cm_gotodriveb();
+						cm_gotodriveb();
 						break;
 					case 2063:
-						do_cm_gotodrivec();
+						cm_gotodrivec();
 						break;
 					case 2064:
-						do_cm_gotodrived();
+						cm_gotodrived();
 						break;
 					case 2065:
-						do_cm_gotodrivee();
+						cm_gotodrivee();
 						break;
 					case 2066:
-						do_cm_gotodrivef();
+						cm_gotodrivef();
 						break;
 					case 2067:
-						do_cm_gotodriveg();
+						cm_gotodriveg();
 						break;
 					case 2068:
-						do_cm_gotodriveh();
+						cm_gotodriveh();
 						break;
 					case 2086:
-						do_cm_gotodrivez();
+						cm_gotodrivez();
 						break;
 
 					case 2121:
-						do_cm_opendesktop();
+						cm_opendesktop();
 						break;
 					case 2122:
-						do_cm_opendrives();
+						cm_opendrives();
 						break;
 					case 2123:
-						do_cm_opencontrols();
+						cm_opencontrols();
 						break;
 					case 2124:
-						do_cm_openfonts();
+						cm_openfonts();
 						break;
 					case 2125:
-						do_cm_opennetwork();
+						cm_opennetwork();
 						break;
 					case 2127:
-						do_cm_openrecycled();
+						cm_openrecycled();
 						break;
 
 					case 2400: // cm_multirename
-						ShowMultiRenameDialog();
+						cm_multirename();
 						break;
 					case 2901:
-						do_cm_visbuttonbar();
+						cm_visbuttonbar();
 						break;
 					case 2902: //命令ID=2902,Name=cmvisdrivebuttons
-						do_cm_visdrivebuttons();
+						cm_visdrivebuttons();
 						break;
 					case 2906:
-						do_cm_visdrivecombo();
+						cm_visdrivecombo();
 						break;
 					case 2909:
-						do_cm_visstatusbar();
+						cm_visstatusbar();
 						break;
 
 					case 2910:
-						do_cm_viscmdline();
+						cm_viscmdline();
 						break;
 					case 2911: // 命令ID=2911,Name=cm_viskeybuttons
-						do_cm_viskeybuttons();
+						cm_viskeybuttons();
 						break;
 					case 2916: // 命令ID=2916,Name=cm_visdirtabs
-						do_cm_visdirtabs();
+						cm_visdirtabs();
 						break;
 					case 2917: // 命令ID=2917，Name=cmswitchoverlayicons
-						do_cm_switchoverlayicons();
+						cm_switchoverlayicons();
 						break;
 
 					case 2924:  //命令ID=2924,Name=cm_commandbrowser尚未实现
-						ShowCommandBrowser();
+						cm_commandbrowser();
 						break;
 					case 2944:
-						do_cm_visbuttonbar2();
+						cm_visbuttonbar2();
 						break;
 
 					case 2950:
@@ -514,15 +514,15 @@ namespace zfile
 						owner.uiManager.BookmarkManager.SwitchToPrevOrNextTab(true);
 						break;
 					case 3007: // 命令ID=3007,Name =cm_closecurrenttab
-						owner.uiManager.BookmarkManager.CloseCurrentTab();
+						owner.uiManager.BookmarkManager.cm_CloseCurrentTab();
 						break;
 					case 3008: // 命令ID=3008,Name=cm_closealltabs
-						owner.uiManager.BookmarkManager.CloseAllTabs();
+						owner.uiManager.BookmarkManager.cm_CloseAllTabs();
 						break;
 					case 3009: // 命令ID=3009,Name=cm_dirtabsshowmenu
-						do_cm_dirtabsshowmenu();
+						cm_dirtabsshowmenu();
 						break;
-					case 3010: // 命令ID=3010Name=cmtogglelockcurrenttab
+					case 3010: // 命令ID=3010Name=cm_togglelockcurrenttab
 						owner.uiManager.BookmarkManager.ToggleCurrentBookmarkLock(owner.uiManager.isleft);
 						break;
 					case 3012:  //lock the bookmark
@@ -530,7 +530,7 @@ namespace zfile
 						break;
 
 					case 3026: // cm_listExternal
-						do_cm_listExternal(param);
+						cm_listExternal(param);
 						break;
 					case 4001: // 命令ID = 4001, Name = cm_focusleft
 						owner.uiManager.LeftList.Focus();
@@ -539,7 +539,7 @@ namespace zfile
 						owner.uiManager.RightList.Focus();
 						break;
 					case 4003:
-						do_cm_focuscmdline();
+						cm_focuscmdline();
 						break;
 
 					case 5001: // 命令ID=5001,Name =cm_srcactivatetab1
@@ -566,13 +566,13 @@ namespace zfile
 						break;
 
 					case 11434: //命令ID=11434,Name=cm_ollama
-						do_cm_llm_helper(param);
+						cm_llm_helper(param);
 						break;
 					case 11435: //网络爬虫
-						do_cm_netCrawler(param);
+						cm_netCrawler(param);
 						break;
 					case 11436: //动态网页爬虫，利用chromedriver和selenium
-						do_cm_ChromeCrawler(param);
+						cm_ChromeCrawler(param);
 						break;
 					case 11437: // API caller
 						var parameters = param.Split(' ');
@@ -582,26 +582,26 @@ namespace zfile
 						if(paramcount> 0) url = parameters[0];
 						if(paramcount> 1) key = parameters[1];
 						if(paramcount> 2) par = parameters[2];
-						do_cm_apicaller(url, key, par);   
+						cm_apicallerDlg(url, key, par);   
 						break;
 
 					case 11438: // mcp client
-						do_cm_mcpConfigUI(param); //param is mcp client config file in which various mcp server is defined
+						cm_mcpConfigUI(param); //param is mcp client config file in which various mcp server is defined
 						break;
 					case 11439: // mcp client with mcpsharp
-						var lst = Task.Run(async () => { await do_cm_GetInfoFromMcpServer(param); });
+						var lst = Task.Run(async () => { await cm_GetInfoFromMcpServer(param); });
 						break;
 					case 11440: // launch mcp server
-						Task.Run(async () => { await do_cm_StartMcpServer(param); } ); // param is servername
+						Task.Run(async () => { await cm_StartMcpServer(param); } ); // param is servername
 						break;
 					case 11441:
-						do_cm_QueryMcpServer(param);
+						cm_QueryMcpServer(param);
 						break;
 					case 11442:
-						do_cm_evaluateExpr(param);
+						cm_evaluateExpr(param);
 						break;
 					case 11443:
-						do_cm_evaluateExprDlg(param);
+						cm_evaluateExprDlg(param);
 						break;
 
 					case 24340:
@@ -626,12 +626,12 @@ namespace zfile
 			//	throw new KeyNotFoundException("命令ID不存在");
 			//}
 		}
-		private void do_cm_evaluateExprDlg(string param)
+		private void cm_evaluateExprDlg(string param)
 		{
 			var dlg = new EvaluateExprDlg(param);
 			dlg.ShowDialog();
 		}
-		private string do_cm_evaluateExpr(string param)
+		private string cm_evaluateExpr(string param)
 		{
 			var parameters = param.Split(' ');
 			var paramcount = param.Length;
@@ -651,7 +651,7 @@ namespace zfile
 			MessageBox.Show($"表达式 {expr} 的计算结果为 {result}", "提示");
 			return result.ToString();
 		}
-		private void do_cm_searchstandalone() 
+		private void cm_searchstandalone() 
 		{
 			cm_searchfor(true);
 		}
@@ -777,7 +777,7 @@ namespace zfile
 				}
 			}
 		}
-		private async Task do_cm_StartMcpServer(string param)
+		private async Task cm_StartMcpServer(string param)
 		{
 			if (string.IsNullOrEmpty(param))
 				param = "mymcpserver";
@@ -799,7 +799,7 @@ namespace zfile
 			MCPServer.Register<MySkillClass>();
 			await MCPServer.StartAsync(param, "1.0.0");
 		}
-		private void do_cm_mcpConfigUI(string mcp_settings_file)
+		private void cm_mcpConfigUI(string mcp_settings_file)
 		{
 			var cfgfile = string.IsNullOrEmpty(mcp_settings_file) ? "zfile_mcp_settings.json" : mcp_settings_file;
 			var configPath = Path.Combine(Constants.ZfileCfgPath, cfgfile);
@@ -808,7 +808,7 @@ namespace zfile
 		}
 
 
-		private async Task<IList<AIFunction>> do_cm_GetInfoFromMcpServer(string param)
+		private async Task<IList<AIFunction>> cm_GetInfoFromMcpServer(string param)
 		{
 			// Client-side integration
 			MCPClient client = new("AIClient", "1.0", string.IsNullOrEmpty(param) ? "mymcpserver" : param);
@@ -819,67 +819,67 @@ namespace zfile
 			var resourceTemplates = await client.GetResourceTemplatesAsync();
 			return functions;
 		}
-		private void do_cm_QueryMcpServer(string param)
+		private void cm_QueryMcpServer(string param)
 		{
 			Task.Run(async () => { await MCP.Launcher([param]); }); //create session and execute query on mcp server
 		}
-		private void do_cm_switchoverlayicons()
+		private void cm_switchoverlayicons()
 		{
 
 		}
-		private void do_cm_visstatusbar()
+		private void cm_visstatusbar()
 		{
 
 		}
-		private void do_cm_visdrivecombo()
+		private void cm_visdrivecombo()
 		{
 
 		}
-		private void do_cm_visdrivebuttons()
+		private void cm_visdrivebuttons()
 		{
 
 		}
-		private void do_cm_switchhidsys()
+		private void cm_switchhidsys()
 		{
 
 		}
-		private void do_cm_prevcommand()
+		private void cm_prevcommand()
 		{
 			owner.uiManager.ftpController.SetPrevCmd();
 		}
-		private void do_cm_nextcommand()
+		private void cm_nextcommand()
 		{
 			owner.uiManager.ftpController.SetNextCmd();
 		}
-		private void do_cm_clearcommand()
+		private void cm_clearcommand()
 		{
 			owner.uiManager.ftpController.SetCmdLine("");
 		}
-		private void do_cm_addpathtocmdline()
+		private void cm_addpathtocmdline()
 		{
 			owner.uiManager.ftpController.SetCmdLine(owner.uiManager.ActivePathTextBox.CurrentNode.UniqueID);
 		}
-		private void do_cm_viskeybuttons()
+		private void cm_viskeybuttons()
 		{
 			owner.uiManager.ToggleToolStrip();
 		}
-		private void do_cm_visbuttonbar()
+		private void cm_visbuttonbar()
 		{
 			owner.uiManager.toolbarManager.TogglePanel();
 		}
-		private void do_cm_visbuttonbar2()
+		private void cm_visbuttonbar2()
 		{
 			owner.uiManager.vtoolbarManager.TogglePanel();
 		}
-		private void do_cm_viscmdline()
+		private void cm_viscmdline()
 		{
 			owner.uiManager.ftpController.TogglePanel();
 		}
-		private void do_cm_focuscmdline()
+		private void cm_focuscmdline()
 		{
 			owner.uiManager.ftpController.SetFocusCmdline();
 		}
-		private void do_cm_apicaller(string url, string key, string param){
+		private void cm_apicallerDlg(string url, string key, string param){
 			APICallerForm form = new APICallerForm(url, key, param);
 			form.Tag = this;
 			form.ShowDialog();
@@ -929,7 +929,7 @@ namespace zfile
 			}
 			return string.Empty;
 		}
-		private string do_cm_ChromeCrawler(string param)
+		private string cm_ChromeCrawler(string param)
 		{
 			try
 			{
@@ -960,7 +960,7 @@ namespace zfile
 			}
 			return string.Empty;
 		}
-		private void do_cm_netCrawler(string param)
+		private void cm_netCrawler(string param)
 		{
 			Task.Run(async () => { await netCrawler(param); } );
 			Debug.Print("crawler run started...");

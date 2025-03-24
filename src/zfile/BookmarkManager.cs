@@ -175,7 +175,7 @@ namespace zfile
 			SetActiveBookmark(targetBookmark, isLeft);
 			NavigateToBookmark(targetBookmark, isLeft);
 		}
-		public void CloseCurrentTab()
+		public void cm_CloseCurrentTab()
 		{
 			// 获取当前活动面板的书签列表
 			var bookmarkList = GetBookmarkList(isLeft);
@@ -369,7 +369,7 @@ namespace zfile
 				ToggleBookmarkLock(bookmark);
 			}
 		}
-		public void CloseAllTabs()
+		public void cm_CloseAllTabs()
 		{
 			RemoveAllUnlockedBookmarks(isLeft);
 		}

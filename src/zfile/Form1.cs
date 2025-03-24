@@ -2997,7 +2997,8 @@ namespace zfile
 			(cmd, arg) = Helper.SplitCommand(pathWithArgs);
 			// 获取可执行文件路径
 			string executablePath = Path.GetFullPath(Regex.Match(cmd, @"^.*?\.exe").Value);
-			API.ShellExecute(IntPtr.Zero, "open", executablePath, arg.Replace("\"",""), Path.GetDirectoryName(executablePath), (int)SW.SHOWNORMAL);
+			//API.ShellExecute(IntPtr.Zero, "open", executablePath, "-p " + arg.Replace("\"",""), "", (int)SW.SHOWNORMAL);
+			cmdProcessor.cm_executedos1(executablePath, arg);
 			//Window wnd = Window.GetWindow(this); //获取当前窗口
 			//var wih = new WindowInteropHelper(wnd); //该类支持获取hWnd
 			//IntPtr hWnd = wih.Handle;    //获取窗口句柄

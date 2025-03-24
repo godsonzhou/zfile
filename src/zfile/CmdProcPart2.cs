@@ -418,7 +418,7 @@ namespace zfile
 			treeSearchForm.ShowDialog();
 		}
 
-		private void ShowCommandBrowser()
+		private void cm_commandbrowser()
 		{
 			// 显示窗体
 			var form = new CommandBrowserForm(owner.cmdProcessor);
@@ -442,7 +442,7 @@ namespace zfile
 					MessageBoxButtons.OK, MessageBoxIcon.Error);
 			}
 		}
-		private void do_cm_DirBranch()
+		private void cm_DirBranch()
 		{
 			owner.fsManager.isDirBranchMode = !owner.fsManager.isDirBranchMode;
 			owner.RefreshPanel();
@@ -502,7 +502,7 @@ namespace zfile
 
 		// 存储的选择集合
 		private List<string> savedSelection = new();
-		private void do_cm_saveselectiontofile()
+		private void cm_saveselectiontofile()
 		{
 			OpenFileDialog openFileDialog = new OpenFileDialog() { Title = "选择导出的文件", FileName = $"filelist.txt", Filter = $"文本文件 (*.txt)|*.txt|所有文件 (*.*)|*.*" };
 			DialogResult result = openFileDialog.ShowDialog();
@@ -512,7 +512,7 @@ namespace zfile
 				File.WriteAllLines(openFileDialog.FileName, savedSelection);
 			}
 		}
-		private void do_cm_loadselectionfromfile()
+		private void cm_loadselectionfromfile()
 		{
 			OpenFileDialog openFileDialog = new OpenFileDialog() { Title = "选择导入的文件", FileName = "filelist.txt", Filter = "文本文件 (*.txt)|*.txt|所有文件 (*.*)|*.*" };
 			if (openFileDialog.ShowDialog() == DialogResult.OK)
@@ -549,7 +549,7 @@ namespace zfile
 		}
 
 		// 复制文件名到剪贴板
-		private void do_cm_CopyNamesToClip()
+		private void cm_CopyNamesToClip()
 		{
 			var lv = owner.activeListView;
 			if (lv == null || lv.SelectedItems.Count == 0) return;
@@ -560,7 +560,7 @@ namespace zfile
 		}
 
 		// 复制完整路径到剪贴板
-		private void do_cm_CopyFullNamesToClip()
+		private void cm_CopyFullNamesToClip()
 		{
 			var lv = owner.activeListView;
 			if (lv == null || lv.SelectedItems.Count == 0) return;
@@ -572,7 +572,7 @@ namespace zfile
 		}
 
 		// 复制文件详细信息
-		private void do_cm_CopyDetailsToClip()
+		private void cm_CopyDetailsToClip()
 		{
 			var lv = owner.activeListView;
 			if (lv == null || lv.SelectedItems.Count == 0) return;
@@ -586,7 +586,7 @@ namespace zfile
 		}
 
 		// 复制文件详细信息及完整路径
-		private void do_cm_CopyFullDetailsToClip()
+		private void cm_CopyFullDetailsToClip()
 		{
 			var lv = owner.activeListView;
 			if (lv == null || lv.SelectedItems.Count == 0) return;
@@ -644,7 +644,7 @@ namespace zfile
 			}
 		}
 
-		public void do_cm_gotoparent()
+		public void cm_gotoparent()
 		{
 			if (owner.IsActiveFtpPanel(out var ftpnode))
 			{
@@ -675,7 +675,7 @@ namespace zfile
 		}
 
 		// 显示文件属性
-		private void ShowFileProperties()
+		private void cm_properties()
 		{
 			var listView = owner.activeListView;
 			if (listView == null || listView.SelectedItems.Count <= 0) return;
@@ -719,7 +719,7 @@ namespace zfile
 		//}
 
 		// 比较文件
-		private void CompareFiles(string param)
+		private void cm_comparefilesbycontent(string param)
 		{
 			string[] files;
 			if (string.IsNullOrEmpty(param))
@@ -1051,7 +1051,7 @@ namespace zfile
 			}
 		}
 
-		private void ShowMultiRenameDialog()
+		private void cm_multirename()
 		{
 			var listView = owner.activeListView;
 			if (listView == null || listView.SelectedItems.Count == 0)
@@ -1066,7 +1066,7 @@ namespace zfile
 			}
 		}
 
-		private void ShowSyncDirsDialog()
+		private void cm_filesync()
 		{
 			var leftPath = owner.uiManager.LeftTree.SelectedNode != null
 				? Helper.getFSpathbyTree(owner.uiManager.LeftTree.SelectedNode)

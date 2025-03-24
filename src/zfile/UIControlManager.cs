@@ -171,7 +171,7 @@ namespace zfile
 		*/
 		public void setArgs()
 		{
-			args["%1"] = srcfiles;
+			args["%1"] = srcDir + srcfiles;
 			// 基本参数设置
 			args["%P"] = srcDir;
 			args["%N"] = srcfiles;

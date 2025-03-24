@@ -49,6 +49,35 @@ namespace zfile
 	
 	internal static class Helper
 	{
+		public static (string cmd, string arg) SplitCommand(string input)
+		{
+			bool inQuotes = false;
+			int firstNonQuotedSpaceIndex = -1;
+
+			for (int i = 0; i < input.Length; i++)
+			{
+				if (input[i] == '"')
+				{
+					inQuotes = !inQuotes;
+				}
+				else if (input[i] == ' ' && !inQuotes)
+				{
+					firstNonQuotedSpaceIndex = i;
+					break;
+				}
+			}
+
+			if (firstNonQuotedSpaceIndex == -1)
+			{
+				return (input, "");
+			}
+
+			string cmd = input.Substring(0, firstNonQuotedSpaceIndex);
+			string arg = input.Substring(firstNonQuotedSpaceIndex + 1);
+
+			return (cmd, arg);
+		}
+
 		public static void ApplyFontToControls(Control control, Font font)
 		{
 			control.Font = font;

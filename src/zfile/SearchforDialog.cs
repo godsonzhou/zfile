@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -850,6 +851,7 @@ namespace zfile
 								if (found)
 								{
 									textFiles.Add(file);
+									Debug.Print($"{file} found");
 								}
 							}
 						}

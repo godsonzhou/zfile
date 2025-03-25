@@ -84,9 +84,44 @@ namespace zfile
 			foreach (Control child in control.Controls)
 				ApplyFontToControls(child, font);
 		}
-		public static bool IsTextFile(string filename)
+		public static bool IsTextFileViaFileExe(string filename)
 		{
 			return (Getfiletype(filename).Contains("text", StringComparison.OrdinalIgnoreCase));
+		}
+		public static bool IsTextFile(string filePath)//doubao
+		{
+			try
+			{
+				// 定义最大读取字节数
+				const int maxBytesToRead = 4096;
+				// 以二进制模式打开文件
+				using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+				{
+					// 确保文件有内容
+					if (fs.Length == 0) return true;
+					// 读取文件的字节数
+					int bytesToRead = (int)Math.Min(maxBytesToRead, fs.Length);
+					byte[] buffer = new byte[bytesToRead];
+					fs.Read(buffer, 0, bytesToRead);
+					int controlCharCount = 0;
+					// 遍历字节数组
+					foreach (byte b in buffer)
+					{
+						if (b < 32 && b != 9 && b != 10 && b != 13)
+						{
+							controlCharCount++;
+						}
+					}
+					// 计算控制字符的比例
+					double controlCharRatio = (double)controlCharCount / bytesToRead;
+					// 若控制字符比例小于阈值，则判定为文本文件
+					return controlCharRatio < 0.05;
+				}
+			}
+			catch (Exception)
+			{
+				return false;
+			}
 		}
 		public static string ExtractResponseContent(string input)
 		{
@@ -108,53 +143,112 @@ namespace zfile
 
 			return result.ToString();
 		}
+		//public static string Getfiletype(string args)
+		//{
+		//	// 配置启动参数
+		//	ProcessStartInfo startInfo = new ProcessStartInfo
+		//	{
+		//		FileName = Constants.ZfileBinPath + "file.exe",        // 程序路径
+		//		Arguments = Path.GetFileName(args), // 参数（可选）
+		//		WorkingDirectory = Path.GetDirectoryName(args),
+		//		UseShellExecute = false,      // 不使用系统外壳程序
+		//		RedirectStandardOutput = true,// 重定向标准输出
+		//		RedirectStandardError = true, // 重定向错误输出
+		//		CreateNoWindow = true         // 不创建新窗口
+		//	};
+
+		//	using (Process process = new Process())
+		//	{
+		//		process.StartInfo = startInfo;
+
+		//		try
+		//		{
+		//			// 启动进程
+		//			process.Start();
+
+		//			// 异步读取输出（防止死锁）
+		//			string output = process.StandardOutput.ReadToEnd();
+		//			string error = process.StandardError.ReadToEnd();
+
+		//			// 等待程序结束（可设置超时时间，单位毫秒）
+		//			process.WaitForExit();
+
+		//			// 获取退出代码
+		//			int exitCode = process.ExitCode;
+
+		//			Debug.Print("输出内容：\n" + output);
+		//			if (!string.IsNullOrEmpty(error))
+		//			{
+		//				Debug.Print("错误信息：\n" + error);
+		//			}
+		//			Debug.Print($"退出代码：{exitCode}");
+		//			return output;
+		//		}
+		//		catch (Exception ex)
+		//		{
+		//			Debug.Print($"执行出错：{ex.Message}");
+		//		}
+		//	}
+		//	return string.Empty; 
+		//}
 		public static string Getfiletype(string args)
 		{
-			// 配置启动参数
-			ProcessStartInfo startInfo = new ProcessStartInfo
+			try
 			{
-				FileName = "file.exe",        // 程序路径
-				Arguments = args, // 参数（可选）
-				UseShellExecute = false,      // 不使用系统外壳程序
-				RedirectStandardOutput = true,// 重定向标准输出
-				RedirectStandardError = true, // 重定向错误输出
-				CreateNoWindow = true         // 不创建新窗口
-			};
+				string fileExePath = Path.Combine(Constants.ZfileBinPath, "file.exe");
+				if (!File.Exists(fileExePath))
+				{
+					Debug.Print($"file.exe not found at: {fileExePath}");
+					return string.Empty;
+				}
 
-			using (Process process = new Process())
-			{
+				// 确保参数是完整路径
+				string fullPath = Path.GetFullPath(args);
+				if (!File.Exists(fullPath))
+				{
+					Debug.Print($"Target file not found: {fullPath}");
+					return string.Empty;
+				}
+
+				// 配置启动参数
+				ProcessStartInfo startInfo = new ProcessStartInfo
+				{
+					FileName = fileExePath,
+					Arguments = $"\"{fullPath}\"", // 用引号包裹路径，避免空格问题
+					UseShellExecute = false,
+					RedirectStandardOutput = true,
+					RedirectStandardError = true,
+					CreateNoWindow = true,
+					StandardOutputEncoding = Encoding.UTF8
+				};
+
+				using Process process = new();
 				process.StartInfo = startInfo;
+				process.Start();
 
-				try
+				// 异步读取输出
+				string output = process.StandardOutput.ReadToEnd();
+				string error = process.StandardError.ReadToEnd();
+
+				process.WaitForExit();
+
+				if (process.ExitCode != 0)
 				{
-					// 启动进程
-					process.Start();
-
-					// 异步读取输出（防止死锁）
-					string output = process.StandardOutput.ReadToEnd();
-					string error = process.StandardError.ReadToEnd();
-
-					// 等待程序结束（可设置超时时间，单位毫秒）
-					process.WaitForExit();
-
-					// 获取退出代码
-					int exitCode = process.ExitCode;
-
-					Debug.Print("输出内容：\n" + output);
-					if (!string.IsNullOrEmpty(error))
-					{
-						Debug.Print("错误信息：\n" + error);
-					}
-					Debug.Print($"退出代码：{exitCode}");
-					return output;
+					Debug.Print($"Process exited with code: {process.ExitCode}");
+					Debug.Print($"Error output: {error}");
+					return string.Empty;
 				}
-				catch (Exception ex)
-				{
-					Debug.Print($"执行出错：{ex.Message}");
-				}
+
+				Debug.Print($"File type result: {output}");
+				return output;
 			}
-			return string.Empty; 
+			catch (Exception ex)
+			{
+				Debug.Print($"Error in Getfiletype: {ex.Message}");
+				return string.Empty;
+			}
 		}
+
 		public static void WriteConfigToFile( string path, List<MenuInfo> list)
 		{
 			var cfg = Write_em_Config(list);

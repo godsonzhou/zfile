@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 /*
 主要功能：
 基础结构定义：
@@ -89,7 +90,7 @@ namespace zfile
 	}
 	
 	// 基础结构体定义
-	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
 	public struct TOpenArchiveData
 	{
 		[MarshalAs(UnmanagedType.LPStr)]
@@ -103,13 +104,50 @@ namespace zfile
 		public int CmtState;
 	}
 
-	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1)]
 	public struct TOpenArchiveDataW
 	{
+		/*BStr   长度前缀为双字节的 Unicode 字符串；
+			LPStr  单字节、空终止的 ANSI 字符串。；
+			LPWStr  一个 2 字节、空终止的 Unicode 字符串；
+			ByValArray 用于在结构中出现的内联定长字符数组，应始终使用MarshalAsAttribute的SizeConst字段来指示数组的大小。
+		c++:
+		char 1byte
+		char* 8byte
+		short int 2byte
+		int 4byte
+		unsigned int 4byte
+		float 4byte
+		double 8byte
+		long 8byte
+		long long 8byte
+		unsigned long 8byte
+		-------------
+		c#:
+		C#中支持9种整型:sbyte，byte，short，ushort，int，uint，long，ulong和char。
+
+　　		  Sbyte:代表有符号的8位整数，数值范围从-128 ～ 127
+
+　　		  Byte:代表无符号的8位整数，数值范围从0～255
+
+　　		  Short:代表有符号的16位整数，范围从-32768 ～ 32767
+
+　　		  ushort:代表有符号的16位整数，范围从0 到 65,535
+
+　　		  Int:代表有符号的32位整数，范围从-2147483648 ～ 2147483648
+
+　　		  uint:代表无符号的32位整数，范围从0 ～ 4294967295
+
+　　		  Long:代表有符号的64位整数，范围从-9223372036854775808 ～ 9223372036854775808
+
+　　		  Ulong:代表无符号的64位整数，范围从0 ～ 18446744073709551615。
+
+　　		  char:代表无符号的16位整数，数值范围从0～65535。 Char类型的可能值对应于统一字符编码标准(Unicode)的字符集
+		 */
 		[MarshalAs(UnmanagedType.LPWStr)]
 		//public IntPtr ArcName;
 		public string ArcName;
-		public int OpenMode;
+		public int OpenMode;  // 4 bytes
 		public int OpenResult;
 		[MarshalAs(UnmanagedType.LPWStr)]
 		public string CmtBuf;
@@ -481,62 +519,71 @@ namespace zfile
 			return Marshal.GetDelegateForFunctionPointer(procAddress, typeof(T)) as T;
 		}
 
-		public IntPtr OpenArchive(string archiveName, int openMode, out int openResult )
-		{
-			IntPtr result = IntPtr.Zero;
-			openResult = (int)WcxResult.PK_UNKNOWN_FORMAT;
-			archiveName = archiveName.ToUpper();
-			if (_isUnicode && _openArchiveW != null)
-			{
-				var archiveDataW = new TOpenArchiveDataW
-				{
-					ArcName = archiveName, //Marshal.StringToHGlobalUni(archiveName),
-					OpenMode = openMode,
-					CmtBuf = string.Empty,
-					CmtBufSize = 0
-				};
+        public IntPtr OpenArchive(string archiveName, int openMode, out int openResult)
+        {
+            IntPtr result = IntPtr.Zero;
+            openResult = (int)WcxResult.PK_UNKNOWN_FORMAT;
+            archiveName = archiveName.ToUpper();
+            if (_isUnicode && _openArchiveW != null)
+            {
+                var archiveDataW = new TOpenArchiveDataW
+                {
+                    ArcName = archiveName,
+                    OpenMode = openMode,
+                    CmtBuf = string.Empty,
+                    CmtBufSize = 0
+                };
 
-				try
-				{
-					result =  _openArchiveW(ref archiveDataW);
-					if(result == IntPtr.Zero)
+                // 获取结构体的大小
+                int size = Marshal.SizeOf(typeof(TOpenArchiveDataW));
+                Debug.Print($"archiveDataW占用的内存大小: {size} 字节");
+                try
+                {
+                    result = _openArchiveW(ref archiveDataW);
+					if (result == IntPtr.Zero)
 						openResult = archiveDataW.OpenResult;
 					else
-						openResult = (int)WcxResult.PK_OK;	//success
-					return result;
-				}
-				finally
-				{
-					//Marshal.FreeHGlobal(archiveDataW.ArcName);
-				}
-			}
-			else if (_openArchive != null)
-			{
-				var archiveData = new TOpenArchiveData
-				{
-					ArcName = archiveName,// Marshal.StringToHGlobalAnsi(archiveName),
-					OpenMode = openMode,
-					CmtBuf = string.Empty,
-					CmtBufSize = 0
-				};
+						openResult = (int)WcxResult.PK_OK;  //success
 
-				try
-				{
-					result = _openArchive(ref archiveData);
-					if(result == IntPtr.Zero)
+					//openResult = archiveDataW.OpenResult;
+                    return result;
+                }
+                catch (AccessViolationException ex)
+                {
+                    Debug.Print($"AccessViolationException: {ex.Message}");
+                    throw;
+                }
+            }
+            else if (_openArchive != null)
+            {
+                var archiveData = new TOpenArchiveData
+                {
+                    ArcName = archiveName,
+                    OpenMode = openMode,
+                    CmtBuf = string.Empty,
+                    CmtBufSize = 0
+                };
+
+                try
+                {
+                    result = _openArchive(ref archiveData);
+					if (result == IntPtr.Zero)
 						openResult = archiveData.OpenResult;
 					else
 						openResult = (int)WcxResult.PK_OK;  //success
-					return result;
-				}
-				finally
-				{
-					//Marshal.FreeHGlobal(archiveData.ArcName);
-				}
-			}
 
-			return IntPtr.Zero;
-		}
+					//openResult = archiveData.OpenResult;
+                    return result;
+                }
+                catch (AccessViolationException ex)
+                {
+                    Debug.Print($"AccessViolationException: {ex.Message}");
+                    throw;
+                }
+            }
+
+            return IntPtr.Zero;
+        }
 
 		public bool ReadHeader(IntPtr arcHandle, out THeaderDataExW headerData)
 		{

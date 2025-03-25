@@ -2429,11 +2429,18 @@ namespace zfile
 			while (wcxModule.ReadHeader(handle, out headerData))
 			{
 				var item = new ListViewItem(headerData.FileName);
+				item.SubItems.Add(archivePath + "\\" + headerData.FileName); // file name with full path
 				// 将 vhigh 左移32位，然后与 vlow 进行按位或运算
+				var isdir = headerData.FileAttr == 16;
 				ulong UnpSize = ((ulong)headerData.UnpSizeHigh << 32) | headerData.UnpSizeLow;
 				item.SubItems.Add(UnpSize.ToString());
+				item.SubItems.Add(isdir ? "<DIR>" : ""); // <dir> / <ext>
 				item.SubItems.Add(DateTime.FromFileTime(headerData.FileTime).ToString());
-				item.SubItems.Add(headerData.Method.ToString());
+				//item.SubItems.Add(headerData.Method.ToString());
+				
+				item.SubItems.Add(UnpSize.ToString()); // origin size
+				var attrstr = GetFileAttributesString((FileAttributes)headerData.FileAttr);
+				item.SubItems.Add(attrstr); // ACDHS
 				items.Add(item);
 
 				wcxModule.ProcessFile(handle, 0, "", ""); // Skip file

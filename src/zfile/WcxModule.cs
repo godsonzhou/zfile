@@ -88,7 +88,77 @@ namespace zfile
 		PK_TOO_MANY_FILES = 23,
 		PK_NOT_SUPPORTED = 24
 	}
-	
+	public enum PackFilesFlags
+	{
+		/// <summary>
+		/// 打包后删除原始文件
+		/// </summary>
+		PK_PACK_MOVE_FILES = 1,
+
+		/// <summary>
+		/// 保存文件的路径名
+		/// </summary>
+		PK_PACK_SAVE_PATHS = 2,
+
+		/// <summary>
+		/// 要求用户输入密码并加密
+		/// </summary>
+		PK_PACK_ENCRYPT = 4
+	}
+
+	public enum PackerCaps
+	{
+		/// <summary>
+		/// 可以创建新的压缩文件
+		/// </summary>
+		PK_CAPS_NEW = 1,
+
+		/// <summary>
+		/// 可以修改现有的压缩文件
+		/// </summary>
+		PK_CAPS_MODIFY = 2,
+
+		/// <summary>
+		/// 压缩文件可以包含多个文件
+		/// </summary>
+		PK_CAPS_MULTIPLE = 4,
+
+		/// <summary>
+		/// 可以删除压缩文件中的文件
+		/// </summary>
+		PK_CAPS_DELETE = 8,
+
+		/// <summary>
+		/// 具有选项对话框
+		/// </summary>
+		PK_CAPS_OPTIONS = 16,
+
+		/// <summary>
+		/// 支持在内存中打包
+		/// </summary>
+		PK_CAPS_MEMPACK = 32,
+
+		/// <summary>
+		/// 通过内容检测压缩文件类型
+		/// </summary>
+		PK_CAPS_BY_CONTENT = 64,
+
+		/// <summary>
+		/// 允许在使用此插件创建的压缩文件中搜索文本
+		/// </summary>
+		PK_CAPS_SEARCHTEXT = 128,
+
+		/// <summary>
+		/// 显示为普通文件(隐藏压缩文件图标)，使用Ctrl+PgDn打开而不是Enter
+		/// </summary>
+		PK_CAPS_HIDE = 256,
+
+		/// <summary>
+		/// 插件支持PK_PACK_ENCRYPT选项
+		/// </summary>
+		PK_CAPS_ENCRYPT = 512
+	}
+
 	// 基础结构体定义
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
 	public struct TOpenArchiveData

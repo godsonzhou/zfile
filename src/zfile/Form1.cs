@@ -2429,6 +2429,7 @@ namespace zfile
 			while (wcxModule.ReadHeader(handle, out headerData))
 			{
 				var item = new ListViewItem(headerData.FileName);
+				item.Tag = new ArchNodeTag() { Path = "", Handler = handle };
 				item.SubItems.Add(archivePath + "\\" + headerData.FileName); // file name with full path
 				// 将 vhigh 左移32位，然后与 vlow 进行按位或运算
 				var isdir = headerData.FileAttr == 16;
@@ -2446,7 +2447,7 @@ namespace zfile
 
 				wcxModule.ProcessFile(handle, 0, "", ""); // Skip file
 			}
-
+			CloseArchive(archivePath);
 			return items;
 		}
 
@@ -2464,11 +2465,11 @@ namespace zfile
 			{
 				if (headerData.FileName == fileName)
 				{
-					return wcxModule.ProcessFile(handle, 1, destPath, fileName) == 0;
+					return wcxModule.ProcessFile(handle, 2, destPath, fileName) == 0;// 0 SKIP, 1 TEST, 2 EXTRACT
 				}
-				wcxModule.ProcessFile(handle, 0, "", ""); // Skip file
+				wcxModule.ProcessFile(handle, 0, "", ""); // 0 Skip file
 			}
-
+			CloseArchive(archivePath);
 			return false;
 		}
 
@@ -2504,6 +2505,10 @@ namespace zfile
 		}
 		public string GetListItemPath(ListViewItem item)
 		{
+			if(item.Tag is ArchNodeTag archNode)
+			{
+				return Path.Combine(archNode.Path, item.Text);
+			}
 			if (item.Tag is TreeNode node)
 			{
 				// 对于本地文件系统
@@ -2614,8 +2619,12 @@ namespace zfile
 			try
 			{
 				// 确定源路径和目标路径的类型
-				bool isSourceArchive = IsArchiveFile(srcPath);
+				bool isSourceArchive = IsArchiveFile(srcPath);//bugfix: the srcpath is the dir in which the arch file located, so always return false, it should use vfs to process the arch file as virtual dir
+				if (isSourceArchive)
+					OpenArchive(srcPath);
 				bool isTargetArchive = IsArchiveFile(targetPath);
+				if (isTargetArchive)
+					OpenArchive(targetPath);
 				bool isSourceFtp = fTPMGR.IsFtpPath(srcPath);
 				bool isTargetFtp = fTPMGR.IsFtpPath(targetPath);
 

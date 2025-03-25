@@ -306,6 +306,7 @@ namespace zfile
 	public delegate int TReadHeader(IntPtr handle, ref THeaderData headerData);
 	public delegate int TReadHeaderExW(IntPtr handle, ref THeaderDataExW headerData);
 	public delegate int TProcessFile(IntPtr handle, int operation, string destPath, string destName);
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet=CharSet.Unicode)]
 	public delegate int TProcessFileW(IntPtr handle, int operation, [MarshalAs(UnmanagedType.LPWStr)] string destPath, [MarshalAs(UnmanagedType.LPWStr)] string destName);
 	public delegate int TCloseArchive(IntPtr handle);
 	public delegate int TPackFiles(string packedFile, string subPath, string srcPath, string addList, int flags);

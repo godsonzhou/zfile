@@ -2,6 +2,11 @@ using System.Net;
 using FluentFTP;
 namespace zfile
 {
+	public class ArchNodeTag
+	{
+		public IntPtr Handler;
+		public string Path;
+	}
     /// <summary>
     /// FTP节点标签类，用于存储FTP节点的相关信息
     /// </summary>

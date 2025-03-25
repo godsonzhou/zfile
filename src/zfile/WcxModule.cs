@@ -775,6 +775,31 @@ namespace zfile
 
 			return false;
 		}
+		public IntPtr StartMemPack(int options, string fileName)
+		{
+			fileName = fileName.ToUpper();
+			if (_isUnicode && _startMemPackW != null)
+			{
+				return _startMemPackW(options, fileName);
+			}
+			else if (_startMemPack != null)
+			{
+				return _startMemPack(options, fileName);
+			}
+
+			return IntPtr.Zero;
+		}
+		public void SetCryptCallback(IntPtr cryptProc, int cryptoNr, int flags)
+		{
+			if (_isUnicode && _pkSetCryptCallbackW != null)
+			{
+				_pkSetCryptCallbackW(cryptProc, cryptoNr, flags);
+			}
+			else if (_pkSetCryptCallback != null)
+			{
+				_pkSetCryptCallback(cryptProc, cryptoNr, flags);
+			}
+		}
 
 		public int GetPackerCaps()
 		{

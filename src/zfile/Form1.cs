@@ -2432,9 +2432,10 @@ namespace zfile
 				item.SubItems.Add(archivePath + "\\" + headerData.FileName); // file name with full path
 				// 将 vhigh 左移32位，然后与 vlow 进行按位或运算
 				var isdir = headerData.FileAttr == 16;
+				var ext1 = Path.GetExtension(headerData.FileName);
 				ulong UnpSize = ((ulong)headerData.UnpSizeHigh << 32) | headerData.UnpSizeLow;
-				item.SubItems.Add(UnpSize.ToString());
-				item.SubItems.Add(isdir ? "<DIR>" : ""); // <dir> / <ext>
+				item.SubItems.Add(FileSystemManager.FormatFileSize((long)UnpSize, true));
+				item.SubItems.Add(isdir ? "<DIR>" : ext1.TrimStart('.')); // <dir> / <ext>
 				item.SubItems.Add(DateTime.FromFileTime(headerData.FileTime).ToString());
 				//item.SubItems.Add(headerData.Method.ToString());
 				

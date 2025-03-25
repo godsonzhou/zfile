@@ -285,7 +285,7 @@ namespace zfile
         }
     }
 
-	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
 	public struct THeaderData
 	{
 		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
@@ -308,7 +308,7 @@ namespace zfile
 		public int CmtState;
 	}
 
-	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1)]
 	public struct THeaderDataExW
 	{
 		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1024)]

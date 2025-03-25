@@ -445,6 +445,7 @@ namespace zfile
 		public string Name { get;  set; }
 		public string FilePath { get => _modulePath; set => _modulePath = value; }
 		public List<string> DetectStrings = new();
+		public int caps;
 
 		public WcxModule()
 		{
@@ -535,6 +536,8 @@ namespace zfile
 				_pkSetCryptCallbackW = GetDelegate<TPkSetCryptCallbackW>("PkSetCryptCallbackW");
 				_getBackgroundFlags = GetDelegate<TGetBackgroundFlags>("GetBackgroundFlags");
 
+				//get packer caps
+				caps = _getPackerCaps?.Invoke() ?? 0;
 				return true;
 			}
 			catch

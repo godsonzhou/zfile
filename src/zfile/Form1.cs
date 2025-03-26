@@ -15,6 +15,85 @@ namespace zfile
 		const int ILD_TRANSPARENT = 0x00000001;
 		public readonly FTPMGR fTPMGR;
 		public readonly AsyncFTPMGR asyncfTPMGR;
+		// Method to update thumbnail progress asynchronously
+		private async Task UpdateThumbnailProgressAsync(int current, int total, bool isLeft)
+		{
+			await Task.Run(() => {
+				var statusStrip = isLeft ? uiManager.LeftStatusStrip : uiManager.RightStatusStrip;
+				var progressBar = statusStrip.Items[$"thumbnailProgress{(isLeft ? 'L' : 'R')}"] as ToolStripProgressBar;
+				var statusLabel = statusStrip.Items[$"thumbnailStatus{(isLeft ? 'L' : 'R')}"] as ToolStripStatusLabel;
+				
+				if (progressBar != null && statusLabel != null)
+				{
+					if (current == 0 && total == 0)
+					{
+						progressBar.Visible = false;
+						statusLabel.Visible = false;
+						return;
+					}
+					
+					if (!progressBar.Visible)
+					{
+						progressBar.Visible = true;
+						statusLabel.Visible = true;
+					}
+					
+					progressBar.Maximum = total;
+					progressBar.Value = current;
+					statusLabel.Text = $"Generating thumbnails: {current}/{total}";
+					
+					if (current >= total)
+					{
+						progressBar.Visible = false;
+						statusLabel.Visible = false;
+					}
+				}
+			});
+		}
+
+		// Method to update icon progress asynchronously
+		//private async Task<BackgroundIconManager.IconProgress> UpdateIconProgressAsync(BackgroundIconManager.IconProgress progress)
+		//{
+		//	await Task.Run(() => {
+		//		// 确定是左侧还是右侧面板
+		//		bool isLeft = true;
+		//		if (progress.ItemsToUpdate.Count > 0 && progress.ItemsToUpdate[0].Item.ListView != null)
+		//		{
+		//			isLeft = progress.ItemsToUpdate[0].Item.ListView == uiManager.LeftList;
+		//		}
+
+		//		var statusStrip = isLeft ? uiManager.LeftStatusStrip : uiManager.RightStatusStrip;
+		//		var progressBar = statusStrip.Items[$"iconProgress{(isLeft ? 'L' : 'R')}"] as ToolStripProgressBar;
+		//		var statusLabel = statusStrip.Items[$"iconStatus{(isLeft ? 'L' : 'R')}"] as ToolStripStatusLabel;
+				
+		//		if (progressBar != null && statusLabel != null)
+		//		{
+		//			if (progress.TotalJobs == 0 || progress.IsCompleted)
+		//			{
+		//				progressBar.Visible = false;
+		//				statusLabel.Visible = false;
+		//				return;
+		//			}
+					
+		//			if (!progressBar.Visible)
+		//			{
+		//				progressBar.Visible = true;
+		//				statusLabel.Visible = true;
+		//			}
+					
+		//			progressBar.Maximum = progress.TotalJobs;
+		//			progressBar.Value = progress.CompletedJobs;
+		//			statusLabel.Text = $"Loading icons: {progress.CompletedJobs}/{progress.TotalJobs}";
+					
+		//			if (progress.IsCompleted)
+		//			{
+		//				progressBar.Visible = false;
+		//				statusLabel.Visible = false;
+		//			}
+		//		}
+		//	});
+		//	return progress;
+		//}
 		public readonly LLM_Helper lLM_Helper;
 		public readonly CFGLOADER configLoader;
 		public readonly CFGLOADER ftpconfigLoader;
@@ -27,6 +106,8 @@ namespace zfile
 		public readonly FileSystemManager fsManager = new();
 		public readonly UIControlManager uiManager;
 		public readonly ThumbnailManager thumbnailManager = new("d:\\temp\\cache", new Size(64, 64));
+		//private readonly ThumbnailJobManager _thumbnailJobManager;
+		private readonly BackgroundIconManager _backgroundIconManager;
 		private Dictionary<Keys, string> hotkeyMappings;
 		private bool isSelecting = false;
 		private Rectangle selectionRectangle;
@@ -184,6 +265,8 @@ namespace zfile
 			iconManager = new IconManager(this);
 			InitializeComponent();
 			this.Size = new Size(1920, 1080);
+			//_thumbnailJobManager = new ThumbnailJobManager(thumbnailManager, UpdateThumbnailProgressAsync);
+			_backgroundIconManager = new BackgroundIconManager(thumbnailManager, iconManager);
 
 			// 初始化COM组件
 			InitializeCOMComponents();
@@ -248,6 +331,8 @@ namespace zfile
 				// 释放其他资源
 				watcher.Dispose();
 				previewManager.Dispose();
+				//_thumbnailJobManager.Dispose();
+				_backgroundIconManager.Dispose();
 				thumbnailManager.Dispose();
 				iconManager.Dispose();
 				uiManager.Dispose();
@@ -820,6 +905,7 @@ namespace zfile
 			{
 				if (sender is TreeView treeView)
 				{
+					_backgroundIconManager.CancelCurrentTasks();
 					// 清除所有节点的高亮状态
 					ClearTreeViewHighlight(treeView);
 					e.Node.BackColor = SystemColors.Highlight;
@@ -1766,7 +1852,7 @@ namespace zfile
 				CurrentDir[LRflag] = newPath;
 			}
 		}
-		private void SetIconForListViewItem(ListViewItem lvItem, ListView listView, string subkey)
+		private string? SetIconForListViewItem(ListViewItem lvItem, ListView listView, string subkey)
 		{
 			if (lvItem != null)
 			{
@@ -1780,6 +1866,8 @@ namespace zfile
 				{
 					var itemFullName = lvItem.SubItems[1].Text;
 					var key = Path.GetExtension(itemFullName);
+					
+					// 设置默认图标
 					if (subkey == "s")
 					{
 						if (!iconManager.HasIconKey(key, false))
@@ -1793,28 +1881,39 @@ namespace zfile
 					}
 					else
 					{
-						var thumb = thumbnailManager.CreatePreview(itemFullName, out string md5key);
-						if (thumb != null)
+						//// 先设置一个默认图标
+						//if (iconManager.HasIconKey(key, true))
+						//{
+						//	iconManager.LoadIconFromCacheByKey(key, listView.LargeImageList, true);
+						//	lvItem.ImageKey = key;
+						//}
+						//else
+						//{
+						//	// 使用默认图标
+						//	lvItem.ImageKey = "file";
+						//}
+
+						//// 将缩略图生成任务提交到后台
+						//_backgroundIconManager.EnqueueJob(lvItem, itemFullName, listView.LargeImageList, subkey);
+						// 先设置默认图标
+						if (!iconManager.HasIconKey(key, true))
 						{
-							Debug.Print("thumb generated: {0}, {1}", itemFullName, md5key);
-							listView.LargeImageList.Images.Add(md5key, thumb);
-							lvItem.ImageKey = md5key;
+							var icol = IconManager.GetIconByFileNameEx("FILE", itemFullName, true);
+							if (icol != null)
+								iconManager.AddIcon(key, icol, true);
 						}
-						else
-						{
-							if (!iconManager.HasIconKey(key, true))
-							{
-								var icol = IconManager.GetIconByFileNameEx("FILE", itemFullName, true);
-								if (icol != null)
-									iconManager.AddIcon(key, icol, true);
-							}
-							iconManager.LoadIconFromCacheByKey(key, listView.LargeImageList, true);
-							lvItem.ImageKey = key;
-						}
+						iconManager.LoadIconFromCacheByKey(key, listView.LargeImageList, true);
+						lvItem.ImageKey = key;
+
+						// 将缩略图生成任务加入队列
+						//_thumbnailJobManager.EnqueueJob(lvItem, itemFullName, listView.LargeImageList);
+						//_thumbnailJobManager.EnqueueJob(listView, itemFullName);
+						return itemFullName;// if you want to thumbnail a file , just return its name for batch process
+
 					}
 				}
-
 			}
+			return null;
 		}
 		// 加载文件列表
 		private async Task LoadListViewByFilesystem(string path, ListView listView, TreeNode parentnode)
@@ -1845,14 +1944,23 @@ namespace zfile
 				listView.BeginUpdate();
 				listView.Items.Clear();
 				var subkey = (listView.View == View.Tile ? "l" : "s");
+				var filesForThumbnail = new List<string>();
+				var litemsForThumbnail = new List<ListViewItem>();
 				foreach (var item in items)
 				{
 					if ((item.Attributes & FileAttributes.Hidden) != 0) continue;
 					var lvItem = CreateListViewItem(item);
-					SetIconForListViewItem(lvItem, listView, subkey);
+					var f = SetIconForListViewItem(lvItem, listView, subkey);
+					if (f != null)
+					{
+						filesForThumbnail.Add(f);
+						litemsForThumbnail.Add(lvItem);
+					}
 					lvItem.Tag = parentnode;
 					listView.Items.Add(lvItem);
 				}
+				if (filesForThumbnail.Count != 0)
+					_backgroundIconManager.EnqueueJob(listView, filesForThumbnail, litemsForThumbnail);
 				listView.EndUpdate();
 				listView.Refresh();
 			}

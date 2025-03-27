@@ -43,8 +43,8 @@ namespace zfile
 		#region View Controls
 		public TreeView LeftTree { get; } = new() { Name = "L" };
 		public TreeView RightTree { get; } = new() { Name = "R" };
-		public ListView LeftList { get; } = new() { Name = "L" };
-		public ListView RightList { get; } = new() { Name = "R" };
+		public MyListView LeftList { get; } = new() { Name = "L" };
+		public MyListView RightList { get; } = new() { Name = "R" };
 		#endregion
 
 		#region Preview Controls
@@ -66,8 +66,8 @@ namespace zfile
 		#region Menu Controls
 		public MenuStrip dynamicMenuStrip = new();
 		#endregion
-		public ListView activeListView { get => (isleft ? LeftList : RightList); }
-		public ListView unactiveListView { get => (!isleft ? LeftList : RightList); }
+		public MyListView activeListView { get => (isleft ? LeftList : RightList); }
+		public MyListView unactiveListView { get => (!isleft ? LeftList : RightList); }
 		public TreeView activeTreeview { get => (isleft ? LeftTree : RightTree); }
 		public TreeView unactiveTreeview { get => (!isleft ? LeftTree : RightTree); }
 

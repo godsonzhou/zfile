@@ -113,8 +113,8 @@ namespace zfile
 		private Rectangle selectionRectangle;
 		public string LRflag => uiManager.isleft ? "L" : "R";
 		public bool isleft => uiManager.isleft;
-		public ListView activeListView { get => uiManager.activeListView; }
-		public ListView unactiveListView { get => uiManager.unactiveListView; }
+		public MyListView activeListView { get => uiManager.activeListView; }
+		public MyListView unactiveListView { get => uiManager.unactiveListView; }
 		public TreeView activeTreeview { get => uiManager.activeTreeview; }
 		public TreeView unactiveTreeview { get => uiManager.unactiveTreeview; }
 		public TreeNode leftRoot, rightRoot;
@@ -480,7 +480,7 @@ namespace zfile
 		public void ListView_DragOver(object? sender, DragEventArgs e)
 		{
 			// 检查目标是否为有效文件系统路径
-			var listView = sender as ListView;
+			var listView = sender as MyListView;
 			if (listView == null) return;
 
 			listView.Update();
@@ -526,14 +526,14 @@ namespace zfile
 			else
 				return uiManager.RightTree;
 		}
-		public ListView GetListViewByName(string name)
+		public MyListView GetListViewByName(string name)
 		{
 			if (name.Equals("L", StringComparison.OrdinalIgnoreCase))
 				return uiManager.LeftList;
 			else
 				return uiManager.RightList;
 		}
-		private bool IsValidTarget(ListView listView, DragEventArgs e, out string targetPath)
+		private bool IsValidTarget(MyListView listView, DragEventArgs e, out string targetPath)
 		{
 			if (IsActiveFtpPanel(out var ftpnode, GetTreeViewByName(listView.Name)))
 			{
@@ -572,7 +572,7 @@ namespace zfile
 		public void ListView_DragDrop(object? sender, DragEventArgs e)
 		{
 			if (draggedItems == null) return;
-			var listView = sender as ListView;
+			var listView = sender as MyListView;
 			if (!IsValidTarget(listView, e, out string targetPath)) return;
 
 			// 检查目标路径是否为FTP或压缩文件
@@ -1492,7 +1492,7 @@ namespace zfile
 			iconKey = string.Empty;
 			return false;
 		}
-		public void LoadSubDirectories(TreeNode node, ListView? lv = null)
+		public void LoadSubDirectories(TreeNode node, MyListView? lv = null)
 		{
 			if (lv != null)
 			{
@@ -1881,20 +1881,6 @@ namespace zfile
 					}
 					else
 					{
-						//// 先设置一个默认图标
-						//if (iconManager.HasIconKey(key, true))
-						//{
-						//	iconManager.LoadIconFromCacheByKey(key, listView.LargeImageList, true);
-						//	lvItem.ImageKey = key;
-						//}
-						//else
-						//{
-						//	// 使用默认图标
-						//	lvItem.ImageKey = "file";
-						//}
-
-						//// 将缩略图生成任务提交到后台
-						//_backgroundIconManager.EnqueueJob(lvItem, itemFullName, listView.LargeImageList, subkey);
 						// 先设置默认图标
 						if (!iconManager.HasIconKey(key, true))
 						{
@@ -1905,15 +1891,72 @@ namespace zfile
 						iconManager.LoadIconFromCacheByKey(key, listView.LargeImageList, true);
 						lvItem.ImageKey = key;
 
-						// 将缩略图生成任务加入队列
-						//_thumbnailJobManager.EnqueueJob(lvItem, itemFullName, listView.LargeImageList);
-						//_thumbnailJobManager.EnqueueJob(listView, itemFullName);
-						return itemFullName;// if you want to thumbnail a file , just return its name for batch process
-
+						// 返回文件路径，用于后续生成缩略图
+						return itemFullName;
 					}
 				}
 			}
 			return null;
+		}
+		
+		// 处理ListView滚动事件
+		public void ListView_Scroll(object sender, EventArgs e)
+		{
+			Debug.Print("ListView_Scroll detected!!");
+			if (sender is ListView listView)
+			{
+				// 获取当前视图模式
+				var subkey = (listView.View == View.Tile ? "l" : "s");
+				
+				// 处理可见项的缩略图
+				ProcessVisibleItemsForThumbnails(listView, subkey);
+			}
+		}
+		
+		// 获取ListView中当前可见的项目并处理缩略图
+		private void ProcessVisibleItemsForThumbnails(ListView listView, string subkey)
+		{
+			// 如果不是大图标或平铺模式，不需要生成缩略图
+			if (subkey == "s" || listView.Items.Count == 0)
+				return;
+				
+			var filesForThumbnail = new List<string>();
+			var litemsForThumbnail = new List<ListViewItem>();
+			
+			// 获取可见区域
+			var visibleRect = listView.ClientRectangle;
+			
+			// 遍历所有项目，检查是否在可见区域内
+			foreach (ListViewItem item in listView.Items)
+			{
+				// 获取项目的边界
+				var itemRect = item.Bounds;
+				var isYin = itemRect.Y + itemRect.Height > visibleRect.Y;//是否进入上边界
+				var isYin1 = itemRect.Y - itemRect.Height * 2 < visibleRect.Height;//是否在下边界内，最下方的两行item不处理，放宽条件
+																				   // 检查项目是否在可见区域内
+				if (isYin && isYin1) // (itemRect.IntersectsWith(visibleRect))// temp set to true
+				{
+					// 检查是否是文件（不是文件夹）
+					if (!item.SubItems[3].Text.Equals("<DIR>") && item.ImageKey.StartsWith('.')) //if already generate thumbnail, the imagekey should be like kewkjr51643k67jakjt, otherwise imagekey should be .avi, so if imagekey start with ., indicate the item's thumbnail has not be generated yet, otherwise skip the item.
+					{
+						var itemFullName = item.SubItems[1].Text;
+						
+						// 检查是否已经有缩略图
+						if (!string.IsNullOrEmpty(itemFullName) && 
+						    (item.ImageKey == Path.GetExtension(itemFullName) || string.IsNullOrEmpty(item.ImageKey)))
+						{
+							filesForThumbnail.Add(itemFullName);
+							litemsForThumbnail.Add(item);
+						}
+					}
+				}
+			}
+			
+			// 如果有需要处理的项目，加入缩略图生成队列
+			if (filesForThumbnail.Count > 0)
+			{
+				_backgroundIconManager.EnqueueJob(listView, filesForThumbnail, litemsForThumbnail);
+			}
 		}
 		// 加载文件列表
 		private async Task LoadListViewByFilesystem(string path, ListView listView, TreeNode parentnode)
@@ -1944,25 +1987,31 @@ namespace zfile
 				listView.BeginUpdate();
 				listView.Items.Clear();
 				var subkey = (listView.View == View.Tile ? "l" : "s");
-				var filesForThumbnail = new List<string>();
-				var litemsForThumbnail = new List<ListViewItem>();
+				
+				// 添加所有项目到ListView
 				foreach (var item in items)
 				{
 					if ((item.Attributes & FileAttributes.Hidden) != 0) continue;
 					var lvItem = CreateListViewItem(item);
 					var f = SetIconForListViewItem(lvItem, listView, subkey);
-					if (f != null)
-					{
-						filesForThumbnail.Add(f);
-						litemsForThumbnail.Add(lvItem);
-					}
 					lvItem.Tag = parentnode;
 					listView.Items.Add(lvItem);
 				}
-				if (filesForThumbnail.Count != 0)
-					_backgroundIconManager.EnqueueJob(listView, filesForThumbnail, litemsForThumbnail);
+				
 				listView.EndUpdate();
 				listView.Refresh();
+				
+				// 只为可见项生成缩略图
+				ProcessVisibleItemsForThumbnails(listView, subkey);
+				
+				// 添加滚动事件处理程序（如果尚未添加）
+				//if (!listView.Tag?.ToString()?.Contains("ScrollEventAttached") == true)
+				if(listView.Tag == null)
+				{
+					((MyListView)listView).VScroll += ListView_Scroll;
+					((MyListView)listView).MouseWheel += ListView_Scroll;
+					listView.Tag = "ScrollEventAttached";
+				}
 			}
 			var status = (listView == uiManager.LeftList) ? uiManager.LeftStatusStrip : uiManager.RightStatusStrip;
 			uiManager.UpdateStatusBar(listView, status);
@@ -2379,7 +2428,7 @@ namespace zfile
 			cm_renmov();
 		}
 
-		public void RefreshTreeViewAndListView(ListView listView, string path)
+		public void RefreshTreeViewAndListView(MyListView listView, string path)
 		{
 			if (listView == null) return;
 

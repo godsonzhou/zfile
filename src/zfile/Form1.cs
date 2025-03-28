@@ -6,7 +6,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using WinShell;
-using Zfile;
 using Keys = System.Windows.Forms.Keys;
 namespace zfile
 {
@@ -169,6 +168,7 @@ namespace zfile
 		private readonly Dictionary<string, (int count, DateTime lastAccess)> pathAccessHistory = new();
 		private const int MAX_HISTORY_COUNT = 100; // 限制历史记录数量
 		public Font myfont;
+		private bool showFolderSize;
 
 		public enum TreeSearchScope
 		{
@@ -1917,12 +1917,12 @@ namespace zfile
 		private void ProcessVisibleItemsForThumbnails(ListView listView, string subkey)
 		{
 			// 如果不是大图标或平铺模式，不需要生成缩略图
-			if (subkey == "s" || listView.Items.Count == 0)
+			if (listView.Items.Count == 0)
 				return;
 				
-			var filesForThumbnail = new List<string>();
-			var litemsForThumbnail = new List<ListViewItem>();
-			
+			var itemsForJob = new List<string>();
+			var lvitemsForJob = new List<ListViewItem>();
+			var jobtypelist = new List<BackgroundIconManager.JobType>();
 			// 获取可见区域
 			var visibleRect = listView.ClientRectangle;
 			
@@ -1933,30 +1933,41 @@ namespace zfile
 				var itemRect = item.Bounds;
 				var isYin = itemRect.Y + itemRect.Height > visibleRect.Y;//是否进入上边界
 				var isYin1 = itemRect.Y - itemRect.Height * 2 < visibleRect.Height;//是否在下边界内，最下方的两行item不处理，放宽条件
-																				   // 检查项目是否在可见区域内
+				// 检查项目是否在可见区域内
 				if (isYin && isYin1) // (itemRect.IntersectsWith(visibleRect))// temp set to true
 				{
-					// 检查是否是文件（不是文件夹）
-					if (!item.SubItems[3].Text.Equals("<DIR>") && item.ImageKey.StartsWith('.')) //if already generate thumbnail, the imagekey should be like kewkjr51643k67jakjt, otherwise imagekey should be .avi, so if imagekey start with ., indicate the item's thumbnail has not be generated yet, otherwise skip the item.
+					var itemFullName = item.SubItems[1].Text;
+					if (item.SubItems[3].Text.Equals("<DIR>"))
 					{
-						var itemFullName = item.SubItems[1].Text;
-						
-						// 检查是否已经有缩略图
-						if (!string.IsNullOrEmpty(itemFullName) && 
-						    (item.ImageKey == Path.GetExtension(itemFullName) || string.IsNullOrEmpty(item.ImageKey)))
+						//if is dir, calc dir size
+						if ((item.SubItems[5].Text.Equals("0")) && showFolderSize)
 						{
-							filesForThumbnail.Add(itemFullName);
-							litemsForThumbnail.Add(item);
+							itemsForJob.Add(itemFullName);
+							lvitemsForJob.Add(item);
+							jobtypelist.Add(BackgroundIconManager.JobType.DirSize);
 						}
 					}
+					else
+					{
+						// 检查是否是文件（不是文件夹）
+						//&& item.ImageKey.StartsWith('.') if already generate thumbnail, the imagekey should be like kewkjr51643k67jakjt, otherwise imagekey should be .avi, so if imagekey start with ., indicate the item's thumbnail has not be generated yet, otherwise skip the item.
+						// 检查是否已经有缩略图
+						if (!string.IsNullOrEmpty(itemFullName) &&
+							(item.ImageKey == Path.GetExtension(itemFullName) || string.IsNullOrEmpty(item.ImageKey)))
+						{
+							itemsForJob.Add(itemFullName);
+							lvitemsForJob.Add(item);
+							jobtypelist.Add(BackgroundIconManager.JobType.Thumbnail);
+						}
+					}
+
 				}
 			}
 			
 			// 如果有需要处理的项目，加入缩略图生成队列
-			if (filesForThumbnail.Count > 0)
-			{
-				_backgroundIconManager.EnqueueJob(listView, filesForThumbnail, litemsForThumbnail);
-			}
+			if (itemsForJob.Count > 0)
+				_backgroundIconManager.EnqueueJob(listView, itemsForJob, lvitemsForJob, jobtypelist);
+		
 		}
 		// 加载文件列表
 		private async Task LoadListViewByFilesystem(string path, ListView listView, TreeNode parentnode)
@@ -1987,12 +1998,12 @@ namespace zfile
 				listView.BeginUpdate();
 				listView.Items.Clear();
 				var subkey = (listView.View == View.Tile ? "l" : "s");
-				
+				showFolderSize = configLoader.FindConfigValue("Configuration", "EverythingForSize").Equals("1");
 				// 添加所有项目到ListView
 				foreach (var item in items)
 				{
 					if ((item.Attributes & FileAttributes.Hidden) != 0) continue;
-					var lvItem = CreateListViewItem(item);
+					var lvItem = CreateListViewItem(item, showFolderSize);
 					var f = SetIconForListViewItem(lvItem, listView, subkey);
 					lvItem.Tag = parentnode;
 					listView.Items.Add(lvItem);
@@ -2043,16 +2054,15 @@ namespace zfile
 			return sb.ToString();
 		}
 
-		private ListViewItem? CreateListViewItem(FileSystemInfo item)
+		private ListViewItem? CreateListViewItem(FileSystemInfo item, bool showFolderSize)
 		{
 			try
 			{
 				string[] itemData;
 				if (item is DirectoryInfo)
 				{
-					var showFolderSize = configLoader.FindConfigValue("Configuration", "EverythingForSize").Equals("1");
-					var size = showFolderSize ? EverythingWrapper.CalculateDirectorySize(item.FullName) : 0;
-
+					//var size = showFolderSize ? EverythingWrapper.CalculateDirectorySize(item.FullName) : 0;
+					var size = 0;
 					// 获取目录属性并格式化为RAHSC格式
 					string attrStr = GetFileAttributesString(item.Attributes);
 

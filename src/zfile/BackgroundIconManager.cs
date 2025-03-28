@@ -1,12 +1,5 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace zfile
 {
@@ -74,7 +67,7 @@ namespace zfile
             /// <summary>
             /// 待更新的ListViewItem集合
             /// </summary>
-            public List<(ListView Item, string ImageKey, string filepath, ListViewItem item)> ItemsToUpdate { get; } = new ();
+            public List<(ListView Item, string ImageKey, string filepath, ListViewItem item, long dirsize)> ItemsToUpdate { get; } = new ();
         }
 
         /// <summary>
@@ -92,6 +85,8 @@ namespace zfile
             /// </summary>
             public List<string> FilePaths { get; set; }
             
+			public List<JobType> Type { get; set; }
+
             /// <summary>
             /// 所属的ImageList
             /// </summary>
@@ -113,7 +108,11 @@ namespace zfile
             _currentProgress = new IconProgress();
             _cancellationTokenSource = new CancellationTokenSource();
         }
-
+		public enum JobType
+		{
+			Thumbnail = 0,
+			DirSize = 1
+		}
         /// <summary>
         /// 将图标生成任务加入队列
         /// </summary>
@@ -121,7 +120,7 @@ namespace zfile
         /// <param name="filePath">文件路径</param>
         /// <param name="imageList">图像列表</param>
         /// <param name="iconType">图标类型 (s: 小图标, l: 大图标/缩略图)</param>
-        public void EnqueueJob(ListView view, List<string> filePaths, List<ListViewItem> Items)
+        public void EnqueueJob(ListView view, List<string> filePaths, List<ListViewItem> Items, List<JobType> jobtypes)
         {
             if (view == null || filePaths.Count == 0)
                 return;
@@ -131,6 +130,7 @@ namespace zfile
                 View = view,
                 FilePaths = filePaths,
                 //ImageList = view.LargeImageList
+				Type = jobtypes,
 				Items = Items
             };
 
@@ -172,68 +172,74 @@ namespace zfile
                     {
                         try
                         {
-                            // 更新当前处理文件名
-                            _currentProgress.CurrentFile = Path.GetFileName(job.FilePaths[0]);
-                            ReportProgress();
-
-                            // 根据图标类型处理
-							// 大图标或缩略图
-                            {
-                                //await ProcessLargeIconOrThumbnailAsync(job);
-                            }
-							for (var idx = 0; idx < job.FilePaths.Count; idx ++)
+							// 更新当前处理文件名
+							_currentProgress.CurrentFile = Path.GetFileName(job.FilePaths[0]);
+							ReportProgress();
+							
+							for (var idx = 0; idx < job.FilePaths.Count; idx++)
 							{
+								long size = 0;
+								string imageKey = null;
+
 								var jobFilePath = job.FilePaths[idx];
-								var key = Path.GetExtension(jobFilePath);
-								string imageKey = key;
-
-								// 尝试生成缩略图
-								var thumb = _thumbnailManager.CreatePreview(jobFilePath, out string md5key);
-								if (thumb != null)
+								if (job.Type[idx] == JobType.DirSize)
 								{
-									Debug.Print("thumb generated: {0}, {1}", jobFilePath, md5key);
-									imageKey = md5key;
-
-									// 在UI线程上更新ImageList
-									await Task.Run(() =>
-									{
-										try
-										{
-											if (job.View?.InvokeRequired == true)
-											{
-												job.View.Invoke(new Action(() =>
-												{
-													if (!job.View.LargeImageList.Images.ContainsKey(md5key))
-														job.View.LargeImageList.Images.Add(md5key, thumb);
-												}));
-											}
-											else
-											{
-												if (!job.View.LargeImageList.Images.ContainsKey(md5key))
-													job.View.LargeImageList.Images.Add(md5key, thumb);
-											}
-										}
-										catch (Exception ex)
-										{
-											Debug.Print($"更新ImageList异常: {ex.Message}");
-										}
-									});
+									size = EverythingWrapper.CalculateDirectorySize(jobFilePath);
+								
 								}
 								else
 								{
-									// 如果没有缩略图，使用大图标
-									if (!_iconManager.HasIconKey(key, true))
-									{
-										var icol = IconManager.GetIconByFileNameEx("FILE", jobFilePath, true);
-										if (icol != null)
-											_iconManager.AddIcon(key, icol, true);
-									}
-								}
+									var key = Path.GetExtension(jobFilePath);
+									imageKey = key;
 
+									// 尝试生成缩略图
+									var thumb = _thumbnailManager.CreatePreview(jobFilePath, out string md5key);
+									if (thumb != null)
+									{
+										Debug.Print("thumb generated: {0}, {1}", jobFilePath, md5key);
+										imageKey = md5key;
+
+										// 在UI线程上更新ImageList
+										await Task.Run(() =>
+										{
+											try
+											{
+												if (job.View?.InvokeRequired == true)
+												{
+													job.View.Invoke(new Action(() =>
+													{
+														if (!job.View.LargeImageList.Images.ContainsKey(md5key))
+															job.View.LargeImageList.Images.Add(md5key, thumb);
+													}));
+												}
+												else
+												{
+													if (!job.View.LargeImageList.Images.ContainsKey(md5key))
+														job.View.LargeImageList.Images.Add(md5key, thumb);
+												}
+											}
+											catch (Exception ex)
+											{
+												Debug.Print($"更新ImageList异常: {ex.Message}");
+											}
+										});
+									}
+									else
+									{
+										// 如果没有缩略图，使用大图标
+										if (!_iconManager.HasIconKey(key, true))
+										{
+											var icol = IconManager.GetIconByFileNameEx("FILE", jobFilePath, true);
+											if (icol != null)
+												_iconManager.AddIcon(key, icol, true);
+										}
+									}
+							
+								}
 								// 添加到待更新列表
 								lock (_currentProgress.ItemsToUpdate)
 								{
-									_currentProgress.ItemsToUpdate.Add((job.View, imageKey, jobFilePath, job.Items[idx]));
+									_currentProgress.ItemsToUpdate.Add((job.View, imageKey, jobFilePath, job.Items[idx], size));
 								}
 								// 更新完成计数
 								_currentProgress.CompletedJobs++;
@@ -246,7 +252,7 @@ namespace zfile
 									_batchCounter = 0;
 								}
 							}
-
+							
 					
                         }
                         catch (Exception ex)
@@ -275,33 +281,11 @@ namespace zfile
         }
 
         /// <summary>
-        /// 处理小图标
-        /// </summary>
-        //private void ProcessSmallIcon(IconJob job)
-        //{
-        //    var key = Path.GetExtension(job.FilePath);
-        //    if (!_iconManager.HasIconKey(key, false))
-        //    {
-        //        var ico = IconManager.GetIconByFileNameEx("FILE", job.FilePath);
-        //        if (ico != null)
-        //            _iconManager.AddIcon(key, ico, false);
-        //    }
-
-        //    // 在UI线程上更新ImageList和ListViewItem
-        //    lock (_currentProgress.ItemsToUpdate)
-        //    {
-        //        _currentProgress.ItemsToUpdate.Add((job.Item, key));
-        //    }
-        //}
-
-	
-
-        /// <summary>
         /// 更新UI
         /// </summary>
         private async Task UpdateUIAsync()
         {
-            List<(ListView Item, string ImageKey, string filepath, ListViewItem)> itemsToUpdate;
+            List<(ListView Item, string ImageKey, string filepath, ListViewItem, long)> itemsToUpdate;
             
             // 获取并清空待更新项
             lock (_currentProgress.ItemsToUpdate)
@@ -309,7 +293,7 @@ namespace zfile
                 if (_currentProgress.ItemsToUpdate.Count == 0)
                     return;
                     
-                itemsToUpdate = new List<(ListView, string, string, ListViewItem)>(_currentProgress.ItemsToUpdate);
+                itemsToUpdate = new List<(ListView, string, string, ListViewItem,long)>(_currentProgress.ItemsToUpdate);
                 _currentProgress.ItemsToUpdate.Clear();
             }
 
@@ -359,22 +343,27 @@ namespace zfile
         /// <summary>
         /// 更新ListView项的图标
         /// </summary>
-        private void UpdateListViewItems(List<(ListView Item, string ImageKey, string filepath, ListViewItem)> items)
+        private void UpdateListViewItems(List<(ListView v, string ImageKey, string filepath, ListViewItem, long)> items)
         {
-            if (items.Count == 0 || items[0].Item == null)
+            if (items.Count == 0 || items[0].v == null)
                 return;
 
-            var listView = items[0].Item;
+            var listView = items[0].v;
             
             try
             {
                 listView.BeginUpdate();
                 
-                foreach (var (item, imageKey, filepath, i) in items)
+                foreach (var (v, imageKey, filepath, i, dirsize) in items)
                 {
-                    if (item != null && !string.IsNullOrEmpty(imageKey))
+					if (v != null && !string.IsNullOrEmpty(imageKey))
 						i.ImageKey = imageKey;
-                }
+					else
+					{
+						i.SubItems[2].Text = FileSystemManager.FormatFileSize(dirsize, true);
+						i.SubItems[5].Text = dirsize.ToString();
+					}
+				}
             }
             catch (Exception ex)
             {

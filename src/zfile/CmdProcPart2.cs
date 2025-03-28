@@ -840,7 +840,7 @@ namespace zfile
 						if (wcxModule != null)
 						{
 							int flags = packOptionDialog.IncludePath ? 1 : 0;
-							wcxModule.PackFiles(singleTargetFile, "", sourcePath, file, flags);
+							wcxModule.PackFiles(singleTargetFile, "", sourcePath, file + "\0\0", flags);
 						}
 					}
 				}
@@ -858,7 +858,7 @@ namespace zfile
 					if (wcxModule != null)
 					{
 						int flags = packOptionDialog.IncludePath ? 1 : 0;
-						string fileList = string.Join("\n", selectedFiles);
+						string fileList = string.Join("\0", selectedFiles) + "\0\0";
 						wcxModule.PackFiles(targetFile, "", sourcePath, fileList, flags);
 					}
 				}

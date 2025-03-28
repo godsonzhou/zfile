@@ -728,7 +728,25 @@ namespace zfile
 		{
 			return _closeArchive != null && _closeArchive(arcHandle) == 0;
 		}
+		/*
+		 * PackFiles specifies what should happen when a user creates, or adds files to the archive.
 
+			 int __stdcall PackFiles (char *PackedFile, char *SubPath, char *SrcPath, char *AddList, int Flags);
+			Description
+			PackFiles should return zero on success, or one of the error values otherwise.
+
+			PackedFile refers to the archive that is to be created or modified. The string contains the full path.
+			SubPath is either NULL, when the files should be packed with the paths given with the file names, or not NULL when they should be placed below the given subdirectory within the archive. Example:
+			 SubPath="subdirectory"
+			 Name in AddList="subdir2\filename.ext"
+			 -> File should be packed as "subdirectory\subdir2\filename.ext"
+			SrcPath contains path to the files in AddList. SrcPath and AddList together specify files that are to be packed into PackedFile.
+			Each string in AddList is zero-delimited (ends in zero), and the AddList string ends with an extra zero byte, i.e. there are two zero bytes at the end of AddList.
+			Flags can contain a combination of the following values reflecting the user choice from within Totalcmd:
+			Constant	Value	Description
+			PK_PACK_MOVE_FILES	1	Delete original after packing
+			PK_PACK_SAVE_PATHS	2	Save path names of files
+		 */
 		public int PackFiles(string packedFile, string subPath, string srcPath, string addList, int flags)
 		{
 			if (_isUnicode && _packFilesW != null)

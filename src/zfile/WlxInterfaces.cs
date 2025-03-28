@@ -382,7 +382,7 @@ namespace zfile
 					if (IsModuleSupported(module, fileName))
 					{
 						tryModuleIdx = i;
-						Debug.Print("try to use #{i} module ");
+						Debug.Print($"try to use #{i} module {module.Name} for {fileName} ");
 						return module;
 					}
 				}

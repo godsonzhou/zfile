@@ -88,6 +88,22 @@ namespace zfile
 		PK_TOO_MANY_FILES = 23,
 		PK_NOT_SUPPORTED = 24
 	}
+	public enum UnpackFlags
+	{
+		PK_OM_LIST = 0,
+		PK_OM_EXTRACT = 1
+	}
+	public enum ProcessFileOperation
+	{
+		PK_SKIP = 0,
+		PK_TEST = 1,
+		PK_EXTRACT = 2
+	}
+	public enum ChangeVolProcFlags
+	{
+		PK_VOL_ASK = 0,
+		PK_VOL_NOTIFY = 1
+	}
 	public enum PackFilesFlags
 	{
 		/// <summary>
@@ -375,9 +391,9 @@ namespace zfile
 	public delegate IntPtr TOpenArchiveW(ref TOpenArchiveDataW archiveData);
 	public delegate int TReadHeader(IntPtr handle, ref THeaderData headerData);
 	public delegate int TReadHeaderExW(IntPtr handle, ref THeaderDataExW headerData);
-	public delegate int TProcessFile(IntPtr handle, int operation, string destPath, string destName);
+	public delegate int TProcessFile(IntPtr handle, ProcessFileOperation operation, string destPath, string destName);
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet=CharSet.Unicode)]
-	public delegate int TProcessFileW(IntPtr handle, int operation, [MarshalAs(UnmanagedType.LPWStr)] string destPath, [MarshalAs(UnmanagedType.LPWStr)] string destName);
+	public delegate int TProcessFileW(IntPtr handle, ProcessFileOperation operation, [MarshalAs(UnmanagedType.LPWStr)] string destPath, [MarshalAs(UnmanagedType.LPWStr)] string destName);
 	public delegate int TCloseArchive(IntPtr handle);
 	public delegate int TPackFiles(string packedFile, string subPath, string srcPath, string addList, int flags);
 	public delegate int TPackFilesW([MarshalAs(UnmanagedType.LPWStr)] string packedFile, [MarshalAs(UnmanagedType.LPWStr)] string subPath, [MarshalAs(UnmanagedType.LPWStr)] string srcPath, [MarshalAs(UnmanagedType.LPWStr)] string addList, int flags);
@@ -693,7 +709,7 @@ namespace zfile
 			return false;
 		}
 
-		public int ProcessFile(IntPtr arcHandle, int operation, string destPath, string destName)
+		public int ProcessFile(IntPtr arcHandle, ProcessFileOperation operation, string destPath, string destName)
 		{
 			if (_isUnicode && _processFileW != null)
 			{

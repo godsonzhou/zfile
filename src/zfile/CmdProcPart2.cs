@@ -989,7 +989,7 @@ namespace zfile
 				}
 				else
 				{
-					if (owner.OpenArchive(zipPath))
+					if (owner.OpenArchive(zipPath, UnpackFlags.PK_OM_EXTRACT))
 					{
 						// 使用Form1的ExtractArchiveFile方法
 						if (!owner.ExtractArchiveFile(zipPath, "", extractPath))

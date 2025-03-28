@@ -1199,7 +1199,7 @@ namespace zfile
 			string path = Path.Combine(CurrentDir[LRflag], selectedItem.Text);
 			if (IsArchiveFile(path))
 			{
-				if (OpenArchive(path))
+				if (OpenArchive(path, UnpackFlags.PK_OM_LIST))
 				{
 					archivePaths[path] = CurrentDir[LRflag];
 					var items = LoadArchiveContents(path);
@@ -1971,7 +1971,7 @@ namespace zfile
 			if (path.EndsWith(':')) path += "\\";
 			if (IsArchiveFile(path))
 			{
-				if (OpenArchive(path))
+				if (OpenArchive(path, UnpackFlags.PK_OM_LIST))
 				{
 					archivePaths[path] = CurrentDir[LRflag];
 					var items = LoadArchiveContents(path);
@@ -2514,7 +2514,7 @@ namespace zfile
 			return wcxModuleList.GetModuleByExt(ext) != null;
 		}
 
-		public bool OpenArchive(string archivePath)
+		public bool OpenArchive(string archivePath, UnpackFlags openMode = UnpackFlags.PK_OM_LIST)
 		{
 			if (openArchives.ContainsKey(archivePath))
 				return true;
@@ -2540,7 +2540,7 @@ namespace zfile
 				if (!wcxModule.CanYouHandleThisFile(archivePath))
 					continue; // 如果插件不能处理该文件，尝试下一个插件
 				
-				IntPtr handle = wcxModule.OpenArchive(archivePath, 0, out var openResult);
+				IntPtr handle = wcxModule.OpenArchive(archivePath, (int)openMode, out var openResult);
 				if (handle == IntPtr.Zero)
 					continue; // 如果打开失败，尝试下一个插件
 				
@@ -2622,9 +2622,9 @@ namespace zfile
 			{
 				if (headerData.FileName == fileName)
 				{
-					return wcxModule.ProcessFile(handle, 2, destPath, fileName) == 0;// 0 SKIP, 1 TEST, 2 EXTRACT
+					return wcxModule.ProcessFile(handle, ProcessFileOperation.PK_EXTRACT, destPath, fileName) == 0;// 0 SKIP, 1 TEST, 2 EXTRACT
 				}
-				wcxModule.ProcessFile(handle, 0, "", ""); // 0 Skip file
+				wcxModule.ProcessFile(handle, ProcessFileOperation.PK_SKIP, "", ""); // 0 Skip file
 			}
 			CloseArchive(archivePath);
 			return false;
@@ -2778,10 +2778,10 @@ namespace zfile
 				// 确定源路径和目标路径的类型
 				bool isSourceArchive = IsArchiveFile(srcPath);//bugfix: the srcpath is the dir in which the arch file located, so always return false, it should use vfs to process the arch file as virtual dir
 				if (isSourceArchive)
-					OpenArchive(srcPath);
+					OpenArchive(srcPath, UnpackFlags.PK_OM_EXTRACT);
 				bool isTargetArchive = IsArchiveFile(targetPath);
 				if (isTargetArchive)
-					OpenArchive(targetPath);
+					OpenArchive(targetPath, UnpackFlags.PK_OM_EXTRACT);
 				bool isSourceFtp = fTPMGR.IsFtpPath(srcPath);
 				bool isTargetFtp = fTPMGR.IsFtpPath(targetPath);
 

@@ -2651,7 +2651,7 @@ namespace zfile
 		{
 			string result = "";
 			foreach (string str in input)
-				result += Path.GetFileName(str) + '\0';
+				result += (str) + '\0';
 			result += '\0';
 			return result;
 		}

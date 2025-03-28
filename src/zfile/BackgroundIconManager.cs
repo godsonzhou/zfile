@@ -129,7 +129,6 @@ namespace zfile
             {
                 View = view,
                 FilePaths = filePaths,
-                //ImageList = view.LargeImageList
 				Type = jobtypes,
 				Items = Items
             };
@@ -162,10 +161,8 @@ namespace zfile
             try
             {
                 _batchCounter = 0;
-                
                 // 报告初始进度
                 ReportProgress();
-
                 while (!_jobQueue.IsEmpty && !cancellationToken.IsCancellationRequested)
                 {
                     if (_jobQueue.TryDequeue(out IconJob job))
@@ -175,30 +172,23 @@ namespace zfile
 							// 更新当前处理文件名
 							_currentProgress.CurrentFile = Path.GetFileName(job.FilePaths[0]);
 							ReportProgress();
-							
 							for (var idx = 0; idx < job.FilePaths.Count; idx++)
 							{
 								long size = 0;
 								string imageKey = null;
-
 								var jobFilePath = job.FilePaths[idx];
 								if (job.Type[idx] == JobType.DirSize)
-								{
 									size = EverythingWrapper.CalculateDirectorySize(jobFilePath);
-								
-								}
 								else
 								{
 									var key = Path.GetExtension(jobFilePath);
 									imageKey = key;
-
 									// 尝试生成缩略图
 									var thumb = _thumbnailManager.CreatePreview(jobFilePath, out string md5key);
 									if (thumb != null)
 									{
 										Debug.Print("thumb generated: {0}, {1}", jobFilePath, md5key);
 										imageKey = md5key;
-
 										// 在UI线程上更新ImageList
 										await Task.Run(() =>
 										{

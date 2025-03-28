@@ -1902,7 +1902,7 @@ namespace zfile
 		// 处理ListView滚动事件
 		public void ListView_Scroll(object sender, EventArgs e)
 		{
-			Debug.Print("ListView_Scroll detected!!");
+			//Debug.Print("ListView_Scroll detected!!");
 			if (sender is ListView listView)
 			{
 				// 获取当前视图模式
@@ -1952,7 +1952,7 @@ namespace zfile
 						// 检查是否是文件（不是文件夹）
 						//&& item.ImageKey.StartsWith('.') if already generate thumbnail, the imagekey should be like kewkjr51643k67jakjt, otherwise imagekey should be .avi, so if imagekey start with ., indicate the item's thumbnail has not be generated yet, otherwise skip the item.
 						// 检查是否已经有缩略图
-						if (!string.IsNullOrEmpty(itemFullName) &&
+						if (!string.IsNullOrEmpty(itemFullName) && subkey == "l" &&
 							(item.ImageKey == Path.GetExtension(itemFullName) || string.IsNullOrEmpty(item.ImageKey)))
 						{
 							itemsForJob.Add(itemFullName);

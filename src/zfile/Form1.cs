@@ -2644,7 +2644,7 @@ namespace zfile
 			//string fileList = string.Join("\n", files); //TODO:Each string in fileList is zero-delimited (ends in zero), and the fileList string ends with an extra zero byte, i.e. there are two zero bytes at the end of AddList.
 			//string fileList = string.Join("\0", files) + "\0\0";
 			var packfilesflags = PackFilesFlags.PK_PACK_SAVE_PATHS;
-			return wcxModule.PackFiles(archivePath, null, Path.GetDirectoryName(files[0]), ConvertStringArrayToStringSeperateWithZeroDelimiter(files), (int)packfilesflags) == 0;
+			return wcxModule.PackFiles(archivePath, "", Path.GetDirectoryName(files[0]), ConvertStringArrayToStringSeperateWithZeroDelimiter(files), (int)packfilesflags) == 0;
 		}
 	
 		public static string ConvertStringArrayToStringSeperateWithZeroDelimiter(string[] input)

@@ -2602,7 +2602,7 @@ namespace zfile
 				item.SubItems.Add(attrstr); // ACDHS
 				items.Add(item);
 
-				wcxModule.ProcessFile(handle, 0, "", ""); // Skip file
+				wcxModule.ProcessFile(handle, ProcessFileOperation.PK_SKIP, "", ""); // Skip file
 			}
 			CloseArchive(archivePath);
 			return items;
@@ -2636,9 +2636,24 @@ namespace zfile
 			var wcxModule = wcxModuleList.GetModuleByExt(ext);
 			if (wcxModule == null)
 				return false;
-
-			string fileList = string.Join("\n", files);
-			return wcxModule.PackFiles(archivePath, "", Path.GetDirectoryName(files[0]), fileList, 0) == 0;
+			if ((wcxModule.caps & (int)PackerCaps.PK_CAPS_MODIFY) == 0)
+			{
+				MessageBox.Show("该插件不支持修改压缩文件内容", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return false;
+			}
+			//string fileList = string.Join("\n", files); //TODO:Each string in fileList is zero-delimited (ends in zero), and the fileList string ends with an extra zero byte, i.e. there are two zero bytes at the end of AddList.
+			//string fileList = string.Join("\0", files) + "\0\0";
+			var packfilesflags = PackFilesFlags.PK_PACK_SAVE_PATHS;
+			return wcxModule.PackFiles(archivePath, null, Path.GetDirectoryName(files[0]), ConvertStringArrayToStringSeperateWithZeroDelimiter(files), (int)packfilesflags) == 0;
+		}
+	
+		public static string ConvertStringArrayToStringSeperateWithZeroDelimiter(string[] input)
+		{
+			string result = "";
+			foreach (string str in input)
+				result += Path.GetFileName(str) + '\0';
+			result += '\0';
+			return result;
 		}
 
 		public bool DeleteFromArchive(string archivePath, string[] files)
@@ -2647,9 +2662,15 @@ namespace zfile
 			var wcxModule = wcxModuleList.GetModuleByExt(ext);
 			if (wcxModule == null)
 				return false;
+			if((wcxModule.caps & (int)PackerCaps.PK_CAPS_DELETE) == 0)
+			{
+				MessageBox.Show("该插件不支持删除文件", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return false;
+			}
+			//OpenArchive(archivePath, UnpackFlags.PK_OM_EXTRACT);
+			string fileList = string.Join("\0", files) + "\0\0";
+			return wcxModule.DeleteFiles(archivePath, fileList) == 0; // archivepath should be full path and name of the the archive.
 
-			string fileList = string.Join("\n", files);
-			return wcxModule.DeleteFiles(archivePath, fileList) == 0;
 		}
 
 		private void Watcher_Changed(object sender, FileSystemEventArgs e)

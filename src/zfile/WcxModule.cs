@@ -104,7 +104,8 @@ namespace zfile
 		PK_VOL_ASK = 0,
 		PK_VOL_NOTIFY = 1
 	}
-	public enum PackFilesFlags
+	[Flags]
+	public enum PackFilesFlags : int
 	{
 		/// <summary>
 		/// 打包后删除原始文件

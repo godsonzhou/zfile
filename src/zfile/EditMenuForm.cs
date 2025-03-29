@@ -1,5 +1,4 @@
 using System.Text;
-using System.Windows.Forms;
 
 namespace zfile
 {
@@ -30,7 +29,6 @@ namespace zfile
 		private bool usermenu_changed = false;
 		private bool mainmenu_changed = false;
 	
-
 		public EditMenuForm(Form1 form, int menuid)
         {
             mainForm = form;
@@ -190,9 +188,7 @@ namespace zfile
                 {
                     List<string> str = new();
                     foreach (var item in userSection.Items)
-                    {
                         str.Add(item.Key + "=" + item.Value);
-                    }
                     userMenuInfos = Helper.GetMenuInfoFromList(str.ToArray());
                     foreach (var m in userMenuInfos)
                     {
@@ -254,18 +250,16 @@ namespace zfile
                     paramTextBox.Enabled = isNotEndItem;
                     pathTextBox.Enabled = isNotEndItem;
 
-                    if (isNotEndItem)
+                    if (isNotEndItem && selectedIndex < userMenuInfos.Count)
                     {
-						//string[] parts = selectedItem.Split('=');
-						//if (parts.Length == 2)
-						if( mainForm.uiManager.usermenuMap.TryGetValue(selectedItem, out var menuinfo))
-                        {
-                            cmdTextBox.Text = menuinfo.Cmd;
-                            paramTextBox.Text = menuinfo.Param;
-                            pathTextBox.Text = menuinfo.Path;
-                        }
+                        // 直接从userMenuInfos获取选中项的信息
+                        var menuInfo = userMenuInfos[selectedIndex];
+                        cmdTextBox.Text = menuInfo.Cmd;
+                        paramTextBox.Text = menuInfo.Param;
+                        pathTextBox.Text = menuInfo.Path;
                     }
                 }
+                
                 else
                 {
                     // 主菜单项，禁用参数和路径输入框
@@ -300,17 +294,33 @@ namespace zfile
                     int insertIndex = menuItemsListBox.SelectedIndex;
                     if (insertIndex == -1)
                         insertIndex = menuItems.Count - 1;
-
-                    string newItem = dialog.InputText;
                     if (insertIndex < -1) insertIndex = -1;
+                    
+                    string newItem = dialog.InputText;
                     menuItems.Insert(insertIndex + 1, newItem);
                     menuItemsListBox.Items.Insert(insertIndex + 1, newItem);
+                    
+                    // 如果是用户菜单，创建新的MenuInfo对象
+                    if (currentMenuType == "usermenu")
+                    {
+                        MenuInfo newMenuInfo = new MenuInfo
+                        {
+                            Menu = newItem,
+                            Cmd = "%COMMANDER_PATH%\\Tools\\Swoff.exe", // 默认命令
+                            Param = "/锁定 /wait:0" // 默认参数
+                        };
+                        
+                        // 在相应位置插入新的MenuInfo
+                        userMenuInfos.Insert(insertIndex + 1, newMenuInfo);
+                        usermenu_changed = true;
+                    }
+                    else
+                    {
+                        mainmenu_changed = true;
+                    }
+                    
                     menuItemsListBox.SelectedIndex = insertIndex + 1;
-					if (currentMenuType == "mainmenu")
-						mainmenu_changed = true;
-					else
-						usermenu_changed = true;
-				}
+                }
             }
         }
 
@@ -337,7 +347,6 @@ namespace zfile
 						mainmenu_changed = true;
 					else
 						usermenu_changed = true;
-
 				}
             }
         }
@@ -349,7 +358,6 @@ namespace zfile
             int selectedIndex = menuItemsListBox.SelectedIndex;
             string selectedItem = menuItems[selectedIndex];
 
-
 			if (selectedItem.Equals("--"))
 			{
 				// 删除子菜单结束项及其起始项
@@ -360,6 +368,15 @@ namespace zfile
 					menuItems.RemoveAt(startIndex);
 					menuItemsListBox.Items.RemoveAt(selectedIndex);
 					menuItemsListBox.Items.RemoveAt(startIndex);
+                    
+                    // 如果是用户菜单，同时删除对应的MenuInfo
+                    if (currentMenuType == "usermenu")
+                    {
+                        if (selectedIndex < userMenuInfos.Count)
+                            userMenuInfos.RemoveAt(selectedIndex);
+                        if (startIndex < userMenuInfos.Count)
+                            userMenuInfos.RemoveAt(startIndex);
+                    }
 				}
 			}
 			else if (selectedItem.StartsWith("-") && selectedItem.Length != 1) // - is separator, so exclude it
@@ -372,6 +389,15 @@ namespace zfile
                     menuItems.RemoveAt(selectedIndex);
                     menuItemsListBox.Items.RemoveAt(endIndex);
                     menuItemsListBox.Items.RemoveAt(selectedIndex);
+                    
+                    // 如果是用户菜单，同时删除对应的MenuInfo
+                    if (currentMenuType == "usermenu")
+                    {
+                        if (endIndex < userMenuInfos.Count)
+                            userMenuInfos.RemoveAt(endIndex);
+                        if (selectedIndex < userMenuInfos.Count)
+                            userMenuInfos.RemoveAt(selectedIndex);
+                    }
                 }
             }
             else
@@ -379,6 +405,12 @@ namespace zfile
                 // 删除普通菜单项
                 menuItems.RemoveAt(selectedIndex);
                 menuItemsListBox.Items.RemoveAt(selectedIndex);
+                
+                // 如果是用户菜单，同时删除对应的MenuInfo
+                if (currentMenuType == "usermenu" && selectedIndex < userMenuInfos.Count)
+                {
+                    userMenuInfos.RemoveAt(selectedIndex);
+                }
             }
 			if (currentMenuType == "mainmenu")
 				mainmenu_changed = true;
@@ -408,6 +440,12 @@ namespace zfile
                     {
                         menuItems[selectedIndex] = newTitle;
                         menuItemsListBox.Items[selectedIndex] = newTitle;
+                        
+                        // 如果是用户菜单，同时更新对应MenuInfo的Menu属性
+                        if (currentMenuType == "usermenu" && selectedIndex < userMenuInfos.Count)
+                        {
+                            userMenuInfos[selectedIndex].Menu = newTitle;
+                        }
                     }
 					if (currentMenuType == "mainmenu")
 						mainmenu_changed = true;
@@ -426,45 +464,42 @@ namespace zfile
                 if (userSection != null)
                 {
                     userSection.Items.Clear();
-                    for (int i = 0; i < menuItems.Count; i++)
+                    
+                    // 更新当前选中项的值
+                    int selectedIndex = menuItemsListBox.SelectedIndex;
+                    if (selectedIndex >= 0 && selectedIndex < userMenuInfos.Count)
                     {
-                        string item = menuItems[i];
-                        if (item.StartsWith("--"))
-                            continue;
-
-                        string menuText = item;
-                        string cmdLine = "cmd";
-
-                        if (item.Contains("="))
-                        {
-                            string[] parts = item.Split('=');
-                            if (parts.Length == 2)
-                            {
-                                menuText = parts[0];
-                                cmdLine = parts[1];
-                            }
-                        }
-
-                        if (menuItemsListBox.SelectedIndex >= 0 && i == menuItemsListBox.SelectedIndex)
-                        {
-                            // 使用当前输入框的值
-                            var cmdParts = new List<string>();
-                            if (!string.IsNullOrEmpty(cmdTextBox.Text))
-                                cmdParts.Add(cmdTextBox.Text);
-                            if (!string.IsNullOrEmpty(paramTextBox.Text))
-                                cmdParts.Add(paramTextBox.Text);
-                            if (!string.IsNullOrEmpty(pathTextBox.Text))
-                                cmdParts.Add(pathTextBox.Text);
-
-                            cmdLine = string.Join(" ", cmdParts);
-                            if (string.IsNullOrEmpty(cmdLine))
-                                cmdLine = "cmd";
-                        }
-
-                        userSection.Items.Add(new ConfigItem { Key = menuText, Value = cmdLine });
+                        userMenuInfos[selectedIndex].Cmd = cmdTextBox.Text;
+                        userMenuInfos[selectedIndex].Param = paramTextBox.Text;
+                        userMenuInfos[selectedIndex].Path = pathTextBox.Text;
                     }
+                    
+                    // 按照指定格式保存配置
+                    for (int i = 0; i < userMenuInfos.Count; i++)
+                    {
+                        int menuNumber = i + 1;
+                        var menuInfo = userMenuInfos[i];
+                        
+                        // 添加menu项
+                        userSection.Items.Add(new ConfigItem { 
+                            Key = $"menu{menuNumber}", 
+                            Value = menuInfo.Menu 
+                        });
+                        
+                        // 添加cmd项
+                        userSection.Items.Add(new ConfigItem { 
+                            Key = $"cmd{menuNumber}", 
+                            Value = menuInfo.Cmd 
+                        });
+                        
+                        // 添加param项
+                        userSection.Items.Add(new ConfigItem { 
+                            Key = $"param{menuNumber}", 
+                            Value = menuInfo.Param 
+                        });
+                    }                    
                     mainForm.userConfigLoader.SaveConfig();
-                }
+				}
             }
             //else
 			if(mainmenu_changed)
@@ -499,9 +534,10 @@ namespace zfile
                     MessageBox.Show($"保存菜单失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-        }
+			mainForm.uiManager.InitializeDynamicMenu();
+		}
 
-        private int FindSubmenuEnd(int startIndex)
+		private int FindSubmenuEnd(int startIndex)
         {
             int nestedLevel = 1;
             for (int i = startIndex + 1; i < menuItems.Count; i++)
@@ -598,4 +634,4 @@ namespace zfile
             this.CancelButton = cancelButton;
         }
     }
-} 
+}

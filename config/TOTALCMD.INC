@@ -642,6 +642,17 @@ cm_RightViewMode7=8257;
 cm_RightViewMode8=8258;
 cm_RightViewMode9=8259;etc. until 8499
 
+[_______New Commands With Zfile________]=0
+cm_llm_helper=11434;
+cm_netCrawler=11435;
+cm_ChromeCrawler=11436;
+cm_apicallerDlg=11437;
+cm_mcpConfigUI=11438;
+cm_GetInfoFromMcpServer=11439;
+cm_StartMcpServer=11440;
+cm_QueryMcpServer=11441;
+cm_evaluateExprDlg=11443;
+
 [________Commands with Parameters_________]=0
 ;These negative numbers are just used for translation and cannot be used instead of the commands
 CD <directory>=-2;Switch to the given directory

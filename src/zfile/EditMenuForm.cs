@@ -127,6 +127,7 @@ namespace zfile
                 Location = new Point(50, 340),
                 Size = new Size(100, 20)
             };
+            cmdTextBox.TextChanged += TextBox_TextChanged;
 
             paramLabel = new Label
             {
@@ -140,6 +141,7 @@ namespace zfile
                 Location = new Point(200, 340),
                 Size = new Size(100, 20)
             };
+            paramTextBox.TextChanged += TextBox_TextChanged;
 
             pathLabel = new Label
             {
@@ -153,6 +155,7 @@ namespace zfile
                 Location = new Point(350, 340),
                 Size = new Size(100, 20)
             };
+            pathTextBox.TextChanged += TextBox_TextChanged;
 
             // 添加控件到窗体
             this.Controls.AddRange(new Control[] {
@@ -455,6 +458,28 @@ namespace zfile
             }
         }
 
+        private void TextBox_TextChanged(object sender, EventArgs e)
+        {
+            // 当文本框内容变化时，实时更新userMenuInfos
+            int selectedIndex = menuItemsListBox.SelectedIndex;
+            if (currentMenuType == "usermenu" && selectedIndex >= 0 && selectedIndex < userMenuInfos.Count)
+            {
+                if (sender == cmdTextBox)
+                {
+                    userMenuInfos[selectedIndex].Cmd = cmdTextBox.Text;
+                }
+                else if (sender == paramTextBox)
+                {
+                    userMenuInfos[selectedIndex].Param = paramTextBox.Text;
+                }
+                else if (sender == pathTextBox)
+                {
+                    userMenuInfos[selectedIndex].Path = pathTextBox.Text;
+                }
+                usermenu_changed = true;
+            }
+        }
+
         private void OkButton_Click(object sender, EventArgs e)
         {
             if (usermenu_changed)
@@ -465,14 +490,7 @@ namespace zfile
                 {
                     userSection.Items.Clear();
                     
-                    // 更新当前选中项的值
-                    int selectedIndex = menuItemsListBox.SelectedIndex;
-                    if (selectedIndex >= 0 && selectedIndex < userMenuInfos.Count)
-                    {
-                        userMenuInfos[selectedIndex].Cmd = cmdTextBox.Text;
-                        userMenuInfos[selectedIndex].Param = paramTextBox.Text;
-                        userMenuInfos[selectedIndex].Path = pathTextBox.Text;
-                    }
+                    // 不需要在这里更新当前选中项的值，因为已经在TextChanged事件中实时更新了
                     
                     // 按照指定格式保存配置
                     for (int i = 0; i < userMenuInfos.Count; i++)
@@ -534,7 +552,6 @@ namespace zfile
                     MessageBox.Show($"保存菜单失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-			mainForm.uiManager.InitializeDynamicMenu();
 		}
 
 		private int FindSubmenuEnd(int startIndex)

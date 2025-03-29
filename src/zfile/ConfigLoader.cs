@@ -83,9 +83,7 @@ namespace zfile
 				{
 					writer.WriteLine($"[{section.Name}]");
 					foreach (var item in section.Items)
-					{
 						writer.WriteLine($"{item.Key}={item.Value}");
-					}
 					writer.WriteLine();
 				}
 			}

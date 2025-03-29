@@ -2503,9 +2503,17 @@ namespace zfile
 			{
 				if (menuItem != null && menuItem.Tag != null)
 				{
-					var cmd = (string)menuItem.Tag;//51 or cm_xx
-					Debug.Print($"点击了菜单项: {menuItem.Text} , cmd : {cmd}");
-					cmdProcessor.ExecCmd(cmd);
+					if (menuItem.Tag is MenuInfo mi) //new calling method with MenuInfo
+					{
+						Debug.Print($"点击了菜单项: {menuItem.Text} , cmd : {mi.Cmd}");
+						cmdProcessor.ExecCmdByMenuInfo(mi);
+					}
+					else
+					{
+						var cmd = (string)menuItem.Tag;//51 or cm_xx, legacy calling method
+						Debug.Print($"点击了菜单项: {menuItem.Text} , cmd : {cmd}");
+						cmdProcessor.ExecCmd(cmd);
+					}
 				}
 			}
 		}

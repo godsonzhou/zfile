@@ -64,28 +64,23 @@ namespace zfile
 				debugMode = true;
 				cmd = cmd.TrimStart('?');
 			}
-			var cmds = new List<string>();
 			
-            // 处理提示框变量 %[prompt]
-            cmd = Regex.Replace(cmd, @"%\[(.*?)\]", match =>
+			// 处理引号控制			
+			if (useQuotes)
+				cmd = cmd.Replace("%\"0", "").Replace("%\"1", "\"");
+
+			// 处理提示框变量 %[prompt]
+			cmd = Regex.Replace(cmd, @"%\[(.*?)\]", match =>
             {
                 var prompt = match.Groups[1].Value;
                 return Microsoft.VisualBasic.Interaction.InputBox(prompt, "Input Required", "");
             });
-			cmds.Add(cmd);
+			var cmds = cmd.Split('|').ToList();
 
 			// 处理文件变量
 			foreach (var handler in _variableHandlers)
-            {
-                var pattern = $"%{handler.Key}";
-				cmds = processEachcmd(pattern, cmds);
-            }
+				cmds = processEachcmd($"%{handler.Key}", cmds);
 
-            // 处理引号控制
-            if (useQuotes)
-            {
-                cmd = cmd.Replace("%\"0", "").Replace("%\"1", "\"");
-            }
 			if (debugMode)
 				MessageBox.Show(string.Join(' ', cmds));
             return cmds;
@@ -181,16 +176,13 @@ namespace zfile
         public List<string> PrepareParameter(string command, string[] files, string currentPath)
         {
             // 环境变量替换
-            //var result = Environment.ExpandEnvironmentVariables(command);
 			var cmd = Helper.GetPathByEnv(command);
             // 波浪号展开
             if (cmd.StartsWith("~"))
                 cmd = cmd.Replace("~", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
 
             // 变量替换
-            var cmds = ReplaceVariableParams(cmd, files, currentPath);
-
-            return cmds;
+            return ReplaceVariableParams(cmd, files, currentPath);
         }
 
         private bool ExecuteInTerminal(string command, bool keepOpen)

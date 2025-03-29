@@ -2794,27 +2794,27 @@ namespace zfile
 		}   // 复制选中的文件
 		public bool cm_copy(string param = null, string targetPath = null)
 		{
-			var files1 = GetFileListByViewOrParam(param);
-			var listView = activeListView;
-			if (listView == null || listView.SelectedItems.Count <= 0) return false;
-
-			var srcPath = Helper.getFSpath(!uiManager.isleft ? uiManager.RightTree.SelectedNode.FullPath : uiManager.LeftTree.SelectedNode.FullPath);
-			var targetTree = uiManager.isleft ? uiManager.RightTree : uiManager.LeftTree;
-
-			// 如果没有指定目标路径，则使用非活动面板的路径作为目标
-			if (string.IsNullOrEmpty(targetPath))
+			string srcPath;
+			string[] sourceFiles;
+			ListView targetlist;
+			if (!string.IsNullOrEmpty(param)) // if param exist, indicate that use clipboard to copy/move file, so the actpanel is targetpanel, otherwise is normal operation, the actpanel is srcpanel.
 			{
-				targetPath = Helper.getFSpath(targetTree.SelectedNode.FullPath);
+				sourceFiles = GetFileListByViewOrParam(param).ToArray();
+				srcPath = Path.GetDirectoryName(sourceFiles[0]);
+				targetlist = uiManager.activeListView;
 			}
-
-			var isSamePath = targetPath.Equals(srcPath);
-
-			var sourceFiles = listView.SelectedItems.Cast<ListViewItem>()
-				.Select(item => GetListItemPath(item))
-				.ToArray();
-
-			var targetlist = targetPath == Helper.getFSpath(uiManager.RightTree.SelectedNode.FullPath) ?
-							uiManager.RightList : uiManager.LeftList;
+			else
+			{
+				var listView = activeListView;
+				if (listView == null || listView.SelectedItems.Count <= 0) return false;
+				sourceFiles = listView.SelectedItems.Cast<ListViewItem>().Select(item => GetListItemPath(item)).ToArray();
+				srcPath = uiManager.srcDir; 
+				// 如果没有指定目标路径，则使用非活动面板的路径作为目标
+				if (string.IsNullOrEmpty(targetPath))
+					targetPath = Helper.getFSpath(unactiveTreeview.SelectedNode.FullPath);
+				targetlist = uiManager.unactiveListView;
+			}
+	
 			try
 			{
 				// 确定源路径和目标路径的类型

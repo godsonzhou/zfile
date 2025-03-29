@@ -27,6 +27,18 @@
         "read_query",
         "describe_table"
       ]
+    },
+    "github.com/modelcontextprotocol/servers/tree/main/src/filesystem": {
+      "command": "cmd.exe",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:\\Users\\zhouy\\Desktop"
+      ],
+      "disabled": false,
+      "autoApprove": []
     }
   }
 }

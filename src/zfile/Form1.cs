@@ -2309,16 +2309,16 @@ namespace zfile
 		{
 			cm_list();
 		}
-		private List<string> GetFileListByViewOrParam(string param)
+		private List<string> GetFileListByViewOrParam(string param, bool needftpdownload = true)
 		{
 			if (!string.IsNullOrWhiteSpace(param))
 				return se.PrepareParameter(param, new string[] { }, "");
+
 			List<string> result = new();
-			if (activeListView.SelectedItems.Count == 0)
-				return result;
+			if (activeListView.SelectedItems.Count == 0) return result;
 
 			// 检查是否是FTP路径
-			if (CurrentDir[LRflag].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
+			if (CurrentDir[LRflag].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase) && needftpdownload)
 			{
 				// 从当前目录中提取连接名称
 				string connectionName = ExtractFtpConnectionName(CurrentDir[LRflag]);
@@ -2338,7 +2338,8 @@ namespace zfile
 			}
 
 			// 非FTP路径或FTP处理失败，使用原来的逻辑
-			return activeListView.SelectedItems.Cast<ListViewItem>().Select(i => i.SubItems[1].Text).ToList();
+			//return activeListView.SelectedItems.Cast<ListViewItem>().Select(i => i.SubItems[1].Text).ToList();
+			return activeListView.SelectedItems.Cast<ListViewItem>().Select(i => GetListItemPath(i)).ToList();
 		}
 
 		public void cm_list(string param = "")
@@ -3021,12 +3022,24 @@ namespace zfile
 		// 移动选中的文件
 		public void cm_renmov(string param = null, string targetpath = null)
 		{
-			var listView = activeListView;
-			if (listView == null || listView.SelectedItems.Count <= 0) return;
-			var srcpath = Helper.getFSpath(activeTreeview.SelectedNode.FullPath);
-			var sourceFiles = listView.SelectedItems.Cast<ListViewItem>().Select(item => GetListItemPath(item)).ToArray();
-			var targettree = uiManager.isleft ? uiManager.RightTree : uiManager.LeftTree;
-			var targetPath = Helper.getFSpath(targettree.SelectedNode.FullPath);
+			string targetPath;
+			string srcpath;
+			var sourceFiles = GetFileListByViewOrParam(param);
+			if (sourceFiles.Count == 0) return;
+			if (!string.IsNullOrEmpty(param)) // when use clipboard, the targetpath is actpanel dir, so use srcdir, and the srcpath is determined by the filenames in the clipboard, so use the first sourcefile dir, TODO: the sourcefiles with many directories
+			{
+				srcpath = Path.GetDirectoryName(sourceFiles[0]);
+				targetPath = uiManager.srcDir;
+			}
+			else
+			{
+				//var listView = activeListView;
+				//if (listView == null || listView.SelectedItems.Count <= 0) return;
+				srcpath = uiManager.srcDir; //Helper.getFSpath(activeTreeview.SelectedNode.FullPath);
+				//var sourceFiles = listView.SelectedItems.Cast<ListViewItem>().Select(item => GetListItemPath(item)).ToArray();
+				//var targettree = uiManager.isleft ? uiManager.RightTree : uiManager.LeftTree;
+				targetPath = uiManager.targetDir; //Helper.getFSpath(unactiveTreeview.SelectedNode.FullPath);
+			}
 			if (string.IsNullOrEmpty(targetPath))
 			{
 				MessageBox.Show("无效的目标路径", "错误");
@@ -3070,15 +3083,18 @@ namespace zfile
 		public void cm_delete(string param = null, bool needConfirm = true)
 		{
 			//Debug.Print("Delete files : >>");
-			var listView = activeListView;
-			if (listView == null || listView.SelectedItems.Count <= 0) return;
-			var files = listView.SelectedItems.Cast<ListViewItem>().Select(item => GetListItemPath(item)).ToArray();
+			//var listView = activeListView;
+			//if (listView == null || listView.SelectedItems.Count <= 0) return;
+			//var files = listView.SelectedItems.Cast<ListViewItem>().Select(item => GetListItemPath(item)).ToArray();
+			var files = GetFileListByViewOrParam(param, false);
+			if (files.Count == 0) return;
+
 			var currentPath = CurrentDir[LRflag];
 			var result = DialogResult.Yes;
 			if (needConfirm)
 			{
 				result = MessageBox.Show(
-					$"确定要删除选中的 {files.Length} 个文件吗？",
+					$"确定要删除选中的 {files.Count} 个文件吗？",
 					"确认删除",
 					MessageBoxButtons.YesNo,
 					MessageBoxIcon.Question
@@ -3116,7 +3132,7 @@ namespace zfile
 						foreach (var file in files)
 							FileSystemManager.DeleteFile(file);
 					}
-					RefreshPanel(listView);
+					RefreshPanel(activeListView);
 				}
 				catch (Exception ex)
 				{

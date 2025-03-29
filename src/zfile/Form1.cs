@@ -2899,16 +2899,12 @@ namespace zfile
 							{
 								string tempFile = ftpSource.DownloadFile(remotePath);
 								if (!string.IsNullOrEmpty(tempFile))
-								{
 									tempFiles.Add(tempFile);
-								}
 							}
 
 							// 然后添加到压缩文件
 							if (tempFiles.Count > 0)
-							{
 								AddToArchive(targetPath, tempFiles.ToArray());
-							}
 						}
 						finally
 						{
@@ -2987,9 +2983,7 @@ namespace zfile
 				else if (!isSourceFtp && isSourceArchive && !isTargetFtp && !isTargetArchive)
 				{
 					foreach (string fileName in sourceFiles)
-					{
 						ExtractArchiveFile(srcPath, fileName, targetPath);
-					}
 				}
 				// 场景9: ARCHIVE -> ARCHIVE
 				else if (!isSourceFtp && isSourceArchive && !isTargetFtp && isTargetArchive)
@@ -3000,16 +2994,12 @@ namespace zfile
 					{
 						// 先从源压缩文件解压
 						foreach (string fileName in sourceFiles)
-						{
 							ExtractArchiveFile(srcPath, fileName, tempDir);
-						}
 
 						// 再添加到目标压缩文件
 						string[] tempFiles = Directory.GetFiles(tempDir);
 						if (tempFiles.Length > 0)
-						{
 							AddToArchive(targetPath, tempFiles);
-						}
 					}
 					finally
 					{
@@ -3033,12 +3023,8 @@ namespace zfile
 		{
 			var listView = activeListView;
 			if (listView == null || listView.SelectedItems.Count <= 0) return;
-
 			var srcpath = Helper.getFSpath(activeTreeview.SelectedNode.FullPath);
-			var sourceFiles = listView.SelectedItems.Cast<ListViewItem>()
-				.Select(item => GetListItemPath(item))
-				.ToArray();
-
+			var sourceFiles = listView.SelectedItems.Cast<ListViewItem>().Select(item => GetListItemPath(item)).ToArray();
 			var targettree = uiManager.isleft ? uiManager.RightTree : uiManager.LeftTree;
 			var targetPath = Helper.getFSpath(targettree.SelectedNode.FullPath);
 			if (string.IsNullOrEmpty(targetPath))
@@ -3046,10 +3032,7 @@ namespace zfile
 				MessageBox.Show("无效的目标路径", "错误");
 				return;
 			}
-			if (srcpath.Equals(targetPath))
-			{
-				return;     //if srcpath eq targetpath, do not need move, do rename 
-			}
+			if (srcpath.Equals(targetPath)) return;     //if srcpath eq targetpath, do not need move, do rename 
 
 			try
 			{
@@ -3089,11 +3072,7 @@ namespace zfile
 			//Debug.Print("Delete files : >>");
 			var listView = activeListView;
 			if (listView == null || listView.SelectedItems.Count <= 0) return;
-
-			var files = listView.SelectedItems.Cast<ListViewItem>()
-				.Select(item => GetListItemPath(item))
-				.ToArray();
-
+			var files = listView.SelectedItems.Cast<ListViewItem>().Select(item => GetListItemPath(item)).ToArray();
 			var currentPath = CurrentDir[LRflag];
 			var result = DialogResult.Yes;
 			if (needConfirm)
@@ -3128,18 +3107,14 @@ namespace zfile
 						if (ftpSource != null)
 						{
 							foreach (string remotePath in files)
-							{
 								ftpSource.DeleteFile(remotePath);
-							}
 						}
 					}
 					else
 					{
 						// 本地文件删除
 						foreach (var file in files)
-						{
 							FileSystemManager.DeleteFile(file);
-						}
 					}
 					RefreshPanel(listView);
 				}
@@ -3155,9 +3130,7 @@ namespace zfile
 		{
 			var listView = activeListView;
 			if (listView == null || listView.SelectedItems.Count <= 0) return;
-
 			var selectedItem = listView.SelectedItems[0];
-
 			// 启用编辑模式
 			selectedItem.BeginEdit();
 		}

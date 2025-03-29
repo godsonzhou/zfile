@@ -943,6 +943,13 @@ namespace zfile
 				{
 					// 要爬取的网址
 					string url = param;
+					if (string.IsNullOrWhiteSpace(url))
+					{
+						using var inputbox = new InputBox("请输入", "请输入目标地址，https://www.example.com");
+						if (inputbox.ShowDialog() != DialogResult.OK)
+							return string.Empty;
+						url = inputbox.InputText;
+					}
 					driver.Navigate().GoToUrl(url);
 
 					// 等待页面加载完成，可以根据实际情况调整等待时间

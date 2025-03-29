@@ -3029,7 +3029,7 @@ namespace zfile
 			}
 		}
 		// 移动选中的文件
-		public void cm_renmov()
+		public void cm_renmov(string param = null, string targetpath = null)
 		{
 			var listView = activeListView;
 			if (listView == null || listView.SelectedItems.Count <= 0) return;
@@ -3060,33 +3060,22 @@ namespace zfile
 				if (isSourceFtp || isTargetFtp)
 				{
 					// 如果涉及FTP，先复制后删除
-					if (cm_copy())
+					if (cm_copy(param, targetpath))
 					{
 						// 如果源是FTP，使用FTP删除
 						if (isSourceFtp)
 						{
 							var ftpSource = fTPMGR.GetFtpSource(srcpath);
 							if (ftpSource != null)
-							{
 								foreach (string remotePath in sourceFiles)
-								{
 									ftpSource.DeleteFile(remotePath);
-								}
-							}
 						}
 						else
-						{
-							// 源是本地文件，使用本地删除
-							cm_delete(false);
-						}
+							cm_delete(param, false); // 源是本地文件，使用本地删除
 					}
 				}
-				else
-				{
-					// 本地文件之间的移动
-					if (cm_copy())
-						cm_delete(false);
-				}
+				else if (cm_copy(param, targetpath)) // 本地文件之间的移动
+					cm_delete(param, false);
 			}
 			catch (Exception ex)
 			{
@@ -3095,7 +3084,7 @@ namespace zfile
 		}
 
 		// 删除选中的文件
-		public void cm_delete(bool needConfirm = true)
+		public void cm_delete(string param = null, bool needConfirm = true)
 		{
 			//Debug.Print("Delete files : >>");
 			var listView = activeListView;

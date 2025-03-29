@@ -639,33 +639,76 @@ namespace zfile
 		}
 		private void cm_CutToClipboard()
 		{
-			// 获取当前活动面板中选中的文件/文件夹
-			var selectedItems = owner.uiManager.activeListView.SelectedItems;
-			if (selectedItems.Count == 0) return;
+			cm_copytoclipboard(ClipBoardAction.Cut);
+			//// 获取当前活动面板中选中的文件/文件夹
+			//var selectedItems = owner.uiManager.activeListView.SelectedItems;
+			//if (selectedItems.Count == 0) return;
 
-			// 创建文件路径数组
-			var filePaths = new StringCollection();
-			foreach (ListViewItem item in selectedItems)
-			{
-				string fullPath = Path.Combine(owner.uiManager.ActivePathTextBox.CurrentNode.UniqueID, item.Text);
-				filePaths.Add(fullPath);
-			}
+			//// 创建文件路径数组
+			//var filePaths = new StringCollection();
+			//foreach (ListViewItem item in selectedItems)
+			//{
+			//	string fullPath = Path.Combine(owner.uiManager.ActivePathTextBox.CurrentNode.UniqueID, item.Text);
+			//	filePaths.Add(fullPath);
+			//}
 
-			try
-			{
-				// 清空剪贴板并设置文件路径
-				Clipboard.Clear();
-				Clipboard.SetFileDropList(filePaths);
+			//try
+			//{
+			//	// 在 STA 线程中设置剪贴板
+			//	var thread = new Thread(() =>
+			//	{
+			//		try
+			//		{
+			//			// 创建数据对象并设置所有数据
+			//			var dataObject = new DataObject();
+			//			dataObject.SetData(DataFormats.FileDrop, false, filePaths.Cast<string>().ToArray());
+			//			dataObject.SetData("Preferred DropEffect", false, new byte[] { 2, 0, 0, 0 });  // 2 表示剪切操作
 
-				// 设置自定义格式标记表示这是剪切操作
-				Clipboard.SetData("Preferred DropEffect", new MemoryStream(new byte[] { 2, 0, 0, 0 }));
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show($"剪切到剪贴板失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-			}
+			//			// 设置到剪贴板
+			//			Clipboard.SetDataObject(dataObject, true);
+
+			//			// 立即验证
+			//			bool containsFiles = Clipboard.ContainsFileDropList();
+			//			int fileCount = containsFiles ? Clipboard.GetFileDropList().Count : 0;
+			//			Debug.Print($"STA thread verification - Contains files: {containsFiles}, Count: {fileCount}");
+			//		}
+			//		catch (Exception ex)
+			//		{
+			//			Debug.Print($"Clipboard operation failed in STA thread: {ex.Message}");
+			//		}
+			//	});
+
+			//	// 确保在 STA 线程中执行
+			//	thread.SetApartmentState(ApartmentState.STA);
+			//	thread.Start();
+			//	thread.Join();
+
+			//	// 主线程验证
+			//	Application.DoEvents();
+			//	Thread.Sleep(50);
+
+			//	if (Clipboard.ContainsFileDropList())
+			//	{
+			//		var count = Clipboard.GetFileDropList().Count;
+			//		Debug.Print($"Main thread verification - Successfully cut {count} files");
+			//	}
+			//	else
+			//	{
+			//		Debug.Print("Main thread verification - Failed to verify clipboard content");
+			//	}
+			//}
+			//catch (Exception ex)
+			//{
+			//	MessageBox.Show($"剪切到剪贴板失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			//}
 		}
-		private void cm_copytoclipboard()
+		private enum ClipBoardAction
+		{
+			Copy,
+			Cut,
+			Paste
+		}
+		private void cm_copytoclipboard(ClipBoardAction action = ClipBoardAction.Copy)
 		{
 			var selectedItems = owner.uiManager.activeListView.SelectedItems;
 			if (selectedItems.Count == 0) return;
@@ -687,9 +730,10 @@ namespace zfile
 				{
 					try
 					{
+						object? data = action == ClipBoardAction.Copy ? new MemoryStream(new byte[] { 5, 0, 0, 0 }) : new MemoryStream(new byte[] { 2, 0, 0, 0 });  // 2 表示剪切操作; 5 = copy
 						// 使用 DataObject 设置所有数据
 						dataObject.SetData(DataFormats.FileDrop, false, filePaths.Cast<string>().ToArray());
-						dataObject.SetData("Preferred DropEffect", false, new MemoryStream(new byte[] { 5, 0, 0, 0 }));
+						dataObject.SetData("Preferred DropEffect", false, data);
 
 						// 设置到剪贴板
 						Clipboard.SetDataObject(dataObject, true);
@@ -759,19 +803,13 @@ namespace zfile
 					dropEffect.Read(bytes, 0, 4);
 					isCut = bytes[0] == 2;
 				}
+				var files = string.Join("|", filePaths.Cast<string>());
 
 				if (isCut)
-				{
-					// 使用已有的移动功能
-					var files = string.Join("|", filePaths.Cast<string>());
-					owner.cm_renmov();
-				}
+					owner.cm_renmov(files, owner.uiManager.srcDir); // 使用已有的移动功能
 				else
-				{
 					// 使用已有的复制功能
-					var files = string.Join("|", filePaths.Cast<string>());
 					owner.cm_copy(files, owner.uiManager.srcDir);// when use pastefromclipboard, the copy targetpath is the activepanel path
-				}
 
 				// 如果是剪切操作，完成后清空剪贴板
 				if (isCut)

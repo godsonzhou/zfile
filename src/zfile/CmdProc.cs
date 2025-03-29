@@ -781,6 +781,7 @@ namespace zfile
 		{
 			if (string.IsNullOrEmpty(param))
 				param = "mymcpserver";
+			Debug.Print("prepare to add tool handler [dynamictool]");
 			MCPServer.AddToolHandler(new Tool()
 			{
 				Name = "dynamicTool",
@@ -794,7 +795,7 @@ namespace zfile
 					}
 				}
 			}, (string input) => { return $"You provided: {input}"; });
-
+			Debug.Print("prepare to register [myskillclass]");
 			// Register with MCPServer
 			MCPServer.Register<MySkillClass>();
 			await MCPServer.StartAsync(param, "1.0.0");
@@ -813,10 +814,10 @@ namespace zfile
 			// Client-side integration
 			MCPClient client = new("AIClient", "1.0", string.IsNullOrEmpty(param) ? "mymcpserver" : param);
 			IList<AIFunction> functions = await client.GetFunctionsAsync();
-			var prompts = await client.GetPromptListAsync();
-			var resources = await client.GetResourcesAsync();
-			var tools = await client.GetToolsAsync();
-			var resourceTemplates = await client.GetResourceTemplatesAsync();
+			//var prompts = await client.GetPromptListAsync();
+			//var resources = await client.GetResourcesAsync();
+			//var tools = await client.GetToolsAsync();
+			//var resourceTemplates = await client.GetResourceTemplatesAsync();
 			return functions;
 		}
 		private void cm_QueryMcpServer(string param)

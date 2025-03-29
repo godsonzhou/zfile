@@ -449,7 +449,7 @@ namespace zfile
 			{
 				item.Selected = true;
 			}
-			owner.uiManager.setArgs();
+			owner.uiManager.SetArgs();
 		}
 
 		// 取消全选
@@ -461,7 +461,7 @@ namespace zfile
 			{
 				item.Selected = false;
 			}
-			owner.uiManager.setArgs();
+			owner.uiManager.SetArgs();
 		}
 
 		// 反选
@@ -473,7 +473,7 @@ namespace zfile
 			{
 				item.Selected = !item.Selected;
 			}
-			owner.uiManager.setArgs();
+			owner.uiManager.SetArgs();
 		}
 
 		// 选择相同扩展名文件
@@ -490,7 +490,7 @@ namespace zfile
 					item.Selected = true;
 				}
 			}
-			owner.uiManager.setArgs();
+			owner.uiManager.SetArgs();
 		}
 
 		// 存储的选择集合
@@ -538,7 +538,7 @@ namespace zfile
 			{
 				item.Selected = savedSelection.Contains(item.Text);
 			}
-			owner.uiManager.setArgs();
+			owner.uiManager.SetArgs();
 		}
 
 		// 复制文件名到剪贴板

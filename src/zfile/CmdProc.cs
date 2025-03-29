@@ -632,75 +632,10 @@ namespace zfile
 						break;
 				}
 			}
-			//else
-			//{
-			//	throw new KeyNotFoundException("命令ID不存在");
-			//}
 		}
 		private void cm_CutToClipboard()
 		{
 			cm_copytoclipboard(ClipBoardAction.Cut);
-			//// 获取当前活动面板中选中的文件/文件夹
-			//var selectedItems = owner.uiManager.activeListView.SelectedItems;
-			//if (selectedItems.Count == 0) return;
-
-			//// 创建文件路径数组
-			//var filePaths = new StringCollection();
-			//foreach (ListViewItem item in selectedItems)
-			//{
-			//	string fullPath = Path.Combine(owner.uiManager.ActivePathTextBox.CurrentNode.UniqueID, item.Text);
-			//	filePaths.Add(fullPath);
-			//}
-
-			//try
-			//{
-			//	// 在 STA 线程中设置剪贴板
-			//	var thread = new Thread(() =>
-			//	{
-			//		try
-			//		{
-			//			// 创建数据对象并设置所有数据
-			//			var dataObject = new DataObject();
-			//			dataObject.SetData(DataFormats.FileDrop, false, filePaths.Cast<string>().ToArray());
-			//			dataObject.SetData("Preferred DropEffect", false, new byte[] { 2, 0, 0, 0 });  // 2 表示剪切操作
-
-			//			// 设置到剪贴板
-			//			Clipboard.SetDataObject(dataObject, true);
-
-			//			// 立即验证
-			//			bool containsFiles = Clipboard.ContainsFileDropList();
-			//			int fileCount = containsFiles ? Clipboard.GetFileDropList().Count : 0;
-			//			Debug.Print($"STA thread verification - Contains files: {containsFiles}, Count: {fileCount}");
-			//		}
-			//		catch (Exception ex)
-			//		{
-			//			Debug.Print($"Clipboard operation failed in STA thread: {ex.Message}");
-			//		}
-			//	});
-
-			//	// 确保在 STA 线程中执行
-			//	thread.SetApartmentState(ApartmentState.STA);
-			//	thread.Start();
-			//	thread.Join();
-
-			//	// 主线程验证
-			//	Application.DoEvents();
-			//	Thread.Sleep(50);
-
-			//	if (Clipboard.ContainsFileDropList())
-			//	{
-			//		var count = Clipboard.GetFileDropList().Count;
-			//		Debug.Print($"Main thread verification - Successfully cut {count} files");
-			//	}
-			//	else
-			//	{
-			//		Debug.Print("Main thread verification - Failed to verify clipboard content");
-			//	}
-			//}
-			//catch (Exception ex)
-			//{
-			//	MessageBox.Show($"剪切到剪贴板失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-			//}
 		}
 		private enum ClipBoardAction
 		{
@@ -760,14 +695,9 @@ namespace zfile
 
 				// 再次验证剪贴板内容
 				if (Clipboard.ContainsFileDropList())
-				{
-					var count = Clipboard.GetFileDropList().Count;
-					Debug.Print($"Main thread verification - Successfully copied {count} files");
-				}
+					Debug.Print($"Main thread verification - Successfully copied {Clipboard.GetFileDropList().Count} files");
 				else
-				{
 					Debug.Print("Main thread verification - Failed to verify clipboard content");
-				}
 			}
 			catch (Exception ex)
 			{

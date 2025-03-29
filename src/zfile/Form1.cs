@@ -944,7 +944,7 @@ namespace zfile
 					UpdatePathTextAndDriveComboBox(e.Node, path, isleft);
 				}
 			}
-			uiManager.setArgs();
+			uiManager.SetArgs();
 			//catch (Exception ex)
 			//{
 			//    MessageBox.Show($"TreeView_AfterSelect加载目录失败: {ex.Message}", "错误");
@@ -1039,7 +1039,7 @@ namespace zfile
 			{
 				var v = sender as ListView;
 				uiManager.isleft = v == uiManager.LeftList;
-				uiManager.setArgs();
+				uiManager.SetArgs();
 			}
 		}
 		public void ListView_BeforeLabelEdit(object sender, EventArgs e)
@@ -2156,7 +2156,7 @@ namespace zfile
 					await PreviewFileAsync(filePath, previewPanel);
 			}
 			Debug.Print("selection index changed");
-			uiManager.setArgs();
+			uiManager.SetArgs();
 		}
 
 		public void ListView_ColumnClick(object? sender, ColumnClickEventArgs e)
@@ -3154,7 +3154,7 @@ namespace zfile
 				SelectedNode = eNode;
 				//uiManager.BookmarkManager.UpdateActiveBookmark(currentDirectory[isleft], selectedNode, isleft);
 				UpdatePathTextAndDriveComboBox(eNode, CurrentDir[LRflag], isleft);//TODO: BUGFIX: IF ENODE IS LEFT , LRFLAG IS R, SOME THING ERROR
-				uiManager.setArgs();
+				uiManager.SetArgs();
 				return true;
 			}
 			return false;

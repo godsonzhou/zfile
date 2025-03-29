@@ -117,9 +117,7 @@ namespace zfile
 			foreach (char c in input)
 			{
 				if (c == '"')
-				{
 					inQuotes = !inQuotes;
-				}
 				else if (c == '|' && !inQuotes)
 				{
 					if (!string.IsNullOrEmpty(currentPart))
@@ -129,16 +127,12 @@ namespace zfile
 					}
 				}
 				else
-				{
 					currentPart += c;
-				}
 			}
 
 			// 处理最后一部分
 			if (!string.IsNullOrEmpty(currentPart))
-			{
 				result.Add(currentPart);
-			}
 
 			return result;
 		}

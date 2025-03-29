@@ -107,7 +107,7 @@ namespace zfile
 			LeftPathTextBox.SelectionChange += LeftPathTextBox_PathChanged;
 			RightPathTextBox.SelectionChange += RightPathTextBox_PathChanged;
 
-			setArgs();
+			SetArgs();
 		}
 		/*
 		注意： 所有参数现在都支持下面表单中的子字段：~开始位置，长度。例如：％N:~2,5 或 ％N:~-8,5。要在长度值之后直接追加数字，请使用另一个 "~" 字符，例如：％N:~2,5~2。负值从字符串的末端开始计算。示例：％P:~0,-1 表示从路径中去除反斜杠。
@@ -169,7 +169,7 @@ namespace zfile
 		%Z 参数中的任何位置：进入压缩文件时，%P 或 %T 代表压缩文件名，并作为路径参数传递给外部程序。
 		  示例： %Z%P 将压缩文件名传递给外部工具（当 TC 显示压缩文件内容时）。
 		*/
-		public void setArgs()
+		public void SetArgs()
 		{
 			args["%1"] = srcDir + srcfiles;
 			// 基本参数设置

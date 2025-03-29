@@ -25,8 +25,13 @@ namespace zfile
         private Label cmdLabel;
         private Label paramLabel;
         private Label pathLabel;
+		private List<MenuInfo> userMenuInfos = new();
+		private List<MenuInfo> mainMenuInfos = new(); //
+		private bool usermenu_changed = false;
+		private bool mainmenu_changed = false;
+	
 
-        public EditMenuForm(Form1 form, int menuid)
+		public EditMenuForm(Form1 form, int menuid)
         {
             mainForm = form;
             menu_id = menuid;
@@ -188,8 +193,8 @@ namespace zfile
                     {
                         str.Add(item.Key + "=" + item.Value);
                     }
-                    var ms = Helper.GetMenuInfoFromList(str.ToArray());
-                    foreach (var m in ms)
+                    userMenuInfos = Helper.GetMenuInfoFromList(str.ToArray());
+                    foreach (var m in userMenuInfos)
                     {
                         menuItems.Add(m.Menu);
                         menuItemsListBox.Items.Add(m.Menu);
@@ -214,7 +219,8 @@ namespace zfile
 								var linepart = line.Replace("MENUITEM ", "").Replace("END_POPUP", "--").Replace("POPUP ", "-").Replace("\"", "").Replace("SEPARATOR", "-").Split(',');
 								menuItems.Add(linepart[0]);
 								menuItemsListBox.Items.Add(linepart[0]);
-                            }
+								mainMenuInfos.Add(new MenuInfo { Menu = linepart[0], Cmd = linepart[1] });
+							}
                         }
                     }
                 }
@@ -300,7 +306,11 @@ namespace zfile
                     menuItems.Insert(insertIndex + 1, newItem);
                     menuItemsListBox.Items.Insert(insertIndex + 1, newItem);
                     menuItemsListBox.SelectedIndex = insertIndex + 1;
-                }
+					if (currentMenuType == "mainmenu")
+						mainmenu_changed = true;
+					else
+						usermenu_changed = true;
+				}
             }
         }
 
@@ -323,7 +333,12 @@ namespace zfile
                     menuItemsListBox.Items.Insert(insertIndex + 1, startItem);
                     menuItemsListBox.Items.Insert(insertIndex + 2, endItem);
                     menuItemsListBox.SelectedIndex = insertIndex + 1;
-                }
+					if (currentMenuType == "mainmenu")
+						mainmenu_changed = true;
+					else
+						usermenu_changed = true;
+
+				}
             }
         }
 
@@ -365,8 +380,11 @@ namespace zfile
                 menuItems.RemoveAt(selectedIndex);
                 menuItemsListBox.Items.RemoveAt(selectedIndex);
             }
-         
-        }
+			if (currentMenuType == "mainmenu")
+				mainmenu_changed = true;
+			else
+				usermenu_changed = true;
+		}
 
         private void EditTitleButton_Click(object sender, EventArgs e)
         {
@@ -391,13 +409,17 @@ namespace zfile
                         menuItems[selectedIndex] = newTitle;
                         menuItemsListBox.Items[selectedIndex] = newTitle;
                     }
-                }
+					if (currentMenuType == "mainmenu")
+						mainmenu_changed = true;
+					else
+						usermenu_changed = true;
+				}
             }
         }
 
         private void OkButton_Click(object sender, EventArgs e)
         {
-            if (currentMenuType == "usermenu")
+            if (usermenu_changed)
             {
                 // 保存用户菜单
                 var userSection = mainForm.userConfigLoader.GetConfigSection("User");
@@ -444,8 +466,9 @@ namespace zfile
                     mainForm.userConfigLoader.SaveConfig();
                 }
             }
-            else
-            {
+            //else
+			if(mainmenu_changed)
+			{
                 // 保存主菜单
                 var menu = mainForm.configLoader.FindConfigValue("Configuration", "Mainmenu");
                 string menuFilePath = Constants.ZfileCfgPath + menu;
@@ -463,8 +486,10 @@ namespace zfile
                             mainMenuItems.Add($"POPUP \"{item.Substring(1)}\"");
                         else if (item == "--")
                             mainMenuItems.Add("END_POPUP");
-                        else
-                            mainMenuItems.Add($"MENUITEM \"{item}\", {(selectedIndex == i ? cmdTextBox.Text : "cm_test")}");
+                        else if (item.Contains("startmenu", StringComparison.OrdinalIgnoreCase)||item.Contains("help_break", StringComparison.OrdinalIgnoreCase))
+							mainMenuItems.Add($"{item}");
+						else
+							mainMenuItems.Add($"MENUITEM \"{item}\", {(selectedIndex == i ? cmdTextBox.Text : mainMenuInfos[i].Cmd)}");
                     }
 
                     File.WriteAllLines(menuFilePath, mainMenuItems.ToArray(), Encoding.GetEncoding("GB2312"));

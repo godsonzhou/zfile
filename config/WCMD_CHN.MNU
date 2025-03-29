@@ -254,6 +254,7 @@ POPUP "配置(&O)"
     MENUITEM SEPARATOR
     MENUITEM "更改工具栏(&T)...\tShift+F12", 498
     MENUITEM "更改垂直工具栏(&2)...", 583
+    MENUITEM "更改菜单栏(&2)...", 700
     MENUITEM "颜色模式：深色<->正常(&N)", 2950
     MENUITEM SEPARATOR
     MENUITEM "保存设置(&V)\t(^s)", 580

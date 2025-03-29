@@ -384,6 +384,9 @@ namespace zfile
 				{ Keys.Delete, "cm_Delete" },
 				{ Keys.F9, "cm_ExecuteDOS" },
 				{ Keys.Escape, "cm_ClearAll"},
+				{ Keys.Control | Keys.C, "cm_copytoclipboard"},
+				{ Keys.Control | Keys.X, "cm_CutToClipboard"},
+				{ Keys.Control | Keys.V, "cm_PasteFromClipboard"},
 				{ Keys.Alt | Keys.X, "cm_Exit" }
 			};
 

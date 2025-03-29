@@ -10,6 +10,7 @@ using System.Net;
 using System.Drawing;
 using System.IO;
 using System.Security.Policy;
+using System.Collections.Specialized;
 
 namespace zfile
 {
@@ -372,6 +373,16 @@ namespace zfile
 						cm_prevcommand();
 						break;
 
+					case 2007: // cm_CutToClipboard
+						cm_CutToClipboard();
+						break;
+					case 2008: // 命令ID = 2008,Name = cm_copytoclipboard
+						cm_copytoclipboard();
+						break;
+					case 2009: //cm_PasteFromClipboard
+						cm_PasteFromClipboard();
+						break;
+
 					case 2011: //命令ID=2011,Name=cmswitchhidsy
 						cm_switchhidsys();
 						break;
@@ -626,6 +637,117 @@ namespace zfile
 			//	throw new KeyNotFoundException("命令ID不存在");
 			//}
 		}
+		private void cm_CutToClipboard()
+		{
+			// 获取当前活动面板中选中的文件/文件夹
+			var selectedItems = owner.uiManager.activeListView.SelectedItems;
+			if (selectedItems.Count == 0) return;
+
+			// 创建文件路径数组
+			var filePaths = new StringCollection();
+			foreach (ListViewItem item in selectedItems)
+			{
+				string fullPath = Path.Combine(owner.uiManager.ActivePathTextBox.CurrentNode.UniqueID, item.Text);
+				filePaths.Add(fullPath);
+			}
+
+			try
+			{
+				// 清空剪贴板并设置文件路径
+				Clipboard.Clear();
+				Clipboard.SetFileDropList(filePaths);
+
+				// 设置自定义格式标记表示这是剪切操作
+				Clipboard.SetData("Preferred DropEffect", new MemoryStream(new byte[] { 2, 0, 0, 0 }));
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"剪切到剪贴板失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+
+		private void cm_copytoclipboard()
+		{
+			// 获取当前活动面板中选中的文件/文件夹
+			var selectedItems = owner.uiManager.activeListView.SelectedItems;
+			if (selectedItems.Count == 0) return;
+
+			// 创建文件路径数组
+			var filePaths = new StringCollection();
+			foreach (ListViewItem item in selectedItems)
+			{
+				string fullPath = Path.Combine(owner.uiManager.ActivePathTextBox.CurrentNode.UniqueID, item.Text);
+				filePaths.Add(fullPath);
+			}
+
+			try
+			{
+				// 清空剪贴板并设置文件路径
+				Clipboard.Clear();
+				Clipboard.SetFileDropList(filePaths);
+
+				// 设置自定义格式标记表示这是复制操作
+				Clipboard.SetData("Preferred DropEffect", new MemoryStream(new byte[] { 5, 0, 0, 0 }));
+				Debug.Print("copytoclipboard");
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"复制到剪贴板失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+
+		private void cm_PasteFromClipboard()
+		{
+			// 检查当前面板是否支持粘贴操作
+			var currentPath = owner.uiManager.ActivePathTextBox.CurrentNode.UniqueID;
+			if (currentPath.StartsWith("ftp://") || currentPath.StartsWith("zip://") ||
+				currentPath.StartsWith("::{") || !Directory.Exists(currentPath))
+			{
+				MessageBox.Show("当前位置不支持粘贴操作", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return;
+			}
+
+			if (!Clipboard.ContainsFileDropList())
+				return;
+
+			try
+			{
+				// 获取剪贴板中的文件列表
+				var filePaths = Clipboard.GetFileDropList();
+
+				// 检查是剪切还是复制操作
+				bool isCut = false;
+				var dropEffect = Clipboard.GetData("Preferred DropEffect") as MemoryStream;
+				if (dropEffect != null && dropEffect.Length == 4)
+				{
+					var bytes = new byte[4];
+					dropEffect.Read(bytes, 0, 4);
+					isCut = bytes[0] == 2;
+				}
+
+				if (isCut)
+				{
+					// 使用已有的移动功能
+					var files = string.Join("|", filePaths.Cast<string>());
+					owner.cm_renmov();
+				}
+				else
+				{
+					// 使用已有的复制功能
+					var files = string.Join("|", filePaths.Cast<string>());
+					owner.cm_copy(files);
+				}
+
+				// 如果是剪切操作，完成后清空剪贴板
+				if (isCut)
+					Clipboard.Clear();
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"从剪贴板粘贴失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+
 		private void cm_evaluateExprDlg(string param)
 		{
 			var dlg = new EvaluateExprDlg(param);

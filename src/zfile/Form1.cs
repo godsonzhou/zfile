@@ -3133,6 +3133,8 @@ namespace zfile
 							FileSystemManager.DeleteFile(file);
 					}
 					RefreshPanel(activeListView);
+					if (!string.IsNullOrEmpty(param))
+						RefreshPanel(unactiveListView);
 				}
 				catch (Exception ex)
 				{

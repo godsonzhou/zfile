@@ -895,16 +895,14 @@ namespace zfile
 		public void TreeView_BeforeExpand(object sender, TreeViewCancelEventArgs e)
 		{
 			if (e.Node.Nodes.Count == 1 && e.Node.FirstNode.Text == "...")
-			{
 				LoadSubDirectories(e.Node);
-			}
 		}
 
 		public void TreeView_AfterSelect(object? sender, TreeViewEventArgs e)
 		{
 			if (e.Node?.Tag == null) return;
 
-			//try
+			try
 			{
 				if (sender is TreeView treeView)
 				{
@@ -943,12 +941,12 @@ namespace zfile
 					}
 					UpdatePathTextAndDriveComboBox(e.Node, path, isleft);
 				}
+				uiManager.SetArgs();
 			}
-			uiManager.SetArgs();
-			//catch (Exception ex)
-			//{
-			//    MessageBox.Show($"TreeView_AfterSelect加载目录失败: {ex.Message}", "错误");
-			//}
+			catch (Exception ex)
+			{
+				Debug.Print($"TreeView_AfterSelect加载目录失败: {ex.Message}");
+			}
 		}
 		private void UpdatePathTextAndDriveComboBox(TreeNode eNode, string path, bool isleft)
 		{
@@ -1594,13 +1592,19 @@ namespace zfile
 							iconkey = IconManager.GetNodeIconKey(nodeSub);
 							iconManager.LoadIconFromCacheByKey(iconkey, node.TreeView.ImageList);
 
-							// 如果有子文件夹，则添加"..."节点
-							if (Directory.Exists(path))
+							try
 							{
-								var dirinfo = new DirectoryInfo(path);  //压缩文件处理到此处引发异常
-								var subdir = dirinfo.GetDirectories();  //windows目录CSC无权限异常
-								if (subdir.Length != 0 && nodeSub.Nodes.Count == 0)
-									nodeSub.Nodes.Add("...");
+								// 如果有子文件夹，则添加"..."节点
+								if (Directory.Exists(path))
+								{
+									var dirinfo = new DirectoryInfo(path);  //压缩文件处理到此处引发异常
+									var subdir = dirinfo.GetDirectories();  //windows目录CSC无权限异常
+									if (subdir.Length != 0 && nodeSub.Nodes.Count == 0)
+										nodeSub.Nodes.Add("...");
+								}
+							}
+							catch (UnauthorizedAccessException) {
+								Debug.Print($"unauthorized access exception while try to access {path}");
 							}
 						}
 						nodeSub.ImageKey = iconkey;

@@ -75,7 +75,7 @@ namespace zfile
 		}
 
 		// 保存配置到文件
-		public void SaveConfig()
+		public void SaveConfig()//todo: while writing into wincmd.ini, should use unicode, not gbk, otherwise, such as wcx_ftp.ini, use gbk not unicode
 		{
 			using (var writer = new StreamWriter(cfgfile))
 			{

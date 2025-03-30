@@ -86,7 +86,7 @@ namespace zfile
 				var cmdItem = cmdTable.GetByCmdName(cmdName);
 				if (cmdItem != null)
 				{
-					Console.WriteLine($"Processing command: {cmdItem}");
+					Debug.Print($"Processing command: {cmdItem}");
 					// 在这里添加处理命令的逻辑
 					ExecCmdByID(cmdItem.Value.CmdId, param);
 					return;
@@ -97,9 +97,7 @@ namespace zfile
 			{
 				var parts = cmdName.Split(',');
 				if (parts.Length == 2 && int.TryParse(parts[1], out var cmdId))
-				{
 					ExecCmdByID(cmdId, param);
-				}
 				else
 				{
 					if (int.TryParse(cmdName, out cmdId)) { ExecCmdByID(cmdId, param); return; }
@@ -348,7 +346,7 @@ namespace zfile
 						owner.cm_mkdir(param);
 						break;
 					case 908: // cm_delete
-						owner.cm_delete();
+						owner.cm_delete(param);
 						break;
 					case 1002: // cm_renameonly
 						owner.cm_renameonly();

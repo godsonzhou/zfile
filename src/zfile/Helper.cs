@@ -892,8 +892,6 @@ namespace zfile
 				Debug.Print($"{environmentKey}={environment[environmentKey].ToString()}");
 			return environment;
 		}
-	
-	
 		public static string getFSpath(string path)
 		{
 			if (path.Contains(':'))

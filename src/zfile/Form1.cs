@@ -105,7 +105,7 @@ namespace zfile
 		public readonly FileSystemManager fsManager = new();
 		public readonly UIControlManager uiManager;
 		public readonly ThumbnailManager thumbnailManager = new("d:\\temp\\cache", new Size(64, 64));
-		//private readonly ThumbnailJobManager _thumbnailJobManager;
+		
 		private readonly BackgroundIconManager _backgroundIconManager;
 		private Dictionary<Keys, string> hotkeyMappings;
 		private bool isSelecting = false;
@@ -120,11 +120,12 @@ namespace zfile
 		public TreeNode activeRoot { get => (isleft ? leftRoot : rightRoot); }
 		public TreeNode unactiveRoot { get => (!isleft ? leftRoot : rightRoot); }
 		private TreeNode thispcL, thispcR;
-		//private TreeNode ftprootL, ftprootR;
+		
 		private TreeNode activeFtpRoot { get => fTPMGR.ftpRootNode; }
 		private TreeNode unactiveFtpRoot { get => fTPMGR.unactiveFtpRootNode; }
 		public TreeNode activeThispc { get { return isleft ? thispcL : thispcR; } }
 		public TreeNode unactiveThispc { get { return !isleft ? thispcL : thispcR; } }
+		public TreeView? FocusedTree { get => uiManager.FocusedTree; }
 
 		private readonly FileSystemWatcher watcher = new();
 		public Dictionary<string, string> CurrentDir = new();
@@ -1198,7 +1199,8 @@ namespace zfile
 				}
 			}
 
-			string path = Path.Combine(CurrentDir[LRflag], selectedItem.Text);
+			//string path = Path.Combine(CurrentDir[LRflag], selectedItem.Text);//bugfix:平铺模式下此方法获取完整路径不行，改为直接从subitem[1]读取
+			var path = selectedItem.SubItems[1].Text;
 			if (IsArchiveFile(path))
 			{
 				if (OpenArchive(path, UnpackFlags.PK_OM_LIST))
@@ -1212,7 +1214,7 @@ namespace zfile
 				}
 			}
 			// 获取关联的TreeView
-			TreeView treeView = listView == uiManager.LeftList ? uiManager.LeftTree : uiManager.RightTree;
+			var treeView = listView == uiManager.LeftList ? uiManager.LeftTree : uiManager.RightTree;
 			if (selectedItem.SubItems[3].Text.Equals("<DIR>") || selectedItem.SubItems[3].Text == "本地磁盘")
 			{
 				//try
@@ -1252,7 +1254,7 @@ namespace zfile
 			}
 			else // 处理文件
 			{
-				path = Helper.getFSpath(path);
+				//path = Helper.getFSpath(path);
 				if (File.Exists(path))
 				{
 					try
@@ -3026,10 +3028,36 @@ namespace zfile
 		// 删除选中的文件
 		public void cm_delete(string param = null, bool needConfirm = true)
 		{
-			//Debug.Print("Delete files : >>");
-			//var listView = activeListView;
-			//if (listView == null || listView.SelectedItems.Count <= 0) return;
-			//var files = listView.SelectedItems.Cast<ListViewItem>().Select(item => GetListItemPath(item)).ToArray();
+			if(FocusedTree != null)	
+			{
+				//if the focus is on the tree instead of listviewitem, then directly remove the dir of treenode if possible
+				if (FocusedTree.SelectedNode != null)
+				{
+					if (FocusedTree.SelectedNode.Tag is FtpNodeTag)
+					{
+						var ftpnode = FocusedTree.SelectedNode.Tag as FtpNodeTag;
+						if (ftpnode != null)
+						{
+							var ftpSource = fTPMGR.GetFtpFileSourceByConnectionName(ftpnode.ConnectionName);
+							if (ftpSource != null)
+							{
+								ftpSource.DeleteDirectory(ftpnode.Path);
+								RefreshPanel(FocusedTree);
+							}
+						}
+					}
+					else
+					{
+						var dir = Helper.getFSpath(FocusedTree.SelectedNode.FullPath);
+						if (Directory.Exists(dir))
+						{
+							Directory.Delete(dir, true);
+							RefreshPanel(FocusedTree);
+						}
+					}
+				}
+				return;
+			}
 			var files = GetFileListByViewOrParam(param, false);
 			if (files.Count == 0) return;
 

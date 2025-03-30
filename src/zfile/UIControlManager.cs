@@ -87,6 +87,7 @@ namespace zfile
 		public string targetfiles => isleft ? rightfiles : leftfiles;
 		public string srcfiles => isleft ? leftfiles : rightfiles;
 
+		public TreeView? FocusedTree { get => LeftTree.Focused ? LeftTree : (RightTree.Focused ? RightTree : null); }
 		public Dictionary<string, string> args = new();
 		public Dictionary<string, string> lastVisitedPaths = new();
 		public Dictionary<string, MenuInfo> usermenuMap = new();

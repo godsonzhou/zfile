@@ -1260,14 +1260,10 @@ namespace zfile
 					{
 						// 如果是可执行文件，直接执行
 						if (Path.GetExtension(path).Equals(".exe", StringComparison.OrdinalIgnoreCase))
-						{
 							Process.Start(path);
-						}
 						else
-						{
 							// 使用系统默认关联程序打开文件
 							Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
-						}
 					}
 					catch (Exception ex)
 					{
@@ -1370,10 +1366,8 @@ namespace zfile
 								continue;
 							}
 							else
-							{
 								// 执行普通按钮命令
 								cmdProcessor.ExecCmd(cmd, file);
-							}
 						}
 						return;
 					}
@@ -1489,7 +1483,6 @@ namespace zfile
 					var icon = IconManager.ExtractIconFromFile(shellInfo.szTypeName, shellInfo.iIcon);
 					iconManager.AddIcon(iconKey, icon, islarge);
 				}
-
 				return true;
 			}
 			iconKey = string.Empty;
@@ -1540,9 +1533,7 @@ namespace zfile
 				if (int.TryParse(configLoader.FindConfigValue("Configuration", "ShowHiddenSystem"), out var showhiddensystem))
 				{
 					if ((showhiddensystem & 2) != 0)
-					{
 						shcontf |= SHCONTF.INCLUDEHIDDEN;
-					}
 				}
 
 				if (root.EnumObjects(this.Handle, shcontf, out nint EnumPtr) == w32.S_OK)    // 循环查找子项
@@ -1577,10 +1568,7 @@ namespace zfile
 							nodesToKeep.Add(nodeSub);
 						}
 						else
-						{
-							// 创建新节点
-							nodeSub = new TreeNode(name) { Tag = subItem };
-						}
+							nodeSub = new TreeNode(name) { Tag = subItem }; // 创建新节点
 						// 为虚拟文件夹或非文件系统项设置特定图标
 						string iconkey;
 						if (subItem.IsVirtual || (subItem.GetAttributes() & SFGAO.FILESYSTEM) == 0)
@@ -1676,9 +1664,7 @@ namespace zfile
 		{
 			ShellItem sItem = (ShellItem)node.Tag;
 			if (sItem != null)
-			{
 				return sItem.IsChildrenExist();
-			}
 			return false;
 		}
 		private static void LoadRecycleBinbak(ListView listview)
@@ -1827,7 +1813,6 @@ namespace zfile
 			{
 				// Filename
 				yield return recfile.Name;
-
 				// full recyclepath
 				// yield return recfile.Path;
 			}
@@ -1839,17 +1824,14 @@ namespace zfile
 		{
 			if (IsActiveFtpPanel(out var ftpnode))
 			{
-				if (string.IsNullOrEmpty(ftpnode.Path) || ftpnode.Path.Equals(newPath))
-					return;
+				if (string.IsNullOrEmpty(ftpnode.Path) || ftpnode.Path.Equals(newPath)) return;
 				backStack.Push(ftpnode.Path);
 				forwardStack.Clear();
 				ftpnode.Path = newPath;
 			}
 			else
 			{
-				if (string.IsNullOrEmpty(CurrentDir[LRflag]) || CurrentDir[LRflag].Equals(newPath))
-					return;
-
+				if (string.IsNullOrEmpty(CurrentDir[LRflag]) || CurrentDir[LRflag].Equals(newPath)) return;
 				backStack.Push(CurrentDir[LRflag]);
 				forwardStack.Clear(); // 清除前进历史
 				CurrentDir[LRflag] = newPath;
@@ -1920,8 +1902,7 @@ namespace zfile
 		private void ProcessVisibleItemsForThumbnails(ListView listView, string subkey)
 		{
 			// 如果不是大图标或平铺模式，不需要生成缩略图
-			if (listView.Items.Count == 0)
-				return;
+			if (listView.Items.Count == 0) return;
 				
 			var itemsForJob = new List<string>();
 			var lvitemsForJob = new List<ListViewItem>();
@@ -1963,7 +1944,6 @@ namespace zfile
 							jobtypelist.Add(BackgroundIconManager.JobType.Thumbnail);
 						}
 					}
-
 				}
 			}
 			
@@ -2029,7 +2009,6 @@ namespace zfile
 			}
 			var status = (listView == uiManager.LeftList) ? uiManager.LeftStatusStrip : uiManager.RightStatusStrip;
 			uiManager.UpdateStatusBar(listView, status);
-
 			//catch (Exception ex)
 			//{
 			//    MessageBox.Show($"加载文件列表失败: {ex.Message}", "错误",
@@ -2128,14 +2107,10 @@ namespace zfile
 					var read = await stream.ReadAsync(buffer, 0, buffer.Length);
 					previewPanel.Text = new string(buffer, 0, read);
 					if (stream.Peek() != -1)
-					{
 						previewPanel.Text += "\r\n[文件过大，仅显示前1MB内容...]";
-					}
 				}
 				else
-				{
 					previewPanel.Text = "[二进制文件]";
-				}
 			}
 			catch (Exception ex)
 			{
@@ -2386,12 +2361,10 @@ namespace zfile
 		}
 		public void CopyButton_Click(object? sender, EventArgs e)
 		{
-			//cmdProcessor.ExecCmd("cm_copy");
 			cm_copy();
 		}
 		public void DeleteButton_Click(object? sender, EventArgs e)
 		{
-			//cmdProcessor.ExecCmd("cm_delete");
 			cm_delete();
 		}
 
@@ -2438,16 +2411,13 @@ namespace zfile
 		}
 		public void MoveButton_Click(object? sender, EventArgs e)
 		{
-			//cmdProcessor.ExecCmd("cm_renmov");
 			cm_renmov();
 		}
 
 		public void RefreshTreeViewAndListView(MyListView listView, string path)
 		{
 			if (listView == null) return;
-
 			var node = listView == uiManager.LeftList ? uiManager.LeftTree.SelectedNode : uiManager.RightTree.SelectedNode;
-
 			LoadSubDirectories(node, listView);
 			if (node.Text == "回收站")
 				LoadRecycleBin(listView);
@@ -2538,11 +2508,8 @@ namespace zfile
 
 		public bool OpenArchive(string archivePath, UnpackFlags openMode = UnpackFlags.PK_OM_LIST)
 		{
-			if (openArchives.ContainsKey(archivePath))
-				return true;
-
+			if (openArchives.ContainsKey(archivePath)) return true;
 			string ext = Path.GetExtension(archivePath).ToLower();
-			
 			// 获取所有支持该后缀名的插件
 			var modules = wcxModuleList._modules.Where(m => m.DetectStrings.Contains(ext.TrimStart('.')));
 			if (!modules.Any())
@@ -2553,36 +2520,29 @@ namespace zfile
 					modules = new[] { wcxModule };
 			}
 			
-			if (!modules.Any())
-				return false;
+			if (!modules.Any()) return false;
 			
 			// 尝试所有支持该后缀名的插件
 			foreach (var wcxModule in modules)
 			{
-				if (!wcxModule.CanYouHandleThisFile(archivePath))
-					continue; // 如果插件不能处理该文件，尝试下一个插件
+				if (!wcxModule.CanYouHandleThisFile(archivePath)) continue; // 如果插件不能处理该文件，尝试下一个插件
 				
 				IntPtr handle = wcxModule.OpenArchive(archivePath, (int)openMode, out var openResult);
-				if (handle == IntPtr.Zero)
-					continue; // 如果打开失败，尝试下一个插件
+				if (handle == IntPtr.Zero) continue; // 如果打开失败，尝试下一个插件
 				
 				openArchives[archivePath] = handle;
 				return true; // 成功打开文件，返回true
 			}
-			
 			return false; // 所有插件都无法处理该文件，返回false
 		}
 		public void CloseAllArchives()
 		{
 			foreach (var archive in openArchives.Keys.ToList())
-			{
 				CloseArchive(archive);
-			}
 		}
 		private void CloseArchive(string archivePath)
 		{
-			if (!openArchives.ContainsKey(archivePath))
-				return;
+			if (!openArchives.ContainsKey(archivePath)) return;
 
 			string ext = Path.GetExtension(archivePath).ToLower();
 			var wcxModule = wcxModuleList.GetModuleByExt(ext);
@@ -2599,8 +2559,7 @@ namespace zfile
 			List<ListViewItem> items = new List<ListViewItem>();
 			string ext = Path.GetExtension(archivePath).ToLower();
 			var wcxModule = wcxModuleList.GetModuleByExt(ext);
-			if (wcxModule == null || !openArchives.ContainsKey(archivePath))
-				return items;
+			if (wcxModule == null || !openArchives.ContainsKey(archivePath)) return items;
 
 			IntPtr handle = openArchives[archivePath];
 			THeaderDataExW headerData = new THeaderDataExW();
@@ -2634,8 +2593,7 @@ namespace zfile
 		{
 			string ext = Path.GetExtension(archivePath).ToLower();
 			var wcxModule = wcxModuleList.GetModuleByExt(ext);
-			if (wcxModule == null || !openArchives.ContainsKey(archivePath))
-				return false;
+			if (wcxModule == null || !openArchives.ContainsKey(archivePath)) return false;
 
 			IntPtr handle = openArchives[archivePath];
 			THeaderDataExW headerData = new THeaderDataExW();
@@ -2643,9 +2601,7 @@ namespace zfile
 			while (wcxModule.ReadHeader(handle, out headerData))
 			{
 				if (headerData.FileName == fileName)
-				{
 					return wcxModule.ProcessFile(handle, ProcessFileOperation.PK_EXTRACT, destPath, fileName) == 0;// 0 SKIP, 1 TEST, 2 EXTRACT
-				}
 				wcxModule.ProcessFile(handle, ProcessFileOperation.PK_SKIP, "", ""); // 0 Skip file
 			}
 			CloseArchive(archivePath);
@@ -2692,37 +2648,22 @@ namespace zfile
 			//OpenArchive(archivePath, UnpackFlags.PK_OM_EXTRACT);
 			string fileList = string.Join("\0", files) + "\0\0";
 			return wcxModule.DeleteFiles(archivePath, fileList) == 0; // archivepath should be full path and name of the the archive.
-
 		}
 
 		private void Watcher_Changed(object sender, FileSystemEventArgs e)
 		{
 			Control.CheckForIllegalCrossThreadCalls = false;//设置该属性 为false
-
 			var selectedDrive = uiManager.LeftDriveComboBox.SelectedItem?.ToString();
 			var listView = selectedDrive != null && watcher.Path.StartsWith(selectedDrive) ? uiManager.LeftList : uiManager.RightList;
-			//RefreshPanel(listView);//TODO:BUGFIX 线程异常操作，
 		}
 		public string GetListItemPath(ListViewItem item)
 		{
 			if(item.Tag is ArchNodeTag archNode)
-			{
 				return Path.Combine(archNode.Path, item.Text);
-			}
-			if (item.Tag is TreeNode node)
-			{
-				// 对于本地文件系统
-				var path = Helper.getFSpath(node?.FullPath);
-				return Path.Combine(path, item.Text);
-			}
-
-			// 检查是否是FTP节点
-			//if (item?.Tag is FtpNodeTag || item?.Tag is FtpRootNodeTag)
-			if (uiManager.activeTreeview.SelectedNode.Tag is FtpNodeTag ftpnode)
-			{
-				// 对于FTP项，直接使用SubItems[1]中存储的完整路径
-				return item.SubItems[1].Text;
-			}
+			// 检查是否是FTP节点 // 对于FTP项，直接使用SubItems[1]中存储的完整路径 // 对于本地文件系统
+			if ((item.Tag is TreeNode) || (uiManager.activeTreeview.SelectedNode.Tag is FtpNodeTag))
+				//bugfix: 如果使用平铺模式，无法从树节点的路径获取到ITEM的真实完整路径，所以只能从ITEM.SUBITEM[1]中获取
+				return item.SubItems[1].Text; 
 			return string.Empty;
 		}
 		public void ToolbarStrip_Click(object sender, EventArgs e)

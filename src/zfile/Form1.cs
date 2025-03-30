@@ -312,6 +312,7 @@ namespace zfile
 			fTPMGR.Initialize();
 
 			se = new ShellExecuteHelper(this);
+			ClearMemory();
 		}
 		private void InitializeCOMComponents()
 		{
@@ -1960,7 +1961,6 @@ namespace zfile
 		private async Task LoadListViewByFilesystem(string path, ListView listView, TreeNode parentnode)
 		{
 			if (ftpNodeSelect(parentnode)) return;
-
 			var sitem = (ShellItem)parentnode.Tag;
 			if (sitem.IsVirtual) return;
 			if (string.IsNullOrEmpty(path)) return;
@@ -1979,7 +1979,7 @@ namespace zfile
 				}
 				return;
 			}
-			//try
+			try
 			{
 				var items = await Task.Run(() => fsManager.GetDirectoryContents(path));
 				listView.BeginUpdate();
@@ -2010,14 +2010,13 @@ namespace zfile
 					((MyListView)listView).MouseWheel += ListView_Scroll;
 					listView.Tag = "ScrollEventAttached";
 				}
+				var status = (listView == uiManager.LeftList) ? uiManager.LeftStatusStrip : uiManager.RightStatusStrip;
+				uiManager.UpdateStatusBar(listView, status);
 			}
-			var status = (listView == uiManager.LeftList) ? uiManager.LeftStatusStrip : uiManager.RightStatusStrip;
-			uiManager.UpdateStatusBar(listView, status);
-			//catch (Exception ex)
-			//{
-			//    MessageBox.Show($"加载文件列表失败: {ex.Message}", "错误",
-			//        MessageBoxButtons.OK, MessageBoxIcon.Error);
-			//}
+			catch (Exception ex)
+			{
+				Debug.Print($"加载文件列表失败: {ex.Message}");
+			}
 		}
 
 		// 将文件属性转换为RAHSC格式的字符串
@@ -3104,7 +3103,6 @@ namespace zfile
 			{
 				// 处理FTP节点双击事件
 				fTPMGR.HandleFtpNodeDoubleClick(eNode);
-
 				// 更新当前目录和路径显示
 				var ftpsrc = fTPMGR.GetFtpFileSourceByConnectionName(ftpTag.ConnectionName);
 				//currentDirectory[isleft] = $"ftp://{ftpTag.ConnectionName}{ftpTag.Path}";
@@ -3140,9 +3138,7 @@ namespace zfile
 				{
 					object? comObject = ContextMenuHandler.CreateComObject(guid.Value);
 					if (comObject != null)
-					{
 						ContextMenuHandler.InvokeComMethod(comObject, "InvokeCommand", path);
-					}
 				}
 			}
 		}
@@ -3187,6 +3183,15 @@ namespace zfile
 			}
 			return false;
 		}
+		public static void ClearMemory()
+		{
+			GC.Collect();
+			GC.WaitForPendingFinalizers();
+			if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+				SetProcessWorkingSetSize(Process.GetCurrentProcess().Handle, -1, -1);
+		}
+		[DllImport("kernel32.dll", EntryPoint = "SetProcessWorkingSetSize")]
+		public static extern int SetProcessWorkingSetSize(IntPtr process, int minSize, int maxSize);
 	}
 }
 

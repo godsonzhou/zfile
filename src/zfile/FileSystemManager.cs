@@ -244,27 +244,24 @@ namespace zfile
 		}
 		public List<FileSystemInfo> GetDirectoryContents(string path, WinShell.ReadDirContentsMode readmode = WinShell.ReadDirContentsMode.Both)
 		{
-			//var currentTime = DateTime.Now;
-			//var needsUpdate = !_directoryCache.ContainsKey(path) ||
-			//                (currentTime - _lastCacheUpdate[path]).TotalMilliseconds > Constants.CacheTimeout;
+			try
+			{
+				//var currentTime = DateTime.Now;
+				//var needsUpdate = !_directoryCache.ContainsKey(path) ||
+				//                (currentTime - _lastCacheUpdate[path]).TotalMilliseconds > Constants.CacheTimeout;
 
-			//if (needsUpdate)
-			//{
-			var items = new List<FileSystemInfo>();
-			if (!isDirBranchMode) {
-
-				var directoryInfo = new DirectoryInfo(path);
-
-				try
+				//if (needsUpdate)
+				//{
+				var items = new List<FileSystemInfo>();
+				if (!isDirBranchMode)
 				{
+					var directoryInfo = new DirectoryInfo(path);
 					if ((readmode & WinShell.ReadDirContentsMode.Folder) != 0)
 					{
 						foreach (var dir in directoryInfo.GetDirectories())
 						{
 							if ((dir.Attributes & FileAttributes.Hidden) == 0)
-							{
 								items.Add(dir);
-							}
 						}
 					}
 					if ((readmode & WinShell.ReadDirContentsMode.File) != 0)
@@ -272,60 +269,58 @@ namespace zfile
 						foreach (var file in directoryInfo.GetFiles())
 						{
 							if ((file.Attributes & FileAttributes.Hidden) == 0)
-							{
 								items.Add(file);
-							}
 						}
 					}
 					_directoryCache[path] = items;
 					//_lastCacheUpdate[path] = currentTime;
 					//Debug.Print("dir cache updated {0} >", currentTime);
+					//         }
+					//else
+					//{
+					//	Debug.Print("dir cache used!!!!!! {0}, {1} >", currentTime, _lastCacheUpdate[path]);
+					//}
+					return _directoryCache[path];
 				}
-				catch (Exception ex)
+				else
 				{
-					MessageBox.Show($"读取目录内容失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-				}
-				//         }
-				//else
-				//{
-				//	Debug.Print("dir cache used!!!!!! {0}, {1} >", currentTime, _lastCacheUpdate[path]);
-				//}
+					// 目录分支模式：读取所有子目录中的文件
+					var allFiles = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
 
-				return _directoryCache[path];
-			}
-			else 
-			{
-				// 目录分支模式：读取所有子目录中的文件
-				var allFiles = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
-
-				foreach (var filePath in allFiles)
-				{
-					var fileInfo = new FileInfo(filePath);
-					if ((fileInfo.Attributes & FileAttributes.Hidden) == 0)
+					foreach (var filePath in allFiles)
 					{
-						// 为文件添加相对路径信息
-						var relativePathProperty = new FileInfo(filePath);
-						relativePathProperty.Refresh(); // 确保获取最新信息
+						var fileInfo = new FileInfo(filePath);
+						if ((fileInfo.Attributes & FileAttributes.Hidden) == 0)
+						{
+							// 为文件添加相对路径信息
+							var relativePathProperty = new FileInfo(filePath);
+							relativePathProperty.Refresh(); // 确保获取最新信息
 
-						// 计算相对路径
-						var relativePath = Path.GetRelativePath(path, filePath);
-						// 将相对路径信息存储在文件的扩展属性中（如果需要）
+							// 计算相对路径
+							var relativePath = Path.GetRelativePath(path, filePath);
+							// 将相对路径信息存储在文件的扩展属性中（如果需要）
 
-						items.Add(fileInfo);
+							items.Add(fileInfo);
+						}
 					}
-				}
 
-				// 如果需要显示文件夹
-				if ((readmode & WinShell.ReadDirContentsMode.Folder) != 0)
-				{
-					var dirs = Directory.GetDirectories(path, "*", SearchOption.TopDirectoryOnly)
-						.Select(d => new DirectoryInfo(d))
-						.Where(d => (d.Attributes & FileAttributes.Hidden) == 0);
+					// 如果需要显示文件夹
+					if ((readmode & WinShell.ReadDirContentsMode.Folder) != 0)
+					{
+						var dirs = Directory.GetDirectories(path, "*", SearchOption.TopDirectoryOnly)
+							.Select(d => new DirectoryInfo(d))
+							.Where(d => (d.Attributes & FileAttributes.Hidden) == 0);
 
-					items.AddRange(dirs);
+						items.AddRange(dirs);
+					}
+					_directoryCache[path] = items;
+					return items;
 				}
-				_directoryCache[path] = items;
-				return items;
+			}
+			catch (Exception ex)
+			{
+				Debug.Print("Error reading directory contents: {0}", ex.Message);
+				return new List<FileSystemInfo>();
 			}
 		}
 		public static string FormatFileSize(long bytes, bool needFormat = false)

@@ -16,13 +16,22 @@ namespace zfile
         private Dictionary<string, MCPClient> mcpClients;
         private readonly string configPath;
         private MCPSettings settings;
+		private List<string> availableMCPTools = new();
 
-        public MCPClientManager(string configPath)
+		public MCPClientManager(string configPath)
         {
             this.configPath = configPath;
             mcpClients = new Dictionary<string, MCPClient>();
             LoadSettings();
-        }
+			//connect to each mcp server to get the server's tools
+			var ServerList = GetServerNames();
+			List<Task<bool>> tasks = new();
+			//foreach(var server in ServerList)
+			//	tasks.Add(ConnectToServer(server));
+			//Task.WaitAll(tasks.ToArray());
+			//foreach (var server in ServerList)
+			//	availableTools.AddRange(Task.Run(async () => await GetAvailableTools(server)).GetAwaiter().GetResult());
+		}
 
         private void LoadSettings()
         {
@@ -90,9 +99,7 @@ namespace zfile
 					// 获取服务器支持的所有工具
 					var capabilities = await client.GetFunctionsAsync();// client.GetCapabilitiesAsync();
                     foreach (var capability in capabilities)
-                    {
-                        tools.Add(capability.JsonSchema.ToString());
-                    }
+                        tools.Add($"{capability.Name} : {capability.Description} : {capability.JsonSchema.ToString()}");
                     return tools;
                 }
                 catch

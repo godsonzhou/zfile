@@ -904,7 +904,7 @@ namespace zfile
 		{
 			if (string.IsNullOrEmpty(param))
 				param = "mymcpserver";
-			Debug.Print("prepare to add tool handler [dynamictool]");
+			Debug.Print("add tool handler [dynamictool]");
 			MCPServer.AddToolHandler(new Tool()
 			{
 				Name = "dynamicTool",
@@ -918,7 +918,7 @@ namespace zfile
 					}
 				}
 			}, (string input) => { return $"You provided: {input}"; });
-			Debug.Print("prepare to register [myskillclass]");
+			Debug.Print("register [myskillclass]");
 			// Register with MCPServer
 			MCPServer.Register<MySkillClass>();
 			await MCPServer.StartAsync(param, "1.0.0");
@@ -930,7 +930,6 @@ namespace zfile
 			var mcpClientForm = new MCPClientForm(configPath);
 			mcpClientForm.Show();
 		}
-
 
 		private async Task<IList<AIFunction>> cm_GetInfoFromMcpServer(string param)
 		{

@@ -191,13 +191,17 @@ namespace zfile
 			if (File.Exists(file))
 			{
 				var res = await LLMhelper.CallOllamaApiAsync((needFileRead ? prompt + File.ReadAllText(file) : prompt.Replace("TARGETPATH", file)));
-				var i = lstFiles.Items.Cast<ListViewItem>().First(m => m.Text.Equals(file));
-				if (i != null)
+				try
 				{
-					//将response写入第2列
-					i.SubItems[1].Text = res;
-					lstFiles.Refresh();
-				}
+					var i = lstFiles.Items.Cast<ListViewItem>().First(m => m.Text.Equals(file));
+					if (i != null)
+					{
+						//将response写入第2列
+						i.SubItems[1].Text = res;
+						lstFiles.Refresh();
+					}
+				} catch { }
+
 				if (chkboxSave.Checked)
 				{
 					//save response to file, file's name is same as i.subitems[0] + "ion"

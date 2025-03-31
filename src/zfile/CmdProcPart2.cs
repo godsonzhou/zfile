@@ -1076,7 +1076,7 @@ namespace zfile
 			string response = string.Empty;
 			if (!isBackground)
 			{
-				var aiDlg = new AIassistDlg(filePaths, owner.lLM_Helper, owner.cmdProcessor);
+				var aiDlg = new AIassistDlg(filePaths, owner.lLM_Helper, owner.cmdProcessor, owner);
 				owner.Invoke(() => { aiDlg.Show(); });
 			}
 			else

@@ -3,11 +3,14 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 using MCPSharp;
+using System.Linq;
+using System.Windows.Forms;
 
 namespace zfile
 {
 	public class AIassistDlg : Form
 	{
+		private MainForm form;
 		private LLM_Helper LLMhelper;
 		List<string> filelist;
 		private ComboBox cboModels;
@@ -18,8 +21,9 @@ namespace zfile
 		private Button btnSend;
 		private Button btnClose;
 		private CmdProc cmdProc;
-		public AIassistDlg(List<string> files, LLM_Helper llm, CmdProc cmdproc)
+		public AIassistDlg(List<string> files, LLM_Helper llm, CmdProc cmdproc, MainForm owner)
 		{
+			form = owner;
 			LLMhelper = llm;
 			filelist = files;
 			InitializeComponents();
@@ -168,9 +172,14 @@ namespace zfile
 			btnSend.Enabled = false;
 			try
 			{
-				var prompt = txtPrompt.Text;
+				StringBuilder prompt = new("你好，你是一个专家程序员，精通各种编程语言。以下是你可以调用的各种工具来增强你的能力。");
+				foreach (var s in form.mcpClientMgr.MCPToolsDict)
+					prompt.Append($"{s.Key} :\n {string.Join('\n', s.Value)}");
+				prompt.Append("如果你想使用以上工具，请使用以下格式:\n<use_mcp_tool>\n<server_name>server1</server_name>\n<tool_name>\ntool1 \n</tool_name>\n<arguments>{\"arg1\":\"value1\"}</arguments>\n</use_mcp_tool>");
+				prompt.Append("\n你的目标是将找到用户指定文件夹下所有的后缀名为PAS的文件，理解其程序功能并将对它的完整功能分析写入同名ION文件(比如：hello.pas -> hello.ion)，再将该PAS程序转化为C#语言并写入同名cs文件(比如：hello.pas -> hello.cs)\n");
+				prompt.Append(txtPrompt.Text);
 				foreach (var file in selectedFiles)
-					process_file(file, prompt);
+					process_file(file, prompt.ToString(), false);
 			}
 			finally
 			{
@@ -203,7 +212,7 @@ namespace zfile
 			{
 				foreach (var f in Directory.GetFiles(file))
 				{
-					process_file(f, prompt);
+					process_file(f, prompt, needFileRead);
 				}
 			}
 		}
@@ -305,14 +314,14 @@ namespace zfile
 					// 调用 OLLAMA API 与大模型交互
 					try
 					{
-						StringBuilder prompt = new("你好，你是一个专家程序员，精通各种编程语言。以下是你可以调用的各种工具来增强你的能力。");
-						foreach(var s in form.mcpClientMgr.MCPToolsDict)
-							prompt.Append($"{s.Key} :\n {string.Join('\n', s.Value)}");
-						prompt.Append("如果你想使用以上工具，请使用以下格式:\n<use_mcp_tool>\n<server_name>server1</server_name>\n<tool_name>\ntool1 \n</tool_name>\n<arguments>{\"arg1\":\"value1\"}</arguments>\n</use_mcp_tool>");
-						prompt.Append("\n你的目标是将用户指定文件夹下所有的后缀名为PAS的文件理解其功能并将功能分析写入同名的ion文件，再将该PAS程序转化为C#语言并写入同名文件(后缀名为CS)");
-						string response = await CallOllamaApiAsync(prompt.ToString());
-						Debug.Print($"OLLAMA ({currentModel})响应：");
-						Debug.Print(response);
+						//StringBuilder prompt = new("你好，你是一个专家程序员，精通各种编程语言。以下是你可以调用的各种工具来增强你的能力。");
+						//foreach(var s in form.mcpClientMgr.MCPToolsDict)
+						//	prompt.Append($"{s.Key} :\n {string.Join('\n', s.Value)}");
+						//prompt.Append("如果你想使用以上工具，请使用以下格式:\n<use_mcp_tool>\n<server_name>server1</server_name>\n<tool_name>\ntool1 \n</tool_name>\n<arguments>{\"arg1\":\"value1\"}</arguments>\n</use_mcp_tool>");
+						//prompt.Append("\n你的目标是将用户指定文件夹下所有的后缀名为PAS的文件理解其功能并将功能分析写入同名的ion文件，再将该PAS程序转化为C#语言并写入同名文件(后缀名为CS)");
+						//string response = await CallOllamaApiAsync(prompt.ToString());
+						//Debug.Print($"OLLAMA ({currentModel})响应：");
+						//Debug.Print(response);
 					}
 					catch (Exception ex)
 					{

@@ -28,21 +28,24 @@ namespace zfile
 		private ComboBox cboAPIProfiles;
 		private TextBox txtAPIUrl;
 		private TextBox txtAPIKey;
+		private TextBox txtAPIModel; // 新增：模型名称输入框
 		private Button btnSaveAPI;
 		private Button btnDeleteAPI;
-		private Dictionary<string, (string Url, string Key)> apiProfiles;
+		private Dictionary<string, (string Url, string Key, string Model)> apiProfiles; // 更新：添加模型名称
 		private const string API_SECTION = "zfile";
 		private const string API_PROFILE_PREFIX = "APIProfile_";
 		private const string API_URL_SUFFIX = "_URL";
 		private const string API_KEY_SUFFIX = "_KEY";
+		private const string API_MODEL_SUFFIX = "_MODEL"; // 新增：模型名称后缀
 		private const string SELECTED_API_PROFILE = "SelectedAPIProfile";
 		private const string USE_REMOTE_API = "UseRemoteAPI";
+		private const string DEFAULT_MODEL_NAME = "gpt-3.5-turbo"; // 新增：默认模型名称
 		public AIassistDlg(List<string> files, LLM_Helper llm, CmdProc cmdproc, MainForm owner)
 		{
 			form = owner;
 			LLMhelper = llm;
 			filelist = files;
-			apiProfiles = new Dictionary<string, (string Url, string Key)>();
+			apiProfiles = new Dictionary<string, (string Url, string Key, string Model)>();
 			InitializeComponents();
 			LoadAPIProfiles();
 			LoadModels();
@@ -63,20 +66,22 @@ namespace zfile
 				// 查找所有API配置
 				foreach (var item in apiSection.Items)
 				{
-					if (item.Key.StartsWith(API_PROFILE_PREFIX) && !item.Key.EndsWith(API_URL_SUFFIX) && !item.Key.EndsWith(API_KEY_SUFFIX))
+					if (item.Key.StartsWith(API_PROFILE_PREFIX) && !item.Key.EndsWith(API_URL_SUFFIX) && !item.Key.EndsWith(API_KEY_SUFFIX) && !item.Key.EndsWith(API_MODEL_SUFFIX))
 					{
 						string profileName = item.Value;
 						string profileKey = item.Key;
 						
-						// 获取对应的URL和Key
+						// 获取对应的URL、Key和Model
 						string urlKey = profileKey + API_URL_SUFFIX;
 						string keyKey = profileKey + API_KEY_SUFFIX;
+						string modelKey = profileKey + API_MODEL_SUFFIX;
 						
 						string url = apiSection.FindValue(urlKey) ?? string.Empty;
 						string apiKey = apiSection.FindValue(keyKey) ?? string.Empty;
+						string apiModel = apiSection.FindValue(modelKey) ?? DEFAULT_MODEL_NAME;
 						
 						// 添加到字典和下拉框
-						apiProfiles[profileName] = (url, apiKey);
+						apiProfiles[profileName] = (url, apiKey, apiModel);
 						cboAPIProfiles.Items.Add(profileName);
 					}
 				}
@@ -103,13 +108,13 @@ namespace zfile
 		}
 
 		// 保存API配置
-		private void SaveAPIProfile(string profileName, string url, string apiKey)
+		private void SaveAPIProfile(string profileName, string url, string apiKey, string apiModel)
 		{
 			if (string.IsNullOrWhiteSpace(profileName))
 				return;
 
 			// 更新内存中的配置
-			apiProfiles[profileName] = (url, apiKey);
+			apiProfiles[profileName] = (url, apiKey, apiModel);
 
 			// 如果下拉框中不存在该配置，则添加
 			if (!cboAPIProfiles.Items.Contains(profileName))
@@ -138,6 +143,7 @@ namespace zfile
 				if (item.Key.StartsWith(API_PROFILE_PREFIX) && 
 				    !item.Key.EndsWith(API_URL_SUFFIX) && 
 				    !item.Key.EndsWith(API_KEY_SUFFIX) && 
+				    !item.Key.EndsWith(API_MODEL_SUFFIX) && 
 				    item.Value == profileName)
 				{
 					profileKey = item.Key;
@@ -149,6 +155,7 @@ namespace zfile
 			form.userConfigLoader.SetConfigValue(API_SECTION, profileKey, profileName);
 			form.userConfigLoader.SetConfigValue(API_SECTION, profileKey + API_URL_SUFFIX, url);
 			form.userConfigLoader.SetConfigValue(API_SECTION, profileKey + API_KEY_SUFFIX, apiKey);
+			form.userConfigLoader.SetConfigValue(API_SECTION, profileKey + API_MODEL_SUFFIX, apiModel);
 			form.userConfigLoader.SetConfigValue(API_SECTION, SELECTED_API_PROFILE, profileName);
 			form.userConfigLoader.SetConfigValue(API_SECTION, USE_REMOTE_API, rdoRemoteAPI.Checked.ToString());
 
@@ -189,10 +196,11 @@ namespace zfile
 				// 移除配置项
 				if (profileKeyToRemove != null)
 				{
-					// 移除配置项及其URL和Key
+					// 移除配置项及其URL、Key和Model
 					apiSection.Items.RemoveAll(i => i.Key == profileKeyToRemove || 
 					                           i.Key == profileKeyToRemove + API_URL_SUFFIX || 
-					                           i.Key == profileKeyToRemove + API_KEY_SUFFIX);
+					                           i.Key == profileKeyToRemove + API_KEY_SUFFIX ||
+					                           i.Key == profileKeyToRemove + API_MODEL_SUFFIX);
 
 					// 如果删除的是当前选中的配置，则更新选中的配置
 					if (apiSection.FindValue(SELECTED_API_PROFILE) == profileName)
@@ -243,6 +251,7 @@ namespace zfile
 			cboAPIProfiles.Enabled = useRemoteAPI;
 			txtAPIUrl.Enabled = useRemoteAPI;
 			txtAPIKey.Enabled = useRemoteAPI;
+			txtAPIModel.Enabled = useRemoteAPI;
 			btnSaveAPI.Enabled = useRemoteAPI;
 			btnDeleteAPI.Enabled = useRemoteAPI && cboAPIProfiles.SelectedIndex >= 0;
 		}
@@ -267,6 +276,7 @@ namespace zfile
 				{
 					txtAPIUrl.Text = profile.Url;
 					txtAPIKey.Text = profile.Key;
+					txtAPIModel.Text = profile.Model;
 
 					// 保存选中的配置到配置文件
 					form.userConfigLoader.SetConfigValue(API_SECTION, SELECTED_API_PROFILE, profileName);
@@ -283,11 +293,17 @@ namespace zfile
 		{
 			string url = txtAPIUrl.Text.Trim();
 			string apiKey = txtAPIKey.Text.Trim();
+			string apiModel = txtAPIModel.Text.Trim();
 
 			if (string.IsNullOrWhiteSpace(url))
 			{
 				MessageBox.Show("请输入API URL", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 				return;
+			}
+			
+			if (string.IsNullOrWhiteSpace(apiModel))
+			{
+				apiModel = DEFAULT_MODEL_NAME; // 使用默认模型名称
 			}
 
 			// 弹出对话框让用户输入配置名称
@@ -341,7 +357,7 @@ namespace zfile
 					if (!string.IsNullOrWhiteSpace(profileName))
 					{
 						// 保存API配置
-						SaveAPIProfile(profileName, url, apiKey);
+						SaveAPIProfile(profileName, url, apiKey, apiModel);
 						MessageBox.Show($"API配置 '{profileName}' 已保存", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
 					}
 					else
@@ -458,6 +474,20 @@ namespace zfile
 				Width = 400,
 				UseSystemPasswordChar = true
 			};
+			
+			var lblAPIModel = new Label
+			{
+				Text = "模型名称：",
+				Location = new Point(10, 165),
+				AutoSize = true
+			};
+
+			txtAPIModel = new TextBox
+			{
+				Location = new Point(80, 162),
+				Width = 400,
+				Text = DEFAULT_MODEL_NAME
+			};
 
 			btnSaveAPI = new Button
 			{
@@ -486,8 +516,8 @@ namespace zfile
 			// 文件列表
 			lstFiles = new ListView
 			{
-				Location = new Point(10, 170),
-				Size = new Size(765, 250),
+				Location = new Point(10, 200),
+				Size = new Size(765, 220),
 				CheckBoxes = true,
 				View = View.Details
 			};
@@ -526,7 +556,8 @@ namespace zfile
 			{
 				rdoLocalModel, rdoRemoteAPI, lblModel, cboModels, btnRefresh,
 				lblAPIProfile, cboAPIProfiles, lblAPIUrl, txtAPIUrl, lblAPIKey, txtAPIKey,
-				btnSaveAPI, btnDeleteAPI, chkboxSave, lstFiles, txtPrompt, btnSend, btnClose
+				lblAPIModel, txtAPIModel, btnSaveAPI, btnDeleteAPI, chkboxSave, 
+				lstFiles, txtPrompt, btnSend, btnClose
 			});
 
 			// 初始化API配置相关控件状态
@@ -607,7 +638,7 @@ namespace zfile
 				}
 
 				// 设置LLM_Helper的远程API配置
-				LLMhelper.SetRemoteAPI(profile.Url, profile.Key);
+				LLMhelper.SetRemoteAPI(profile.Url, profile.Key, profile.Model);
 			}
 			else
 			{
@@ -703,6 +734,7 @@ namespace zfile
 		// 远程API相关属性
 		private string remoteApiUrl = string.Empty;
 		private string remoteApiKey = string.Empty;
+		private string remoteApiModel = string.Empty;
 		private bool useRemoteApi = false;
 		public bool IsUsingRemoteApi { get => useRemoteApi; }
 		
@@ -1229,10 +1261,11 @@ namespace zfile
 		
 		// 调用 OLLAMA API 与大模型交互 (增强版本，处理MCP工具调用)
 		// 设置使用远程API
-		public void SetRemoteAPI(string apiUrl, string apiKey)
+		public void SetRemoteAPI(string apiUrl, string apiKey, string apiModel = "gpt-3.5-turbo")
 		{
 			remoteApiUrl = apiUrl;
 			remoteApiKey = apiKey;
+			remoteApiModel = apiModel;
 			useRemoteApi = true;
 		}
 
@@ -1262,7 +1295,7 @@ namespace zfile
 					// 构建请求体
 					var requestBody = new
 					{
-						model = "deepseek-chat", // 默认模型，可根据实际API调整
+						model = string.IsNullOrEmpty(remoteApiModel) ? "gpt-3.5-turbo" : remoteApiModel, // 使用设置的模型名称
 						messages = new[]
 						{
 							new { role = "user", content = prompt }//todo: role="user" or "system"

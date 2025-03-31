@@ -121,7 +121,7 @@ namespace zfile
             connectButton.Enabled = false;
             try
             {
-                bool success = await mcpManager.ConnectToServer(serverName);
+                bool success = await mcpManager.ConnectToServerInConfig(serverName);
                 if (success)
                 {
                     AppendOutput($"成功连接到服务器: {serverName}");

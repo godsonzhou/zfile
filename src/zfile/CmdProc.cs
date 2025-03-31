@@ -599,6 +599,7 @@ namespace zfile
 						break;
 					case 11439: // mcp client with mcpsharp
 						var lst = Task.Run(async () => { await cm_GetInfoFromMcpServer(param); });
+
 						break;
 					case 11440: // launch mcp server
 						Task.Run(async () => { await cm_StartMcpServer(param); } ); // param is servername
@@ -904,7 +905,7 @@ namespace zfile
 		{
 			if (string.IsNullOrEmpty(param))
 				param = "mymcpserver";
-			Debug.Print("add tool handler [dynamictool]");
+			Debug.Print($"add tool handler [dynamictool] for mcp server {param}");
 			MCPServer.AddToolHandler(new Tool()
 			{
 				Name = "dynamicTool",
@@ -918,10 +919,13 @@ namespace zfile
 					}
 				}
 			}, (string input) => { return $"You provided: {input}"; });
-			Debug.Print("register [myskillclass]");
+			Debug.Print($"register [myskillclass / calculator / expression evaluator] for mcp server {param}");
 			// Register with MCPServer
 			MCPServer.Register<MySkillClass>();
+			MCPServer.Register<Calculator>();
+			MCPServer.Register<ExpressionEvaluatorClaude>();
 			await MCPServer.StartAsync(param, "1.0.0");
+			Debug.Print($"start mcp server {param}");
 		}
 		private void cm_mcpConfigUI(string mcp_settings_file)
 		{
@@ -931,16 +935,19 @@ namespace zfile
 			mcpClientForm.Show();
 		}
 
-		private async Task<IList<AIFunction>> cm_GetInfoFromMcpServer(string param)
+		private async Task<List<Tool>> cm_GetInfoFromMcpServer(string param)
 		{
 			// Client-side integration
-			MCPClient client = new("AIClient", "1.0", string.IsNullOrEmpty(param) ? "mymcpserver" : param);
-			IList<AIFunction> functions = await client.GetFunctionsAsync();
+			MCPClient client = new("AIClient", "1.0.0", string.IsNullOrEmpty(param) ? "mymcpserver" : param);
+			//IList<AIFunction> functions = await client.GetFunctionsAsync();
 			//var prompts = await client.GetPromptListAsync();
 			//var resources = await client.GetResourcesAsync();
-			//var tools = await client.GetToolsAsync();
+			var tools = await client.GetToolsAsync();
 			//var resourceTemplates = await client.GetResourceTemplatesAsync();
-			return functions;
+			Debug.Print($"{tools.Count} tool got for mcp server {param}");
+			var pars = new Dictionary<string, object>();
+			await client.CallToolAsync("evaluate", pars);
+			return tools;
 		}
 		private void cm_QueryMcpServer(string param)
 		{

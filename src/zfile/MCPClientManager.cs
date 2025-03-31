@@ -52,7 +52,7 @@ namespace zfile
             }
         }
 
-        public async Task<bool> ConnectToServer(string serverName)
+        public async Task<bool> ConnectToServerInConfig(string serverName)
         {
             if (settings.MCPServers.TryGetValue(serverName, out var serverConfig))
             {
@@ -150,7 +150,7 @@ namespace zfile
         private async Task ProcessServerAsync(string serverName)
         {
 			Debug.Print($"start connect to server: {serverName}");
-            bool connected = await ConnectToServer(serverName);
+            bool connected = await ConnectToServerInConfig(serverName);
             if (connected)
             {
 				Debug.Print($"server: {serverName} connected, start to get available tools...");

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MCPSharp;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,7 +12,7 @@ namespace zfile
 		private Dictionary<string, string> parameters;
 		private int position;
 		private string expression;
-
+		[McpTool("evaluate", "Evaluate an expression with params dictionary and return the result to you")]
 		public object EvalExpr(string expr, Dictionary<string, string> @params)
 		{
 			parameters = @params;

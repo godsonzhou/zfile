@@ -21,34 +21,389 @@ namespace zfile
 		private Button btnSend;
 		private Button btnClose;
 		private CmdProc cmdProc;
+		
+		// 远程API相关控件
+		private RadioButton rdoLocalModel;
+		private RadioButton rdoRemoteAPI;
+		private ComboBox cboAPIProfiles;
+		private TextBox txtAPIUrl;
+		private TextBox txtAPIKey;
+		private Button btnSaveAPI;
+		private Button btnDeleteAPI;
+		private Dictionary<string, (string Url, string Key)> apiProfiles;
+		private const string API_SECTION = "zfile";
+		private const string API_PROFILE_PREFIX = "APIProfile_";
+		private const string API_URL_SUFFIX = "_URL";
+		private const string API_KEY_SUFFIX = "_KEY";
+		private const string SELECTED_API_PROFILE = "SelectedAPIProfile";
+		private const string USE_REMOTE_API = "UseRemoteAPI";
 		public AIassistDlg(List<string> files, LLM_Helper llm, CmdProc cmdproc, MainForm owner)
 		{
 			form = owner;
 			LLMhelper = llm;
 			filelist = files;
+			apiProfiles = new Dictionary<string, (string Url, string Key)>();
 			InitializeComponents();
+			LoadAPIProfiles();
 			LoadModels();
 			LoadFiles();
 			this.cmdProc = cmdproc;
 		}
 
+		// 加载API配置
+		private void LoadAPIProfiles()
+		{
+			apiProfiles.Clear();
+			cboAPIProfiles.Items.Clear();
+
+			// 从配置文件加载API配置
+			var apiSection = form.userConfigLoader.GetConfigSection(API_SECTION);
+			if (apiSection != null)
+			{
+				// 查找所有API配置
+				foreach (var item in apiSection.Items)
+				{
+					if (item.Key.StartsWith(API_PROFILE_PREFIX) && !item.Key.EndsWith(API_URL_SUFFIX) && !item.Key.EndsWith(API_KEY_SUFFIX))
+					{
+						string profileName = item.Value;
+						string profileKey = item.Key;
+						
+						// 获取对应的URL和Key
+						string urlKey = profileKey + API_URL_SUFFIX;
+						string keyKey = profileKey + API_KEY_SUFFIX;
+						
+						string url = apiSection.FindValue(urlKey) ?? string.Empty;
+						string apiKey = apiSection.FindValue(keyKey) ?? string.Empty;
+						
+						// 添加到字典和下拉框
+						apiProfiles[profileName] = (url, apiKey);
+						cboAPIProfiles.Items.Add(profileName);
+					}
+				}
+
+				// 设置选中的API配置
+				string selectedProfile = apiSection.FindValue(SELECTED_API_PROFILE);
+				if (!string.IsNullOrEmpty(selectedProfile) && cboAPIProfiles.Items.Contains(selectedProfile))
+				{
+					cboAPIProfiles.SelectedItem = selectedProfile;
+				}
+				else if (cboAPIProfiles.Items.Count > 0)
+				{
+					cboAPIProfiles.SelectedIndex = 0;
+				}
+
+				// 设置是否使用远程API
+				string useRemoteApiStr = apiSection.FindValue(USE_REMOTE_API);
+				if (!string.IsNullOrEmpty(useRemoteApiStr) && bool.TryParse(useRemoteApiStr, out bool useRemoteApi))
+				{
+					rdoRemoteAPI.Checked = useRemoteApi;
+					rdoLocalModel.Checked = !useRemoteApi;
+				}
+			}
+		}
+
+		// 保存API配置
+		private void SaveAPIProfile(string profileName, string url, string apiKey)
+		{
+			if (string.IsNullOrWhiteSpace(profileName))
+				return;
+
+			// 更新内存中的配置
+			apiProfiles[profileName] = (url, apiKey);
+
+			// 如果下拉框中不存在该配置，则添加
+			if (!cboAPIProfiles.Items.Contains(profileName))
+			{
+				cboAPIProfiles.Items.Add(profileName);
+			}
+
+			// 设置为当前选中的配置
+			cboAPIProfiles.SelectedItem = profileName;
+
+			// 保存到配置文件
+			var apiSection = form.userConfigLoader.GetConfigSection(API_SECTION);
+			if (apiSection == null)
+			{
+				// 如果节不存在，创建新节
+				apiSection = new ConfigSection { Name = API_SECTION };
+				form.userConfigLoader.sections.Add(apiSection);
+			}
+
+			// 生成唯一的配置键
+			string profileKey = API_PROFILE_PREFIX + Guid.NewGuid().ToString("N").Substring(0, 8);
+
+			// 检查是否已存在同名配置，如果存在则使用原来的键
+			foreach (var item in apiSection.Items)
+			{
+				if (item.Key.StartsWith(API_PROFILE_PREFIX) && 
+				    !item.Key.EndsWith(API_URL_SUFFIX) && 
+				    !item.Key.EndsWith(API_KEY_SUFFIX) && 
+				    item.Value == profileName)
+				{
+					profileKey = item.Key;
+					break;
+				}
+			}
+
+			// 保存配置
+			form.userConfigLoader.SetConfigValue(API_SECTION, profileKey, profileName);
+			form.userConfigLoader.SetConfigValue(API_SECTION, profileKey + API_URL_SUFFIX, url);
+			form.userConfigLoader.SetConfigValue(API_SECTION, profileKey + API_KEY_SUFFIX, apiKey);
+			form.userConfigLoader.SetConfigValue(API_SECTION, SELECTED_API_PROFILE, profileName);
+			form.userConfigLoader.SetConfigValue(API_SECTION, USE_REMOTE_API, rdoRemoteAPI.Checked.ToString());
+
+			// 保存配置文件
+			form.userConfigLoader.SaveConfig();
+		}
+
+		// 删除API配置
+		private void DeleteAPIProfile(string profileName)
+		{
+			if (string.IsNullOrWhiteSpace(profileName) || !apiProfiles.ContainsKey(profileName))
+				return;
+
+			// 从内存中移除
+			apiProfiles.Remove(profileName);
+
+			// 从下拉框中移除
+			cboAPIProfiles.Items.Remove(profileName);
+
+			// 从配置文件中移除
+			var apiSection = form.userConfigLoader.GetConfigSection(API_SECTION);
+			if (apiSection != null)
+			{
+				// 找到对应的配置项
+				string profileKeyToRemove = null;
+				foreach (var item in apiSection.Items)
+				{
+					if (item.Key.StartsWith(API_PROFILE_PREFIX) && 
+					    !item.Key.EndsWith(API_URL_SUFFIX) && 
+					    !item.Key.EndsWith(API_KEY_SUFFIX) && 
+					    item.Value == profileName)
+					{
+						profileKeyToRemove = item.Key;
+						break;
+					}
+				}
+
+				// 移除配置项
+				if (profileKeyToRemove != null)
+				{
+					// 移除配置项及其URL和Key
+					apiSection.Items.RemoveAll(i => i.Key == profileKeyToRemove || 
+					                           i.Key == profileKeyToRemove + API_URL_SUFFIX || 
+					                           i.Key == profileKeyToRemove + API_KEY_SUFFIX);
+
+					// 如果删除的是当前选中的配置，则更新选中的配置
+					if (apiSection.FindValue(SELECTED_API_PROFILE) == profileName)
+					{
+						if (cboAPIProfiles.Items.Count > 0)
+						{
+							cboAPIProfiles.SelectedIndex = 0;
+							form.userConfigLoader.SetConfigValue(API_SECTION, SELECTED_API_PROFILE, cboAPIProfiles.SelectedItem.ToString());
+						}
+						else
+						{
+							// 如果没有配置了，则清空选中的配置
+							var selectedItem = apiSection.Items.FirstOrDefault(i => i.Key == SELECTED_API_PROFILE);
+							if (selectedItem != null)
+							{
+								apiSection.Items.Remove(selectedItem);
+							}
+						}
+					}
+
+					// 保存配置文件
+					form.userConfigLoader.SaveConfig();
+				}
+			}
+
+			// 清空输入框
+			if (cboAPIProfiles.Items.Count > 0)
+			{
+				cboAPIProfiles.SelectedIndex = 0;
+			}
+			else
+			{
+				txtAPIUrl.Text = string.Empty;
+				txtAPIKey.Text = string.Empty;
+			}
+		}
+
+		// 更新API控件状态
+		private void UpdateAPIControlsState()
+		{
+			bool useRemoteAPI = rdoRemoteAPI.Checked;
+
+			// 本地模型控件
+			cboModels.Enabled = !useRemoteAPI;
+			btnRefresh.Enabled = !useRemoteAPI;
+
+			// 远程API控件
+			cboAPIProfiles.Enabled = useRemoteAPI;
+			txtAPIUrl.Enabled = useRemoteAPI;
+			txtAPIKey.Enabled = useRemoteAPI;
+			btnSaveAPI.Enabled = useRemoteAPI;
+			btnDeleteAPI.Enabled = useRemoteAPI && cboAPIProfiles.SelectedIndex >= 0;
+		}
+
+		// 单选按钮状态变化事件处理
+		private void RdoModelType_CheckedChanged(object sender, EventArgs e)
+		{
+			UpdateAPIControlsState();
+
+			// 保存选择状态到配置
+			form.userConfigLoader.SetConfigValue(API_SECTION, USE_REMOTE_API, rdoRemoteAPI.Checked.ToString());
+			form.userConfigLoader.SaveConfig();
+		}
+
+		// API配置下拉框选择变化事件处理
+		private void CboAPIProfiles_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			if (cboAPIProfiles.SelectedIndex >= 0)
+			{
+				string profileName = cboAPIProfiles.SelectedItem.ToString();
+				if (apiProfiles.TryGetValue(profileName, out var profile))
+				{
+					txtAPIUrl.Text = profile.Url;
+					txtAPIKey.Text = profile.Key;
+
+					// 保存选中的配置到配置文件
+					form.userConfigLoader.SetConfigValue(API_SECTION, SELECTED_API_PROFILE, profileName);
+					form.userConfigLoader.SaveConfig();
+				}
+			}
+
+			// 更新删除按钮状态
+			btnDeleteAPI.Enabled = rdoRemoteAPI.Checked && cboAPIProfiles.SelectedIndex >= 0;
+		}
+
+		// 保存API配置按钮点击事件
+		private void BtnSaveAPI_Click(object sender, EventArgs e)
+		{
+			string url = txtAPIUrl.Text.Trim();
+			string apiKey = txtAPIKey.Text.Trim();
+
+			if (string.IsNullOrWhiteSpace(url))
+			{
+				MessageBox.Show("请输入API URL", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				return;
+			}
+
+			// 弹出对话框让用户输入配置名称
+			string profileName = cboAPIProfiles.SelectedIndex >= 0 ? cboAPIProfiles.SelectedItem.ToString() : "";
+			using (var inputDialog = new Form()
+			{
+				Width = 300,
+				Height = 150,
+				Text = "保存API配置",
+				StartPosition = FormStartPosition.CenterParent,
+				FormBorderStyle = FormBorderStyle.FixedDialog,
+				MaximizeBox = false,
+				MinimizeBox = false
+			})
+			{
+				var lblName = new Label()
+				{
+					Text = "配置名称：",
+					Location = new Point(20, 20),
+					AutoSize = true
+				};
+
+				var txtName = new TextBox()
+				{
+					Text = profileName,
+					Location = new Point(100, 17),
+					Width = 160
+				};
+
+				var btnOK = new Button()
+				{
+					Text = "确定",
+					Location = new Point(100, 60),
+					DialogResult = DialogResult.OK
+				};
+
+				var btnCancel = new Button()
+				{
+					Text = "取消",
+					Location = new Point(180, 60),
+					DialogResult = DialogResult.Cancel
+				};
+
+				inputDialog.Controls.AddRange(new Control[] { lblName, txtName, btnOK, btnCancel });
+				inputDialog.AcceptButton = btnOK;
+				inputDialog.CancelButton = btnCancel;
+
+				if (inputDialog.ShowDialog() == DialogResult.OK)
+				{
+					profileName = txtName.Text.Trim();
+					if (!string.IsNullOrWhiteSpace(profileName))
+					{
+						// 保存API配置
+						SaveAPIProfile(profileName, url, apiKey);
+						MessageBox.Show($"API配置 '{profileName}' 已保存", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+					}
+					else
+					{
+						MessageBox.Show("请输入配置名称", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+					}
+				}
+			}
+		}
+
+		// 删除API配置按钮点击事件
+		private void BtnDeleteAPI_Click(object sender, EventArgs e)
+		{
+			if (cboAPIProfiles.SelectedIndex < 0)
+			{
+				MessageBox.Show("请先选择要删除的API配置", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				return;
+			}
+
+			string profileName = cboAPIProfiles.SelectedItem.ToString();
+			if (MessageBox.Show($"确定要删除API配置 '{profileName}' 吗？", "确认删除", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+			{
+				DeleteAPIProfile(profileName);
+				MessageBox.Show($"API配置 '{profileName}' 已删除", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			}
+		}
+
 		private void InitializeComponents()
 		{
 			this.Text = "AI 助手";
-			this.Size = new Size(600, 500);
+			this.Size = new Size(800, 600);
 			this.StartPosition = FormStartPosition.CenterParent;
 
-			// 模型选择区域
+			// 模型选择区域 - 本地/远程选择
+			rdoLocalModel = new RadioButton
+			{
+				Text = "使用本地模型",
+				Location = new Point(10, 15),
+				AutoSize = true,
+				Checked = true
+			};
+			rdoLocalModel.CheckedChanged += RdoModelType_CheckedChanged;
+
+			rdoRemoteAPI = new RadioButton
+			{
+				Text = "使用远程API",
+				Location = new Point(130, 15),
+				AutoSize = true
+			};
+			rdoRemoteAPI.CheckedChanged += RdoModelType_CheckedChanged;
+
+			// 本地模型选择
 			var lblModel = new Label
 			{
 				Text = "选择模型：",
-				Location = new Point(10, 15),
+				Location = new Point(10, 45),
 				AutoSize = true
 			};
 
 			cboModels = new ComboBox
 			{
-				Location = new Point(80, 12),
+				Location = new Point(80, 42),
 				Width = 200,
 				DropDownStyle = ComboBoxStyle.DropDownList
 			};
@@ -56,15 +411,74 @@ namespace zfile
 			btnRefresh = new Button
 			{
 				Text = "刷新",
-				Location = new Point(290, 12),
+				Location = new Point(290, 42),
 				Width = 60
 			};
 			btnRefresh.Click += BtnRefresh_Click;
 
+			// 远程API配置区域
+			var lblAPIProfile = new Label
+			{
+				Text = "API配置：",
+				Location = new Point(10, 75),
+				AutoSize = true
+			};
+
+			cboAPIProfiles = new ComboBox
+			{
+				Location = new Point(80, 72),
+				Width = 200,
+				DropDownStyle = ComboBoxStyle.DropDownList
+			};
+			cboAPIProfiles.SelectedIndexChanged += CboAPIProfiles_SelectedIndexChanged;
+
+			var lblAPIUrl = new Label
+			{
+				Text = "API URL：",
+				Location = new Point(10, 105),
+				AutoSize = true
+			};
+
+			txtAPIUrl = new TextBox
+			{
+				Location = new Point(80, 102),
+				Width = 400
+			};
+
+			var lblAPIKey = new Label
+			{
+				Text = "API Key：",
+				Location = new Point(10, 135),
+				AutoSize = true
+			};
+
+			txtAPIKey = new TextBox
+			{
+				Location = new Point(80, 132),
+				Width = 400,
+				UseSystemPasswordChar = true
+			};
+
+			btnSaveAPI = new Button
+			{
+				Text = "保存配置",
+				Location = new Point(490, 102),
+				Width = 80
+			};
+			btnSaveAPI.Click += BtnSaveAPI_Click;
+
+			btnDeleteAPI = new Button
+			{
+				Text = "删除配置",
+				Location = new Point(490, 132),
+				Width = 80
+			};
+			btnDeleteAPI.Click += BtnDeleteAPI_Click;
+
 			chkboxSave = new CheckBox
 			{
 				Text = "保存结果到文件备注",
-				Location = new Point(450, 12),
+				Location = new Point(600, 15),
 				Width = 260,
 				Checked = true
 			};
@@ -72,19 +486,19 @@ namespace zfile
 			// 文件列表
 			lstFiles = new ListView
 			{
-				Location = new Point(10, 50),
-				Size = new Size(565, 250),
+				Location = new Point(10, 170),
+				Size = new Size(765, 250),
 				CheckBoxes = true,
 				View = View.Details
 			};
-			lstFiles.Columns.Add("文件", 280);
-			lstFiles.Columns.Add("处理结果", 280);
+			lstFiles.Columns.Add("文件", 380);
+			lstFiles.Columns.Add("处理结果", 380);
 
 			// 提示词输入
 			txtPrompt = new TextBox
 			{
-				Location = new Point(10, 320),
-				Size = new Size(565, 80),
+				Location = new Point(10, 430),
+				Size = new Size(765, 80),
 				Multiline = true,
 				ScrollBars = ScrollBars.Vertical,
 				Text = "开始处理以下文件或文件夹"
@@ -94,7 +508,7 @@ namespace zfile
 			btnSend = new Button
 			{
 				Text = "发送",
-				Location = new Point(410, 420),
+				Location = new Point(610, 520),
 				Width = 80
 			};
 			btnSend.Click += BtnSend_Click;
@@ -102,7 +516,7 @@ namespace zfile
 			btnClose = new Button
 			{
 				Text = "关闭",
-				Location = new Point(495, 420),
+				Location = new Point(695, 520),
 				Width = 80
 			};
 			btnClose.Click += BtnClose_Click;
@@ -110,9 +524,15 @@ namespace zfile
 			// 添加控件到窗体
 			this.Controls.AddRange(new Control[]
 			{
-				lblModel, cboModels, btnRefresh, chkboxSave, lstFiles, txtPrompt, btnSend, btnClose
+				rdoLocalModel, rdoRemoteAPI, lblModel, cboModels, btnRefresh,
+				lblAPIProfile, cboAPIProfiles, lblAPIUrl, txtAPIUrl, lblAPIKey, txtAPIKey,
+				btnSaveAPI, btnDeleteAPI, chkboxSave, lstFiles, txtPrompt, btnSend, btnClose
 			});
+
+			// 初始化API配置相关控件状态
+			UpdateAPIControlsState();
 		}
+		
 
 		private void LoadModels()
 		{
@@ -167,6 +587,39 @@ namespace zfile
 			{
 				MessageBox.Show("请选择至少一个文件", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 				return;
+			}
+
+			// 检查远程API配置
+			if (rdoRemoteAPI.Checked)
+			{
+				if (cboAPIProfiles.SelectedIndex < 0)
+				{
+					MessageBox.Show("请选择API配置或创建新的API配置", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+					return;
+				}
+
+				string profileName = cboAPIProfiles.SelectedItem.ToString();
+				if (!apiProfiles.TryGetValue(profileName, out var profile) || 
+				    string.IsNullOrWhiteSpace(profile.Url))
+				{
+					MessageBox.Show("所选API配置无效，请重新配置", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+					return;
+				}
+
+				// 设置LLM_Helper的远程API配置
+				LLMhelper.SetRemoteAPI(profile.Url, profile.Key);
+			}
+			else
+			{
+				// 使用本地模型
+				if (cboModels.SelectedIndex < 0)
+				{
+					MessageBox.Show("请选择本地模型", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+					return;
+				}
+
+				// 设置LLM_Helper使用本地模型
+				LLMhelper.UseLocalAPI();
 			}
 
 			btnSend.Enabled = false;
@@ -234,6 +687,7 @@ namespace zfile
 			filelist = null;
 		}
 	}
+
 	public class LLM_Helper
 	{
 		private MainForm form;
@@ -245,6 +699,12 @@ namespace zfile
 		public string[] InstalledModels { get { return installedModels; } }
 		public string currentModel { get ; private set; } = string.Empty;
 		public bool IsPrepared { get => !currentModel.Equals(string.Empty); }
+		
+		// 远程API相关属性
+		private string remoteApiUrl = string.Empty;
+		private string remoteApiKey = string.Empty;
+		private bool useRemoteApi = false;
+		public bool IsUsingRemoteApi { get => useRemoteApi; }
 		
 		// MCP工具调用队列，用于处理递归调用
 		private Queue<MCPToolCall> mcpToolCallQueue = new Queue<MCPToolCall>();
@@ -768,17 +1228,146 @@ namespace zfile
 		}
 		
 		// 调用 OLLAMA API 与大模型交互 (增强版本，处理MCP工具调用)
+		// 设置使用远程API
+		public void SetRemoteAPI(string apiUrl, string apiKey)
+		{
+			remoteApiUrl = apiUrl;
+			remoteApiKey = apiKey;
+			useRemoteApi = true;
+		}
+
+		// 设置使用本地API
+		public void UseLocalAPI()
+		{
+			useRemoteApi = false;
+		}
+
+		// 调用远程API
+		private async Task<string> CallRemoteApiAsync(string prompt)
+		{
+			try
+			{
+				Debug.Print($"调用远程API: {remoteApiUrl}");
+
+				using (HttpClient client = new HttpClient())
+				{
+					client.Timeout = TimeSpan.FromSeconds(600); // 设置超时时间
+
+					// 设置请求头
+					if (!string.IsNullOrEmpty(remoteApiKey))
+					{
+						client.DefaultRequestHeaders.Add("Authorization", $"Bearer {remoteApiKey}");
+					}
+
+					// 构建请求体
+					var requestBody = new
+					{
+						model = "gpt-3.5-turbo", // 默认模型，可根据实际API调整
+						messages = new[]
+						{
+							new { role = "user", content = prompt }
+						},
+						temperature = 0.7,
+						max_tokens = 4000
+					};
+
+					string jsonBody = Newtonsoft.Json.JsonConvert.SerializeObject(requestBody);
+					var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+
+					// 发送请求
+					using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(600)))
+					{
+						Debug.Print("开始发送HTTP请求到远程API...");
+						HttpResponseMessage response = await client.PostAsync(remoteApiUrl, content, cts.Token);
+						Debug.Print($"HTTP状态码: {response.StatusCode}");
+						response.EnsureSuccessStatusCode();
+
+						string responseBody = await response.Content.ReadAsStringAsync(cts.Token);
+						Debug.Print($"成功读取响应，长度: {responseBody?.Length ?? 0} 字符");
+
+						// 解析响应，根据实际API调整
+						try
+						{
+							JObject jsonResponse = JObject.Parse(responseBody);
+							
+							// 尝试提取OpenAI API格式的响应
+							if (jsonResponse["choices"] != null && jsonResponse["choices"].Type == JTokenType.Array)
+							{
+								var choices = (JArray)jsonResponse["choices"];
+								if (choices.Count > 0)
+								{
+									var firstChoice = choices[0];
+									if (firstChoice["message"] != null && firstChoice["message"]["content"] != null)
+									{
+										return firstChoice["message"]["content"].ToString();
+									}
+								}
+							}
+
+							// 尝试提取其他格式的响应
+							if (jsonResponse["response"] != null)
+							{
+								return jsonResponse["response"].ToString();
+							}
+							else if (jsonResponse["output"] != null)
+							{
+								return jsonResponse["output"].ToString();
+							}
+							else if (jsonResponse["text"] != null)
+							{
+								return jsonResponse["text"].ToString();
+							}
+
+							// 如果无法解析，返回原始响应
+							return responseBody;
+						}
+						catch (Exception ex)
+						{
+							Debug.Print($"解析远程API响应失败: {ex.Message}");
+							return responseBody;
+						}
+					}
+				}
+			}
+			catch (TaskCanceledException ex)
+			{
+				Debug.Print($"远程API调用超时: {ex.Message}");
+				return $"错误：远程API调用超时，请检查网络连接和API状态。";
+			}
+			catch (HttpRequestException ex)
+			{
+				Debug.Print($"HTTP请求失败: {ex.Message}");
+				return $"错误：HTTP请求失败，{ex.Message}";
+			}
+			catch (Exception ex)
+			{
+				Debug.Print($"调用远程API时发生错误: {ex.Message}");
+				return $"错误：调用远程API时发生未知错误，{ex.Message}";
+			}
+		}
+
 		public async Task<string> CallOllamaApiAsync(string prompt)
 		{
-			Debug.Print("request ollama api: " + prompt);
-			// 首先调用原始API
-			string response = await CallOllamaApiRawAsync(prompt);
-			//Debug.Print("ollama response: " + response);
-			// 检查响应中是否包含MCP工具调用
-			if (ContainsMCPToolCall(response))
+			Debug.Print("request api: " + prompt);
+			
+			// 根据配置选择使用本地API还是远程API
+			string response;
+			if (useRemoteApi)
 			{
-				Debug.Print("检测到MCP工具调用，开始处理...");
-				response = await ProcessAllMCPToolCalls(response);
+				// 使用远程API
+				response = await CallRemoteApiAsync(prompt);
+			}
+			else
+			{
+				// 使用本地API
+				response = await CallOllamaApiRawAsync(prompt);
+				
+				// 检查响应中是否包含MCP工具调用
+				if (ContainsMCPToolCall(response))
+				{
+					Debug.Print("检测到MCP工具调用，开始处理...");
+					response = await ProcessAllMCPToolCalls(response);
+				}
 			}
 			
 			return response;

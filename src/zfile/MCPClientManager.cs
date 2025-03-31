@@ -18,7 +18,7 @@ namespace zfile
         private readonly string configPath;
         private MCPSettings settings;
 		public List<string> allMCPTools = new();
-        private Dictionary<string, List<string>> MCPToolsDict = new();
+        public Dictionary<string, List<string>> MCPToolsDict = new();
 
 		public MCPClientManager(string configPath)
         {

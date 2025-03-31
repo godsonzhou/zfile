@@ -158,9 +158,7 @@ namespace zfile
 				return;
 			}
 
-			var selectedFiles = lstFiles.CheckedItems.Cast<ListViewItem>()
-									  .Select(item => item.Text)
-									  .ToList();
+			var selectedFiles = lstFiles.CheckedItems.Cast<ListViewItem>().Select(item => item.Text).ToList();
 			if (selectedFiles.Count == 0)
 			{
 				MessageBox.Show("请选择至少一个文件", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -172,36 +170,49 @@ namespace zfile
 			{
 				var prompt = txtPrompt.Text;
 				foreach (var file in selectedFiles)
-				{
-					var content = File.ReadAllText(file);
-					var response = await LLMhelper.CallOllamaApiAsync(prompt + content);
-					Debug.Print("AI 响应" + response);
-					var res = Helper.ExtractResponseContent(response);
-					//将res中的"\n"替换为真正的换行符
-					res = res.Replace("\\n", "\n");
-					var i = lstFiles.Items.Cast<ListViewItem>().First(m => m.Text.Equals(file));
-					if (i != null) {
-						//将response写入第2列
-						i.SubItems[1].Text = res;
-						lstFiles.Refresh();
-						if (chkboxSave.Checked) 
-						{
-							//save response to file, file's name is same as i.subitems[0] + "ion"
-							var ionfile = file + ".ion";
-							if (!File.Exists(ionfile))
-								File.WriteAllText(ionfile, res);
-							else
-								MessageBox.Show($"{ionfile} already exist.");
-						}
-					}
-				}
+					process_file(file, prompt);
 			}
 			finally
 			{
 				btnSend.Enabled = true;
 			}
 		}
+		private async void process_file(string file, string prompt)
+		{
+			if (File.Exists(file))
+			{
+				var content = File.ReadAllText(file);
+				var response = await LLMhelper.CallOllamaApiAsync(prompt + content);
 
+				Debug.Print("AI 响应" + response);
+				var res = Helper.ExtractResponseContent(response);
+				//将res中的"\n"替换为真正的换行符
+				res = res.Replace("\\n", "\n");
+				var i = lstFiles.Items.Cast<ListViewItem>().First(m => m.Text.Equals(file));
+				if (i != null)
+				{
+					//将response写入第2列
+					i.SubItems[1].Text = res;
+					lstFiles.Refresh();
+				}
+				if (chkboxSave.Checked)
+				{
+					//save response to file, file's name is same as i.subitems[0] + "ion"
+					var ionfile = file + ".ion";
+					if (!File.Exists(ionfile))
+						File.WriteAllText(ionfile, res);
+					else
+						MessageBox.Show($"{ionfile} already exist.");
+				}
+			}
+			else if (Directory.Exists(file))
+			{
+				foreach (var f in Directory.GetFiles(file))
+				{
+					process_file(f, prompt);
+				}
+			}
+		}
 		private void BtnClose_Click(object sender, EventArgs e)
 		{
 			this.Close();
@@ -300,9 +311,9 @@ namespace zfile
 					// 调用 OLLAMA API 与大模型交互
 					try
 					{
-
 						StringBuilder prompt = new("你好，你是一个专家程序员，精通各种编程语言。以下是你可以调用的各种工具来增强你的能力。");
-						prompt.Append(form.mcpClientMgr.allMCPTools);
+						foreach(var s in form.mcpClientMgr.MCPToolsDict)
+							prompt.Append($"{s.Key} :\n {string.Join('\n', s.Value)}");
 						prompt.Append("如果你想使用以上工具，请使用以下格式:\n<use_mcp_tool>\n<server_name>server1</server_name>\n<tool_name>\ntool1 \n</tool_name>\n<arguments>{\"arg1\":\"value1\"}</arguments>\n</use_mcp_tool>");
 						prompt.Append("\n你的目标是将用户指定文件夹下所有的后缀名为PAS的文件理解其功能并将功能分析写入同名的ion文件，再将该PAS程序转化为C#语言并写入同名文件(后缀名为CS)");
 						string response = await CallOllamaApiAsync(prompt.ToString());

@@ -1,6 +1,9 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 using System.Text;
+using System.Text.RegularExpressions;
+using MCPSharp;
+
 namespace zfile
 {
 	public class AIassistDlg : Form
@@ -223,6 +226,18 @@ namespace zfile
 		public string[] InstalledModels { get { return installedModels; } }
 		public string currentModel { get ; private set; } = string.Empty;
 		public bool IsPrepared { get => !currentModel.Equals(string.Empty); }
+		
+		// MCP工具调用队列，用于处理递归调用
+		private Queue<MCPToolCall> mcpToolCallQueue = new Queue<MCPToolCall>();
+		
+		// MCP工具调用类，用于存储工具调用信息
+		private class MCPToolCall
+		{
+			public string ServerName { get; set; }
+			public string ToolName { get; set; }
+			public string Arguments { get; set; }
+			public string OriginalResponse { get; set; }
+		}
 		public LLM_Helper(MainForm form)
 		{
 			this.form = form;
@@ -493,8 +508,155 @@ namespace zfile
 			}
 		}
 
-		// 调用 OLLAMA API 与大模型交互
-		public async Task<string> CallOllamaApiAsync(string prompt)
+		// 检查响应中是否包含MCP工具调用
+		private bool ContainsMCPToolCall(string response)
+		{
+			if (string.IsNullOrEmpty(response))
+				return false;
+			
+			// 使用正则表达式检查是否包含MCP工具调用标记
+			string pattern = @"<use_mcp_tool>.*?</use_mcp_tool>";
+			return Regex.IsMatch(response, pattern, RegexOptions.Singleline);
+		}
+		
+		// 从响应中提取MCP工具调用信息
+		private List<MCPToolCall> ExtractMCPToolCalls(string response)
+		{
+			List<MCPToolCall> toolCalls = new List<MCPToolCall>();
+			
+			if (string.IsNullOrEmpty(response))
+				return toolCalls;
+			
+			// 使用正则表达式提取所有MCP工具调用
+			string pattern = @"<use_mcp_tool>(.*?)</use_mcp_tool>";
+			MatchCollection matches = Regex.Matches(response, pattern, RegexOptions.Singleline);
+			
+			foreach (Match match in matches)
+			{
+				string toolCallContent = match.Groups[1].Value;
+				
+				// 提取服务器名称
+				string serverNamePattern = @"<server_name>(.*?)</server_name>";
+				Match serverNameMatch = Regex.Match(toolCallContent, serverNamePattern, RegexOptions.Singleline);
+				
+				// 提取工具名称
+				string toolNamePattern = @"<tool_name>(.*?)</tool_name>";
+				Match toolNameMatch = Regex.Match(toolCallContent, toolNamePattern, RegexOptions.Singleline);
+				
+				// 提取参数
+				string argumentsPattern = @"<arguments>(.*?)</arguments>";
+				Match argumentsMatch = Regex.Match(toolCallContent, argumentsPattern, RegexOptions.Singleline);
+				
+				if (serverNameMatch.Success && toolNameMatch.Success && argumentsMatch.Success)
+				{
+					MCPToolCall toolCall = new MCPToolCall
+					{
+						ServerName = serverNameMatch.Groups[1].Value.Trim(),
+						ToolName = toolNameMatch.Groups[1].Value.Trim(),
+						Arguments = argumentsMatch.Groups[1].Value.Trim(),
+						OriginalResponse = response
+					};
+					
+					toolCalls.Add(toolCall);
+				}
+			}
+			
+			return toolCalls;
+		}
+		
+		// 处理MCP工具调用
+		private async Task<string> ProcessMCPToolCall(MCPToolCall toolCall)
+		{
+			try
+			{
+				Debug.Print($"处理MCP工具调用: 服务器={toolCall.ServerName}, 工具={toolCall.ToolName}");
+				
+				// 获取MCPClient实例
+				MCPClient client = form.mcpClientMgr.GetClient(toolCall.ServerName);
+				if (client == null)
+				{
+					Debug.Print($"错误: 找不到服务器 {toolCall.ServerName} 的MCPClient实例");
+					return $"错误: 找不到服务器 {toolCall.ServerName} 的MCPClient实例";
+				}
+				
+				// 解析参数
+				Dictionary<string, object> parameters;
+				try
+				{
+					parameters = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, object>>(toolCall.Arguments);
+				}
+				catch (Exception ex)
+				{
+					Debug.Print($"解析参数失败: {ex.Message}");
+					return $"错误: 解析参数失败: {ex.Message}";
+				}
+				
+				// 调用MCP工具
+				var result = await client.CallToolAsync(toolCall.ToolName, parameters);
+				
+				// 将结果转换为字符串
+				string resultString = Newtonsoft.Json.JsonConvert.SerializeObject(result);
+				Debug.Print($"MCP工具调用结果: {resultString}");
+				
+				return resultString;
+			}
+			catch (Exception ex)
+			{
+				Debug.Print($"处理MCP工具调用时发生错误: {ex.Message}");
+				return $"错误: 处理MCP工具调用时发生错误: {ex.Message}";
+			}
+		}
+		
+		// 处理所有MCP工具调用
+		private async Task<string> ProcessAllMCPToolCalls(string response)
+		{
+			if (!ContainsMCPToolCall(response))
+				return response;
+			
+			// 提取所有MCP工具调用
+			List<MCPToolCall> toolCalls = ExtractMCPToolCalls(response);
+			if (toolCalls.Count == 0)
+				return response;
+			
+			// 将工具调用添加到队列
+			foreach (var toolCall in toolCalls)
+			{
+				mcpToolCallQueue.Enqueue(toolCall);
+			}
+			
+			// 处理队列中的所有工具调用
+			while (mcpToolCallQueue.Count > 0)
+			{
+				MCPToolCall currentToolCall = mcpToolCallQueue.Dequeue();
+				
+				// 处理当前工具调用
+				string toolCallResult = await ProcessMCPToolCall(currentToolCall);
+				
+				// 构建包含工具调用结果的提示
+				string prompt = $"我之前尝试使用MCP工具 {currentToolCall.ToolName}，以下是调用结果:\n{toolCallResult}\n请基于这个结果继续我们的对话。";
+				
+				// 调用大模型处理工具调用结果
+				string newResponse = await CallOllamaApiRawAsync(prompt);
+				
+				// 检查新响应中是否包含更多工具调用
+				if (ContainsMCPToolCall(newResponse))
+				{
+					List<MCPToolCall> newToolCalls = ExtractMCPToolCalls(newResponse);
+					foreach (var newToolCall in newToolCalls)
+					{
+						mcpToolCallQueue.Enqueue(newToolCall);
+					}
+				}
+				
+				// 更新响应
+				response = newResponse;
+			}
+			
+			return response;
+		}
+
+		// 调用 OLLAMA API 与大模型交互 (原始版本，不处理MCP工具调用)
+		private async Task<string> CallOllamaApiRawAsync(string prompt)
 		{
 			try
 			{
@@ -578,6 +740,22 @@ namespace zfile
 				Debug.Print($"调用API时发生错误: {ex.Message}");
 				return $"错误：调用API时发生未知错误，{ex.Message}";
 			}
+		}
+		
+		// 调用 OLLAMA API 与大模型交互 (增强版本，处理MCP工具调用)
+		public async Task<string> CallOllamaApiAsync(string prompt)
+		{
+			// 首先调用原始API
+			string response = await CallOllamaApiRawAsync(prompt);
+			
+			// 检查响应中是否包含MCP工具调用
+			if (ContainsMCPToolCall(response))
+			{
+				Debug.Print("检测到MCP工具调用，开始处理...");
+				response = await ProcessAllMCPToolCalls(response);
+			}
+			
+			return response;
 		}
 	}
 }

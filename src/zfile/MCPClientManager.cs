@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using System.IO;
 using Microsoft.Extensions.AI;
 using System.Collections;
+using System.Diagnostics;
 
 namespace zfile
 {
@@ -16,7 +17,8 @@ namespace zfile
         private Dictionary<string, MCPClient> mcpClients;
         private readonly string configPath;
         private MCPSettings settings;
-		private List<string> availableMCPTools = new();
+		public List<string> allMCPTools = new();
+        private Dictionary<string, List<string>> MCPToolsDict = new();
 
 		public MCPClientManager(string configPath)
         {
@@ -24,8 +26,12 @@ namespace zfile
             mcpClients = new Dictionary<string, MCPClient>();
             LoadSettings();
 			//connect to each mcp server to get the server's tools
-			var ServerList = GetServerNames();
-			List<Task<bool>> tasks = new();
+			Task.Run(async () => {
+                await GetAllMcpTools();
+                Debug.Print($"MCP工具数量: {allMCPTools.Count}");
+            });
+			//var ServerList = GetServerNames();
+			//List<Task<bool>> tasks = new();
 			//foreach(var server in ServerList)
 			//	tasks.Add(ConnectToServer(server));
 			//Task.WaitAll(tasks.ToArray());
@@ -54,10 +60,10 @@ namespace zfile
                 {
                     var client = new MCPClient("aiclient", "1.0.0", serverConfig.Command, string.Join(' ', serverConfig.Args));
 					//client.ConnectAsync(serverConfig.Command, serverConfig.Args);
-					//IList<AIFunction> functions = await client.GetFunctionsAsync();
+					// 等待工具列表初始化完成
+					await client.GetToolsAsync();
 					//var prompts = await client.GetPromptListAsync();
 					//var resources = await client.GetResourcesAsync();
-					//var tools = await client.GetToolsAsync();
 					//var resourceTemplates = await client.GetResourceTemplatesAsync();
 					mcpClients[serverName] = client;
                     return true;
@@ -96,10 +102,14 @@ namespace zfile
                 try
                 {
                     var tools = new List<string>();
-					// 获取服务器支持的所有工具
+					Debug.Print($"获取服务器{serverName}支持的所有工具");
 					var capabilities = await client.GetFunctionsAsync();// client.GetCapabilitiesAsync();
-                    foreach (var capability in capabilities)
-                        tools.Add($"{capability.Name} : {capability.Description} : {capability.JsonSchema.ToString()}");
+					foreach (var capability in capabilities)
+					{
+						var cap = $"{capability.Name} : {capability.Description} : {capability.JsonSchema.ToString()}";
+						Debug.Print(cap);
+						tools.Add(cap);
+					}
                     return tools;
                 }
                 catch
@@ -118,6 +128,43 @@ namespace zfile
         public IEnumerable<string> GetServerNames()
         {
             return settings.MCPServers.Keys;
+        }
+
+        public async Task<List<string>> GetAllMcpTools()
+        {
+            allMCPTools.Clear();
+            MCPToolsDict.Clear();
+            
+            var serverNames = GetServerNames();
+            List<Task> connectionTasks = new List<Task>();
+            
+            foreach (var serverName in serverNames)
+            {
+                connectionTasks.Add(ProcessServerAsync(serverName));
+            }
+            
+            await Task.WhenAll(connectionTasks);
+            return allMCPTools;
+        }
+        
+        private async Task ProcessServerAsync(string serverName)
+        {
+			Debug.Print($"start connect to server: {serverName}");
+            bool connected = await ConnectToServer(serverName);
+            if (connected)
+            {
+				Debug.Print($"server: {serverName} connected, start to get available tools...");
+				var tools = await GetAvailableTools(serverName);
+                if (tools.Count > 0)
+                {
+					Debug.Print($"server: {serverName} available tool : {tools.Count}");
+					lock (MCPToolsDict)
+                    {
+                        MCPToolsDict[serverName] = tools;
+                        allMCPTools.AddRange(tools);
+                    }
+                }
+            }
         }
     }
 

@@ -94,6 +94,7 @@ namespace zfile
 		//	return progress;
 		//}
 		public readonly LLM_Helper lLM_Helper;
+		public readonly MCPClientManager mcpClientMgr;
 		public readonly CFGLOADER configLoader;
 		public readonly CFGLOADER ftpconfigLoader;
 		public readonly CFGLOADER userConfigLoader;
@@ -262,6 +263,7 @@ namespace zfile
 			viewMgr = new ViewMgr(this);
 			fTPMGR = new FTPMGR(this);
 			cmdProcessor = new CmdProc(this);
+			mcpClientMgr = new MCPClientManager(Constants.ZfileCfgPath + "zfile_mcp_settings.json");
 			lLM_Helper = new LLM_Helper(this);
 			iconManager = new IconManager(this);
 			InitializeComponent();

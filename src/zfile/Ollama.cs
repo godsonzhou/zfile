@@ -285,8 +285,12 @@ namespace zfile
 					// 调用 OLLAMA API 与大模型交互
 					try
 					{
-						string prompt = "你好";
-						string response = await CallOllamaApiAsync(prompt);
+
+						StringBuilder prompt = new("你好，你是一个专家程序员，精通各种编程语言。以下是你可以调用的各种工具来增强你的能力。");
+						prompt.Append(form.mcpClientMgr.allMCPTools);
+						prompt.Append("如果你想使用以上工具，请使用以下格式:\n<use_mcp_tool>\n<server_name>server1</server_name>\n<tool_name>\ntool1 \n</tool_name>\n<arguments>{\"arg1\":\"value1\"}</arguments>\n</use_mcp_tool>");
+						prompt.Append("\n你的目标是将用户指定文件夹下所有的后缀名为PAS的文件理解其功能并将功能分析写入同名的ion文件，再将该PAS程序转化为C#语言并写入同名文件(后缀名为CS)");
+						string response = await CallOllamaApiAsync(prompt.ToString());
 						Debug.Print($"OLLAMA ({currentModel})响应：");
 						Debug.Print(response);
 					}

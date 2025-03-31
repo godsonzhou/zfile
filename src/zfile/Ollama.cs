@@ -172,11 +172,12 @@ namespace zfile
 			btnSend.Enabled = false;
 			try
 			{
-				StringBuilder prompt = new("你好，你是一个专家程序员，精通各种编程语言。以下是你可以调用的各种MCP工具来增强你的能力。");
+				StringBuilder prompt = new("你好，你是一个专家程序员，精通各种编程语言。");
+				prompt.Append("\n你的目标是使用合适的MCP工具找到用户指定对象{TARGETPATH}，如果该对象是文件，理解其程序功能并将对它的完整功能分析通过MCP工具写入同名ION文件(比如：hello.pas -> hello.ion)，再将该PAS程序转化为C#语言并写入同名cs文件(比如：hello.pas -> hello.cs)\n如果该对象是文件夹，则需要对该文件夹下所有的后缀名（类型）为PAS的文件做上述处理。以下是你可以调用的各种MCP工具，通过它们来增强你的能力。");
 				foreach (var s in form.mcpClientMgr.MCPToolsDict)
-					prompt.Append($"{s.Key} :\n {string.Join('\n', s.Value)}");
-				prompt.Append("如果你想使用以上MCP工具，请使用以下格式:\n<use_mcp_tool>\n<server_name>server1</server_name>\n<tool_name>\ntool1 \n</tool_name>\n<arguments>{\"arg1\":\"value1\"}</arguments>\n</use_mcp_tool>");
-				prompt.Append("\n你的目标是使用合适的MCP工具找到用户指定文件夹{TARGETPATH}下所有的后缀名为PAS的文件，理解其程序功能并将对它的完整功能分析通过MCP工具写入同名ION文件(比如：hello.pas -> hello.ion)，再将该PAS程序转化为C#语言并写入同名cs文件(比如：hello.pas -> hello.cs)\n");
+					prompt.Append($"[{s.Key}] :\n {string.Join('\n', s.Value)}");
+				prompt.Append("如果你想使用以上MCP工具，请使用以下格式输出:\n<use_mcp_tool>\n<server_name>server1</server_name>\n<tool_name>tool1</tool_name>\n<arguments>{\"arg1\":\"value1\"}</arguments>\n</use_mcp_tool>\n");
+				prompt.Append("注意：一次最多使用一种MCP工具");
 				prompt.Append(txtPrompt.Text);
 				foreach (var file in selectedFiles)
 					process_file(file, prompt.ToString(), false);
@@ -740,8 +741,9 @@ namespace zfile
 						if (needExtract)
 						{
 							responseBody = Helper.ExtractResponseContent(responseBody);
-							//将res中的"\n"替换为真正的换行符
-							responseBody = responseBody.Replace("\\n", "\n");
+							//将res中的"\n"替换为真正的换行符，u003c转为< u003e转为>
+							responseBody = responseBody.Replace("\\n", "\n").Replace("\\u003c","<").Replace("\\u003e",">");
+							//responseBody = Regex.Unescape(responseBody);
 							Debug.Print("AI 响应 : \n" + responseBody);
 						}
 						return responseBody;

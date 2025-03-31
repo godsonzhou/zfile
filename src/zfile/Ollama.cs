@@ -83,7 +83,7 @@ namespace zfile
 				Size = new Size(565, 80),
 				Multiline = true,
 				ScrollBars = ScrollBars.Vertical,
-				Text = "分析以下程序的功能："
+				Text = "开始处理以下文件或文件夹"
 			};
 
 			// 按钮区域
@@ -177,17 +177,11 @@ namespace zfile
 				btnSend.Enabled = true;
 			}
 		}
-		private async void process_file(string file, string prompt)
+		private async void process_file(string file, string prompt, bool needFileRead = true)
 		{
 			if (File.Exists(file))
 			{
-				var content = File.ReadAllText(file);
-				var response = await LLMhelper.CallOllamaApiAsync(prompt + content);
-
-				Debug.Print("AI 响应" + response);
-				var res = Helper.ExtractResponseContent(response);
-				//将res中的"\n"替换为真正的换行符
-				res = res.Replace("\\n", "\n");
+				var res = await LLMhelper.CallOllamaApiAsync(prompt + (needFileRead ? File.ReadAllText(file) : file));
 				var i = lstFiles.Items.Cast<ListViewItem>().First(m => m.Text.Equals(file));
 				if (i != null)
 				{
@@ -667,7 +661,7 @@ namespace zfile
 		}
 
 		// 调用 OLLAMA API 与大模型交互 (原始版本，不处理MCP工具调用)
-		private async Task<string> CallOllamaApiRawAsync(string prompt)
+		private async Task<string> CallOllamaApiRawAsync(string prompt, bool needExtract = true)
 		{
 			try
 			{
@@ -685,9 +679,7 @@ namespace zfile
 					
 					// 检查Ollama服务是否运行
 					if (!IsOllamaRunning())
-					{
 						return "错误：OLLAMA服务未运行，无法调用API。";
-					}
 
 					var requestBody = new
 					{
@@ -732,6 +724,13 @@ namespace zfile
 
 						string responseBody = await readTask;
 						Debug.Print($"成功读取响应，长度: {responseBody?.Length ?? 0} 字符");
+						if (needExtract)
+						{
+							responseBody = Helper.ExtractResponseContent(responseBody);
+							//将res中的"\n"替换为真正的换行符
+							responseBody = responseBody.Replace("\\n", "\n");
+							Debug.Print("AI 响应 : \n" + responseBody);
+						}
 						return responseBody;
 					}
 				}
@@ -756,9 +755,10 @@ namespace zfile
 		// 调用 OLLAMA API 与大模型交互 (增强版本，处理MCP工具调用)
 		public async Task<string> CallOllamaApiAsync(string prompt)
 		{
+			Debug.Print("request ollama api: " + prompt);
 			// 首先调用原始API
 			string response = await CallOllamaApiRawAsync(prompt);
-			
+			//Debug.Print("ollama response: " + response);
 			// 检查响应中是否包含MCP工具调用
 			if (ContainsMCPToolCall(response))
 			{

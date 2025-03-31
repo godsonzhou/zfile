@@ -491,13 +491,13 @@ namespace zfile
 				{
 					if (!owner.lLM_Helper.IsPrepared)
 						await owner.lLM_Helper.Prepare().ConfigureAwait(false);
-					var response = await owner.lLM_Helper.CallOllamaApiAsync("介绍一下你自己。").ConfigureAwait(false);
-					// 使用Invoke确保在UI线程上显示消息框
-					owner.Invoke(() =>
-					{
-						Debug.Print($"{owner.lLM_Helper.currentModel}: {response}");
-					});
-					response = await ShowAIassistDialog(filePaths, "请描述以下内容：\r\n", false);
+					//var response = await owner.lLM_Helper.CallOllamaApiAsync("介绍一下你自己。").ConfigureAwait(false);
+					//// 使用Invoke确保在UI线程上显示消息框
+					//owner.Invoke(() =>
+					//{
+					//	Debug.Print($"{owner.lLM_Helper.currentModel}: {response}");
+					//});
+					var response = await ShowAIassistDialog(filePaths, "开始执行：\r\n", false);
 					Debug.Print(response);
 				}
 				catch (Exception ex)

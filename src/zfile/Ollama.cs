@@ -1262,10 +1262,10 @@ namespace zfile
 					// 构建请求体
 					var requestBody = new
 					{
-						model = "gpt-3.5-turbo", // 默认模型，可根据实际API调整
+						model = "deepseek-chat", // 默认模型，可根据实际API调整
 						messages = new[]
 						{
-							new { role = "user", content = prompt }
+							new { role = "user", content = prompt }//todo: role="user" or "system"
 						},
 						temperature = 0.7,
 						max_tokens = 4000

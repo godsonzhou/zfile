@@ -18,7 +18,7 @@ namespace zfile
 		private bool disposed = false;
 		private Size largesize = new Size(64, 64);
 		private Size smallsize = new Size(16, 16);
-		private Form1 form;
+		private MainForm form;
 		public void Dispose()
 		{
 			Dispose(true);
@@ -45,7 +45,7 @@ namespace zfile
 		{
 			Dispose(false);
 		}
-		public IconManager(Form1 form)
+		public IconManager(MainForm form)
 		{
 			this.form = form;
 			InitIconCache(true);

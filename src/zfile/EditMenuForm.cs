@@ -12,7 +12,7 @@ namespace zfile
         private Button editTitleButton;
         private Button okButton;
         private Button cancelButton;
-        private Form1 mainForm;
+        private MainForm mainForm;
         private string currentMenuType;
         private List<string> menuItems = new();
         private int menu_id;	//0-usermenu, 1-mainmenu
@@ -29,7 +29,7 @@ namespace zfile
 		private bool usermenu_changed = false;
 		private bool mainmenu_changed = false;
 	
-		public EditMenuForm(Form1 form, int menuid)
+		public EditMenuForm(MainForm form, int menuid)
         {
             mainForm = form;
             menu_id = menuid;

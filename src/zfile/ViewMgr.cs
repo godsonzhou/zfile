@@ -33,13 +33,13 @@ namespace zfile
 
 	public class ViewMgr
 	{
-		private Form1 form;
+		private MainForm form;
 		private List<ColDef> colDefs = new ();
 		public Dictionary<string, List<ColDef>> colDefDict = new();
 		public Dictionary<string, ViewMode> viewModes = new ();
 		public Dictionary<string, ViewSwitchRule> viewSwitchRules = new ();
 
-		public ViewMgr(Form1 form)
+		public ViewMgr(MainForm form)
 		{
 			this.form = form;
 			ParseConfig();

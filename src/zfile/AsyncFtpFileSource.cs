@@ -13,7 +13,7 @@ namespace zfile
 		private string _currentPath = "/";
 		private string _ftpHost;
 		private string _connectionName;
-		private Form1 _owner;
+		private MainForm _owner;
 
 		/// <summary>
 		/// 将FTP文件属性转换为L777格式的字符串
@@ -69,7 +69,7 @@ namespace zfile
         {
         }
 
-        public AsyncFtpFileSource(Form1 owner, string connectionName, AsyncFtpClient client)
+        public AsyncFtpFileSource(MainForm owner, string connectionName, AsyncFtpClient client)
         {
             _owner = owner;
             _connectionName = connectionName;

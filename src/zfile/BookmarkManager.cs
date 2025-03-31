@@ -45,7 +45,7 @@ namespace zfile
 
     public class BookmarkManager : IDisposable
     {
-        private readonly Form1 form;
+        private readonly MainForm form;
         private readonly FlowLayoutPanel leftBookmarkPanel;
         private readonly FlowLayoutPanel rightBookmarkPanel;
         private readonly List<Bookmark> leftBookmarks = new();
@@ -70,7 +70,7 @@ namespace zfile
 		}
 		private bool disposed = false;
 
-        public BookmarkManager(Form1 form, FlowLayoutPanel leftPanel, FlowLayoutPanel rightPanel)
+        public BookmarkManager(MainForm form, FlowLayoutPanel leftPanel, FlowLayoutPanel rightPanel)
         {
             this.form = form;
             this.leftBookmarkPanel = leftPanel;

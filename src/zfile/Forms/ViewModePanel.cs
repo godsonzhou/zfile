@@ -4,9 +4,9 @@ namespace zfile
     public class ViewModePanel : Panel
     {
         private DataGridView grid;
-        private Form1 mainForm;
+        private MainForm mainForm;
 
-        public ViewModePanel(Form1 mainForm)
+        public ViewModePanel(MainForm mainForm)
         {
             this.mainForm = mainForm;
             InitializeComponents();

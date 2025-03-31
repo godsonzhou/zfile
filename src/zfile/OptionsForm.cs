@@ -63,7 +63,7 @@ namespace zfile
         private Panel fontPanel;
         private ComboBox fontComboBox;
 		private NumericUpDown fontSizeNumeric;
-		private Form1 mainForm;
+		private MainForm mainForm;
 		public Dictionary<string, KeyDef> commandHotkeys = new();
 		private Dictionary<string, Label> commandLabels;
 		private Dictionary<string, ComboBox> commandComboBoxes; 
@@ -91,7 +91,7 @@ namespace zfile
         private Panel autoSwitchViewPanel;
 		private string _node;
 		private TreeNode rootNode;
-		public OptionsForm(Form1 mainForm, string node)
+		public OptionsForm(MainForm mainForm, string node)
         {
 			_node = node;
             InitializeComponent();

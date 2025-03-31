@@ -9,7 +9,7 @@ using WinShell;
 using Keys = System.Windows.Forms.Keys;
 namespace zfile
 {
-	public partial class Form1 : Form
+	public partial class MainForm : Form
 	{
 		const int ILD_TRANSPARENT = 0x00000001;
 		public readonly FTPMGR fTPMGR;
@@ -248,7 +248,7 @@ namespace zfile
 			var fontsizeWin = configLoader.FindConfigValue("AllResolutions", "FontSizeWindow");
 			myfont = new Font(font ?? "Consolas", Convert.ToSingle(fontsize));
 		}
-		public Form1()
+		public MainForm()
 		{
 			env = Helper.getEnv();
 			specialpaths = Helper.GetSpecFolderPaths();

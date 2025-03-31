@@ -4,14 +4,14 @@ namespace zfile
 {
     public class HotDirManager
     {
-        private readonly Form1 form;
+        private readonly MainForm form;
         private readonly Dictionary<string, string> hotDirs = new(); // 键为文件夹名称，值为完整路径
         private bool isConfigChanged = false;
         private const string CONFIG_SECTION = "HotDirs";
         public Dictionary<string, string> HotDirs => hotDirs;
 
 
-        public HotDirManager(Form1 form)
+        public HotDirManager(MainForm form)
         {
             this.form = form;
             LoadFromCfg();

@@ -23,7 +23,7 @@ namespace zfile
 	}
 	public class ToolbarManager : IDisposable
 	{
-		public Form1 form;
+		public MainForm form;
 		//private UIControlManager uiControlManager;
 
 		private ToolStrip dynamicToolStrip;
@@ -88,7 +88,7 @@ namespace zfile
 		{
 			Dispose(false);
 		}
-		public ToolbarManager(Form1 form, string cfgfile, bool isVertical)
+		public ToolbarManager(MainForm form, string cfgfile, bool isVertical)
 		{
 			// 加载配置文件中的工具栏按钮信息并初始化控件,实现逻辑参照 initializeDynamicToolbar
 			dynamicToolStrip = new ToolStrip();

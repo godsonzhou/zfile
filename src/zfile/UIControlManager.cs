@@ -8,7 +8,7 @@ namespace zfile
 {
 	public class UIControlManager : IDisposable
 	{
-		private readonly Form1 form;
+		private readonly MainForm form;
 		private readonly ImageList listViewImageListL;
 		private readonly ImageList thumbnailImageListL;
 		private readonly ImageList listViewImageListR;
@@ -95,7 +95,7 @@ namespace zfile
 		private bool disposed = false;
 		public HotDirManager hotDirManager;
 
-		public UIControlManager(Form1 form)
+		public UIControlManager(MainForm form)
 		{
 			this.form = form;
 			listViewImageListL = new ImageList();

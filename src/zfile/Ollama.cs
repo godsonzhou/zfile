@@ -214,7 +214,7 @@ namespace zfile
 	}
 	public class LLM_Helper
 	{
-		private Form1 form;
+		private MainForm form;
 		CmdProc cmdProc;
 		private static readonly string OllamaApiUrl = "http://localhost:11434/api"; // OLLAMA API 基础地址
 		private static readonly string OllamaProcessName = "ollama"; // OLLAMA 进程名称
@@ -223,7 +223,7 @@ namespace zfile
 		public string[] InstalledModels { get { return installedModels; } }
 		public string currentModel { get ; private set; } = string.Empty;
 		public bool IsPrepared { get => !currentModel.Equals(string.Empty); }
-		public LLM_Helper(Form1 form)
+		public LLM_Helper(MainForm form)
 		{
 			this.form = form;
 			this.cmdProc = form.cmdProcessor;

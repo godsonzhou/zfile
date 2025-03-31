@@ -28,7 +28,7 @@ namespace zfile
 		public FtpClient ActiveClient => _activeClient;
 		public AsyncFtpClient ActiveClientAsync;
 		ListView ftplistView;
-		public Form1 form;
+		public MainForm form;
 		private Form ftpConnMgrform;
 		/// <summary>
 		/// FTP连接监视器，用于检测被动断开的情况
@@ -748,7 +748,7 @@ namespace zfile
 		/// <summary>
 		/// 初始化FTP管理器
 		/// </summary>
-		public FTPMGR(Form1 form)
+		public FTPMGR(MainForm form)
 		{
 			this.form = form;
 			_connections = new Dictionary<string, FtpConnectionInfo>();

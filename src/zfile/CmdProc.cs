@@ -11,6 +11,7 @@ using System.Drawing;
 using System.IO;
 using System.Security.Policy;
 using System.Collections.Specialized;
+using System.ComponentModel;
 
 namespace zfile
 {
@@ -18,11 +19,11 @@ namespace zfile
 	public partial class CmdProc
 	{
 		public CmdTable cmdTable;
-		public Form1 owner;
+		public MainForm owner;
 		public List<MenuInfo> emCmds;
 		private int targetIndex = 0;
 
-		public CmdProc(Form1 owner)
+		public CmdProc(MainForm owner)
 		{
 			cmdTable = new CmdTable();
 			InitializeCmdTable(Constants.ZfileCfgPath + "TOTALCMD.INC", Constants.ZfileCfgPath + "WCMD_CHN.INC");//读取cm_开头的内部命令与ID的对应关系
@@ -615,7 +616,7 @@ namespace zfile
 						break;
 
 					case 24340:
-						Form1.ExitApp();
+						MainForm.ExitApp();
 						break;
 					case 34567:
 						var licensegen = new LicenseGeneratorForm();
@@ -904,7 +905,7 @@ namespace zfile
 		private async Task cm_StartMcpServer(string param)
 		{
 			if (string.IsNullOrEmpty(param))
-				param = "mymcpserver";
+				param = "zfile";
 			Debug.Print($"add tool handler [dynamictool] for mcp server {param}");
 			MCPServer.AddToolHandler(new Tool()
 			{
@@ -924,8 +925,17 @@ namespace zfile
 			MCPServer.Register<MySkillClass>();
 			MCPServer.Register<Calculator>();
 			MCPServer.Register<ExpressionEvaluatorClaude>();
-			await MCPServer.StartAsync(param, "1.0.0");
-			Debug.Print($"start mcp server {param}");
+			//await MCPServer.StartAsync(param, "1.0.0");
+            try
+            {
+                _ = Task.Run(async () => await MCPServer.StartAsync(param, "1.0.0"));
+                Debug.Print($"MCP server {param} started successfully.");
+            }
+            catch (Exception ex)
+            {
+                Debug.Print($"Failed to start MCP server {param}: {ex.Message}");
+            }
+			//Debug.Print($"start mcp server {param}");
 		}
 		private void cm_mcpConfigUI(string mcp_settings_file)
 		{
@@ -937,17 +947,92 @@ namespace zfile
 
 		private async Task<List<Tool>> cm_GetInfoFromMcpServer(string param)
 		{
-			// Client-side integration
-			MCPClient client = new("AIClient", "1.0.0", string.IsNullOrEmpty(param) ? "mymcpserver" : param);
-			//IList<AIFunction> functions = await client.GetFunctionsAsync();
-			//var prompts = await client.GetPromptListAsync();
-			//var resources = await client.GetResourcesAsync();
-			var tools = await client.GetToolsAsync();
-			//var resourceTemplates = await client.GetResourceTemplatesAsync();
-			Debug.Print($"{tools.Count} tool got for mcp server {param}");
-			var pars = new Dictionary<string, object>();
-			await client.CallToolAsync("evaluate", pars);
+			//List<Tool> tools = new();
+			//try
+			//{
+			//	// Client-side integration
+			//	MCPClient client = new("AIClient", "1.0.0", string.IsNullOrEmpty(param) ? "mymcpserver" : param);
+			//	//IList<AIFunction> functions = await client.GetFunctionsAsync();
+			//	//var prompts = await client.GetPromptListAsync();
+			//	//var resources = await client.GetResourcesAsync();
+			//	tools = await client.GetToolsAsync();
+			//	//var resourceTemplates = await client.GetResourceTemplatesAsync();
+			//	Debug.Print($"{tools.Count} tool got for mcp server {param}");
+			//	var pars = new Dictionary<string, object>();
+			//	await client.CallToolAsync("evaluate", pars);
+			//}
+			//catch (Exception ex) {
+			//	Debug.Print($"Failed to get info from MCP server {param}: {ex.Message}");
+			//}
+			//return tools;
+			List<Tool> tools = new();
+			try
+			{
+				string serverName = string.IsNullOrEmpty(param) ? "zfile" : param;
+
+				// 1. 首先检查服务器是否已经在运行
+				bool serverRunning = await CheckMcpServerStatus(serverName);
+
+				// 2. 如果服务器未运行，尝试启动它
+				if (!serverRunning)
+				{
+					Debug.Print($"MCP server {serverName} is not running, attempting to start...");
+					try
+					{
+						await cm_StartMcpServer(serverName);
+						// 给服务器一些启动时间
+						await Task.Delay(2000);
+					}
+					catch (Exception ex)
+					{
+						Debug.Print($"Failed to start MCP server: {ex.Message}");
+						throw;
+					}
+				}
+
+				// 3. 创建客户端并获取工具列表
+				Debug.Print($"Creating MCP client for server: {serverName}");
+				MCPClient client = new("AIClient", "1.0.0", serverName);
+
+				// 4. 获取工具列表
+				tools = await client.GetToolsAsync();
+				Debug.Print($"Successfully retrieved {tools.Count} tools from MCP server {serverName}");
+
+				// 5. 调用示例工具
+				if (tools.Count > 0)
+				{
+					var pars = new Dictionary<string, object>();
+					await client.CallToolAsync("evaluate", pars);
+				}
+			}
+			catch (Win32Exception ex)
+			{
+				Debug.Print($"Win32 Error: {ex.Message}");
+				Debug.Print($"Native Error Code: {ex.NativeErrorCode}");
+				MessageBox.Show($"无法启动或连接到MCP服务器: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+			catch (Exception ex)
+			{
+				Debug.Print($"Failed to get info from MCP server {param}: {ex.Message}");
+				Debug.Print($"Stack trace: {ex.StackTrace}");
+				MessageBox.Show($"获取MCP服务器信息时出错: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
 			return tools;
+		}
+
+		// 添加辅助方法来检查服务器状态
+		private async Task<bool> CheckMcpServerStatus(string serverName)
+		{
+			try
+			{
+				using var process = Process.GetProcessesByName(serverName).FirstOrDefault();
+				return process != null && !process.HasExited;
+			}
+			catch (Exception ex)
+			{
+				Debug.Print($"Error checking server status: {ex.Message}");
+				return false;
+			}
 		}
 		private void cm_QueryMcpServer(string param)
 		{

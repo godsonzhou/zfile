@@ -6,9 +6,9 @@ namespace zfile
     public class ShellExecuteHelper
     {
         private readonly Dictionary<string, Func<string[], string>> _variableHandlers;
-		private Form1 owner;
+		private MainForm owner;
 
-        public ShellExecuteHelper(Form1 parent)
+        public ShellExecuteHelper(MainForm parent)
         {
 			owner = parent;
 		

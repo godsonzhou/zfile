@@ -12,7 +12,7 @@ namespace zfile
         private Button okButton;
         private Button cancelButton;
         private string currentDrive;
-        private Form1 ownerForm;
+        private MainForm ownerForm;
         private Dictionary<string, TreeNode> directoryNodes = new Dictionary<string, TreeNode>();
 		List<TreeNode> matchingNodes = new();
 		private int idx;
@@ -21,7 +21,7 @@ namespace zfile
 		private Color originalNodeForeColor;
 		private TreeNode? lastHighlightedNode;
 
-		public DirectoryTreeSearchForm(Form1 owner, string drive)
+		public DirectoryTreeSearchForm(MainForm owner, string drive)
         {
             ownerForm = owner;
             currentDrive = drive;

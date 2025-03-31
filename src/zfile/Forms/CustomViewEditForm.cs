@@ -11,7 +11,7 @@ namespace zfile
 
         public string ViewName { get; set; } = "";
         public List<CustomViewColumn> Columns { get; set; } = new List<CustomViewColumn>();
-		private Form1 form;
+		private MainForm form;
 
         public class CustomViewColumn
         {
@@ -29,7 +29,7 @@ namespace zfile
             }
         }
 
-        public CustomViewEditForm(string viewName, Form1 form)
+        public CustomViewEditForm(string viewName, MainForm form)
         {
 			this.ViewName = viewName;
 			this.form = form;

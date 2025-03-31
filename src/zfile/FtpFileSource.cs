@@ -14,7 +14,7 @@ namespace zfile
 		private string _currentPath = "/";
 		private string _ftpHost;
 		private string _connectionName;
-		private Form1 _owner;
+		private MainForm _owner;
 		/// <summary>
 		/// 获取FTP连接名称
 		/// </summary>
@@ -43,7 +43,7 @@ namespace zfile
 		{
 		}
 
-		public FtpFileSource(Form1 owner, string connectionName, FtpClient client)
+		public FtpFileSource(MainForm owner, string connectionName, FtpClient client)
 		{
 			_owner = owner;
 			_connectionName = connectionName;

@@ -5,7 +5,7 @@ namespace zfile
     {
         private DataGridView grid;
         private DataGridView ruleDetailGrid;
-        private Form1 mainForm;
+        private MainForm mainForm;
         private CheckBox enableAutoSwitchCheckBox;
         private ComboBox ruleTypeComboBox;
 		private string ruletypeString = "+:完全符合\n-:完全不符合\n%:至少有一半符合\n2:至少有一个符合\nD:文件夹\nL:含驱动器符\nU:网络路径：IV服务器\nV:虚拟文件夹\nF: FTP 连接\nA:压缩文件\nP:文件系统插件\nS:搜索结果";
@@ -16,7 +16,7 @@ namespace zfile
 
 		//private ListBox fileTypeListBox;
 
-		public AutoSwitchViewPanel(Form1 mainForm)
+		public AutoSwitchViewPanel(MainForm mainForm)
         {
             this.mainForm = mainForm;
             // 初始化缓冲区

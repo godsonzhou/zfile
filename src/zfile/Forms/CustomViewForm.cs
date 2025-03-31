@@ -4,9 +4,9 @@ namespace zfile
 	public class CustomViewForm : Form
 	{
 		private DataGridView grid;
-		private Form1 mainForm;
+		private MainForm mainForm;
 
-		public CustomViewForm(Form1 mainForm)
+		public CustomViewForm(MainForm mainForm)
 		{
 			this.mainForm = mainForm;
 			InitializeComponents();

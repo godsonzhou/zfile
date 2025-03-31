@@ -252,7 +252,7 @@ namespace zfile
 		}
 		private void cm_openrecycled()
 		{
-			owner.NavigateToPath("回收站", scope: Form1.TreeSearchScope.desktop);
+			owner.NavigateToPath("回收站", scope: MainForm.TreeSearchScope.desktop);
 		}
 		private void cm_openfonts()
 		{
@@ -261,20 +261,20 @@ namespace zfile
 
 		private void cm_opencontrols()
 		{
-			owner.NavigateToPath("控制面板", scope: Form1.TreeSearchScope.desktop);
+			owner.NavigateToPath("控制面板", scope: MainForm.TreeSearchScope.desktop);
 		}
 
 		private void cm_opennetwork()
 		{
-			owner.NavigateToPath("网络", scope: Form1.TreeSearchScope.desktop);
+			owner.NavigateToPath("网络", scope: MainForm.TreeSearchScope.desktop);
 		}
 		private void cm_opendrives()
 		{
-			owner.NavigateToPath("此电脑", scope: Form1.TreeSearchScope.desktop);
+			owner.NavigateToPath("此电脑", scope: MainForm.TreeSearchScope.desktop);
 		}
 		private void cm_opendesktop()
 		{
-			owner.NavigateToPath("桌面", scope: Form1.TreeSearchScope.full);
+			owner.NavigateToPath("桌面", scope: MainForm.TreeSearchScope.full);
 		}
 		public void cm_gotoroot()
 		{

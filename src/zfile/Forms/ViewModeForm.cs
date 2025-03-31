@@ -4,9 +4,9 @@ namespace zfile
     public class ViewModeForm : Form
     {
         private DataGridView grid;
-        private Form1 mainForm;
+        private MainForm mainForm;
 
-        public ViewModeForm(Form1 mainForm)
+        public ViewModeForm(MainForm mainForm)
         {
             this.mainForm = mainForm;
             InitializeComponents();

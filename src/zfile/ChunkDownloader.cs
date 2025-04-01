@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 public class ChunkDownloader
 {
-	public readonly string _url;
+	public  string _url;
 	public readonly string _savePath;
 	public readonly int _chunks;
 	public readonly HttpClient _client;
@@ -50,13 +50,63 @@ public class ChunkDownloader
 		File.Move(_tempFile, _savePath, true);
 	}
 
-	public async Task<long> GetFileSizeAsync()
+	public async Task<long> GetFileSizeAsyncbak()
 	{
 		using var request = new HttpRequestMessage(HttpMethod.Head, _url);
 		var response = await _client.SendAsync(request);
 		return response.Content.Headers.ContentLength ?? throw new Exception("Unsupported content length");
 	}
+	public async Task<long> GetFileSizeAsync()
+	{
+		try
+		{
+			// 第一阶段：尝试 HEAD 请求
+			using var headRequest = new HttpRequestMessage(HttpMethod.Head, _url);
 
+			// 添加通用浏览器头避免被拦截
+			headRequest.Headers.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36");
+
+			var headResponse = await _client.SendAsync(headRequest, HttpCompletionOption.ResponseHeadersRead);
+
+			// 处理重定向后的最终 URL（重要！）
+			_url = headResponse.RequestMessage.RequestUri.ToString();
+
+			if (headResponse.Content.Headers.ContentLength.HasValue)
+			{
+				return headResponse.Content.Headers.ContentLength.Value;
+			}
+
+			// 第二阶段：回退到 GET + Range 请求
+			using var getRequest = new HttpRequestMessage(HttpMethod.Get, _url);
+			getRequest.Headers.Range = new System.Net.Http.Headers.RangeHeaderValue(0, 0);
+
+			var getResponse = await _client.SendAsync(getRequest, HttpCompletionOption.ResponseHeadersRead);
+
+			// 验证响应状态
+			if (!getResponse.IsSuccessStatusCode)
+			{
+				throw new Exception($"HTTP Error: {getResponse.StatusCode}");
+			}
+
+			// 优先从 Content-Range 获取完整大小
+			if (getResponse.Content.Headers.ContentRange?.HasLength == true)
+			{
+				return getResponse.Content.Headers.ContentRange.Length.Value;
+			}
+
+			// 次选 Content-Length
+			if (getResponse.Content.Headers.ContentLength.HasValue)
+			{
+				return getResponse.Content.Headers.ContentLength.Value;
+			}
+
+			throw new Exception("无法获取文件大小：服务器未返回有效长度信息");
+		}
+		catch (HttpRequestException ex)
+		{
+			throw new Exception($"网络请求失败，请检查: {ex.Message}");
+		}
+	}
 	public (long Start, long End)[] InitializeChunks(long totalSize)
 	{
 		// 尝试加载进度文件

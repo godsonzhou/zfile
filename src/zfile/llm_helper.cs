@@ -438,7 +438,7 @@ namespace Zfile
 				string prompt = $"我之前尝试使用MCP工具 {currentToolCall.ToolName}，以下是调用结果:\n{toolCallResult}\n请基于这个结果继续我们的对话。";
 
 				// 调用大模型处理工具调用结果
-				string newResponse = await CallOllamaApiRawAsync(prompt);
+				string newResponse = await Call_llm_ApiAsync(prompt);//CallOllamaApiRawAsync(prompt);
 
 				// 检查新响应中是否包含更多工具调用
 				if (ContainsMCPToolCall(newResponse))
@@ -524,9 +524,6 @@ namespace Zfile
 						if (needExtract)
 						{
 							responseBody = Helper.ExtractResponseContent(responseBody);
-							//将res中的"\n"替换为真正的换行符，u003c转为< u003e转为>
-							responseBody = responseBody.Replace("\\n", "\n").Replace("\\u003c", "<").Replace("\\u003e", ">");
-							//responseBody = Regex.Unescape(responseBody);
 							Debug.Print("AI 响应 : \n" + responseBody);
 						}
 						return responseBody;
@@ -566,6 +563,10 @@ namespace Zfile
 			useRemoteApi = false;
 		}
 
+		private async Task<string> callOpenaiAPI(string prompt)
+		{
+			return await OpenAi_Api.Run(remoteApiUrl, remoteApiKey, remoteApiModel, prompt);
+		}
 		// 调用远程API
 		private async Task<string> CallRemoteApiAsync(string prompt)
 		{
@@ -670,7 +671,7 @@ namespace Zfile
 			}
 		}
 
-		public async Task<string> CallOllamaApiAsync(string prompt)
+		public async Task<string> Call_llm_ApiAsync(string prompt)
 		{
 			Debug.Print("request api: " + prompt);
 
@@ -679,21 +680,19 @@ namespace Zfile
 			if (useRemoteApi)
 			{
 				// 使用远程API
-				response = await CallRemoteApiAsync(prompt);
+				response = await callOpenaiAPI(prompt);//CallRemoteApiAsync(prompt);
 			}
 			else
 			{
 				// 使用本地API
 				response = await CallOllamaApiRawAsync(prompt);
-
-				// 检查响应中是否包含MCP工具调用
-				if (ContainsMCPToolCall(response))
-				{
-					Debug.Print("检测到MCP工具调用，开始处理...");
-					response = await ProcessAllMCPToolCalls(response);
-				}
 			}
-
+			// 检查响应中是否包含MCP工具调用
+			if (ContainsMCPToolCall(response))
+			{
+				Debug.Print("检测到MCP工具调用，开始处理...");
+				response = await ProcessAllMCPToolCalls(response);
+			}
 			return response;
 		}
 	}

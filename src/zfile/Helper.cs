@@ -140,7 +140,9 @@ namespace Zfile
 				// 将提取的内容添加到结果中
 				result.Append(responseValue);
 			}
-
+			//将res中的"\n"替换为真正的换行符，u003c转为< u003e转为>
+			result = result.Replace("\\n", "\n").Replace("\\u003c", "<").Replace("\\u003e", ">");
+			//responseBody = Regex.Unescape(responseBody);
 			return result.ToString();
 		}
 		//public static string Getfiletype(string args)

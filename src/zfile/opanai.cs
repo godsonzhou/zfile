@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace Zfile
 {
-	using System;
-	using System.Net.Http;
-	using System.Text;
-	using System.Text.Json;
-	using System.Threading.Tasks;
 
 	// 与 OpenAI 兼容的通用请求/响应结构
 	public class OpenAIRequest
@@ -99,9 +92,9 @@ namespace Zfile
 	}
 
 	// 使用示例
-	class openai_api
+	public class OpenAi_Api
 	{
-		static async Task run(string url, string key)
+		public static async Task<string> Run(string url, string key, string model, string prompt)
 		{
 			// 示例1：调用原生OpenAI
 			var openaiClient = new OpenAIClient(
@@ -118,13 +111,13 @@ namespace Zfile
 
 			var request = new OpenAIRequest
 			{
-				model = "gpt-3.5-turbo", // 根据服务商支持的模型调整
+				model = model, // 根据服务商支持的模型调整
 				messages = new[]
 				{
-				new Message { role = "user", content = "你好，请用C#写个冒泡排序" }
+				new Message { role = "user", content = prompt }
 			},
 				temperature = 0.7f,
-				max_tokens = 500
+				max_tokens = 8192
 			};
 
 			try
@@ -133,17 +126,19 @@ namespace Zfile
 
 				if (response?.choices?.Length > 0)
 				{
-					Console.WriteLine(response.choices[0].message.content);
+					Debug.Print(response.choices[0].message.content);
 				}
 				else if (response?.error != null)
 				{
-					Console.WriteLine($"错误: {response.error.message}");
+					Debug.Print($"错误: {response.error.message}");
 				}
+				return Helper.ExtractResponseContent(response.choices[0].message.content);
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine($"请求失败: {ex.Message}");
+				Debug.Print($"请求失败: {ex.Message}");
 			}
+			return string.Empty;
 		}
 	}
 }

@@ -657,10 +657,10 @@ namespace Zfile
 			try
 			{
 				StringBuilder prompt = new("你好，你是一个专家程序员，精通各种编程语言。");
-				prompt.Append("\n你的目标是使用合适的MCP工具找到用户指定对象{TARGETPATH}，如果该对象是文件，理解其程序功能并将对它的完整功能分析通过MCP工具写入同名ION文件(比如：hello.pas -> hello.ion)，再将该PAS程序转化为C#语言并写入同名cs文件(比如：hello.pas -> hello.cs)\n如果该对象是文件夹，则需要对该文件夹下所有的后缀名（类型）为PAS的文件做上述处理。以下是你可以调用的各种MCP工具，通过它们来增强你的能力。");
+				prompt.Append("\n你的目标是使用合适的MCP工具找到用户指定对象{TARGETPATH}，如果该对象是文件，理解其程序功能并将对它的完整功能分析通过MCP工具写入同名ION文件(比如：hello.pas -> hello.ion)，再将该PAS程序转化为C#语言并写入同名cs文件(比如：hello.pas -> hello.cs)\n如果该对象是文件夹，则需要对该文件夹下所有的后缀名（类型）为PAS的文件做上述处理。以下是你可以调用的各种MCP工具，通过它们来增强你的能力。方括号中的是MCP服务器名称");
 				foreach (var s in form.mcpClientMgr.MCPToolsDict)
 					prompt.Append($"[{s.Key}] :\n {string.Join('\n', s.Value)}");
-				prompt.Append("如果你想使用以上MCP工具，请使用以下格式输出:\n<use_mcp_tool>\n<server_name>server1</server_name>\n<tool_name>tool1</tool_name>\n<arguments>{\"arg1\":\"value1\"}</arguments>\n</use_mcp_tool>\n");
+				prompt.Append("如果你想使用以上MCP工具，请使用以下格式输出:\n<use_mcp_tool>\n<server_name>MCP服务器名称</server_name>\n<tool_name>tool1</tool_name>\n<arguments>{\"arg1\":\"value1\"}</arguments>\n</use_mcp_tool>\n");
 				prompt.Append("注意：一次最多使用一种MCP工具");
 				prompt.Append(txtPrompt.Text);
 				foreach (var file in selectedFiles)
@@ -675,7 +675,7 @@ namespace Zfile
 		{
 			if (File.Exists(file))
 			{
-				var res = await LLMhelper.CallOllamaApiAsync((needFileRead ? prompt + File.ReadAllText(file) : prompt.Replace("TARGETPATH", file)));
+				var res = await LLMhelper.Call_llm_ApiAsync((needFileRead ? prompt + File.ReadAllText(file) : prompt.Replace("TARGETPATH", file)));
 				try
 				{
 					var i = lstFiles.Items.Cast<ListViewItem>().First(m => m.Text.Equals(file));
@@ -719,4 +719,4 @@ namespace Zfile
 		}
 	}
 
-	}
+}

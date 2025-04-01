@@ -1089,7 +1089,7 @@ namespace Zfile
 					//if (!result.Contains("text", StringComparison.OrdinalIgnoreCase)) continue;
 					if(!Helper.IsTextFile(file)) continue;
 					var content = File.ReadAllText(file);
-					response = await owner.lLM_Helper.CallOllamaApiAsync(prompt + content);
+					response = await owner.lLM_Helper.Call_llm_ApiAsync(prompt + content);
 				}
 			}
 			return response;

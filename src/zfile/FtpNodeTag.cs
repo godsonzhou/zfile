@@ -1,6 +1,6 @@
 using System.Net;
 using FluentFTP;
-namespace zfile
+namespace Zfile
 {
 	public class ArchNodeTag
 	{

@@ -1,6 +1,6 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
-namespace zfile
+namespace Zfile
 {
 	// 定义配置项类
 	public class ConfigItem

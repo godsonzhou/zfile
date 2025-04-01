@@ -5,7 +5,7 @@ using System.Windows.Forms;
 using System.Threading.Tasks;
 using MCPSharp;
 
-namespace zfile
+namespace Zfile
 {
     public class MCPClientForm : Form
     {

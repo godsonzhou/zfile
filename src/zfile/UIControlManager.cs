@@ -4,7 +4,7 @@ using System.Text;
 //using System.Windows.Controls;
 using WinShell;
 
-namespace zfile
+namespace Zfile
 {
 	public class UIControlManager : IDisposable
 	{

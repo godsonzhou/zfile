@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace zfile
+namespace Zfile
 {
 	public class ExpressionEvaluatorClaude // 表达式求值器 claude 3.5 vs
 	{

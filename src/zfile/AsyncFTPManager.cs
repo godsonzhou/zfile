@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.Threading;
 using System.Diagnostics;
 using System.Net;
 
-namespace zfile
+namespace Zfile
 {
 	
 	/// <summary>

@@ -1,4 +1,4 @@
-namespace zfile
+namespace Zfile
 {
     public class Bookmark
     {

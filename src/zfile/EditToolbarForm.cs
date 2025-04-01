@@ -1,7 +1,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace zfile
+namespace Zfile
 {
     public class EditToolbarForm : Form
     {

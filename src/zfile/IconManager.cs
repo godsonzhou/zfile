@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using WinShell;
 
-namespace zfile
+namespace Zfile
 {
 
 	public class IconManager : IDisposable

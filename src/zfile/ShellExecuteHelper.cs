@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 
-namespace zfile
+namespace Zfile
 {
     public class ShellExecuteHelper
     {

@@ -3,7 +3,7 @@
 using FluentFTP;
 using System.Diagnostics;
 
-namespace zfile
+namespace Zfile
 {
 	public class FtpController : IDisposable
 	{

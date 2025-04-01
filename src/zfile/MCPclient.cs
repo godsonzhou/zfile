@@ -3,10 +3,10 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using zfile;
+using Zfile;
 using System.Diagnostics;
 
-namespace zfile
+namespace Zfile
 {
 	public class MCP
 	{

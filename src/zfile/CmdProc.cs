@@ -13,7 +13,7 @@ using System.Security.Policy;
 using System.Collections.Specialized;
 using System.ComponentModel;
 
-namespace zfile
+namespace Zfile
 {
 
 	public partial class CmdProc

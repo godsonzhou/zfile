@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace zfile
+namespace Zfile
 {
     internal static class Program
     {

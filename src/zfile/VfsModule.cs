@@ -29,7 +29,7 @@ VfsModuleManager.RegisterVirtualFileSource<FtpFileSource>("FTP", true);
 可扩展性
 你可以轻松地添加新的文件源实现，比如ZIP、网络存储等，只需要继承 FileSourceBase 并实现必要的方法即可。
 */
-namespace zfile
+namespace Zfile
 {
 	//public class FtpFileSource : FileSourceBase
 	//{

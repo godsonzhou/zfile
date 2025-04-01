@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Text;
 //using MF.Core;
 //using MF.MediaFoundation;
-namespace zfile
+namespace Zfile
 {
 	public class FilePreviewManager : IDisposable
 	{

@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Net;
 
-namespace zfile
+namespace Zfile
 {
 	/// <summary>
 	/// FTP管理器类，用于管理FTP连接和操作

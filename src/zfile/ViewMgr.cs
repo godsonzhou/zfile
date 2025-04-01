@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace zfile
+namespace Zfile
 {
 	// 定义 ColDef 类
 	public class ColDef

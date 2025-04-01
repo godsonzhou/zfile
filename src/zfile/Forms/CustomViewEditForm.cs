@@ -1,6 +1,6 @@
 using System.Data;
 using System.Collections.Generic;
-namespace zfile
+namespace Zfile
 {
     public class CustomViewEditForm : Form
     {

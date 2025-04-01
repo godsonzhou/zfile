@@ -1,7 +1,7 @@
 using FluentFTP;
 using System.Diagnostics;
 using Timer = System.Windows.Forms.Timer;
-namespace zfile
+namespace Zfile
 {
 	public class AsyncFtpConnectionMonitor
 	{

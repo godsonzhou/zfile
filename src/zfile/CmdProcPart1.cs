@@ -14,7 +14,7 @@ using WinShell;
 using System.Windows.Forms;
 
 
-namespace zfile
+namespace Zfile
 {
 	public partial class CmdProc
 	{

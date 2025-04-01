@@ -3,7 +3,7 @@ using ICSharpCode.TextEditor.Document;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace zfile
+namespace Zfile
 {
 	public class SettingsForm : Form
 	{

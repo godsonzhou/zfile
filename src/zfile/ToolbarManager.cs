@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Text;
-namespace zfile
+namespace Zfile
 {
 
 	public class ToolbarButton

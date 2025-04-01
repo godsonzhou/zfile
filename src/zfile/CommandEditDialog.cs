@@ -4,7 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 
-namespace zfile
+namespace Zfile
 {
     public class CommandEditDialog : Form
     {

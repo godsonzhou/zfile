@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace zfile
+namespace Zfile
 {
     public class EvaluateExprDlg : Form
     {

@@ -48,7 +48,7 @@ Unicode支持：
 提供进度回调
 安全地管理非托管资源
 */
-namespace zfile
+namespace Zfile
 {
 	// 常量定义
 	/*

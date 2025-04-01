@@ -42,7 +42,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml.Linq;
 
-namespace zfile
+namespace Zfile
 {
     #region WFX常量和结构体
     public static class WfxConstants

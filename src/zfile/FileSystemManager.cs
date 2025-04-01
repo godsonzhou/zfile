@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace zfile
+namespace Zfile
 {
 	public class FileSystemManager
 	{

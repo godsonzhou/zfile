@@ -2,7 +2,7 @@ using FluentFTP;
 using System.Diagnostics;
 using System.Text;
 using static OpenQA.Selenium.BiDi.Modules.BrowsingContext.Locator;
-namespace zfile
+namespace Zfile
 {
 	/// <summary>
 	/// FTP文件源实现，用于处理FTP虚拟文件系统

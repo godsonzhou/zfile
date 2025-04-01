@@ -52,7 +52,7 @@ thumbnailManager.CompactCache();
 支持的文件类型（通过修改IsImageFile和IsTextFile方法）
 文本预览的字体和大小
 */
-namespace zfile
+namespace Zfile
 {
     /// <summary>
     /// 缩略图管理器类，负责生成、缓存和管理文件缩略图

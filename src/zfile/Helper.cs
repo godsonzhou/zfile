@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using WinShell;
 
-namespace zfile
+namespace Zfile
 {
 	public static class Constants
 	{

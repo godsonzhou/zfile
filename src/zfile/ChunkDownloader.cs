@@ -173,10 +173,28 @@ public class ChunkDownloader
 		throw new Exception($"Chunk download failed after {maxRetries} retries");
 	}
 
+	// 用于同步进度文件访问的对象锁
+	private static readonly object _progressFileLock = new object();
+
 	public void SaveProgress()
 	{
-		var lines = _progress.Select(p => $"{p.Key}:{p.Value}");
-		File.WriteAllLines(_tempFile + ".progress", lines);
+		try
+		{
+			lock (_progressFileLock)
+			{
+				var lines = _progress.Select(p => $"{p.Key}:{p.Value}");
+				File.WriteAllLines(_tempFile + ".progress", lines);
+			}
+		}
+		catch (IOException ex)
+		{
+			// 记录异常但不中断下载过程
+			Debug.Print($"保存进度文件时出错: {ex.Message}");
+		}
+		catch (Exception ex)
+		{
+			Debug.Print($"保存进度时发生未知错误: {ex.Message}");
+		}
 	}
 
 	private async Task ShowProgressAsync(long totalSize)

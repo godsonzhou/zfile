@@ -198,7 +198,16 @@ namespace Zfile
 
                         totalRead += bytesRead;
                         _progress[range.Start] = totalRead;
-                        SaveProgress();
+                        
+                        try
+                        {
+                            SaveProgress();
+                        }
+                        catch (IOException ex)
+                        {
+                            Debug.Print($"保存进度文件时出错: {ex.Message}");
+                            // 继续下载，不中断进程
+                        }
 
                         // 检查取消令牌
                         cancellationToken.ThrowIfCancellationRequested();

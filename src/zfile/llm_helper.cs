@@ -577,6 +577,7 @@ namespace Zfile
 				using (HttpClient client = new HttpClient())
 				{
 					client.Timeout = TimeSpan.FromSeconds(600); // 设置超时时间
+					client.BaseAddress = new Uri(remoteApiUrl);
 
 					// 设置请求头
 					if (!string.IsNullOrEmpty(remoteApiKey))
@@ -593,7 +594,7 @@ namespace Zfile
 							new { role = "user", content = prompt }//todo: role="user" or "system"
 						},
 						temperature = 0.7,
-						max_tokens = 4000
+						max_tokens = 8192
 					};
 
 					string jsonBody = Newtonsoft.Json.JsonConvert.SerializeObject(requestBody);
@@ -603,7 +604,7 @@ namespace Zfile
 					using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(600)))
 					{
 						Debug.Print("开始发送HTTP请求到远程API...");
-						HttpResponseMessage response = await client.PostAsync(remoteApiUrl, content, cts.Token);
+						HttpResponseMessage response = await client.PostAsync("chat/completions", content, cts.Token);
 						Debug.Print($"HTTP状态码: {response.StatusCode}");
 						response.EnsureSuccessStatusCode();
 
@@ -680,7 +681,7 @@ namespace Zfile
 			if (useRemoteApi)
 			{
 				// 使用远程API
-				response = await callOpenaiAPI(prompt);//CallRemoteApiAsync(prompt);
+				response = await callOpenaiAPI(prompt);//CallRemoteApiAsync(prompt);//
 			}
 			else
 			{

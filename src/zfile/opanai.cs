@@ -132,7 +132,7 @@ namespace Zfile
 				{
 					Debug.Print($"错误: {response.error.message}");
 				}
-				return Helper.ExtractResponseContent(response.choices[0].message.content);
+				return response.choices[0].message.content;
 			}
 			catch (Exception ex)
 			{

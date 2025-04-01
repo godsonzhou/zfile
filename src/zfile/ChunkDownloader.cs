@@ -1,20 +1,14 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.IO;
-using System.Net;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 
 public class ChunkDownloader
 {
-	private readonly string _url;
-	private readonly string _savePath;
-	private readonly int _chunks;
-	private readonly HttpClient _client;
-	private readonly ConcurrentDictionary<long, long> _progress;
-	private readonly string _tempFile;
+	public readonly string _url;
+	public readonly string _savePath;
+	public readonly int _chunks;
+	public readonly HttpClient _client;
+	public readonly ConcurrentDictionary<long, long> _progress;
+	public readonly string _tempFile;
 
 	public ChunkDownloader(string url, string savePath, int chunks = 4)
 	{
@@ -56,14 +50,14 @@ public class ChunkDownloader
 		File.Move(_tempFile, _savePath, true);
 	}
 
-	private async Task<long> GetFileSizeAsync()
+	public async Task<long> GetFileSizeAsync()
 	{
 		using var request = new HttpRequestMessage(HttpMethod.Head, _url);
 		var response = await _client.SendAsync(request);
 		return response.Content.Headers.ContentLength ?? throw new Exception("Unsupported content length");
 	}
 
-	private (long Start, long End)[] InitializeChunks(long totalSize)
+	public (long Start, long End)[] InitializeChunks(long totalSize)
 	{
 		// 尝试加载进度文件
 		if (File.Exists(_tempFile + ".progress"))
@@ -129,7 +123,7 @@ public class ChunkDownloader
 		throw new Exception($"Chunk download failed after {maxRetries} retries");
 	}
 
-	private void SaveProgress()
+	public void SaveProgress()
 	{
 		var lines = _progress.Select(p => $"{p.Key}:{p.Value}");
 		File.WriteAllLines(_tempFile + ".progress", lines);

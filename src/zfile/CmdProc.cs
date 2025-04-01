@@ -610,7 +610,9 @@ namespace Zfile
 					case 11443:
 						cm_evaluateExprDlg(param);
 						break;
-
+					case 11444:
+						cm_idm(param);
+						break;
 					case 24340:
 						MainForm.ExitApp();
 						break;
@@ -628,6 +630,10 @@ namespace Zfile
 						break;
 				}
 			}
+		}
+		private void cm_idm(string param)
+		{
+			IdmIntegration.ShowIdmManager();
 		}
 		private void cm_CutToClipboard()
 		{

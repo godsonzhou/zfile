@@ -121,7 +121,11 @@ namespace Zfile
         {
             // 获取文件总大小
             var totalSize = await GetFileSizeAsync();
-
+			if (totalSize == 0)
+			{
+				Debug.Print("total size = 0");
+				return;
+			}
             // 初始化/恢复下载进度
             var chunks = InitializeChunks(totalSize);
 

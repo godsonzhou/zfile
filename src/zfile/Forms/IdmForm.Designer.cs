@@ -30,5 +30,21 @@ namespace Zfile.Forms
         private StatusStrip statusStrip;
         private ToolStripStatusLabel statusLabel;
         private ToolStripProgressBar progressBar;
+        
+        // 下载列表右键菜单
+        private ContextMenuStrip downloadListContextMenu;
+        private ToolStripMenuItem openMenuItem;
+        private ToolStripMenuItem openWithMenuItem;
+        private ToolStripMenuItem openFolderMenuItem;
+        private ToolStripMenuItem moveRenameMenuItem;
+        private ToolStripMenuItem redownloadMenuItem;
+        private ToolStripMenuItem resumeDownloadMenuItem;
+        private ToolStripMenuItem stopDownloadMenuItem;
+        private ToolStripMenuItem copyUrlMenuItem;
+        private ToolStripMenuItem removeMenuItem;
+        private ToolStripMenuItem moveToQueueMenuItem;
+        private ToolStripMenuItem removeFromQueueMenuItem;
+        private ToolStripMenuItem backupMenuItem;
+        private ToolStripMenuItem propertiesMenuItem;
     }
 }

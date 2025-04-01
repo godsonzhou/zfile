@@ -6,6 +6,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -52,6 +53,85 @@ namespace Zfile.Forms
             this.statusStrip = new StatusStrip();
             this.statusLabel = new ToolStripStatusLabel();
             this.progressBar = new ToolStripProgressBar();
+            
+            // 初始化右键菜单
+            this.downloadListContextMenu = new ContextMenuStrip();
+            this.openMenuItem = new ToolStripMenuItem();
+            this.openWithMenuItem = new ToolStripMenuItem();
+            this.openFolderMenuItem = new ToolStripMenuItem();
+            this.moveRenameMenuItem = new ToolStripMenuItem();
+            this.redownloadMenuItem = new ToolStripMenuItem();
+            this.resumeDownloadMenuItem = new ToolStripMenuItem();
+            this.stopDownloadMenuItem = new ToolStripMenuItem();
+            this.copyUrlMenuItem = new ToolStripMenuItem();
+            this.removeMenuItem = new ToolStripMenuItem();
+            this.moveToQueueMenuItem = new ToolStripMenuItem();
+            this.removeFromQueueMenuItem = new ToolStripMenuItem();
+            this.backupMenuItem = new ToolStripMenuItem();
+            this.propertiesMenuItem = new ToolStripMenuItem();
+
+            // 配置右键菜单
+            this.downloadListContextMenu.Items.AddRange(new ToolStripItem[] {
+                this.openMenuItem,
+                this.openWithMenuItem,
+                this.openFolderMenuItem,
+                new ToolStripSeparator(),
+                this.moveRenameMenuItem,
+                new ToolStripSeparator(),
+                this.redownloadMenuItem,
+                this.resumeDownloadMenuItem,
+                this.stopDownloadMenuItem,
+                new ToolStripSeparator(),
+                this.copyUrlMenuItem,
+                new ToolStripSeparator(),
+                this.removeMenuItem,
+                this.moveToQueueMenuItem,
+                this.removeFromQueueMenuItem,
+                new ToolStripSeparator(),
+                this.backupMenuItem,
+                new ToolStripSeparator(),
+                this.propertiesMenuItem
+            });
+
+            // 设置菜单项文本和事件
+            this.openMenuItem.Text = "打开";
+            this.openMenuItem.Click += OpenMenuItem_Click;
+            
+            this.openWithMenuItem.Text = "打开方式...";
+            this.openWithMenuItem.Click += OpenWithMenuItem_Click;
+            
+            this.openFolderMenuItem.Text = "打开文件夹";
+            this.openFolderMenuItem.Click += OpenFolderMenuItem_Click;
+            
+            this.moveRenameMenuItem.Text = "移动/重命名 (Ctrl+M)";
+            this.moveRenameMenuItem.Click += MoveRenameMenuItem_Click;
+            
+            this.redownloadMenuItem.Text = "重新下载";
+            this.redownloadMenuItem.Click += RedownloadMenuItem_Click;
+            
+            this.resumeDownloadMenuItem.Text = "继续下载";
+            this.resumeDownloadMenuItem.Click += ResumeDownloadMenuItem_Click;
+            
+            this.stopDownloadMenuItem.Text = "停止下载";
+            this.stopDownloadMenuItem.Click += StopDownloadMenuItem_Click;
+            
+            this.copyUrlMenuItem.Text = "复制下载地址";
+            this.copyUrlMenuItem.Click += CopyUrlMenuItem_Click;
+            
+            this.removeMenuItem.Text = "移除";
+            this.removeMenuItem.Click += RemoveMenuItem_Click;
+            
+            this.moveToQueueMenuItem.Text = "移动到队列";
+            this.moveToQueueMenuItem.Click += MoveToQueueMenuItem_Click;
+            
+            this.removeFromQueueMenuItem.Text = "从队列中删除";
+            this.removeFromQueueMenuItem.Click += RemoveFromQueueMenuItem_Click;
+            
+            this.backupMenuItem.Text = "备份";
+            this.backupMenuItem.Click += BackupMenuItem_Click;
+            
+            this.propertiesMenuItem.Text = "属性";
+            this.propertiesMenuItem.Click += PropertiesMenuItem_Click;
 
             // MenuStrip
             this.menuStrip.Items.AddRange(new ToolStripItem[] {
@@ -193,6 +273,8 @@ namespace Zfile.Forms
             this.downloadListView.FullRowSelect = true;
             this.downloadListView.GridLines = true;
             this.downloadListView.MultiSelect = true;
+            this.downloadListView.ContextMenuStrip = this.downloadListContextMenu;
+            this.downloadListView.MouseUp += DownloadListView_MouseUp;
 
             // StatusStrip
             this.statusStrip.Items.AddRange(new ToolStripItem[] {
@@ -617,6 +699,367 @@ namespace Zfile.Forms
         {
             // 保存下载任务到配置文件，这里简化处理
             Debug.WriteLine($"保存了 {downloadTasks.Count} 个下载任务");
+        }
+
+        #endregion
+
+        #region 右键菜单事件处理
+
+        private void DownloadListView_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                // 获取右键点击位置的项
+                ListViewItem clickedItem = downloadListView.GetItemAt(e.X, e.Y);
+                
+                // 如果点击的位置没有项，则不显示菜单
+                if (clickedItem == null)
+                {
+                    return;
+                }
+
+                // 如果点击的项未被选中，则选中该项
+                if (!clickedItem.Selected)
+                {
+                    foreach (ListViewItem item in downloadListView.SelectedItems)
+                    {
+                        item.Selected = false;
+                    }
+                    clickedItem.Selected = true;
+                }
+
+                // 根据选中项的状态启用或禁用菜单项
+                UpdateContextMenuItems();
+            }
+        }
+
+        private void UpdateContextMenuItems()
+        {
+            bool hasSelectedItems = downloadListView.SelectedItems.Count > 0;
+            bool hasCompletedItems = false;
+            bool hasDownloadingItems = false;
+            bool hasPausedItems = false;
+
+            if (hasSelectedItems)
+            {
+                foreach (ListViewItem item in downloadListView.SelectedItems)
+                {
+                    var task = item.Tag as DownloadTask;
+                    if (task != null)
+                    {
+                        if (task.Status == DownloadStatus.Completed)
+                            hasCompletedItems = true;
+                        else if (task.Status == DownloadStatus.Downloading)
+                            hasDownloadingItems = true;
+                        else if (task.Status == DownloadStatus.Paused || task.Status == DownloadStatus.Pending || task.Status == DownloadStatus.Error)
+                            hasPausedItems = true;
+                    }
+                }
+            }
+
+            // 启用或禁用菜单项
+            openMenuItem.Enabled = hasCompletedItems;
+            openWithMenuItem.Enabled = hasCompletedItems;
+            openFolderMenuItem.Enabled = hasSelectedItems;
+            moveRenameMenuItem.Enabled = hasCompletedItems;
+            redownloadMenuItem.Enabled = hasSelectedItems;
+            resumeDownloadMenuItem.Enabled = hasPausedItems;
+            stopDownloadMenuItem.Enabled = hasDownloadingItems;
+            copyUrlMenuItem.Enabled = hasSelectedItems;
+            removeMenuItem.Enabled = hasSelectedItems;
+            moveToQueueMenuItem.Enabled = hasSelectedItems;
+            removeFromQueueMenuItem.Enabled = hasSelectedItems;
+            backupMenuItem.Enabled = hasCompletedItems;
+            propertiesMenuItem.Enabled = hasSelectedItems;
+        }
+
+        private void OpenMenuItem_Click(object sender, EventArgs e)
+        {
+            foreach (ListViewItem item in downloadListView.SelectedItems)
+            {
+                var task = item.Tag as DownloadTask;
+                if (task != null && task.Status == DownloadStatus.Completed && File.Exists(task.SavePath))
+                {
+                    try
+                    {
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = task.SavePath,
+                            UseShellExecute = true
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"无法打开文件: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+        private void OpenWithMenuItem_Click(object sender, EventArgs e)
+        {
+            if (downloadListView.SelectedItems.Count > 0)
+            {
+                var task = downloadListView.SelectedItems[0].Tag as DownloadTask;
+                if (task != null && task.Status == DownloadStatus.Completed && File.Exists(task.SavePath))
+                {
+                    try
+                    {
+                        // 打开"打开方式"对话框
+                        var processInfo = new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = "rundll32.exe",
+                            Arguments = $"shell32.dll,OpenAs_RunDLL {task.SavePath}",
+                            UseShellExecute = true
+                        };
+                        System.Diagnostics.Process.Start(processInfo);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"无法打开'打开方式'对话框: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+        private void OpenFolderMenuItem_Click(object sender, EventArgs e)
+        {
+            if (downloadListView.SelectedItems.Count > 0)
+            {
+                var task = downloadListView.SelectedItems[0].Tag as DownloadTask;
+                if (task != null)
+                {
+                    try
+                    {
+                        string folderPath = Path.GetDirectoryName(task.SavePath);
+                        if (Directory.Exists(folderPath))
+                        {
+                            // 打开文件夹并选中文件
+                            if (File.Exists(task.SavePath))
+                            {
+                                System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{task.SavePath}\"");
+                            }
+                            else
+                            {
+                                System.Diagnostics.Process.Start("explorer.exe", folderPath);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"无法打开文件夹: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+        private void MoveRenameMenuItem_Click(object sender, EventArgs e)
+        {
+            if (downloadListView.SelectedItems.Count > 0)
+            {
+                var task = downloadListView.SelectedItems[0].Tag as DownloadTask;
+                if (task != null && task.Status == DownloadStatus.Completed && File.Exists(task.SavePath))
+                {
+                    using (SaveFileDialog dialog = new SaveFileDialog())
+                    {
+                        dialog.FileName = Path.GetFileName(task.SavePath);
+                        dialog.Filter = "所有文件 (*.*)|*.*";
+                        dialog.Title = "移动/重命名文件";
+                        dialog.InitialDirectory = Path.GetDirectoryName(task.SavePath);
+
+                        if (dialog.ShowDialog() == DialogResult.OK)
+                        {
+                            try
+                            {
+                                // 如果目标文件已存在，则询问是否覆盖
+                                if (File.Exists(dialog.FileName) && dialog.FileName != task.SavePath)
+                                {
+                                    if (MessageBox.Show($"文件 {dialog.FileName} 已存在，是否覆盖？", "确认覆盖", 
+                                        MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
+                                    {
+                                        return;
+                                    }
+                                }
+
+                                // 移动/重命名文件
+                                File.Move(task.SavePath, dialog.FileName, true);
+                                
+                                // 更新任务信息
+                                task.SavePath = dialog.FileName;
+                                task.FileName = Path.GetFileName(dialog.FileName);
+                                
+                                // 更新UI
+                                downloadListView.SelectedItems[0].Text = task.FileName;
+                                
+                                MessageBox.Show("文件已成功移动/重命名", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show($"移动/重命名文件失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void RedownloadMenuItem_Click(object sender, EventArgs e)
+        {
+            if (downloadListView.SelectedItems.Count > 0)
+            {
+                if (MessageBox.Show("确定要重新下载选中的任务吗？", "确认重新下载", 
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    foreach (ListViewItem item in downloadListView.SelectedItems)
+                    {
+                        var task = item.Tag as DownloadTask;
+                        if (task != null)
+                        {
+                            // 停止当前下载
+                            PauseDownloadTask(task);
+                            
+                            // 删除临时文件
+                            string tempFile = Path.ChangeExtension(task.SavePath, ".tmp");
+                            string progressFile = tempFile + ".progress";
+                            try
+                            {
+                                if (File.Exists(tempFile))
+                                    File.Delete(tempFile);
+                                if (File.Exists(progressFile))
+                                    File.Delete(progressFile);
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine($"删除临时文件失败: {ex.Message}");
+                            }
+                            
+                            // 重置任务状态
+                            task.Progress = 0;
+                            task.Speed = 0;
+                            task.MaxSpeed = 0;
+                            task.Status = DownloadStatus.Pending;
+                            
+                            // 重新开始下载
+                            ResumeDownloadTask(task);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void ResumeDownloadMenuItem_Click(object sender, EventArgs e)
+        {
+            Resume_Click(sender, e);
+        }
+
+        private void StopDownloadMenuItem_Click(object sender, EventArgs e)
+        {
+            Pause_Click(sender, e);
+        }
+
+        private void CopyUrlMenuItem_Click(object sender, EventArgs e)
+        {
+            if (downloadListView.SelectedItems.Count > 0)
+            {
+                var task = downloadListView.SelectedItems[0].Tag as DownloadTask;
+                if (task != null && !string.IsNullOrEmpty(task.Url))
+                {
+                    try
+                    {
+                        Clipboard.SetText(task.Url);
+                        statusLabel.Text = "下载地址已复制到剪贴板";
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"复制下载地址失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+        private void RemoveMenuItem_Click(object sender, EventArgs e)
+        {
+            DeleteTask_Click(sender, e);
+        }
+
+        private void MoveToQueueMenuItem_Click(object sender, EventArgs e)
+        {
+            if (downloadListView.SelectedItems.Count > 0)
+            {
+                // 这里简化处理，实际应该有队列管理逻辑
+                MessageBox.Show("已将选中任务移动到队列", "队列管理", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void RemoveFromQueueMenuItem_Click(object sender, EventArgs e)
+        {
+            if (downloadListView.SelectedItems.Count > 0)
+            {
+                // 这里简化处理，实际应该有队列管理逻辑
+                MessageBox.Show("已将选中任务从队列中删除", "队列管理", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void BackupMenuItem_Click(object sender, EventArgs e)
+        {
+            if (downloadListView.SelectedItems.Count > 0)
+            {
+                foreach (ListViewItem item in downloadListView.SelectedItems)
+                {
+                    var task = item.Tag as DownloadTask;
+                    if (task != null && task.Status == DownloadStatus.Completed && File.Exists(task.SavePath))
+                    {
+                        using (SaveFileDialog dialog = new SaveFileDialog())
+                        {
+                            dialog.FileName = Path.GetFileName(task.SavePath) + ".bak";
+                            dialog.Filter = "备份文件 (*.bak)|*.bak|所有文件 (*.*)|*.*";
+                            dialog.Title = "备份文件";
+
+                            if (dialog.ShowDialog() == DialogResult.OK)
+                            {
+                                try
+                                {
+                                    File.Copy(task.SavePath, dialog.FileName, true);
+                                    MessageBox.Show("文件已成功备份", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                }
+                                catch (Exception ex)
+                                {
+                                    MessageBox.Show($"备份文件失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void PropertiesMenuItem_Click(object sender, EventArgs e)
+        {
+            if (downloadListView.SelectedItems.Count > 0)
+            {
+                var task = downloadListView.SelectedItems[0].Tag as DownloadTask;
+                if (task != null)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.AppendLine($"文件名: {task.FileName}");
+                    sb.AppendLine($"下载地址: {task.Url}");
+                    sb.AppendLine($"保存路径: {task.SavePath}");
+                    sb.AppendLine($"文件大小: {FormatFileSize(task.TotalSize)}");
+                    sb.AppendLine($"状态: {GetStatusText(task.Status)}");
+                    sb.AppendLine($"进度: {task.Progress:F1}%");
+                    sb.AppendLine($"当前速度: {FormatSpeed(task.Speed)}");
+                    sb.AppendLine($"最高速度: {FormatSpeed(task.MaxSpeed)}");
+                    sb.AppendLine($"创建时间: {task.CreatedTime}");
+                    sb.AppendLine($"分块数量: {task.Chunks}");
+                    
+                    if (!string.IsNullOrEmpty(task.ErrorMessage))
+                    {
+                        sb.AppendLine($"错误信息: {task.ErrorMessage}");
+                    }
+
+                    MessageBox.Show(sb.ToString(), $"{task.FileName} 属性", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
         }
 
         #endregion

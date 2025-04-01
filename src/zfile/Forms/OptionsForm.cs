@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using Zfile.Forms;
 namespace Zfile
 {
 	public class AddWlxMappingForm : Form

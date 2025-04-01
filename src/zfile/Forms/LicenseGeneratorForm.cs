@@ -1,4 +1,4 @@
-namespace Zfile
+namespace Zfile.Forms
 {
     public partial class LicenseGeneratorForm : Form
     {
@@ -187,7 +187,7 @@ namespace Zfile
 					catch (System.Runtime.InteropServices.ExternalException)
 					{
 						retryCount--;
-						System.Threading.Thread.Sleep(100); // Wait before retrying
+						Thread.Sleep(100); // Wait before retrying
 					}
 				}
 

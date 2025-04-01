@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Zfile
+namespace Zfile.Forms
 {
     public partial class EditMenuForm : Form
     {
@@ -41,9 +41,9 @@ namespace Zfile
 
         private void InitializeComponent()
         {
-            this.Text = "编辑菜单";
-            this.Size = new Size(500, 450);
-            this.StartPosition = FormStartPosition.CenterParent;
+            Text = "编辑菜单";
+            Size = new Size(500, 450);
+            StartPosition = FormStartPosition.CenterParent;
 
             // 创建菜单类型选择ComboBox
             menuTypeComboBox = new ComboBox
@@ -158,7 +158,7 @@ namespace Zfile
             pathTextBox.TextChanged += TextBox_TextChanged;
 
             // 添加控件到窗体
-            this.Controls.AddRange(new Control[] {
+            Controls.AddRange(new Control[] {
                 menuTypeComboBox,
                 menuItemsListBox,
                 addItemButton,
@@ -610,12 +610,12 @@ namespace Zfile
 
         public InputDialog(string title, string prompt)
         {
-            this.Text = title;
-            this.Size = new Size(300, 150);
-            this.StartPosition = FormStartPosition.CenterParent;
-            this.FormBorderStyle = FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
+            Text = title;
+            Size = new Size(300, 150);
+            StartPosition = FormStartPosition.CenterParent;
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            MaximizeBox = false;
+            MinimizeBox = false;
 
             label = new Label
             {
@@ -646,9 +646,9 @@ namespace Zfile
                 Size = new Size(75, 30)
             };
 
-            this.Controls.AddRange(new Control[] { label, textBox, okButton, cancelButton });
-            this.AcceptButton = okButton;
-            this.CancelButton = cancelButton;
+            Controls.AddRange(new Control[] { label, textBox, okButton, cancelButton });
+            AcceptButton = okButton;
+            CancelButton = cancelButton;
         }
     }
 }

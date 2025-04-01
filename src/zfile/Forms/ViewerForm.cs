@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Timer = System.Windows.Forms.Timer;
 
-namespace Zfile
+namespace Zfile.Forms
 {
 	public class ViewerForm : Form
 	{
@@ -23,7 +23,7 @@ namespace Zfile
 		private Image _currentImage;
 		private WlxModuleList _pluginList;
 		private WlxModule _currentPlugin;
-		private IntPtr _pluginWindow;
+		private nint _pluginWindow;
 
 		// 查看模式枚举
 		private enum ViewMode
@@ -92,9 +92,9 @@ namespace Zfile
 		private void InitializeComponent()
 		{
 			// 设置窗体属性
-			this.Text = "文件查看器";
-			this.Size = new Size(800, 600);
-			this.StartPosition = FormStartPosition.CenterScreen;
+			Text = "文件查看器";
+			Size = new Size(800, 600);
+			StartPosition = FormStartPosition.CenterScreen;
 
 			// 创建主面板
 			_mainPanel = new Panel
@@ -163,10 +163,10 @@ namespace Zfile
 			_mainPanel.Controls.Add(_imagePanel);
 			_mainPanel.Controls.Add(_textPanel);
 			_mainPanel.Controls.Add(_hexPanel);
-			this.Controls.Add(_mainPanel);
-			this.Controls.Add(_menuStrip);
-			this.Controls.Add(_toolStrip);
-			this.Controls.Add(_statusStrip);
+			Controls.Add(_mainPanel);
+			Controls.Add(_menuStrip);
+			Controls.Add(_toolStrip);
+			Controls.Add(_statusStrip);
 
 			// 初始化计时器
 			_animationTimer = new Timer { Interval = 100 };
@@ -191,7 +191,7 @@ namespace Zfile
 
 		private void SetupEventHandlers()
 		{
-			this.KeyDown += ViewerForm_KeyDown;
+			KeyDown += ViewerForm_KeyDown;
 			_imageViewer.MouseDown += ImageViewer_MouseDown;
 			_imageViewer.MouseMove += ImageViewer_MouseMove;
 			_imageViewer.MouseUp += ImageViewer_MouseUp;
@@ -299,7 +299,7 @@ namespace Zfile
 			//if(_pluginWindow == IntPtr.Zero)
 			//	_pluginWindow = _currentPlugin.CallListGetPreviewBitmap(_fileName, _mainPanel.Bounds.Width, _mainPanel.Bounds.Height, bmp);
 			//_pluginWindow = _currentPlugin.CallListLoad(this.Handle, _fileName, WlxConstants.LISTPLUGIN_SHOW);
-			if (_pluginWindow != IntPtr.Zero)
+			if (_pluginWindow != nint.Zero)
 			{
 				// 设置窗口样式为子窗口
 				NativeMethods.SetParent(_pluginWindow, container.Handle);
@@ -319,7 +319,7 @@ namespace Zfile
 		protected override void OnResize(EventArgs e)
 		{
 			base.OnResize(e);
-			if (_pluginWindow != IntPtr.Zero)
+			if (_pluginWindow != nint.Zero)
 			{
 				//var container = _mainPanel.Controls.OfType<Panel>().FirstOrDefault();
 				foreach (var container in _mainPanel.Controls.OfType<Panel>())
@@ -376,10 +376,10 @@ namespace Zfile
 				_currentImage = null;
 			}
 
-			if (_pluginWindow != IntPtr.Zero)
+			if (_pluginWindow != nint.Zero)
 			{
 				_currentPlugin?.CallListCloseWindow(_pluginWindow);
-				_pluginWindow = IntPtr.Zero;
+				_pluginWindow = nint.Zero;
 			}
 
 			_isImage = false;
@@ -587,7 +587,7 @@ namespace Zfile
 
 		private void UpdateTitle()
 		{
-			this.Text = $"文件查看器 - {Path.GetFileName(_fileName)}";
+			Text = $"文件查看器 - {Path.GetFileName(_fileName)}";
 		}
 
 		private void UpdateStatusBar()
@@ -637,20 +637,20 @@ namespace Zfile
 
 		private void SetPluginWindowBounds(Panel container)
 		{
-			if (_pluginWindow != IntPtr.Zero && container != null)
+			if (_pluginWindow != nint.Zero && container != null)
 			{
 				var bounds = container.ClientRectangle;
-				NativeMethods.SetWindowPos(_pluginWindow, IntPtr.Zero,
+				NativeMethods.SetWindowPos(_pluginWindow, nint.Zero,
 					0, 0, bounds.Width, bounds.Height,
 					NativeMethods.SWP_NOZORDER | NativeMethods.SWP_NOACTIVATE);
 			}
 		}
 		private void SetPluginWindowBounds()
 		{
-			if (_pluginWindow != IntPtr.Zero)
+			if (_pluginWindow != nint.Zero)
 			{
 				var bounds = _mainPanel.ClientRectangle;
-				NativeMethods.SetWindowPos(_pluginWindow, IntPtr.Zero,
+				NativeMethods.SetWindowPos(_pluginWindow, nint.Zero,
 					bounds.Left, bounds.Top, bounds.Width, bounds.Height,
 					NativeMethods.SWP_NOZORDER);
 			}
@@ -726,16 +726,16 @@ namespace Zfile
 		{
 			if (!_isFullScreen)
 			{
-				this.FormBorderStyle = FormBorderStyle.None;
-				this.WindowState = FormWindowState.Maximized;
+				FormBorderStyle = FormBorderStyle.None;
+				WindowState = FormWindowState.Maximized;
 				_toolStrip.Visible = false;
 				_menuStrip.Visible = false;
 				_statusStrip.Visible = false;
 			}
 			else
 			{
-				this.FormBorderStyle = FormBorderStyle.Sizable;
-				this.WindowState = FormWindowState.Normal;
+				FormBorderStyle = FormBorderStyle.Sizable;
+				WindowState = FormWindowState.Normal;
 				_toolStrip.Visible = true;
 				_menuStrip.Visible = true;
 				_statusStrip.Visible = true;
@@ -900,12 +900,12 @@ namespace Zfile
 		public const int WS_VISIBLE = 0x10000000;
 
 		[DllImport("user32.dll")]
-		public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+		public static extern int SetWindowLong(nint hWnd, int nIndex, int dwNewLong);
 
 		[DllImport("user32.dll", SetLastError = true)]
-		public static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
+		public static extern nint SetParent(nint hWndChild, nint hWndNewParent);
 		[DllImport("user32.dll")]
-		public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter,
+		public static extern bool SetWindowPos(nint hWnd, nint hWndInsertAfter,
 			int x, int y, int cx, int cy, int flags);
 	}
 

@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
+using Zfile.Forms;
+
 namespace Zfile
 {
-
 	public class ToolbarButton
 	{
 		public string name;

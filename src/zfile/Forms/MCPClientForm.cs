@@ -5,7 +5,7 @@ using System.Windows.Forms;
 using System.Threading.Tasks;
 using MCPSharp;
 
-namespace Zfile
+namespace Zfile.Forms
 {
     public class MCPClientForm : Form
     {
@@ -26,9 +26,9 @@ namespace Zfile
 
         private void InitializeComponents()
         {
-            this.Text = "MCP客户端";
-            this.Size = new Size(800, 600);
-            this.StartPosition = FormStartPosition.CenterScreen;
+            Text = "MCP客户端";
+            Size = new Size(800, 600);
+            StartPosition = FormStartPosition.CenterScreen;
 
             // 服务器选择下拉框
             serverComboBox = new ComboBox
@@ -85,7 +85,7 @@ namespace Zfile
             };
 
             // 添加控件到窗体
-            this.Controls.AddRange(new Control[]
+            Controls.AddRange(new Control[]
             {
                 serverComboBox,
                 connectButton,

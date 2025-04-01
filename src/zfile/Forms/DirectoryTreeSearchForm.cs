@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace Zfile
+namespace Zfile.Forms
 {
     public partial class DirectoryTreeSearchForm : Form
     {
@@ -33,12 +33,12 @@ namespace Zfile
 
         private void InitializeComponent()
         {
-            this.Text = "目录树查找";
-            this.Size = new Size(600, 600);
-            this.StartPosition = FormStartPosition.CenterParent;
-            this.MinimizeBox = false;
-            this.MaximizeBox = false;
-            this.FormBorderStyle = FormBorderStyle.FixedDialog;
+            Text = "目录树查找";
+            Size = new Size(600, 600);
+            StartPosition = FormStartPosition.CenterParent;
+            MinimizeBox = false;
+            MaximizeBox = false;
+            FormBorderStyle = FormBorderStyle.FixedDialog;
 
 			// 创建最上层的面板来容纳所有控件
 			Panel mainPanel = new Panel
@@ -137,11 +137,11 @@ namespace Zfile
 			//this.Controls.Add(driveFlowLayoutPanel);
 			//this.Controls.Add(treeView);
 			//         this.Controls.Add(topPanel);
-			this.Controls.Add(bottomPanel);
-            this.Controls.Add(mainPanel);
+			Controls.Add(bottomPanel);
+            Controls.Add(mainPanel);
 
-            this.AcceptButton = okButton;
-            this.CancelButton = cancelButton;
+            AcceptButton = okButton;
+            CancelButton = cancelButton;
         }
 
 		// 添加加载驱动器按钮的方法
@@ -516,7 +516,7 @@ namespace Zfile
         {
             LoadDirectoryTree();
         }
-		private void NextButton_Click(Object sender, EventArgs e)
+		private void NextButton_Click(object sender, EventArgs e)
 		{
 			if (matchingNodes.Count > 0)
 			{
@@ -549,8 +549,8 @@ namespace Zfile
             if (e.Node != null)
             {
                 NavigateToSelectedDirectory();
-                this.DialogResult = DialogResult.OK;
-                this.Close();
+                DialogResult = DialogResult.OK;
+                Close();
             }
         }
 

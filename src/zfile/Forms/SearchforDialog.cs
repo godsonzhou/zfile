@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
-namespace Zfile
+namespace Zfile.Forms
 {
 	public class SearchforDialog : Form
 	{
@@ -114,12 +114,12 @@ namespace Zfile
 
 		private void InitializeComponent()
 		{
-			this.Text = "搜索文件";
-			this.Size = new Size(800, 800);
-			this.StartPosition = FormStartPosition.CenterParent;
-			this.MinimizeBox = true;
-			this.MaximizeBox = true;
-			this.FormBorderStyle = FormBorderStyle.Sizable;
+			Text = "搜索文件";
+			Size = new Size(800, 800);
+			StartPosition = FormStartPosition.CenterParent;
+			MinimizeBox = true;
+			MaximizeBox = true;
+			FormBorderStyle = FormBorderStyle.Sizable;
 
 			// 创建选项卡控件
 			tabControl = new TabControl
@@ -151,7 +151,7 @@ namespace Zfile
 			InitializeResultsArea();
 
 			// 添加控件到窗体
-			this.Controls.Add(tabControl);
+			Controls.Add(tabControl);
 
 			// 创建底部按钮区域
 			var buttonPanel = new Panel
@@ -166,7 +166,7 @@ namespace Zfile
 			helpButton = new Button { Text = "帮助", Width = 80, Location = new Point(680, 5) };
 
 			buttonPanel.Controls.AddRange(new Control[] { startSearchButton, cancelButton, helpButton });
-			this.Controls.Add(buttonPanel);
+			Controls.Add(buttonPanel);
 
 			// 绑定事件处理程序
 			startSearchButton.Click += StartSearchButton_Click;
@@ -183,7 +183,7 @@ namespace Zfile
 		}
 		private void CancelButton_Click(object sender, EventArgs e)
 		{
-			this.Close();
+			Close();
 		}
 
 		private void LocationBrowseButton_Click(object sender, EventArgs e)
@@ -238,7 +238,7 @@ namespace Zfile
 				{
 					try
 					{
-						System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+						Process.Start(new ProcessStartInfo
 						{
 							FileName = filePath,
 							UseShellExecute = true,
@@ -262,7 +262,7 @@ namespace Zfile
 				{
 					try
 					{
-						System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+						Process.Start(new ProcessStartInfo
 						{
 							FileName = filePath,
 							UseShellExecute = true,
@@ -667,7 +667,7 @@ namespace Zfile
 			resultsPanel.Controls.Add(statusStrip);
 
 			// 添加结果区域到窗体
-			this.Controls.Add(resultsPanel);
+			Controls.Add(resultsPanel);
 		}
 
 		private void LoadHistory()

@@ -1,18 +1,8 @@
-﻿using System.Diagnostics;
-using System.Net;
+﻿using FluentFTP;
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
-using FluentFTP;
-using MCPSharp;
-using MCPSharp.Model.Schemas;
-using MCPSharp.Model;
-using Newtonsoft.Json;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
-using Microsoft.Extensions.AI;
-using WinShell;
-using System.Windows.Forms;
-
+using Zfile.Forms;
 
 namespace Zfile
 {

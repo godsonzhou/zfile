@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Zfile
+namespace Zfile.Forms
 {
     public class EditorForm : Form
     {
@@ -83,8 +83,8 @@ namespace Zfile
 
         private void InitializeComponent()
         {
-            this.Size = new Size(1000, 800);
-            this.StartPosition = FormStartPosition.CenterScreen;
+            Size = new Size(1000, 800);
+            StartPosition = FormStartPosition.CenterScreen;
 
             // 创建菜单栏
             CreateMenuStrip();
@@ -138,10 +138,10 @@ namespace Zfile
             container.Controls.Add(_editor);
             container.Controls.Add(_lineNumberPanel);
 
-            this.Controls.Add(container);
-            this.Controls.Add(_menuStrip);
-            this.Controls.Add(_toolStrip);
-            this.Controls.Add(_statusStrip);
+            Controls.Add(container);
+            Controls.Add(_menuStrip);
+            Controls.Add(_toolStrip);
+            Controls.Add(_statusStrip);
         }
 
         private void InitializeEditor()
@@ -155,7 +155,7 @@ namespace Zfile
 
         private void SetupEventHandlers()
         {
-            this.FormClosing += EditorForm_FormClosing;
+            FormClosing += EditorForm_FormClosing;
             _editor.TextChanged += Editor_TextChanged;
             _editor.SelectionChanged += Editor_SelectionChanged;
             _editor.VScroll += Editor_VScroll;
@@ -723,7 +723,7 @@ namespace Zfile
             {
                 title += "*";
             }
-            this.Text = title;
+            Text = title;
         }
 
         private void UpdateStatusBar()
@@ -741,7 +741,7 @@ namespace Zfile
             if (_lineNumberPanel.Visible)
             {
                 int maxLineNumber = _editor.Lines.Length;
-                int width = (maxLineNumber.ToString().Length * 10) + 10;
+                int width = maxLineNumber.ToString().Length * 10 + 10;
                 if (width != _lineNumberPanel.Width)
                 {
                     _lineNumberPanel.Width = width;

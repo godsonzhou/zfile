@@ -4,7 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 
-namespace Zfile
+namespace Zfile.Forms
 {
     public class CommandEditDialog : Form
     {
@@ -30,7 +30,7 @@ namespace Zfile
 
         public CommandEditDialog(CmdProc cmdProcessor, MenuInfo? cmdItem = null)
         {
-			this._cmdItem = cmdItem;
+			_cmdItem = cmdItem;
             this.cmdProcessor = cmdProcessor;
             InitializeComponents();
 
@@ -42,10 +42,10 @@ namespace Zfile
                 txtWorkingDir.Text = cmdItem.Path;
                 txtTooltip.Text = cmdItem.Menu;
                 // 加载图标文件
-                if (!string.IsNullOrEmpty((string)cmdItem.Button))
+                if (!string.IsNullOrEmpty(cmdItem.Button))
                 {
 					txtIconFile.Text = cmdItem.Button;
-					LoadIconsFromFile((string)cmdItem.Button);
+					LoadIconsFromFile(cmdItem.Button);
                 }
             }
         }
@@ -53,12 +53,12 @@ namespace Zfile
         private void InitializeComponents()
         {
             // 设置窗体属性
-            this.Text = "编辑命令" + (_cmdItem != null ? _cmdItem.Name : "");
-            this.Size = new Size(600, 500);
-            this.StartPosition = FormStartPosition.CenterParent;
-            this.FormBorderStyle = FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
+            Text = "编辑命令" + (_cmdItem != null ? _cmdItem.Name : "");
+            Size = new Size(600, 500);
+            StartPosition = FormStartPosition.CenterParent;
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            MaximizeBox = false;
+            MinimizeBox = false;
 
             // 创建标签和输入控件
             var lblCommand = new Label { Text = "命令:", Location = new Point(20, 20), Width = 80 };
@@ -110,7 +110,7 @@ namespace Zfile
             btnOK.Click += BtnOK_Click;
 
             // 添加控件到窗体
-            this.Controls.AddRange(new Control[]
+            Controls.AddRange(new Control[]
             {
                 lblCommand, txtCommand, btnSelectCommand,
                 lblParams, txtParams,
@@ -121,8 +121,8 @@ namespace Zfile
                 btnOK, btnCancel
             });
 
-            this.AcceptButton = btnOK;
-            this.CancelButton = btnCancel;
+            AcceptButton = btnOK;
+            CancelButton = btnCancel;
         }
 
         private void BtnSelectCommand_Click(object sender, EventArgs e)

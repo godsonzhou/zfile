@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <PackageReference Include="CSCore" Version="1.2.1.2" />
+    <PackageReference Include="DiffPlex" Version="1.7.2" />
     <PackageReference Include="Ghostscript.NET" Version="1.2.3.1" />
     <PackageReference Include="LibVLCSharp" Version="3.9.2" />
     <PackageReference Include="LibVLCSharp.WinForms" Version="3.9.2" />

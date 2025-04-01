@@ -6,7 +6,7 @@ using MCPSharp;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace Zfile
+namespace Zfile.Forms
 {
 	public class AIassistDlg : Form
 	{
@@ -50,7 +50,7 @@ namespace Zfile
 			LoadAPIProfiles();
 			LoadModels();
 			LoadFiles();
-			this.cmdProc = cmdproc;
+			cmdProc = cmdproc;
 		}
 
 		// 加载API配置
@@ -387,9 +387,9 @@ namespace Zfile
 
 		private void InitializeComponents()
 		{
-			this.Text = "AI 助手";
-			this.Size = new Size(800, 600);
-			this.StartPosition = FormStartPosition.CenterParent;
+			Text = "AI 助手";
+			Size = new Size(800, 600);
+			StartPosition = FormStartPosition.CenterParent;
 
 			// 模型选择区域 - 本地/远程选择
 			rdoLocalModel = new RadioButton
@@ -552,7 +552,7 @@ namespace Zfile
 			btnClose.Click += BtnClose_Click;
 
 			// 添加控件到窗体
-			this.Controls.AddRange(new Control[]
+			Controls.AddRange(new Control[]
 			{
 				rdoLocalModel, rdoRemoteAPI, lblModel, cboModels, btnRefresh,
 				lblAPIProfile, cboAPIProfiles, lblAPIUrl, txtAPIUrl, lblAPIKey, txtAPIKey,
@@ -675,7 +675,7 @@ namespace Zfile
 		{
 			if (File.Exists(file))
 			{
-				var res = await LLMhelper.Call_llm_ApiAsync((needFileRead ? prompt + File.ReadAllText(file) : prompt.Replace("TARGETPATH", file)));
+				var res = await LLMhelper.Call_llm_ApiAsync(needFileRead ? prompt + File.ReadAllText(file) : prompt.Replace("TARGETPATH", file));
 				try
 				{
 					var i = lstFiles.Items.Cast<ListViewItem>().First(m => m.Text.Equals(file));
@@ -707,7 +707,7 @@ namespace Zfile
 		}
 		private void BtnClose_Click(object sender, EventArgs e)
 		{
-			this.Close();
+			Close();
 		}
 
 		protected override void OnFormClosing(FormClosingEventArgs e)

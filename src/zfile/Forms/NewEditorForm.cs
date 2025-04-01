@@ -3,7 +3,7 @@ using ICSharpCode.TextEditor.Document;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Zfile
+namespace Zfile.Forms
 {
 	public class SettingsForm : Form
 	{
@@ -25,12 +25,12 @@ namespace Zfile
 
 		private void InitializeComponents()
 		{
-			this.Text = "编辑器设置";
-			this.FormBorderStyle = FormBorderStyle.FixedDialog;
-			this.MaximizeBox = false;
-			this.MinimizeBox = false;
-			this.Size = new Size(400, 300);
-			this.StartPosition = FormStartPosition.CenterParent;
+			Text = "编辑器设置";
+			FormBorderStyle = FormBorderStyle.FixedDialog;
+			MaximizeBox = false;
+			MinimizeBox = false;
+			Size = new Size(400, 300);
+			StartPosition = FormStartPosition.CenterParent;
 
 			// 字体选择
 			var fontLabel = new Label
@@ -99,7 +99,7 @@ namespace Zfile
 			};
 
 			// 添加控件
-			this.Controls.AddRange(new Control[] {
+			Controls.AddRange(new Control[] {
 				fontLabel, fontFamilyComboBox,
 				fontSizeLabel, fontSizeComboBox,
 				themeGroupBox,
@@ -119,8 +119,8 @@ namespace Zfile
 				fontSizeComboBox.Items.Add(size);
 			}
 
-			this.AcceptButton = okButton;
-			this.CancelButton = cancelButton;
+			AcceptButton = okButton;
+			CancelButton = cancelButton;
 
 			okButton.Click += OkButton_Click;
 		}
@@ -153,7 +153,7 @@ namespace Zfile
 			{
 				MessageBox.Show("设置字体时发生错误：" + ex.Message, "错误",
 					MessageBoxButtons.OK, MessageBoxIcon.Error);
-				this.DialogResult = DialogResult.None;
+				DialogResult = DialogResult.None;
 			}
 		}
 	}
@@ -182,70 +182,70 @@ namespace Zfile
 
 		private void InitializeComponents()
 		{
-			this.Text = "查找和替换";
-			this.FormBorderStyle = FormBorderStyle.FixedDialog;
-			this.MaximizeBox = false;
-			this.MinimizeBox = false;
-			this.ShowInTaskbar = false;
-			this.Size = new System.Drawing.Size(450, 250);
-			this.StartPosition = FormStartPosition.CenterParent;
+			Text = "查找和替换";
+			FormBorderStyle = FormBorderStyle.FixedDialog;
+			MaximizeBox = false;
+			MinimizeBox = false;
+			ShowInTaskbar = false;
+			Size = new Size(450, 250);
+			StartPosition = FormStartPosition.CenterParent;
 
 			// 创建控件
-			findLabel = new Label { Text = "查找内容:", Location = new System.Drawing.Point(10, 15) };
-			findTextBox = new TextBox { Location = new System.Drawing.Point(120, 12), Width = 200 };
+			findLabel = new Label { Text = "查找内容:", Location = new Point(10, 15) };
+			findTextBox = new TextBox { Location = new Point(120, 12), Width = 200 };
 
-			replaceLabel = new Label { Text = "替换为:", Location = new System.Drawing.Point(10, 45) };
-			replaceTextBox = new TextBox { Location = new System.Drawing.Point(120, 42), Width = 200 };
+			replaceLabel = new Label { Text = "替换为:", Location = new Point(10, 45) };
+			replaceTextBox = new TextBox { Location = new Point(120, 42), Width = 200 };
 
 			matchCaseCheckBox = new CheckBox
 			{
 				Text = "区分大小写",
-				Location = new System.Drawing.Point(10, 80)
+				Location = new Point(10, 80)
 			};
 
 			useRegexCheckBox = new CheckBox
 			{
 				Text = "使用正则表达式",
-				Location = new System.Drawing.Point(120, 80)
+				Location = new Point(120, 80)
 			};
 
 			wholeWordCheckBox = new CheckBox
 			{
 				Text = "全字匹配",
-				Location = new System.Drawing.Point(240, 80)
+				Location = new Point(240, 80)
 			};
 
 			findNextButton = new Button
 			{
 				Text = "查找下一个",
-				Location = new System.Drawing.Point(330, 12),
+				Location = new Point(330, 12),
 				Width = 90
 			};
 
 			replaceButton = new Button
 			{
 				Text = "替换",
-				Location = new System.Drawing.Point(290, 42),
+				Location = new Point(290, 42),
 				Width = 90
 			};
 
 			replaceAllButton = new Button
 			{
 				Text = "全部替换",
-				Location = new System.Drawing.Point(290, 72),
+				Location = new Point(290, 72),
 				Width = 90
 			};
 
 			closeButton = new Button
 			{
 				Text = "关闭",
-				Location = new System.Drawing.Point(330, 102),
+				Location = new Point(330, 102),
 				Width = 90
 			};
 
 			statusLabel = new Label
 			{
-				Location = new System.Drawing.Point(10, 150),
+				Location = new Point(10, 150),
 				Width = 370,
 				Height = 40,
 				AutoSize = false
@@ -275,7 +275,7 @@ namespace Zfile
 			replaceLabel.Visible = false;
 			replaceButton.Visible = false;
 			replaceAllButton.Visible = false;
-			this.Text = "查找";
+			Text = "查找";
 			Show();
 			findTextBox.Focus();
 		}
@@ -287,7 +287,7 @@ namespace Zfile
 			replaceLabel.Visible = true;
 			replaceButton.Visible = true;
 			replaceAllButton.Visible = true;
-			this.Text = "替换";
+			Text = "替换";
 			Show();
 			findTextBox.Focus();
 		}
@@ -400,7 +400,7 @@ namespace Zfile
 		private bool IsWholeWord(string text, int startIndex, int length)
 		{
 			bool isWordStart = startIndex == 0 || !char.IsLetterOrDigit(text[startIndex - 1]);
-			bool isWordEnd = (startIndex + length) >= text.Length ||
+			bool isWordEnd = startIndex + length >= text.Length ||
 							!char.IsLetterOrDigit(text[startIndex + length]);
 
 			return isWordStart && isWordEnd;
@@ -456,23 +456,23 @@ namespace Zfile
 
         private void InitializeComponents()
         {
-            this.Size = new Size(800, 600);
-            this.Text = "新建文档 - 文本编辑器";
+            Size = new Size(800, 600);
+            Text = "新建文档 - 文本编辑器";
 
             menuStrip = new MenuStrip();
             toolStrip = new ToolStrip();
             textEditor = new TextEditorControl();
 
-            this.MainMenuStrip = menuStrip;
+            MainMenuStrip = menuStrip;
             
             // 设置控件布局
             menuStrip.Dock = DockStyle.Top;
             toolStrip.Dock = DockStyle.Top;
             textEditor.Dock = DockStyle.Fill;
 
-            this.Controls.Add(textEditor);
-            this.Controls.Add(toolStrip);
-            this.Controls.Add(menuStrip);
+            Controls.Add(textEditor);
+            Controls.Add(toolStrip);
+            Controls.Add(menuStrip);
 			// 初始化状态栏
 			statusStrip = new StatusStrip();
 			encodingLabel = new ToolStripStatusLabel();
@@ -499,7 +499,7 @@ namespace Zfile
 			});
 
 			// 在最后添加状态栏
-			this.Controls.Add(statusStrip);
+			Controls.Add(statusStrip);
 			statusStrip.Dock = DockStyle.Bottom;
 		}
 
@@ -666,7 +666,7 @@ namespace Zfile
                 textEditor.Document.TextContent = string.Empty;
                 currentFilePath = null;
 				currentEncoding = Encoding.UTF8;
-				this.Text = "新建文档 - 文本编辑器";
+				Text = "新建文档 - 文本编辑器";
 
 				// 重置状态栏
 				encodingLabel.Text = "UTF-8";
@@ -715,7 +715,7 @@ namespace Zfile
 
         private void Exit_Click(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
 
 		private Encoding DetectFileEncoding(string filePath)
@@ -770,7 +770,7 @@ namespace Zfile
                 }
 				
 				currentFilePath = filePath;
-                this.Text = Path.GetFileName(filePath) + " - 文本编辑器";
+                Text = Path.GetFileName(filePath) + " - 文本编辑器";
 				// 更新状态栏信息
 				UpdateStatusBar(filePath);
 				// 根据文件扩展名设置语法高亮
@@ -827,7 +827,7 @@ namespace Zfile
                 }
 
                 currentFilePath = filePath;
-                this.Text = Path.GetFileName(filePath) + " - 文本编辑器";
+                Text = Path.GetFileName(filePath) + " - 文本编辑器";
             }
             catch (Exception ex)
             {

@@ -1,7 +1,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace Zfile
+namespace Zfile.Forms
 {
     public class EditToolbarForm : Form
     {
@@ -363,7 +363,7 @@ namespace Zfile
 			if (currentButton != null && _target.Equals("default"))
 			{
 				// 从缓冲区中删除按钮，而不是直接修改原始数据
-				toolbarButtonsBuffer.Remove((ToolbarButton)currentButton);
+				toolbarButtonsBuffer.Remove(currentButton);
 				// 更新UI显示
 				isUpdatingUI = true;
 				LoadToolbarButtons(_target);

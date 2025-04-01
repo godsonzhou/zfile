@@ -7,6 +7,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using WinShell;
 using Keys = System.Windows.Forms.Keys;
+using Zfile.Forms;
+
 namespace Zfile
 {
 	public partial class MainForm : Form

@@ -1,9 +1,8 @@
 using Sheng.Winform.Controls;
 using System.Diagnostics;
 using System.Text;
-//using System.Windows.Controls;
 using WinShell;
-
+using Zfile.Forms;
 namespace Zfile
 {
 	public class UIControlManager : IDisposable

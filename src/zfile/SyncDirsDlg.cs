@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Text;
-
+using Zfile.Forms;
 namespace Zfile
 {
     public enum SyncFileState

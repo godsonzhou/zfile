@@ -1,4 +1,4 @@
-namespace Zfile
+namespace Zfile.Forms
 {
     public class CommandBrowserForm : Form
     {
@@ -28,11 +28,11 @@ namespace Zfile
         private void InitializeComponent()
         {
             // 设置窗体属性
-            this.Text = "命令浏览器";
-            this.Size = new Size(800, 600);
-            this.StartPosition = FormStartPosition.CenterParent;
-            this.MinimizeBox = false;
-            this.MaximizeBox = false;
+            Text = "命令浏览器";
+            Size = new Size(800, 600);
+            StartPosition = FormStartPosition.CenterParent;
+            MinimizeBox = false;
+            MaximizeBox = false;
 
             // 创建搜索面板
             searchPanel = new Panel
@@ -136,11 +136,11 @@ namespace Zfile
             listView.Columns.Add("中文描述", 250);
 
             // 添加控件到窗体
-            this.Controls.Add(listView);
-            this.Controls.Add(searchPanel);
+            Controls.Add(listView);
+            Controls.Add(searchPanel);
 
             // 设置初始焦点
-            this.Load += (s, e) => searchBox.Focus();
+            Load += (s, e) => searchBox.Focus();
 
             // 添加事件处理
             searchBox.TextChanged += SearchBox_TextChanged;
@@ -169,7 +169,7 @@ namespace Zfile
 		{
 			CmdRet = string.Empty;
 			DialogResult = DialogResult.None;
-			this.Close();
+			Close();
 		}
 
 		private void BtnChoose_Click(object? sender, EventArgs e)
@@ -178,7 +178,7 @@ namespace Zfile
 			if (listView.SelectedItems.Count == 0)
 				return;
 			DialogResult = DialogResult.OK;
-			this.Close();
+			Close();
 		}
 
 		private void LoadCommands()
@@ -275,7 +275,7 @@ namespace Zfile
             {
                 string cmdName = listView.SelectedItems[0].SubItems[1].Text;
                 cmdProcessor.ExecCmd(cmdName);
-                this.Close();
+                Close();
             }
         }
 

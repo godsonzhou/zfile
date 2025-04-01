@@ -1,4 +1,4 @@
-namespace Zfile
+namespace Zfile.Forms
 {
     public class SyncOptionsForm : Form
     {
@@ -26,12 +26,12 @@ namespace Zfile
 
         private void InitializeComponents()
         {
-            this.Text = "同步选项";
-            this.Size = new Size(600, 500);
-            this.StartPosition = FormStartPosition.CenterParent;
-            this.FormBorderStyle = FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
+            Text = "同步选项";
+            Size = new Size(600, 500);
+            StartPosition = FormStartPosition.CenterParent;
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            MaximizeBox = false;
+            MinimizeBox = false;
 
             var panel = new Panel
             {
@@ -96,7 +96,7 @@ namespace Zfile
                 TextAlign = ContentAlignment.MiddleLeft
             };
 
-            this.Controls.AddRange(new Control[] { 
+            Controls.AddRange(new Control[] { 
                 panel, fileListView, lblStatus
             });
         }
@@ -105,7 +105,7 @@ namespace Zfile
         {
             chkSelectAll.CheckedChanged += ChkSelectAll_CheckedChanged;
             fileListView.ItemChecked += FileListView_ItemChecked;
-            this.FormClosing += SyncOptionsForm_FormClosing;
+            FormClosing += SyncOptionsForm_FormClosing;
             rbLeftToRight.CheckedChanged += DirectionRadioButton_CheckedChanged;
             rbRightToLeft.CheckedChanged += DirectionRadioButton_CheckedChanged;
         }

@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace Zfile
+namespace Zfile.Forms
 {
     public class EvaluateExprDlg : Form
     {
@@ -20,9 +20,9 @@ namespace Zfile
 
         private void InitializeComponent()
         {
-            this.Text = "表达式计算器";
-            this.Size = new Size(600, 400);
-            this.StartPosition = FormStartPosition.CenterParent;
+            Text = "表达式计算器";
+            Size = new Size(600, 400);
+            StartPosition = FormStartPosition.CenterParent;
 
             // 表达式输入框
             Label exprLabel = new Label
@@ -228,7 +228,7 @@ namespace Zfile
 
         private void CloseButton_Click(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
     }
 }

@@ -1,5 +1,5 @@
 using System.Data;
-namespace Zfile
+namespace Zfile.Forms
 {
 	public class AddPluginMappingForm : Form
 	{

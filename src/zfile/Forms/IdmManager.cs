@@ -46,11 +46,11 @@ namespace Zfile.Forms
         /// <param name="savePath">保存路径</param>
         /// <param name="chunks">分块数量</param>
         /// <param name="cancellationToken">取消令牌</param>
-        /// <param name="progressCallback">进度回调，参数为：进度百分比、下载速度(bytes/s)、文件总大小</param>
+        /// <param name="progressCallback">进度回调，参数为：进度百分比、下载速度(bytes/s)、文件总大小、分块进度</param>
         /// <returns>下载任务</returns>
         public static async Task StartDownloadWithProgress(string url, string savePath, int chunks = 4, 
             CancellationToken cancellationToken = default, 
-            Action<double, double, long> progressCallback = null)
+            Action<double, double, long, Dictionary<long, long>> progressCallback = null)
         {
             try
             {

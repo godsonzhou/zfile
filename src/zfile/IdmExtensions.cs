@@ -20,11 +20,11 @@ namespace Zfile
         /// <param name="localfile">本地保存路径</param>
         /// <param name="chunks">分块数量</param>
         /// <param name="cancellationToken">取消令牌</param>
-        /// <param name="progressCallback">进度回调，参数为：进度百分比、下载速度(bytes/s)、文件总大小</param>
+        /// <param name="progressCallback">进度回调，参数为：进度百分比、下载速度(bytes/s)、文件总大小、分块进度</param>
         /// <returns>下载任务</returns>
         public static async Task StartWithProgress(string url, string localfile, int chunks = 4, 
             CancellationToken cancellationToken = default, 
-            Action<double, double, long> progressCallback = null)
+            Action<double, double, long, Dictionary<long, long>> progressCallback = null)
         {
             var downloader = new ChunkDownloaderWithProgress(
                 url,
@@ -57,13 +57,13 @@ namespace Zfile
     /// </summary>
     public class ChunkDownloaderWithProgress : ChunkDownloader
     {
-        private readonly Action<double, double, long> _progressCallback;
+        private readonly Action<double, double, long, Dictionary<long, long>> _progressCallback;
         private long _lastReportTime;
         private long _lastDownloadedBytes;
         private double _currentSpeed;
 
         public ChunkDownloaderWithProgress(string url, string savePath, int chunks = 4, 
-            Action<double, double, long> progressCallback = null) 
+            Action<double, double, long, Dictionary<long, long>> progressCallback = null) 
             : base(url, savePath, chunks)
         {
             _progressCallback = progressCallback;
@@ -95,8 +95,11 @@ namespace Zfile
                 
                 Debug.Print($"Progress: {progress:F2}% ({downloaded}/{totalSize}) Speed: {FormatSpeed(_currentSpeed)}");
                 
-                // 调用进度回调
-                _progressCallback?.Invoke(progress, _currentSpeed, totalSize);
+                // 创建分块进度的副本，避免并发修改问题
+                Dictionary<long, long> progressCopy = new Dictionary<long, long>(_progress);
+                
+                // 调用进度回调，传递分块进度信息
+                _progressCallback?.Invoke(progress, _currentSpeed, totalSize, progressCopy);
 
                 if (downloaded >= totalSize) break;
                 await Task.Delay(1000);

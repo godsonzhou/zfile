@@ -505,6 +505,8 @@ namespace Zfile.Forms
             downloadTasks.Remove(task);
         }
 
+        private ProgressDialog progressDialog = null;
+
         private async void ResumeDownloadTask(DownloadTask task)
         {
             if (task.Status == DownloadStatus.Downloading)
@@ -514,12 +516,29 @@ namespace Zfile.Forms
             task.CancellationTokenSource = new CancellationTokenSource();
             UpdateDownloadListView();
 
+            // 创建并显示进度窗口
+            if (progressDialog != null)
+            {
+                progressDialog.Close();
+                progressDialog.Dispose();
+            }
+            
+            progressDialog = new ProgressDialog(task.Url, task.SavePath, task.Chunks, task.CancellationTokenSource);
+            progressDialog.DownloadCompleted += (sender, e) => {
+                // 如果是暂停状态，则更新UI
+                if (task.Status == DownloadStatus.Paused)
+                {
+                    UpdateTaskUI(task);
+                }
+            };
+            progressDialog.Show();
+
             try
             {
                 await Task.Run(async () =>
                 {
                     await IdmManager.StartDownloadWithProgress(task.Url, task.SavePath, task.Chunks, task.CancellationTokenSource.Token,
-                        (progress, speed, totalSize) =>
+                        (progress, speed, totalSize, chunkProgress) =>
                         {
                             if (!isClosing)
                             {
@@ -530,6 +549,12 @@ namespace Zfile.Forms
 
                                 // 更新UI
                                 UpdateTaskUI(task);
+                                
+                                // 更新进度窗口
+                                if (progressDialog != null && !progressDialog.IsDisposed)
+                                {
+                                    progressDialog.UpdateProgress(progress, speed, totalSize, chunkProgress);
+                                }
                             }
                         });
 
@@ -538,6 +563,12 @@ namespace Zfile.Forms
                         task.Status = DownloadStatus.Completed;
                         task.Progress = 100;
                         UpdateTaskUI(task);
+                        
+                        // 更新进度窗口为完成状态
+                        if (progressDialog != null && !progressDialog.IsDisposed)
+                        {
+                            progressDialog.SetCompleted();
+                        }
                     }
                 }, task.CancellationTokenSource.Token);
             }
@@ -551,6 +582,13 @@ namespace Zfile.Forms
                 task.Status = DownloadStatus.Error;
                 task.ErrorMessage = ex.Message;
                 UpdateTaskUI(task);
+                
+                // 更新进度窗口为错误状态
+                if (progressDialog != null && !progressDialog.IsDisposed)
+                {
+                    progressDialog.SetError(ex.Message);
+                }
+                
                 MessageBox.Show($"下载失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }

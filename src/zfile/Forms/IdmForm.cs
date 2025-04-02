@@ -1,20 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Diagnostics;
-using MonoTorrent;
-using MonoTorrent.Client;
-using MonoTorrent;
-using MonoTorrent.Client;
+using System.Text;
+
 namespace Zfile.Forms
 {
     public partial class IdmForm : Form
@@ -22,8 +10,9 @@ namespace Zfile.Forms
         private List<DownloadTask> downloadTasks = new List<DownloadTask>();
         private CancellationTokenSource cancellationTokenSource;
         private bool isClosing = false;
+		private ToolStripMenuItem torrentDetailMenuItem;
 
-        public IdmForm()
+		public IdmForm()
         {
             InitializeComponent();
             InitializeDownloadList();
@@ -89,7 +78,12 @@ namespace Zfile.Forms
             this.removeFromQueueMenuItem = new ToolStripMenuItem();
             this.backupMenuItem = new ToolStripMenuItem();
             this.propertiesMenuItem = new ToolStripMenuItem();
+						// 在右键菜单项声明部分添加
 
+			// 在初始化右键菜单部分添加
+			this.torrentDetailMenuItem = new ToolStripMenuItem();
+			this.torrentDetailMenuItem.Text = "种子下载详细信息";
+			this.torrentDetailMenuItem.Click += TorrentDetailMenuItem_Click;
             // 配置右键菜单
             this.downloadListContextMenu.Items.AddRange(new ToolStripItem[] {
                 this.openMenuItem,
@@ -109,6 +103,8 @@ namespace Zfile.Forms
                 this.removeFromQueueMenuItem,
                 new ToolStripSeparator(),
                 this.backupMenuItem,
+				new ToolStripSeparator(),
+				this.torrentDetailMenuItem, // 添加新菜单项
                 new ToolStripSeparator(),
                 this.propertiesMenuItem
             });
@@ -332,11 +328,28 @@ namespace Zfile.Forms
             this.downloadListView.Columns.Add("速度", 80);
         }
 
-        #endregion
+		#endregion
 
-        #region 事件处理
+		#region 事件处理
+		private void TorrentDetailMenuItem_Click(object sender, EventArgs e)
+		{
+			if (downloadListView.SelectedItems.Count > 0)
+			{
+				var task = downloadListView.SelectedItems[0].Tag as DownloadTask;
+				if (task is TorrentDownloadTask torrentTask && !string.IsNullOrEmpty(torrentTask.TorrentId))
+				{
+					// 创建并显示种子详细信息窗口
+					var detailForm = new TorrentDetailForm(torrentTask.TorrentId);
+					detailForm.Show();
+				}
+				else
+				{
+					MessageBox.Show("选中的不是种子下载任务", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				}
+			}
+		}
 
-        private async void IdmForm_FormClosing(object sender, FormClosingEventArgs e)
+		private async void IdmForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             isClosing = true;
             if (cancellationTokenSource != null)
@@ -1066,8 +1079,8 @@ namespace Zfile.Forms
             bool hasCompletedItems = false;
             bool hasDownloadingItems = false;
             bool hasPausedItems = false;
-
-            if (hasSelectedItems)
+			bool hasTorrentTask = false;
+			if (hasSelectedItems)
             {
                 foreach (ListViewItem item in downloadListView.SelectedItems)
                 {
@@ -1080,7 +1093,12 @@ namespace Zfile.Forms
                             hasDownloadingItems = true;
                         else if (task.Status == DownloadStatus.Paused || task.Status == DownloadStatus.Pending || task.Status == DownloadStatus.Error)
                             hasPausedItems = true;
-                    }
+						// 检查是否是种子下载任务
+						if (task is TorrentDownloadTask torrentTask && !string.IsNullOrEmpty(torrentTask.TorrentId))
+						{
+							hasTorrentTask = true;
+						}
+					}
                 }
             }
 
@@ -1098,7 +1116,9 @@ namespace Zfile.Forms
             removeFromQueueMenuItem.Enabled = hasSelectedItems;
             backupMenuItem.Enabled = hasCompletedItems;
             propertiesMenuItem.Enabled = hasSelectedItems;
-        }
+			// 启用或禁用种子详细信息菜单项
+			torrentDetailMenuItem.Enabled = hasTorrentTask;
+		}
 
         private void OpenMenuItem_Click(object sender, EventArgs e)
         {
@@ -1109,7 +1129,7 @@ namespace Zfile.Forms
                 {
                     try
                     {
-                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                        Process.Start(new ProcessStartInfo
                         {
                             FileName = task.SavePath,
                             UseShellExecute = true

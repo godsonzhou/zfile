@@ -463,6 +463,80 @@ namespace Zfile.Forms
 
         #region 下载任务管理
 
+        /// <summary>
+        /// 添加新的下载任务到下载对话框中
+        /// </summary>
+        /// <param name="url">下载地址</param>
+        /// <param name="savePath">保存路径，可以为null</param>
+        /// <param name="headers">HTTP请求头，可以为null</param>
+        /// <param name="cookies">Cookies，可以为null</param>
+        /// <param name="referrer">引用页，可以为null</param>
+        public void AddNewDownload(string url, string savePath = null, Dictionary<string, string> headers = null, string cookies = null, string referrer = null)
+        {
+            try
+            {
+                Debug.WriteLine($"预填充下载信息: URL={url}, SavePath={savePath}, Headers={headers?.Count ?? 0}, Cookies={(cookies != null)}, Referrer={(referrer != null)}");
+                
+                // 如果URL为空，则不执行任何操作
+                if (string.IsNullOrEmpty(url))
+                {
+                    return;
+                }
+                
+                // 如果保存路径为空，则尝试从URL中获取文件名
+                if (string.IsNullOrEmpty(savePath))
+                {
+                    try
+                    {
+                        string fileName = Path.GetFileName(new Uri(url).LocalPath);
+                        if (!string.IsNullOrEmpty(fileName))
+                        {
+                            // 使用默认下载目录
+                            string downloadFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                            savePath = Path.Combine(downloadFolder, fileName);
+                        }
+                    }
+                    catch
+                    {
+                        // 忽略URL解析错误
+                    }
+                }
+                
+                // 预填充URL和保存路径到界面控件
+                //if (this.urlTextBox != null)
+                //{
+                //    this.urlTextBox.Text = url;
+                //}
+                
+                //if (this.savePathTextBox != null && !string.IsNullOrEmpty(savePath))
+                //{
+                //    this.savePathTextBox.Text = savePath;
+                //}
+                
+                // 如果有HTTP头或Cookies，可以在这里处理
+                // 这里可以添加额外的UI元素来显示HTTP头和Cookies
+                
+                // 将信息存储到表单的Tag属性中，以便后续使用
+                var downloadInfo = new Dictionary<string, object>
+                {
+                    { "url", url },
+                    { "savePath", savePath },
+                    { "headers", headers },
+                    { "cookies", cookies },
+                    { "referrer", referrer }
+                };
+                
+                this.Tag = downloadInfo;
+                
+                Debug.WriteLine("下载信息已预填充到对话框");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"预填充下载信息失败: {ex.Message}");
+                MessageBox.Show($"预填充下载信息失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private void AddDownloadTask(string url, string savePath, int chunks = 4)
         {
             var task = new DownloadTask

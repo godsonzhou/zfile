@@ -392,7 +392,7 @@ namespace Zfile.Forms
                     {
                         if (dialog.ShowDialog() == DialogResult.OK)
                         {
-                            AddTorrentDownloadTask(dialog.TorrentFilePath, dialog.SavePath, false, dialog.SelectedFileIndices);
+                            AddTorrentDownloadTask(dialog.TorrentFilePath, dialog.SavePath, true, dialog.SelectedFileIndices);
                         }
                     }
                 }

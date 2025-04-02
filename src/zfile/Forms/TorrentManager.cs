@@ -11,6 +11,7 @@ using MonoTorrent.Client;
 using MonoTorrent.BEncoding;
 using static MonoTorrent.Factories;
 using MonoTorrent.Trackers;
+using System.Text;
 
 namespace Zfile.Forms
 {
@@ -269,6 +270,132 @@ namespace Zfile.Forms
                         Progress = f.BitField.PercentComplete
                     }).ToList() ?? new List<TorrentFileInfo>()
                 };
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// 获取种子下载详细信息，包括Peers、Trackers和DHT节点等信息
+        /// </summary>
+        /// <param name="torrentId">种子ID</param>
+        /// <returns>种子详细信息</returns>
+        public static TorrentDetailedInfo GetDetailedTorrentInfo(string torrentId)
+        {
+            if (_activeTorrents.TryGetValue(torrentId, out var manager))
+            {
+                var detailedInfo = new TorrentDetailedInfo
+                {
+                    Name = manager.Torrent?.Name ?? "未知",
+                    Size = manager.Torrent?.Size ?? 0,
+                    DownloadedBytes = manager.Monitor.DataBytesDownloaded,
+                    UploadedBytes = manager.Monitor.DataBytesUploaded,
+                    Progress = manager.Progress,
+                    DownloadSpeed = manager.Monitor.DownloadSpeed,
+                    UploadSpeed = manager.Monitor.UploadSpeed,
+                    State = manager.State.ToString(),
+                    InfoHash = torrentId,
+                    CreatedTime = DateTime.Now, // 这里应该从任务创建时保存
+                    DhtStatus = _engine.Dht.State.ToString()
+                };
+
+                // 添加Peers信息
+                foreach (var peer in manager.Peers.ConnectedPeers)
+                {
+                    detailedInfo.Peers.Add(new PeerInfo
+                    {
+                        Address = peer.Uri.ToString(),
+                        ClientSoftware = peer.ClientApp.Client,
+                        DownloadSpeed = peer.Monitor.DownloadSpeed,
+                        UploadSpeed = peer.Monitor.UploadSpeed,
+                        Progress = peer.AmRequestingPiecesCount > 0 ? 
+                            (double)peer.AmRequestingPiecesCount / manager.Torrent.PieceCount * 100 : 0,
+                        Status = peer.ConnectionDirection.ToString(),
+                        IsSeeder = peer.IsSeeder,
+                        ConnectedTime = DateTime.Now // 这里应该从连接时保存
+                    });
+                }
+
+                // 添加Trackers信息
+                foreach (var tracker in manager.TrackerManager.Trackers)
+                {
+                    detailedInfo.Trackers.Add(new TrackerInfo
+                    {
+                        Url = tracker.Uri.ToString(),
+                        Status = tracker.Status.ToString(),
+                        LastUpdated = DateTime.Now, // 这里应该从更新时保存
+                        Seeds = tracker.Announces.Count > 0 ? tracker.Announces.Last().Complete : 0,
+                        Peers = tracker.Announces.Count > 0 ? tracker.Announces.Last().Incomplete : 0,
+                        NextUpdate = DateTime.Now.AddSeconds(tracker.UpdateInterval.TotalSeconds),
+                        WarningMessage = tracker.WarningMessage,
+                        ErrorMessage = tracker.FailureMessage
+                    });
+                }
+
+                // 添加文件信息
+                if (manager.Files != null)
+                {
+                    foreach (var file in manager.Files)
+                    {
+                        detailedInfo.Files.Add(new TorrentFileInfo
+                        {
+                            Path = file.Path,
+                            Length = file.Length,
+                            Priority = file.Priority.ToString(),
+                            Progress = file.BitField.PercentComplete
+                        });
+                    }
+                }
+
+                // 添加DHT节点信息（示例数据，实际需要从DHT引擎获取）
+                try
+                {
+                    // 获取DHT节点数量
+                    int dhtNodeCount = _engine.Dht.NodeCount;
+                    detailedInfo.DhtNodes.Add(new DhtNodeInfo
+                    {
+                        Address = "DHT节点总数",
+                        Status = dhtNodeCount.ToString(),
+                        LastSeen = DateTime.Now,
+                        NodeId = "N/A"
+                    });
+
+                    // 添加调试信息
+                    StringBuilder debugInfo = new StringBuilder();
+                    debugInfo.AppendLine($"引擎状态: {_engine.IsRunning}");
+                    debugInfo.AppendLine($"DHT状态: {_engine.Dht.State}");
+                    debugInfo.AppendLine($"DHT节点数: {dhtNodeCount}");
+                    //debugInfo.AppendLine($"监听端口: {_engine.Settings.ListenPort}");
+                    debugInfo.AppendLine($"最大连接数: {_engine.Settings.MaximumConnections}");
+                    //debugInfo.AppendLine($"下载速度限制: {(_engine.Settings.MaximumDownloadSpeed == 0 ? "无限制" : $"{_engine.Settings.MaximumDownloadSpeed / 1024} KB/s")}");
+                    //debugInfo.AppendLine($"上传速度限制: {(_engine.Settings.MaximumUploadSpeed == 0 ? "无限制" : $"{_engine.Settings.MaximumUploadSpeed / 1024} KB/s")}");
+                    debugInfo.AppendLine($"当前下载速度: {manager.Monitor.DownloadSpeed / 1024:F2} KB/s");
+                    debugInfo.AppendLine($"当前上传速度: {manager.Monitor.UploadSpeed / 1024:F2} KB/s");
+                    debugInfo.AppendLine($"已下载数据: {manager.Monitor.DataBytesDownloaded / (1024 * 1024):F2} MB");
+                    debugInfo.AppendLine($"已上传数据: {manager.Monitor.DataBytesUploaded / (1024 * 1024):F2} MB");
+                    debugInfo.AppendLine($"协议下载: {manager.Monitor.ProtocolBytesDownloaded / 1024:F2} KB");
+                    debugInfo.AppendLine($"协议上传: {manager.Monitor.ProtocolBytesUploaded / 1024:F2} KB");
+                    //debugInfo.AppendLine($"废弃数据: {manager.Monitor..WastedBytes / 1024:F2} KB");
+                    //debugInfo.AppendLine($"已接收块: {manager.Monitor.BlocksReceived}");
+                    //debugInfo.AppendLine($"已发送块: {manager.Monitor.BlocksSent}");
+                    //debugInfo.AppendLine($"已接收消息: {manager.Monitor.MessagesReceived}");
+                    //debugInfo.AppendLine($"已发送消息: {manager.Monitor.MessagesSent}");
+                    debugInfo.AppendLine($"开始时间: {manager.StartTime}");
+                    debugInfo.AppendLine($"完成哈希: {manager.Complete}");
+                    debugInfo.AppendLine($"哈希失败: {manager.HashFails}");
+                    debugInfo.AppendLine($"已完成片段: {manager.Bitfield.TrueCount} / {manager.Bitfield.Length}");
+                    //debugInfo.AppendLine($"连接的Peers: {manager.Peers.ConnectedPeers.Count}");
+                    debugInfo.AppendLine($"半开连接: {manager.OpenConnections}");
+                    //debugInfo.AppendLine($"已下载片段: {manager.PieceManager.CurrentRequestCount}");
+
+                    detailedInfo.DebugInfo = debugInfo.ToString();
+                }
+                catch (Exception ex)
+                {
+                    detailedInfo.ErrorMessage = $"获取DHT信息失败: {ex.Message}";
+                }
+
+                return detailedInfo;
             }
 
             return null;

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -79,6 +81,80 @@ namespace Zfile.Forms
             string tempFile = Path.ChangeExtension(savePath, ".tmp");
             string progressFile = tempFile + ".progress";
             return File.Exists(tempFile) && File.Exists(progressFile);
+        }
+        
+        /// <summary>
+        /// 启动带有HTTP头和Cookies的下载任务
+        /// </summary>
+        /// <param name="url">下载地址</param>
+        /// <param name="savePath">保存路径</param>
+        /// <param name="headers">HTTP请求头</param>
+        /// <param name="cookies">Cookies</param>
+        /// <param name="referrer">引用页</param>
+        /// <param name="chunks">分块数量</param>
+        /// <returns>下载任务</returns>
+        public static async Task StartDownloadWithHeaders(string url, string savePath, Dictionary<string, string> headers = null, string cookies = null, string referrer = null, int chunks = 4)
+        {
+            try
+            {
+                // 创建自定义的HttpClient
+                var handler = new HttpClientHandler();
+                
+                // 设置Cookies
+                if (!string.IsNullOrEmpty(cookies))
+                {
+                    handler.CookieContainer = new CookieContainer();
+                    
+                    // 解析cookies字符串并添加到CookieContainer
+                    Uri uri = new Uri(url);
+                    string domain = uri.Host;
+                    
+                    foreach (var cookiePair in cookies.Split(';'))
+                    {
+                        string[] parts = cookiePair.Trim().Split('=');
+                        if (parts.Length == 2)
+                        {
+                            handler.CookieContainer.Add(new Cookie(parts[0], parts[1], "/", domain));
+                        }
+                    }
+                }
+                
+                // 创建HttpClient
+                var httpClient = new HttpClient(handler);
+                
+                // 设置HTTP头
+                if (headers != null)
+                {
+                    foreach (var header in headers)
+                    {
+                        httpClient.DefaultRequestHeaders.Add(header.Key, header.Value);
+                    }
+                }
+                
+                // 设置Referer
+                if (!string.IsNullOrEmpty(referrer))
+                {
+                    httpClient.DefaultRequestHeaders.Referrer = new Uri(referrer);
+                }
+                
+                // 设置User-Agent
+                if (!httpClient.DefaultRequestHeaders.Contains("User-Agent"))
+                {
+                    httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36");
+                }
+                
+                // 创建自定义的ChunkDownloader实例
+                var downloader = new ChunkDownloader(url, savePath, chunks)
+                {
+                    _client = httpClient
+                };
+                
+                await downloader.DownloadAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"下载失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }

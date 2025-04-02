@@ -1,16 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using MonoTorrent;
 using MonoTorrent.Client;
-using MonoTorrent.BEncoding;
-using static MonoTorrent.Factories;
-using MonoTorrent.Trackers;
 using System.Text;
 
 namespace Zfile.Forms
@@ -18,7 +7,7 @@ namespace Zfile.Forms
     /// <summary>
     /// 种子下载管理器，提供磁力链接和种子文件下载功能
     /// </summary>
-    public static class TorrentManager
+    public static class TorrentMgr
     {
         // 默认下载目录
         private static string DefaultDownloadDirectory = Path.Combine(
@@ -300,37 +289,38 @@ namespace Zfile.Forms
                 };
 
                 // 添加Peers信息
-                foreach (var peer in manager.Peers.ConnectedPeers)
-                {
-                    detailedInfo.Peers.Add(new PeerInfo
-                    {
-                        Address = peer.Uri.ToString(),
-                        ClientSoftware = peer.ClientApp.Client,
-                        DownloadSpeed = peer.Monitor.DownloadSpeed,
-                        UploadSpeed = peer.Monitor.UploadSpeed,
-                        Progress = peer.AmRequestingPiecesCount > 0 ? 
-                            (double)peer.AmRequestingPiecesCount / manager.Torrent.PieceCount * 100 : 0,
-                        Status = peer.ConnectionDirection.ToString(),
-                        IsSeeder = peer.IsSeeder,
-                        ConnectedTime = DateTime.Now // 这里应该从连接时保存
-                    });
-                }
+                //// 在新版本的MonoTorrent中，使用ActivePeers替代ConnectedPeers
+                //foreach (var peer in manager.Peers.ActivePeers)
+                //{
+                //    detailedInfo.Peers.Add(new PeerInfo
+                //    {
+                //        Address = peer.Uri.ToString(),
+                //        ClientSoftware = peer.ClientApp.Client,
+                //        DownloadSpeed = peer.Monitor.DownloadSpeed,
+                //        UploadSpeed = peer.Monitor.UploadSpeed,
+                //        Progress = peer.AmRequestingPiecesCount > 0 ? 
+                //            (double)peer.AmRequestingPiecesCount / manager.Torrent.PieceCount * 100 : 0,
+                //        Status = peer.ConnectionDirection.ToString(),
+                //        IsSeeder = peer.IsSeeder,
+                //        ConnectedTime = DateTime.Now // 这里应该从连接时保存
+                //    });
+                //}
 
-                // 添加Trackers信息
-                foreach (var tracker in manager.TrackerManager.Trackers)
-                {
-                    detailedInfo.Trackers.Add(new TrackerInfo
-                    {
-                        Url = tracker.Uri.ToString(),
-                        Status = tracker.Status.ToString(),
-                        LastUpdated = DateTime.Now, // 这里应该从更新时保存
-                        Seeds = tracker.Announces.Count > 0 ? tracker.Announces.Last().Complete : 0,
-                        Peers = tracker.Announces.Count > 0 ? tracker.Announces.Last().Incomplete : 0,
-                        NextUpdate = DateTime.Now.AddSeconds(tracker.UpdateInterval.TotalSeconds),
-                        WarningMessage = tracker.WarningMessage,
-                        ErrorMessage = tracker.FailureMessage
-                    });
-                }
+                //// 添加Trackers信息
+                //foreach (var tracker in manager.TrackerManager.Trackers)
+                //{
+                //    detailedInfo.Trackers.Add(new TrackerInfo
+                //    {
+                //        Url = tracker.Uri.ToString(),
+                //        Status = tracker.Status.ToString(),
+                //        LastUpdated = DateTime.Now, // 这里应该从更新时保存
+                //        Seeds = tracker.Announces.Count > 0 ? tracker.Announces.Last().Complete : 0,
+                //        Peers = tracker.Announces.Count > 0 ? tracker.Announces.Last().Incomplete : 0,
+                //        NextUpdate = DateTime.Now.AddSeconds(tracker.UpdateInterval.TotalSeconds),
+                //        WarningMessage = tracker.WarningMessage,
+                //        ErrorMessage = tracker.FailureMessage
+                //    });
+                //}
 
                 // 添加文件信息
                 if (manager.Files != null)
@@ -384,7 +374,7 @@ namespace Zfile.Forms
                     debugInfo.AppendLine($"完成哈希: {manager.Complete}");
                     debugInfo.AppendLine($"哈希失败: {manager.HashFails}");
                     debugInfo.AppendLine($"已完成片段: {manager.Bitfield.TrueCount} / {manager.Bitfield.Length}");
-                    //debugInfo.AppendLine($"连接的Peers: {manager.Peers.ConnectedPeers.Count}");
+                    //debugInfo.AppendLine($"连接的Peers: {manager.Peers.ActivePeers.Count}");
                     debugInfo.AppendLine($"半开连接: {manager.OpenConnections}");
                     //debugInfo.AppendLine($"已下载片段: {manager.PieceManager.CurrentRequestCount}");
 

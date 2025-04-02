@@ -37,7 +37,7 @@ namespace Zfile.Forms
         {
             try
             {
-                await TorrentManager.InitializeAsync();
+                await TorrentMgr.InitializeAsync();
             }
             catch (Exception ex)
             {
@@ -348,7 +348,7 @@ namespace Zfile.Forms
             SaveDownloadTasks();
             
             // 关闭种子下载引擎
-            await TorrentManager.ShutdownAsync();
+            await TorrentMgr.ShutdownAsync();
         }
 
         private void CategoryTreeView_AfterSelect(object sender, TreeViewEventArgs e)
@@ -567,7 +567,7 @@ namespace Zfile.Forms
                 if (task.IsMagnetLink)
                 {
                     // 磁力链接下载
-                    torrentId = await TorrentManager.AddMagnetLinkAsync(
+                    torrentId = await TorrentMgr.AddMagnetLinkAsync(
                         task.Url, 
                         task.SavePath, 
                         task.CancellationTokenSource.Token,
@@ -581,7 +581,7 @@ namespace Zfile.Forms
                                 task.MaxSpeed = Math.Max(task.MaxSpeed, speed);
                                 
                                 // 获取种子信息
-                                task.TorrentInfo = TorrentManager.GetTorrentInfo(task.TorrentId);
+                                task.TorrentInfo = TorrentMgr.GetTorrentInfo(task.TorrentId);
                                 if (task.TorrentInfo != null)
                                 {
                                     task.UpdateFromTorrentInfo();
@@ -595,7 +595,7 @@ namespace Zfile.Forms
                 else
                 {
                     // 种子文件下载
-                    torrentId = await TorrentManager.AddTorrentFileAsync(
+                    torrentId = await TorrentMgr.AddTorrentFileAsync(
                         task.TorrentFilePath, 
                         task.SavePath, 
                         task.CancellationTokenSource.Token,
@@ -609,7 +609,7 @@ namespace Zfile.Forms
                                 task.MaxSpeed = Math.Max(task.MaxSpeed, speed);
                                 
                                 // 获取种子信息
-                                task.TorrentInfo = TorrentManager.GetTorrentInfo(task.TorrentId);
+                                task.TorrentInfo = TorrentMgr.GetTorrentInfo(task.TorrentId);
                                 if (task.TorrentInfo != null)
                                 {
                                     task.UpdateFromTorrentInfo();
@@ -738,7 +738,7 @@ namespace Zfile.Forms
             if (task is TorrentDownloadTask torrentTask && !string.IsNullOrEmpty(torrentTask.TorrentId))
             {
                 // 移除种子下载任务
-                await TorrentManager.RemoveTorrentAsync(torrentTask.TorrentId, false);
+                await TorrentMgr.RemoveTorrentAsync(torrentTask.TorrentId, false);
             }
             else
             {
@@ -775,7 +775,7 @@ namespace Zfile.Forms
                 // 恢复种子下载
                 task.Status = DownloadStatus.Downloading;
                 UpdateTaskUI(task);
-                await TorrentManager.ResumeTorrentAsync(torrentTask.TorrentId);
+                await TorrentMgr.ResumeTorrentAsync(torrentTask.TorrentId);
                 return;
             }
             
@@ -869,7 +869,7 @@ namespace Zfile.Forms
             if (task is TorrentDownloadTask torrentTask && !string.IsNullOrEmpty(torrentTask.TorrentId))
             {
                 // 暂停种子下载
-                await TorrentManager.PauseTorrentAsync(torrentTask.TorrentId);
+                await TorrentMgr.PauseTorrentAsync(torrentTask.TorrentId);
                 task.Status = DownloadStatus.Paused;
             }
             else

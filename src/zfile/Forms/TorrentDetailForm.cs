@@ -1,17 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using MonoTorrent;
-using MonoTorrent.Client;
-using MonoTorrent.Dht;
-using MonoTorrent.Trackers;
 
 namespace Zfile.Forms
 {
@@ -21,7 +8,7 @@ namespace Zfile.Forms
     public partial class TorrentDetailForm : Form
     {
         private string _torrentId;
-        private Timer _updateTimer;
+        private System.Windows.Forms.Timer _updateTimer;
         private StringBuilder _logBuilder = new StringBuilder();
         private const int MaxLogLines = 1000;
 
@@ -34,7 +21,7 @@ namespace Zfile.Forms
 
         private void InitializeTimer()
         {
-            _updateTimer = new Timer();
+            _updateTimer = new System.Windows.Forms.Timer();
             _updateTimer.Interval = 1000; // 1秒更新一次
             _updateTimer.Tick += UpdateTimer_Tick;
             _updateTimer.Start();
@@ -551,7 +538,7 @@ namespace Zfile.Forms
 
         private void UpdateTorrentInfo()
         {
-            var torrentInfo = TorrentManager.GetTorrentInfo(_torrentId);
+            var torrentInfo = TorrentMgr.GetTorrentInfo(_torrentId);
             if (torrentInfo == null)
             {
                 AddLog("获取种子信息失败，可能已被删除");
@@ -565,7 +552,7 @@ namespace Zfile.Forms
             UpdateFilesList(torrentInfo);
 
             // 获取详细信息（需要修改TorrentManager类以提供这些信息）
-            var detailedInfo = TorrentManager.GetDetailedTorrentInfo(_torrentId);
+            var detailedInfo = TorrentMgr.GetDetailedTorrentInfo(_torrentId);
             if (detailedInfo != null)
             {
                 // 更新Peers列表

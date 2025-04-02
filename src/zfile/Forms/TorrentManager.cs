@@ -56,18 +56,18 @@ namespace Zfile.Forms
                     AllowPortForwarding = true,
                     AutoSaveLoadDhtCache = true,
                     AutoSaveLoadFastResume = true,
-                    ListenPort = 55123, // 可以设置为随机端口
+                    // ListenPort = 55123, // 可以设置为随机端口
                     MaximumConnections = 200,
-                    MaximumDownloadSpeed = 0, // 无限制
-                    MaximumUploadSpeed = 0,   // 无限制
+                    //MaximumDownloadSpeed = 0, // 无限制
+                    //MaximumUploadSpeed = 0,   // 无限制
                     MaximumOpenFiles = 20
                 }.ToSettings();
 
                 // 初始化引擎
                 _engine = new ClientEngine(engineSettings);
-
+                //_engine.Settings.ListenPort = 55123;
                 // 启动DHT服务
-                await _engine.DhtEngine.StartAsync();
+                //await _engine.Dht.//StartAsync();
             }
             catch (Exception ex)
             {
@@ -95,9 +95,9 @@ namespace Zfile.Forms
                 if (_engine == null)
                     await InitializeAsync();
 
-                // 解析磁力链接
-                var magnetLinkParser = new MagnetLinkParser();
-                var parsedLink = magnetLinkParser.Parse(magnetLink);
+				// 解析磁力链接
+				//var magnetLinkParser = new MagnetLinkParser();
+				var parsedLink = MagnetLink.Parse(magnetLink);//magnetLinkParser.Parse(magnetLink);
 
                 // 设置保存路径
                 string downloadDirectory = string.IsNullOrEmpty(savePath) 
@@ -116,7 +116,7 @@ namespace Zfile.Forms
                 var manager = await _engine.AddAsync(parsedLink, downloadDirectory, torrentSettings);
 
                 // 生成唯一ID
-                string torrentId = manager.InfoHash.ToHex();
+                string torrentId = manager.InfoHashes.V1.ToHex();
 
                 // 保存管理器和回调
                 _activeTorrents[torrentId] = manager;
@@ -178,7 +178,7 @@ namespace Zfile.Forms
                 var manager = await _engine.AddAsync(torrent, downloadDirectory, torrentSettings);
 
                 // 生成唯一ID
-                string torrentId = manager.InfoHash.ToHex();
+                string torrentId = manager.InfoHashes.V1.ToHex();
 
                 // 保存管理器和回调
                 _activeTorrents[torrentId] = manager;
@@ -233,7 +233,7 @@ namespace Zfile.Forms
         {
             if (_activeTorrents.TryGetValue(torrentId, out var manager))
             {
-                await _engine.RemoveAsync(manager, deleteFiles ? RemoveMode.CacheDataAndFiles : RemoveMode.CacheDataOnly);
+                await _engine.RemoveAsync(manager, deleteFiles ? RemoveMode.CacheDataAndDownloadedData : RemoveMode.CacheDataOnly);
                 _activeTorrents.Remove(torrentId);
                 _progressCallbacks.Remove(torrentId);
             }
@@ -279,7 +279,7 @@ namespace Zfile.Forms
         /// </summary>
         private static void RegisterTorrentEvents(MonoTorrent.Client.TorrentManager manager)
         {
-            string torrentId = manager.InfoHash.ToHex();
+            string torrentId = manager.InfoHashes.V1.ToHex();
 
             // 进度更新事件
             manager.PieceHashed += (sender, e) =>

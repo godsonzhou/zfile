@@ -467,9 +467,9 @@ namespace Zfile.Forms
             try
             {
                 // 解析磁力链接
-                var magnetLinkParser = new MagnetLinkParser();
-                _parsedMagnetLink = magnetLinkParser.Parse(_magnetLink);
-
+                // var magnetLinkParser = new MagnetLinkParser();
+                // _parsedMagnetLink = magnetLinkParser.Parse(_magnetLink);
+                var parsedLink = MonoTorrent.MagnetLink.Parse(_magnetLink);
                 // 更新种子信息
                 torrentNameValueLabel.Text = _parsedMagnetLink.Name ?? "未知";
                 torrentSizeValueLabel.Text = "未知 (需要连接到网络获取)";

@@ -131,15 +131,19 @@ namespace Zfile
         {
             try
             {
+                Debug.WriteLine($"收到Chrome扩展消息: {json}");
+                
                 var request = JsonSerializer.Deserialize<DownloadRequest>(json);
                 if (request == null || string.IsNullOrEmpty(request.Url))
                 {
+                    Debug.WriteLine("无效的下载请求: URL为空");
                     SendResponse(new Response { Success = false, Message = "无效的下载请求" });
                     return;
                 }
 
                 // 生成下载ID
                 string downloadId = Guid.NewGuid().ToString();
+                Debug.WriteLine($"生成下载ID: {downloadId}, URL: {request.Url}");
 
                 // 确定保存路径
                 string savePath = null;
@@ -150,6 +154,18 @@ namespace Zfile
                     downloadFolder = Path.Combine(downloadFolder, "Downloads");
                     Directory.CreateDirectory(downloadFolder); // 确保目录存在
                     savePath = Path.Combine(downloadFolder, request.Filename);
+                    Debug.WriteLine($"保存路径: {savePath}");
+                }
+
+                // 显示系统托盘通知
+                try
+                {
+                    string filename = request.Filename ?? Path.GetFileName(request.Url);
+                    TrayIconManager.Instance.ShowBalloonTip("新下载任务", $"正在下载: {filename}", ToolTipIcon.Info);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"显示托盘通知失败: {ex.Message}");
                 }
 
                 // 启动下载任务
@@ -157,11 +173,17 @@ namespace Zfile
                 {
                     try
                     {
-                        IdmIntegration.DownloadFile(request.Url, savePath);
+                        // 创建包含请求头和cookies的字典
+                        Dictionary<string, string> headers = request.Headers ?? new Dictionary<string, string>();
+                        
+                        // 调用下载方法，传递所有参数
+                        IdmIntegration.DownloadFile(request.Url, savePath, headers, request.Cookies, request.Referrer);
+                        Debug.WriteLine("下载任务已启动");
                         SendResponse(new Response { Success = true, DownloadId = downloadId });
                     }
                     catch (Exception ex)
                     {
+                        Debug.WriteLine($"下载失败: {ex.Message}");
                         SendResponse(new Response { Success = false, Message = ex.Message });
                     }
                 });

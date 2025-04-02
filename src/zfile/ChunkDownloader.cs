@@ -3,10 +3,10 @@ using System.Diagnostics;
 
 public class ChunkDownloader
 {
-	public  string _url;
+	public string _url;
 	public readonly string _savePath;
 	public readonly int _chunks;
-	public readonly HttpClient _client;
+	public HttpClient _client;
 	public readonly ConcurrentDictionary<long, long> _progress;
 	public readonly string _tempFile;
 

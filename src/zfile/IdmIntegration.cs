@@ -21,6 +21,7 @@ namespace Zfile
             try
             {
                 IdmManager.ShowIdmManager();
+				InitializeChromeExtensionSupport();
             }
             catch (Exception ex)
             {
@@ -40,6 +41,9 @@ namespace Zfile
                 
                 // 注册Native Messaging主机
                 RegisterChromeNativeMessagingHost();
+                
+                // 显示系统托盘图标
+                TrayIconManager.Instance.Show("下载管理器监听已启动，可以接收Chrome扩展的下载请求");
             }
             catch (Exception ex)
             {
@@ -59,15 +63,20 @@ namespace Zfile
                 
                 // 读取清单模板
                 string manifestPath = Path.Combine(Path.GetDirectoryName(appPath), "chrome_host_manifest.json");
-                if (!File.Exists(manifestPath))
-                {
-                    // 如果清单文件不存在，从资源中提取
-                    string manifestTemplate = File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "chrome_host_manifest.json"));
-                    manifestTemplate = manifestTemplate.Replace("ZFILE_PATH_PLACEHOLDER", appPath.Replace("\\", "\\\\"));
-                    
-                    // 保存清单文件
-                    File.WriteAllText(manifestPath, manifestTemplate);
-                }
+                
+                // 无论文件是否存在，都重新创建以确保内容正确
+                string manifestTemplate = File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "chrome_host_manifest.json"));
+                manifestTemplate = manifestTemplate.Replace("ZFILE_PATH_PLACEHOLDER", appPath.Replace("\\", "\\\\"));
+                
+                // 替换扩展ID占位符 - 使用通配符允许任何扩展ID
+                manifestTemplate = manifestTemplate.Replace("chrome-extension://EXTENSION_ID_PLACEHOLDER/", 
+                    "chrome-extension://*/*");
+                
+                // 保存清单文件
+                File.WriteAllText(manifestPath, manifestTemplate);
+                
+                Debug.WriteLine("已更新Chrome扩展清单文件: " + manifestPath);
+                Debug.WriteLine("清单内容: " + manifestTemplate);
                 
                 // 注册清单到Chrome
                 string hostName = "com.zfile.idm_integration";
@@ -114,21 +123,20 @@ namespace Zfile
         {
             try
             {
+                Debug.WriteLine($"开始下载: URL={url}, SavePath={savePath}, Headers={headers?.Count ?? 0}, Cookies={(cookies != null)}, Referrer={(referrer != null)}");
+                
                 if (string.IsNullOrEmpty(savePath))
                 {
                     // 弹出新建下载对话框
-                    using (var dialog = new NewDownloadDialog())
+                    using (var dialog = new IdmForm())
                     {
                         // 预填充URL
                         if (!string.IsNullOrEmpty(url))
                         {
-                            typeof(NewDownloadDialog).GetProperty("Url").SetValue(dialog, url, null);
+                            dialog.AddNewDownload(url, null, headers, cookies, referrer);
                         }
 
-                        if (dialog.ShowDialog() == DialogResult.OK)
-                        {
-                            // 对话框会处理下载
-                        }
+                        dialog.ShowDialog();
                     }
                 }
                 else
@@ -136,19 +144,44 @@ namespace Zfile
                     // 检查是否有额外的HTTP头或Cookies
                     if (headers != null || !string.IsNullOrEmpty(cookies) || !string.IsNullOrEmpty(referrer))
                     {
+                        Debug.WriteLine("使用带HTTP头和Cookies的下载方法");
                         // 使用带HTTP头和Cookies的下载方法
-                        IdmManager.StartDownloadWithHeaders(url, savePath, headers, cookies, referrer).ConfigureAwait(false);
+                        Task.Run(async () => {
+                            try {
+                                await IdmManager.StartDownloadWithHeaders(url, savePath, headers, cookies, referrer);
+                                // 显示系统托盘通知
+                                TrayIconManager.Instance.ShowBalloonTip("下载已开始", $"文件: {Path.GetFileName(savePath)}", ToolTipIcon.Info);
+                            }
+                            catch (Exception ex) {
+                                Debug.WriteLine($"下载失败: {ex.Message}");
+                                TrayIconManager.Instance.ShowBalloonTip("下载失败", ex.Message, ToolTipIcon.Error);
+                            }
+                        });
                     }
                     else
                     {
+                        Debug.WriteLine("直接开始下载");
                         // 直接开始下载
-                        IdmManager.StartDownload(url, savePath);
+                        Task.Run(async () => {
+                            try {
+                                await IdmManager.StartDownload(url, savePath);
+                                // 显示系统托盘通知
+                                TrayIconManager.Instance.ShowBalloonTip("下载已开始", $"文件: {Path.GetFileName(savePath)}", ToolTipIcon.Info);
+                            }
+                            catch (Exception ex) {
+                                Debug.WriteLine($"下载失败: {ex.Message}");
+                                TrayIconManager.Instance.ShowBalloonTip("下载失败", ex.Message, ToolTipIcon.Error);
+                            }
+                        });
                     }
                 }
             }
             catch (Exception ex)
             {
+                Debug.WriteLine($"下载失败: {ex.Message}");
                 MessageBox.Show($"下载失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // 显示系统托盘通知
+                TrayIconManager.Instance.ShowBalloonTip("下载失败", ex.Message, ToolTipIcon.Error);
             }
         }
     }

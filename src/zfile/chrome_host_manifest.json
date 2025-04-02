@@ -1,9 +1,0 @@
-{
-  "name": "com.zfile.idm_integration",
-  "description": "ZFile IDM下载管理器Chrome扩展集成",
-  "path": "ZFILE_PATH_PLACEHOLDER",
-  "type": "stdio",
-  "allowed_origins": [
-    "chrome-extension://EXTENSION_ID_PLACEHOLDER/"
-  ]
-}

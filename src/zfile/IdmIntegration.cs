@@ -67,10 +67,26 @@ namespace Zfile
                 // 无论文件是否存在，都重新创建以确保内容正确
                 string manifestTemplate = File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "chrome_host_manifest.json"));
                 manifestTemplate = manifestTemplate.Replace("ZFILE_PATH_PLACEHOLDER", appPath.Replace("\\", "\\\\"));
+
+				// Chrome要求allowed_origins必须是具体的扩展ID，不能使用通配符
+				// 修改为支持特定的扩展ID和通配符
+				// 首先尝试从命令行参数或配置中获取扩展ID
+				string extensionId = "gpibfiieigpfadmnjmdmgmfcnolodbjm"; // GetChromeExtensionId();
                 
-                // 替换扩展ID占位符 - 使用通配符允许任何扩展ID
-                manifestTemplate = manifestTemplate.Replace("chrome-extension://EXTENSION_ID_PLACEHOLDER/", 
-                    "chrome-extension://*/*");
+                if (!string.IsNullOrEmpty(extensionId))
+                {
+                    // 使用特定的扩展ID
+                    manifestTemplate = manifestTemplate.Replace("chrome-extension://EXTENSION_ID_PLACEHOLDER/", 
+                        $"chrome-extension://{extensionId}/");
+                    Debug.WriteLine($"使用特定的Chrome扩展ID: {extensionId}");
+                }
+                else
+                {
+                    // 使用通配符（可能在某些情况下不工作）
+                    manifestTemplate = manifestTemplate.Replace("chrome-extension://EXTENSION_ID_PLACEHOLDER/", 
+                        "chrome-extension://*/*");
+                    Debug.WriteLine("警告：使用通配符作为扩展ID，这可能导致Chrome扩展无法正确通信");
+                }
                 
                 // 保存清单文件
                 File.WriteAllText(manifestPath, manifestTemplate);

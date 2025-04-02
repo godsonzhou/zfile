@@ -58,10 +58,42 @@ function sendDownloadRequest(url, filename, saveAs, referrer) {
         saveAs: saveAs,
         referrer: referrer,
         headers: {},
-        cookies: document.cookie
+        cookies: "" // 初始化为空字符串
     };
 
-    // 发送消息到本地应用
+    // // 在Service Worker中获取cookies并发送消息
+    // if (url.startsWith('http') && chrome.cookies) {
+    //     // 使用chrome.cookies API获取cookies
+    //     chrome.cookies.getAll({ url: url }, cookies => {
+    //         if (cookies && cookies.length > 0) {
+    //             downloadRequest.cookies = cookies.map(c => `${c.name}=${c.value}`).join('; ');
+    //         }
+    //         // 获取cookies后发送消息
+    //         sendNativeMessageToHost(downloadRequest);
+    //     });
+    // } else {
+    //     // 如果不需要cookies或无法获取，直接发送消息
+    //     sendNativeMessageToHost(downloadRequest);
+    // }
+
+    // 在Service Worker中获取cookies并发送消息
+    if (url.startsWith('http') && chrome.cookies) {
+        // 需要在manifest.json中添加cookies权限
+        chrome.cookies.getAll({ url: url }, cookies => {
+            if (cookies && cookies.length > 0) {
+                downloadRequest.cookies = cookies.map(c => `${c.name}=${c.value}`).join('; ');
+            }
+            // 获取cookies后发送消息
+            sendNativeMessage(downloadRequest);
+        });
+    } else {
+        // 如果不需要cookies或无法获取，直接发送消息
+        sendNativeMessage(downloadRequest);
+    }
+}
+
+// 发送消息到本地应用
+function sendNativeMessage(downloadRequest) {
     chrome.runtime.sendNativeMessage(
         nativeHostName,
         downloadRequest,

@@ -33,6 +33,7 @@
     <PackageReference Include="LibVLCSharp.WinForms" Version="3.9.2" />
     <PackageReference Include="MCPSharp" Version="1.0.6" />
     <PackageReference Include="Microsoft.WindowsAPICodePack.Shell" Version="1.1.0" />
+    <PackageReference Include="MonoTorrent" Version="3.0.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="OpenAI" Version="2.1.0" />
     <PackageReference Include="PdfiumViewer" Version="2.13.0" />

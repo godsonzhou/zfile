@@ -11,6 +11,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
+using MonoTorrent;
+using MonoTorrent.Client;
+using MonoTorrent;
+using MonoTorrent.Client;
 namespace Zfile.Forms
 {
     public partial class IdmForm : Form
@@ -23,6 +27,22 @@ namespace Zfile.Forms
         {
             InitializeComponent();
             InitializeDownloadList();
+            InitializeTorrentEngine();
+        }
+        
+        /// <summary>
+        /// 初始化种子下载引擎
+        /// </summary>
+        private async void InitializeTorrentEngine()
+        {
+            try
+            {
+                await TorrentManager.InitializeAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"初始化BT下载引擎失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         #region UI初始化
@@ -148,6 +168,8 @@ namespace Zfile.Forms
             this.taskMenuItem.Text = "任务";
             this.taskMenuItem.DropDownItems.AddRange(new ToolStripItem[] {
                 new ToolStripMenuItem("新建任务", null, NewTask_Click),
+                new ToolStripMenuItem("新建磁力链接下载", null, NewMagnetTask_Click),
+                new ToolStripMenuItem("新建种子文件下载", null, NewTorrentTask_Click),
                 new ToolStripSeparator(),
                 new ToolStripMenuItem("退出", null, (s, e) => Close())
             });
@@ -314,7 +336,7 @@ namespace Zfile.Forms
 
         #region 事件处理
 
-        private void IdmForm_FormClosing(object sender, FormClosingEventArgs e)
+        private async void IdmForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             isClosing = true;
             if (cancellationTokenSource != null)
@@ -324,6 +346,9 @@ namespace Zfile.Forms
 
             // 保存下载任务状态
             SaveDownloadTasks();
+            
+            // 关闭种子下载引擎
+            await TorrentManager.ShutdownAsync();
         }
 
         private void CategoryTreeView_AfterSelect(object sender, TreeViewEventArgs e)
@@ -339,6 +364,37 @@ namespace Zfile.Forms
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     AddDownloadTask(dialog.Url, dialog.SavePath, dialog.Chunks);
+                }
+            }
+        }
+        
+        private void NewMagnetTask_Click(object sender, EventArgs e)
+        {
+            using (var dialog = new TorrentDownloadDialog())
+            {
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    AddTorrentDownloadTask(dialog.MagnetLink, dialog.SavePath, true, dialog.SelectedFileIndices);
+                }
+            }
+        }
+        
+        private void NewTorrentTask_Click(object sender, EventArgs e)
+        {
+            using (var openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.Filter = "种子文件 (*.torrent)|*.torrent|所有文件 (*.*)|*.*";
+                openFileDialog.Title = "选择种子文件";
+                
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    using (var dialog = new TorrentDownloadDialog(openFileDialog.FileName, true))
+                    {
+                        if (dialog.ShowDialog() == DialogResult.OK)
+                        {
+                            AddTorrentDownloadTask(dialog.TorrentFilePath, dialog.SavePath, false, dialog.SelectedFileIndices);
+                        }
+                    }
                 }
             }
         }
@@ -464,6 +520,126 @@ namespace Zfile.Forms
         #region 下载任务管理
 
         /// <summary>
+        /// 添加新的种子下载任务
+        /// </summary>
+        /// <param name="torrentPathOrMagnet">种子文件路径或磁力链接</param>
+        /// <param name="savePath">保存路径</param>
+        /// <param name="isMagnetLink">是否是磁力链接</param>
+        /// <param name="selectedFileIndices">选中的文件索引</param>
+        private async void AddTorrentDownloadTask(string torrentPathOrMagnet, string savePath, bool isMagnetLink, List<int> selectedFileIndices = null)
+        {
+            try
+            {
+                // 创建种子下载任务
+                var task = new TorrentDownloadTask(torrentPathOrMagnet, savePath, isMagnetLink)
+                {
+                    SelectedFileIndices = selectedFileIndices ?? new List<int>()
+                };
+                
+                // 添加到下载任务列表
+                downloadTasks.Add(task);
+                
+                // 更新UI
+                UpdateDownloadListView();
+                
+                // 开始下载
+                await StartTorrentDownloadAsync(task);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"添加种子下载任务失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        
+        /// <summary>
+        /// 开始种子下载任务
+        /// </summary>
+        private async Task StartTorrentDownloadAsync(TorrentDownloadTask task)
+        {
+            try
+            {
+                // 设置状态为下载中
+                task.Status = DownloadStatus.Downloading;
+                UpdateTaskUI(task);
+                
+                // 根据类型启动下载
+                string torrentId;
+                if (task.IsMagnetLink)
+                {
+                    // 磁力链接下载
+                    torrentId = await TorrentManager.AddMagnetLinkAsync(
+                        task.Url, 
+                        task.SavePath, 
+                        task.CancellationTokenSource.Token,
+                        (progress, speed, totalSize, chunksProgress) =>
+                        {
+                            if (!isClosing)
+                            {
+                                task.Progress = progress;
+                                task.Speed = speed;
+                                task.TotalSize = totalSize;
+                                task.MaxSpeed = Math.Max(task.MaxSpeed, speed);
+                                
+                                // 获取种子信息
+                                task.TorrentInfo = TorrentManager.GetTorrentInfo(task.TorrentId);
+                                if (task.TorrentInfo != null)
+                                {
+                                    task.UpdateFromTorrentInfo();
+                                }
+                                
+                                // 更新UI
+                                UpdateTaskUI(task);
+                            }
+                        });
+                }
+                else
+                {
+                    // 种子文件下载
+                    torrentId = await TorrentManager.AddTorrentFileAsync(
+                        task.TorrentFilePath, 
+                        task.SavePath, 
+                        task.CancellationTokenSource.Token,
+                        (progress, speed, totalSize, chunksProgress) =>
+                        {
+                            if (!isClosing)
+                            {
+                                task.Progress = progress;
+                                task.Speed = speed;
+                                task.TotalSize = totalSize;
+                                task.MaxSpeed = Math.Max(task.MaxSpeed, speed);
+                                
+                                // 获取种子信息
+                                task.TorrentInfo = TorrentManager.GetTorrentInfo(task.TorrentId);
+                                if (task.TorrentInfo != null)
+                                {
+                                    task.UpdateFromTorrentInfo();
+                                }
+                                
+                                // 更新UI
+                                UpdateTaskUI(task);
+                            }
+                        });
+                }
+                
+                // 保存种子ID
+                task.TorrentId = torrentId;
+            }
+            catch (OperationCanceledException)
+            {
+                task.Status = DownloadStatus.Paused;
+                UpdateTaskUI(task);
+            }
+            catch (Exception ex)
+            {
+                task.Status = DownloadStatus.Error;
+                task.ErrorMessage = ex.Message;
+                UpdateTaskUI(task);
+                
+                MessageBox.Show($"种子下载失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        /// <summary>
         /// 添加新的下载任务到下载对话框中
         /// </summary>
         /// <param name="url">下载地址</param>
@@ -554,26 +730,34 @@ namespace Zfile.Forms
             ResumeDownloadTask(task);
         }
 
-        private void RemoveDownloadTask(DownloadTask task)
+        private async void RemoveDownloadTask(DownloadTask task)
         {
             // 停止下载
             PauseDownloadTask(task);
 
-            // 删除临时文件
-            string tempFile = Path.ChangeExtension(task.SavePath, ".tmp");
-            string progressFile = tempFile + ".progress";
-
-            try
+            if (task is TorrentDownloadTask torrentTask && !string.IsNullOrEmpty(torrentTask.TorrentId))
             {
-                if (File.Exists(tempFile))
-                    File.Delete(tempFile);
-
-                if (File.Exists(progressFile))
-                    File.Delete(progressFile);
+                // 移除种子下载任务
+                await TorrentManager.RemoveTorrentAsync(torrentTask.TorrentId, false);
             }
-            catch (Exception ex)
+            else
             {
-                Debug.WriteLine($"删除临时文件失败: {ex.Message}");
+                // 删除普通下载的临时文件
+                string tempFile = Path.ChangeExtension(task.SavePath, ".tmp");
+                string progressFile = tempFile + ".progress";
+
+                try
+                {
+                    if (File.Exists(tempFile))
+                        File.Delete(tempFile);
+
+                    if (File.Exists(progressFile))
+                        File.Delete(progressFile);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"删除临时文件失败: {ex.Message}");
+                }
             }
 
             downloadTasks.Remove(task);
@@ -586,6 +770,16 @@ namespace Zfile.Forms
             if (task.Status == DownloadStatus.Downloading)
                 return;
 
+            if (task is TorrentDownloadTask torrentTask && !string.IsNullOrEmpty(torrentTask.TorrentId))
+            {
+                // 恢复种子下载
+                task.Status = DownloadStatus.Downloading;
+                UpdateTaskUI(task);
+                await TorrentManager.ResumeTorrentAsync(torrentTask.TorrentId);
+                return;
+            }
+            
+            // 普通下载任务处理
             task.Status = DownloadStatus.Downloading;
             task.CancellationTokenSource = new CancellationTokenSource();
             UpdateDownloadListView();
@@ -667,13 +861,24 @@ namespace Zfile.Forms
             }
         }
 
-        private void PauseDownloadTask(DownloadTask task)
+        private async void PauseDownloadTask(DownloadTask task)
         {
             if (task.Status != DownloadStatus.Downloading)
                 return;
 
-            task.CancellationTokenSource?.Cancel();
-            task.Status = DownloadStatus.Paused;
+            if (task is TorrentDownloadTask torrentTask && !string.IsNullOrEmpty(torrentTask.TorrentId))
+            {
+                // 暂停种子下载
+                await TorrentManager.PauseTorrentAsync(torrentTask.TorrentId);
+                task.Status = DownloadStatus.Paused;
+            }
+            else
+            {
+                // 暂停普通下载
+                task.CancellationTokenSource?.Cancel();
+                task.Status = DownloadStatus.Paused;
+            }
+            
             UpdateTaskUI(task);
         }
 
@@ -698,6 +903,14 @@ namespace Zfile.Forms
                     item.SubItems[4].Text = FormatSpeed(task.Speed);
                     item.SubItems[5].Text = FormatSpeed(task.MaxSpeed);
                     item.SubItems[6].Text = $"{task.Progress:F1}%";
+                    
+                    // 如果是种子下载任务，更新额外信息
+                    if (task is TorrentDownloadTask torrentTask)
+                    {
+                        // 在工具提示中显示做种/下载用户数量等
+                        item.ToolTipText = $"做种: {torrentTask.Seeds}, 下载: {torrentTask.Leechs}, 连接: {torrentTask.Peers}";
+                    }
+                    
                     break;
                 }
             }
@@ -785,6 +998,8 @@ namespace Zfile.Forms
                 case DownloadStatus.Paused: return "已暂停";
                 case DownloadStatus.Completed: return "已完成";
                 case DownloadStatus.Error: return "错误";
+                case DownloadStatus.Metadata: return "获取元数据";
+                case DownloadStatus.Hashing: return "校验文件";
                 default: return "未知";
             }
         }
@@ -807,7 +1022,7 @@ namespace Zfile.Forms
             return $"{bytesPerSecond / (1024 * 1024 * 1024):F2} GB/s";
         }
 
-        private void SaveDownloadTasks()
+        private async void SaveDownloadTasks()
         {
             // 保存下载任务到配置文件，这里简化处理
             Debug.WriteLine($"保存了 {downloadTasks.Count} 个下载任务");
@@ -1208,7 +1423,9 @@ namespace Zfile.Forms
         Downloading,
         Paused,
         Completed,
-        Error
+        Error,
+        Metadata,   // 获取种子元数据中
+        Hashing     // 校验文件中
     }
 
     // 新建下载对话框

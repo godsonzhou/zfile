@@ -16,18 +16,18 @@ namespace Zfile.Forms
 
         // 种子文件和磁力链接的临时存储目录
         private static string TorrentCacheDirectory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), 
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "Zfile", "TorrentCache");
 
         // 客户端引擎实例
         private static ClientEngine _engine;
 
         // 活动的种子下载任务
-        private static Dictionary<string, MonoTorrent.Client.TorrentManager> _activeTorrents = 
+        private static Dictionary<string, MonoTorrent.Client.TorrentManager> _activeTorrents =
             new Dictionary<string, MonoTorrent.Client.TorrentManager>();
 
         // 种子下载进度回调字典
-        private static Dictionary<string, Action<double, double, long, Dictionary<long, long>>> _progressCallbacks = 
+        private static Dictionary<string, Action<double, double, long, Dictionary<long, long>>> _progressCallbacks =
             new Dictionary<string, Action<double, double, long, Dictionary<long, long>>>();
 
         /// <summary>
@@ -47,27 +47,29 @@ namespace Zfile.Forms
                     AllowPortForwarding = true,
                     AutoSaveLoadDhtCache = true,
                     AutoSaveLoadFastResume = true,
-                    // ListenPort = 55123, // 可以设置为随机端口
-                    MaximumConnections = 200,
-                    //MaximumDownloadSpeed = 0, // 无限制
-                    //MaximumUploadSpeed = 0,   // 无限制
-                    MaximumOpenFiles = 20
+                    ListenEndPoints = new Dictionary<string, IPEndPoint> {
+                        { "ipv4", new IPEndPoint(IPAddress.Any, 55123) },
+                        { "ipv6", new IPEndPoint(IPAddress.IPv6Any, 55123) }
+                    },
+                    MaximumConnections = 60,  // 优化连接数
+                    MaximumOpenFiles = 20,
+                    DhtEndPoint = new IPEndPoint(IPAddress.Any, 55124)
                 }.ToSettings();
 
                 // 初始化引擎
                 _engine = new ClientEngine(engineSettings);
-				//_engine.Settings.ListenPort = 55123;
-				// 设置监听端口
-				//engineSettings.ListenEndPoints.Add("ipv4", new IPEndPoint(IPAddress.Any, 55123));
-				//engineSettings.ListenEndPoints.Add("ipv6", new IPEndPoint(IPAddress.IPv6Any, 55123));
-				// 新版本MonoTorrent已移除DHT直接控制
-				// 引擎会自动处理DHT功能
-				// 启动DHT服务
-				//await _engine.Dht.//StartAsync();
-				// Use a fixed port for DHT communications for testing purposes. Production usages should use a random port, 0, if possible.
-				//engineSettings.DhtEndPoint = new IPEndPoint(IPAddress.Any, 55123),
-			}
-			catch (Exception ex)
+                //_engine.Settings.ListenPort = 55123;
+                // 设置监听端口
+                //engineSettings.ListenEndPoints.Add("ipv4", new IPEndPoint(IPAddress.Any, 55123));
+                //engineSettings.ListenEndPoints.Add("ipv6", new IPEndPoint(IPAddress.IPv6Any, 55123));
+                // 新版本MonoTorrent已移除DHT直接控制
+                // 引擎会自动处理DHT功能
+                // 启动DHT服务
+                //await _engine.Dht.//StartAsync();
+                // Use a fixed port for DHT communications for testing purposes. Production usages should use a random port, 0, if possible.
+                //engineSettings.DhtEndPoint = new IPEndPoint(IPAddress.Any, 55123),
+            }
+            catch (Exception ex)
             {
                 MessageBox.Show($"初始化BT下载引擎失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -82,8 +84,8 @@ namespace Zfile.Forms
         /// <param name="progressCallback">进度回调</param>
         /// <returns>下载任务ID</returns>
         public static async Task<string> AddMagnetLinkAsync(
-            string magnetLink, 
-            string savePath = null, 
+            string magnetLink,
+            string savePath = null,
             CancellationToken cancellationToken = default,
             Action<double, double, long, Dictionary<long, long>> progressCallback = null)
         {
@@ -93,13 +95,13 @@ namespace Zfile.Forms
                 if (_engine == null)
                     await InitializeAsync();
 
-				// 解析磁力链接
-				//var magnetLinkParser = new MagnetLinkParser();
-				var parsedLink = MagnetLink.Parse(magnetLink);//magnetLinkParser.Parse(magnetLink);
+                // 解析磁力链接
+                //var magnetLinkParser = new MagnetLinkParser();
+                var parsedLink = MagnetLink.Parse(magnetLink);//magnetLinkParser.Parse(magnetLink);
 
                 // 设置保存路径
-                string downloadDirectory = string.IsNullOrEmpty(savePath) 
-                    ? DefaultDownloadDirectory 
+                string downloadDirectory = string.IsNullOrEmpty(savePath)
+                    ? DefaultDownloadDirectory
                     : Path.GetDirectoryName(savePath);
 
                 // 创建种子设置
@@ -107,7 +109,8 @@ namespace Zfile.Forms
                 {
                     MaximumConnections = 60,
                     UploadSlots = 10,
-                    CreateContainingDirectory = true
+                    CreateContainingDirectory = true,
+                    AllowPeerExchange = true
                 }.ToSettings();
 
                 // 创建种子管理器
@@ -145,8 +148,8 @@ namespace Zfile.Forms
         /// <param name="progressCallback">进度回调</param>
         /// <returns>下载任务ID</returns>
         public static async Task<string> AddTorrentFileAsync(
-            string torrentFilePath, 
-            string savePath = null, 
+            string torrentFilePath,
+            string savePath = null,
             CancellationToken cancellationToken = default,
             Action<double, double, long, Dictionary<long, long>> progressCallback = null)
         {
@@ -160,8 +163,8 @@ namespace Zfile.Forms
                 var torrent = await Torrent.LoadAsync(torrentFilePath);
 
                 // 设置保存路径
-                string downloadDirectory = string.IsNullOrEmpty(savePath) 
-                    ? DefaultDownloadDirectory 
+                string downloadDirectory = string.IsNullOrEmpty(savePath)
+                    ? DefaultDownloadDirectory
                     : Path.GetDirectoryName(savePath);
 
                 // 创建种子设置
@@ -169,7 +172,8 @@ namespace Zfile.Forms
                 {
                     MaximumConnections = 60,
                     UploadSlots = 10,
-                    CreateContainingDirectory = true
+                    CreateContainingDirectory = true,
+                    AllowPeerExchange = true
                 }.ToSettings();
 
                 // 创建种子管理器
@@ -427,7 +431,7 @@ namespace Zfile.Forms
         /// </summary>
         private static void UpdateProgress(string torrentId)
         {
-            if (_activeTorrents.TryGetValue(torrentId, out var manager) && 
+            if (_activeTorrents.TryGetValue(torrentId, out var manager) &&
                 _progressCallbacks.TryGetValue(torrentId, out var callback))
             {
                 // 计算进度

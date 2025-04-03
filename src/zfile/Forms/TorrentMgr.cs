@@ -2,6 +2,7 @@ using MonoTorrent;
 using MonoTorrent.Client;
 using System.Net;
 using System.Text;
+using System.Diagnostics;
 
 namespace Zfile.Forms
 {
@@ -23,8 +24,8 @@ namespace Zfile.Forms
         private static ClientEngine _engine;
 
         // 活动的种子下载任务
-        private static Dictionary<string, MonoTorrent.Client.TorrentManager> _activeTorrents =
-            new Dictionary<string, MonoTorrent.Client.TorrentManager>();
+        private static Dictionary<string, TorrentManager> _activeTorrents =
+            new Dictionary<string, TorrentManager>();
 
         // 种子下载进度回调字典
         private static Dictionary<string, Action<double, double, long, Dictionary<long, long>>> _progressCallbacks =
@@ -44,34 +45,42 @@ namespace Zfile.Forms
                 // 创建引擎设置
                 var engineSettings = new EngineSettingsBuilder
                 {
+                    // 允许端口转发，提高连接性
                     AllowPortForwarding = true,
+                    // 自动保存和加载DHT缓存，提高DHT网络连接速度
                     AutoSaveLoadDhtCache = true,
+                    // 自动保存和加载快速恢复数据，避免重复哈希检查
                     AutoSaveLoadFastResume = true,
+                    // 自动保存和加载磁力链接元数据
+                    AutoSaveLoadMagnetLinkMetadata = true,
+                    // 设置监听端点，确保IPv4和IPv6都能正常工作
                     ListenEndPoints = new Dictionary<string, IPEndPoint> {
                         { "ipv4", new IPEndPoint(IPAddress.Any, 55123) },
                         { "ipv6", new IPEndPoint(IPAddress.IPv6Any, 55123) }
                     },
-                    MaximumConnections = 60,  // 优化连接数
+                    // 优化连接数
+                    MaximumConnections = 100,
+                    // 设置最大打开文件数
                     MaximumOpenFiles = 20,
-                    DhtEndPoint = new IPEndPoint(IPAddress.Any, 55124)
+                    // 设置DHT端点，注意与监听端口不同
+                    DhtEndPoint = new IPEndPoint(IPAddress.Any, 55124),
+                    // 设置磁盘缓存大小，提高读写性能
+                    DiskCacheBytes = 5 * 1024 * 1024
                 }.ToSettings();
 
                 // 初始化引擎
                 _engine = new ClientEngine(engineSettings);
-                //_engine.Settings.ListenPort = 55123;
-                // 设置监听端口
-                //engineSettings.ListenEndPoints.Add("ipv4", new IPEndPoint(IPAddress.Any, 55123));
-                //engineSettings.ListenEndPoints.Add("ipv6", new IPEndPoint(IPAddress.IPv6Any, 55123));
-                // 新版本MonoTorrent已移除DHT直接控制
-                // 引擎会自动处理DHT功能
-                // 启动DHT服务
-                //await _engine.Dht.//StartAsync();
-                // Use a fixed port for DHT communications for testing purposes. Production usages should use a random port, 0, if possible.
-                //engineSettings.DhtEndPoint = new IPEndPoint(IPAddress.Any, 55123),
+                
+                // 注册引擎事件
+                RegisterEngineEvents();
+                
+                Debug.Print($"BT下载引擎初始化成功，监听端口: {_engine.Settings.ListenEndPoints["ipv4"].Port}，DHT端口: {_engine.Settings.DhtEndPoint.Port}");
+                Debug.Print($"DHT状态: {_engine.Dht.State}, 最大连接数: {_engine.Settings.MaximumConnections}");
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"初始化BT下载引擎失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Debug.Print($"初始化BT下载引擎失败: {ex.Message}\n{ex.StackTrace}");
             }
         }
 
@@ -406,6 +415,34 @@ namespace Zfile.Forms
         /// <summary>
         /// 注册种子事件
         /// </summary>
+        /// <summary>
+        /// 注册引擎全局事件
+        /// </summary>
+        private static void RegisterEngineEvents()
+        {
+            //// 监听引擎状态变化
+            //_engine.TorrentRegistered += (sender, e) => {
+            //    Debug.Print($"种子注册: {e.TorrentManager.InfoHashes.V1?.ToHex() ?? "未知"}, 名称: {e.TorrentManager.Torrent?.Name ?? "未知"}，状态: {e.TorrentManager.State}");
+            //};
+
+            //// 监听DHT状态变化
+            //_engine.DhtStateChanged += (sender, e) => {
+            //    Debug.Print($"DHT状态变化: {e.NewState}, 节点数: {_engine.Dht.NodeCount}");
+            //};
+
+            //// 监听连接管理器事件
+            //_engine.ConnectionManager.PeerConnected += (sender, e) => {
+            //    Debug.Print($"全局连接成功: {e.Peer.Uri}");
+            //};
+
+            //_engine.ConnectionManager.PeerDisconnected += (sender, e) => {
+            //    Debug.Print($"全局连接断开: {e.Peer.Uri}");
+            //};
+        }
+
+        /// <summary>
+        /// 注册种子事件
+        /// </summary>
         private static void RegisterTorrentEvents(MonoTorrent.Client.TorrentManager manager)
         {
             string torrentId = manager.InfoHashes.V1.ToHex();
@@ -413,16 +450,38 @@ namespace Zfile.Forms
             // 进度更新事件
             manager.PieceHashed += (sender, e) =>
             {
+                Debug.Print($"片段哈希: {e.PieceIndex} - {(e.HashPassed ? "通过" : "失败")}");
                 UpdateProgress(torrentId);
             };
 
             // 下载完成事件
             manager.TorrentStateChanged += (sender, e) =>
             {
+                Debug.Print($"种子状态变化: {e.OldState} -> {e.NewState}");
                 if (e.NewState == TorrentState.Seeding || e.NewState == TorrentState.Stopped)
                 {
                     UpdateProgress(torrentId);
                 }
+            };
+
+            // Peer发现事件
+            manager.PeersFound += (sender, e) => {
+                Debug.Print($"发现Peers: {e.NewPeers} 个新Peers, {e.ExistingPeers} 个已存在Peers");
+            };
+
+            // Peer连接事件
+            manager.PeerConnected += (sender, e) => {
+                Debug.Print($"Peer连接成功: {e.Peer.Uri}, 客户端: {e.Peer.ClientApp.Client}");
+            };
+
+            // Peer连接失败事件
+            manager.ConnectionAttemptFailed += (sender, e) => {
+                Debug.Print($"Peer连接失败: {e.Peer.ConnectionUri}, 原因: {e.Reason}");
+            };
+
+            // Tracker事件
+            manager.TrackerManager.AnnounceComplete += (sender, e) => {
+                Debug.Print($"Tracker公告完成: {e.Tracker}, 成功: {e.Successful}, 消息: {e.Tracker.FailureMessage ?? "无"}");
             };
         }
 
@@ -438,6 +497,19 @@ namespace Zfile.Forms
                 double progress = manager.Progress;
                 double speed = manager.Monitor.DownloadSpeed;
                 long totalSize = manager.Torrent?.Size ?? 0;
+                
+                // 输出调试信息
+                Debug.Print($"更新进度: {manager.Torrent?.Name ?? "未知"}, 进度: {progress:F2}%, 速度: {speed/1024:F2} KB/s");
+                Debug.Print($"已下载: {manager.Monitor.DataBytesDownloaded/1024/1024:F2} MB, 已上传: {manager.Monitor.DataBytesUploaded/1024/1024:F2} MB");
+                Debug.Print($"连接数: {manager.OpenConnections}, 可用Peers: {manager.Peers?.Available ?? 0}");
+                
+                // 如果下载速度为零，尝试输出更多诊断信息
+                if (speed < 100) // 小于100字节/秒视为实际无下载
+                {
+                    Debug.Print($"警告: 下载速度过低! 状态: {manager.State}, DHT状态: {_engine.Dht.State}");
+                    Debug.Print($"DHT节点数: {_engine.Dht.NodeCount}, 引擎连接数: {_engine.ConnectionManager.OpenConnections}");
+                    //Debug.Print($"Tracker状态: {(manager.TrackerManager.CurrentTracker != null ? manager.TrackerManager.CurrentTracker.Status.ToString() : "无活动Tracker")}");
+                }
 
                 // 创建分块进度字典（简化处理）
                 var chunksProgress = new Dictionary<long, long>();

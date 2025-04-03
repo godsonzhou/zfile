@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 
+namespace Zfile;
 public class ChunkDownloader
 {
 	public string _url;
@@ -211,26 +212,179 @@ public class ChunkDownloader
 	}
 }
 
-// 使用示例
-public class Idm
+/// <summary>
+/// 带进度报告的分块下载器
+/// </summary>
+public class ChunkDownloaderWithProgress : ChunkDownloader
 {
-	public static async Task Start(string url, string localfile, int chunks = 4)
-	{
-		var downloader = new ChunkDownloader(
-			url, //"https://example.com/large-file.zip",
-			localfile, //"downloaded-file.zip",
-			chunks: chunks // 4 chunks by default
-		);
+	private readonly Action<double, double, long, Dictionary<long, long>> _progressCallback;
+	private long _lastReportTime;
+	private long _lastDownloadedBytes;
+	private double _currentSpeed;
 
+	public ChunkDownloaderWithProgress(string url, string savePath, int chunks = 4,
+		Action<double, double, long, Dictionary<long, long>> progressCallback = null)
+		: base(url, savePath, chunks)
+	{
+		_progressCallback = progressCallback;
+		_lastReportTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+	}
+
+	/// <summary>
+	/// 重写进度显示方法，添加进度回调
+	/// </summary>
+	protected async Task ShowProgressAsync(long totalSize)
+	{
+		while (true)
+		{
+			var downloaded = _progress.Values.Sum();
+			var progress = (double)downloaded / totalSize * 100;
+
+			// 计算下载速度
+			long currentTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+			long timeElapsed = currentTime - _lastReportTime;
+
+			if (timeElapsed > 0)
+			{
+				long bytesChange = downloaded - _lastDownloadedBytes;
+				_currentSpeed = bytesChange * 1000.0 / timeElapsed; // bytes per second
+
+				_lastReportTime = currentTime;
+				_lastDownloadedBytes = downloaded;
+			}
+
+			Debug.Print($"Progress: {progress:F2}% ({downloaded}/{totalSize}) Speed: {FormatSpeed(_currentSpeed)}");
+
+			// 创建分块进度的副本，避免并发修改问题
+			Dictionary<long, long> progressCopy = new Dictionary<long, long>(_progress);
+
+			// 调用进度回调，传递分块进度信息
+			_progressCallback?.Invoke(progress, _currentSpeed, totalSize, progressCopy);
+
+			if (downloaded >= totalSize) break;
+			await Task.Delay(1000);
+		}
+	}
+
+	/// <summary>
+	/// 格式化速度显示
+	/// </summary>
+	private string FormatSpeed(double bytesPerSecond)
+	{
+		if (bytesPerSecond < 1024) return $"{bytesPerSecond:F2} B/s";
+		if (bytesPerSecond < 1024 * 1024) return $"{bytesPerSecond / 1024:F2} KB/s";
+		if (bytesPerSecond < 1024 * 1024 * 1024) return $"{bytesPerSecond / (1024 * 1024):F2} MB/s";
+		return $"{bytesPerSecond / (1024 * 1024 * 1024):F2} GB/s";
+	}
+
+	/// <summary>
+	/// 重写下载方法，添加取消令牌支持
+	/// </summary>
+	public async Task DownloadAsync(CancellationToken cancellationToken = default)
+	{
+		// 获取文件总大小
+		var totalSize = await GetFileSizeAsync();
+		if (totalSize == 0)
+		{
+			Debug.Print("total size = 0");
+			return;
+		}
+		// 初始化/恢复下载进度
+		var chunks = InitializeChunks(totalSize);
+
+		// 创建/打开临时文件
+		using var fileStream = new FileStream(_tempFile, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Write);
+		fileStream.SetLength(totalSize);
+
+		// 多线程下载
+		var tasks = new Task[_chunks];
+		for (int i = 0; i < _chunks; i++)
+		{
+			int chunkId = i;
+			tasks[i] = DownloadChunkAsync(chunks[chunkId], fileStream, cancellationToken);
+		}
+
+		// 显示进度
+		var progressTask = ShowProgressAsync(totalSize);
+
+		// 等待所有任务完成或取消
 		try
 		{
-			await downloader.DownloadAsync();
-			Debug.Print("Download completed successfully!");
+			await Task.WhenAll(tasks);
+			await progressTask;
+
+			// 重命名临时文件
+			File.Move(_tempFile, _savePath, true);
 		}
-		catch (Exception ex)
+		catch
 		{
-			Debug.Print($"Download failed: {ex.Message}");
-			Debug.Print("Resume the download later by rerunning the program");
+			// 如果任务被取消，保留临时文件和进度文件以便后续恢复
+			throw;
 		}
+	}
+
+	/// <summary>
+	/// 重写分块下载方法，添加取消令牌支持
+	/// </summary>
+	protected async Task DownloadChunkAsync((long Start, long End) range, FileStream fileStream, CancellationToken cancellationToken)
+	{
+		int retry = 0;
+		const int maxRetries = 5;
+
+		while (retry < maxRetries)
+		{
+			try
+			{
+				// 检查取消令牌
+				cancellationToken.ThrowIfCancellationRequested();
+
+				using var request = new HttpRequestMessage(HttpMethod.Get, _url);
+				request.Headers.Range = new System.Net.Http.Headers.RangeHeaderValue(range.Start + _progress.GetValueOrDefault<long, long>(range.Start), range.End);
+
+				using var response = await _client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+				using var stream = await response.Content.ReadAsStreamAsync();
+
+				var buffer = new byte[8192];
+				int bytesRead;
+				long totalRead = _progress.GetValueOrDefault<long, long>(range.Start);
+
+				while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
+				{
+					lock (fileStream)
+					{
+						fileStream.Seek(range.Start + totalRead, SeekOrigin.Begin);
+						fileStream.Write(buffer, 0, bytesRead);
+					}
+
+					totalRead += bytesRead;
+					_progress[range.Start] = totalRead;
+
+					try
+					{
+						SaveProgress();
+					}
+					catch (IOException ex)
+					{
+						Debug.Print($"保存进度文件时出错: {ex.Message}");
+						// 继续下载，不中断进程
+					}
+
+					// 检查取消令牌
+					cancellationToken.ThrowIfCancellationRequested();
+				}
+				return;
+			}
+			catch (OperationCanceledException)
+			{
+				// 重新抛出取消异常
+				throw;
+			}
+			catch (Exception ex) when (retry < maxRetries - 1)
+			{
+				retry++;
+				await Task.Delay(1000 * retry, cancellationToken);
+			}
+		}
+		throw new Exception($"Chunk download failed after {maxRetries} retries");
 	}
 }

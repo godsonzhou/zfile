@@ -63,7 +63,7 @@ namespace Zfile
                     // 设置最大打开文件数
                     MaximumOpenFiles = 20,
                     // 设置DHT端点，注意与监听端口不同
-                    DhtEndPoint = new IPEndPoint(IPAddress.Any, 55124),
+                    DhtEndPoint = new IPEndPoint(IPAddress.Any, 55123),
                     // 设置磁盘缓存大小，提高读写性能
                     DiskCacheBytes = 5 * 1024 * 1024
                 }.ToSettings();
@@ -126,7 +126,7 @@ namespace Zfile
                 var manager = await _engine.AddAsync(parsedLink, downloadDirectory, torrentSettings);
 
                 // 生成唯一ID
-                string torrentId = manager.InfoHashes.V1.ToHex();
+                string torrentId = manager.InfoHashes.V1OrV2.ToHex();
 
                 // 保存管理器和回调
                 _activeTorrents[torrentId] = manager;
@@ -180,16 +180,16 @@ namespace Zfile
                 var torrentSettings = new TorrentSettingsBuilder
                 {
                     MaximumConnections = 60,
-                    UploadSlots = 10,
-                    CreateContainingDirectory = true,
-                    AllowPeerExchange = true
+                    //UploadSlots = 10,
+                    //CreateContainingDirectory = true,
+                    //AllowPeerExchange = true
                 }.ToSettings();
 
                 // 创建种子管理器
                 var manager = await _engine.AddAsync(torrent, downloadDirectory, torrentSettings);
 
                 // 生成唯一ID
-                string torrentId = manager.InfoHashes.V1.ToHex();
+                string torrentId = manager.InfoHashes.V1OrV2.ToHex();
 
                 // 保存管理器和回调
                 _activeTorrents[torrentId] = manager;
@@ -263,11 +263,11 @@ namespace Zfile
                 {
                     Name = manager.Torrent?.Name ?? "未知",
                     Size = manager.Torrent?.Size ?? 0,
-                    DownloadedBytes = manager.Monitor.DataBytesDownloaded,
-                    UploadedBytes = manager.Monitor.DataBytesUploaded,
+                    DownloadedBytes = manager.Monitor.DataBytesReceived,
+                    UploadedBytes = manager.Monitor.DataBytesSent,
                     Progress = manager.Progress,
-                    DownloadSpeed = manager.Monitor.DownloadSpeed,
-                    UploadSpeed = manager.Monitor.UploadSpeed,
+                    DownloadSpeed = manager.Monitor.DownloadRate,
+                    UploadSpeed = manager.Monitor.UploadRate,
                     State = manager.State.ToString(),
                     Peers = manager.Peers.Available,
                     Seeds = manager.Peers.Seeds,
@@ -298,11 +298,11 @@ namespace Zfile
                 {
                     Name = manager.Torrent?.Name ?? "未知",
                     Size = manager.Torrent?.Size ?? 0,
-                    DownloadedBytes = manager.Monitor.DataBytesDownloaded,
-                    UploadedBytes = manager.Monitor.DataBytesUploaded,
+                    DownloadedBytes = manager.Monitor.DataBytesReceived,
+                    UploadedBytes = manager.Monitor.DataBytesSent,
                     Progress = manager.Progress,
-                    DownloadSpeed = manager.Monitor.DownloadSpeed,
-                    UploadSpeed = manager.Monitor.UploadSpeed,
+                    DownloadSpeed = manager.Monitor.DownloadRate,
+                    UploadSpeed = manager.Monitor.UploadRate,
                     State = manager.State.ToString(),
                     InfoHash = torrentId,
                     CreatedTime = DateTime.Now, // 这里应该从任务创建时保存
@@ -380,12 +380,12 @@ namespace Zfile
                     debugInfo.AppendLine($"最大连接数: {_engine.Settings.MaximumConnections}");
                     //debugInfo.AppendLine($"下载速度限制: {(_engine.Settings.MaximumDownloadSpeed == 0 ? "无限制" : $"{_engine.Settings.MaximumDownloadSpeed / 1024} KB/s")}");
                     //debugInfo.AppendLine($"上传速度限制: {(_engine.Settings.MaximumUploadSpeed == 0 ? "无限制" : $"{_engine.Settings.MaximumUploadSpeed / 1024} KB/s")}");
-                    debugInfo.AppendLine($"当前下载速度: {manager.Monitor.DownloadSpeed / 1024:F2} KB/s");
-                    debugInfo.AppendLine($"当前上传速度: {manager.Monitor.UploadSpeed / 1024:F2} KB/s");
-                    debugInfo.AppendLine($"已下载数据: {manager.Monitor.DataBytesDownloaded / (1024 * 1024):F2} MB");
-                    debugInfo.AppendLine($"已上传数据: {manager.Monitor.DataBytesUploaded / (1024 * 1024):F2} MB");
-                    debugInfo.AppendLine($"协议下载: {manager.Monitor.ProtocolBytesDownloaded / 1024:F2} KB");
-                    debugInfo.AppendLine($"协议上传: {manager.Monitor.ProtocolBytesUploaded / 1024:F2} KB");
+                    debugInfo.AppendLine($"当前下载速度: {manager.Monitor.DownloadRate / 1024:F2} KB/s");
+                    debugInfo.AppendLine($"当前上传速度: {manager.Monitor.UploadRate / 1024:F2} KB/s");
+                    debugInfo.AppendLine($"已下载数据: {manager.Monitor.DataBytesReceived / (1024 * 1024):F2} MB");
+                    debugInfo.AppendLine($"已上传数据: {manager.Monitor.DataBytesSent / (1024 * 1024):F2} MB");
+                    debugInfo.AppendLine($"协议下载: {manager.Monitor.ProtocolBytesReceived / 1024:F2} KB");
+                    debugInfo.AppendLine($"协议上传: {manager.Monitor.ProtocolBytesSent / 1024:F2} KB");
                     //debugInfo.AppendLine($"废弃数据: {manager.Monitor..WastedBytes / 1024:F2} KB");
                     //debugInfo.AppendLine($"已接收块: {manager.Monitor.BlocksReceived}");
                     //debugInfo.AppendLine($"已发送块: {manager.Monitor.BlocksSent}");
@@ -445,7 +445,7 @@ namespace Zfile
         /// </summary>
         private static void RegisterTorrentEvents(TorrentManager manager)
         {
-            string torrentId = manager.InfoHashes.V1.ToHex();
+            string torrentId = manager.InfoHashes.V1OrV2.ToHex();
 
             // 进度更新事件
             manager.PieceHashed += (sender, e) =>
@@ -495,12 +495,12 @@ namespace Zfile
             {
                 // 计算进度
                 double progress = manager.Progress;
-                double speed = manager.Monitor.DownloadSpeed;
+                double speed = manager.Monitor.DownloadRate;
                 long totalSize = manager.Torrent?.Size ?? 0;
                 
                 // 输出调试信息
                 Debug.Print($"更新进度: {manager.Torrent?.Name ?? "未知"}, 进度: {progress:F2}%, 速度: {speed/1024:F2} KB/s");
-                Debug.Print($"已下载: {manager.Monitor.DataBytesDownloaded/1024/1024:F2} MB, 已上传: {manager.Monitor.DataBytesUploaded/1024/1024:F2} MB");
+                Debug.Print($"已下载: {manager.Monitor.DataBytesReceived/1024/1024:F2} MB, 已上传: {manager.Monitor.DataBytesSent/1024/1024:F2} MB");
                 Debug.Print($"连接数: {manager.OpenConnections}, 可用Peers: {manager.Peers?.Available ?? 0}");
                 
                 // 如果下载速度为零，尝试输出更多诊断信息

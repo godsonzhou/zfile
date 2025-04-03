@@ -27,7 +27,7 @@ namespace Zfile
         {
             try
             {
-                await Idm.Start(url, savePath, chunks);
+                await IdmExtensions.Start(url, savePath, chunks);
             }
             catch (Exception ex)
             {

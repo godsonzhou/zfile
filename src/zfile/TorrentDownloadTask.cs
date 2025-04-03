@@ -6,8 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using MonoTorrent;
 using MonoTorrent.Client;
+using Zfile.Forms;
 
-namespace Zfile.Forms
+namespace Zfile
 {
     /// <summary>
     /// 种子下载任务类，继承自DownloadTask，用于处理磁力链接和种子文件下载

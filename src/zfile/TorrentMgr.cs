@@ -4,7 +4,7 @@ using System.Net;
 using System.Text;
 using System.Diagnostics;
 
-namespace Zfile.Forms
+namespace Zfile
 {
     /// <summary>
     /// 种子下载管理器，提供磁力链接和种子文件下载功能
@@ -443,7 +443,7 @@ namespace Zfile.Forms
         /// <summary>
         /// 注册种子事件
         /// </summary>
-        private static void RegisterTorrentEvents(MonoTorrent.Client.TorrentManager manager)
+        private static void RegisterTorrentEvents(TorrentManager manager)
         {
             string torrentId = manager.InfoHashes.V1.ToHex();
 

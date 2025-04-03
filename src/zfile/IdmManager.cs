@@ -1,13 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Net;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+using Zfile.Forms;
 
-namespace Zfile.Forms
+namespace Zfile
 {
     /// <summary>
     /// IDM下载管理器，提供UI界面与下载功能的连接

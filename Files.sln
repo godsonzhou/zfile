@@ -49,6 +49,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoTorrent.Dht", "src\mono
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoTorrent.Connections", "src\monotorrent\src\MonoTorrent.Connections\MonoTorrent.Connections.csproj", "{F9EEA346-554A-F167-91E4-57E8D483CBDC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DhtSample", "src\monotorrent\src\Samples\DhtSampleClient\DhtSample.csproj", "{FB736591-E53E-69D9-7D4A-A0316B03429C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientSample", "src\monotorrent\src\Samples\SampleClient\ClientSample.csproj", "{0C430FFF-C4AB-B3DD-EC60-D350981F3DB9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -397,6 +401,38 @@ Global
 		{F9EEA346-554A-F167-91E4-57E8D483CBDC}.Release|x64.Build.0 = Release|Any CPU
 		{F9EEA346-554A-F167-91E4-57E8D483CBDC}.Release|x86.ActiveCfg = Release|Any CPU
 		{F9EEA346-554A-F167-91E4-57E8D483CBDC}.Release|x86.Build.0 = Release|Any CPU
+		{FB736591-E53E-69D9-7D4A-A0316B03429C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB736591-E53E-69D9-7D4A-A0316B03429C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB736591-E53E-69D9-7D4A-A0316B03429C}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{FB736591-E53E-69D9-7D4A-A0316B03429C}.Debug|arm64.Build.0 = Debug|Any CPU
+		{FB736591-E53E-69D9-7D4A-A0316B03429C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FB736591-E53E-69D9-7D4A-A0316B03429C}.Debug|x64.Build.0 = Debug|Any CPU
+		{FB736591-E53E-69D9-7D4A-A0316B03429C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FB736591-E53E-69D9-7D4A-A0316B03429C}.Debug|x86.Build.0 = Debug|Any CPU
+		{FB736591-E53E-69D9-7D4A-A0316B03429C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB736591-E53E-69D9-7D4A-A0316B03429C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB736591-E53E-69D9-7D4A-A0316B03429C}.Release|arm64.ActiveCfg = Release|Any CPU
+		{FB736591-E53E-69D9-7D4A-A0316B03429C}.Release|arm64.Build.0 = Release|Any CPU
+		{FB736591-E53E-69D9-7D4A-A0316B03429C}.Release|x64.ActiveCfg = Release|Any CPU
+		{FB736591-E53E-69D9-7D4A-A0316B03429C}.Release|x64.Build.0 = Release|Any CPU
+		{FB736591-E53E-69D9-7D4A-A0316B03429C}.Release|x86.ActiveCfg = Release|Any CPU
+		{FB736591-E53E-69D9-7D4A-A0316B03429C}.Release|x86.Build.0 = Release|Any CPU
+		{0C430FFF-C4AB-B3DD-EC60-D350981F3DB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C430FFF-C4AB-B3DD-EC60-D350981F3DB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C430FFF-C4AB-B3DD-EC60-D350981F3DB9}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{0C430FFF-C4AB-B3DD-EC60-D350981F3DB9}.Debug|arm64.Build.0 = Debug|Any CPU
+		{0C430FFF-C4AB-B3DD-EC60-D350981F3DB9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0C430FFF-C4AB-B3DD-EC60-D350981F3DB9}.Debug|x64.Build.0 = Debug|Any CPU
+		{0C430FFF-C4AB-B3DD-EC60-D350981F3DB9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0C430FFF-C4AB-B3DD-EC60-D350981F3DB9}.Debug|x86.Build.0 = Debug|Any CPU
+		{0C430FFF-C4AB-B3DD-EC60-D350981F3DB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C430FFF-C4AB-B3DD-EC60-D350981F3DB9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C430FFF-C4AB-B3DD-EC60-D350981F3DB9}.Release|arm64.ActiveCfg = Release|Any CPU
+		{0C430FFF-C4AB-B3DD-EC60-D350981F3DB9}.Release|arm64.Build.0 = Release|Any CPU
+		{0C430FFF-C4AB-B3DD-EC60-D350981F3DB9}.Release|x64.ActiveCfg = Release|Any CPU
+		{0C430FFF-C4AB-B3DD-EC60-D350981F3DB9}.Release|x64.Build.0 = Release|Any CPU
+		{0C430FFF-C4AB-B3DD-EC60-D350981F3DB9}.Release|x86.ActiveCfg = Release|Any CPU
+		{0C430FFF-C4AB-B3DD-EC60-D350981F3DB9}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

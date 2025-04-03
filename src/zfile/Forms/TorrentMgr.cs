@@ -58,8 +58,8 @@ namespace Zfile.Forms
                 _engine = new ClientEngine(engineSettings);
 				//_engine.Settings.ListenPort = 55123;
 				// 设置监听端口
-				engineSettings.ListenEndPoints.Add("ipv4", new IPEndPoint(IPAddress.Any, 55123));
-				engineSettings.ListenEndPoints.Add("ipv6", new IPEndPoint(IPAddress.IPv6Any, 55123));
+				//engineSettings.ListenEndPoints.Add("ipv4", new IPEndPoint(IPAddress.Any, 55123));
+				//engineSettings.ListenEndPoints.Add("ipv6", new IPEndPoint(IPAddress.IPv6Any, 55123));
 				// 新版本MonoTorrent已移除DHT直接控制
 				// 引擎会自动处理DHT功能
 				// 启动DHT服务

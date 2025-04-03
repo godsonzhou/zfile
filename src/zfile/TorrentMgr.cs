@@ -58,14 +58,16 @@ namespace Zfile
                         { "ipv4", new IPEndPoint(IPAddress.Any, 55123) },
                         { "ipv6", new IPEndPoint(IPAddress.IPv6Any, 55123) }
                     },
-                    // 优化连接数
-                    MaximumConnections = 100,
+					// For now just bind to localhost.
+					HttpStreamingPrefix = $"http://127.0.0.1:55125/",
+					// 优化连接数
+					//MaximumConnections = 100,
                     // 设置最大打开文件数
-                    MaximumOpenFiles = 20,
+                    //MaximumOpenFiles = 20,
                     // 设置DHT端点，注意与监听端口不同
-                    DhtEndPoint = new IPEndPoint(IPAddress.Any, 55123),
+                    DhtEndPoint = new IPEndPoint(IPAddress.Any, 55123)
                     // 设置磁盘缓存大小，提高读写性能
-                    DiskCacheBytes = 5 * 1024 * 1024
+                    //DiskCacheBytes = 5 * 1024 * 1024
                 }.ToSettings();
 
                 // 初始化引擎
@@ -244,7 +246,8 @@ namespace Zfile
         {
             if (_activeTorrents.TryGetValue(torrentId, out var manager))
             {
-                await _engine.RemoveAsync(manager, deleteFiles ? RemoveMode.CacheDataAndDownloadedData : RemoveMode.CacheDataOnly);
+				await manager.StopAsync(); // Ensure the manager is stopped
+				await _engine.RemoveAsync(manager, deleteFiles ? RemoveMode.CacheDataAndDownloadedData : RemoveMode.CacheDataOnly);
                 _activeTorrents.Remove(torrentId);
                 _progressCallbacks.Remove(torrentId);
             }

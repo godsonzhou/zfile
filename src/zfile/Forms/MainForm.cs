@@ -2637,6 +2637,9 @@ namespace Zfile
 		public static string ConvertStringArrayToStringSeperateWithZeroDelimiter(string[] input)
 		{
 			string result = "";
+			// Filenames must be relative to archive root and shouldn't start with path delimiter.
+			// TC ends paths to directories to be deleted with '\*.*'
+			// (which means delete this directory and all files in it).
 			foreach (string str in input)
 				result += (str) + '\0';
 			result += '\0';
@@ -2655,7 +2658,15 @@ namespace Zfile
 				return false;
 			}
 			//OpenArchive(archivePath, UnpackFlags.PK_OM_EXTRACT);
-			string fileList = string.Join("\0", files) + "\0\0";
+			//string fileList = string.Join("\0", files) + "\0\0";
+			string fileList = ConvertStringArrayToStringSeperateWithZeroDelimiter(files);
+			Encoding utf8Encoding = Encoding.UTF8;
+			int byteCount = utf8Encoding.GetByteCount(fileList);
+			Debug.Print($"字符串在 UTF - 8 编码下的字节数: {byteCount}");
+
+			Encoding asciiEncoding = Encoding.ASCII;
+			byteCount = asciiEncoding.GetByteCount(fileList);
+			Debug.Print($"字符串在 ASCII 编码下的字节数: {byteCount}");
 			return wcxModule.DeleteFiles(archivePath, fileList) == 0; // archivepath should be full path and name of the the archive.
 		}
 

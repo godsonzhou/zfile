@@ -1,5 +1,6 @@
 using MonoTorrent;
 using MonoTorrent.Client;
+using System.Net;
 using System.Text;
 
 namespace Zfile.Forms
@@ -55,11 +56,18 @@ namespace Zfile.Forms
 
                 // 初始化引擎
                 _engine = new ClientEngine(engineSettings);
-                //_engine.Settings.ListenPort = 55123;
-                // 启动DHT服务
-                //await _engine.Dht.//StartAsync();
-            }
-            catch (Exception ex)
+				//_engine.Settings.ListenPort = 55123;
+				// 设置监听端口
+				engineSettings.ListenEndPoints.Add("ipv4", new IPEndPoint(IPAddress.Any, 55123));
+				engineSettings.ListenEndPoints.Add("ipv6", new IPEndPoint(IPAddress.IPv6Any, 55123));
+				// 新版本MonoTorrent已移除DHT直接控制
+				// 引擎会自动处理DHT功能
+				// 启动DHT服务
+				//await _engine.Dht.//StartAsync();
+				// Use a fixed port for DHT communications for testing purposes. Production usages should use a random port, 0, if possible.
+				//engineSettings.DhtEndPoint = new IPEndPoint(IPAddress.Any, 55123),
+			}
+			catch (Exception ex)
             {
                 MessageBox.Show($"初始化BT下载引擎失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }

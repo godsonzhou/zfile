@@ -33,7 +33,6 @@
     <PackageReference Include="LibVLCSharp.WinForms" Version="3.9.2" />
     <PackageReference Include="MCPSharp" Version="1.0.6" />
     <PackageReference Include="Microsoft.WindowsAPICodePack.Shell" Version="1.1.0" />
-    <PackageReference Include="MonoTorrent" Version="3.0.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="OpenAI" Version="2.1.0" />
     <PackageReference Include="PdfiumViewer" Version="2.13.0" />
@@ -47,6 +46,17 @@
   <ItemGroup>
     <ProjectReference Include="..\FluentFTP\FluentFTP\FluentFTP.csproj" />
     <ProjectReference Include="..\ICSharpCode.TextEditor\Project\ICSharpCode.TextEditor.csproj" />
+    <ProjectReference Include="..\monotorrent\src\MonoTorrent.BEncoding\MonoTorrent.BEncoding.csproj" />
+    <ProjectReference Include="..\monotorrent\src\MonoTorrent.Client\MonoTorrent.Client.csproj" />
+    <ProjectReference Include="..\monotorrent\src\MonoTorrent.Connections\MonoTorrent.Connections.csproj" />
+    <ProjectReference Include="..\monotorrent\src\MonoTorrent.Dht\MonoTorrent.Dht.csproj" />
+    <ProjectReference Include="..\monotorrent\src\MonoTorrent.Factories\MonoTorrent.Factories.csproj" />
+    <ProjectReference Include="..\monotorrent\src\MonoTorrent.Messages\MonoTorrent.Messages.csproj" />
+    <ProjectReference Include="..\monotorrent\src\MonoTorrent.PiecePicking\MonoTorrent.PiecePicking.csproj" />
+    <ProjectReference Include="..\monotorrent\src\MonoTorrent.PieceWriter\MonoTorrent.PieceWriter.csproj" />
+    <ProjectReference Include="..\monotorrent\src\MonoTorrent.PortForwarding\MonoTorrent.PortForwarding.csproj" />
+    <ProjectReference Include="..\monotorrent\src\MonoTorrent.Trackers\MonoTorrent.Trackers.csproj" />
+    <ProjectReference Include="..\monotorrent\src\MonoTorrent\MonoTorrent.csproj" />
     <ProjectReference Include="..\Sheng.Winform.Controls\Sheng.Winform.Controls.csproj" />
     <ProjectReference Include="..\WinShell\WinShell\WinShell.csproj" />
   </ItemGroup>

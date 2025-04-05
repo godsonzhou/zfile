@@ -7,14 +7,14 @@ namespace Zfile.Forms
 {
     public partial class IdmForm : Form
     {
-        private List<DownloadTask> downloadTasks = new List<DownloadTask>();
-        private CancellationTokenSource cancellationTokenSource;
-        private bool isClosing = false;
+		private IdmManager idmMgr;
+		private bool isClosing = false;
 		private ToolStripMenuItem torrentDetailMenuItem;
 
-		public IdmForm()
+		public IdmForm(IdmManager idmmgr)
         {
-            InitializeComponent();
+			idmMgr = idmmgr;
+			InitializeComponent();
             InitializeDownloadList();
             InitializeTorrentEngine();
         }
@@ -352,9 +352,10 @@ namespace Zfile.Forms
 		private async void IdmForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             isClosing = true;
-            if (cancellationTokenSource != null)
-            {
-                cancellationTokenSource.Cancel();
+            foreach(var task in idmMgr.downloadTasks)
+			{
+				if(task.CancellationTokenSource != null)
+					task?.CancellationTokenSource?.Cancel();
             }
 
             // 保存下载任务状态
@@ -444,7 +445,7 @@ namespace Zfile.Forms
 
         private void StopAll_Click(object sender, EventArgs e)
         {
-            foreach (var task in downloadTasks)
+            foreach (var task in idmMgr.downloadTasks)
             {
                 if (task.Status == DownloadStatus.Downloading)
                 {
@@ -455,7 +456,7 @@ namespace Zfile.Forms
 
         private void ResumeAll_Click(object sender, EventArgs e)
         {
-            foreach (var task in downloadTasks)
+            foreach (var task in idmMgr.downloadTasks)
             {
                 if (task.Status != DownloadStatus.Completed)
                 {
@@ -494,17 +495,17 @@ namespace Zfile.Forms
 
         private void DeleteAll_Click(object sender, EventArgs e)
         {
-            if (downloadTasks.Count > 0)
+            if (idmMgr.downloadTasks.Count > 0)
             {
                 if (MessageBox.Show("确定要删除所有下载任务吗？", "确认删除", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
-                    foreach (var task in downloadTasks.ToList())
+                    foreach (var task in idmMgr.downloadTasks.ToList())
                     {
                         PauseDownloadTask(task);
                         RemoveDownloadTask(task);
                     }
 
-                    downloadTasks.Clear();
+                    idmMgr.downloadTasks.Clear();
                     UpdateDownloadListView();
                 }
             }
@@ -550,7 +551,7 @@ namespace Zfile.Forms
                 };
                 
                 // 添加到下载任务列表
-                downloadTasks.Add(task);
+                idmMgr.downloadTasks.Add(task);
                 
                 // 更新UI
                 UpdateDownloadListView();
@@ -738,7 +739,7 @@ namespace Zfile.Forms
                 CreatedTime = DateTime.Now
             };
 
-            downloadTasks.Add(task);
+            idmMgr.downloadTasks.Add(task);
             UpdateDownloadListView();
             ResumeDownloadTask(task);
         }
@@ -773,7 +774,7 @@ namespace Zfile.Forms
                 }
             }
 
-            downloadTasks.Remove(task);
+            idmMgr.downloadTasks.Remove(task);
         }
 
         private ProgressDialog progressDialog = null;
@@ -949,23 +950,23 @@ namespace Zfile.Forms
 
             downloadListView.Items.Clear();
 
-            var filteredTasks = downloadTasks;
+            var filteredTasks = idmMgr.downloadTasks;
 
             // 根据分类筛选
             switch (category)
             {
                 case "未完成":
-                    filteredTasks = downloadTasks.Where(t => t.Status != DownloadStatus.Completed).ToList();
+                    filteredTasks = idmMgr.downloadTasks.Where(t => t.Status != DownloadStatus.Completed).ToList();
                     break;
                 case "已完成":
-                    filteredTasks = downloadTasks.Where(t => t.Status == DownloadStatus.Completed).ToList();
+                    filteredTasks = idmMgr.downloadTasks.Where(t => t.Status == DownloadStatus.Completed).ToList();
                     break;
                 case "压缩文件":
                 case "文档":
                 case "音乐":
                 case "程序":
                 case "视频":
-                    filteredTasks = downloadTasks.Where(t => GetFileCategory(t.FileName) == category).ToList();
+                    filteredTasks = idmMgr.downloadTasks.Where(t => GetFileCategory(t.FileName) == category).ToList();
                     break;
             }
 
@@ -1038,7 +1039,7 @@ namespace Zfile.Forms
         private async void SaveDownloadTasks()
         {
             // 保存下载任务到配置文件，这里简化处理
-            Debug.WriteLine($"保存了 {downloadTasks.Count} 个下载任务");
+            Debug.WriteLine($"保存了 {idmMgr.downloadTasks.Count} 个下载任务");
         }
 
         #endregion
@@ -1414,8 +1415,7 @@ namespace Zfile.Forms
         // 显示IDM下载管理器窗口
         public static void ShowIdmForm()
         {
-            var form = new IdmForm();
-            form.Show();
+          
         }
     }
 

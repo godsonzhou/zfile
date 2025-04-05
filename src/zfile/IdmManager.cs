@@ -10,13 +10,16 @@ namespace Zfile
     /// </summary>
     public class IdmManager
     {
-        /// <summary>
-        /// 显示IDM下载管理器窗口
-        /// </summary>
-        public void ShowIdmForm()
+		public List<DownloadTask> downloadTasks = new List<DownloadTask>();
+		//private CancellationTokenSource cancellationTokenSource;
+		/// <summary>
+		/// 显示IDM下载管理器窗口
+		/// </summary>
+		public void ShowIdmForm()
         {
-            IdmForm.ShowIdmForm();
-        }
+			var form = new IdmForm(this);
+			form.Show();
+		}
 
         /// <summary>
         /// 启动下载任务
@@ -329,7 +332,7 @@ namespace Zfile
 		/// <param name="headers">HTTP请求头</param>
 		/// <param name="cookies">Cookies</param>
 		/// <param name="referrer">引用页</param>
-		public static void DownloadFile(string url, string savePath = null, Dictionary<string, string> headers = null, string cookies = null, string referrer = null)
+		public void DownloadFile(string url, string savePath = null, Dictionary<string, string> headers = null, string cookies = null, string referrer = null)
 		{
 			try
 			{
@@ -338,7 +341,7 @@ namespace Zfile
 				if (string.IsNullOrEmpty(savePath))
 				{
 					// 弹出新建下载对话框
-					using (var dialog = new IdmForm())
+					using (var dialog = new IdmForm(this))
 					{
 						// 预填充URL
 						if (!string.IsNullOrEmpty(url))

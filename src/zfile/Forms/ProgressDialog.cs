@@ -250,6 +250,11 @@ namespace Zfile.Forms
 
         private void CancelButton_Click(object sender, EventArgs e)
         {
+			if (_status == DownloadStatus.Completed)
+			{
+				this.Close();
+				return;
+			}
             if (MessageBox.Show("确定要取消下载吗？", "确认取消", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 _cancellationTokenSource?.Cancel();

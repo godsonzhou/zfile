@@ -55,6 +55,19 @@ public class ChunkDownloader
 			// 添加小延迟确保所有文件句柄都已释放
 			await Task.Delay(100);
 			File.Move(_tempFile, _savePath, true);
+			// 删除进度文件
+			if (File.Exists(_tempFile + ".progress"))
+			{
+				try
+				{
+					File.Delete(_tempFile + ".progress");
+				}
+				catch (Exception ex)
+				{
+					Debug.Print($"删除进度文件时出错: {ex.Message}");
+					// 不抛出异常，继续执行
+				}
+			}
 		}
 		catch (IOException ex)
 		{
@@ -339,6 +352,19 @@ public class ChunkDownloaderWithProgress : ChunkDownloader
 			// 添加小延迟确保所有文件句柄都已释放
 			await Task.Delay(100, cancellationToken);
 			File.Move(_tempFile, _savePath, true);
+			// 删除进度文件
+			if (File.Exists(_tempFile + ".progress"))
+			{
+				try
+				{
+					File.Delete(_tempFile + ".progress");
+				}
+				catch (Exception ex)
+				{
+					Debug.Print($"删除进度文件时出错: {ex.Message}");
+					// 不抛出异常，继续执行
+				}
+			}
 		}
 		catch (IOException ex)
 		{

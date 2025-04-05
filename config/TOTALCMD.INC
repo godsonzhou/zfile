@@ -652,6 +652,7 @@ cm_GetInfoFromMcpServer=11439;
 cm_StartMcpServer=11440;
 cm_QueryMcpServer=11441;
 cm_evaluateExprDlg=11443;
+cm_downloader=11444;
 
 [________Commands with Parameters_________]=0
 ;These negative numbers are just used for translation and cannot be used instead of the commands

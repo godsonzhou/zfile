@@ -480,7 +480,7 @@ namespace Zfile
 				try
 				{
 					if (!owner.lLM_Helper.IsPrepared)
-						await owner.lLM_Helper.Prepare().ConfigureAwait(false);
+						await owner.lLM_Helper.Prepare();//.ConfigureAwait(false);
 					//var response = await owner.lLM_Helper.CallOllamaApiAsync("介绍一下你自己。").ConfigureAwait(false);
 					//// 使用Invoke确保在UI线程上显示消息框
 					//owner.Invoke(() =>

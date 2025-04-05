@@ -28,7 +28,7 @@ namespace Zfile
             LoadSettings();
 			//connect to each mcp server to get the server's tools
 			_ = Task.Run(async () => {
-                await GetAllMcpTools().ConfigureAwait(false);
+                await GetAllMcpTools();
                 Debug.Print($"MCP工具数量: {allMCPTools.Count}");
             });
 			//var ServerList = GetServerNames();

@@ -52,49 +52,6 @@ namespace Zfile
 			});
 		}
 
-		// Method to update icon progress asynchronously
-		//private async Task<BackgroundIconManager.IconProgress> UpdateIconProgressAsync(BackgroundIconManager.IconProgress progress)
-		//{
-		//	await Task.Run(() => {
-		//		// 确定是左侧还是右侧面板
-		//		bool isLeft = true;
-		//		if (progress.ItemsToUpdate.Count > 0 && progress.ItemsToUpdate[0].Item.ListView != null)
-		//		{
-		//			isLeft = progress.ItemsToUpdate[0].Item.ListView == uiManager.LeftList;
-		//		}
-
-		//		var statusStrip = isLeft ? uiManager.LeftStatusStrip : uiManager.RightStatusStrip;
-		//		var progressBar = statusStrip.Items[$"iconProgress{(isLeft ? 'L' : 'R')}"] as ToolStripProgressBar;
-		//		var statusLabel = statusStrip.Items[$"iconStatus{(isLeft ? 'L' : 'R')}"] as ToolStripStatusLabel;
-				
-		//		if (progressBar != null && statusLabel != null)
-		//		{
-		//			if (progress.TotalJobs == 0 || progress.IsCompleted)
-		//			{
-		//				progressBar.Visible = false;
-		//				statusLabel.Visible = false;
-		//				return;
-		//			}
-					
-		//			if (!progressBar.Visible)
-		//			{
-		//				progressBar.Visible = true;
-		//				statusLabel.Visible = true;
-		//			}
-					
-		//			progressBar.Maximum = progress.TotalJobs;
-		//			progressBar.Value = progress.CompletedJobs;
-		//			statusLabel.Text = $"Loading icons: {progress.CompletedJobs}/{progress.TotalJobs}";
-					
-		//			if (progress.IsCompleted)
-		//			{
-		//				progressBar.Visible = false;
-		//				statusLabel.Visible = false;
-		//			}
-		//		}
-		//	});
-		//	return progress;
-		//}
 		public readonly LLM_Helper lLM_Helper;
 		public readonly MCPClientManager mcpClientMgr;
 		public readonly CFGLOADER configLoader;
@@ -103,6 +60,7 @@ namespace Zfile
 		public readonly CFGLOADER cmdicons_configloader;
 		public readonly ViewMgr viewMgr;
 		public readonly IconManager iconManager;
+		public readonly IdmManager idmManager;
 		public readonly ThemeManager themeManager;
 		private readonly FilePreviewManager previewManager = new();
 		public readonly FileSystemManager fsManager = new();
@@ -268,6 +226,7 @@ namespace Zfile
 			mcpClientMgr = new MCPClientManager(Constants.ZfileCfgPath + "zfile_mcp_settings.json");
 			lLM_Helper = new LLM_Helper(this);
 			iconManager = new IconManager(this);
+			idmManager = new IdmManager(this);
 			InitializeComponent();
 			this.Size = new Size(1920, 1080);
 			//_thumbnailJobManager = new ThumbnailJobManager(thumbnailManager, UpdateThumbnailProgressAsync);

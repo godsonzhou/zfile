@@ -633,7 +633,7 @@ namespace Zfile
 		}
 		private void cm_idm(string param)
 		{
-			IdmIntegration.ShowIdmManager();
+			owner.idmManager.ShowIdmManager();
 		}
 		private void cm_CutToClipboard()
 		{

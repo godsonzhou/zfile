@@ -60,12 +60,12 @@ namespace Zfile
             var contextMenu = new ContextMenuStrip();
             
             // 添加菜单项 - 打开下载管理器
-            var openItem = new ToolStripMenuItem("打开下载管理器");
-            openItem.Click += (sender, e) => IdmIntegration.ShowIdmManager();
-            contextMenu.Items.Add(openItem);
+            //var openItem = new ToolStripMenuItem("打开下载管理器");
+            //openItem.Click += (sender, e) => IdmManager.ShowIdmManager();
+            //contextMenu.Items.Add(openItem);
             
-            // 添加分隔线
-            contextMenu.Items.Add(new ToolStripSeparator());
+            //// 添加分隔线
+            //contextMenu.Items.Add(new ToolStripSeparator());
             
             // 添加菜单项 - 退出
             var exitItem = new ToolStripMenuItem("退出");
@@ -75,7 +75,7 @@ namespace Zfile
             _notifyIcon.ContextMenuStrip = contextMenu;
             
             // 双击打开下载管理器
-            _notifyIcon.DoubleClick += (sender, e) => IdmIntegration.ShowIdmManager();
+            //_notifyIcon.DoubleClick += (sender, e) => IdmIntegration.ShowIdmManager();
         }
 
         /// <summary>

@@ -177,7 +177,7 @@ namespace Zfile
                         Dictionary<string, string> headers = request.Headers ?? new Dictionary<string, string>();
                         
                         // 调用下载方法，传递所有参数
-                        IdmIntegration.DownloadFile(request.Url, savePath, headers, request.Cookies, request.Referrer);
+                        //IdmManager.DownloadFile(request.Url, savePath, headers, request.Cookies, request.Referrer);
                         Debug.WriteLine("下载任务已启动");
                         SendResponse(new Response { Success = true, DownloadId = downloadId });
                     }

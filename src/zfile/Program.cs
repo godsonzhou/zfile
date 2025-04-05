@@ -20,7 +20,7 @@ namespace Zfile
                 try
                 {
                     ApplicationConfiguration.Initialize();
-                    IdmIntegration.InitializeChromeExtensionSupport();
+                    IdmManager.InitializeChromeExtensionSupport();
                     
                     // 创建一个隐藏的窗体以保持应用程序运行
                     Application.Run(new Form { WindowState = FormWindowState.Minimized, ShowInTaskbar = false });

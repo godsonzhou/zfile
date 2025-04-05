@@ -11,6 +11,12 @@ namespace Zfile
     public class IdmManager
     {
 		public List<DownloadTask> downloadTasks = new List<DownloadTask>();
+		public MainForm MainForm { get; private set; }
+
+		public IdmManager(MainForm mainForm)
+		{
+			this.MainForm = mainForm;
+		}
 		//private CancellationTokenSource cancellationTokenSource;
 		/// <summary>
 		/// 显示IDM下载管理器窗口

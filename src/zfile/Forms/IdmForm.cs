@@ -1444,7 +1444,8 @@ namespace Zfile.Forms
         Paused,
         Completed,
         Error,
-        Metadata,   // 获取种子元数据中
+		Canceled,
+		Metadata,   // 获取种子元数据中
         Hashing     // 校验文件中
     }
 

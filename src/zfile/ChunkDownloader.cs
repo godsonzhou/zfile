@@ -246,6 +246,7 @@ public class ChunkDownloaderWithProgress : ChunkDownloader
 	private long _lastReportTime;
 	private long _lastDownloadedBytes;
 	private double _currentSpeed;
+	private ManualResetEvent _pauseEvent = new ManualResetEvent(true);  // 初始状态为"非暂停"（允许运行
 
 	public ChunkDownloaderWithProgress(string url, string savePath, int chunks = 4,
 		Action<double, double, long, Dictionary<long, long>> progressCallback = null)
@@ -372,7 +373,14 @@ public class ChunkDownloaderWithProgress : ChunkDownloader
 			throw new Exception($"Download failed: {ex.Message}", ex);
 		}
 	}
-
+	public void Pause()
+	{
+		_pauseEvent.Reset(); // 设置为"暂停"状态
+	}
+	public void Resume()
+	{
+		_pauseEvent.Set(); // 设置为"非暂停"状态
+	}
 	/// <summary>
 	/// 重写分块下载方法，添加取消令牌支持
 	/// </summary>
@@ -383,6 +391,7 @@ public class ChunkDownloaderWithProgress : ChunkDownloader
 
 		while (retry < maxRetries)
 		{
+			_pauseEvent.WaitOne(); // 等待暂停事件
 			try
 			{
 				// 检查取消令牌

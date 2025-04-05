@@ -399,6 +399,7 @@ namespace Zfile
 	public delegate int TPackFiles(string packedFile, string subPath, string srcPath, string addList, int flags);
 	public delegate int TPackFilesW([MarshalAs(UnmanagedType.LPWStr)] string packedFile, [MarshalAs(UnmanagedType.LPWStr)] string subPath, [MarshalAs(UnmanagedType.LPWStr)] string srcPath, [MarshalAs(UnmanagedType.LPWStr)] string addList, int flags);
 	public delegate int TDeleteFiles(string packedFile, string deleteList);
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
 	public delegate int TDeleteFilesW([MarshalAs(UnmanagedType.LPWStr)] string packedFile, [MarshalAs(UnmanagedType.LPWStr)] string deleteList);
 	public delegate int TGetPackerCaps();
 	public delegate void TConfigurePacker(IntPtr parent, IntPtr dllInstance);

@@ -19,6 +19,7 @@ namespace Zfile
         private MCPSettings settings;
 		public List<string> allMCPTools = new();
         public Dictionary<string, List<string>> MCPToolsDict = new();
+		private readonly object _lockObject = new object();
 
 		public MCPClientManager(string configPath)
         {
@@ -26,8 +27,8 @@ namespace Zfile
             mcpClients = new Dictionary<string, MCPClient>();
             LoadSettings();
 			//connect to each mcp server to get the server's tools
-			Task.Run(async () => {
-                await GetAllMcpTools();
+			_ = Task.Run(async () => {
+                await GetAllMcpTools().ConfigureAwait(false);
                 Debug.Print($"MCP工具数量: {allMCPTools.Count}");
             });
 			//var ServerList = GetServerNames();
@@ -59,13 +60,29 @@ namespace Zfile
                 try
                 {
                     var client = new MCPClient("aiclient", "1.0.0", serverConfig.Command, string.Join(' ', serverConfig.Args));
+					// 等待初始化完成
+					var timeout = Task.Delay(60000); // 60秒超时
+					var initTask = Task.Run(async () =>
+					{
+						while (!client.Initialized)
+						{
+							await Task.Delay(100);
+						}
+					});
+
+					// 等待初始化完成或超时
+					if (await Task.WhenAny(initTask, timeout) == timeout)
+					{
+						throw new TimeoutException($"连接服务器 {serverName} 超时");
+					}
 					//client.ConnectAsync(serverConfig.Command, serverConfig.Args);
 					// 等待工具列表初始化完成
-					await client.GetToolsAsync();
+					//await client.GetToolsAsync();
 					//var prompts = await client.GetPromptListAsync();
 					//var resources = await client.GetResourcesAsync();
 					//var resourceTemplates = await client.GetResourceTemplatesAsync();
-					mcpClients[serverName] = client;
+					lock (_lockObject)
+						mcpClients[serverName] = client;
                     return true;
                 }
                 catch (Exception ex)
@@ -140,7 +157,7 @@ namespace Zfile
             
             foreach (var serverName in serverNames)
             {
-                connectionTasks.Add(ProcessServerAsync(serverName));
+				connectionTasks.Add(ProcessServerAsync(serverName));
             }
             
             await Task.WhenAll(connectionTasks);

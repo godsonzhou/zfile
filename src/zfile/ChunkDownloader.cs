@@ -30,25 +30,37 @@ public class ChunkDownloader
 		var chunks = InitializeChunks(totalSize);
 
 		// 创建/打开临时文件
-		using var fileStream = new FileStream(_tempFile, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Write);
-		fileStream.SetLength(totalSize);
-
-		// 多线程下载
-		var tasks = new Task[_chunks];
-		for (int i = 0; i < _chunks; i++)
+		using (var fileStream = new FileStream(_tempFile, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Write))
 		{
-			int chunkId = i;
-			tasks[i] = DownloadChunkAsync(chunks[chunkId], fileStream);
+			fileStream.SetLength(totalSize);
+
+			// 多线程下载
+			var tasks = new Task[_chunks];
+			for (int i = 0; i < _chunks; i++)
+			{
+				int chunkId = i;
+				tasks[i] = DownloadChunkAsync(chunks[chunkId], fileStream);
+			}
+
+			// 显示进度
+			var progressTask = ShowProgressAsync(totalSize);
+
+			await Task.WhenAll(tasks);
+			await progressTask;
 		}
 
-		// 显示进度
-		var progressTask = ShowProgressAsync(totalSize);
-
-		await Task.WhenAll(tasks);
-		await progressTask;
-
-		// 重命名临时文件
-		File.Move(_tempFile, _savePath, true);
+		try
+		{
+			// 确保文件流已关闭后再重命名临时文件
+			// 添加小延迟确保所有文件句柄都已释放
+			await Task.Delay(100);
+			File.Move(_tempFile, _savePath, true);
+		}
+		catch (IOException ex)
+		{
+			Debug.Print($"重命名文件时出错: {ex.Message}");
+			throw new Exception($"Download failed: {ex.Message}", ex);
+		}
 	}
 
 	public async Task<long> GetFileSizeAsyncbak()
@@ -293,33 +305,45 @@ public class ChunkDownloaderWithProgress : ChunkDownloader
 		var chunks = InitializeChunks(totalSize);
 
 		// 创建/打开临时文件
-		using var fileStream = new FileStream(_tempFile, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Write);
-		fileStream.SetLength(totalSize);
-
-		// 多线程下载
-		var tasks = new Task[_chunks];
-		for (int i = 0; i < _chunks; i++)
+		using (var fileStream = new FileStream(_tempFile, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Write))
 		{
-			int chunkId = i;
-			tasks[i] = DownloadChunkAsync(chunks[chunkId], fileStream, cancellationToken);
+			fileStream.SetLength(totalSize);
+
+			// 多线程下载
+			var tasks = new Task[_chunks];
+			for (int i = 0; i < _chunks; i++)
+			{
+				int chunkId = i;
+				tasks[i] = DownloadChunkAsync(chunks[chunkId], fileStream, cancellationToken);
+			}
+
+			// 显示进度
+			var progressTask = ShowProgressAsync(totalSize);
+
+			// 等待所有任务完成或取消
+			try
+			{
+				await Task.WhenAll(tasks);
+				await progressTask;
+			}
+			catch (OperationCanceledException)
+			{
+				// 如果任务被取消，保留临时文件和进度文件以便后续恢复
+				throw;
+			}
 		}
 
-		// 显示进度
-		var progressTask = ShowProgressAsync(totalSize);
-
-		// 等待所有任务完成或取消
+		// 文件流已关闭，现在尝试重命名文件
 		try
 		{
-			await Task.WhenAll(tasks);
-			await progressTask;
-
-			// 重命名临时文件
+			// 添加小延迟确保所有文件句柄都已释放
+			await Task.Delay(100, cancellationToken);
 			File.Move(_tempFile, _savePath, true);
 		}
-		catch
+		catch (IOException ex)
 		{
-			// 如果任务被取消，保留临时文件和进度文件以便后续恢复
-			throw;
+			Debug.Print($"重命名文件时出错: {ex.Message}");
+			throw new Exception($"Download failed: {ex.Message}", ex);
 		}
 	}
 

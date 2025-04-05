@@ -170,14 +170,14 @@ public class ThumbnailGenerator
 		return process.ExitCode;
 	}
 	// 内存缓存（线程安全）
-	private static readonly ConcurrentDictionary<string, Lazy<Task<Image>>> _thumbnailCache
-		= new ConcurrentDictionary<string, Lazy<Task<Image>>>();
+	//private static readonly ConcurrentDictionary<string, Lazy<Task<Image>>> _thumbnailCache
+	//	= new ConcurrentDictionary<string, Lazy<Task<Image>>>();
 
-	public static Task<Image> GetThumbnailAsync(string filePath)
-	{
-		return _thumbnailCache.GetOrAdd(filePath, key =>
-			new Lazy<Task<Image>>(() => GenerateThumbnailAsync(key))).Value;
-	}
+	//public static Task<Image> GetThumbnailAsync(string filePath)
+	//{
+	//	return _thumbnailCache.GetOrAdd(filePath, key =>
+	//		new Lazy<Task<Image>>(() => GenerateThumbnailAsync(key))).Value;
+	//}
 
 	private static async Task<Image> GenerateThumbnailAsync(string filePath)
 	{
@@ -268,36 +268,37 @@ public class ThumbnailGenerator
 	public static bool GetThumbnailForVideo(string filePath, out Image image)
 	{
 		bool res;
-		var starttime = DateTime.Now;
+		image = null;
+		//var starttime = DateTime.Now;
 		if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-			res = GetThumbnailWithWMF(filePath, out image);	//<<<0.001-0.18
-		else
-			res = GetThumbnailWithFFmpeg(filePath, out image);
-		var endtime = DateTime.Now;
-		var timespan = endtime - starttime;
-		Debug.Print($"get thumbnail : {timespan.TotalSeconds} seconds used");
-		return res;
+			return GetThumbnailWithWMF(filePath, out image);	//<<<0.001-0.18
+		//else
+		//	res = GetThumbnailWithFFmpeg(filePath, out image);
+		//var endtime = DateTime.Now;
+		//var timespan = endtime - starttime;
+		//Debug.Print($"get thumbnail : {timespan.TotalSeconds} seconds used");
+		return false;
 	}
-	public static bool GetThumbnailWithFFmpeg(string filePath, out Image image)
-	{
-		try
-		{
-			// 同步获取异步结果（适用于无法改造调用方的情况）
-			var task = GetThumbnailAsync(filePath);
-			if (task.Wait(TimeSpan.FromSeconds(3))) // 设置合理超时
-			{
-				image = task.Result;
-				return true;
-			}
-			image = null;
-			return false;
-		}
-		catch
-		{
-			image = null;
-			return false;
-		}
-	}
+	//public static bool GetThumbnailWithFFmpeg(string filePath, out Image image)
+	//{
+	//	try
+	//	{
+	//		// 同步获取异步结果（适用于无法改造调用方的情况）
+	//		var task = GetThumbnailAsync(filePath);
+	//		if (task.Wait(TimeSpan.FromSeconds(3))) // 设置合理超时
+	//		{
+	//			image = task.Result;
+	//			return true;
+	//		}
+	//		image = null;
+	//		return false;
+	//	}
+	//	catch
+	//	{
+	//		image = null;
+	//		return false;
+	//	}
+	//}
 	public static bool GetThumbnail(string filePath, out Image image)
     {
         try

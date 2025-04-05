@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -9,10 +9,6 @@
 
   <ItemGroup>
     <PackageReference Include="MSTest" Version="3.8.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\MCPSharp.Example\MCPSharp.Example.csproj" />
   </ItemGroup>
 
   <ItemGroup>

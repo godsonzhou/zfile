@@ -1,7 +1,9 @@
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.Net;
+using System.Security.Policy;
 using Zfile.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
 
 namespace Zfile
 {
@@ -53,7 +55,9 @@ namespace Zfile
 		{
 			try
 			{
-				_taskDownloadDict[task] = await StartWithProgress(task.Url, task.SavePath, task.Chunks, task.CancellationTokenSource.Token, progressCallback);
+				var downloader = new ChunkDownloaderWithProgress(task.Url, task.SavePath, task.Chunks, progressCallback);
+				_taskDownloadDict[task] = downloader;
+				await StartWithProgress(downloader, task.CancellationTokenSource.Token, progressCallback);
 			}
 			catch (OperationCanceledException)
 			{
@@ -124,17 +128,9 @@ namespace Zfile
 		/// <param name="cancellationToken">取消令牌</param>
 		/// <param name="progressCallback">进度回调，参数为：进度百分比、下载速度(bytes/s)、文件总大小、分块进度</param>
 		/// <returns>下载任务</returns>
-		public static async Task<ChunkDownloaderWithProgress> StartWithProgress(string url, string localfile, int chunks = 4,
-			CancellationToken cancellationToken = default,
+		public static async Task<ChunkDownloaderWithProgress> StartWithProgress(ChunkDownloaderWithProgress downloader, CancellationToken cancellationToken = default,
 			Action<double, double, long, Dictionary<long, long>> progressCallback = null)
 		{
-			var downloader = new ChunkDownloaderWithProgress(
-				url,
-				localfile,
-				chunks,
-				progressCallback
-			);
-
 			try
 			{
 				await downloader.DownloadAsync(cancellationToken);

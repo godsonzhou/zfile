@@ -12,6 +12,8 @@ namespace Zfile
     {
 		public List<DownloadTask> downloadTasks = new List<DownloadTask>();
 		public MainForm MainForm { get; private set; }
+		private IdmForm idmForm;
+		public ProgressDialog progressDialog = null;
 
 		public IdmManager(MainForm mainForm)
 		{
@@ -23,8 +25,8 @@ namespace Zfile
 		/// </summary>
 		public void ShowIdmForm()
         {
-			var form = new IdmForm(this);
-			form.Show();
+			idmForm = new IdmForm(this);
+			idmForm.Show();
 		}
 
         /// <summary>
@@ -406,6 +408,170 @@ namespace Zfile
 				// 显示系统托盘通知
 				TrayIconManager.Instance.ShowBalloonTip("下载失败", ex.Message, ToolTipIcon.Error);
 			}
+		}
+		public void AddDownloadTask(string url, string savePath, int chunks = 4)
+		{
+			var task = new DownloadTask
+			{
+				Url = url,
+				SavePath = savePath,
+				FileName = Path.GetFileName(savePath),
+				Chunks = chunks,
+				Status = DownloadStatus.Pending,
+				CreatedTime = DateTime.Now
+			};
+
+			downloadTasks.Add(task);
+			ResumeDownloadTask(task);
+		}
+
+		public async void RemoveDownloadTask(DownloadTask task)
+		{
+			// 停止下载
+			PauseDownloadTask(task);
+
+			if (task is TorrentDownloadTask torrentTask && !string.IsNullOrEmpty(torrentTask.TorrentId))
+			{
+				// 移除种子下载任务
+				await TorrentMgr.RemoveTorrentAsync(torrentTask.TorrentId, false);
+			}
+			else
+			{
+				// 删除普通下载的临时文件
+				string tempFile = Path.ChangeExtension(task.SavePath, ".tmp");
+				string progressFile = tempFile + ".progress";
+
+				try
+				{
+					if (File.Exists(tempFile))
+						File.Delete(tempFile);
+
+					if (File.Exists(progressFile))
+						File.Delete(progressFile);
+				}
+				catch (Exception ex)
+				{
+					Debug.WriteLine($"删除临时文件失败: {ex.Message}");
+				}
+			}
+
+			downloadTasks.Remove(task);
+		}
+		public async void ResumeDownloadTask(DownloadTask task)
+		{
+			if (task.Status == DownloadStatus.Downloading)
+				return;
+
+			if (task is TorrentDownloadTask torrentTask && !string.IsNullOrEmpty(torrentTask.TorrentId))
+			{
+				// 恢复种子下载
+				task.Status = DownloadStatus.Downloading;
+				idmForm.UpdateTaskUI(task);
+				await TorrentMgr.ResumeTorrentAsync(torrentTask.TorrentId);
+				return;
+			}
+
+			// 普通下载任务处理
+			task.Status = DownloadStatus.Downloading;
+			task.CancellationTokenSource = new CancellationTokenSource();
+			idmForm.UpdateDownloadListView();
+
+			// 创建并显示进度窗口
+			if (progressDialog != null)
+			{
+				progressDialog.Close();
+				progressDialog.Dispose();
+			}
+
+			progressDialog = new ProgressDialog(task.Url, task.SavePath, task.Chunks, task.CancellationTokenSource);
+			progressDialog.DownloadCompleted += (sender, e) => {
+				// 如果是暂停状态，则更新UI
+				if (task.Status == DownloadStatus.Paused)
+				{
+					idmForm.UpdateTaskUI(task);
+				}
+			};
+			progressDialog.Show();
+
+			try
+			{
+				await Task.Run(async () =>
+				{
+					await StartDownloadWithProgress(task.Url, task.SavePath, task.Chunks, task.CancellationTokenSource.Token,
+						(progress, speed, totalSize, chunkProgress) =>
+						{
+							if (!idmForm.isClosing)
+							{
+								task.Progress = progress;
+								task.Speed = speed;
+								task.TotalSize = totalSize;
+								task.MaxSpeed = Math.Max(task.MaxSpeed, speed);
+
+								// 更新UI
+								idmForm.UpdateTaskUI(task);
+
+								// 更新进度窗口
+								if (progressDialog != null && !progressDialog.IsDisposed)
+								{
+									progressDialog.UpdateProgress(progress, speed, totalSize, chunkProgress);
+								}
+							}
+						});
+
+					if (!task.CancellationTokenSource.Token.IsCancellationRequested)
+					{
+						task.Status = DownloadStatus.Completed;
+						task.Progress = 100;
+						idmForm.UpdateTaskUI(task);
+
+						// 更新进度窗口为完成状态
+						if (progressDialog != null && !progressDialog.IsDisposed)
+						{
+							progressDialog.SetCompleted();
+						}
+					}
+				}, task.CancellationTokenSource.Token);
+			}
+			catch (OperationCanceledException)
+			{
+				task.Status = DownloadStatus.Paused;
+				idmForm.UpdateTaskUI(task);
+			}
+			catch (Exception ex)
+			{
+				task.Status = DownloadStatus.Error;
+				task.ErrorMessage = ex.Message;
+				idmForm.UpdateTaskUI(task);
+
+				// 更新进度窗口为错误状态
+				if (progressDialog != null && !progressDialog.IsDisposed)
+				{
+					progressDialog.SetError(ex.Message);
+				}
+
+				MessageBox.Show($"下载失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+
+		public async void PauseDownloadTask(DownloadTask task)
+		{
+			if (task.Status != DownloadStatus.Downloading)
+				return;
+
+			if (task is TorrentDownloadTask torrentTask && !string.IsNullOrEmpty(torrentTask.TorrentId))
+			{
+				// 暂停种子下载
+				await TorrentMgr.PauseTorrentAsync(torrentTask.TorrentId);
+				task.Status = DownloadStatus.Paused;
+			}
+			else
+			{
+				// 暂停普通下载
+				task.CancellationTokenSource?.Cancel();
+				task.Status = DownloadStatus.Paused;
+			}
+
+			idmForm.UpdateTaskUI(task);
 		}
 	}
 }

@@ -436,7 +436,7 @@ namespace Zfile
 			};
 			
 			downloadTasks.Add(task);
-			ResumeDownloadTask(task);
+			StartDownloadTask(task);
 		}
 
 		public async void RemoveDownloadTask(DownloadTask task)
@@ -471,7 +471,7 @@ namespace Zfile
 
 			downloadTasks.Remove(task);
 		}
-		public async void ResumeDownloadTask(DownloadTask task)
+		public async void StartDownloadTask(DownloadTask task)
 		{
 			if (task.Status == DownloadStatus.Downloading)
 				return;
@@ -575,7 +575,23 @@ namespace Zfile
 				MessageBox.Show($"下载失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
 			}
 		}
-
+		public async void ResumeDownloadTask(DownloadTask task)
+		{
+			if (task.Status == DownloadStatus.Downloading)
+				return;
+			if (task is TorrentDownloadTask torrentTask && !string.IsNullOrEmpty(torrentTask.TorrentId))
+			{
+				// 恢复种子下载
+				task.Status = DownloadStatus.Downloading;
+				idmForm.UpdateDownloadListview(task);
+				await TorrentMgr.ResumeTorrentAsync(torrentTask.TorrentId);
+				return;
+			}
+			// 恢复普通下载任务
+			task.Status = DownloadStatus.Downloading;
+			task.Downloader.Resume();
+			idmForm.UpdateDownloadListview(task);
+		}
 		public async void PauseDownloadTask(DownloadTask task)
 		{
 			if (task.Status != DownloadStatus.Downloading)
@@ -590,7 +606,8 @@ namespace Zfile
 			else
 			{
 				// 暂停普通下载
-				task.CancellationTokenSource?.Cancel();
+				//task.CancellationTokenSource?.Cancel();
+				task.Downloader.Pause();
 				task.Status = DownloadStatus.Paused;
 			}
 

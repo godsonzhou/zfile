@@ -283,7 +283,7 @@ public class ChunkDownloaderWithProgress : ChunkDownloader
 					_lastDownloadedBytes = downloaded;
 				}
 
-				Debug.Print($"Progress: {progress:F2}% ({downloaded}/{totalSize}) Speed: {FormatSpeed(_currentSpeed)}");
+				Debug.Print($"Progress: {progress:F2}% ({downloaded}/{totalSize}) Speed: {Forms.IdmForm.FormatSpeed(_currentSpeed)}");
 
 				// 创建分块进度的副本，避免并发修改问题
 				Dictionary<long, long> progressCopy = new Dictionary<long, long>(_progress);
@@ -304,13 +304,13 @@ public class ChunkDownloaderWithProgress : ChunkDownloader
 	/// <summary>
 	/// 格式化速度显示
 	/// </summary>
-	private string FormatSpeed(double bytesPerSecond)
-	{
-		if (bytesPerSecond < 1024) return $"{bytesPerSecond:F2} B/s";
-		if (bytesPerSecond < 1024 * 1024) return $"{bytesPerSecond / 1024:F2} KB/s";
-		if (bytesPerSecond < 1024 * 1024 * 1024) return $"{bytesPerSecond / (1024 * 1024):F2} MB/s";
-		return $"{bytesPerSecond / (1024 * 1024 * 1024):F2} GB/s";
-	}
+	//public static string FormatSpeed(double bytesPerSecond)
+	//{
+	//	if (bytesPerSecond < 1024) return $"{bytesPerSecond:F2} B/s";
+	//	if (bytesPerSecond < 1024 * 1024) return $"{bytesPerSecond / 1024:F2} KB/s";
+	//	if (bytesPerSecond < 1024 * 1024 * 1024) return $"{bytesPerSecond / (1024 * 1024):F2} MB/s";
+	//	return $"{bytesPerSecond / (1024 * 1024 * 1024):F2} GB/s";
+	//}
 
 	/// <summary>
 	/// 重写下载方法，添加取消令牌支持

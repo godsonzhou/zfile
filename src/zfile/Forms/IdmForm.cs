@@ -421,9 +421,10 @@ namespace Zfile.Forms
                 foreach (ListViewItem item in downloadListView.SelectedItems)
                 {
                     var task = item.Tag as DownloadTask;
-                    if (task != null && task.Status != DownloadStatus.Completed)
+                    if (task != null && task.Status == DownloadStatus.Paused)
                     {
-                        idmMgr.ResumeDownloadTask(task);
+						//idmMgr.StartDownloadTask(task);
+						idmMgr.ResumeDownloadTask(task);
                     }
                 }
             }
@@ -1122,7 +1123,7 @@ namespace Zfile.Forms
                             task.Status = DownloadStatus.Pending;
                             
                             // 重新开始下载
-                            idmMgr.ResumeDownloadTask(task);
+                            idmMgr.StartDownloadTask(task);
                         }
                     }
                 }

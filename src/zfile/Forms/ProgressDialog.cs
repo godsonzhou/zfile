@@ -47,7 +47,7 @@ namespace Zfile.Forms
 		private Button pauseButton;
 		//private Button resumeButton;
 		private DownloadTask _Task;
-
+		private bool _disposed = false;
 		// 委托定义，用于在下载完成或取消时通知主窗体
 		public delegate void DownloadCompletedEventHandler(object sender, EventArgs e);
         public event DownloadCompletedEventHandler UserActionCallback;
@@ -69,9 +69,63 @@ namespace Zfile.Forms
             InitializeChunkProgress();
         }
 
-        #region UI初始化
+		#region UI初始化
+		protected override void Dispose(bool disposing)
+		{
+			if (!_disposed)
+			{
+				if (disposing)
+				{
+					// 清理托管资源
+					if (UserActionCallback != null)
+					{
+						foreach (Delegate d in UserActionCallback.GetInvocationList())
+						{
+							UserActionCallback -= (DownloadCompletedEventHandler)d;
+						}
+					}
 
-        private void InitializeComponent()
+					// 移除事件处理器
+					this.FormClosing -= ProgressDialog_FormClosing;
+					this.hideButton.Click -= HideButton_Click;
+					this.cancelButton.Click -= CancelButton_Click;
+					this.pauseButton.Click -= PauseButton_Click;
+
+					// 释放控件资源
+					if (infoPanel != null) infoPanel.Dispose();
+					if (fileNameLabel != null) fileNameLabel.Dispose();
+					if (fileSizeLabel != null) fileSizeLabel.Dispose();
+					if (statusLabel != null) statusLabel.Dispose();
+					if (speedLabel != null) speedLabel.Dispose();
+					if (timeLeftLabel != null) timeLeftLabel.Dispose();
+					if (progressPanel != null) progressPanel.Dispose();
+					if (totalProgressBar != null) totalProgressBar.Dispose();
+					if (progressLabel != null) progressLabel.Dispose();
+					if (chunksPanel != null) chunksPanel.Dispose();
+					if (chunksListView != null) chunksListView.Dispose();
+					if (buttonPanel != null) buttonPanel.Dispose();
+					if (hideButton != null) hideButton.Dispose();
+					if (cancelButton != null) cancelButton.Dispose();
+					if (pauseButton != null) pauseButton.Dispose();
+
+					// 清理字典
+					_chunkProgress?.Clear();
+					_chunkSpeeds?.Clear();
+					_lastChunkBytes?.Clear();
+					_lastChunkTime?.Clear();
+				}
+
+				// 清理非托管资源（如果有的话）
+				_disposed = true;
+			}
+			base.Dispose(disposing);
+		}
+
+		~ProgressDialog()
+		{
+			Dispose(false);
+		}
+		private void InitializeComponent()
         {
             this.infoPanel = new Panel();
             this.fileNameLabel = new Label();

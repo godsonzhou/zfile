@@ -259,36 +259,45 @@ public class ChunkDownloaderWithProgress : ChunkDownloader
 	/// <summary>
 	/// 重写进度显示方法，添加进度回调
 	/// </summary>
-	protected async Task ShowProgressAsync(long totalSize)
+	protected async Task ShowProgressAsync(long totalSize, CancellationToken cancellation)
 	{
-		while (true)
+		try
 		{
-			var downloaded = _progress.Values.Sum();
-			var progress = (double)downloaded / totalSize * 100;
-
-			// 计算下载速度
-			long currentTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-			long timeElapsed = currentTime - _lastReportTime;
-
-			if (timeElapsed > 0)
+			while (true)
 			{
-				long bytesChange = downloaded - _lastDownloadedBytes;
-				_currentSpeed = bytesChange * 1000.0 / timeElapsed; // bytes per second
+				cancellation.ThrowIfCancellationRequested();
 
-				_lastReportTime = currentTime;
-				_lastDownloadedBytes = downloaded;
+				var downloaded = _progress.Values.Sum();
+				var progress = (double)downloaded / totalSize * 100;
+
+				// 计算下载速度
+				long currentTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+				long timeElapsed = currentTime - _lastReportTime;
+
+				if (timeElapsed > 0)
+				{
+					long bytesChange = downloaded - _lastDownloadedBytes;
+					_currentSpeed = bytesChange * 1000.0 / timeElapsed; // bytes per second
+
+					_lastReportTime = currentTime;
+					_lastDownloadedBytes = downloaded;
+				}
+
+				Debug.Print($"Progress: {progress:F2}% ({downloaded}/{totalSize}) Speed: {FormatSpeed(_currentSpeed)}");
+
+				// 创建分块进度的副本，避免并发修改问题
+				Dictionary<long, long> progressCopy = new Dictionary<long, long>(_progress);
+
+				// 调用进度回调，传递分块进度信息
+				_progressCallback?.Invoke(progress, _currentSpeed, totalSize, progressCopy);
+
+				if (downloaded >= totalSize) break;
+				await Task.Delay(1000);
 			}
-
-			Debug.Print($"Progress: {progress:F2}% ({downloaded}/{totalSize}) Speed: {FormatSpeed(_currentSpeed)}");
-
-			// 创建分块进度的副本，避免并发修改问题
-			Dictionary<long, long> progressCopy = new Dictionary<long, long>(_progress);
-
-			// 调用进度回调，传递分块进度信息
-			_progressCallback?.Invoke(progress, _currentSpeed, totalSize, progressCopy);
-
-			if (downloaded >= totalSize) break;
-			await Task.Delay(1000);
+		}
+		catch (OperationCanceledException)
+		{
+			throw;
 		}
 	}
 
@@ -332,7 +341,7 @@ public class ChunkDownloaderWithProgress : ChunkDownloader
 			}
 
 			// 显示进度
-			var progressTask = ShowProgressAsync(totalSize);
+			var progressTask = ShowProgressAsync(totalSize, cancellationToken);
 
 			// 等待所有任务完成或取消
 			try

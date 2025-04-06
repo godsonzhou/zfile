@@ -385,7 +385,7 @@ namespace Zfile.Forms
         
         private void NewMagnetTask_Click(object sender, EventArgs e)
         {
-            using (var dialog = new TorrentDownloadDialog())
+            using (var dialog = new TorrentDownloadDialog("magnet:?"))
             {
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
@@ -407,7 +407,7 @@ namespace Zfile.Forms
                     {
                         if (dialog.ShowDialog() == DialogResult.OK)
                         {
-                            AddTorrentDownloadTask(dialog.TorrentFilePath, dialog.SavePath, true, dialog.SelectedFileIndices);
+                            AddTorrentDownloadTask(dialog.TorrentFilePath, dialog.SavePath, false, dialog.SelectedFileIndices);
                         }
                     }
                 }
@@ -547,7 +547,7 @@ namespace Zfile.Forms
             try
             {
                 // 创建种子下载任务
-                var task = new TorrentDownloadTask(torrentPathOrMagnet, savePath, isMagnetLink)
+                var task = new TorrentDownloadTask(torrentPathOrMagnet, savePath, !isMagnetLink)
                 {
                     SelectedFileIndices = selectedFileIndices ?? new List<int>()
                 };

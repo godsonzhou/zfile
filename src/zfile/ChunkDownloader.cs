@@ -391,7 +391,6 @@ public class ChunkDownloaderWithProgress : ChunkDownloader
 
 		while (retry < maxRetries)
 		{
-			_pauseEvent.WaitOne(); // 等待暂停事件
 			try
 			{
 				// 检查取消令牌
@@ -409,6 +408,8 @@ public class ChunkDownloaderWithProgress : ChunkDownloader
 
 				while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
 				{
+					_pauseEvent.WaitOne(); // 等待暂停事件
+
 					lock (fileStream)
 					{
 						fileStream.Seek(range.Start + totalRead, SeekOrigin.Begin);

@@ -493,30 +493,27 @@ namespace Zfile
 			idmForm.UpdateDownloadListView();
 
 			// 创建并显示进度窗口
-			if (progressDialog != null)
+			if (progressDialog == null)
 			{
-				progressDialog.Close();
-				progressDialog.Dispose();
-			}
-
-			progressDialog = new ProgressDialog(task.Url, task.SavePath, task.Chunks, task.CancellationTokenSource);
-			progressDialog.DownloadCompleted += (sender, e) =>
-			{
-				// 如果是暂停状态，则更新UI
-				if (e is DownloadStatusChangeEventArgs dsc)
+				progressDialog = new ProgressDialog(task.Url, task.SavePath, task.Chunks, task.CancellationTokenSource);
+				progressDialog.DownloadCompleted += (sender, e) =>
 				{
-					switch (dsc.NewStatus)
+					// 如果是暂停状态，则更新UI
+					if (e is DownloadStatusChangeEventArgs dsc)
 					{
-						case DownloadStatus.Paused:
-							_taskDownloadDict[task].Pause();
-							break;
-						case DownloadStatus.Pending:
-							_taskDownloadDict[task].Resume();
-							break;
+						switch (dsc.NewStatus)
+						{
+							case DownloadStatus.Paused:
+								_taskDownloadDict[task].Pause();
+								break;
+							case DownloadStatus.Pending:
+								_taskDownloadDict[task].Resume();
+								break;
+						}
+						idmForm.UpdateTaskUI(task);
 					}
-					idmForm.UpdateTaskUI(task);
-				}
-			};
+				};
+			}
 			progressDialog.Show();
 
 			try

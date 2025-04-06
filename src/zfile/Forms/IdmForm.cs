@@ -783,9 +783,10 @@ namespace Zfile.Forms
             downloadListView.Items.Clear();
 
             var filteredTasks = idmMgr.downloadTasks;
+			if (filteredTasks == null) return;
 
-            // 根据分类筛选
-            switch (category)
+			// 根据分类筛选
+			switch (category)
             {
                 case "未完成":
                     filteredTasks = idmMgr.downloadTasks.Where(t => t.Status != DownloadStatus.Completed).ToList();

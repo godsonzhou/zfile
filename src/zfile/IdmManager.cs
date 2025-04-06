@@ -1,9 +1,7 @@
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.Net;
-using System.Security.Policy;
 using Zfile.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
 
 namespace Zfile
 {
@@ -13,7 +11,7 @@ namespace Zfile
     public class IdmManager
     {
 		//private Dictionary<DownloadTask, ChunkDownloaderWithProgress> _taskDownloadDict = new();
-		public List<DownloadTask> downloadTasks; //=> _taskDownloadDict.Keys.ToList();
+		public List<DownloadTask> downloadTasks = new(); //=> _taskDownloadDict.Keys.ToList();
 		public MainForm MainForm { get; private set; }
 		private IdmForm idmForm;
 		public ProgressDialog progressDialog = null;
@@ -495,7 +493,7 @@ namespace Zfile
 			// 创建并显示进度窗口
 			if (progressDialog == null)
 			{
-				progressDialog = new ProgressDialog(task.Url, task.SavePath, task.Chunks, task.CancellationTokenSource);
+				progressDialog = new ProgressDialog(task); //task.Url, task.SavePath, task.Chunks, task.CancellationTokenSource);
 				progressDialog.DownloadCompleted += (sender, e) =>
 				{
 					// 如果是暂停状态，则更新UI
@@ -508,6 +506,9 @@ namespace Zfile
 								break;
 							case DownloadStatus.Pending:
 								task.Downloader.Resume();
+								break;
+							case DownloadStatus.Canceled:
+								task.CancellationTokenSource.Cancel();
 								break;
 						}
 						idmForm.UpdateTaskUI(task);

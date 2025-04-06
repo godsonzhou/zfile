@@ -1,16 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Diagnostics;
-
 namespace Zfile.Forms
 {
 
@@ -29,16 +16,16 @@ namespace Zfile.Forms
 	/// </summary>
 	public partial class ProgressDialog : Form
     {
-        private string _url;
-        private string _savePath;
-        private string _fileName;
+		private string _url;
+		private string _savePath;
+		private string _fileName;
         private long _totalSize;
         private int _chunks;
         private double _progress;
         private double _speed;
         private double _maxSpeed;
-        private DownloadStatus _status;
-        private CancellationTokenSource _cancellationTokenSource;
+        private DownloadStatus _status { get => _Task.Status; set { if(_Task != null) _Task.Status = value; } } 
+		private CancellationTokenSource _cancellationTokenSource;
         private Dictionary<long, long> _chunkProgress = new Dictionary<long, long>();
         private Dictionary<long, double> _chunkSpeeds = new Dictionary<long, double>();
         private Dictionary<long, long> _lastChunkBytes = new Dictionary<long, long>();
@@ -58,11 +45,16 @@ namespace Zfile.Forms
 		private Button hideButton;
 		private Button cancelButton;
 		private Button pauseButton;
-		private Button resumeButton;
+		//private Button resumeButton;
+		private DownloadTask _Task;
 
 		// 委托定义，用于在下载完成或取消时通知主窗体
 		public delegate void DownloadCompletedEventHandler(object sender, EventArgs e);
         public event DownloadCompletedEventHandler DownloadCompleted;
+
+		public ProgressDialog(DownloadTask task) : this(task.Url, task.SavePath, task.Chunks, task.CancellationTokenSource) { 
+			_Task = task;
+		}
 
         public ProgressDialog(string url, string savePath, int chunks, CancellationTokenSource cancellationTokenSource)
         {
@@ -269,7 +261,7 @@ namespace Zfile.Forms
             if (MessageBox.Show("确定要取消下载吗？", "确认取消", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 _cancellationTokenSource?.Cancel();
-                _status = DownloadStatus.Paused;
+                _status = DownloadStatus.Canceled;
                 UpdateStatus();
                 DownloadCompleted?.Invoke(this, new DownloadStatusChangeEventArgs(DownloadStatus.Canceled));
                 this.Close();
@@ -285,7 +277,8 @@ namespace Zfile.Forms
                 pauseButton.Text = "继续";
                 UpdateStatus();
                 DownloadCompleted?.Invoke(this, new DownloadStatusChangeEventArgs(DownloadStatus.Paused));
-                //this.Close();
+				//this.Close();
+				return;
             }
             else if (_status == DownloadStatus.Paused)
             {
@@ -321,7 +314,7 @@ namespace Zfile.Forms
             _speed = speed;
             _totalSize = totalSize;
             _maxSpeed = Math.Max(_maxSpeed, speed);
-            _status = DownloadStatus.Downloading;
+            //_status = DownloadStatus.Downloading;
 
             // 更新总进度
             totalProgressBar.Value = (int)progress;

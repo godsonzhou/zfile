@@ -12,8 +12,8 @@ namespace Zfile
     /// </summary>
     public class IdmManager
     {
-		private Dictionary<DownloadTask, ChunkDownloaderWithProgress> _taskDownloadDict = new();
-		public List<DownloadTask> downloadTasks => _taskDownloadDict.Keys.ToList();
+		//private Dictionary<DownloadTask, ChunkDownloaderWithProgress> _taskDownloadDict = new();
+		public List<DownloadTask> downloadTasks; //=> _taskDownloadDict.Keys.ToList();
 		public MainForm MainForm { get; private set; }
 		private IdmForm idmForm;
 		public ProgressDialog progressDialog = null;
@@ -56,7 +56,7 @@ namespace Zfile
 			try
 			{
 				var downloader = new ChunkDownloaderWithProgress(task.Url, task.SavePath, task.Chunks, progressCallback);
-				_taskDownloadDict[task] = downloader;
+				task.Downloader = downloader;
 				await StartWithProgress(downloader, task.CancellationTokenSource.Token, progressCallback);
 			}
 			catch (OperationCanceledException)
@@ -504,10 +504,10 @@ namespace Zfile
 						switch (dsc.NewStatus)
 						{
 							case DownloadStatus.Paused:
-								_taskDownloadDict[task].Pause();
+								task.Downloader.Pause();
 								break;
 							case DownloadStatus.Pending:
-								_taskDownloadDict[task].Resume();
+								task.Downloader.Resume();
 								break;
 						}
 						idmForm.UpdateTaskUI(task);

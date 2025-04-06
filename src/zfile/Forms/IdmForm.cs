@@ -1266,6 +1266,7 @@ namespace Zfile.Forms
         public DateTime CreatedTime { get; set; }
         public string ErrorMessage { get; set; }
         public CancellationTokenSource CancellationTokenSource { get; set; }
+		public ChunkDownloaderWithProgress Downloader { get; set; }
     }
 
     // 下载状态枚举

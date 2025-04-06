@@ -10,7 +10,8 @@ namespace Zfile
     /// </summary>
     public class IdmManager
     {
-		public List<DownloadTask> downloadTasks = new List<DownloadTask>();
+		private Dictionary<DownloadTask, ChunkDownloaderWithProgress> _taskDownloadDict = new();
+		public List<DownloadTask> downloadTasks => _taskDownloadDict.Keys.ToList();
 		public MainForm MainForm { get; private set; }
 		private IdmForm idmForm;
 		public ProgressDialog progressDialog = null;
@@ -47,36 +48,54 @@ namespace Zfile
                 MessageBox.Show($"下载失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
-        /// <summary>
-        /// 启动带进度报告的下载任务
-        /// </summary>
-        /// <param name="url">下载地址</param>
-        /// <param name="savePath">保存路径</param>
-        /// <param name="chunks">分块数量</param>
-        /// <param name="cancellationToken">取消令牌</param>
-        /// <param name="progressCallback">进度回调，参数为：进度百分比、下载速度(bytes/s)、文件总大小、分块进度</param>
-        /// <returns>下载任务</returns>
-        public static async Task StartDownloadWithProgress(string url, string savePath, int chunks = 4, 
-            CancellationToken cancellationToken = default, 
-            Action<double, double, long, Dictionary<long, long>> progressCallback = null)
-        {
-            try
-            {
-                await StartWithProgress(url, savePath, chunks, cancellationToken, progressCallback);
-            }
-            catch (OperationCanceledException)
-            {
-                // 任务被取消，不显示错误消息
-            }
-            catch (Exception ex)
-            {
-                if (!cancellationToken.IsCancellationRequested)
-                {
-                    MessageBox.Show($"下载失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-        }
+		public async Task StartDownloadWithProgress(DownloadTask task,
+		  Action<double, double, long, Dictionary<long, long>> progressCallback = null)
+		{
+			try
+			{
+				_taskDownloadDict[task] = await StartWithProgress(task.Url, task.SavePath, task.Chunks, task.CancellationTokenSource.Token, progressCallback);
+			}
+			catch (OperationCanceledException)
+			{
+				// 任务被取消，不显示错误消息
+			}
+			catch (Exception ex)
+			{
+				if (!task.CancellationTokenSource.Token.IsCancellationRequested)
+				{
+					MessageBox.Show($"下载失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			}
+		}
+		/// <summary>
+		/// 启动带进度报告的下载任务
+		/// </summary>
+		/// <param name="url">下载地址</param>
+		/// <param name="savePath">保存路径</param>
+		/// <param name="chunks">分块数量</param>
+		/// <param name="cancellationToken">取消令牌</param>
+		/// <param name="progressCallback">进度回调，参数为：进度百分比、下载速度(bytes/s)、文件总大小、分块进度</param>
+		/// <returns>下载任务</returns>
+			//public static async Task StartDownloadWithProgress(string url, string savePath, int chunks = 4, 
+			//          CancellationToken cancellationToken = default, 
+			//          Action<double, double, long, Dictionary<long, long>> progressCallback = null)
+			//      {
+			//          try
+			//          {
+			//              await StartWithProgress(url, savePath, chunks, cancellationToken, progressCallback);
+			//          }
+			//          catch (OperationCanceledException)
+			//          {
+			//              // 任务被取消，不显示错误消息
+			//          }
+			//          catch (Exception ex)
+			//          {
+			//              if (!cancellationToken.IsCancellationRequested)
+			//              {
+			//                  MessageBox.Show($"下载失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			//              }
+			//          }
+			//      }
 		public static async Task Start(string url, string localfile, int chunks = 4)
 		{
 			var downloader = new ChunkDownloader(
@@ -105,7 +124,7 @@ namespace Zfile
 		/// <param name="cancellationToken">取消令牌</param>
 		/// <param name="progressCallback">进度回调，参数为：进度百分比、下载速度(bytes/s)、文件总大小、分块进度</param>
 		/// <returns>下载任务</returns>
-		public static async Task StartWithProgress(string url, string localfile, int chunks = 4,
+		public static async Task<ChunkDownloaderWithProgress> StartWithProgress(string url, string localfile, int chunks = 4,
 			CancellationToken cancellationToken = default,
 			Action<double, double, long, Dictionary<long, long>> progressCallback = null)
 		{
@@ -132,6 +151,7 @@ namespace Zfile
 				Debug.Print("Resume the download later by rerunning the program");
 				throw; // 重新抛出异常
 			}
+			return downloader;
 		}
 		/// <summary>
 		/// 检查下载任务是否可以恢复
@@ -420,7 +440,7 @@ namespace Zfile
 				Status = DownloadStatus.Pending,
 				CreatedTime = DateTime.Now
 			};
-
+			
 			downloadTasks.Add(task);
 			ResumeDownloadTask(task);
 		}
@@ -484,10 +504,20 @@ namespace Zfile
 			}
 
 			progressDialog = new ProgressDialog(task.Url, task.SavePath, task.Chunks, task.CancellationTokenSource);
-			progressDialog.DownloadCompleted += (sender, e) => {
+			progressDialog.DownloadCompleted += (sender, e) =>
+			{
 				// 如果是暂停状态，则更新UI
-				if (task.Status == DownloadStatus.Paused)
+				if (e is DownloadStatusChangeEventArgs dsc)
 				{
+					switch (dsc.NewStatus)
+					{
+						case DownloadStatus.Paused:
+							_taskDownloadDict[task].Pause();
+							break;
+						case DownloadStatus.Pending:
+							_taskDownloadDict[task].Resume();
+							break;
+					}
 					idmForm.UpdateTaskUI(task);
 				}
 			};
@@ -497,8 +527,7 @@ namespace Zfile
 			{
 				await Task.Run(async () =>
 				{
-					await StartDownloadWithProgress(task.Url, task.SavePath, task.Chunks, task.CancellationTokenSource.Token,
-						(progress, speed, totalSize, chunkProgress) =>
+					await StartDownloadWithProgress(task, (progress, speed, totalSize, chunkProgress) =>
 						{
 							if (!idmForm.isClosing)
 							{

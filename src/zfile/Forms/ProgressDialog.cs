@@ -13,10 +13,21 @@ using System.Diagnostics;
 
 namespace Zfile.Forms
 {
-    /// <summary>
-    /// 下载进度显示窗口
-    /// </summary>
-    public partial class ProgressDialog : Form
+
+	public class DownloadStatusChangeEventArgs: EventArgs
+	{
+		//public DownloadStatus OldStatus { get; set; }
+		public	DownloadStatus NewStatus { get; set; }
+		public DownloadStatusChangeEventArgs(DownloadStatus newStatus)
+		{
+			//OldStatus = oldStatus;
+			NewStatus = newStatus;
+		}
+	}
+	/// <summary>
+	/// 下载进度显示窗口
+	/// </summary>
+	public partial class ProgressDialog : Form
     {
         private string _url;
         private string _savePath;
@@ -242,7 +253,7 @@ namespace Zfile.Forms
                 this.Hide();
             }
         }
-
+		
         private void HideButton_Click(object sender, EventArgs e)
         {
             this.Hide();
@@ -260,7 +271,7 @@ namespace Zfile.Forms
                 _cancellationTokenSource?.Cancel();
                 _status = DownloadStatus.Paused;
                 UpdateStatus();
-                DownloadCompleted?.Invoke(this, EventArgs.Empty);
+                DownloadCompleted?.Invoke(this, new DownloadStatusChangeEventArgs(DownloadStatus.Canceled));
                 this.Close();
             }
         }
@@ -269,12 +280,12 @@ namespace Zfile.Forms
         {
             if (_status == DownloadStatus.Downloading)
             {
-                _cancellationTokenSource?.Cancel();
+                //_cancellationTokenSource?.Cancel();
                 _status = DownloadStatus.Paused;
                 pauseButton.Text = "继续";
                 UpdateStatus();
-                DownloadCompleted?.Invoke(this, EventArgs.Empty);
-                this.Close();
+                DownloadCompleted?.Invoke(this, new DownloadStatusChangeEventArgs(DownloadStatus.Paused));
+                //this.Close();
             }
             else if (_status == DownloadStatus.Paused)
             {
@@ -282,8 +293,8 @@ namespace Zfile.Forms
                 _status = DownloadStatus.Pending;
                 pauseButton.Text = "暂停";
                 UpdateStatus();
-                DownloadCompleted?.Invoke(this, EventArgs.Empty);
-                this.Close();
+                DownloadCompleted?.Invoke(this, new DownloadStatusChangeEventArgs(DownloadStatus.Pending));
+                //this.Close();
             }
         }
 
@@ -440,7 +451,7 @@ namespace Zfile.Forms
             UpdateStatus();
 
             // 通知主窗体下载完成
-            DownloadCompleted?.Invoke(this, EventArgs.Empty);
+            DownloadCompleted?.Invoke(this, new DownloadStatusChangeEventArgs(DownloadStatus.Completed));
         }
 
         /// <summary>
@@ -460,7 +471,7 @@ namespace Zfile.Forms
             cancelButton.Text = "关闭";
 
             // 通知主窗体下载出错
-            DownloadCompleted?.Invoke(this, EventArgs.Empty);
+            DownloadCompleted?.Invoke(this, new DownloadStatusChangeEventArgs(DownloadStatus.Error));
         }
 
         #endregion

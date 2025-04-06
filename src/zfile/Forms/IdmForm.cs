@@ -847,6 +847,7 @@ namespace Zfile.Forms
                 case DownloadStatus.Error: return "错误";
                 case DownloadStatus.Metadata: return "获取元数据";
                 case DownloadStatus.Hashing: return "校验文件";
+				case DownloadStatus.Canceled: return "已取消";
                 default: return "未知";
             }
         }

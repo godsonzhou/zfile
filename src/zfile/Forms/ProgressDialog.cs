@@ -50,7 +50,7 @@ namespace Zfile.Forms
 
 		// 委托定义，用于在下载完成或取消时通知主窗体
 		public delegate void DownloadCompletedEventHandler(object sender, EventArgs e);
-        public event DownloadCompletedEventHandler DownloadCompleted;
+        public event DownloadCompletedEventHandler UserActionCallback;
 
 		public ProgressDialog(DownloadTask task) : this(task.Url, task.SavePath, task.Chunks, task.CancellationTokenSource) { 
 			_Task = task;
@@ -263,7 +263,7 @@ namespace Zfile.Forms
                 _cancellationTokenSource?.Cancel();
                 _status = DownloadStatus.Canceled;
                 UpdateStatus();
-                DownloadCompleted?.Invoke(this, new DownloadStatusChangeEventArgs(DownloadStatus.Canceled));
+                UserActionCallback?.Invoke(this, new DownloadStatusChangeEventArgs(DownloadStatus.Canceled));
                 this.Close();
             }
         }
@@ -276,7 +276,7 @@ namespace Zfile.Forms
                 _status = DownloadStatus.Paused;
                 pauseButton.Text = "继续";
                 UpdateStatus();
-                DownloadCompleted?.Invoke(this, new DownloadStatusChangeEventArgs(DownloadStatus.Paused));
+                UserActionCallback?.Invoke(this, new DownloadStatusChangeEventArgs(DownloadStatus.Paused));
 				//this.Close();
 				return;
             }
@@ -286,7 +286,7 @@ namespace Zfile.Forms
                 _status = DownloadStatus.Downloading; // 直接设置为Downloading状态，而不是Pending
                 pauseButton.Text = "暂停";
                 UpdateStatus();
-                DownloadCompleted?.Invoke(this, new DownloadStatusChangeEventArgs(DownloadStatus.Downloading)); // 仍然发送Pending事件，保持与IdmManager中的处理逻辑一致
+                UserActionCallback?.Invoke(this, new DownloadStatusChangeEventArgs(DownloadStatus.Downloading)); // 仍然发送Pending事件，保持与IdmManager中的处理逻辑一致
                 //this.Close();
             }
         }
@@ -321,8 +321,8 @@ namespace Zfile.Forms
             progressLabel.Text = $"{progress:F1}%";
 
             // 更新文件信息
-            fileSizeLabel.Text = $"文件大小: {FormatFileSize(totalSize)}";
-            speedLabel.Text = $"传输速度: {FormatSpeed(speed)}";
+            fileSizeLabel.Text = $"文件大小: {IdmForm.FormatFileSize(totalSize)}";
+            speedLabel.Text = $"传输速度: {IdmForm.FormatSpeed(speed)}";
 
             // 计算剩余时间
             if (speed > 0)
@@ -384,9 +384,9 @@ namespace Zfile.Forms
                 if (chunksListView.Items.Count > chunkIndex)
                 {
                     ListViewItem item = chunksListView.Items[chunkIndex];
-                    item.SubItems[1].Text = FormatFileSize(bytesDownloaded);
-                    item.SubItems[2].Text = $"{FormatFileSize(startPos)} - {FormatFileSize(endPos)}";
-                    item.SubItems[3].Text = FormatSpeed(_chunkSpeeds[chunkIndex]);
+                    item.SubItems[1].Text = IdmForm.FormatFileSize(bytesDownloaded);
+                    item.SubItems[2].Text = $"{IdmForm.FormatFileSize(startPos)} - {IdmForm.FormatFileSize(endPos)}";
+                    item.SubItems[3].Text = IdmForm.FormatSpeed(_chunkSpeeds[chunkIndex]);
 
                     // 创建进度条文本 [====    ] 40%
                     int progressChars = (int)(_chunkProgress / 5); // 20个字符表示100%
@@ -422,7 +422,10 @@ namespace Zfile.Forms
                 case DownloadStatus.Error:
                     statusLabel.Text = "状态: 下载出错";
                     break;
-            }
+				case DownloadStatus.Canceled:
+					statusLabel.Text = "状态: 已取消";
+					break;
+			}
         }
 
         /// <summary>
@@ -444,7 +447,7 @@ namespace Zfile.Forms
             UpdateStatus();
 
             // 通知主窗体下载完成
-            DownloadCompleted?.Invoke(this, new DownloadStatusChangeEventArgs(DownloadStatus.Completed));
+            UserActionCallback?.Invoke(this, new DownloadStatusChangeEventArgs(DownloadStatus.Completed));
         }
 
         /// <summary>
@@ -464,7 +467,7 @@ namespace Zfile.Forms
             cancelButton.Text = "关闭";
 
             // 通知主窗体下载出错
-            DownloadCompleted?.Invoke(this, new DownloadStatusChangeEventArgs(DownloadStatus.Error));
+            UserActionCallback?.Invoke(this, new DownloadStatusChangeEventArgs(DownloadStatus.Error));
         }
 
         #endregion
@@ -474,24 +477,24 @@ namespace Zfile.Forms
         /// <summary>
         /// 格式化文件大小
         /// </summary>
-        private string FormatFileSize(long bytes)
-        {
-            if (bytes < 1024) return $"{bytes} B";
-            if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F2} KB";
-            if (bytes < 1024 * 1024 * 1024) return $"{bytes / (1024.0 * 1024):F2} MB";
-            return $"{bytes / (1024.0 * 1024 * 1024):F2} GB";
-        }
+        //private string FormatFileSize(long bytes)
+        //{
+        //    if (bytes < 1024) return $"{bytes} B";
+        //    if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F2} KB";
+        //    if (bytes < 1024 * 1024 * 1024) return $"{bytes / (1024.0 * 1024):F2} MB";
+        //    return $"{bytes / (1024.0 * 1024 * 1024):F2} GB";
+        //}
 
         /// <summary>
         /// 格式化下载速度
         /// </summary>
-        private string FormatSpeed(double bytesPerSecond)
-        {
-            if (bytesPerSecond < 1024) return $"{bytesPerSecond:F2} B/s";
-            if (bytesPerSecond < 1024 * 1024) return $"{bytesPerSecond / 1024:F2} KB/s";
-            if (bytesPerSecond < 1024 * 1024 * 1024) return $"{bytesPerSecond / (1024 * 1024):F2} MB/s";
-            return $"{bytesPerSecond / (1024 * 1024 * 1024):F2} GB/s";
-        }
+        //private string FormatSpeed(double bytesPerSecond)
+        //{
+        //    if (bytesPerSecond < 1024) return $"{bytesPerSecond:F2} B/s";
+        //    if (bytesPerSecond < 1024 * 1024) return $"{bytesPerSecond / 1024:F2} KB/s";
+        //    if (bytesPerSecond < 1024 * 1024 * 1024) return $"{bytesPerSecond / (1024 * 1024):F2} MB/s";
+        //    return $"{bytesPerSecond / (1024 * 1024 * 1024):F2} GB/s";
+        //}
 
         /// <summary>
         /// 格式化时间

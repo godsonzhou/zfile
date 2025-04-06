@@ -575,7 +575,7 @@ namespace Zfile.Forms
             {
                 // 设置状态为下载中
                 task.Status = DownloadStatus.Downloading;
-                UpdateTaskUI(task);
+                UpdateDownloadListview(task);
                 
                 // 根据类型启动下载
                 string torrentId;
@@ -603,7 +603,7 @@ namespace Zfile.Forms
                                 }
                                 
                                 // 更新UI
-                                UpdateTaskUI(task);
+                                UpdateDownloadListview(task);
                             }
                         });
                 }
@@ -631,7 +631,7 @@ namespace Zfile.Forms
                                 }
                                 
                                 // 更新UI
-                                UpdateTaskUI(task);
+                                UpdateDownloadListview(task);
                             }
                         });
                 }
@@ -642,13 +642,13 @@ namespace Zfile.Forms
             catch (OperationCanceledException)
             {
                 task.Status = DownloadStatus.Paused;
-                UpdateTaskUI(task);
+                UpdateDownloadListview(task);
             }
             catch (Exception ex)
             {
                 task.Status = DownloadStatus.Error;
                 task.ErrorMessage = ex.Message;
-                UpdateTaskUI(task);
+                UpdateDownloadListview(task);
                 
                 MessageBox.Show($"种子下载失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -728,13 +728,13 @@ namespace Zfile.Forms
             }
         }
 
-        public void UpdateTaskUI(DownloadTask task)
+        public void UpdateDownloadListview(DownloadTask task)
         {
             if (isClosing) return;
 
             if (InvokeRequired)
             {
-                Invoke(new Action(() => UpdateTaskUI(task)));
+                Invoke(new Action(() => UpdateDownloadListview(task)));
                 return;
             }
 
@@ -852,7 +852,7 @@ namespace Zfile.Forms
             }
         }
 
-        private string FormatFileSize(long bytes)
+        public static string FormatFileSize(long bytes)
         {
             if (bytes < 0) return "未知";
             if (bytes < 1024) return $"{bytes} B";
@@ -861,7 +861,7 @@ namespace Zfile.Forms
             return $"{bytes / (1024.0 * 1024 * 1024):F2} GB";
         }
 
-        private string FormatSpeed(double bytesPerSecond)
+        public static string FormatSpeed(double bytesPerSecond)
         {
             if (bytesPerSecond <= 0) return "--";
             if (bytesPerSecond < 1024) return $"{bytesPerSecond:F2} B/s";

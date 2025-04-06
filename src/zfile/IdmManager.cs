@@ -480,7 +480,7 @@ namespace Zfile
 			{
 				// 恢复种子下载
 				task.Status = DownloadStatus.Downloading;
-				idmForm.UpdateTaskUI(task);
+				idmForm.UpdateDownloadListview(task);
 				await TorrentMgr.ResumeTorrentAsync(torrentTask.TorrentId);
 				return;
 			}
@@ -494,9 +494,9 @@ namespace Zfile
 			if (progressDialog == null)
 			{
 				progressDialog = new ProgressDialog(task); //task.Url, task.SavePath, task.Chunks, task.CancellationTokenSource);
-				progressDialog.DownloadCompleted += (sender, e) =>
+				progressDialog.UserActionCallback += (sender, e) =>
 				{
-					// 如果是暂停状态，则更新UI
+					// 处理用户操作，如暂停、取消等
 					if (e is DownloadStatusChangeEventArgs dsc)
 					{
 						switch (dsc.NewStatus)
@@ -511,7 +511,7 @@ namespace Zfile
 								task.CancellationTokenSource.Cancel();
 								break;
 						}
-						idmForm.UpdateTaskUI(task);
+						idmForm.UpdateDownloadListview(task);
 					}
 				};
 			}
@@ -531,7 +531,7 @@ namespace Zfile
 								task.MaxSpeed = Math.Max(task.MaxSpeed, speed);
 
 								// 更新UI
-								idmForm.UpdateTaskUI(task);
+								idmForm.UpdateDownloadListview(task);
 
 								// 更新进度窗口
 								if (progressDialog != null && !progressDialog.IsDisposed)
@@ -545,7 +545,7 @@ namespace Zfile
 					{
 						task.Status = DownloadStatus.Completed;
 						task.Progress = 100;
-						idmForm.UpdateTaskUI(task);
+						idmForm.UpdateDownloadListview(task);
 
 						// 更新进度窗口为完成状态
 						if (progressDialog != null && !progressDialog.IsDisposed)
@@ -557,14 +557,14 @@ namespace Zfile
 			}
 			catch (OperationCanceledException)
 			{
-				task.Status = DownloadStatus.Paused;
-				idmForm.UpdateTaskUI(task);
+				task.Status = DownloadStatus.Canceled;
+				idmForm.UpdateDownloadListview(task);
 			}
 			catch (Exception ex)
 			{
 				task.Status = DownloadStatus.Error;
 				task.ErrorMessage = ex.Message;
-				idmForm.UpdateTaskUI(task);
+				idmForm.UpdateDownloadListview(task);
 
 				// 更新进度窗口为错误状态
 				if (progressDialog != null && !progressDialog.IsDisposed)
@@ -594,7 +594,7 @@ namespace Zfile
 				task.Status = DownloadStatus.Paused;
 			}
 
-			idmForm.UpdateTaskUI(task);
+			idmForm.UpdateDownloadListview(task);
 		}
 	}
 }

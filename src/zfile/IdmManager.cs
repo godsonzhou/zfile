@@ -504,7 +504,7 @@ namespace Zfile
 							case DownloadStatus.Paused:
 								task.Downloader.Pause();
 								break;
-							case DownloadStatus.Pending:
+							case DownloadStatus.Downloading:
 								task.Downloader.Resume();
 								break;
 							case DownloadStatus.Canceled:

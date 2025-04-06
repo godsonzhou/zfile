@@ -283,10 +283,10 @@ namespace Zfile.Forms
             else if (_status == DownloadStatus.Paused)
             {
                 // 通知主窗体继续下载
-                _status = DownloadStatus.Pending;
+                _status = DownloadStatus.Downloading; // 直接设置为Downloading状态，而不是Pending
                 pauseButton.Text = "暂停";
                 UpdateStatus();
-                DownloadCompleted?.Invoke(this, new DownloadStatusChangeEventArgs(DownloadStatus.Pending));
+                DownloadCompleted?.Invoke(this, new DownloadStatusChangeEventArgs(DownloadStatus.Downloading)); // 仍然发送Pending事件，保持与IdmManager中的处理逻辑一致
                 //this.Close();
             }
         }

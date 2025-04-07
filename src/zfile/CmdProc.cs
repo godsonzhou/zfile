@@ -907,7 +907,7 @@ namespace Zfile
 		private async Task cm_StartMcpServer(string param)
 		{
 			if (string.IsNullOrEmpty(param))
-				param = "zfile";
+				param = "Zfile.exe";
 			Debug.Print($"add tool handler [dynamictool] for mcp server {param}");
 			MCPServer.AddToolHandler(new Tool()
 			{

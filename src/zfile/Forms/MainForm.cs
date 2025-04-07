@@ -1493,7 +1493,7 @@ namespace Zfile
 			try
 			{
 				//get the config showhiddensystem 
-				var shcontf = SHCONTF.FOLDERS;
+				var shcontf = SHCONTF.FOLDERS ;
 				if (int.TryParse(configLoader.FindConfigValue("Configuration", "ShowHiddenSystem"), out var showhiddensystem))
 				{
 					if ((showhiddensystem & 2) != 0)
@@ -1511,6 +1511,7 @@ namespace Zfile
 						root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out IShellFolder iSub); //获取子节点的ishellfolder接口
 						string name;
 						string path = w32.GetPathByIShell(root, pidlSub);   //子节点path -> 此电脑\\迅雷下载, c:\\
+						Debug.Print(path);
 						var pathPart = path.Split('\\');
 						name = !pathPart[^1].Equals(string.Empty) ? pathPart[^1] : pathPart[^2];
 						var subItem = new ShellItem(pidlSub, iSub, root); //子节点的tag存放pidl和ishellfolder接口

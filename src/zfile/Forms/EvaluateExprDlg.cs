@@ -8,7 +8,8 @@ namespace Zfile.Forms
         private ListView paramListView;
         private TextBox resultTextBox;
         private Button calculateButton;
-        private Button closeButton;
+		private Button calculateButton1;
+		private Button closeButton;
         private Button addParamButton;
         private Button deleteParamButton;
         private Button clearParamButton;
@@ -98,13 +99,23 @@ namespace Zfile.Forms
             calculateButton = new Button
             {
                 Text = "计算",
-                Location = new Point(400, 330),
+                Location = new Point(300, 330),
                 Size = new Size(80, 30),
                 Anchor = AnchorStyles.Bottom | AnchorStyles.Right
             };
             calculateButton.Click += CalculateButton_Click;
 
-            closeButton = new Button
+			// 底部按钮
+			calculateButton1 = new Button
+			{
+				Text = "计算1",
+				Location = new Point(400, 330),
+				Size = new Size(80, 30),
+				Anchor = AnchorStyles.Bottom | AnchorStyles.Right
+			};
+			calculateButton1.Click += CalculateButton1_Click;
+
+			closeButton = new Button
             {
                 Text = "关闭",
                 Location = new Point(490, 330),
@@ -124,7 +135,8 @@ namespace Zfile.Forms
                 resultLabel,
                 resultTextBox,
                 calculateButton,
-                closeButton
+				calculateButton1,
+				closeButton
             });
         }
 		// 添加新的事件处理方法
@@ -225,8 +237,32 @@ namespace Zfile.Forms
                 MessageBox.Show($"计算出错: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+		private void CalculateButton1_Click(object sender, EventArgs e)
+		{
+			string expr = exprTextBox.Text;
+			if (string.IsNullOrWhiteSpace(expr))
+			{
+				MessageBox.Show("请输入表达式", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				return;
+			}
 
-        private void CloseButton_Click(object sender, EventArgs e)
+			Dictionary<string, string> parameters = new Dictionary<string, string>();
+			foreach (ListViewItem item in paramListView.Items)
+			{
+				parameters[item.SubItems[0].Text] = item.SubItems[1].Text;
+			}
+
+			try
+			{
+				var result = ExpressionEvaluatorDS.EvalExpr(expr, parameters);
+				resultTextBox.Text = result.ToString();
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"计算出错: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+		private void CloseButton_Click(object sender, EventArgs e)
         {
             Close();
         }

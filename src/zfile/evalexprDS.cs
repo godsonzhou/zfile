@@ -76,14 +76,27 @@ public class ExpressionEvaluatorDS
 
 	private static List<Token> Tokenize(string expr)
 	{
+		//var tokenDefinitions = new[]
+		//{
+		//	new { Pattern = @"\d+\.?\d*", Type = TokenType.Number },
+		//	new { Pattern = @"\.true\.|\.false\.", Type = TokenType.Boolean },
+		//	new { Pattern = @"'[^']*'", Type = TokenType.String },
+		//	new { Pattern = @">=|<=|!=|=|>|<", Type = TokenType.Operator },
+		//	new { Pattern = @"\^|\+|-|\*|/|%|!|&|\|", Type = TokenType.Operator },
+		//	new { Pattern = @"\[|\]|\(|\)|,", Type = TokenType.Punctuation },
+		//	new { Pattern = @"[a-zA-Z_][a-zA-Z0-9_]*", Type = TokenType.Identifier }
+		//};
 		var tokenDefinitions = new[]
 		{
 			new { Pattern = @"\d+\.?\d*", Type = TokenType.Number },
 			new { Pattern = @"\.true\.|\.false\.", Type = TokenType.Boolean },
 			new { Pattern = @"'[^']*'", Type = TokenType.String },
+			// 调整括号和运算符的顺序，将括号模式提前并分开处理
+			new { Pattern = @"\(", Type = TokenType.Punctuation },
+			new { Pattern = @"\)", Type = TokenType.Punctuation },
 			new { Pattern = @">=|<=|!=|=|>|<", Type = TokenType.Operator },
 			new { Pattern = @"\^|\+|-|\*|/|%|!|&|\|", Type = TokenType.Operator },
-			new { Pattern = @"\[|\]|\(|\)|,", Type = TokenType.Punctuation },
+			new { Pattern = @"\[|\]|,", Type = TokenType.Punctuation },
 			new { Pattern = @"[a-zA-Z_][a-zA-Z0-9_]*", Type = TokenType.Identifier }
 		};
 

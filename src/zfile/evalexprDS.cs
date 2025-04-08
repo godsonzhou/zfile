@@ -51,9 +51,19 @@ public class ExpressionEvaluatorDS
 
 	private static string ReplaceVariables(string expr, Dictionary<string, object> parameters)
 	{
+		var BuiltInFunctions = new HashSet<string>
+		{
+			"sin", "cos", "tan", "abs", "floor", "ceil", "round",
+			"max", "min", "mod"
+		};
 		return Regex.Replace(expr, @"\b([a-zA-Z_][a-zA-Z0-9_]*)\b", match =>
 		{
 			var varName = match.Groups[1].Value;
+			// 如果是内置函数，直接返回原始值
+			if (BuiltInFunctions.Contains(varName.ToLower()))
+			{
+				return varName;
+			}
 			if (parameters.TryGetValue(varName, out object value))
 			{
 				return value switch
@@ -66,6 +76,7 @@ public class ExpressionEvaluatorDS
 			throw new KeyNotFoundException($"Variable '{varName}' not found");
 		});
 	}
+
 
 	private static object EvaluateExpression(string expr)
 	{
@@ -182,11 +193,11 @@ public class ExpressionEvaluatorDS
 							break;
 
 						case ")":
-							while (stack.Count > 0 && stack.Peek().Value != "(")
+							if (stack.Count > 0 && stack.Peek().Value == "(")
 							{
-								output.Add(stack.Pop());
+								stack.Pop(); // 弹出左括号
 							}
-							stack.Pop(); // 弹出左括号
+							
 							if (stack.Count > 0 && stack.Peek().Type == TokenType.Function)
 							{
 								var func = stack.Pop();

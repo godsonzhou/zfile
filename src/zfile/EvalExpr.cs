@@ -296,6 +296,8 @@ namespace Zfile
 						var second = Convert.ToDouble(ParseExpression());
 						return first % second;
 					}
+				case "len":
+					return ParseExpression().ToString().Length;
 				default:
 					throw new Exception($"Unknown function: {functionName}");
 			}

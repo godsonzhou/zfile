@@ -100,8 +100,8 @@ public class ExpressionEvaluatorDS
 		//};
 		var tokenDefinitions = new[]
 		{
-			//new { Pattern = @"^[-]?\d+\.?\d*", Type = TokenType.Number },
-			new { Pattern = @"^\d+\.?\d*", Type = TokenType.Number },
+			new { Pattern = @"^[-]?\d+\.?\d*", Type = TokenType.Number },
+			//new { Pattern = @"^\d+\.?\d*", Type = TokenType.Number },
 			//new { Pattern = @"\.true\.|\.false\.", Type = TokenType.Boolean },
 			new { Pattern = @"^(?:\.true\.|\.false\.)", Type = TokenType.Boolean },
 			new { Pattern = @"'[^']*'", Type = TokenType.String },
@@ -126,8 +126,11 @@ public class ExpressionEvaluatorDS
 			}
 
 			bool matched = false;
+			
 			foreach (var def in tokenDefinitions)
-			{
+			{		
+				if (tokens.Count != 0 && tokens[^1].Type == TokenType.Number && def.Type == TokenType.Number)
+					continue;
 				var match = Regex.Match(expr.Substring(pos), $"^{def.Pattern}");
 				if (match.Success)
 				{
@@ -140,7 +143,7 @@ public class ExpressionEvaluatorDS
 
 			if (!matched) throw new FormatException($"Invalid character at position {pos}");
 		}
-
+		Debug.Print("calc tokens : \n" + string.Join(' ', tokens));
 		return tokens;
 	}
 	private static List<Token> ConvertToRPN(List<Token> tokens)
@@ -265,7 +268,7 @@ public class ExpressionEvaluatorDS
 				throw new ArgumentException("Mismatched parentheses");
 			output.Add(op);
 		}
-
+		Debug.Print("calc RPN : \n" + string.Join(' ', output));
 		return output;
 	}
 
@@ -357,7 +360,7 @@ public class ExpressionEvaluatorDS
 					var funcName = token.Value.ToLower();
 					int argCount = funcName switch
 					{
-						"sin" or "cos" or "tan" or "abs" or "floor" or "ceil" or "round" or "len" or "upper" or "lower" or "str" => 1,
+						"sqrt" or "sin" or "cos" or "tan" or "abs" or "floor" or "ceil" or "round" or "len" or "upper" or "lower" or "str" => 1,
 						"max" or "min" or "mod" => 2,
 						_ => throw new ArgumentException($"Unknown function: {funcName}")
 					};
@@ -438,6 +441,8 @@ public class ExpressionEvaluatorDS
 				"upper" => args[0].ToString().ToUpper(),
 				"lower" => args[0].ToString().ToLower(),
 				"len" => args[0].ToString().Length,
+				// 添加新函数
+				"sqrt" => Math.Sqrt(Convert.ToDouble(args[0])),
 				"sin" => Math.Sin(Convert.ToDouble(args[0])),
 				"cos" => Math.Cos(Convert.ToDouble(args[0])),
 				"tan" => Math.Tan(Convert.ToDouble(args[0])),
@@ -447,7 +452,7 @@ public class ExpressionEvaluatorDS
 				"round" => Math.Round(Convert.ToDouble(args[0])),
 				"max" => Math.Max(Convert.ToDouble(args[0]), Convert.ToDouble(args[1])),
 				"min" => Math.Min(Convert.ToDouble(args[0]), Convert.ToDouble(args[1])),
-				"mod" => Convert.ToDouble(args[0]) % Convert.ToDouble(args[1]),
+				"mod" => Convert.ToInt32(args[0]) % Convert.ToInt32(args[1]),
 				_ => throw new ArgumentException($"Unknown function: {funcName}")
 			};
 		}

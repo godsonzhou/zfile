@@ -474,7 +474,7 @@ public class FunctionCall : INode
 		}
 
 		var result = func.Body.Evaluate(funcScope);
-		return result is ReturnValue rv ? rv.Value : new RuntimeValue(ValueType.Null, null);
+		return result is ReturnValue rv ? (RuntimeValue)rv.Value : new RuntimeValue(ValueType.Null, null);
 	}
 
 	private FunctionDef ResolveFunction(Scope scope, string name)
@@ -776,26 +776,6 @@ public class ListLiteralNode : INode
 		return new ListValue(items);
 	}
 }
-
-//public class DictLiteralNode : INode
-//{
-//	public Dictionary<string, INode> Properties { get; }
-
-//	public DictLiteralNode(Dictionary<string, INode> properties)
-//	{
-//		Properties = properties;
-//	}
-
-//	public RuntimeValue Evaluate(Scope scope)
-//	{
-//		var items = new Dictionary<string, RuntimeValue>();
-//		foreach (var prop in Properties)
-//		{
-//			items[prop.Key] = prop.Value.Evaluate(scope);
-//		}
-//		return new DictValue(items);
-//	}
-//}
 
 public class ReturnValue : RuntimeValue
 {

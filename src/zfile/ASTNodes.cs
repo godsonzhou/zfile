@@ -121,7 +121,7 @@ public class MethodCallNode : INode
         }
         
         var result = method.Body.Evaluate(methodScope);
-        return result is ReturnValue rv ? rv.Value : new RuntimeValue(ValueType.Null, null);
+        return result is ReturnValue rv ? (RuntimeValue)rv.Value : new RuntimeValue(ValueType.Null, null);
     }
 }
 

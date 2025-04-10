@@ -811,20 +811,117 @@ public class MemoryManager
 		{
 			foreach (var variable in scope.GetAllVariables())
 			{
-				if (variable.Value.Value is ClassInstance ci)
+				// 检查变量值是否为ClassInstance类型
+				var value = variable.Value.Value;
+				if (value is ClassInstance ci)
 				{
 					if (!referenced.Add(ci)) continue;
 					ScanClassInstance(ci);
 				}
 			}
-			// 递归扫描子作用域...
+			
+			// 递归扫描子作用域
+			if (scope.Parent != null)
+			{
+				ScanScope(scope.Parent);
+			}
+			
+			// 扫描所有使用当前作用域的子作用域
+			// 这里需要遍历所有可能创建新作用域的地方，如函数调用、条件语句等
+			// 由于我们没有直接的方法获取所有子作用域，我们可以通过扫描函数来间接处理
+			foreach (var function in scope.GetAllFunctions().Values)
+			{
+				// 函数体可能包含对ClassInstance的引用
+				if (function.Body != null)
+				{
+					// 为函数创建一个新的作用域并扫描它
+					var functionScope = new Scope(scope);
+					// 这里我们不实际执行函数，只是扫描其可能引用的对象
+					ScanBlockStatement(function.Body, functionScope);
+				}
+			}
+		}
+
+		// 扫描语句块中可能包含的ClassInstance引用
+		void ScanBlockStatement(BlockStatement block, Scope blockScope)
+		{
+			foreach (var statement in block.Statements)
+			{
+				// 处理不同类型的语句
+				if (statement is IfStatement ifStmt)
+				{
+					// 扫描条件表达式
+					ScanExpression(ifStmt.Condition, blockScope);
+					
+					// 扫描then分支
+					if (ifStmt.ThenBranch != null)
+					{
+						ScanBlockStatement(ifStmt.ThenBranch, new Scope(blockScope));
+					}
+					
+					// 扫描else分支
+					if (ifStmt.ElseBranch != null)
+					{
+						ScanBlockStatement(ifStmt.ElseBranch, new Scope(blockScope));
+					}
+				}
+				else if (statement is WhileLoop whileLoop)
+				{
+					// 扫描循环条件
+					ScanExpression(whileLoop.Condition, blockScope);
+					
+					// 扫描循环体
+					if (whileLoop.Body != null)
+					{
+						ScanBlockStatement(whileLoop.Body, new Scope(blockScope));
+					}
+				}
+				else if (statement is FunctionCall funcCall)
+				{
+					// 扫描函数参数
+					foreach (var arg in funcCall.Args)
+					{
+						ScanExpression(arg, blockScope);
+					}
+				}
+				else
+				{
+					// 对于其他类型的语句，尝试评估它们以查找ClassInstance引用
+					ScanExpression(statement, blockScope);
+				}
+			}
+		}
+
+		// 扫描表达式中可能包含的ClassInstance引用
+		void ScanExpression(INode node, Scope exprScope)
+		{
+			// 这里我们不实际执行表达式，只是检查它是否直接引用了ClassInstance
+			// 对于复杂表达式，可能需要更详细的处理
+			if (node is IdentifierNode idNode)
+			{
+				try
+				{
+					var variable = exprScope.GetVariable(idNode.Name);
+					if (variable.Value.Value is ClassInstance ci)
+					{
+						if (!referenced.Add(ci)) return;
+						ScanClassInstance(ci);
+					}
+				}
+				catch (Exception)
+				{
+					// 忽略未定义的变量
+				}
+			}
 		}
 
 		void ScanClassInstance(ClassInstance instance)
 		{
 			foreach (var field in instance.Fields.Values)
 			{
-				if (field.Value is ClassInstance ci)
+				// 检查字段值是否为ClassInstance类型
+				var fieldValue = field.Value;
+				if (fieldValue is ClassInstance ci)
 				{
 					if (!referenced.Add(ci)) continue;
 					ScanClassInstance(ci);

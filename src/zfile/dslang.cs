@@ -1,13 +1,276 @@
 ﻿using MCPSharp.Model;
+using OpenQA.Selenium.DevTools.V131.Autofill;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 // ================== 基础数据结构 ==================
-public enum TokenType { /* 词法标记类型 */ Identifier, Number, Keyword, Operator, Punctuator }
-public class Token { /* 词法单元 */
+public enum TokenType { 
+	Identifier,   // 标识符
+	Number,       // 数字
+	String,       // 字符串
+	Keyword,      // 关键字
+	Operator,     // 运算符
+	Punctuator,   // 标点符号
+	EOF           // 文件结束
+}
+
+public class Token { 
 	public TokenType Type { get; set; }
 	public string Value { get; set; }
+	public int Line { get; set; }
+	public int Column { get; set; }
+
+	public Token(TokenType type, string value, int line = 0, int column = 0)
+	{
+		Type = type;
+		Value = value;
+		Line = line;
+		Column = column;
+	}
+
+	public override string ToString() => $"{Type}({Value})"; 
+}
+
+public class Lexer
+{
+	private readonly string source;
+	private int position = 0;
+	private int line = 1;
+	private int column = 1;
+
+	private static readonly HashSet<string> Keywords = new HashSet<string>
+	{
+		"if", "else", "while", "for", "break", "continue", "return",
+		"function", "class", "extends", "new", "this", "super",
+		"true", "false", "null", "const", "var", "let", "import"
+	};
+
+	public Lexer(string source)
+	{
+		this.source = source;
+	}
+
+	public List<Token> Tokenize()
+	{
+		var tokens = new List<Token>();
+		Token token;
+		do
+		{
+			token = NextToken();
+			tokens.Add(token);
+		} while (token.Type != TokenType.EOF);
+
+		return tokens;
+	}
+
+	private Token NextToken()
+	{
+		SkipWhitespace();
+
+		if (position >= source.Length)
+			return new Token(TokenType.EOF, "", line, column);
+
+		char c = source[position];
+
+		// 标识符或关键字
+		if (IsAlpha(c))
+			return IdentifierOrKeyword();
+
+		// 数字
+		if (IsDigit(c))
+			return Number();
+
+		// 字符串
+		if (c == '"' || c == '\'') 
+			return String();
+
+		// 注释
+		if (c == '/' && position + 1 < source.Length)
+		{
+			if (source[position + 1] == '/') // 单行注释
+			{
+				SkipLineComment();
+				return NextToken();
+			}
+			else if (source[position + 1] == '*') // 多行注释
+			{
+				SkipBlockComment();
+				return NextToken();
+			}
+		}
+
+		// 运算符和标点符号
+		return OperatorOrPunctuator();
+	}
+
+	private Token IdentifierOrKeyword()
+	{
+		int startPos = position;
+		int startLine = line;
+		int startColumn = column;
+
+		while (position < source.Length && (IsAlphaNumeric(source[position]) || source[position] == '_'))
+		{
+			position++;
+			column++;
+		}
+
+		string value = source.Substring(startPos, position - startPos);
+
+		if (Keywords.Contains(value))
+			return new Token(TokenType.Keyword, value, startLine, startColumn);
+		else
+			return new Token(TokenType.Identifier, value, startLine, startColumn);
+	}
+
+	private Token Number()
+	{
+		int startPos = position;
+		int startLine = line;
+		int startColumn = column;
+		bool hasDecimal = false;
+
+		while (position < source.Length && 
+			(IsDigit(source[position]) || 
+			(source[position] == '.' && !hasDecimal && position + 1 < source.Length && IsDigit(source[position + 1]))))
+		{
+			if (source[position] == '.')
+				hasDecimal = true;
+			position++;
+			column++;
+		}
+
+		string value = source.Substring(startPos, position - startPos);
+		return new Token(TokenType.Number, value, startLine, startColumn);
+	}
+
+	private Token String()
+	{
+		int startLine = line;
+		int startColumn = column;
+		char quote = source[position];
+		position++; // 跳过引号
+		column++;
+
+		int startPos = position;
+		while (position < source.Length && source[position] != quote)
+		{
+			if (source[position] == '\\' && position + 1 < source.Length)
+			{
+				position += 2; // 跳过转义字符
+				column += 2;
+			}
+			else if (source[position] == '\n')
+			{
+				line++;
+				column = 1;
+				position++;
+			}
+			else
+			{
+				position++;
+				column++;
+			}
+		}
+
+		if (position >= source.Length)
+			throw new Exception("Unterminated string literal");
+
+		string value = source.Substring(startPos, position - startPos);
+		position++; // 跳过结束引号
+		column++;
+
+		return new Token(TokenType.String, value, startLine, startColumn);
+	}
+
+	private Token OperatorOrPunctuator()
+	{
+		int startLine = line;
+		int startColumn = column;
+		char c = source[position];
+		position++;
+		column++;
+
+		// 检查双字符运算符
+		if (position < source.Length)
+		{
+			string op = c + source[position].ToString();
+			if (op == "==" || op == "!=" || op == "<=" || op == ">=" || 
+				op == "&&" || op == "||" || op == "+=" || op == "-=" || 
+				op == "*=" || op == "/=" || op == "++" || op == "--")
+			{
+				position++;
+				column++;
+				return new Token(TokenType.Operator, op, startLine, startColumn);
+			}
+		}
+
+		// 单字符运算符和标点
+		if ("+-*/%=<>!&|^~".Contains(c))
+			return new Token(TokenType.Operator, c.ToString(), startLine, startColumn);
+		else
+			return new Token(TokenType.Punctuator, c.ToString(), startLine, startColumn);
+	}
+
+	private void SkipWhitespace()
+	{
+		while (position < source.Length && char.IsWhiteSpace(source[position]))
+		{
+			if (source[position] == '\n')
+			{
+				line++;
+				column = 1;
+			}
+			else
+			{
+				column++;
+			}
+			position++;
+		}
+	}
+
+	private void SkipLineComment()
+	{
+		position += 2; // 跳过 //
+		column += 2;
+
+		while (position < source.Length && source[position] != '\n')
+		{
+			position++;
+			column++;
+		}
+	}
+
+	private void SkipBlockComment()
+	{
+		position += 2; // 跳过 /*
+		column += 2;
+
+		while (position < source.Length && !(source[position] == '*' && position + 1 < source.Length && source[position + 1] == '/'))
+		{
+			if (source[position] == '\n')
+			{
+				line++;
+				column = 1;
+			}
+			else
+			{
+				column++;
+			}
+			position++;
+		}
+
+		if (position >= source.Length)
+			throw new Exception("Unterminated block comment");
+
+		position += 2; // 跳过 */
+		column += 2;
+	}
+
+	private bool IsAlpha(char c) => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
+	private bool IsDigit(char c) => c >= '0' && c <= '9';
+	private bool IsAlphaNumeric(char c) => IsAlpha(c) || IsDigit(c);
 }
 
 public enum ValueType
@@ -18,6 +281,8 @@ public enum ValueType
 	Object,
 	Function,
 	Class,
+	List,
+	Dict,
 	Null
 }
 
@@ -68,7 +333,42 @@ public class Scope
 		variables[name] = new Variable(isConstant, value);
 	}
 
-	// 类似的函数和方法管理实现...
+	public void AssignVariable(string name, RuntimeValue value)
+	{
+		var variable = GetVariable(name);
+		if (variable.IsConstant)
+			throw new Exception($"Cannot assign to constant variable: {name}");
+		variable.Value = value;
+	}
+
+	public FunctionDef GetFunction(string name)
+	{
+		if (functions.ContainsKey(name)) return functions[name];
+		return Parent?.GetFunction(name) ?? throw new Exception($"Undefined function: {name}");
+	}
+
+	public void DeclareFunction(string name, FunctionDef function)
+	{
+		if (functions.ContainsKey(name))
+			throw new Exception($"Function {name} already declared");
+		functions[name] = function;
+	}
+
+	public ClassDef GetClass(string name)
+	{
+		if (classes.ContainsKey(name)) return classes[name];
+		return Parent?.GetClass(name) ?? throw new Exception($"Undefined class: {name}");
+	}
+
+	public void DeclareClass(string name, ClassDef classDef)
+	{
+		if (classes.ContainsKey(name))
+			throw new Exception($"Class {name} already declared");
+		classes[name] = classDef;
+	}
+
+	public Dictionary<string, FunctionDef> GetAllFunctions() => functions;
+	public Dictionary<string, Variable> GetAllVariables() => variables;
 }
 
 // ================== 语法树节点 ==================
@@ -96,9 +396,9 @@ public class BlockStatement : INode
 // ================== 控制结构实现 ==================
 public class IfStatement : INode
 {
-	public INode Condition { get; }
-	public BlockStatement ThenBranch { get; }
-	public BlockStatement ElseBranch { get; }
+	public INode Condition { get; set; }
+	public BlockStatement ThenBranch { get; set; }
+	public BlockStatement ElseBranch { get; set; }
 
 	public RuntimeValue Evaluate(Scope scope)
 	{
@@ -114,8 +414,8 @@ public class IfStatement : INode
 
 public class WhileLoop : INode
 {
-	public INode Condition { get; }
-	public BlockStatement Body { get; }
+	public INode Condition { get; set; }
+	public BlockStatement Body { get; set; }
 
 	public RuntimeValue Evaluate(Scope scope)
 	{
@@ -152,8 +452,8 @@ public class FunctionDef
 
 public class FunctionCall : INode
 {
-	public string Name { get; }
-	public List<INode> Args { get; }
+	public string Name { get; set; }
+	public List<INode> Args { get; set; }
 
 	public RuntimeValue Evaluate(Scope scope)
 	{
@@ -179,7 +479,14 @@ public class FunctionCall : INode
 
 	private FunctionDef ResolveFunction(Scope scope, string name)
 	{
-		// 作用域链查找逻辑...
+		try
+		{
+			return scope.GetFunction(name);
+		}
+		catch (Exception)
+		{
+			throw new Exception($"Function {name} is not defined");
+		}
 	}
 }
 
@@ -213,6 +520,7 @@ public class ClassInstance
 {
 	public ClassDef Class { get; }
 	private Dictionary<string, RuntimeValue> fields = new();
+	public Dictionary<string, RuntimeValue> Fields => fields;
 
 	public ClassInstance(ClassDef classDef)
 	{
@@ -248,9 +556,9 @@ public class ClassInstance
 // ================== 继承实现示例 ==================
 public class ClassInheritance : INode
 {
-	public string ClassName { get; }
-	public string ParentName { get; }
-	public BlockStatement Body { get; }
+	public string ClassName { get; set; }
+	public string ParentName { get; set; }
+	public BlockStatement Body { get; set; }
 
 	public RuntimeValue Evaluate(Scope scope)
 	{
@@ -278,68 +586,216 @@ public class ClassInheritance : INode
 	}
 }
 
-// ================== 使用示例 ==================
-public class Program
-{
-	public static void Main()
-	{
-		var global = new Scope();
+// ================== 语法分析器实现 ==================
 
-		// 定义基类
-		var animalClass = new ClassDef("Animal");
-		animalClass.Fields.Add("age");
-		animalClass.Methods["speak"] = new FunctionDef(
-			new List<string>(),
+
+// ================== 使用示例 ==================
+public class Interpreter
+{
+	private Scope globalScope;
+
+	public Interpreter()
+	{
+		globalScope = new Scope();
+		InitializeStandardLibrary();
+	}
+
+	private void InitializeStandardLibrary()
+	{
+		// 添加内置函数
+		globalScope.DeclareFunction("print", new FunctionDef(
+			new List<string> { "message" },
 			new BlockStatement
 			{
-				Statements = { new PrintNode("Animal sound!") }
-			},
+				Statements = { new PrintNode(new IdentifierNode("message")) }
+			}
+		));
+
+		// 添加内置类型
+		var listClass = new ClassDef("List");
+		listClass.Methods["add"] = new FunctionDef(
+			new List<string> { "item" },
+			new BlockStatement(),
 			isMethod: true
 		);
-		global.DeclareClass("Animal", animalClass);
+		globalScope.DeclareClass("List", listClass);
 
-		// 定义子类
-		var dogClass = new ClassInheritance
-		{
-			ClassName = "Dog",
-			ParentName = "Animal",
-			Body = new BlockStatement
-			{
-				Statements = {
-					new MethodDefNode("speak", new List<string>(), new BlockStatement {
-						Statements = { new PrintNode("Woof!") }
-					})
-				}
-			}
-		}.Evaluate(global);
+		var dictClass = new ClassDef("Dict");
+		dictClass.Methods["set"] = new FunctionDef(
+			new List<string> { "key", "value" },
+			new BlockStatement(),
+			isMethod: true
+		);
+		globalScope.DeclareClass("Dict", dictClass);
+	}
 
-		// 创建实例
-		var dog = new ClassInstance((ClassDef)dogClass.Value);
-		dog.SetField("age", new RuntimeValue(ValueType.Number, 3));
+	public RuntimeValue Execute(string source)
+	{
+		// 词法分析
+		var lexer = new Lexer(source);
+		var tokens = lexer.Tokenize();
 
-		// 方法调用
-		new MethodCallNode(
-			new IdentifierNode("dog"),
-			"speak",
-			new List<INode>()
-		).Evaluate(new Scope(global));
+		// 语法分析
+		var parser = new Parser(tokens);
+		var program = parser.ParseProgram();
+
+		// 执行程序
+		return program.Evaluate(globalScope);
+	}
+
+	public void ExecuteFile(string filePath)
+	{
+		string source = System.IO.File.ReadAllText(filePath);
+		Execute(source);
 	}
 }
 
 // ================== 辅助节点定义 ==================
-public class PrintNode : INode
+// ================== 表达式节点 ==================
+public class ExpressionNode : INode
 {
-	private INode expression;
+	private string expression;
 
-	public PrintNode(INode expr) => expression = expr;
+	public ExpressionNode(string expr) => expression = expr;
 
 	public RuntimeValue Evaluate(Scope scope)
 	{
-		var value = expression.Evaluate(scope);
-		Console.WriteLine(value.Value.ToString());
-		return new RuntimeValue(ValueType.Null, null);
+		// 使用evalexprDS计算表达式
+		var parameters = new Dictionary<string, string>();
+		
+		// 将作用域中的变量转换为evalexprDS可用的参数
+		foreach (var variable in scope.GetAllVariables())
+		{
+			var value = variable.Value.Value;
+			if (value.Type == ValueType.Number)
+				parameters[variable.Key] = value.Value.ToString();
+			else if (value.Type == ValueType.String)
+				parameters[variable.Key] = $"'{value.Value}'";
+			else if (value.Type == ValueType.Boolean)
+				parameters[variable.Key] = (bool)value.Value ? ".true." : ".false.";
+		}
+
+		var result = ExpressionEvaluatorDS.EvalExpr(expression, parameters);
+		
+		// 将结果转换为RuntimeValue
+		if (result is double || result is int)
+			return new RuntimeValue(ValueType.Number, result);
+		else if (result is string)
+			return new RuntimeValue(ValueType.String, result);
+		else if (result is bool)
+			return new RuntimeValue(ValueType.Boolean, result);
+		else
+			return new RuntimeValue(ValueType.Null, null);
 	}
 }
+
+public class VariableDeclarationNode : INode
+{
+	public string Name { get; }
+	public INode Initializer { get; }
+	public bool IsConstant { get; }
+
+	public VariableDeclarationNode(string name, INode initializer, bool isConstant = false)
+	{
+		Name = name;
+		Initializer = initializer;
+		IsConstant = isConstant;
+	}
+
+	public RuntimeValue Evaluate(Scope scope)
+	{
+		var value = Initializer?.Evaluate(scope) ?? new RuntimeValue(ValueType.Null, null);
+		scope.DeclareVariable(Name, IsConstant, value);
+		return value;
+	}
+}
+
+public class VariableAssignmentNode : INode
+{
+	public string Name { get; }
+	public INode Value { get; }
+
+	public VariableAssignmentNode(string name, INode value)
+	{
+		Name = name;
+		Value = value;
+	}
+
+	public RuntimeValue Evaluate(Scope scope)
+	{
+		var value = Value.Evaluate(scope);
+		scope.AssignVariable(Name, value);
+		return value;
+	}
+}
+
+public class IdentifierNode : INode
+{
+	public string Name { get; }
+
+	public IdentifierNode(string name) => Name = name;
+
+	public RuntimeValue Evaluate(Scope scope)
+	{
+		return scope.GetVariable(Name).Value;
+	}
+}
+
+public class LiteralNode : INode
+{
+	private RuntimeValue value;
+
+	public LiteralNode(object value)
+	{
+		if (value is int || value is double)
+			this.value = new RuntimeValue(ValueType.Number, value);
+		else if (value is string)
+			this.value = new RuntimeValue(ValueType.String, value);
+		else if (value is bool)
+			this.value = new RuntimeValue(ValueType.Boolean, value);
+		else
+			this.value = new RuntimeValue(ValueType.Null, null);
+	}
+
+	public RuntimeValue Evaluate(Scope scope) => value;
+}
+
+public class ListLiteralNode : INode
+{
+	public List<INode> Items { get; }
+
+	public ListLiteralNode(List<INode> items) => Items = items;
+
+	public RuntimeValue Evaluate(Scope scope)
+	{
+		var items = new List<RuntimeValue>();
+		foreach (var item in Items)
+		{
+			items.Add(item.Evaluate(scope));
+		}
+		return new ListValue(items);
+	}
+}
+
+//public class DictLiteralNode : INode
+//{
+//	public Dictionary<string, INode> Properties { get; }
+
+//	public DictLiteralNode(Dictionary<string, INode> properties)
+//	{
+//		Properties = properties;
+//	}
+
+//	public RuntimeValue Evaluate(Scope scope)
+//	{
+//		var items = new Dictionary<string, RuntimeValue>();
+//		foreach (var prop in Properties)
+//		{
+//			items[prop.Key] = prop.Value.Evaluate(scope);
+//		}
+//		return new DictValue(items);
+//	}
+//}
 
 public class ReturnValue : RuntimeValue
 {
@@ -349,6 +805,11 @@ public class ReturnValue : RuntimeValue
 public class BreakSignal : RuntimeValue
 {
 	public BreakSignal() : base(ValueType.Null, null) { }
+}
+
+public class ContinueSignal : RuntimeValue
+{
+	public ContinueSignal() : base(ValueType.Null, null) { }
 }
 public class MemoryManager
 {
@@ -400,6 +861,7 @@ public interface IMethodResolver
 public class InterfaceDef : IMethodResolver
 {
 	public Dictionary<string, FunctionSignature> RequiredMethods { get; } = new();
+	public ClassDef Implementation { get; set; }
 
 	public FunctionDef ResolveMethod(string name, List<RuntimeValue> args)
 	{
@@ -409,4 +871,104 @@ public class InterfaceDef : IMethodResolver
 		// 验证参数类型匹配...
 		return Implementation?.GetMethod(name);
 	}
+}
+
+public class FunctionSignature
+{
+	public List<ValueType> ParameterTypes { get; }
+	public ValueType ReturnType { get; }
+
+	public FunctionSignature(List<ValueType> paramTypes, ValueType returnType)
+	{
+		ParameterTypes = paramTypes;
+		ReturnType = returnType;
+	}
+}
+
+// ================== 复杂数据结构实现 ==================
+public class ListValue : RuntimeValue
+{
+	public List<RuntimeValue> Items { get; }
+
+	public ListValue() : base(ValueType.List, null)
+	{
+		Items = new List<RuntimeValue>();
+		Value = Items;
+	}
+
+	public ListValue(List<RuntimeValue> items) : base(ValueType.List, null)
+	{
+		Items = items;
+		Value = Items;
+	}
+
+	public RuntimeValue GetItem(int index)
+	{
+		if (index < 0 || index >= Items.Count)
+			throw new Exception($"Index {index} out of range");
+		return Items[index];
+	}
+
+	public void SetItem(int index, RuntimeValue value)
+	{
+		if (index < 0 || index >= Items.Count)
+			throw new Exception($"Index {index} out of range");
+		Items[index] = value;
+	}
+
+	public void Append(RuntimeValue value)
+	{
+		Items.Add(value);
+	}
+
+	public void Remove(int index)
+	{
+		if (index < 0 || index >= Items.Count)
+			throw new Exception($"Index {index} out of range");
+		Items.RemoveAt(index);
+	}
+
+	public int Length() => Items.Count;
+}
+
+public class DictValue : RuntimeValue
+{
+	public Dictionary<string, RuntimeValue> Items { get; }
+
+	public DictValue() : base(ValueType.Dict, null)
+	{
+		Items = new Dictionary<string, RuntimeValue>();
+		Value = Items;
+	}
+
+	public DictValue(Dictionary<string, RuntimeValue> items) : base(ValueType.Dict, null)
+	{
+		Items = items;
+		Value = Items;
+	}
+
+	public RuntimeValue GetItem(string key)
+	{
+		if (!Items.ContainsKey(key))
+			throw new Exception($"Key '{key}' not found in dictionary");
+		return Items[key];
+	}
+
+	public void SetItem(string key, RuntimeValue value)
+	{
+		Items[key] = value;
+	}
+
+	public void Remove(string key)
+	{
+		if (!Items.ContainsKey(key))
+			throw new Exception($"Key '{key}' not found in dictionary");
+		Items.Remove(key);
+	}
+
+	public bool ContainsKey(string key) => Items.ContainsKey(key);
+
+	public List<string> Keys() => Items.Keys.ToList();
+
+	public int Length() => Items.Count;
 }

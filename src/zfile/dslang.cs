@@ -813,11 +813,12 @@ public class MemoryManager
 			{
 				// 检查变量值是否为ClassInstance类型
 				var value = variable.Value.Value;
-				if (value is ClassInstance ci)
-				{
-					if (!referenced.Add(ci)) continue;
-					ScanClassInstance(ci);
-				}
+				
+				//if (value is ClassInstance ci)
+				//{
+				//	if (!referenced.Add(ci)) continue;
+				//	ScanClassInstance(ci);
+				//}
 			}
 			
 			// 递归扫描子作用域

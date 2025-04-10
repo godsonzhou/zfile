@@ -1,5 +1,6 @@
 using ICSharpCode.TextEditor;
 using ICSharpCode.TextEditor.Document;
+using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -654,11 +655,18 @@ namespace Zfile.Forms
                 new ToolStripButton("粘贴", null, Paste_Click),
                 new ToolStripSeparator(),
                 new ToolStripButton("撤销", null, Undo_Click),
-                new ToolStripButton("重做", null, Redo_Click)
+                new ToolStripButton("重做", null, Redo_Click),
+				new ToolStripButton("运行", null, Run_Click)
             });
         }
 
         #region 文件操作
+		private void Run_Click(object sender, EventArgs e)
+		{
+			var interpreter = new Interpreter();
+			var result = interpreter.Execute(textEditor.Document.TextContent);
+			Debug.Print(result.ToString());
+		}
         private void NewFile_Click(object sender, EventArgs e)
         {
             if (CheckSaveChanges())
@@ -814,6 +822,7 @@ namespace Zfile.Forms
 				case ".css": return "CSS";
 				case ".json": return "JSON";
 				case ".md": return "Markdown";
+				case ".ds": return "dscript";
 				default: return "文本文件";
 			}
 		}

@@ -42,6 +42,8 @@ namespace Zfile
 		public CFGLOADER(string filePath) : this()
 		{
 			cfgfile = filePath;
+			if (!File.Exists(filePath))
+				File.Create(filePath);
 			LoadConfig(filePath);
 		}
 

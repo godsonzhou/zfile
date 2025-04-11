@@ -17,6 +17,7 @@ namespace Zfile.Forms
 			InitializeComponent();
             InitializeDownloadList();
             InitializeTorrentEngine();
+            LoadDownloadTasks(); // 加载保存的下载任务
         }
         
         /// <summary>
@@ -871,10 +872,198 @@ namespace Zfile.Forms
             return $"{bytesPerSecond / (1024 * 1024 * 1024):F2} GB/s";
         }
 
-        private async void SaveDownloadTasks()
+        private void SaveDownloadTasks()
         {
-            // 保存下载任务到配置文件，这里简化处理
-            Debug.WriteLine($"保存了 {idmMgr.downloadTasks.Count} 个下载任务");
+            try
+            {
+                // 创建配置文件路径
+                string configFilePath = Path.Combine(Constants.ZfileCfgPath, "zdm.ini");
+                var configLoader = new CFGLOADER(configFilePath);
+                
+                // 清除所有现有的下载任务配置
+                configLoader.ClearSectionsWithPrefix("Task_");
+                
+                // 保存每个下载任务
+                int taskIndex = 0;
+                foreach (var task in idmMgr.downloadTasks)
+                {
+                    string sectionName = $"Task_{taskIndex}";
+                    var items = new List<ConfigItem>();
+                    
+                    // 保存基本属性
+                    items.Add(new ConfigItem { Key = "Url", Value = task.Url ?? string.Empty });
+                    items.Add(new ConfigItem { Key = "SavePath", Value = task.SavePath ?? string.Empty });
+                    items.Add(new ConfigItem { Key = "FileName", Value = task.FileName ?? string.Empty });
+                    items.Add(new ConfigItem { Key = "Chunks", Value = task.Chunks.ToString() });
+                    items.Add(new ConfigItem { Key = "Status", Value = ((int)task.Status).ToString() });
+                    items.Add(new ConfigItem { Key = "Progress", Value = task.Progress.ToString() });
+                    items.Add(new ConfigItem { Key = "Speed", Value = task.Speed.ToString() });
+                    items.Add(new ConfigItem { Key = "MaxSpeed", Value = task.MaxSpeed.ToString() });
+                    items.Add(new ConfigItem { Key = "TotalSize", Value = task.TotalSize.ToString() });
+                    items.Add(new ConfigItem { Key = "CreatedTime", Value = task.CreatedTime.ToString("yyyy-MM-dd HH:mm:ss") });
+                    items.Add(new ConfigItem { Key = "ErrorMessage", Value = task.ErrorMessage ?? string.Empty });
+                    
+                    // 判断是否是种子下载任务
+                    if (task is TorrentDownloadTask torrentTask)
+                    {
+                        items.Add(new ConfigItem { Key = "TaskType", Value = "Torrent" });
+                        items.Add(new ConfigItem { Key = "TorrentId", Value = torrentTask.TorrentId ?? string.Empty });
+                        items.Add(new ConfigItem { Key = "IsMagnetLink", Value = torrentTask.IsMagnetLink.ToString() });
+                        items.Add(new ConfigItem { Key = "TorrentFilePath", Value = torrentTask.TorrentFilePath ?? string.Empty });
+                        
+                        // 保存选中的文件索引
+                        if (torrentTask.SelectedFileIndices != null && torrentTask.SelectedFileIndices.Count > 0)
+                        {
+                            items.Add(new ConfigItem { Key = "SelectedFileIndices", Value = string.Join(",", torrentTask.SelectedFileIndices) });
+                        }
+                        
+                        // 保存其他种子特有属性
+                        items.Add(new ConfigItem { Key = "UploadSpeed", Value = torrentTask.UploadSpeed.ToString() });
+                        items.Add(new ConfigItem { Key = "UploadedBytes", Value = torrentTask.UploadedBytes.ToString() });
+                        items.Add(new ConfigItem { Key = "Peers", Value = torrentTask.Peers.ToString() });
+                        items.Add(new ConfigItem { Key = "Seeds", Value = torrentTask.Seeds.ToString() });
+                        items.Add(new ConfigItem { Key = "Leechs", Value = torrentTask.Leechs.ToString() });
+                    }
+                    else
+                    {
+                        items.Add(new ConfigItem { Key = "TaskType", Value = "Normal" });
+                    }
+                    
+                    // 添加配置节
+                    configLoader.AddOrUpdateSection(sectionName, items);
+                    taskIndex++;
+                }
+                
+                // 保存配置文件
+                configLoader.SaveConfig();
+                Debug.WriteLine($"保存了 {idmMgr.downloadTasks.Count} 个下载任务到 {configFilePath}");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"保存下载任务失败: {ex.Message}");
+                MessageBox.Show($"保存下载任务失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        
+        /// <summary>
+        /// 从配置文件加载下载任务列表
+        /// </summary>
+        private void LoadDownloadTasks()
+        {
+            try
+            {
+                // 创建配置文件路径
+                string configFilePath = Path.Combine(Constants.ZfileCfgPath, "zdm.ini");
+                
+                // 如果配置文件不存在，则不执行任何操作
+                if (!File.Exists(configFilePath))
+                {
+                    Debug.WriteLine("下载任务配置文件不存在");
+                    return;
+                }
+                
+                var configLoader = new CFGLOADER(configFilePath);
+                
+                // 清空当前任务列表
+                idmMgr.downloadTasks.Clear();
+                
+                // 加载所有任务配置节
+                foreach (var section in configLoader.sections)
+                {
+                    if (section.Name.StartsWith("Task_"))
+                    {
+                        try
+                        {
+                            // 获取任务类型
+                            string taskType = section.FindValue("TaskType") ?? "Normal";
+                            
+                            if (taskType == "Torrent")
+                            {
+                                // 创建种子下载任务
+                                bool isMagnetLink = bool.Parse(section.FindValue("IsMagnetLink") ?? "false");
+                                string torrentPathOrMagnet = isMagnetLink ? 
+                                    section.FindValue("Url") : 
+                                    section.FindValue("TorrentFilePath");
+                                string savePath = section.FindValue("SavePath") ?? string.Empty;
+                                
+                                var torrentTask = new TorrentDownloadTask(torrentPathOrMagnet, savePath, !isMagnetLink);
+                                
+                                // 设置基本属性
+                                torrentTask.FileName = section.FindValue("FileName") ?? Path.GetFileName(savePath);
+                                torrentTask.Chunks = int.Parse(section.FindValue("Chunks") ?? "4");
+                                torrentTask.Status = (DownloadStatus)int.Parse(section.FindValue("Status") ?? "0");
+                                torrentTask.Progress = double.Parse(section.FindValue("Progress") ?? "0");
+                                torrentTask.Speed = double.Parse(section.FindValue("Speed") ?? "0");
+                                torrentTask.MaxSpeed = double.Parse(section.FindValue("MaxSpeed") ?? "0");
+                                torrentTask.TotalSize = long.Parse(section.FindValue("TotalSize") ?? "0");
+                                torrentTask.CreatedTime = DateTime.Parse(section.FindValue("CreatedTime") ?? DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                                torrentTask.ErrorMessage = section.FindValue("ErrorMessage");
+                                
+                                // 设置种子特有属性
+                                torrentTask.TorrentId = section.FindValue("TorrentId");
+                                torrentTask.IsMagnetLink = isMagnetLink;
+                                torrentTask.TorrentFilePath = section.FindValue("TorrentFilePath");
+                                
+                                // 解析选中的文件索引
+                                string selectedFileIndicesStr = section.FindValue("SelectedFileIndices");
+                                if (!string.IsNullOrEmpty(selectedFileIndicesStr))
+                                {
+                                    torrentTask.SelectedFileIndices = selectedFileIndicesStr.Split(',')
+                                        .Select(s => int.Parse(s))
+                                        .ToList();
+                                }
+                                
+                                torrentTask.UploadSpeed = double.Parse(section.FindValue("UploadSpeed") ?? "0");
+                                torrentTask.UploadedBytes = long.Parse(section.FindValue("UploadedBytes") ?? "0");
+                                torrentTask.Peers = int.Parse(section.FindValue("Peers") ?? "0");
+                                torrentTask.Seeds = int.Parse(section.FindValue("Seeds") ?? "0");
+                                torrentTask.Leechs = int.Parse(section.FindValue("Leechs") ?? "0");
+                                
+                                // 创建取消令牌
+                                torrentTask.CancellationTokenSource = new CancellationTokenSource();
+                                
+                                // 添加到任务列表
+                                idmMgr.downloadTasks.Add(torrentTask);
+                            }
+                            else
+                            {
+                                // 创建普通下载任务
+                                var task = new DownloadTask
+                                {
+                                    Url = section.FindValue("Url"),
+                                    SavePath = section.FindValue("SavePath"),
+                                    FileName = section.FindValue("FileName"),
+                                    Chunks = int.Parse(section.FindValue("Chunks") ?? "4"),
+                                    Status = (DownloadStatus)int.Parse(section.FindValue("Status") ?? "0"),
+                                    Progress = double.Parse(section.FindValue("Progress") ?? "0"),
+                                    Speed = double.Parse(section.FindValue("Speed") ?? "0"),
+                                    MaxSpeed = double.Parse(section.FindValue("MaxSpeed") ?? "0"),
+                                    TotalSize = long.Parse(section.FindValue("TotalSize") ?? "0"),
+                                    CreatedTime = DateTime.Parse(section.FindValue("CreatedTime") ?? DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")),
+                                    ErrorMessage = section.FindValue("ErrorMessage"),
+                                    CancellationTokenSource = new CancellationTokenSource()
+                                };
+                                
+                                // 添加到任务列表
+                                idmMgr.downloadTasks.Add(task);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"加载任务 {section.Name} 失败: {ex.Message}");
+                        }
+                    }
+                }
+                
+                // 更新UI
+                UpdateDownloadListView();
+                Debug.WriteLine($"从 {configFilePath} 加载了 {idmMgr.downloadTasks.Count} 个下载任务");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"加载下载任务失败: {ex.Message}");
+                MessageBox.Show($"加载下载任务失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         #endregion

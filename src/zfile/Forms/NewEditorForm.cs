@@ -226,14 +226,14 @@ namespace Zfile.Forms
 			replaceButton = new Button
 			{
 				Text = "替换",
-				Location = new Point(290, 42),
+				Location = new Point(330, 42),
 				Width = 90
 			};
 
 			replaceAllButton = new Button
 			{
 				Text = "全部替换",
-				Location = new Point(290, 72),
+				Location = new Point(330, 72),
 				Width = 90
 			};
 
@@ -680,6 +680,7 @@ namespace Zfile.Forms
 				encodingLabel.Text = "UTF-8";
 				fileTypeLabel.Text = "文本文件";
 				UpdateCaretPosition();
+				textEditor.Refresh();
 			}
         }
 

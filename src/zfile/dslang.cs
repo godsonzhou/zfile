@@ -562,11 +562,14 @@ public class ClassInheritance : INode
 
 	public RuntimeValue Evaluate(Scope scope)
 	{
-		var parentClass = scope.GetClass(ParentName) ?? throw new Exception($"Parent class {ParentName} not found");
+		ClassDef? parentClass = null;
+		if (!string.IsNullOrEmpty(ParentName))
+			parentClass = scope.GetClass(ParentName) ?? throw new Exception($"Parent class {ParentName} not found");
 		var classDef = new ClassDef(ClassName, parentClass);
 
 		// 处理字段继承
-		classDef.Fields.AddRange(parentClass.Fields);
+		if(parentClass != null)
+			classDef.Fields.AddRange(parentClass.Fields);
 
 		// 处理成员方法
 		var classScope = new Scope(scope);

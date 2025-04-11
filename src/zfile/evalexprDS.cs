@@ -81,6 +81,7 @@ public class ExpressionEvaluatorDS
 
 	private static object EvaluateExpression(string expr, Dictionary<string,object?> parameters)
 	{
+		Debug.Print(expr);
 		var tokens = Tokenize(expr);
 		var rpn = ConvertToRPN(tokens);
 		return EvaluateRPN(rpn, parameters);

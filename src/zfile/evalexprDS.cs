@@ -435,6 +435,7 @@ public class ExpressionEvaluatorDS
 	{
 		try
 		{
+			Debug.Print(funcName + " : " + string.Join(' ', args));
 			return funcName switch
 			{
 				"str" => args[0].ToString(),

@@ -474,7 +474,7 @@ public class FunctionCall : INode
 		}
 
 		var result = func.Body.Evaluate(funcScope);
-		return result is ReturnValue rv ? (RuntimeValue)rv.Value : new RuntimeValue(ValueType.Null, null);
+		return result is ReturnValue rv ? new RuntimeValue(rv.Type, rv.Value) : new RuntimeValue(ValueType.Null, null);
 	}
 
 	private FunctionDef ResolveFunction(Scope scope, string name)

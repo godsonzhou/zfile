@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 // 补全DictLiteralNode类的实现
@@ -47,6 +48,7 @@ public class PrintNode : INode
         {
             var value = expression.Evaluate(scope);
             Console.WriteLine(value.Value);
+			Debug.Print(value.Value.ToString());
         }
         else
         {

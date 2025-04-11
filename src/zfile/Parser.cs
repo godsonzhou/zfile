@@ -65,7 +65,7 @@ public partial class Parser
                     return ParseWhileStatement();
                 case "for":
                     return ParseForStatement();
-                case "function":
+                case "def":
                     return ParseFunctionDeclaration();
                 case "class":
                     return ParseClassDeclaration();
@@ -225,7 +225,7 @@ public partial class Parser
     // 解析函数声明
     private INode ParseFunctionDeclaration()
     {
-        Consume(TokenType.Keyword, "function");
+        Consume(TokenType.Keyword, "def");
         string name = Consume(TokenType.Identifier).Value;
         
         Consume(TokenType.Punctuator, "(");
@@ -268,7 +268,7 @@ public partial class Parser
         
         while (position < tokens.Count && !(tokens[position].Type == TokenType.Punctuator && tokens[position].Value == "}"))
         {
-            if (tokens[position].Type == TokenType.Keyword && tokens[position].Value == "function")
+            if (tokens[position].Type == TokenType.Keyword && tokens[position].Value == "def")
             {
                 Consume(); // 消费 function 关键字
                 string methodName = Consume(TokenType.Identifier).Value;

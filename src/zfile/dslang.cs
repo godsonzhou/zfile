@@ -42,7 +42,7 @@ public class Lexer
 	private static readonly HashSet<string> Keywords = new HashSet<string>
 	{
 		"if", "else", "while", "for", "break", "continue", "return",
-		"function", "class", "extends", "new", "this", "super",
+		"def", "class", "extends", "new", "this", "super",
 		"true", "false", "null", "const", "var", "let", "import"
 	};
 

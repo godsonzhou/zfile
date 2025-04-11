@@ -536,7 +536,7 @@ namespace Zfile.Forms
             AddLog($"详细日志已{(verboseLoggingCheckBox.Checked ? "启用" : "禁用")}");
         }
 
-        private void UpdateTorrentInfo()
+        private async Task UpdateTorrentInfo()
         {
             var torrentInfo = TorrentMgr.GetTorrentInfo(_torrentId);
             if (torrentInfo == null)
@@ -552,7 +552,7 @@ namespace Zfile.Forms
             UpdateFilesList(torrentInfo);
 
             // 获取详细信息（需要修改TorrentManager类以提供这些信息）
-            var detailedInfo = TorrentMgr.GetDetailedTorrentInfo(_torrentId);
+            var detailedInfo = await TorrentMgr.GetDetailedTorrentInfo(_torrentId);
             if (detailedInfo != null)
             {
                 // 更新Peers列表

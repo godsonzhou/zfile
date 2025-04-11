@@ -3,6 +3,7 @@ using MonoTorrent.Client;
 using System.Net;
 using System.Text;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Zfile
 {
@@ -293,7 +294,7 @@ namespace Zfile
         /// </summary>
         /// <param name="torrentId">种子ID</param>
         /// <returns>种子详细信息</returns>
-        public static TorrentDetailedInfo GetDetailedTorrentInfo(string torrentId)
+        public static async Task<TorrentDetailedInfo> GetDetailedTorrentInfo(string torrentId)
         {
             if (_activeTorrents.TryGetValue(torrentId, out var manager))
             {
@@ -312,42 +313,43 @@ namespace Zfile
                     DhtStatus = _engine.Dht.State.ToString()
                 };
 
-                // 添加Peers信息
-                //// 在新版本的MonoTorrent中，使用ActivePeers替代ConnectedPeers
-                //foreach (var peer in manager.Peers.ActivePeers)
-                //{
-                //    detailedInfo.Peers.Add(new PeerInfo
-                //    {
-                //        Address = peer.Uri.ToString(),
-                //        ClientSoftware = peer.ClientApp.Client,
-                //        DownloadSpeed = peer.Monitor.DownloadSpeed,
-                //        UploadSpeed = peer.Monitor.UploadSpeed,
-                //        Progress = peer.AmRequestingPiecesCount > 0 ? 
-                //            (double)peer.AmRequestingPiecesCount / manager.Torrent.PieceCount * 100 : 0,
-                //        Status = peer.ConnectionDirection.ToString(),
-                //        IsSeeder = peer.IsSeeder,
-                //        ConnectedTime = DateTime.Now // 这里应该从连接时保存
-                //    });
-                //}
+				//添加Peers信息
+				var peers = await manager.GetPeersAsync();
+				foreach (var peer in peers)
+				{
+					detailedInfo.Peers.Add(new PeerInfo
+					{
+						Address = peer.Uri.ToString(),
+						ClientSoftware = peer.ClientApp.Client.ToString(),
+						DownloadSpeed = peer.Monitor.DownloadRate,
+						UploadSpeed = peer.Monitor.UploadRate,
+						Progress = peer.AmRequestingPiecesCount > 0 ?
+							(double)peer.AmRequestingPiecesCount / manager.Torrent.PieceCount * 100 : 0,
+						Status = peer.ConnectionDirection.ToString(),
+						IsSeeder = peer.IsSeeder,
+						ConnectedTime = DateTime.Now // 这里应该从连接时保存
+					});
+				}
 
-                //// 添加Trackers信息
-                //foreach (var tracker in manager.TrackerManager.Trackers)
-                //{
-                //    detailedInfo.Trackers.Add(new TrackerInfo
-                //    {
-                //        Url = tracker.Uri.ToString(),
-                //        Status = tracker.Status.ToString(),
-                //        LastUpdated = DateTime.Now, // 这里应该从更新时保存
-                //        Seeds = tracker.Announces.Count > 0 ? tracker.Announces.Last().Complete : 0,
-                //        Peers = tracker.Announces.Count > 0 ? tracker.Announces.Last().Incomplete : 0,
-                //        NextUpdate = DateTime.Now.AddSeconds(tracker.UpdateInterval.TotalSeconds),
-                //        WarningMessage = tracker.WarningMessage,
-                //        ErrorMessage = tracker.FailureMessage
-                //    });
-                //}
+				// 添加Trackers信息
+				foreach (var tier in manager.TrackerManager.Tiers)
+				{
+					var tracker = tier.ActiveTracker;
+					detailedInfo.Trackers.Add(new TrackerInfo
+					{
+						Url = tracker.Uri.ToString(),
+						Status = tracker.Status.ToString(),
+						LastUpdated = DateTime.Now, // 这里应该从更新时保存
+						//Seeds = tracker.Announces.Count > 0 ? tracker.Announces.Last().Complete : 0,
+						//Peers = tracker.Announces.Count > 0 ? tracker.Announces.Last().Incomplete : 0,
+						NextUpdate = DateTime.Now.AddSeconds(tracker.UpdateInterval.TotalSeconds),
+						WarningMessage = tracker.WarningMessage,
+						ErrorMessage = tracker.FailureMessage
+					});
+				}
 
-                // 添加文件信息
-                if (manager.Files != null)
+				// 添加文件信息
+				if (manager.Files != null)
                 {
                     foreach (var file in manager.Files)
                     {

@@ -519,10 +519,14 @@ namespace Zfile.Forms
 				Location = new Point(10, 200),
 				Size = new Size(765, 220),
 				CheckBoxes = true,
-				View = View.Details
+				View = View.Details,
+				AllowDrop = true
 			};
 			lstFiles.Columns.Add("文件", 380);
 			lstFiles.Columns.Add("处理结果", 380);
+			// 添加拖放事件处理
+			lstFiles.DragEnter += LstFiles_DragEnter;
+			lstFiles.DragDrop += LstFiles_DragDrop;
 
 			// 提示词输入
 			txtPrompt = new TextBox
@@ -564,7 +568,78 @@ namespace Zfile.Forms
 			UpdateAPIControlsState();
 		}
 		
+			// 添加以下拖放事件处理方法
+		
+		private void LstFiles_DragEnter(object sender, DragEventArgs e)
+		{
+			// 检查拖放的数据是否包含文件列表格式
+			if (e.Data.GetDataPresent(DataFormats.FileDrop) || 
+				e.Data.GetDataPresent(typeof(List<string>)) ||
+				e.Data.GetDataPresent(typeof(string[])))
+			{
+				// 允许拖放操作
+				e.Effect = DragDropEffects.Copy;
+			}
+			else
+			{
+				// 不允许拖放操作
+				e.Effect = DragDropEffects.None;
+			}
+		}
 
+		private void LstFiles_DragDrop(object sender, DragEventArgs e)
+		{
+			List<string> droppedFiles = new List<string>();
+			
+			// 处理从资源管理器拖放的文件
+			if (e.Data.GetDataPresent(DataFormats.FileDrop))
+			{
+				string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+				droppedFiles.AddRange(files);
+			}
+			// 处理从应用内其他ListView拖放的文件（如MainForm的leftList或rightList）
+			else if (e.Data.GetDataPresent(typeof(List<string>)))
+			{
+				List<string> files = (List<string>)e.Data.GetData(typeof(List<string>));
+				droppedFiles.AddRange(files);
+			}
+			else if (e.Data.GetDataPresent(typeof(string[])))
+			{
+				string[] files = (string[])e.Data.GetData(typeof(string[]));
+				droppedFiles.AddRange(files);
+			}
+			
+			// 添加拖放的文件到列表
+			foreach (string file in droppedFiles)
+			{
+				// 检查文件是否已存在于列表中
+				bool exists = false;
+				foreach (ListViewItem item in lstFiles.Items)
+				{
+					if (item.Text.Equals(file, StringComparison.OrdinalIgnoreCase))
+					{
+						exists = true;
+						break;
+					}
+				}
+				
+				// 如果文件不存在于列表中，则添加
+				if (!exists)
+				{
+					var ionfile = file + ".ion";
+					var desc = File.Exists(ionfile) ? File.ReadAllText(ionfile) : "";
+					var item = new ListViewItem([file, desc]);
+					lstFiles.Items.Add(item);
+					item.Checked = true;
+					
+					// 将文件添加到文件列表
+					if (!filelist.Contains(file))
+					{
+						filelist.Add(file);
+					}
+				}
+			}
+		}
 		private void LoadModels()
 		{
 			cboModels.Items.Clear();

@@ -317,45 +317,49 @@ public class ChunkDownloaderWithProgress : ChunkDownloader
 	/// </summary>
 	public async Task DownloadAsync(CancellationToken cancellationToken = default)
 	{
-		// 获取文件总大小
-		var totalSize = await GetFileSizeAsync();
-		if (totalSize == 0)
+		try
 		{
-			Debug.Print("total size = 0");
-			return;
+			// 获取文件总大小
+			var totalSize = await GetFileSizeAsync();
+			if (totalSize == 0)
+			{
+				Debug.Print("total size = 0");
+				return;
+			}
+		
+			// 初始化/恢复下载进度
+			var chunks = InitializeChunks(totalSize);
+
+			// 创建/打开临时文件
+			using (var fileStream = new FileStream(_tempFile, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Write))
+			{
+				fileStream.SetLength(totalSize);
+
+				// 多线程下载
+				var tasks = new Task[_chunks];
+				for (int i = 0; i < _chunks; i++)
+				{
+					int chunkId = i;
+					tasks[i] = DownloadChunkAsync(chunks[chunkId], fileStream, cancellationToken);
+				}
+
+				// 显示进度
+				var progressTask = ShowProgressAsync(totalSize, cancellationToken);
+
+				// 等待所有任务完成或取消
+				try
+				{
+					await Task.WhenAll(tasks);
+					await progressTask;
+				}
+				catch (OperationCanceledException)
+				{
+					// 如果任务被取消，保留临时文件和进度文件以便后续恢复
+					throw;
+				}
+			}
 		}
-		// 初始化/恢复下载进度
-		var chunks = InitializeChunks(totalSize);
-
-		// 创建/打开临时文件
-		using (var fileStream = new FileStream(_tempFile, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Write))
-		{
-			fileStream.SetLength(totalSize);
-
-			// 多线程下载
-			var tasks = new Task[_chunks];
-			for (int i = 0; i < _chunks; i++)
-			{
-				int chunkId = i;
-				tasks[i] = DownloadChunkAsync(chunks[chunkId], fileStream, cancellationToken);
-			}
-
-			// 显示进度
-			var progressTask = ShowProgressAsync(totalSize, cancellationToken);
-
-			// 等待所有任务完成或取消
-			try
-			{
-				await Task.WhenAll(tasks);
-				await progressTask;
-			}
-			catch (OperationCanceledException)
-			{
-				// 如果任务被取消，保留临时文件和进度文件以便后续恢复
-				throw;
-			}
-		}
-
+		catch (Exception ex) { Debug.Print(ex.Message); }
 		// 文件流已关闭，现在尝试重命名文件
 		try
 		{

@@ -491,7 +491,7 @@ namespace Zfile
 			idmForm.UpdateDownloadListView();
 
 			// 创建并显示进度窗口
-			if (progressDialog == null)
+			if (progressDialog == null || progressDialog.IsDisposed)
 			{
 				progressDialog = new ProgressDialog(task); //task.Url, task.SavePath, task.Chunks, task.CancellationTokenSource);
 				progressDialog.UserActionCallback += (sender, e) =>
@@ -515,7 +515,8 @@ namespace Zfile
 					}
 				};
 			}
-			progressDialog.Show();
+			if(!progressDialog.IsDisposed)
+				progressDialog.Show();
 
 			try
 			{

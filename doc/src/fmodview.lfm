@@ -1,0 +1,495 @@
+object frmModView: TfrmModView
+  Left = 395
+  Height = 319
+  Top = 104
+  Width = 488
+  AutoSize = True
+  BorderIcons = [biSystemMenu]
+  Caption = 'New Size'
+  ChildSizing.LeftRightSpacing = 10
+  ChildSizing.TopBottomSpacing = 6
+  ClientHeight = 319
+  ClientWidth = 488
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnKeyPress = FormKeyPress
+  OnShow = FormShow
+  Position = poOwnerFormCenter
+  LCLVersion = '2.2.6.0'
+  object bplButtons: TButtonPanel
+    Left = 10
+    Height = 34
+    Top = 279
+    Width = 468
+    OKButton.Name = 'OKButton'
+    OKButton.DefaultCaption = True
+    OKButton.OnClick = btnOkClick
+    HelpButton.Name = 'HelpButton'
+    HelpButton.DefaultCaption = True
+    CloseButton.Name = 'CloseButton'
+    CloseButton.DefaultCaption = True
+    CancelButton.Name = 'CancelButton'
+    CancelButton.DefaultCaption = True
+    CancelButton.OnClick = btnCancelClick
+    TabOrder = 0
+    ShowButtons = [pbOK, pbCancel]
+  end
+  object pnlMain: TPanel
+    Left = 10
+    Height = 267
+    Top = 6
+    Width = 468
+    Align = alClient
+    AutoSize = True
+    BevelOuter = bvNone
+    ClientHeight = 267
+    ClientWidth = 468
+    TabOrder = 1
+    object pnlQuality: TPanel
+      AnchorSideRight.Control = pnlSize
+      AnchorSideRight.Side = asrBottom
+      Left = 0
+      Height = 273
+      Top = 0
+      Width = 468
+      Anchors = [akTop, akLeft, akRight, akBottom]
+      AutoSize = True
+      BevelOuter = bvNone
+      ClientHeight = 273
+      ClientWidth = 468
+      TabOrder = 2
+      object tbQuality: TTrackBar
+        AnchorSideTop.Control = lblQuality
+        AnchorSideTop.Side = asrBottom
+        Left = 0
+        Height = 22
+        Top = 71
+        Width = 140
+        Max = 100
+        Min = 1
+        OnChange = tbQualityChange
+        Position = 80
+        BorderSpacing.Top = 12
+        TabOrder = 0
+      end
+      object lblQuality: TLabel
+        Left = 32
+        Height = 15
+        Top = 47
+        Width = 141
+        Caption = 'Quality of compress to Jpg'
+        Enabled = False
+        ParentColor = False
+      end
+      object teQuality: TSpinEdit
+        AnchorSideTop.Control = tbQuality
+        AnchorSideTop.Side = asrCenter
+        Left = 144
+        Height = 36
+        Top = 38
+        Width = 75
+        MaxValue = 100
+        MinValue = 1
+        OnChange = teQualityChange
+        TabOrder = 1
+        Value = 1
+      end
+    end
+    object pnlCopyMoveFile: TPanel
+      AnchorSideRight.Side = asrBottom
+      Left = 0
+      Height = 273
+      Top = 0
+      Width = 468
+      Anchors = [akTop, akLeft, akRight, akBottom]
+      AutoSize = True
+      BevelOuter = bvNone
+      ClientHeight = 273
+      ClientWidth = 468
+      Constraints.MinWidth = 300
+      TabOrder = 0
+      object tePath1: TEdit
+        AnchorSideLeft.Control = rbPath1
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = pnlCopyMoveFile
+        AnchorSideRight.Control = btnPath1
+        Left = 38
+        Height = 23
+        Top = 5
+        Width = 398
+        Alignment = taRightJustify
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Top = 5
+        BorderSpacing.Right = 6
+        TabOrder = 0
+      end
+      object tePath2: TEdit
+        AnchorSideLeft.Control = tePath1
+        AnchorSideTop.Control = tePath1
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tePath1
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Side = asrBottom
+        Left = 38
+        Height = 23
+        Top = 34
+        Width = 398
+        Alignment = taRightJustify
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Top = 6
+        TabOrder = 1
+      end
+      object tePath3: TEdit
+        AnchorSideLeft.Control = tePath1
+        AnchorSideTop.Control = tePath2
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tePath1
+        AnchorSideRight.Side = asrBottom
+        Left = 38
+        Height = 23
+        Top = 63
+        Width = 398
+        Alignment = taRightJustify
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Top = 6
+        TabOrder = 2
+      end
+      object btnPath1: TSpeedButton
+        AnchorSideTop.Control = tePath1
+        AnchorSideRight.Control = pnlCopyMoveFile
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = tePath1
+        AnchorSideBottom.Side = asrBottom
+        Left = 442
+        Height = 23
+        Top = 5
+        Width = 21
+        Anchors = [akTop, akRight, akBottom]
+        BorderSpacing.Right = 5
+        Caption = '...'
+        OnClick = btnPathClick
+      end
+      object tePath4: TEdit
+        AnchorSideLeft.Control = tePath1
+        AnchorSideTop.Control = tePath3
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tePath1
+        AnchorSideRight.Side = asrBottom
+        Left = 38
+        Height = 23
+        Top = 92
+        Width = 398
+        Alignment = taRightJustify
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Top = 6
+        TabOrder = 3
+      end
+      object tePath5: TEdit
+        AnchorSideLeft.Control = tePath1
+        AnchorSideTop.Control = tePath4
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tePath1
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Side = asrBottom
+        Left = 38
+        Height = 23
+        Top = 121
+        Width = 398
+        Alignment = taRightJustify
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Top = 6
+        BorderSpacing.Bottom = 10
+        TabOrder = 4
+      end
+      object rbPath1: TRadioButton
+        AnchorSideTop.Control = tePath1
+        AnchorSideBottom.Control = tePath1
+        AnchorSideBottom.Side = asrBottom
+        Left = 18
+        Height = 23
+        Top = 5
+        Width = 20
+        Anchors = [akTop, akLeft, akBottom]
+        Checked = True
+        OnKeyPress = FormKeyPress
+        ParentBidiMode = False
+        TabOrder = 5
+        TabStop = True
+      end
+      object rbPath2: TRadioButton
+        AnchorSideTop.Control = tePath2
+        AnchorSideBottom.Control = tePath2
+        AnchorSideBottom.Side = asrBottom
+        Left = 18
+        Height = 23
+        Top = 34
+        Width = 20
+        Anchors = [akTop, akLeft, akBottom]
+        OnKeyPress = FormKeyPress
+        TabOrder = 6
+      end
+      object rbPath3: TRadioButton
+        AnchorSideTop.Control = tePath3
+        AnchorSideBottom.Control = tePath3
+        AnchorSideBottom.Side = asrBottom
+        Left = 18
+        Height = 23
+        Top = 63
+        Width = 20
+        Anchors = [akTop, akLeft, akBottom]
+        OnKeyPress = FormKeyPress
+        TabOrder = 7
+      end
+      object rbPath4: TRadioButton
+        AnchorSideTop.Control = tePath4
+        AnchorSideBottom.Control = tePath4
+        AnchorSideBottom.Side = asrBottom
+        Left = 18
+        Height = 23
+        Top = 92
+        Width = 20
+        Anchors = [akTop, akLeft, akBottom]
+        OnKeyPress = FormKeyPress
+        TabOrder = 8
+      end
+      object rbPath5: TRadioButton
+        AnchorSideTop.Control = tePath5
+        AnchorSideBottom.Control = tePath5
+        AnchorSideBottom.Side = asrBottom
+        Left = 18
+        Height = 23
+        Top = 121
+        Width = 20
+        Anchors = [akTop, akLeft, akBottom]
+        OnKeyPress = FormKeyPress
+        TabOrder = 9
+      end
+      object btnPath2: TSpeedButton
+        AnchorSideLeft.Control = btnPath1
+        AnchorSideTop.Control = tePath2
+        AnchorSideRight.Control = btnPath1
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = tePath2
+        AnchorSideBottom.Side = asrBottom
+        Left = 442
+        Height = 23
+        Top = 34
+        Width = 21
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        Caption = '...'
+        OnClick = btnPathClick
+      end
+      object btnPath3: TSpeedButton
+        AnchorSideLeft.Control = btnPath1
+        AnchorSideTop.Control = tePath3
+        AnchorSideRight.Control = btnPath1
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = tePath3
+        AnchorSideBottom.Side = asrBottom
+        Left = 442
+        Height = 23
+        Top = 63
+        Width = 21
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        Caption = '...'
+        OnClick = btnPathClick
+      end
+      object btnPath4: TSpeedButton
+        AnchorSideLeft.Control = btnPath1
+        AnchorSideTop.Control = tePath4
+        AnchorSideRight.Control = btnPath1
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = tePath4
+        AnchorSideBottom.Side = asrBottom
+        Left = 442
+        Height = 23
+        Top = 92
+        Width = 21
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        Caption = '...'
+        OnClick = btnPathClick
+      end
+      object btnPath5: TSpeedButton
+        AnchorSideLeft.Control = btnPath1
+        AnchorSideTop.Control = tePath5
+        AnchorSideRight.Control = btnPath1
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = tePath5
+        AnchorSideBottom.Side = asrBottom
+        Left = 442
+        Height = 23
+        Top = 121
+        Width = 21
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        Caption = '...'
+        OnClick = btnPathClick
+      end
+      object lblPath1: TLabel
+        AnchorSideTop.Control = rbPath1
+        AnchorSideBottom.Control = rbPath1
+        AnchorSideBottom.Side = asrBottom
+        Left = 5
+        Height = 20
+        Top = 6
+        Width = 6
+        Anchors = [akTop, akLeft, akBottom]
+        BorderSpacing.Left = 5
+        BorderSpacing.Top = 1
+        BorderSpacing.Bottom = 2
+        Caption = '1'
+        ParentColor = False
+      end
+      object lblPath2: TLabel
+        AnchorSideTop.Control = rbPath2
+        AnchorSideBottom.Control = rbPath2
+        AnchorSideBottom.Side = asrBottom
+        Left = 5
+        Height = 20
+        Top = 35
+        Width = 6
+        Anchors = [akTop, akLeft, akBottom]
+        BorderSpacing.Top = 1
+        BorderSpacing.Bottom = 2
+        Caption = '2'
+        ParentColor = False
+      end
+      object lblPath3: TLabel
+        AnchorSideTop.Control = rbPath3
+        AnchorSideBottom.Control = rbPath3
+        AnchorSideBottom.Side = asrBottom
+        Left = 5
+        Height = 20
+        Top = 64
+        Width = 6
+        Anchors = [akTop, akLeft, akBottom]
+        BorderSpacing.Top = 1
+        BorderSpacing.Bottom = 2
+        Caption = '3'
+        ParentColor = False
+      end
+      object lblPath4: TLabel
+        AnchorSideTop.Control = rbPath4
+        AnchorSideBottom.Control = rbPath4
+        AnchorSideBottom.Side = asrBottom
+        Left = 5
+        Height = 20
+        Top = 93
+        Width = 6
+        Anchors = [akTop, akLeft, akBottom]
+        BorderSpacing.Top = 1
+        BorderSpacing.Bottom = 2
+        Caption = '4'
+        ParentColor = False
+      end
+      object lblPath5: TLabel
+        AnchorSideTop.Control = rbPath5
+        AnchorSideBottom.Control = rbPath5
+        AnchorSideBottom.Side = asrBottom
+        Left = 5
+        Height = 20
+        Top = 122
+        Width = 6
+        Alignment = taCenter
+        Anchors = [akTop, akLeft, akBottom]
+        BorderSpacing.Top = 1
+        BorderSpacing.Bottom = 2
+        Caption = '5'
+        ParentColor = False
+      end
+    end
+    object pnlSize: TPanel
+      AnchorSideRight.Side = asrBottom
+      Left = 0
+      Height = 273
+      Top = 0
+      Width = 468
+      Anchors = [akTop, akLeft, akRight, akBottom]
+      AutoSize = True
+      BevelOuter = bvNone
+      ChildSizing.LeftRightSpacing = 6
+      ClientHeight = 273
+      ClientWidth = 468
+      TabOrder = 1
+      object lblHeight: TLabel
+        AnchorSideTop.Control = teHeight
+        AnchorSideTop.Side = asrCenter
+        Left = 6
+        Height = 15
+        Top = 31
+        Width = 42
+        Caption = 'Height :'
+        ParentColor = False
+      end
+      object lblWidth: TLabel
+        AnchorSideTop.Control = teWidth
+        AnchorSideTop.Side = asrCenter
+        Left = 6
+        Height = 15
+        Top = 4
+        Width = 38
+        Caption = 'Width :'
+        ParentColor = False
+      end
+      object teWidth: TEdit
+        AnchorSideLeft.Control = lblWidth
+        AnchorSideLeft.Side = asrBottom
+        Left = 54
+        Height = 23
+        Top = 0
+        Width = 82
+        BorderSpacing.Left = 10
+        OnKeyPress = teWidthKeyPress
+        OnKeyUp = teWidthKeyUp
+        TabOrder = 0
+        Text = 'Width'
+      end
+      object teHeight: TEdit
+        AnchorSideLeft.Control = teWidth
+        AnchorSideTop.Control = teWidth
+        AnchorSideTop.Side = asrBottom
+        Left = 54
+        Height = 23
+        Top = 27
+        Width = 82
+        BorderSpacing.Top = 4
+        OnKeyPress = teHeightKeyPress
+        OnKeyUp = teHeightKeyUp
+        TabOrder = 1
+        Text = 'Height'
+      end
+      object btnProportion: TSpeedButton
+        AnchorSideLeft.Control = teWidth
+        AnchorSideLeft.Side = asrBottom
+        Left = 142
+        Height = 32
+        Top = 8
+        Width = 26
+        AllowAllUp = True
+        BorderSpacing.Left = 6
+        Down = True
+        GroupIndex = 1
+        OnClick = btnProportionClick
+      end
+    end
+  end
+  object sddCopyMoveFile: TSelectDirectoryDialog
+    Left = 288
+    Top = 40
+  end
+  object ImageList: TImageList
+    Height = 24
+    Width = 9
+    Left = 288
+    Top = 112
+    Bitmap = {
+      4C7A020000000900000018000000D70000000000000078DA6360A01E080E0F0D
+      03E2FF587018929AFF7DBDBDFF5FBE7801C713FAFAC0EA90D580C491CD80F171
+      A86120A4061B9F1C35AD5D1D38DD33B1BFFFBF9989DEFF37EFDE81D581F8686A
+      5C407C6435E8E10303C86A7085373E3578EC724176F3CC193350D44C9F3A15A7
+      DF41EAE815CEC4A8C19736E6CD9D8B92C676EDDC896C2E5169154F3A1F12F902
+      48335023EF10A386D6F902E406A03E06347350E202EA4E901A06A01A06A01AB8
+      1896BC035783277FE154438C5D2036307F31A0E52F743583369F1213EFD8D218
+      BA3E72F3293179070068D29CC0
+    }
+  end
+end

@@ -1,0 +1,93 @@
+object frmMkDir: TfrmMkDir
+  Left = 366
+  Height = 125
+  Top = 429
+  Width = 350
+  ActiveControl = cbMkDir
+  AutoSize = True
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsDialog
+  Caption = 'Create new directory'
+  ClientHeight = 125
+  ClientWidth = 350
+  Constraints.MinHeight = 50
+  Constraints.MinWidth = 350
+  KeyPreview = True
+  Position = poOwnerFormCenter
+  LCLVersion = '2.2.0.4'
+  object lblMakeDir: TLabel
+    Left = 6
+    Height = 15
+    Top = 6
+    Width = 338
+    Align = alTop
+    BorderSpacing.Left = 6
+    BorderSpacing.Top = 6
+    BorderSpacing.Right = 6
+    Caption = '&Input new directory name:'
+    FocusControl = cbMkDir
+    ParentColor = False
+  end
+  object cbMkDir: TComboBox
+    Left = 6
+    Height = 23
+    Top = 28
+    Width = 338
+    Align = alTop
+    AutoComplete = True
+    AutoCompleteText = [cbactEnabled, cbactEndOfLineComplete, cbactRetainPrefixCase, cbactSearchAscending]
+    BorderSpacing.Left = 6
+    BorderSpacing.Top = 6
+    BorderSpacing.Right = 6
+    BorderSpacing.Bottom = 3
+    DropDownCount = 5
+    ItemHeight = 15
+    OnChange = cbMkDirChange
+    OnKeyUp = cbMkDirKeyUp
+    TabOrder = 0
+  end
+  object cbExtended: TCheckBox
+    Left = 6
+    Height = 18
+    Top = 54
+    Width = 338
+    Align = alTop
+    Anchors = [akLeft]
+    BorderSpacing.Left = 6
+    BorderSpacing.Top = 6
+    BorderSpacing.Right = 6
+    Caption = '&Extended syntax'
+    OnChange = cbExtendedChange
+    TabOrder = 1
+  end
+  object lblExample: TLabel
+    Left = 6
+    Height = 1
+    Top = 78
+    Width = 338
+    Align = alTop
+    BorderSpacing.Left = 6
+    BorderSpacing.Top = 6
+    BorderSpacing.Right = 6
+  end
+  object ButtonPanel: TButtonPanel
+    Left = 6
+    Height = 27
+    Top = 91
+    Width = 338
+    Align = alTop
+    BorderSpacing.Top = 6
+    OKButton.Name = 'OKButton'
+    OKButton.DefaultCaption = True
+    HelpButton.Name = 'HelpButton'
+    HelpButton.DefaultCaption = True
+    CloseButton.Name = 'CloseButton'
+    CloseButton.DefaultCaption = True
+    CancelButton.Name = 'CancelButton'
+    CancelButton.DefaultCaption = True
+    ButtonOrder = boCloseOKCancel
+    TabOrder = 2
+    ShowButtons = [pbOK, pbCancel]
+    ShowBevel = False
+  end
+end

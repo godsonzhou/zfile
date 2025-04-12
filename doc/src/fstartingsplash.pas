@@ -1,0 +1,75 @@
+unit fstartingsplash;
+
+{$mode objfpc}{$H+}
+
+interface
+
+uses
+  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
+  StdCtrls;
+
+type
+
+  { TfrmStartingSplash }
+
+  TfrmStartingSplash = class(TForm)
+    imgLogo: TImage;
+    lblBuild: TLabel;
+    lblCommit: TLabel;
+    lblFreePascalVer: TLabel;
+    lblLazarusVer: TLabel;
+    lblOperatingSystem: TLabel;
+    lblPlatform: TLabel;
+    lblRevision: TLabel;
+    lblTitle: TLabel;
+    lblVersion: TLabel;
+    lblWidgetsetVer: TLabel;
+    pnlVersionInfos: TPanel;
+    pnlInfo: TPanel;
+    procedure FormCreate(Sender: TObject);
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure FormHide(Sender: TObject);
+  private
+    { private declarations }
+  public
+    { public declarations }
+  end;
+
+var
+  frmStartingSplash: TfrmStartingSplash;
+
+implementation
+
+{$R *.lfm}
+
+uses
+  uDCVersion;
+
+{ TfrmStartingSplash }
+
+procedure TfrmStartingSplash.FormCreate(Sender: TObject);
+begin
+  lblVersion.Caption         := lblVersion.Caption + #32 + dcVersion;
+  lblRevision.Caption        := lblRevision.Caption + #32 + dcRevision;
+  lblCommit.Caption          := lblCommit.Caption + #32 + dcCommit;
+  lblBuild.Caption           := lblBuild.Caption + #32 + dcBuildDate;
+  lblLazarusVer.Caption      := lblLazarusVer.Caption + #32 + lazVersion;
+  lblFreePascalVer.Caption   := lblFreePascalVer.Caption + #32 + fpcVersion;
+  lblPlatform.Caption        := TargetCPU + '-' + TargetOS + '-' + TargetWS;
+  lblOperatingSystem.Caption := OSVersion;
+  lblWidgetsetVer.Caption    := WSVersion;
+end;
+
+procedure TfrmStartingSplash.FormClose(Sender: TObject;
+  var CloseAction: TCloseAction);
+begin
+  CloseAction:= caFree;
+end;
+
+procedure TfrmStartingSplash.FormHide(Sender: TObject);
+begin
+  close();
+end;
+
+end.
+

@@ -6,7 +6,7 @@ namespace Zfile.FileSources
     {
     }
 
-    public class RealFileSource : FileSource, IRealFileSource
+    public abstract class RealFileSource : FileSource, IRealFileSource
     {
     }
 }

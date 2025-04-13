@@ -177,16 +177,16 @@ namespace Zfile
         }
     }
 
-    public class FileEntry
-    {
-        public string Name { get; set; }
-        public long Size { get; set; }
-        public int Attributes { get; set; }
-        public DateTime CreationTime { get; set; }
-        public DateTime LastAccessTime { get; set; }
-        public DateTime LastWriteTime { get; set; }
-        public bool IsDirectory { get; set; }
-    }
+    //public class FileEntry
+    //{
+    //    public string Name { get; set; }
+    //    public long Size { get; set; }
+    //    public int Attributes { get; set; }
+    //    public DateTime CreationTime { get; set; }
+    //    public DateTime LastAccessTime { get; set; }
+    //    public DateTime LastWriteTime { get; set; }
+    //    public bool IsDirectory { get; set; }
+    //}
 
     public enum FileSourceField
     {

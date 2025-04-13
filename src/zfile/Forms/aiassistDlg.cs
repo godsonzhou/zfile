@@ -749,14 +749,14 @@ namespace Zfile.Forms
 				StringBuilder prompt = new StringBuilder();
 				prompt.Append(txtPrompt.Text);
 				foreach (var file in selectedFiles)
-					process_file(file, prompt.ToString(), chkboxReadfile.Checked);
+					await Process_file_Async(file, prompt.ToString(), chkboxReadfile.Checked);
 			}
 			finally
 			{
 				btnSend.Enabled = true;
 			}
 		}
-		private async void process_file(string file, string prompt, bool needFileRead = true)
+		private async Task Process_file_Async(string file, string prompt, bool needFileRead = true)
 		{
 			if (File.Exists(file))
 			{
@@ -786,7 +786,7 @@ namespace Zfile.Forms
 			{
 				foreach (var f in Directory.GetFiles(file))
 				{
-					process_file(f, prompt, needFileRead);
+					Process_file_Async(f, prompt, needFileRead);
 				}
 			}
 		}

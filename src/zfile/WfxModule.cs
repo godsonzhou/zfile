@@ -59,9 +59,13 @@ namespace Zfile
         public const int FS_STATUS_START = 0;
         public const int FS_STATUS_END = 1;
         public const int FS_STATUS_PROGRESS = 2;
-    }
-
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    
+		// 网络管理操作常量
+		public const int FS_NM_ACTION_ADD = 1;
+		public const int FS_NM_ACTION_EDIT = 2;
+		public const int FS_NM_ACTION_DELETE = 3;
+	}
+	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct WfxFindData
     {
         public int FileAttributes;

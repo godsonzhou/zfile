@@ -1,12 +1,12 @@
 using System;
 
-namespace Files.FileSources
+namespace Zfile.FileSources
 {
 	public interface ILocalFileSource : IRealFileSource
 	{
 	}
 
-	public class LocalFileSource : RealFileSource, ILocalFileSource
+	public abstract class LocalFileSource : RealFileSource, ILocalFileSource
 	{
 	}
 }

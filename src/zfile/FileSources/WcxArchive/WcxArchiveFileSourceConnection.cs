@@ -14,10 +14,10 @@ namespace ZFile.FileSources.WcxArchive
             _wcxModule = wcxModule ?? throw new ArgumentNullException(nameof(wcxModule));
         }
 
-        public override void Dispose()
-        {
-            _wcxModule = null;
-            base.Dispose();
-        }
+        //public override void Dispose()
+        //{
+        //    _wcxModule = null;
+        //    base.Dispose();
+        //}
     }
 }

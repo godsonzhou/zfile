@@ -4,13 +4,6 @@ using System.Text;
 
 namespace Zfile
 {
-    public static class WfxConstants
-    {
-        // 网络管理操作常量
-        public const int FS_NM_ACTION_ADD = 1;
-        public const int FS_NM_ACTION_EDIT = 2;
-        public const int FS_NM_ACTION_DELETE = 3;
-    }
 
     public static class WfxModuleExtensions
     {

@@ -17,6 +17,7 @@ namespace Zfile.Forms
 		private ComboBox cboModels;
 		private Button btnRefresh;
 		private CheckBox chkboxSave;
+		private CheckBox chkboxReadfile;
 		private ListView lstFiles;
 		private TextBox txtPrompt;
 		private Button btnSend;
@@ -513,6 +514,13 @@ namespace Zfile.Forms
 				Width = 260,
 				Checked = true
 			};
+			chkboxReadfile = new CheckBox
+			{
+				Text = "读取文件内容",
+				Location = new Point(600, 42),
+				Width = 260,
+				Checked = true
+			};
 
 			// 文件列表
 			lstFiles = new ListView
@@ -534,7 +542,7 @@ namespace Zfile.Forms
 			foreach (var s in form.mcpClientMgr.MCPToolsDict)
 				prompt.Append($"[{s.Key}] :\n {string.Join('\n', s.Value)}");
 			prompt.Append("如果你想使用以上MCP工具，请使用以下格式输出:\n<use_mcp_tool>\n<server_name>MCP服务器名称</server_name>\n<tool_name>tool1</tool_name>\n<arguments>{\"arg1\":\"value1\"}</arguments>\n</use_mcp_tool>\n");
-			prompt.Append("注意：一次最多使用一种MCP工具, 请开始处理");
+			prompt.Append("注意：1 一次最多使用一种MCP工具 2 用中文答复。 请开始处理");
 			// 提示词输入
 			txtPrompt = new TextBox
 			{
@@ -741,7 +749,7 @@ namespace Zfile.Forms
 				StringBuilder prompt = new StringBuilder();
 				prompt.Append(txtPrompt.Text);
 				foreach (var file in selectedFiles)
-					process_file(file, prompt.ToString(), false);
+					process_file(file, prompt.ToString(), chkboxReadfile.Checked);
 			}
 			finally
 			{

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using ZFile.FileSources;
+using Zfile.FileSources;
 using ZFile.FileSources.WcxArchive;
 using ZFile.Operations;
 

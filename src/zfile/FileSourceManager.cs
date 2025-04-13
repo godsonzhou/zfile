@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Files.FileSources
+namespace Zfile.FileSources
 {
     /// <summary>
     /// Manages file sources

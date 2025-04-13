@@ -1,6 +1,6 @@
 using System;
 
-namespace Files.FileSources
+namespace Zfile.FileSources
 {
     /// <summary>
     /// Base exception class for file source exceptions

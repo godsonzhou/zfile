@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace Files.FileSources
+namespace Zfile.FileSources
 {
 	#region Enums and Data Structures
 
@@ -25,7 +25,7 @@ namespace Files.FileSources
 	/// <summary>
 	/// Represents file source operation types
 	/// </summary>
-	public enum FileSourceOperationType
+	public enum FileSourceOperationTypes
 	{
 		List,
 		Copy,
@@ -128,7 +128,7 @@ namespace Files.FileSources
 		/// <summary>
 		/// Gets the operation type
 		/// </summary>
-		FileSourceOperationType OperationType { get; }
+		FileSourceOperationTypes OperationType { get; }
 
 		/// <summary>
 		/// Gets the operation state
@@ -247,7 +247,7 @@ namespace Files.FileSources
 		/// <summary>
 		/// Gets the operation types supported by this file source
 		/// </summary>
-		FileSourceOperationType[] OperationsTypes { get; }
+		FileSourceOperationTypes[] OperationsTypes { get; }
 
 		/// <summary>
 		/// Gets the properties of this file source
@@ -413,7 +413,7 @@ namespace Files.FileSources
 		/// </summary>
 		/// <param name="operationType">The operation type</param>
 		/// <returns>The operation class</returns>
-		Type GetOperationClass(FileSourceOperationType operationType);
+		Type GetOperationClass(FileSourceOperationTypes operationType);
 
 		/// <summary>
 		/// Checks if the specified path is at the root of the file source
@@ -680,7 +680,7 @@ namespace Files.FileSources
 		/// <summary>
 		/// Gets the operation type
 		/// </summary>
-		public abstract FileSourceOperationType OperationType { get; }
+		public abstract FileSourceOperationTypes OperationType { get; }
 
 		/// <summary>
 		/// Gets the operation state
@@ -800,7 +800,7 @@ namespace Files.FileSources
 		/// <summary>
 		/// Gets the operation types supported by this file source
 		/// </summary>
-		public abstract FileSourceOperationType[] OperationsTypes { get; }
+		public abstract FileSourceOperationTypes[] OperationsTypes { get; }
 
 		/// <summary>
 		/// Gets the properties of this file source
@@ -1063,7 +1063,7 @@ namespace Files.FileSources
 		/// </summary>
 		/// <param name="operationType">The operation type</param>
 		/// <returns>The operation class</returns>
-		public abstract Type GetOperationClass(FileSourceOperationType operationType);
+		public abstract Type GetOperationClass(FileSourceOperationTypes operationType);
 
 		/// <summary>
 		/// Checks if the specified path is at the root of the file source

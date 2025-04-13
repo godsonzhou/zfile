@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using System.IO;
-
+using Zfile.FileSources;
 namespace Zfile
 {
     public class FileView

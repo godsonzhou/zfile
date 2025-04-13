@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading;
-
+using Zfile;
 namespace ZFile.FileSources.WcxArchive
 {
     public interface IWcxArchiveFileSource : IArchiveFileSource

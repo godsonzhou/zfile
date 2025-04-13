@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 
-namespace Files.FileSources
+namespace Zfile.FileSources
 {
     /// <summary>
     /// Represents a connection to a file source

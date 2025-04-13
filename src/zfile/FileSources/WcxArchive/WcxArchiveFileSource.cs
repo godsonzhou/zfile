@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using Zfile;
+using Zfile.FileSources;
 
 namespace ZFile.FileSources.WcxArchive
 {

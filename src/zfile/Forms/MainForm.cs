@@ -2552,7 +2552,7 @@ namespace Zfile
 				item.SubItems.Add(attrstr); // ACDHS
 				items.Add(item);
 
-				wcxModule.ProcessFile(handle, ProcessFileOperation.PK_SKIP, "", ""); // Skip file
+				wcxModule.ProcessFile(handle, ProcessMode.PK_SKIP, "", ""); // Skip file
 			}
 			CloseArchive(archivePath);
 			return items;
@@ -2570,8 +2570,8 @@ namespace Zfile
 			while (wcxModule.ReadHeader(handle, out headerData))
 			{
 				if (headerData.FileName == fileName)
-					return wcxModule.ProcessFile(handle, ProcessFileOperation.PK_EXTRACT, destPath, fileName) == 0;// 0 SKIP, 1 TEST, 2 EXTRACT
-				wcxModule.ProcessFile(handle, ProcessFileOperation.PK_SKIP, "", ""); // 0 Skip file
+					return wcxModule.ProcessFile(handle, ProcessMode.PK_EXTRACT, destPath, fileName) == 0;// 0 SKIP, 1 TEST, 2 EXTRACT
+				wcxModule.ProcessFile(handle, ProcessMode.PK_SKIP, "", ""); // 0 Skip file
 			}
 			CloseArchive(archivePath);
 			return false;

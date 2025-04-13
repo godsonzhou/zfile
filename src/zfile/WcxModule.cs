@@ -93,7 +93,7 @@ namespace Zfile
 		PK_OM_LIST = 0,
 		PK_OM_EXTRACT = 1
 	}
-	public enum ProcessFileOperation
+	public enum ProcessMode
 	{
 		PK_SKIP = 0,
 		PK_TEST = 1,
@@ -123,7 +123,7 @@ namespace Zfile
 		PK_PACK_ENCRYPT = 4
 	}
 
-	public enum PackerCaps
+	public enum PackerCaps : int
 	{
 		/// <summary>
 		/// 可以创建新的压缩文件
@@ -392,9 +392,9 @@ namespace Zfile
 	public delegate IntPtr TOpenArchiveW(ref TOpenArchiveDataW archiveData);
 	public delegate int TReadHeader(IntPtr handle, ref THeaderData headerData);
 	public delegate int TReadHeaderExW(IntPtr handle, ref THeaderDataExW headerData);
-	public delegate int TProcessFile(IntPtr handle, ProcessFileOperation operation, string destPath, string destName);
+	public delegate int TProcessFile(IntPtr handle, ProcessMode operation, string destPath, string destName);
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet=CharSet.Unicode)]
-	public delegate int TProcessFileW(IntPtr handle, ProcessFileOperation operation, [MarshalAs(UnmanagedType.LPWStr)] string destPath, [MarshalAs(UnmanagedType.LPWStr)] string destName);
+	public delegate int TProcessFileW(IntPtr handle, ProcessMode operation, [MarshalAs(UnmanagedType.LPWStr)] string destPath, [MarshalAs(UnmanagedType.LPWStr)] string destName);
 	public delegate int TCloseArchive(IntPtr handle);
 	public delegate int TPackFiles(string packedFile, string subPath, string srcPath, string addList, int flags);
 	public delegate int TPackFilesW([MarshalAs(UnmanagedType.LPWStr)] string packedFile, [MarshalAs(UnmanagedType.LPWStr)] string subPath, [MarshalAs(UnmanagedType.LPWStr)] string srcPath, [MarshalAs(UnmanagedType.LPWStr)] string addList, int flags);
@@ -711,7 +711,7 @@ namespace Zfile
 			return false;
 		}
 
-		public int ProcessFile(IntPtr arcHandle, ProcessFileOperation operation, string destPath, string destName)
+		public int ProcessFile(IntPtr arcHandle, ProcessMode operation, string destPath, string destName)
 		{
 			if (_isUnicode && _processFileW != null)
 			{

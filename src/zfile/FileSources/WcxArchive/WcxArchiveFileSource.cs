@@ -88,11 +88,11 @@ namespace ZFile.FileSources.WcxArchive
                         FileSourceOperationTypes.TestArchive | FileSourceOperationTypes.Execute | 
                         FileSourceOperationTypes.CalcStatistics;
 
-            if (((_pluginCapabilities & PK_CAPS_NEW) != 0 || (_pluginCapabilities & PK_CAPS_MODIFY) != 0) &&
+            if (((_pluginCapabilities & (int)PackerCaps.PK_CAPS_NEW) != 0 || (_pluginCapabilities & (int)PackerCaps.PK_CAPS_MODIFY) != 0) &&
                 (_wcxModule.PackFiles != null || _wcxModule.PackFilesW != null))
                 result |= FileSourceOperationTypes.CopyIn;
 
-            if ((_pluginCapabilities & PK_CAPS_DELETE) != 0 &&
+            if ((_pluginCapabilities & (int)PackerCaps.PK_CAPS_DELETE) != 0 &&
                 (_wcxModule.DeleteFiles != null || _wcxModule.DeleteFilesW != null))
                 result |= FileSourceOperationTypes.Delete;
 

@@ -1,6 +1,6 @@
 using System;
-using Zfile.FileSources;
-namespace Files.FileSources
+
+namespace Zfile.FileSources
 {
     public interface IRealFileSource : IFileSource
     {

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Files.FileSources;
 
-namespace Files.FileSources
+namespace Zfile.FileSources
 {
     public interface IVirtualFileSource : IFileSource
     {

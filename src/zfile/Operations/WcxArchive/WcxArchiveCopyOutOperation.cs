@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Zfile.FileSources;
 using ZFile.FileSources.WcxArchive;
 using ZFile.Operations;
-
+using Zfile;
 namespace ZFile.Operations.WcxArchive
 {
     public class WcxArchiveCopyOutOperation : FileSourceOperation
@@ -68,13 +68,13 @@ namespace ZFile.Operations.WcxArchive
 
                         _statistics.CurrentFileFrom = header.FileName;
                         _statistics.CurrentFileTo = targetFileName;
-                        _statistics.CurrentFileTotalBytes = header.UnpackedSize;
+                        _statistics.CurrentFileTotalBytes = header.UnpSize;
                         _statistics.CurrentFileDoneBytes = 0;
                         UpdateStatistics(_statistics);
 
                         var result = _wcxArchiveFileSource.WcxModule.ProcessFile(
                             arcHandle,
-                            ProcessMode.Extract,
+                            ProcessMode.PK_EXTRACT,
                             string.Empty,
                             targetFileName);
 
@@ -97,7 +97,7 @@ namespace ZFile.Operations.WcxArchive
                     {
                         _wcxArchiveFileSource.WcxModule.ProcessFile(
                             arcHandle,
-                            ProcessMode.Skip,
+                            ProcessMode.PK_SKIP,
                             string.Empty,
                             string.Empty);
                     }

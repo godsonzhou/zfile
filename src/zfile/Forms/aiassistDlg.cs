@@ -575,7 +575,7 @@ namespace Zfile.Forms
 			{
 				rdoLocalModel, rdoRemoteAPI, lblModel, cboModels, btnRefresh,
 				lblAPIProfile, cboAPIProfiles, lblAPIUrl, txtAPIUrl, lblAPIKey, txtAPIKey,
-				lblAPIModel, txtAPIModel, btnSaveAPI, btnDeleteAPI, chkboxSave, 
+				lblAPIModel, txtAPIModel, btnSaveAPI, btnDeleteAPI, chkboxSave, chkboxReadfile,
 				lstFiles, txtPrompt, btnSend, btnClose
 			});
 

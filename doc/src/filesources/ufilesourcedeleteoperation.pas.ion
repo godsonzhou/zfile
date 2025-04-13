@@ -1,0 +1,79 @@
+# TFileSourceDeleteOperation 功能分析
+
+这是一个用于从任意文件源删除文件的Delphi/Lazarus类，属于文件操作框架的一部分。
+
+## 主要功能
+
+1. **文件删除操作**：封装了从文件源删除一个或多个文件的操作
+2. **统计信息跟踪**：记录删除操作的进度和性能指标
+3. **线程安全**：使用临界区(TCriticalSection)保护统计数据的同步访问
+
+## 类结构分析
+
+### 核心属性
+
+- `FStatistics`：记录当前删除操作的统计信息
+- `FStatisticsAtStartTime`：记录操作开始时的统计信息
+- `FStatisticsLock`：用于同步统计信息访问的临界区
+- `FFileSource`：目标文件源接口(IFileSource)
+- `FFilesToDelete`：要删除的文件列表(TFiles)
+
+### 统计信息结构(TFileSourceDeleteOperationStatistics)
+
+- `CurrentFile`：当前正在处理的文件名
+- `TotalFiles`：总共要删除的文件数
+- `DoneFiles`：已完成删除的文件数
+- `TotalBytes`：总共要删除的字节数
+- `DoneBytes`：已完成删除的字节数
+- `FilesPerSecond`：删除速度(文件/秒)
+- `RemainingTime`：预计剩余时间
+
+### 关键方法
+
+1. **Create构造函数**：
+   - 初始化统计信息
+   - 创建临界区对象
+   - 设置文件源和待删除文件
+
+2. **Destroy析构函数**：
+   - 释放临界区和文件列表资源
+
+3. **GetID**：
+   - 返回操作类型标识符(fsoDelete)
+
+4. **DoReloadFileSources**：
+   - 重新加载文件源
+
+5. **GetDescription**：
+   - 提供操作描述(支持不同详细程度)
+
+6. **UpdateStatistics**：
+   - 线程安全地更新统计信息
+   - 计算剩余时间
+   - 更新操作进度
+
+7. **UpdateStatisticsAtStartTime**：
+   - 线程安全地保存操作开始时的统计信息
+
+8. **RetrieveStatistics**：
+   - 线程安全地获取当前统计信息
+
+## 设计特点
+
+1. **继承自TFileSourceOperation**：作为文件源操作框架的一部分
+2. **接口使用**：通过IFileSource接口与不同文件源交互
+3. **线程安全**：所有统计信息访问都通过临界区保护
+4. **进度跟踪**：提供详细的删除进度和性能指标
+5. **资源管理**：在析构函数中正确释放所有资源
+
+## 使用场景
+
+这个类适用于需要从各种文件源(本地文件系统、网络、压缩包等)删除文件并提供进度反馈的应用程序，如文件管理器中的删除操作。
+
+## 改进建议
+
+1. 可以添加错误处理机制来记录删除失败的文件
+2. 考虑添加暂停/恢复功能
+3. 可以扩展支持取消操作
+
+这个类设计良好，职责单一，通过接口和继承提供了良好的扩展性，适合作为文件操作框架的一部分使用。

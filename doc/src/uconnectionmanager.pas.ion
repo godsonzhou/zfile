@@ -1,0 +1,71 @@
+# 功能分析：uConnectionManager 单元
+
+这是一个用于管理网络连接的Delphi单元，主要功能是处理通过WFX插件(Windows File System eXtension)建立的网络连接。
+
+## 主要功能
+
+1. **网络连接管理**：
+   - 添加、移除和关闭网络连接
+   - 跟踪连接的使用计数
+   - 维护连接列表
+
+2. **驱动器列表集成**：
+   - 将网络连接显示为虚拟驱动器
+   - 更新系统驱动器列表
+
+3. **用户界面交互**：
+   - 显示虚拟驱动器的上下文菜单
+   - 提供断开连接的选项
+
+## 核心数据结构
+
+```pascal
+TFileSourceRecord = record
+  Count: Integer;       // 连接引用计数
+  Name, Path: String;   // 连接名称和路径
+  FileSource: IFileSource; // 文件源接口
+end;
+```
+
+## 关键函数分析
+
+1. **连接管理函数**：
+   - `AddNetworkConnection`: 添加新连接或增加现有连接的引用计数
+   - `RemoveNetworkConnection`: 减少连接引用计数，当计数为0时移除连接
+   - `CloseNetworkConnection`: 关闭当前活动连接或最后一个连接
+
+2. **驱动器列表相关**：
+   - `UpdateDriveList`: 将网络连接作为虚拟驱动器添加到驱动器列表
+   - `GetNetworkPath`: 生成网络路径的规范化表示
+
+3. **用户界面**：
+   - `ShowVirtualDriveMenu`: 显示虚拟驱动器的上下文菜单
+   - `OnNetworkDisconnect`: 处理断开连接菜单项的点击事件
+
+## 实现细节
+
+1. **连接生命周期管理**：
+   - 使用引用计数跟踪连接使用情况
+   - 当引用计数归零时自动释放资源
+
+2. **与主窗体集成**：
+   - 更新主窗体的菜单项状态
+   - 处理活动文件视图中的连接状态
+
+3. **WFX插件集成**：
+   - 使用`IWfxPluginFileSource`接口与WFX插件交互
+   - 调用`WfxDisconnect`方法断开连接
+
+## 使用场景
+
+1. 当用户通过WFX插件建立新网络连接时，调用`AddNetworkConnection`
+2. 系统驱动器列表更新时，调用`UpdateDriveList`将网络连接显示为虚拟驱动器
+3. 用户右键点击虚拟驱动器时，显示断开连接选项
+4. 程序退出时自动清理所有连接资源
+
+## 全局变量
+
+- `WfxConnectionList`: 存储所有活动的WFX连接
+- `ContextMenu`: 用于显示虚拟驱动器的上下文菜单
+
+这个单元为文件管理器提供了网络连接管理的基础设施，使得WFX插件建立的网络连接可以像本地驱动器一样被管理和操作。

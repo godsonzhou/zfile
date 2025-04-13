@@ -1,0 +1,64 @@
+# TFileSourceCreateDirectoryOperation 功能分析
+
+这是一个用于创建目录的文件源操作类，用Object Pascal语言编写，属于Free Pascal/Lazarus项目的一部分。
+
+## 主要功能
+
+这个类的主要功能是封装创建目录的操作，提供路径处理、状态更新和操作描述等功能。
+
+## 类结构分析
+
+### 属性
+
+1. **FFileSource**: 接口类型，表示要在其中创建目录的文件源
+2. **FBasePath**: 字符串，表示当前目录的绝对路径
+3. **FDirectoryPath**: 字符串，表示要创建的目录路径(可以是绝对或相对路径)
+4. **FAbsolutePath**: 字符串，计算得到的绝对路径
+5. **FRelativePath**: 字符串，计算得到的相对路径
+
+### 方法
+
+1. **构造函数 Create**:
+   - 初始化操作对象
+   - 根据输入路径(绝对或相对)计算绝对路径和相对路径
+   - 使用`GetPathType`判断路径类型，`ExtractDirLevel`提取相对路径
+
+2. **GetID**:
+   - 返回操作类型标识`fsoCreateDirectory`
+
+3. **UpdateStatisticsAtStartTime**:
+   - 空实现，可被子类覆盖以更新统计信息
+
+4. **DoReloadFileSources**:
+   - 创建目录后重新加载父目录内容
+
+5. **GetDescription**:
+   - 根据详细程度返回不同的操作描述
+   - 支持两种描述格式：简单描述和包含目标路径的详细描述
+
+## 路径处理逻辑
+
+1. 如果输入的目录路径是绝对路径(`ptAbsolute`):
+   - `FAbsolutePath` = 输入的目录路径
+   - `FRelativePath` = 从`FBasePath`提取的相对路径
+
+2. 如果输入的目录路径是相对路径:
+   - `FAbsolutePath` = `FBasePath` + 输入的目录路径
+   - `FRelativePath` = 输入的目录路径
+
+## 设计特点
+
+1. **继承自TFileSourceOperation**: 这是一个基础文件操作类的具体实现
+2. **路径处理灵活**: 支持绝对路径和相对路径输入
+3. **国际化支持**: 使用资源字符串(rsOperCreatingSomeDirectory等)实现多语言支持
+4. **虚方法设计**: 关键方法如UpdateStatisticsAtStartTime可被子类覆盖
+
+## 使用场景
+
+这个类通常被文件管理器或类似应用程序用来实现"新建文件夹"功能，封装了路径处理和文件系统更新的逻辑。
+
+## 改进建议
+
+1. 可以考虑添加目录创建成功/失败的状态跟踪
+2. 可以增加对非法路径字符的验证
+3. UpdateStatisticsAtStartTime空实现可能更适合作为抽象方法

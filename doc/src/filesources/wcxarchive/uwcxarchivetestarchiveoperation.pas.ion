@@ -1,0 +1,84 @@
+# TWcxArchiveTestArchiveOperation 功能分析
+
+这是一个用于测试WCX压缩包内容的Delphi/Lazarus类，属于Double Commander文件管理器项目的一部分。下面是对该类的详细功能分析：
+
+## 主要功能
+
+这个类的主要功能是测试WCX格式压缩包中文件的完整性，检查是否有损坏的文件。它继承自`TFileSourceTestArchiveOperation`，实现了压缩包测试的核心逻辑。
+
+## 核心组件
+
+### 成员变量
+- `FWcxArchiveFileSource`: 指向WCX压缩包文件源的接口
+- `FStatistics`: 操作统计信息（本地副本）
+- `FCurrentFileSize`: 当前处理文件的大小
+
+### 回调函数
+- 4个ProcessDataProc变体(AG/WG/AT/WT): 处理WCX插件返回的进度数据
+- `ProcessDataProc`: 核心回调处理函数，更新操作进度和状态
+
+## 关键方法分析
+
+### 1. 构造函数(Create)
+- 初始化WCX压缩包文件源
+- 设置是否需要连接标志(FNeedsConnection)，基于插件是否支持后台操作
+
+### 2. Initialize
+- 根据插件是否支持后台操作，设置全局或线程变量指向当前操作实例
+- 初始化统计信息，设置压缩包文件名
+
+### 3. MainExecute (核心执行逻辑)
+1. 打开压缩包获取句柄(OpenArchiveHandle)
+2. 转换文件列表使路径相对于压缩包根目录
+3. 设置数据处理回调(SetProcessDataProc)
+4. 设置卷更改回调(WcxSetChangeVolProc)
+5. 循环读取压缩包头信息(ReadWCXHeader)
+   - 检查操作状态(CheckOperationState)
+   - 如果是文件(非目录)且在文件列表中，则进行测试(PK_TEST)
+   - 更新统计信息
+   - 处理错误或成功结果
+   - 对于不需要处理的文件，执行跳过操作(PK_SKIP)
+6. 关闭压缩包并清理资源
+
+### 4. Finalize
+- 清除当前操作引用
+
+### 5. 辅助方法
+- `ShowError`: 显示错误信息并记录日志，提供跳过/中止选项
+- `LogMessage`: 记录操作日志，根据日志级别和选项过滤
+- `SetProcessDataProc`: 根据插件特性设置适当的数据处理回调
+
+## 数据处理流程
+
+1. WCX插件在处理文件时调用ProcessDataProc回调
+2. 回调函数根据Size参数的不同值处理不同情况:
+   - Size > 0: 更新已处理的字节数
+   - -100 ≤ Size ≤ -1: 更新总进度百分比
+   - -1100 ≤ Size ≤ -1000: 更新当前文件进度百分比
+3. 更新统计信息并检查操作状态
+
+## 多线程支持
+
+通过两种方式处理:
+1. 全局变量(WcxTestArchiveOperationG): 用于不支持后台操作的插件
+2. 线程变量(WcxTestArchiveOperationT): 用于支持后台操作的插件
+
+## 错误处理
+
+- 通过ShowError方法统一处理错误
+- 提供用户选择跳过错误或中止操作
+- 所有错误都记录到日志中
+
+## 日志记录
+
+- 支持不同级别的日志记录(错误、信息、成功)
+- 可根据全局日志选项过滤日志内容
+- 格式化的日志消息包含压缩包路径和文件名
+
+## 使用模式
+
+这个类通常由文件管理器在用户请求测试压缩包时实例化和执行，通过操作队列管理生命周期，提供进度反馈和用户交互能力。
+
+## 总结
+
+TWcxArchiveTestArchiveOperation是一个完整的WCX压缩包测试实现，它封装了与WCX插件的交互细节，提供了进度反馈、错误处理和日志记录功能，同时考虑了不同WCX插件的特性(如后台操作支持)。

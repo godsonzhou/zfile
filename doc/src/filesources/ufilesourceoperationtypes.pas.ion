@@ -1,0 +1,50 @@
+# 文件源操作类型单元分析
+
+这个Pascal单元`uFileSourceOperationTypes`定义了一个枚举类型`TFileSourceOperationType`和一个集合类型`TFileSourceOperationTypes`，用于表示文件系统或文件源支持的操作类型。
+
+## 主要功能
+
+1. **定义文件操作类型枚举**：
+   - 枚举了15种不同的文件系统操作类型
+   - 每种操作都用`fso`(File Source Operation)前缀标识
+
+2. **定义操作类型集合**：
+   - 使用`set of TFileSourceOperationType`定义了一个可以包含多个操作类型的集合
+
+## 操作类型详解
+
+枚举包含以下文件操作类型：
+
+1. **基本操作**：
+   - `fsoList` - 列出文件/目录内容
+   - `fsoCreateDirectory` - 创建新目录
+
+2. **文件操作**：
+   - `fsoCopy` - 同一文件源内复制文件
+   - `fsoCopyIn` - 从外部向文件源复制文件
+   - `fsoCopyOut` - 从文件源向外部复制文件
+   - `fsoMove` - 同一文件源内移动/重命名文件
+   - `fsoDelete` - 删除文件
+   - `fsoWipe` - 安全擦除文件
+   - `fsoSplit` - 分割文件
+   - `fsoCombine` - 合并文件
+
+3. **高级操作**：
+   - `fsoCalcChecksum` - 计算校验和
+   - `fsoCalcStatistics` - 计算统计信息(通常支持`fsoList`就应该支持此操作)
+   - `fsoSetFileProperty` - 设置文件属性
+   - `fsoExecute` - 执行文件
+   - `fsoTestArchive` - 测试归档文件
+
+## 设计用途
+
+这个单元可能用于：
+- 文件管理器应用程序中表示不同文件系统插件支持的操作能力
+- 作为抽象文件系统接口的一部分，让客户端可以查询特定文件源支持哪些操作
+- 在实现不同文件系统(本地、FTP、存档文件等)时，提供统一的操作类型定义
+
+## 备注
+
+代码中的注释提到可以考虑将能力定义为一个单独的类型`TFileSourceCapability`，这表明作者在考虑是否应该将操作类型和能力分开定义。
+
+这个设计允许通过集合操作来方便地检查文件源是否支持特定操作或操作组合。

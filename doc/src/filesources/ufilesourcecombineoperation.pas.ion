@@ -1,0 +1,63 @@
+# TFileSourceCombineOperation 功能分析
+
+## 概述
+`TFileSourceCombineOperation` 是一个用于在相同文件源中合并多个文件的操作类，继承自 `TFileSourceOperation`。它主要用于将多个源文件合并成一个目标文件，并提供进度统计和CRC32校验功能。
+
+## 主要功能
+
+1. **文件合并**：将多个源文件(`SourceFiles`)合并成一个目标文件(`TargetFile`)
+2. **进度统计**：跟踪和报告合并操作的进度，包括：
+   - 已处理文件数和总文件数
+   - 已处理字节数和总字节数
+   - 当前文件处理进度
+   - 传输速度(字节/秒)
+   - 预计剩余时间
+3. **CRC32校验**：支持对合并后的文件进行CRC32校验
+4. **动态模式**：支持动态修改目标文件名(`RequireDynamicMode`)
+
+## 类成员分析
+
+### 主要属性
+- `FileSource`: 操作所在的文件源接口
+- `SourceFiles`: 要合并的源文件列表
+- `TargetFile`: 合并后的目标文件名(可动态修改)
+- `RequireDynamicMode`: 是否启用动态模式(允许修改目标文件名)
+- `ExpectedCRC32`/`CurrentCRC32`: 预期和当前的CRC32校验值
+- `WeGotTheCRC32VerificationFile`: 是否已获取CRC32验证文件
+
+### 统计相关
+- `FStatistics`: 当前操作统计信息
+- `FStatisticsAtStartTime`: 操作开始时的统计信息快照
+- `FStatisticsLock`: 用于同步统计信息的临界区对象
+
+## 关键方法
+
+### 构造与销毁
+- `Create`: 初始化操作，设置文件源、源文件和目标文件
+- `Destroy`: 清理资源，释放锁和源文件列表
+
+### 统计管理
+- `UpdateStatistics`: 更新操作统计信息，计算剩余时间
+- `UpdateStatisticsAtStartTime`: 保存操作开始时的统计快照
+- `RetrieveStatistics`: 获取当前统计信息(线程安全)
+
+### 其他功能
+- `GetID`: 返回操作类型标识(fsoCombine)
+- `DoReloadFileSources`: 重新加载目标文件所在目录
+- `GetDescription`: 获取操作描述信息
+
+## 使用场景
+这个类可能用于文件管理器中的"合并文件"功能，例如：
+1. 用户选择多个分卷压缩文件进行合并
+2. 合并大文件的分片
+3. 需要验证合并结果完整性的场景(通过CRC32)
+
+## 技术特点
+1. **线程安全**：使用`TCriticalSection`确保统计信息的线程安全访问
+2. **继承体系**：基于`TFileSourceOperation`，共享文件操作基础功能
+3. **多语言支持**：通过资源字符串(如`rsOperCombining`)支持国际化
+
+## 改进建议
+1. 添加更多校验选项(如MD5、SHA1等)
+2. 支持暂停/恢复功能
+3. 增加错误处理机制，如合并失败时的回滚功能

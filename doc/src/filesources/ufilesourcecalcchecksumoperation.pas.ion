@@ -1,0 +1,72 @@
+# 文件校验和计算操作功能分析
+
+这个Pascal单元`uFileSourceCalcChecksumOperation`实现了一个用于计算或验证文件校验和的操作类。
+
+## 主要功能
+
+1. **校验和计算与验证**：
+   - 支持两种操作模式：计算校验和(`checksum_calc`)和验证校验和(`checksum_verify`)
+   - 支持多种哈希算法(通过`THashAlgorithm`指定)
+
+2. **文件处理**：
+   - 可以处理单个文件或多个文件
+   - 支持指定目标路径和文件掩码
+
+3. **结果记录**：
+   - 验证模式下会记录成功、损坏、缺失和读取错误的文件列表
+
+## 类结构分析
+
+### 主要记录类型
+
+1. `TVerifyChecksumResult`：存储验证结果
+   - `Success`：验证成功的文件列表
+   - `Broken`：校验和不匹配的文件列表
+   - `Missing`：缺失的文件列表
+   - `ReadError`：读取错误的文件列表
+
+2. `TFileSourceCalcChecksumOperationStatistics`：操作统计信息
+   - 当前文件处理进度
+   - 总文件数和已完成文件数
+   - 总字节数和已完成字节数
+   - 处理速度(字节/秒)
+   - 预计剩余时间
+
+### 类成员
+
+- **核心属性**：
+  - `FileSource`：操作的目标文件源
+  - `Files`：要处理的文件列表
+  - `TargetPath`/`TargetMask`：目标路径和文件掩码
+  - `Mode`：操作模式(计算/验证)
+  - `Algorithm`：使用的哈希算法
+  - `OneFile`：是否只处理单个文件
+  - `OpenFileAfterOperationCompleted`：操作完成后是否打开文件
+
+- **统计相关**：
+  - 使用`TCriticalSection`(`FStatisticsLock`)保护统计数据的线程安全
+  - 提供`UpdateStatistics`和`RetrieveStatistics`方法安全访问统计数据
+
+### 主要方法
+
+1. `Create`：构造函数，初始化操作参数
+2. `GetDescription`：获取操作描述(根据模式和文件数量显示不同信息)
+3. `UpdateStatistics`：更新操作统计信息(线程安全)
+4. `DoReloadFileSources`：操作完成后重新加载文件源(可选打开文件)
+
+## 使用场景
+
+这个类适合在文件管理类应用中实现以下功能：
+- 计算文件的MD5、SHA等校验和
+- 验证下载文件的完整性
+- 批量检查文件是否被修改
+- 文件同步前的校验检查
+
+## 设计特点
+
+1. **线程安全**：使用临界区保护统计数据
+2. **进度跟踪**：提供详细的处理进度信息
+3. **灵活配置**：支持多种哈希算法和操作模式
+4. **结果详细**：验证模式下提供详细的分类结果
+
+这个类是一个典型的文件操作实现，适合集成到文件管理系统中作为校验和计算的基础组件。

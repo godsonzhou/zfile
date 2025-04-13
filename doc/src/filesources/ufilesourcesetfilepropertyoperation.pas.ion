@@ -1,0 +1,68 @@
+# TFileSourceSetFilePropertyOperation 功能分析
+
+这是一个用于设置文件属性的操作类，属于文件源操作框架的一部分。以下是详细的功能分析：
+
+## 主要功能
+
+这个类提供了批量设置文件属性的功能，支持两种设置方式：
+1. **统一属性设置**：通过构造函数传入一组新属性，这些属性将应用于所有目标文件
+2. **模板文件设置**：通过SetTemplateFiles方法传入模板文件，每个目标文件对应一个模板文件，从模板中获取要设置的属性
+
+## 核心组件
+
+### 数据结构
+- `TSetFilePropertyResult`：操作结果枚举（成功、错误、跳过）
+- `TSetFilePropertyResultFunction`：设置属性结果的回调函数类型
+- `TFileSourceSetFilePropertyOperationStatistics`：操作统计信息结构体，包含当前文件、总文件数、已完成数等
+
+### 主要属性
+- `FileSource`：操作的目标文件源
+- `TargetFiles`：要修改属性的目标文件列表
+- `TemplateFiles`：模板文件列表（可选）
+- `NewProperties`：要设置的新属性集合
+- `SupportedProperties`：该操作支持设置的属性类型集合
+- `IncludeAttributes/ExcludeAttributes`：文件属性掩码，用于批量修改文件属性
+
+## 关键方法
+
+### 构造函数
+- 初始化统计信息和同步锁
+- 接收目标文件源、目标文件列表和新属性集合
+- 设置默认值（递归=False，跳过错误=gSkipFileOpError）
+
+### 主要操作流程
+1. `SetProperties`：核心方法，为指定文件设置属性
+   - 遍历所有支持的属性类型
+   - 从模板文件或NewProperties获取属性值
+   - 处理特殊属性（如文件属性掩码）
+   - 调用抽象的`SetNewProperty`方法实际设置属性
+   - 处理错误（重试/跳过/中止）
+
+2. `SetNewProperty`：抽象方法，由子类实现具体属性设置逻辑
+
+### 统计信息管理
+- `UpdateStatistics`：更新操作统计信息，计算剩余时间
+- `RetrieveStatistics`：获取当前统计信息（线程安全）
+
+### 其他功能
+- `GetDescription`：获取操作描述（用于UI显示）
+- `DoReloadFileSources`：操作完成后重新加载文件源
+- `GetErrorString`：获取特定属性设置错误的描述信息
+
+## 设计特点
+
+1. **灵活性**：支持两种属性设置方式，可以单独或组合使用
+2. **扩展性**：通过抽象方法`SetNewProperty`允许子类实现特定文件源的具体逻辑
+3. **线程安全**：使用TCriticalSection保护统计信息的访问
+4. **错误处理**：提供完善的错误处理机制，支持重试、跳过等选项
+5. **进度反馈**：完善的统计信息收集和进度计算功能
+
+## 使用场景
+
+这个类通常用于文件管理器中批量修改文件属性，如：
+- 批量重命名文件
+- 修改文件时间属性
+- 更改文件权限/所有者
+- 设置/取消文件属性（只读、隐藏等）
+
+子类需要实现特定文件源（如本地文件系统、FTP、归档文件等）的具体属性设置逻辑。

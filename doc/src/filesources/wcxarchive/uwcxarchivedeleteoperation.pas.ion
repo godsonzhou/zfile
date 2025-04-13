@@ -1,0 +1,94 @@
+# TWcxArchiveDeleteOperation 功能分析
+
+## 概述
+
+TWcxArchiveDeleteOperation 是一个用于从 WCX 格式的压缩档案中删除文件的类，继承自 TFileSourceDeleteOperation。它实现了删除操作的核心功能，包括文件统计、进度报告和错误处理。
+
+## 主要功能
+
+1. **从 WCX 压缩档案中删除文件**
+2. **统计待删除文件的数量和总大小**
+3. **提供进度反馈**
+4. **错误处理和日志记录**
+
+## 类成员分析
+
+### 私有字段
+- `FWcxArchiveFileSource`: 指向 WCX 压缩档案文件源的接口
+- `FStatistics`: 删除操作的统计信息（文件数、字节数等）
+
+### 私有方法
+- `CountFiles`: 统计匹配指定文件掩码的文件数量和总大小
+- `GetFileList`: 将 TFiles 集合转换为 WCX 所需的以 #0 分隔的字符串格式
+
+### 保护方法
+- `ShowError`: 显示错误消息并记录日志
+- `LogMessage`: 记录操作消息到日志
+
+### 公共方法
+- `Create`/`Destroy`: 构造和析构函数
+- `Initialize`: 初始化操作
+- `MainExecute`: 执行主要的删除操作
+- `Finalize`: 完成操作
+- `ClearCurrentOperation`: 清除当前操作引用（类方法）
+
+## 关键实现细节
+
+### WCX 回调函数
+- `ProcessDataProc`: 处理进度回调，更新统计信息
+- `ProcessDataProcA`/`ProcessDataProcW`: 处理 ANSI 和 Unicode 文件名版本的回调
+
+### 操作流程
+1. **初始化阶段**:
+   - 检查是否有其他操作正在运行
+   - 设置当前操作为自身
+   - 初始化统计信息
+
+2. **执行阶段**:
+   - 设置 WCX 回调函数
+   - 调用 `WcxDeleteFiles` 执行实际删除
+   - 处理返回结果（成功/错误/取消）
+
+3. **完成阶段**:
+   - 清除当前操作引用
+
+### 文件统计
+`CountFiles` 方法遍历档案文件列表，统计符合以下条件的文件:
+- 不是目录
+- 在待删除文件列表中
+- 匹配指定的文件掩码
+
+### 文件列表格式
+`GetFileList` 方法将文件列表转换为 WCX 所需的格式:
+- 文件名相对路径
+- 以 #0 分隔
+- 目录以 `\*.*` 结尾（TC 兼容格式）
+- 列表以双 #0 结束
+
+## 错误处理
+- 显示错误消息（可配置为跳过或中止）
+- 记录错误日志
+- 支持操作中止检查
+
+## 日志记录
+支持不同级别的日志记录:
+- 错误 (lmtError)
+- 信息 (lmtInfo)
+- 成功 (lmtSuccess)
+
+## 多线程考虑
+- 使用全局变量 `WcxDeleteOperation` 跟踪当前操作
+- 通过 `LockList`/`UnlockList` 保护共享资源访问
+- 提供操作状态检查 (`CheckOperationStateSafe`)
+
+## 使用场景
+这个类主要用于文件管理器中实现从 WCX 压缩档案中删除文件的功能，支持:
+- 单个或多个文件删除
+- 目录删除（包括内容）
+- 进度反馈
+- 用户取消操作
+- 详细的错误报告
+
+## 总结
+
+TWcxArchiveDeleteOperation 提供了一个完整的解决方案，用于从 WCX 压缩档案中安全高效地删除文件，具有良好的错误处理和用户反馈机制。它与 WCX 插件系统紧密集成，同时提供了必要的抽象层，使得上层代码可以以统一的方式处理压缩档案操作。

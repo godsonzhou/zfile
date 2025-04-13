@@ -1,0 +1,50 @@
+# 文件源操作用户界面单元分析
+
+这个Pascal单元 `uFileSourceOperationUI` 定义了一个用于文件操作过程中与用户交互的接口框架。
+
+## 主要功能
+
+1. **定义用户响应类型**：
+   - 提供了丰富的操作响应选项（`TFileSourceOperationUIResponse`），包括：
+     - 基本响应：确定(fsourOk)、取消(fsourCancel)、是/否(fsourYes/fsourNo)
+     - 文件操作选项：追加(fsourAppend)、恢复(fsourResume)
+     - 目录操作选项：复制到(fsourCopyInto)、全部复制到(fsourCopyIntoAll)
+     - 覆盖选项：覆盖(fsourOverwrite)、全部覆盖(fsourOverwriteAll)、覆盖旧文件(fsourOverwriteOlder)等
+     - 重命名选项：自动重命名源/目标(fsourAutoRenameSource/Target)
+     - 跳过/忽略选项：跳过(fsourSkip)、全部跳过(fsourSkipAll)等
+
+2. **区分响应类型**：
+   - `TFileSourceOperationUIAnswer`：表示会关闭对话框的响应
+   - `TFileSourceOperationUIAction`：表示不会关闭对话框的动作（如比较fsouaCompare）
+
+3. **核心抽象类**：
+   - `TFileSourceOperationUI` 是一个抽象基类，定义了与用户交互的基本接口
+   - 主要方法是 `AskQuestion`，用于向用户提问并获取响应
+
+## 设计特点
+
+1. **扩展性强**：
+   - 通过枚举类型定义了丰富的操作选项
+   - 注释明确指出新动作应该添加在枚举末尾，而新响应应该添加在动作之前
+
+2. **类型安全**：
+   - 使用子范围类型明确区分会关闭对话框的响应和不会关闭的动作
+
+3. **灵活性**：
+   - 支持自定义动作处理器（`TFileSourceOperationUIActionHandler`）
+   - 允许指定默认的确定和取消响应
+
+## 使用场景
+
+这个单元可能用于文件管理器类应用程序中，处理以下情况：
+- 文件复制/移动时的冲突解决
+- 需要用户确认的操作
+- 批量操作时的统一处理
+
+## 待实现功能
+
+根据注释，未来可能添加：
+- 文件属性显示功能（用于比较新旧文件）
+- "记住此类型文件的选择"的通用选项（通过复选框）
+
+这个设计为文件操作提供了灵活的用户交互框架，具体的UI实现需要继承这个基类并实现抽象方法。

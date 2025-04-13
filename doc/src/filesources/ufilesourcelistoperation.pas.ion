@@ -1,0 +1,51 @@
+# TFileSourceListOperation 功能分析
+
+## 概述
+`TFileSourceListOperation` 是一个用于文件系统列表操作的类，继承自 `TFileSourceOperation`。它主要用于获取指定路径下的文件列表，并提供相关操作功能。
+
+## 主要功能
+
+1. **文件列表获取**：
+   - 通过 `Files` 属性获取文件列表
+   - 通过 `ReleaseFiles` 方法获取文件列表并转移所有权
+
+2. **路径管理**：
+   - 存储并提供了对操作路径的访问 (`Path` 属性)
+
+3. **操作描述**：
+   - 提供操作的多语言描述 (`GetDescription` 方法)
+
+## 类成员分析
+
+### 属性
+- `Files` (只读)：获取文件列表 (TFiles 类型)
+- `Path` (只读)：操作的路径 (String 类型)
+- `FlatView` (只写)：设置是否使用平面视图模式 (Boolean 类型)
+- `FileSource` (受保护，只读)：关联的文件源接口 (IFileSource 类型)
+
+### 方法
+- `Create`：构造函数，初始化文件源和路径
+- `Destroy`：析构函数，释放资源
+- `GetDescription`：获取操作描述信息
+- `GetID`：获取操作类型标识 (返回 fsoList)
+- `GetFiles`：内部方法，获取文件列表
+- `ReleaseFiles`：获取文件列表并转移所有权
+- `UpdateStatisticsAtStartTime`：空实现，用于统计更新
+
+## 关键特点
+
+1. **所有权管理**：
+   - `ReleaseFiles` 方法会转移文件列表的所有权给调用者，调用者需要负责释放返回的 TFiles 对象
+
+2. **多语言支持**：
+   - 使用 `rsOperListingIn` 和 `rsOperListing` 资源字符串实现多语言描述
+
+3. **继承结构**：
+   - 作为 `TFileSourceOperation` 的子类，提供了文件系统操作的基础功能
+
+## 使用场景
+这个类通常用于文件管理器或类似应用程序中，当需要列出某个目录下的文件时使用。它封装了文件列表操作的相关逻辑，并提供统一的接口。
+
+## 注意事项
+- 调用 `ReleaseFiles` 后，调用者必须负责释放返回的 TFiles 对象
+- `FlatView` 属性只有写权限，这可能意味着视图模式应在操作开始前设置

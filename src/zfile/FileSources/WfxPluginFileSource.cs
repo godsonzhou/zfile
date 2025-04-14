@@ -138,7 +138,7 @@ public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 		}
 		#endregion
 
-		#region WFX Plugin Capabilities
+		// #region WFX Plugin Capabilities
 		public bool CanRead(string path) => true;
 		public bool CanWrite(string path) => true;
 		public bool CanDelete(string path) => true;

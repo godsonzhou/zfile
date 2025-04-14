@@ -1,6 +1,6 @@
 using Zfile;
 using Zfile.FileSources;
-
+using ZFile.Operations.WcxArchive;
 namespace ZFile.FileSources.WcxArchive
 {
     public class WcxArchiveFileSource : ArchiveFileSource, IWcxArchiveFileSource

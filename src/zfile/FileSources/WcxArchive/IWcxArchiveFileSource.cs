@@ -1,5 +1,5 @@
 using Zfile;
-
+using Zfile.FileSources;
 namespace ZFile.FileSources.WcxArchive
 {
 	public interface IWcxArchiveFileSource : IArchiveFileSource

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using Zfile.FileSources;
 
 namespace Zfile.Operations

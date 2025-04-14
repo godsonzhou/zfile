@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using zfile.Operations;
-
-namespace zfile.Operations
+namespace Zfile.Operations
 {
     /// <summary>
     /// Extract flag enumeration

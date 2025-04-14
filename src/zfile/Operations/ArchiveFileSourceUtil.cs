@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-using zfile.Operations;
-
-namespace zfile.Operations
+namespace Zfile.Operations
 {
     /// <summary>
     /// Archive file source utility functions

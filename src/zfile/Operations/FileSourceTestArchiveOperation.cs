@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using zfile.Operations;
-
-namespace zfile.Operations
+namespace Zfile.Operations
 {
     /// <summary>
     /// Statistics for TestArchive operation

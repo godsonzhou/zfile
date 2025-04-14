@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-
-namespace Files.Operations
+namespace Zfile.Operations
 {
     public class OperationsManagerItem
     {

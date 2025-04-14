@@ -1,4 +1,3 @@
-using System;
 using Zfile.FileSources;
 
 namespace Zfile.Operations

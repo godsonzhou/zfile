@@ -1,12 +1,12 @@
-//using System.Collections.Generic;
-//using System.Threading;
-//using Zfile;
-//namespace ZFile.FileSources.WcxArchive
-//{
-//    public interface IWcxArchiveFileSource : IArchiveFileSource
-//    {
-//        ThreadSafeList<WcxHeader> ArchiveFileList { get; }
-//        int PluginCapabilities { get; }
-//        WcxModule WcxModule { get; }
-//    }
-//}
+using System.Collections.Generic;
+using System.Threading;
+using Zfile;
+namespace ZFile.FileSources.WcxArchive
+{
+	public interface IWcxArchiveFileSource : IArchiveFileSource
+	{
+		ThreadSafeList<WcxHeader> ArchiveFileList { get; }
+		int PluginCapabilities { get; }
+		WcxModule WcxModule { get; }
+	}
+}

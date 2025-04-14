@@ -319,7 +319,7 @@ public class FileEntry
         {
             if (!string.IsNullOrEmpty(value))
             {
-                if (value[value.Length - 1] == Path.DirectorySeparatorChar)
+                if (value[value.Length - 1] == '\\') //Path.DirectorySeparatorChar)
                 {
                     Path = value;
                     Name = string.Empty;

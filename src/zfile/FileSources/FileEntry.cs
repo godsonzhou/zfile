@@ -518,7 +518,7 @@ public class FileEntry
         Path = path;
     }
 
-    protected FileEntry()
+    public FileEntry()
     {
         _properties = new Dictionary<FilePropertyType, FileProperty>();
         _variantProperties = new List<FileVariantProperty>();

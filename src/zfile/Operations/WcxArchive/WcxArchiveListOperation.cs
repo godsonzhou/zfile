@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Files.FileSources;
+using Zfile.FileSources;
+using Zfile.Operations;
+using ZFile.FileSources.WcxArchive;
 
 namespace ZFile.Operations.WcxArchive
 {

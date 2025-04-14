@@ -1,4 +1,5 @@
 using Zfile.FileSources;
+using ZFile.FileSources.WcxArchive;
 namespace Zfile.Operations
 {
     /// <summary>

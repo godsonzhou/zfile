@@ -1,5 +1,6 @@
 using ZFile.FileSources.WcxArchive;
 using Zfile.FileSources;
+using Zfile.Operations;
 namespace ZFile.Operations.WcxArchive
 {
 	public class WcxArchiveExecuteOperation : FileSourceExecuteOperation

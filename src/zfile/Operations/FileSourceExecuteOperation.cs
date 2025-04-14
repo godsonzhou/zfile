@@ -143,7 +143,7 @@ namespace Zfile.Operations
         /// </summary>
         /// <param name="details">The description details</param>
         /// <returns>The description</returns>
-        public string GetDescription(FileSourceOperationDescriptionDetails details)
+        public override string GetDescription(FileSourceOperationDescriptionDetails details)
         {
             switch (details)
             {

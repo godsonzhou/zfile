@@ -39,7 +39,7 @@ namespace ZFile.Operations.WcxArchive
 
 		public override async Task ExecuteAsync()
 		{
-			var arcHandle = _wcxArchiveFileSource.WcxModule.OpenArchiveHandle(_wcxArchiveFileSource.ArchiveFileName, OpenMode.Extract);
+			var arcHandle = _wcxArchiveFileSource.WcxModule.OpenArchiveHandle(_wcxArchiveFileSource.ArchiveFileName, OpenMode.PK_OM_EXTRACT);
 			if (arcHandle == IntPtr.Zero)
 				throw new OperationAbortedException("Failed to open archive");
 
@@ -78,9 +78,9 @@ namespace ZFile.Operations.WcxArchive
 							string.Empty,
 							targetFileName);
 
-						if (result != OperationResult.Success)
+						if (result != FileSourceOperationResult.success)
 						{
-							if (result == OperationResult.Aborted)
+							if (result == FileSourceOperationResult.Aborted)
 								throw new OperationAbortedException();
 
 							LogError($"Error extracting {header.FileName} to {targetFileName}", result);

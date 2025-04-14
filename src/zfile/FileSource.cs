@@ -98,11 +98,32 @@ namespace Zfile.FileSources
 	public enum FileSourceOperationState
 	{
 		NotStarted,
+		Starting,
 		Running,
+		Pausing,
 		Paused,
+		WaitingForFeedback,
+		WaitingForConnection,
+		Stopping,
 		Stopped,
 		Finished,
 		Failed
+	}
+
+	/// <summary>
+	/// Represents the result of a file source operation
+	/// </summary>
+	public enum FileSourceOperationResult
+	{
+		/// <summary>
+		/// Operation has finished successfully
+		/// </summary>
+		Finished,
+		
+		/// <summary>
+		/// Operation has been aborted by user
+		/// </summary>
+		Aborted
 	}
 
 	#endregion

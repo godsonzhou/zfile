@@ -84,11 +84,6 @@ namespace Zfile.Operations
         }
 
         /// <summary>
-        /// Gets the operation type
-        /// </summary>
-        public override FileSourceOperationTypes OperationType => FileSourceOperationTypes.Wipe;
-
-        /// <summary>
         /// Reloads file sources after the operation is complete
         /// </summary>
         protected override void DoReloadFileSources()

@@ -1,3 +1,5 @@
+using Zfile.FileSources;
+using System.Diagnostics;
 namespace Zfile.Operations
 {
     /// <summary>

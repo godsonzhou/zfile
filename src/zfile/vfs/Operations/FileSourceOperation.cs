@@ -6,10 +6,28 @@ using Zfile.FileSources;
 
 namespace Zfile.Operations
 {
-    /// <summary>
-    /// Base class for all file source operations
-    /// </summary>
-    public abstract class FileSourceOperation : IDisposable
+
+	public interface IFileSourceOperation
+	{
+		int OperationHandle { get; }
+		FileSourceOperationState State { get; }
+		bool IsFree { get; }
+		bool IsModal { get; }
+
+		void Start();
+		void Pause();
+		void Stop();
+		void Resume();
+		string OperationName { get; }
+		bool IsAborted { get; }
+		void Abort();
+		event EventHandler<EventArgs> StateChanged;
+		event EventHandler<EventArgs> ProgressChanged;
+	}
+	/// <summary>
+	/// Base class for all file source operations
+	/// </summary>
+	public abstract class FileSourceOperation : IDisposable
     {
         private IFileSource _fileSource;
         private double _progress;

@@ -933,5 +933,15 @@ namespace Zfile
 			gb = Encoding.Convert(gb2312, utf8, gb);
 			return utf8.GetString(gb);
 		}
+
+		internal static DateTime EstimateRemainingTime(long doneBytes1, long doneBytes2, long totalBytes, DateTime startTime, DateTime now, long bytesPerSecond)
+		{
+			throw new NotImplementedException();
+		}
+
+		internal static string? IncludeTrailingPathDelimiter(string aTargetPath)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

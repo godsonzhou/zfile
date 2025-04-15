@@ -134,8 +134,8 @@ namespace Zfile
         }
     }
 
-    public interface IWfxPluginFileSource : IFileSource
-    {
-        WfxModule WfxModule { get; }
-    }
+    //public interface IWfxPluginFileSource : IFileSource
+    //{
+    //    WfxModule WfxModule { get; }
+    //}
 }

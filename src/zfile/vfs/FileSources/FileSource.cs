@@ -640,6 +640,8 @@ namespace Zfile.FileSources
 		/// </summary>
 		public bool IsLink => !string.IsNullOrEmpty(LinkTarget);
 
+		public FilePropertyType AssignedProperties;
+
 		/// <summary>
 		/// Creates a new instance of the FileEntry class
 		/// </summary>
@@ -793,7 +795,7 @@ namespace Zfile.FileSources
 		/// <summary>
 		/// Gets the current address of this file source
 		/// </summary>
-		public abstract string CurrentAddress { get; }
+		public virtual string CurrentAddress { get; protected set; }
 
 		/// <summary>
 		/// Gets the current working directory of this file source
@@ -803,12 +805,12 @@ namespace Zfile.FileSources
 		/// <summary>
 		/// Gets the supported file properties of this file source
 		/// </summary>
-		public abstract FilePropertyType SupportedFileProperties { get; }
+		public virtual FilePropertyType SupportedFileProperties { get; protected set; }
 
 		/// <summary>
 		/// Gets the retrievable file properties of this file source
 		/// </summary>
-		public abstract FilePropertyType RetrievableFileProperties { get; }
+		public virtual FilePropertyType RetrievableFileProperties { get; protected set; }
 
 		/// <summary>
 		/// Gets the operation types supported by this file source
@@ -818,12 +820,12 @@ namespace Zfile.FileSources
 		/// <summary>
 		/// Gets the properties of this file source
 		/// </summary>
-		public abstract FileSourceProperty Properties { get; }
+		public virtual FileSourceProperty Properties { get; protected set; }
 
 		/// <summary>
 		/// Gets or sets the parent file source of this file source
 		/// </summary>
-		public IFileSource ParentFileSource { get; set; }
+		public virtual IFileSource ParentFileSource { get; set; }
 
 		/// <summary>
 		/// Creates a new instance of the FileSource class
@@ -920,21 +922,30 @@ namespace Zfile.FileSources
 		/// </summary>
 		/// <param name="newDir">The new directory</param>
 		/// <returns>True if the directory was changed successfully, false otherwise</returns>
-		public abstract bool SetCurrentWorkingDirectory(string newDir);
+		public virtual bool SetCurrentWorkingDirectory(string newDir)
+		{
+			return true;
+		}
 
 		/// <summary>
 		/// Gets the files in the specified target path
 		/// </summary>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The files in the target path</returns>
-		public abstract List<FileEntry> GetFiles(string targetPath);
+		public virtual List<FileEntry> GetFiles(string targetPath)
+		{
+			return new List<FileEntry>();
+		}
 
 		/// <summary>
 		/// Creates a file object with the specified path
 		/// </summary>
 		/// <param name="path">The path</param>
 		/// <returns>The file object</returns>
-		public abstract FileEntry CreateFileObject(string path);
+		public virtual FileEntry CreateFileObject(string path)
+		{
+			return new FileEntry(path);
+		}
 
 		/// <summary>
 		/// Checks if the file source can retrieve the specified properties for the file
@@ -942,7 +953,10 @@ namespace Zfile.FileSources
 		/// <param name="file">The file</param>
 		/// <param name="propertiesToSet">The properties to set</param>
 		/// <returns>True if the properties can be retrieved, false otherwise</returns>
-		public abstract bool CanRetrieveProperties(FileEntry file, FilePropertyType propertiesToSet);
+		public virtual bool CanRetrieveProperties(FileEntry file, FilePropertyType propertiesToSet)
+		{
+			return ((propertiesToSet & ~file.AssignedProperties) & RetrievableFileProperties) != 0;
+		}
 
 		/// <summary>
 		/// Retrieves the specified properties for the file
@@ -950,7 +964,10 @@ namespace Zfile.FileSources
 		/// <param name="file">The file</param>
 		/// <param name="propertiesToSet">The properties to set</param>
 		/// <param name="variantProperties">The variant properties</param>
-		public abstract void RetrieveProperties(FileEntry file, FilePropertyType propertiesToSet, string[] variantProperties);
+		public virtual void RetrieveProperties(FileEntry file, FilePropertyType propertiesToSet, string[] variantProperties)
+		{
+			// Default implementation is empty
+		}
 
 		/// <summary>
 		/// Creates a list operation for the specified target path
@@ -1083,34 +1100,57 @@ namespace Zfile.FileSources
 		/// </summary>
 		/// <param name="path">The path</param>
 		/// <returns>True if the path is at the root, false otherwise</returns>
-		public abstract bool IsPathAtRoot(string path);
+		public virtual bool IsPathAtRoot(string path)
+		{
+			return path == GetRootDir(path);
+		}
 
 		/// <summary>
 		/// Gets the parent directory of the specified path
 		/// </summary>
 		/// <param name="path">The path</param>
 		/// <returns>The parent directory</returns>
-		public abstract string GetParentDir(string path);
+		public virtual string GetParentDir(string path)
+		{
+			return System.IO.Path.GetDirectoryName(path);
+		}
 
 		/// <summary>
 		/// Gets the root directory of the specified path
 		/// </summary>
 		/// <param name="path">The path</param>
 		/// <returns>The root directory</returns>
-		public abstract string GetRootDir(string path);
+		public virtual string GetRootDir(string path)
+		{
+			return Path.DirectorySeparatorChar.ToString();
+		}
 
 		/// <summary>
 		/// Gets the root directory of the file source
 		/// </summary>
 		/// <returns>The root directory</returns>
-		public abstract string GetRootDir();
+		public virtual string GetRootDir()
+		{
+			return GetRootDir("");
+		}
 
 		/// <summary>
 		/// Gets the path type of the specified path
 		/// </summary>
 		/// <param name="path">The path</param>
 		/// <returns>The path type</returns>
-		public abstract PathType GetPathType(string path);
+		public virtual PathType GetPathType(string path)
+		{
+			if (string.IsNullOrEmpty(path))
+				return PathType.Unknown;
+
+			if (path[0] == Path.DirectorySeparatorChar)
+				return PathType.Absolute;
+			else if (path.Contains(Path.DirectorySeparatorChar))
+				return PathType.Relative;
+
+			return PathType.Unknown;
+		}
 
 		/// <summary>
 		/// Gets the free space of the specified path
@@ -1119,35 +1159,53 @@ namespace Zfile.FileSources
 		/// <param name="freeSize">The free size</param>
 		/// <param name="totalSize">The total size</param>
 		/// <returns>True if the free space was retrieved successfully, false otherwise</returns>
-		public abstract bool GetFreeSpace(string path, out long freeSize, out long totalSize);
+		public virtual bool GetFreeSpace(string path, out long freeSize, out long totalSize)
+		{
+			freeSize = 0;
+			totalSize = 0;
+			return false;
+		}
 
 		/// <summary>
 		/// Gets the local name of the specified file
 		/// </summary>
 		/// <param name="file">The file</param>
 		/// <returns>True if the local name was retrieved successfully, false otherwise</returns>
-		public abstract bool GetLocalName(ref FileEntry file);
+		public virtual bool GetLocalName(ref FileEntry file)
+		{
+			return false;
+		}
 
 		/// <summary>
 		/// Creates a directory at the specified path
 		/// </summary>
 		/// <param name="path">The path</param>
 		/// <returns>True if the directory was created successfully, false otherwise</returns>
-		public abstract bool CreateDirectory(string path);
+		public virtual bool CreateDirectory(string path)
+		{
+			return false;
+		}
 
 		/// <summary>
 		/// Checks if a file system entry exists at the specified path
 		/// </summary>
 		/// <param name="path">The path</param>
 		/// <returns>True if the file system entry exists, false otherwise</returns>
-		public abstract bool FileSystemEntryExists(string path);
+		public virtual bool FileSystemEntryExists(string path)
+		{
+			return true;
+		}
 
 		/// <summary>
 		/// Gets the default view for the file source
 		/// </summary>
 		/// <param name="defaultView">The default view</param>
 		/// <returns>True if the default view was retrieved successfully, false otherwise</returns>
-		public abstract bool GetDefaultView(out FileSourceField[] defaultView);
+		public virtual bool GetDefaultView(out FileSourceField[] defaultView)
+		{
+			defaultView = null;
+			return false;
+		}
 
 		/// <summary>
 		/// Queries the context menu for the specified files
@@ -1155,7 +1213,10 @@ namespace Zfile.FileSources
 		/// <param name="files">The files</param>
 		/// <param name="menu">The menu</param>
 		/// <returns>True if the context menu was queried successfully, false otherwise</returns>
-		public abstract bool QueryContextMenu(List<FileEntry> files, ref ContextMenuStrip menu);
+		public virtual bool QueryContextMenu(List<FileEntry> files, ref ContextMenuStrip menu)
+		{
+			return false;
+		}
 
 		/// <summary>
 		/// Gets a connection for the specified operation
@@ -1279,6 +1340,54 @@ namespace Zfile.FileSources
 			{
 				_reloadEventListeners.Remove(handler);
 			}
+		}
+
+		/// <summary>
+		/// Gets the main icon for the file source
+		/// </summary>
+		/// <param name="path">The path to the icon</param>
+		/// <returns>True if the icon was retrieved successfully, false otherwise</returns>
+		public virtual bool GetMainIcon(out string path)
+		{
+			path = null;
+			return false;
+		}
+
+		/// <summary>
+		/// Checks if the specified path is supported by the file source
+		/// </summary>
+		/// <param name="path">The path</param>
+		/// <returns>True if the path is supported, false otherwise</returns>
+		public virtual bool IsSupportedPath(string path)
+		{
+			return true;
+		}
+
+		/// <summary>
+		/// Handles the completion of an operation
+		/// </summary>
+		/// <param name="operation">The completed operation</param>
+		public virtual void OperationFinished(IFileSourceOperation operation)
+		{
+			// Default implementation is empty
+		}
+
+		/// <summary>
+		/// Handles the reloading of the file source
+		/// </summary>
+		/// <param name="pathsToReload">The paths to reload</param>
+		public virtual void DoReload(string[] pathsToReload)
+		{
+			// Default implementation is empty
+		}
+
+		/// <summary>
+		/// Gets the file system of the file source
+		/// </summary>
+		/// <returns>The file system</returns>
+		public virtual string GetFileSystem()
+		{
+			return string.Empty;
 		}
 	}
 

@@ -540,24 +540,4 @@ namespace Zfile.Operations
         }
     }
 
-    /// <summary>
-    /// Set file property result
-    /// </summary>
-    public enum SetFilePropertyResult
-    {
-        /// <summary>
-        /// Error
-        /// </summary>
-        Error,
-
-        /// <summary>
-        /// Success
-        /// </summary>
-        Success,
-
-        /// <summary>
-        /// Skipped
-        /// </summary>
-        Skipped
-    }
 }

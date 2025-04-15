@@ -181,14 +181,14 @@ namespace Zfile
     /// <summary>
     /// Thread-safe object list
     /// </summary>
-    public class ThreadSafeList
+    public class ThreadSafeList<T> where T : class
     {
-        private List<ObjectEx> _list;
+        private List<T> _list;
         private object _lock;
 
         public ThreadSafeList()
         {
-            _list = new List<ObjectEx>();
+            _list = new List<T>();
             _lock = new object();
         }
 
@@ -208,29 +208,7 @@ namespace Zfile
             }
         }
 
-        public List<ObjectEx> Clone()
-        {
-            lock (_lock)
-            {
-                List<ObjectEx> result = new List<ObjectEx>();
-                foreach (ObjectEx obj in _list)
-                {
-                    result.Add(obj.Clone());
-                }
-                return result;
-            }
-        }
-
-        public int Add(ObjectEx obj)
-        {
-            lock (_lock)
-            {
-                _list.Add(obj);
-                return _list.Count - 1;
-            }
-        }
-
-        public List<ObjectEx> LockList()
+        public List<T> LockList()
         {
             Monitor.Enter(_lock);
             return _list;
@@ -239,6 +217,76 @@ namespace Zfile
         public void UnlockList()
         {
             Monitor.Exit(_lock);
+        }
+
+        public int Add(T item)
+        {
+            lock (_lock)
+            {
+                _list.Add(item);
+                return _list.Count - 1;
+            }
+        }
+
+        public T this[int index]
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    return _list[index];
+                }
+            }
+            set
+            {
+                lock (_lock)
+                {
+                    _list[index] = value;
+                }
+            }
+        }
+
+        public int Count
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    return _list.Count;
+                }
+            }
+        }
+
+        public bool Contains(T item)
+        {
+            lock (_lock)
+            {
+                return _list.Contains(item);
+            }
+        }
+
+        public void Remove(T item)
+        {
+            lock (_lock)
+            {
+                _list.Remove(item);
+            }
+        }
+
+        public void RemoveAt(int index)
+        {
+            lock (_lock)
+            {
+                _list.RemoveAt(index);
+            }
+        }
+
+        public List<T> ToList()
+        {
+            lock (_lock)
+            {
+                return new List<T>(_list);
+            }
         }
     }
 

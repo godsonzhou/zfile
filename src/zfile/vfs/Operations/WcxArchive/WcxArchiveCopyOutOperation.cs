@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-using Zfile.Operations;
-namespace Files.FileSources.WcxArchive
-{
+namespace Zfile.Operations;
+
     public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
     {
         private IWcxArchiveFileSource _wcxArchiveFileSource;
@@ -378,4 +373,3 @@ namespace Files.FileSources.WcxArchive
             return ProcessDataProc(_wcxCopyOutOperationT, System.Runtime.InteropServices.Marshal.PtrToStringUni(fileName), size, fileName);
         }
     }
-}

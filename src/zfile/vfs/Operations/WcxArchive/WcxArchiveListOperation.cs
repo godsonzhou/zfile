@@ -5,7 +5,7 @@ using Zfile.FileSources;
 using Zfile.Operations;
 using ZFile.FileSources.WcxArchive;
 
-namespace ZFile.Operations.WcxArchive
+namespace Zfile.Operations
 {
 	public class WcxArchiveListOperation : FileSourceListOperation
 	{

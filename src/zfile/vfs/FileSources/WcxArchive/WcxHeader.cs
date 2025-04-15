@@ -1,8 +1,4 @@
-using System;
-using System.IO;
-using Zfile;
-
-namespace ZFile.FileSources.WcxArchive
+namespace Zfile.FileSources
 {
     public class WcxHeader
     {

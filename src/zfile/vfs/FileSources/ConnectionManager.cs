@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Windows.Forms;
-using System.IO;
-using System.Linq;
 using Zfile.FileSources;
 namespace Zfile
 {

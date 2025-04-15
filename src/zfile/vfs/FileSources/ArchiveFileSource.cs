@@ -1,8 +1,3 @@
-using System;
-using System.IO;
-using System.Collections.Generic;
-using Zfile.FileSources;
-
 namespace Zfile.FileSources
 {
     /// <summary>

@@ -1,9 +1,5 @@
-using System;
-using System.Windows.Forms;
-using System.Collections.Generic;
-using Zfile.Operations;
-namespace ZFile.FileSources.WcxArchive
-{
+namespace Zfile.Operations;
+
     public class WcxArchiveCopyOperationOptionsUI : FileSourceOperationOptionsUI
     {
         private Button _btnConfig;
@@ -128,4 +124,3 @@ namespace ZFile.FileSources.WcxArchive
             _btnConfig.Visible = true;
         }
     }
-}

@@ -1,7 +1,4 @@
-using System;
-using Zfile;
-using Zfile.FileSources;
-namespace ZFile.FileSources.WcxArchive
+namespace Zfile.FileSources
 {
     public class WcxArchiveFileSourceConnection : FileSourceConnection
     {

@@ -1,6 +1,7 @@
-using Zfile.Operations;
-namespace ZFile.FileSources.WcxArchive
-{
+using Zfile.FileSources;
+
+namespace Zfile.Operations;
+
     public class WcxArchiveCopyInOperation : ArchiveCopyInOperation
     {
         private IWcxArchiveFileSource _wcxArchiveFileSource;
@@ -443,4 +444,3 @@ namespace ZFile.FileSources.WcxArchive
             return ProcessDataProc(_wcxCopyInOperationT, System.Runtime.InteropServices.Marshal.PtrToStringUni(fileName), size);
         }
     }
-}

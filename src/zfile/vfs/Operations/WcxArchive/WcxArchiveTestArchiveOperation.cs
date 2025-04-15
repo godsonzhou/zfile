@@ -1,7 +1,7 @@
 using Zfile.FileSources;
-using Zfile.Operations;
-namespace ZFile.FileSources.WcxArchive
-{
+
+namespace Zfile.Operations;
+
     public class WcxArchiveTestArchiveOperation : FileSourceTestArchiveOperation
     {
         private IWcxArchiveFileSource _wcxArchiveFileSource;
@@ -242,4 +242,3 @@ namespace ZFile.FileSources.WcxArchive
             return ProcessDataProc(_wcxTestArchiveOperationT, System.Runtime.InteropServices.Marshal.PtrToStringUni(fileName), size, fileName);
         }
     }
-}

@@ -1,16 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Windows.Forms;
-using System.Linq;
 using Zfile.FileSources;
 
 namespace Zfile
 {
 	/// <summary>
-/// Represents a WFX plugin file source
-/// </summary>
-public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
+	/// Represents a WFX plugin file source
+	/// </summary>
+	public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 	{
 		private readonly WfxModule _wfxModule;
 		private readonly string _pluginName;

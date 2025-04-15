@@ -1,10 +1,9 @@
 using System.Text;
 using Zfile.FileSources;
-using Zfile.Operations;
 using ZFile.FileSources.WcxArchive;
 
-namespace Files.FileSources.WcxArchive
-{
+namespace Zfile.Operations;
+
     public class WcxArchiveDeleteOperation : FileSourceDeleteOperation
     {
         private IWcxArchiveFileSource _wcxArchiveFileSource;
@@ -204,4 +203,3 @@ namespace Files.FileSources.WcxArchive
             return ProcessDataProc(System.Runtime.InteropServices.Marshal.PtrToStringUni(fileName), size);
         }
     }
-}

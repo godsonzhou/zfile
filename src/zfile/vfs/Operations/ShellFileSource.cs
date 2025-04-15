@@ -1,11 +1,7 @@
 ﻿using FileSystemOperations;
-using System;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
-using Zfile.FileSources;
-using Zfile;
 
-namespace Files.FileSources.ShellFolder
+namespace Zfile.FileSources.ShellFolder
 {
 	public class ShellFileSource : VirtualFileSource, IShellFileSource
 	{
@@ -43,15 +39,15 @@ namespace Files.FileSources.ShellFolder
 								 Path.DirectorySeparatorChar + RootName);
 		}
 
-		public static File CreateFile(string path)
+		public static FileEntry CreateFile(string path)
 		{
-			var file = new File(path);
+			var file = new FileEntry(path);
 			file.AttributesProperty = new FileAttributesProperty();
 			file.SizeProperty = new FileSizeProperty();
 			file.ModificationTimeProperty = new FileModificationDateTimeProperty();
 			file.CreationTimeProperty = new FileCreationDateTimeProperty();
 			file.LinkProperty = new FileShellProperty();
-			file.CommentProperty = new FileCommentProperty();
+			file.Comment = new FileCommentProperty();
 			return file;
 		}
 

@@ -111,11 +111,7 @@ namespace FileSystemOperations
         public IntPtr hProcess;
     }
 
-    public static class Constants
-    {
-        public const int SW_SHOWNORMAL = 1;
-        public const int SEE_MASK_IDLIST = 0x00000004;
-    }
+ 
 
     public static class MainForm
     {

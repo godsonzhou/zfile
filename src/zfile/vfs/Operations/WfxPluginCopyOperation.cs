@@ -1,6 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
-
+using Zfile.FileSources;
 namespace FileSystemOperations
 {
     public class WfxPluginCopyOperation : FileSourceCopyOperation

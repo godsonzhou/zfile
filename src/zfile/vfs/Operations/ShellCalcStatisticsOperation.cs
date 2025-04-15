@@ -1,7 +1,5 @@
-using System;
 using System.Runtime.InteropServices;
-using System.Collections.Generic;
-
+using Zfile;
 namespace FileSystemOperations
 {
     public class ShellCalcStatisticsOperation : FileSourceCalcStatisticsOperation
@@ -30,7 +28,7 @@ namespace FileSystemOperations
             }
         }
 
-        private void ProcessFile(FileInfo file)
+        private void ProcessFile(FileEntry file)
         {
             statistics.CurrentFile = file.FullPath;
             UpdateStatistics(statistics);
@@ -109,7 +107,7 @@ namespace FileSystemOperations
             }
             catch (Exception ex)
             {
-                LogMessage(ex.Message, LogOptions.Errors, LogMessageType.Error);
+                LogMessage(ex.Message, LogOptions.Error, LogMessageType.Error);
             }
         }
 
@@ -155,13 +153,6 @@ namespace FileSystemOperations
         }
     }
 
-    public enum LogOptions
-    {
-        None = 0,
-        Errors = 1,
-        Info = 2,
-        Success = 4
-    }
 
     public enum LogMessageType
     {
@@ -174,20 +165,14 @@ namespace FileSystemOperations
     {
         SFGAO_FOLDER = 0x20000000
     }
-
-    public static class GlobalSettings
-    {
-        public static bool LogErrors { get; set; }
-        public static bool LogInfo { get; set; }
-        public static bool LogSuccess { get; set; }
-        public static LogOptions LogOptions { get; set; }
-    }
-
-    public static class Logger
+	
+	public static class Logger
     {
         public static void Write(System.Threading.Thread thread, string message, LogMessageType type)
         {
             // 实现日志记录逻辑
         }
-    }
+	}
+
+	
 } 

@@ -2,7 +2,8 @@ using System;
 
 namespace FileSystemOperations
 {
-    public enum FileSourceOperationType
+	[Flags]
+    public enum FileSourceOperationType : uint
     {
         Copy,
         CopyIn,
@@ -12,15 +13,26 @@ namespace FileSystemOperations
         CreateDirectory,
         Execute,
         TestArchive,
-        CalculateChecksum,
+        CalcChecksum,
         SetFileProperty,
         Split,
         Combine,
         CreateHardLink,
         CreateSymLink,
         Wipe,
-        CalcStatistics
-    }
+        CalcStatistics,
+		List,
+		Compare,
+		CompareFiles,
+		CompareFilesByFileObject,
+		CreateArchive,
+		ExtractArchive,
+		ExtractArchiveToTemp,
+		ExtractArchiveToTempAndDelete,
+		ExtractArchiveToTempAndDeleteAll,
+		ExtractArchiveToTempAndDeleteAllAndMove,
+		ExtractArchiveToTempAndDeleteAllAndMoveAndDelete
+	}
 
     [Flags]
     public enum CopyAttributesOption

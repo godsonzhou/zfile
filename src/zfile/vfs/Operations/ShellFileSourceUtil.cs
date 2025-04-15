@@ -308,8 +308,5 @@ namespace FileSystemOperations
         public static extern IntPtr ILClone(IntPtr pidl);
     }
 
-    public static class Constants
-    {
-        public const int COPYENGINE_E_USER_CANCELLED = unchecked((int)0x80270000);
-    }
+  
 } 

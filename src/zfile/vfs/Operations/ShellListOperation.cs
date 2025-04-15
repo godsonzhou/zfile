@@ -211,10 +211,5 @@ namespace FileSystemOperations
         }
     }
 
-    public static class Constants
-    {
-        public const int CSIDL_DRIVES = 0x0011;
-        public const int SHGDN_INFOLDER = 0x0001;
-        public const int SHGDN_FORPARSING = 0x8000;
-    }
+ 
 } 

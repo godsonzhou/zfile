@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Runtime.InteropServices;
-
+using Zfile.FileSources;
+using Zfile;
 namespace FileSystemOperations
 {
     public interface IFileSystemFileSource : ILocalFileSource
@@ -42,9 +37,9 @@ namespace FileSystemOperations
             description?.Dispose();
         }
 
-        public static FileInfo CreateFile(string path)
+        public static FileEntry CreateFile(string path)
         {
-            var file = new FileInfo(path);
+            var file = new FileEntry(path);
             file.Attributes = FileAttributes.Normal;
             file.Size = 0;
             file.ModificationTime = DateTime.Now;
@@ -57,9 +52,9 @@ namespace FileSystemOperations
             return file;
         }
 
-        public static FileInfo CreateFile(string path, SearchRec searchRec)
+        public static FileEntry CreateFile(string path, SearchRec searchRec)
         {
-            var file = new FileInfo(path);
+            var file = new FileEntry(path);
             file.Attributes = searchRec.Attributes;
             file.Size = searchRec.Size;
             file.ModificationTime = searchRec.Time;
@@ -84,13 +79,13 @@ namespace FileSystemOperations
             return file;
         }
 
-        public static FileInfo CreateFileFromFile(string filePath)
+        public static FileEntry CreateFileFromFile(string filePath)
         {
             if (!File.Exists(filePath))
                 throw new FileNotFoundException(filePath);
 
-            var file = new FileInfo(Path.GetDirectoryName(filePath));
-            var fileInfo = new FileInfo(filePath);
+            var file = new FileEntry(Path.GetDirectoryName(filePath));
+            var fileInfo = new FileEntry(filePath);
 
             file.Attributes = fileInfo.Attributes;
             file.Size = fileInfo.Length;
@@ -114,9 +109,9 @@ namespace FileSystemOperations
             return file;
         }
 
-        public static List<FileInfo> CreateFilesFromFileList(string path, List<string> fileNamesList, bool omitNotExisting = false)
+        public static List<FileEntry> CreateFilesFromFileList(string path, List<string> fileNamesList, bool omitNotExisting = false)
         {
-            var result = new List<FileInfo>();
+            var result = new List<FileEntry>();
             if (fileNamesList != null && fileNamesList.Count > 0)
             {
                 foreach (var fileName in fileNamesList)
@@ -135,12 +130,12 @@ namespace FileSystemOperations
             return result;
         }
 
-        public override void RetrieveProperties(FileInfo file, FilePropertiesTypes propertiesToSet, string[] variantProperties)
+        public override void RetrieveProperties(FileEntry file, FilePropertyType propertiesToSet, string[] variantProperties)
         {
             var assignedProperties = file.AssignedProperties;
             propertiesToSet = propertiesToSet - assignedProperties;
 
-            if (propertiesToSet == FilePropertiesTypes.None)
+            if (propertiesToSet == FilePropertyType.None)
                 return;
 
             var fullPath = file.FullPath;
@@ -152,22 +147,22 @@ namespace FileSystemOperations
                 if (!fileInfo.Exists)
                     throw new FileNotFoundException(fullPath);
 
-                if (!assignedProperties.HasFlag(FilePropertiesTypes.Attributes))
+                if (!assignedProperties.HasFlag(FilePropertyType.Attributes))
                     file.Attributes = fileInfo.Attributes;
 
-                if (!assignedProperties.HasFlag(FilePropertiesTypes.Size))
+                if (!assignedProperties.HasFlag(FilePropertyType.Size))
                     file.Size = fileInfo.Length;
 
-                if (!assignedProperties.HasFlag(FilePropertiesTypes.ModificationTime))
+                if (!assignedProperties.HasFlag(FilePropertyType.ModificationTime))
                     file.ModificationTime = fileInfo.LastWriteTime;
 
-                if (!assignedProperties.HasFlag(FilePropertiesTypes.CreationTime))
+                if (!assignedProperties.HasFlag(FilePropertyType.CreationTime))
                     file.CreationTime = fileInfo.CreationTime;
 
-                if (!assignedProperties.HasFlag(FilePropertiesTypes.LastAccessTime))
+                if (!assignedProperties.HasFlag(FilePropertyType.LastAccessTime))
                     file.LastAccessTime = fileInfo.LastAccessTime;
 
-                if (propertiesToSet.HasFlag(FilePropertiesTypes.Link))
+                if (propertiesToSet.HasFlag(FilePropertType.Link))
                 {
                     file.Link = new FileLinkProperty();
                     if ((file.Attributes & FileAttributes.ReparsePoint) != 0)
@@ -182,18 +177,18 @@ namespace FileSystemOperations
                     }
                 }
 
-                if (propertiesToSet.HasFlag(FilePropertiesTypes.Owner))
+                if (propertiesToSet.HasFlag(FilePropertyType.Owner))
                 {
                     SetOwner(file);
                 }
 
-                if (propertiesToSet.HasFlag(FilePropertiesTypes.Type))
+                if (propertiesToSet.HasFlag(FilePropertyType.Type))
                 {
                     file.Type = new FileTypeProperty();
                     file.Type.Value = GetFileDescription(fullPath);
                 }
 
-                if (propertiesToSet.HasFlag(FilePropertiesTypes.CompressedSize))
+                if (propertiesToSet.HasFlag(FilePropertyType.CompressedSize))
                 {
                     file.CompressedSize = new FileCompressedSizeProperty();
                     file.CompressedSize.Value = GetCompressedFileSize(fullPath);
@@ -205,7 +200,7 @@ namespace FileSystemOperations
                 // 这里需要根据Unix系统实现相应的功能
             }
 
-            if (propertiesToSet.HasFlag(FilePropertiesTypes.Comment))
+            if (propertiesToSet.HasFlag(FilePropertyType.Comment))
             {
                 file.Comment = new FileCommentProperty();
                 file.Comment.Value = description.ReadDescription(fullPath);
@@ -318,7 +313,7 @@ namespace FileSystemOperations
                 if (GlobalSettings.LogOptions.HasFlag(LogOptions.DirectoryOperations) &&
                     GlobalSettings.LogOptions.HasFlag(LogOptions.Success))
                 {
-                    Log.Write(string.Format(Resources.MsgLogSuccess + Resources.MsgLogMkDir, path),
+                    Logger.Write(string.Format(Resources.MsgLogSuccess + Resources.MsgLogMkDir, path),
                         LogMessageType.Success);
                 }
                 return true;
@@ -328,7 +323,7 @@ namespace FileSystemOperations
                 if (GlobalSettings.LogOptions.HasFlag(LogOptions.DirectoryOperations) &&
                     GlobalSettings.LogOptions.HasFlag(LogOptions.Errors))
                 {
-                    Log.Write(string.Format(Resources.MsgLogError + Resources.MsgLogMkDir, path),
+                    Logger.Write(string.Format(Resources.MsgLogError + Resources.MsgLogMkDir, path),
                         LogMessageType.Error);
                 }
                 return false;
@@ -357,47 +352,47 @@ namespace FileSystemOperations
             }
         }
 
-        public override FilePropertiesTypes GetSupportedFileProperties()
+        public override FilePropertyType GetSupportedFileProperties()
         {
             var properties = base.GetSupportedFileProperties();
-            properties |= FilePropertiesTypes.Size |
-                        FilePropertiesTypes.Attributes |
-                        FilePropertiesTypes.ModificationTime |
-                        FilePropertiesTypes.LastAccessTime |
-                        FilePropertiesTypes.Link;
+            properties |= FilePropertyType.Size |
+                        FilePropertyType.Attributes |
+                        FilePropertyType.ModificationTime |
+                        FilePropertyType.LastAccessTime |
+                        FilePropertyType.Link;
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                properties |= FilePropertiesTypes.CreationTime;
+                properties |= FilePropertyType.CreationTime;
             }
             else
             {
-                properties |= FilePropertiesTypes.ChangeTime;
+                properties |= FilePropertyType.ChangeTime;
             }
 
             return properties;
         }
 
-        public override FilePropertiesTypes GetRetrievableFileProperties()
+        public override FilePropertyType GetRetrievableFileProperties()
         {
             var properties = base.GetRetrievableFileProperties();
-            properties |= FilePropertiesTypes.Size |
-                        FilePropertiesTypes.Attributes |
-                        FilePropertiesTypes.ModificationTime |
-                        FilePropertiesTypes.LastAccessTime |
-                        FilePropertiesTypes.Link |
-                        FilePropertiesTypes.Owner |
-                        FilePropertiesTypes.Type |
-                        FilePropertiesTypes.Comment;
+            properties |= FilePropertyType.Size |
+                        FilePropertyType.Attributes |
+                        FilePropertyType.ModificationTime |
+                        FilePropertyType.LastAccessTime |
+                        FilePropertyType.Link |
+                        FilePropertyType.Owner |
+                        FilePropertyType.Type |
+                        FilePropertyType.Comment;
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                properties |= FilePropertiesTypes.CreationTime |
-                            FilePropertiesTypes.CompressedSize;
+                properties |= FilePropertyType.CreationTime |
+                            FilePropertyType.CompressedSize;
             }
             else
             {
-                properties |= FilePropertiesTypes.ChangeTime;
+                properties |= FilePropertyType.ChangeTime;
             }
 
             return properties;
@@ -473,7 +468,7 @@ namespace FileSystemOperations
             return new FileSystemSetFilePropertyOperation(this, targetFiles, newProperties);
         }
 
-        private void SetOwner(FileInfo file)
+        private void SetOwner(FileEntry file)
         {
             file.Owner = new FileOwnerProperty();
             // 这里需要根据操作系统实现获取文件所有者的功能

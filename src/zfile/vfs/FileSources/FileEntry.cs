@@ -1,6 +1,23 @@
 using System.Collections;
-using Zfile.FileSources;
+
 namespace Zfile;
+public static class Constants
+{
+	public const int CSIDL_DRIVES = 0x0011;
+	public const int SHGDN_INFOLDER = 0x0001;
+	public const int SHGDN_FORPARSING = 0x8000;
+	public const int COPYENGINE_E_USER_CANCELLED = unchecked((int)0x80270000);
+
+	public const int SW_SHOWNORMAL = 1;
+	public const int SEE_MASK_IDLIST = 0x00000004;
+
+	public const string CLSID_FileOperation = "3AD05575-8857-4850-9277-11B85BDB8E09";
+
+	public const int FOF_SILENT = 0x0004;
+	public const int FOF_NOCONFIRMMKDIR = 0x0200;
+	public const int FOF_NOCONFIRMATION = 0x0010;
+	public const int FOF_NORECURSION = 0x1000;
+}
 [Flags]
 public enum FilePropertyType
 {
@@ -476,25 +493,25 @@ public class FileEntry
         set { SetProperty(FilePropertyType.ChangeTime, value); }
     }
 
-    public FileLinkProperty LinkProperty
+    public FileLinkProperty Link
     {
         get { return (FileLinkProperty)_properties[FilePropertyType.Link]; }
         set { SetProperty(FilePropertyType.Link, value); }
     }
 
-    public FileOwnerProperty OwnerProperty
+    public FileOwnerProperty Owner
     {
         get { return (FileOwnerProperty)_properties[FilePropertyType.Owner]; }
         set { SetProperty(FilePropertyType.Owner, value); }
     }
 
-    public FileTypeProperty TypeProperty
+    public FileTypeProperty Type
     {
         get { return (FileTypeProperty)_properties[FilePropertyType.Type]; }
         set { SetProperty(FilePropertyType.Type, value); }
     }
 
-    public FileCommentProperty CommentProperty
+    public FileCommentProperty Comment
     {
         get { return (FileCommentProperty)_properties[FilePropertyType.Comment]; }
         set { SetProperty(FilePropertyType.Comment, value); }

@@ -1,7 +1,6 @@
-using System;
 using System.Runtime.InteropServices;
-using System.Collections.Generic;
-
+using Zfile.Operations;
+using Zfile.FileSources;
 namespace FileSystemOperations
 {
     public class ShellDeleteOperation : FileSourceDeleteOperation
@@ -92,34 +91,5 @@ namespace FileSystemOperations
                 Marshal.ThrowExceptionForHR(hr);
         }
     }
-
-    public static class Constants
-    {
-        public const string CLSID_FileOperation = "3AD05575-8857-4850-9277-11B85BDB8E09";
-        public const int FOF_SILENT = 0x0004;
-        public const int FOF_NOCONFIRMATION = 0x0010;
-        public const int FOF_NORECURSION = 0x1000;
-        public const int COPYENGINE_E_USER_CANCELLED = unchecked((int)0x80270000);
-    }
-
-    public static class GlobalSettings
-    {
-        public static bool LogErrors { get; set; }
-        public static bool LogDelete { get; set; }
-    }
-
-    public static class Logger
-    {
-        public static void Write(System.Threading.Thread thread, string message, LogMessageType type)
-        {
-            // 实现日志记录逻辑
-        }
-    }
-
-    public enum LogMessageType
-    {
-        Error,
-        Info,
-        Success
-    }
+  
 } 

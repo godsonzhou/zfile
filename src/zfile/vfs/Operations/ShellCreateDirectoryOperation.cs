@@ -1,6 +1,5 @@
-using System;
-using System.Runtime.InteropServices;
-
+using Zfile.Operations;
+using Zfile.FileSources;
 namespace FileSystemOperations
 {
     public class ShellCreateDirectoryOperation : FileSourceCreateDirectoryOperation
@@ -46,25 +45,5 @@ namespace FileSystemOperations
         }
     }
 
-    public static class GlobalSettings
-    {
-        public static bool LogDirectoryOperations { get; set; }
-        public static bool LogSuccess { get; set; }
-        public static bool LogErrors { get; set; }
-    }
-
-    public static class Logger
-    {
-        public static void Write(System.Threading.Thread thread, string message, LogMessageType type)
-        {
-            // 实现日志记录逻辑
-        }
-    }
-
-    public enum LogMessageType
-    {
-        Error,
-        Info,
-        Success
-    }
+  
 } 

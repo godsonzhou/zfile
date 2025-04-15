@@ -183,11 +183,5 @@ namespace FileSystemOperations
         }
     }
 
-    public static class Constants
-    {
-        public const string CLSID_FileOperation = "3AD05575-8857-4850-9277-11B85BDB8E09";
-        public const int FOF_SILENT = 0x0004;
-        public const int FOF_NOCONFIRMMKDIR = 0x0200;
-        public const int COPYENGINE_E_USER_CANCELLED = unchecked((int)0x80270000);
-    }
+  
 } 

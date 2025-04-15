@@ -16,5 +16,13 @@ namespace FileSystemOperations
         public static bool OperationOptionCopyOwnership { get; set; } = true;
         public static bool OperationOptionCopyPermissions { get; set; } = true;
         public static bool DropReadOnlyFlag { get; set; } = true;
-    }
+		public static bool OperationOptionVerify { get; set; }
+		public static bool OperationOptionExcludeEmptyDirectories { get; set; } = true;
+		public static bool LogErrors { get; set; }
+		public static bool LogInfo { get; set; }
+		public static bool LogSuccess { get; set; }
+		public static bool LogDirectoryOperations { get; set; }
+		public static LogOptions LogOptions { get; set; }
+		public static bool LogDelete { get; set; }
+	}
 } 

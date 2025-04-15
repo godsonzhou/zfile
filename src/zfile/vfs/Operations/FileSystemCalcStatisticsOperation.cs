@@ -7,7 +7,14 @@ using System.Threading.Tasks;
 
 namespace FileSystemOperations
 {
-    public class FileSystemCalcStatisticsOperation : FileSourceCalcStatisticsOperation
+	public enum FileSourceOperationOptionSymLink
+	{
+		None = 0,
+		Follow = 1,
+		DontFollow = 2
+	}
+
+	public class FileSystemCalcStatisticsOperation : FileSourceCalcStatisticsOperation
     {
         private FileSourceCalcStatisticsOperationStatistics statistics; // 统计信息的本地副本
         private FileSourceOperationOptionSymLink symLinkOption;
@@ -185,19 +192,5 @@ namespace FileSystemOperations
         }
     }
 
-    public enum LogMessageType
-    {
-        Error,
-        Info,
-        Success
-    }
-
-    [Flags]
-    public enum LogOptions
-    {
-        None = 0,
-        Error = 1,
-        Info = 2,
-        Success = 4
-    }
+  
 } 

@@ -113,7 +113,7 @@ namespace Zfile.Operations
         /// <summary>
         /// Cleans up resources
         /// </summary>
-        protected override void Dispose(bool disposing)
+        public override void Dispose(bool disposing)
         {
             if (disposing)
             {

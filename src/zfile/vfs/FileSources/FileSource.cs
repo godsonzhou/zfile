@@ -70,7 +70,7 @@ namespace Zfile.FileSources
 	/// Represents file properties types
 	/// </summary>
 	[Flags]
-	public enum FilePropertyType
+	public enum FilePropertyType : uint
 	{
 		Name = 0,
 		Size = 1,
@@ -573,132 +573,132 @@ namespace Zfile.FileSources
 	/// <summary>
 	/// Represents a file entry
 	/// </summary>
-	public class FileEntry
-	{
-		/// <summary>
-		/// Gets or sets the name of the file
-		/// </summary>
-		public string Name { get; set; }
+	//public class FileEntry
+	//{
+	//	/// <summary>
+	//	/// Gets or sets the name of the file
+	//	/// </summary>
+	//	public string Name { get; set; }
 
-		/// <summary>
-		/// Gets or sets the path of the file
-		/// </summary>
-		public string Path { get; set; }
+	//	/// <summary>
+	//	/// Gets or sets the path of the file
+	//	/// </summary>
+	//	public string Path { get; set; }
 
-		/// <summary>
-		/// Gets or sets the size of the file
-		/// </summary>
-		public long Size { get; set; }
+	//	/// <summary>
+	//	/// Gets or sets the size of the file
+	//	/// </summary>
+	//	public long Size { get; set; }
 
-		/// <summary>
-		/// Gets or sets the attributes of the file
-		/// </summary>
-		public FileAttributes Attributes { get; set; }
+	//	/// <summary>
+	//	/// Gets or sets the attributes of the file
+	//	/// </summary>
+	//	public FileAttributes Attributes { get; set; }
 
-		/// <summary>
-		/// Gets or sets the modification time of the file
-		/// </summary>
-		public DateTime ModificationTime { get; set; }
+	//	/// <summary>
+	//	/// Gets or sets the modification time of the file
+	//	/// </summary>
+	//	public DateTime ModificationTime { get; set; }
 
-		/// <summary>
-		/// Gets or sets the creation time of the file
-		/// </summary>
-		public DateTime CreationTime { get; set; }
+	//	/// <summary>
+	//	/// Gets or sets the creation time of the file
+	//	/// </summary>
+	//	public DateTime CreationTime { get; set; }
 
-		/// <summary>
-		/// Gets or sets the last access time of the file
-		/// </summary>
-		public DateTime LastAccessTime { get; set; }
+	//	/// <summary>
+	//	/// Gets or sets the last access time of the file
+	//	/// </summary>
+	//	public DateTime LastAccessTime { get; set; }
 
-		/// <summary>
-		/// Gets or sets the link target of the file
-		/// </summary>
-		public string LinkTarget { get; set; }
+	//	/// <summary>
+	//	/// Gets or sets the link target of the file
+	//	/// </summary>
+	//	public string LinkTarget { get; set; }
 
-		/// <summary>
-		/// Gets or sets the owner of the file
-		/// </summary>
-		public string Owner { get; set; }
+	//	/// <summary>
+	//	/// Gets or sets the owner of the file
+	//	/// </summary>
+	//	public string Owner { get; set; }
 
-		/// <summary>
-		/// Gets or sets the group of the file
-		/// </summary>
-		public string Group { get; set; }
+	//	/// <summary>
+	//	/// Gets or sets the group of the file
+	//	/// </summary>
+	//	public string Group { get; set; }
 
-		/// <summary>
-		/// Gets or sets the type of the file
-		/// </summary>
-		public string Type { get; set; }
+	//	/// <summary>
+	//	/// Gets or sets the type of the file
+	//	/// </summary>
+	//	public string Type { get; set; }
 
-		/// <summary>
-		/// Gets or sets the comment of the file
-		/// </summary>
-		public string Comment { get; set; }
+	//	/// <summary>
+	//	/// Gets or sets the comment of the file
+	//	/// </summary>
+	//	public string Comment { get; set; }
 
-		/// <summary>
-		/// Gets or sets the compressed size of the file
-		/// </summary>
-		public long CompressedSize { get; set; }
+	//	/// <summary>
+	//	/// Gets or sets the compressed size of the file
+	//	/// </summary>
+	//	public long CompressedSize { get; set; }
 
-		/// <summary>
-		/// Gets or sets the extension of the file
-		/// </summary>
-		public string Extension { get; set; }
+	//	/// <summary>
+	//	/// Gets or sets the extension of the file
+	//	/// </summary>
+	//	public string Extension { get; set; }
 
-		/// <summary>
-		/// Gets a value indicating whether the file is a directory
-		/// </summary>
-		public bool IsDirectory => (Attributes & FileAttributes.Directory) == FileAttributes.Directory;
+	//	/// <summary>
+	//	/// Gets a value indicating whether the file is a directory
+	//	/// </summary>
+	//	public bool IsDirectory => (Attributes & FileAttributes.Directory) == FileAttributes.Directory;
 
-		/// <summary>
-		/// Gets a value indicating whether the file is a link
-		/// </summary>
-		public bool IsLink => !string.IsNullOrEmpty(LinkTarget);
+	//	/// <summary>
+	//	/// Gets a value indicating whether the file is a link
+	//	/// </summary>
+	//	public bool IsLink => !string.IsNullOrEmpty(LinkTarget);
 
-		public FilePropertyType AssignedProperties;
+	//	public FilePropertyType AssignedProperties;
 
-		/// <summary>
-		/// Creates a new instance of the FileEntry class
-		/// </summary>
-		public FileEntry()
-		{
-		}
+	//	/// <summary>
+	//	/// Creates a new instance of the FileEntry class
+	//	/// </summary>
+	//	public FileEntry()
+	//	{
+	//	}
 
-		/// <summary>
-		/// Creates a new instance of the FileEntry class with the specified path
-		/// </summary>
-		/// <param name="path">The path</param>
-		public FileEntry(string path)
-		{
-			Path = path;
-			Name = System.IO.Path.GetFileName(path);
-		}
+	//	/// <summary>
+	//	/// Creates a new instance of the FileEntry class with the specified path
+	//	/// </summary>
+	//	/// <param name="path">The path</param>
+	//	public FileEntry(string path)
+	//	{
+	//		Path = path;
+	//		Name = System.IO.Path.GetFileName(path);
+	//	}
 
-		/// <summary>
-		/// Creates a clone of this file entry
-		/// </summary>
-		/// <returns>The cloned file entry</returns>
-		public FileEntry Clone()
-		{
-			return new FileEntry
-			{
-				Name = Name,
-				Path = Path,
-				Size = Size,
-				Attributes = Attributes,
-				ModificationTime = ModificationTime,
-				CreationTime = CreationTime,
-				LastAccessTime = LastAccessTime,
-				LinkTarget = LinkTarget,
-				Owner = Owner,
-				Group = Group,
-				Type = Type,
-				Comment = Comment,
-				CompressedSize = CompressedSize,
-				Extension = Extension
-			};
-		}
-	}
+	//	/// <summary>
+	//	/// Creates a clone of this file entry
+	//	/// </summary>
+	//	/// <returns>The cloned file entry</returns>
+	//	public FileEntry Clone()
+	//	{
+	//		return new FileEntry
+	//		{
+	//			Name = Name,
+	//			Path = Path,
+	//			Size = Size,
+	//			Attributes = Attributes,
+	//			ModificationTime = ModificationTime,
+	//			CreationTime = CreationTime,
+	//			LastAccessTime = LastAccessTime,
+	//			LinkTarget = LinkTarget,
+	//			Owner = Owner,
+	//			Group = Group,
+	//			Type = Type,
+	//			Comment = Comment,
+	//			CompressedSize = CompressedSize,
+	//			Extension = Extension
+	//		};
+	//	}
+	//}
 
 	/// <summary>
 	/// Base class for file source operations
@@ -970,7 +970,7 @@ namespace Zfile.FileSources
 		/// <returns>True if the properties can be retrieved, false otherwise</returns>
 		public virtual bool CanRetrieveProperties(FileEntry file, FilePropertyType propertiesToSet)
 		{
-			return ((propertiesToSet & ~file.AssignedProperties) & RetrievableFileProperties) != 0;
+			return (((uint)propertiesToSet & ~(uint)file.AssignedProperties) & (uint)RetrievableFileProperties) != 0;
 		}
 
 		/// <summary>

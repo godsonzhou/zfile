@@ -28,7 +28,7 @@ namespace Zfile.Operations
         private FileSourceTestArchiveOperationStatistics statisticsAtStartTime;
         private ReaderWriterLockSlim statisticsLock;
         private IFileSource sourceFileSource;
-        private List<FileEntry> sourceFiles;
+        private FileEntries sourceFiles;
 
         /// <summary>
         /// Gets the operation type
@@ -38,14 +38,14 @@ namespace Zfile.Operations
         /// <summary>
         /// Gets the source files
         /// </summary>
-        protected List<FileEntry> SourceFiles => sourceFiles;
+        protected FileEntries SourceFiles => sourceFiles;
 
         /// <summary>
         /// Creates a new instance of the <see cref="FileSourceTestArchiveOperation"/> class
         /// </summary>
         /// <param name="aSourceFileSource">File source from which the files will be tested</param>
         /// <param name="theSourceFiles">Files which are to be tested</param>
-        public FileSourceTestArchiveOperation(IFileSource aSourceFileSource, List<FileEntry> theSourceFiles)
+        public FileSourceTestArchiveOperation(IFileSource aSourceFileSource, FileEntries theSourceFiles)
             : base(aSourceFileSource)
         {
             statistics = new FileSourceTestArchiveOperationStatistics

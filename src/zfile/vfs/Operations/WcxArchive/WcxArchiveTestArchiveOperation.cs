@@ -37,8 +37,8 @@ namespace Zfile.Operations;
         {
             var wcxModule = _wcxArchiveFileSource.WcxModule;
 
-            var arcHandle = wcxModule.OpenArchiveHandle(_wcxArchiveFileSource.ArchiveFileName,
-                                                      UnpackFlags.PK_OM_EXTRACT,
+            var arcHandle = wcxModule.OpenArchive(_wcxArchiveFileSource.ArchiveFileName,
+                                                      (int)UnpackFlags.PK_OM_EXTRACT,
                                                       out int openResult);
             if (arcHandle == 0)
             {
@@ -74,7 +74,7 @@ namespace Zfile.Operations;
                             UpdateStatistics(_statistics);
                             _currentFileSize = header.UnpSize;
 
-                            int result = wcxModule.WcxProcessFile(arcHandle, WcxModule.PK_TEST, "", "");
+                            int result = wcxModule.ProcessFile(arcHandle, ProcessMode.PK_TEST, "", "");
 
                             if (result != WcxModule.E_SUCCESS)
                             {

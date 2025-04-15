@@ -75,7 +75,7 @@ namespace Zfile
 		PK_TOO_MANY_FILES = 23,
 		PK_NOT_SUPPORTED = 24
 	}
-	public enum UnpackFlags
+	public enum UnpackFlags : int
 	{
 		PK_OM_LIST = 0,
 		PK_OM_EXTRACT = 1
@@ -849,6 +849,11 @@ namespace Zfile
 		public int GetPackerCaps()
 		{
 			return _getPackerCaps?.Invoke() ?? 0;
+		}
+
+		internal static object? GetErrorMsg(int result)
+		{
+			throw new NotImplementedException();
 		}
 
 		public bool IsUnicode => _isUnicode;

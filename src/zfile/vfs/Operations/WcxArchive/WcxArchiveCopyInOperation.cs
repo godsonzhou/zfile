@@ -36,7 +36,7 @@ namespace Zfile.Operations;
             UpdateStatistics(_statistics);
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             // Is plugin allow multiple Operations?
             if (_needsConnection)

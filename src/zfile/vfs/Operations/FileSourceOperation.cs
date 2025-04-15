@@ -6,6 +6,11 @@ using Zfile.FileSources;
 
 namespace Zfile.Operations
 {
+	public struct StateChangedEventEntry
+	{
+		public FileSourceOperationStateChangedNotify FunctionToCall;
+		public FileSourceOperationState States;
+	}
 
 	public interface IFileSourceOperation
 	{
@@ -13,6 +18,7 @@ namespace Zfile.Operations
 		FileSourceOperationState State { get; }
 		bool IsFree { get; }
 		bool IsModal { get; }
+		string ResultString { get; }
 
 		void Start();
 		void Pause();

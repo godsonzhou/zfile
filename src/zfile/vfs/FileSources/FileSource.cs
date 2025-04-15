@@ -248,7 +248,7 @@ namespace Zfile.FileSources
 		/// <summary>
 		/// Gets the current address of this file source
 		/// </summary>
-		string CurrentAddress { get; }
+		string CurrentAddress { get; set; }
 
 		/// <summary>
 		/// Gets the current working directory of this file source
@@ -810,7 +810,7 @@ namespace Zfile.FileSources
 		/// <summary>
 		/// Gets the current address of this file source
 		/// </summary>
-		public virtual string CurrentAddress { get; protected set; }
+		public virtual string CurrentAddress { get; set; }
 
 		/// <summary>
 		/// Gets the current working directory of this file source

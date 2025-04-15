@@ -1,5 +1,10 @@
-﻿using System.Diagnostics;
+﻿using CSCore.Win32;
+using MCPSharp.Model;
+using SharpCompress.Archives;
+using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
+using static OpenQA.Selenium.BiDi.Modules.Session.ProxyConfiguration;
 /*
 主要功能：
 基础结构定义：
@@ -50,25 +55,7 @@ Unicode支持：
 */
 namespace Zfile
 {
-	// 常量定义
-	/*
-	 * E_SUCCESS	0	Success
-		E_END_ARCHIVE	10	No more files in archive
-		E_NO_MEMORY	11	Not enough memory
-		E_BAD_DATA	12	Data is bad
-		E_BAD_ARCHIVE	13	CRC error in archive data
-		E_UNKNOWN_FORMAT	14	Archive format unknown
-		E_EOPEN	15	Cannot open existing file
-		E_ECREATE	16	Cannot create file
-		E_ECLOSE	17	Error closing file
-		E_EREAD	18	Error reading from file
-		E_EWRITE	19	Error writing to file
-		E_SMALL_BUF	20	Buffer too small
-		E_EABORTED	21	Function aborted by user
-		E_NO_FILES	22	No files found
-		E_TOO_MANY_FILES	23	Too many files to pack
-		E_NOT_SUPPORTED	24	Function not supported
-	 */
+	 
 	public enum WcxResult:int
 	{
 		PK_OK = 0,
@@ -426,8 +413,25 @@ namespace Zfile
 		public const int PK_ERR = 2;
 		public const int PK_PROC_TOTAL_SIZE = 1;
 		public const int PK_PROC_SIZE = 2;
+		// 常量定义
 
-		// 函数指针
+		public const int E_SUCCESS = 0; //	Success
+		public const int E_END_ARCHIVE = 10; //	No more files in archive
+		public const int E_NO_MEMORY = 11; //	Not enough memory
+		public const int E_BAD_DATA = 12; //	Data is bad
+		public const int E_BAD_ARCHIVE = 13; //	CRC error in archive data
+		public const int E_UNKNOWN_FORMAT = 14; //	Archive format unknown
+		public const int E_EOPEN	= 15; //	Cannot open existing file
+		public const int E_ECREATE	= 16; //	Cannot create file
+		public const int E_ECLOSE	= 17; //	Error closing file
+		public const int E_EREAD	= 18; //	Error reading from file
+		public const int E_EWRITE	= 19; //	Error writing to file
+		public const int E_SMALL_BUF	= 20; //	Buffer too small
+		public const int E_EABORTED	= 21; //	Function aborted by user
+		public const int E_NO_FILES	= 22; //	No files found
+		public const int E_TOO_MANY_FILES	= 23; //	Too many files to pack
+		public const int E_NOT_SUPPORTED	= 24; //	Function not supported
+												  // 函数指针
 		private TOpenArchive _openArchive;
 		private TOpenArchiveW _openArchiveW;
 		private TReadHeader _readHeader;

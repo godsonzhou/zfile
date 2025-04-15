@@ -11,7 +11,7 @@ namespace Zfile.Operations
 			_wcxArchiveFileSource = (IWcxArchiveFileSource)targetFileSource;
 		}
 
-		public override void Initialize()
+		protected override void Initialize()
 		{
 		}
 
@@ -27,7 +27,7 @@ namespace Zfile.Operations
 			}
 		}
 
-		public override void Finalize()
+		protected override void Finalize()
 		{
 		}
 	}

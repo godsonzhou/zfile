@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
+using Zfile;
 using Zfile.FileSources;
 using ZFile.FileSources.WcxArchive;
-using ZFile.Operations;
-using Zfile;
 namespace ZFile.Operations.WcxArchive
 {
 	public class WcxArchiveCopyOutOperation : FileSourceOperation

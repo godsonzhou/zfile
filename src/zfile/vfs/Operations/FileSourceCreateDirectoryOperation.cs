@@ -5,7 +5,7 @@ namespace Zfile.Operations
     /// <summary>
     /// Operation that creates a directory in a file source
     /// </summary>
-    public class FileSourceCreateDirectoryOperation : FileSourceOperation
+    public abstract class FileSourceCreateDirectoryOperation : FileSourceOperation
     {
         private IFileSource _fileSource;
         private string _basePath;

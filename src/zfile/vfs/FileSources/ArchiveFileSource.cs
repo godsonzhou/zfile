@@ -74,7 +74,7 @@ namespace Zfile.FileSources
             result.Size = 0;
             result.CompressedSize = 0;
             result.Attributes = FileAttributes.Normal;
-            result.LastWriteTime = DateTime.MinValue;
+            result.ModificationTime = DateTime.MinValue;
 
             return result;
         }

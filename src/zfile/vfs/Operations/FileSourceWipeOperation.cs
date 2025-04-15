@@ -22,7 +22,7 @@ namespace Zfile.Operations
     /// Operation that wipes files from an arbitrary file source.
     /// File source should match the class type.
     /// </summary>
-    public class FileSourceWipeOperation : FileSourceOperation
+    public abstract class FileSourceWipeOperation : FileSourceOperation
     {
         private FileSourceWipeOperationStatistics _statistics;
         private FileSourceWipeOperationStatistics _statisticsAtStartTime;

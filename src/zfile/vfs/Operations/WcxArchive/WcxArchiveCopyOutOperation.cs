@@ -1,3 +1,4 @@
+using Zfile.FileSources;
 namespace Zfile.Operations;
 
     public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation

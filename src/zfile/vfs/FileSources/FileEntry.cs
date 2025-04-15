@@ -651,27 +651,27 @@ public class FileEntry
         return Name != "..";
     }
 
-    public bool IsDirectory()
+    public bool IsDirectory
     {
-        return _supportedProperties.HasFlag(FilePropertyType.Attributes) && 
+        get => _supportedProperties.HasFlag(FilePropertyType.Attributes) && 
                (Attributes & FileAttributes.Directory) == FileAttributes.Directory;
     }
 
-    public bool IsSysFile()
+    public bool IsSysFile
     {
-        return _supportedProperties.HasFlag(FilePropertyType.Attributes) && 
+        get => _supportedProperties.HasFlag(FilePropertyType.Attributes) && 
                (Attributes & FileAttributes.System) == FileAttributes.System;
     }
 
-    public bool IsHidden()
+    public bool IsHidden
     {
-        return _supportedProperties.HasFlag(FilePropertyType.Attributes) && 
+        get => _supportedProperties.HasFlag(FilePropertyType.Attributes) && 
                (Attributes & FileAttributes.Hidden) == FileAttributes.Hidden;
     }
 
-    public bool IsLink()
+    public bool IsLink
     {
-        return _supportedProperties.HasFlag(FilePropertyType.Link) && 
+        get => _supportedProperties.HasFlag(FilePropertyType.Link) && 
                !string.IsNullOrEmpty(((FileLinkProperty)_properties[FilePropertyType.Link]).LinkTarget);
     }
 

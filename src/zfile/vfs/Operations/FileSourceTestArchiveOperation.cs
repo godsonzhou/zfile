@@ -22,7 +22,7 @@ namespace Zfile.Operations
     /// <summary>
     /// Operation that test files in archive
     /// </summary>
-    public class FileSourceTestArchiveOperation : FileSourceOperation
+    public abstract class FileSourceTestArchiveOperation : FileSourceOperation
     {
         private FileSourceTestArchiveOperationStatistics statistics;
         private FileSourceTestArchiveOperationStatistics statisticsAtStartTime;

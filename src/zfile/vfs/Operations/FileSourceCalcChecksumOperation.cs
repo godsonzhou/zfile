@@ -44,7 +44,7 @@ namespace Zfile.Operations
     /// <summary>
     /// Operation that calculates checksum of the files.
     /// </summary>
-    public class FileSourceCalcChecksumOperation : FileSourceOperation
+    public abstract class FileSourceCalcChecksumOperation : FileSourceOperation
     {
         private FileSourceCalcChecksumOperationStatistics _statistics;
         private FileSourceCalcChecksumOperationStatistics _statisticsAtStartTime;
@@ -215,7 +215,7 @@ namespace Zfile.Operations
                             return "Verifying checksum";
                     }
                 default:
-                    return base.GetDescription(details);
+                    return GetDescription(details);
             }
         }
 

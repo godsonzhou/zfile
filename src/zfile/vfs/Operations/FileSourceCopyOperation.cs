@@ -5,7 +5,7 @@ namespace Zfile.Operations
     /// <summary>
     /// Base class for CopyIn and CopyOut operations.
     /// </summary>
-    public class FileSourceCopyOperation : FileSourceOperation
+    public abstract class FileSourceCopyOperation : FileSourceOperation
     {
         private FileSourceCopyOperationStatistics _statistics;
         private FileSourceCopyOperationStatistics _statisticsAtStartTime;
@@ -258,7 +258,7 @@ namespace Zfile.Operations
     /// (to file system for TFileSystemCopyInOperation,
     /// to network for TNetworkCopyInOperation, etc.).
     /// </summary>
-    public class FileSourceCopyInOperation : FileSourceCopyOperation
+    public abstract class FileSourceCopyInOperation : FileSourceCopyOperation
     {
         /// <summary>
         /// Gets the operation type
@@ -284,7 +284,7 @@ namespace Zfile.Operations
     /// (from file system for TFileSystemCopyOutOperation,
     /// from network for TNetworkCopyOutOperation, etc.).
     /// </summary>
-    public class FileSourceCopyOutOperation : FileSourceCopyOperation
+    public abstract class FileSourceCopyOutOperation : FileSourceCopyOperation
     {
         /// <summary>
         /// Gets the operation type

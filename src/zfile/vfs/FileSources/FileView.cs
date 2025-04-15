@@ -110,7 +110,7 @@ namespace Zfile
 					var item = new ListViewItem(file.Name);
 					item.SubItems.Add(file.IsDirectory ? "<DIR>" : file.Size.ToString());
 					item.SubItems.Add(file.IsDirectory ? "Directory" : Path.GetExtension(file.Name));
-					item.SubItems.Add(file.LastWriteTime.ToString());
+					item.SubItems.Add(file.ModificationTime.ToString());
 					item.Tag = file;
 					item.ImageIndex = file.IsDirectory ? 0 : 1; // Assuming folder and file icons
 

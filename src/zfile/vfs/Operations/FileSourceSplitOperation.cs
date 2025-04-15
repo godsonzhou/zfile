@@ -5,7 +5,7 @@ namespace Zfile.Operations
     /// <summary>
     /// Operation that splits file within the same file source.
     /// </summary>
-    public class FileSourceSplitOperation : FileSourceOperation
+    public abstract class FileSourceSplitOperation : FileSourceOperation
     {
         private FileSourceCopyOperationStatistics _statistics;
         private FileSourceCopyOperationStatistics _statisticsAtStartTime;

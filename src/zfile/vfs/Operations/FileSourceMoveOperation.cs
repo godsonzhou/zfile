@@ -6,7 +6,7 @@ namespace Zfile.Operations
     /// Operation that moves or renames files within the same file source
     /// (for example: in the same archive, in the same ftp server).
     /// </summary>
-    public class FileSourceMoveOperation : FileSourceOperation
+    public abstract class FileSourceMoveOperation : FileSourceOperation
     {
         private FileSourceCopyOperationStatistics _statistics;
         private FileSourceCopyOperationStatistics _statisticsAtStartTime;

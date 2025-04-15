@@ -5,7 +5,7 @@ namespace Zfile.Operations
     /// <summary>
     /// Operation that lists files in a file source
     /// </summary>
-    public class FileSourceListOperation : FileSourceOperation
+    public abstract class FileSourceListOperation : FileSourceOperation
     {
         private IFileSource _fileSource;
         private string _path;

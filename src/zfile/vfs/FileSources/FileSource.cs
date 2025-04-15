@@ -5,14 +5,14 @@ namespace Zfile.FileSources
 	/// <summary>
 	/// Represents a field in file source view
 	/// </summary>
-	public struct FileSourceField
-	{
-		public string Content { get; set; }
-		public string Header { get; set; }
-		public int Width { get; set; }
-		public string Option { get; set; }
-		public HorizontalAlignment Align { get; set; }
-	}
+	//public struct FileSourceField
+	//{
+	//	public string Content { get; set; }
+	//	public string Header { get; set; }
+	//	public int Width { get; set; }
+	//	public string Option { get; set; }
+	//	public HorizontalAlignment Align { get; set; }
+	//}
 
 	/// <summary>
 	/// Represents file source operation types

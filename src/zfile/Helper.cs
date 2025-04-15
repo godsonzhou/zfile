@@ -943,5 +943,10 @@ namespace Zfile
 		{
 			throw new NotImplementedException();
 		}
+
+		internal static string? ExtractDirLevel(string aCurrentPath, string directoryPath)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

@@ -20,7 +20,7 @@ namespace Zfile.Operations
     /// Operation that deletes files from an arbitrary file source.
     /// File source should match the class type.
     /// </summary>
-    public class FileSourceDeleteOperation : FileSourceOperation
+    public abstract class FileSourceDeleteOperation : FileSourceOperation
     {
         private FileSourceDeleteOperationStatistics _statistics;
         private FileSourceDeleteOperationStatistics _statisticsAtStartTime;

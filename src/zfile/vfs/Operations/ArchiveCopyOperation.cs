@@ -15,7 +15,7 @@ namespace Zfile.Operations
     /// <summary>
     /// Archive copy in operation
     /// </summary>
-    public class ArchiveCopyInOperation : FileSourceCopyInOperation
+    public abstract class ArchiveCopyInOperation : FileSourceCopyInOperation
     {
         /// <summary>
         /// Local copy of statistics
@@ -69,7 +69,7 @@ namespace Zfile.Operations
     /// <summary>
     /// Archive copy out operation
     /// </summary>
-    public class ArchiveCopyOutOperation : FileSourceCopyOutOperation
+    public abstract class ArchiveCopyOutOperation : FileSourceCopyOutOperation
     {
         /// <summary>
         /// Extract mask

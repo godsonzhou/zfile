@@ -5,7 +5,7 @@ namespace Zfile.Operations
     /// <summary>
     /// Operation that combines files within the same file source.
     /// </summary>
-    public class FileSourceCombineOperation : FileSourceOperation
+    public abstract class FileSourceCombineOperation : FileSourceOperation
     {
         private FileSourceCopyOperationStatistics _statistics;
         private FileSourceCopyOperationStatistics _statisticsAtStartTime;

@@ -18,7 +18,7 @@ namespace Zfile.Operations;
 
         public WcxArchiveCopyOutOperation(IFileSource sourceFileSource, 
                                          IFileSource targetFileSource, 
-                                         List<FileEntry> sourceFiles, 
+                                         FileEntries sourceFiles, 
                                          string targetPath) : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
         {
             _wcxArchiveFileSource = (IWcxArchiveFileSource)sourceFileSource;
@@ -221,7 +221,7 @@ namespace Zfile.Operations;
             }
         }
 
-        private void CreateDirsAndCountFiles(List<FileEntry> theFiles, MaskList maskList,
+        private void CreateDirsAndCountFiles(FileEntries theFiles, MaskList maskList,
                                            string destPath, string currentArchiveDir,
                                            ref StringHashListUtf8 createdPaths)
         {

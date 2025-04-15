@@ -75,11 +75,12 @@ namespace Zfile
 		PK_TOO_MANY_FILES = 23,
 		PK_NOT_SUPPORTED = 24
 	}
-	public enum UnpackFlags : int
+	public enum OpenMode : int
 	{
 		PK_OM_LIST = 0,
 		PK_OM_EXTRACT = 1
 	}
+
 	public enum ProcessMode
 	{
 		PK_SKIP = 0,
@@ -108,6 +109,29 @@ namespace Zfile
 		/// 要求用户输入密码并加密
 		/// </summary>
 		PK_PACK_ENCRYPT = 4
+	}
+	public enum CryptMode
+	{
+		PK_CRYPT_SAVE_PASSWORD = 1,
+		PK_CRYPT_LOAD_PASSWORD = 2,
+		PK_CRYPT_LOAD_PASSWORD_NO_UI = 3,
+		PK_CRYPT_COPY_PASSWORD = 4,
+		PK_CRYPT_MOVE_PASSWORD = 5,
+		PK_CRYPT_DELETE_PASSWORD = 6
+	}
+
+	public enum CryptResult
+	{
+		E_SUCCESS = 0,
+		E_ECREATE = 1,
+		E_EWRITE = 2,
+		E_EREAD = 3,
+		E_NO_FILES = 4
+	}
+
+	public enum CryptOpt
+	{
+		PK_CRYPTOPT_MASTERPASS_SET = 1
 	}
 
 	public enum PackerCaps : int
@@ -851,7 +875,7 @@ namespace Zfile
 			return _getPackerCaps?.Invoke() ?? 0;
 		}
 
-		internal static object? GetErrorMsg(int result)
+		internal static string? GetErrorMsg(int result)
 		{
 			throw new NotImplementedException();
 		}

@@ -30,7 +30,7 @@ namespace Zfile.Operations
         /// <summary>
         /// Full list of files (recursive)
         /// </summary>
-        protected List<FileEntry> fullFilesTree;
+        protected FileEntries fullFilesTree;
 
         /// <summary>
         /// Create new archive

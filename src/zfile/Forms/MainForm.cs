@@ -1166,7 +1166,7 @@ namespace Zfile
 			var path = selectedItem.SubItems[1].Text;
 			if (IsArchiveFile(path))
 			{
-				if (OpenArchive(path, UnpackFlags.PK_OM_LIST))
+				if (OpenArchive(path, OpenMode.PK_OM_LIST))
 				{
 					archivePaths[path] = CurrentDir[LRflag];
 					var items = LoadArchiveContents(path);
@@ -1935,7 +1935,7 @@ namespace Zfile
 			if (path.EndsWith(':')) path += "\\";
 			if (IsArchiveFile(path))
 			{
-				if (OpenArchive(path, UnpackFlags.PK_OM_LIST))
+				if (OpenArchive(path, OpenMode.PK_OM_LIST))
 				{
 					archivePaths[path] = CurrentDir[LRflag];
 					var items = LoadArchiveContents(path);
@@ -2475,7 +2475,7 @@ namespace Zfile
 			return wcxModuleList.GetModuleByExt(ext) != null;
 		}
 
-		public bool OpenArchive(string archivePath, UnpackFlags openMode = UnpackFlags.PK_OM_LIST)
+		public bool OpenArchive(string archivePath, OpenMode openMode = OpenMode.PK_OM_LIST)
 		{
 			if (openArchives.ContainsKey(archivePath)) return true;
 			string ext = Path.GetExtension(archivePath).ToLower();
@@ -2742,10 +2742,10 @@ namespace Zfile
 				// 确定源路径和目标路径的类型
 				bool isSourceArchive = IsArchiveFile(srcPath);//bugfix: the srcpath is the dir in which the arch file located, so always return false, it should use vfs to process the arch file as virtual dir
 				if (isSourceArchive)
-					OpenArchive(srcPath, UnpackFlags.PK_OM_EXTRACT);
+					OpenArchive(srcPath, OpenMode.PK_OM_EXTRACT);
 				bool isTargetArchive = IsArchiveFile(targetPath);
 				if (isTargetArchive)
-					OpenArchive(targetPath, UnpackFlags.PK_OM_EXTRACT);
+					OpenArchive(targetPath, OpenMode.PK_OM_EXTRACT);
 				bool isSourceFtp = fTPMGR.IsFtpPath(srcPath);
 				bool isTargetFtp = fTPMGR.IsFtpPath(targetPath);
 

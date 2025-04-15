@@ -26,7 +26,7 @@ namespace Zfile.Operations
         private FileSourceDeleteOperationStatistics _statisticsAtStartTime;
         private readonly object _statisticsLock = new object();
         private IFileSource _fileSource;
-        private List<FileEntry> _filesToDelete;
+        private FileEntries _filesToDelete;
 
         /// <summary>
         /// Gets the operation type
@@ -41,14 +41,14 @@ namespace Zfile.Operations
         /// <summary>
         /// Gets the files to delete
         /// </summary>
-        protected List<FileEntry> FilesToDelete => _filesToDelete;
+        protected FileEntries FilesToDelete => _filesToDelete;
 
         /// <summary>
         /// Creates a new instance of the <see cref="FileSourceDeleteOperation"/> class
         /// </summary>
         /// <param name="aTargetFileSource">File source from which the files will be deleted</param>
         /// <param name="theFilesToDelete">Files which are to be deleted</param>
-        public FileSourceDeleteOperation(IFileSource aTargetFileSource, List<FileEntry> theFilesToDelete)
+        public FileSourceDeleteOperation(IFileSource aTargetFileSource, FileEntries theFilesToDelete)
             : base(aTargetFileSource)
         {
             _statistics = new FileSourceDeleteOperationStatistics
@@ -63,7 +63,7 @@ namespace Zfile.Operations
             };
 
             _fileSource = aTargetFileSource;
-            _filesToDelete = theFilesToDelete ?? new List<FileEntry>();
+            _filesToDelete = theFilesToDelete ?? new FileEntries();
         }
 
         /// <summary>

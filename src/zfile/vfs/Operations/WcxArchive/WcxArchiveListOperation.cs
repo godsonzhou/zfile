@@ -9,7 +9,7 @@ namespace Zfile.Operations
 
 		public WcxArchiveListOperation(IFileSource fileSource, string path) : base(fileSource, path)
 		{
-			Files = new List<FileEntry>();
+			Files = new FileEntries();
 			_wcxArchiveFileSource = (IWcxArchiveFileSource)fileSource;
 		}
 

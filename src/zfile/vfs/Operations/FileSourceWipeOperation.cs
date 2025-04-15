@@ -28,7 +28,7 @@ namespace Zfile.Operations
         private FileSourceWipeOperationStatistics _statisticsAtStartTime;
         private readonly object _statisticsLock = new object();
         private IFileSource _fileSource;
-        private List<FileEntry> _filesToWipe;
+        private FileEntries _filesToWipe;
 
         /// <summary>
         /// Gets the operation type
@@ -43,14 +43,14 @@ namespace Zfile.Operations
         /// <summary>
         /// Gets the files to wipe
         /// </summary>
-        protected List<FileEntry> FilesToWipe => _filesToWipe;
+        protected FileEntries FilesToWipe => _filesToWipe;
 
         /// <summary>
         /// Creates a new instance of the <see cref="FileSourceWipeOperation"/> class
         /// </summary>
         /// <param name="aTargetFileSource">File source from which the files will be wiped</param>
         /// <param name="theFilesToWipe">Files which are to be wiped</param>
-        public FileSourceWipeOperation(IFileSource aTargetFileSource, List<FileEntry> theFilesToWipe)
+        public FileSourceWipeOperation(IFileSource aTargetFileSource, FileEntries theFilesToWipe)
             : base(aTargetFileSource)
         {
             _statistics = new FileSourceWipeOperationStatistics
@@ -67,7 +67,7 @@ namespace Zfile.Operations
             };
 
             _fileSource = aTargetFileSource;
-            _filesToWipe = theFilesToWipe ?? new List<FileEntry>();
+            _filesToWipe = theFilesToWipe ?? new FileEntries();
         }
 
         /// <summary>

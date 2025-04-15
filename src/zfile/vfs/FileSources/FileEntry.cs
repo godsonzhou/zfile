@@ -1,23 +1,25 @@
+using System.Collections;
+using Zfile.FileSources;
 namespace Zfile;
 [Flags]
 public enum FilePropertyType
 {
-    None = 0,
-    Name = 1 << 0,
-    Size = 1 << 1,
-    Attributes = 1 << 2,
-    ModificationTime = 1 << 3,
-    CreationTime = 1 << 4,
-    LastAccessTime = 1 << 5,
-    Link = 1 << 6,
-    Owner = 1 << 7,
-    Group = 1 << 8,
-    Type = 1 << 9,
-    Comment = 1 << 10,
-    CompressedSize = 1 << 11,
-    Extension = 1 << 12,
-    ChangeTime = 1 << 13,
-    Variant = 1 << 14
+	None = 0,
+	Name = 1 << 0,
+	Size = 1 << 1,
+	Attributes = 1 << 2,
+	ModificationTime = 1 << 3,
+	CreationTime = 1 << 4,
+	LastAccessTime = 1 << 5,
+	Link = 1 << 6,
+	Owner = 1 << 7,
+	Group = 1 << 8,
+	Type = 1 << 9,
+	Comment = 1 << 10,
+	CompressedSize = 1 << 11,
+	Extension = 1 << 12,
+	ChangeTime = 1 << 13,
+	Variant = 1 << 14
 }
 
 public abstract class FileProperty
@@ -685,7 +687,7 @@ public class FileEntry
     }
 }
 
-public class FileEntries
+public class FileEntries : IEnumerable<FileEntry>
 {
     private List<FileEntry> _list;
     private bool _flat;
@@ -826,6 +828,27 @@ public class FileEntries
         }
         _list.Clear();
     }
+	//public FileEntry GetEnumable()
+	//{
+	//	foreach (var file in _list)
+	//	{
+	//		if (file != null)
+	//		{
+	//			yield return file;
+	//		}
+	//	}
+	//	return null;
+	//}
+
+	public IEnumerator<FileEntry> GetEnumerator()
+	{
+		return ((IEnumerable<FileEntry>)_list).GetEnumerator();
+	}
+
+	IEnumerator IEnumerable.GetEnumerator()
+	{
+		return ((IEnumerable)_list).GetEnumerator();
+	}
 }
 
 public class FileTreeNode

@@ -70,7 +70,7 @@ namespace Zfile.Operations
                 try
                 {
                     ITempFileSystemFileSource tempFS = new TempFileSystemFileSource();
-                    List<FileEntry> files = new List<FileEntry>();
+                    FileEntries files = new FileEntries();
                     files.Add(archiveFile.Clone());
 
                     IFileSourceOperation operation = sourceFileSource.CreateCopyOutOperation(
@@ -155,14 +155,14 @@ namespace Zfile.Operations
         /// <param name="fileView">File view</param>
         /// <param name="files">Files to test</param>
         /// <param name="queueIdentifier">Queue identifier</param>
-        public static void TestArchive(FileView fileView, List<FileEntry> files, OperationsManagerQueueIdentifier queueIdentifier)
+        public static void TestArchive(FileView fileView, FileEntries files, OperationsManagerQueueIdentifier queueIdentifier)
         {
             try
             {
                 // If in archive
                 if (fileView.FileSource is IArchiveFileSource)
                 {
-                    List<FileEntry> filesToTest = new List<FileEntry>(files);
+                    FileEntries filesToTest = new FileEntries(files);
                     if (fileView.FileSource.GetOperationsTypes().HasFlag(FileSourceOperationTypes.TestArchive))
                     {
                         IFileSourceOperation operation = fileView.FileSource.CreateTestArchiveOperation(filesToTest);
@@ -206,7 +206,7 @@ namespace Zfile.Operations
                                     archiveFileSource.GetOperationsTypes().HasFlag(FileSourceOperationTypes.TestArchive))
                                 {
                                     // Get files to test
-                                    List<FileEntry> filesToTest = archiveFileSource.GetFiles(archiveFileSource.GetRootDir());
+                                    FileEntries filesToTest = archiveFileSource.GetFiles(archiveFileSource.GetRootDir());
 
                                     if (filesToTest != null)
                                     {
@@ -272,13 +272,13 @@ namespace Zfile.Operations
         /// <param name="newFiles">Output files list</param>
         /// <param name="filesCount">Output files count</param>
         /// <param name="filesSize">Output files size</param>
-        public static void FillAndCount(List<FileEntry> files, out List<FileEntry> newFiles, out long filesCount, out long filesSize)
+        public static void FillAndCount(FileEntries files, out FileEntries newFiles, out long filesCount, out long filesSize)
         {
             filesSize = 0;
             filesCount = 0;
             List<string> folderList = new List<string>();
-            List<FileEntry> folderFiles = new List<FileEntry>();
-            newFiles = new List<FileEntry>();
+            FileEntries folderFiles = new FileEntries();
+            newFiles = new FileEntries();
 
             // Process first level files
             foreach (FileEntry file in files)
@@ -320,10 +320,10 @@ namespace Zfile.Operations
         /// <param name="newFiles">Output files list</param>
         /// <param name="filesCount">Output files count</param>
         /// <param name="filesSize">Output files size</param>
-        private static void FillAndCountRecursive(string srcPath, List<FileEntry> newFiles, ref long filesCount, ref long filesSize)
+        private static void FillAndCountRecursive(string srcPath, FileEntries newFiles, ref long filesCount, ref long filesSize)
         {
             List<string> folders = new List<string>();
-            List<FileEntry> folderFiles = new List<FileEntry>();
+            FileEntries folderFiles = new FileEntries();
 
             try
             {
@@ -388,7 +388,7 @@ namespace Zfile.Operations
                     if (fileSource == null)
                         throw new Exception("Error");
 
-                    List<FileEntry> files = fileSource.GetFiles(Path.DirectorySeparatorChar.ToString());
+                    FileEntries files = fileSource.GetFiles(Path.DirectorySeparatorChar.ToString());
                     try
                     {
                         foreach (FileEntry archiveFile in files)
@@ -397,7 +397,7 @@ namespace Zfile.Operations
 
                             if (pluginFile.Length == 12 && string.Compare(pluginFile, "pluginst.inf", true) == 0)
                             {
-                                List<FileEntry> sourceFiles = new List<FileEntry>();
+                                FileEntries sourceFiles = new FileEntries();
                                 sourceFiles.Add(archiveFile.Clone());
                                 ITempFileSystemFileSource temp = TempFileSystemFileSource.GetFileSource();
 

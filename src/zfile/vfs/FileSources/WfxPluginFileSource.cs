@@ -2,8 +2,8 @@ namespace Zfile.FileSources;
 
 public interface IWfxPluginFileSource : IFileSource
 {
-	void FillAndCount(List<FileEntry> files, bool countDirs, bool excludeRootDir,
-		out List<FileEntry> newFiles, out long filesCount, out long filesSize);
+	void FillAndCount(FileEntries files, bool countDirs, bool excludeRootDir,
+		out FileEntries newFiles, out long filesCount, out long filesSize);
 	bool FillSingleFile(string fullPath, out FileEntry file);
 	int WfxCopyMove(string sourceFile, string targetFile, int flags, RemoteInfo remoteInfo,
 		bool isInternal, bool isCopyMoveIn);
@@ -114,9 +114,9 @@ public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 		return true;
 	}
 
-	public List<FileEntry> GetFiles(string targetPath)
+	public FileEntries GetFiles(string targetPath)
 	{
-		var files = new List<FileEntry>();
+		var files = new FileEntries();
 		GetFiles(targetPath, files);
 		return files;
 	}
@@ -176,7 +176,7 @@ public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 	public bool CanSetAttributes(string path) => true;
 	public bool CanSetTime(string path) => true;
 
-	public bool GetFiles(string path, List<FileEntry> files)
+	public bool GetFiles(string path, FileEntries files)
 	{
 		try
 		{
@@ -245,7 +245,7 @@ public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 		return true;
 	}
 
-	public bool QueryContextMenu(List<FileEntry> files, ref ContextMenuStrip menu)
+	public bool QueryContextMenu(FileEntries files, ref ContextMenuStrip menu)
 	{
 		// Add WFX specific context menu items
 		return true;
@@ -309,12 +309,12 @@ public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 		_wfxModule.Dispose();
 	}
 
-	public void FillAndCount(List<FileEntry> files, bool countDirs, bool excludeRootDir,
-		out List<FileEntry> newFiles, out long filesCount, out long filesSize)
+	public void FillAndCount(FileEntries files, bool countDirs, bool excludeRootDir,
+		out FileEntries newFiles, out long filesCount, out long filesSize)
 	{
 		filesCount = 0;
 		filesSize = 0;
-		newFiles = new List<FileEntry>();
+		newFiles = new FileEntries();
 
 		if (excludeRootDir)
 		{
@@ -344,7 +344,7 @@ public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 		}
 	}
 
-	private void FillAndCountRecursive(string path, List<FileEntry> newFiles, ref long filesCount, ref long filesSize, bool countDirs)
+	private void FillAndCountRecursive(string path, FileEntries newFiles, ref long filesCount, ref long filesSize, bool countDirs)
 	{
 		foreach (var findData in _wfxModule.FindFiles(path))
 		{
@@ -519,27 +519,27 @@ public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 		return new WfxPluginListOperation(this, targetPath);
 	}
 
-	public IFileSourceOperation CreateCopyOperation(List<FileEntry> sourceFiles, string targetPath)
+	public IFileSourceOperation CreateCopyOperation(FileEntries sourceFiles, string targetPath)
 	{
 		return new WfxPluginCopyOperation(this, this, sourceFiles, targetPath);
 	}
 
-	public IFileSourceOperation CreateCopyInOperation(IFileSource sourceFileSource, List<FileEntry> sourceFiles, string targetPath)
+	public IFileSourceOperation CreateCopyInOperation(IFileSource sourceFileSource, FileEntries sourceFiles, string targetPath)
 	{
 		return new WfxPluginCopyInOperation(sourceFileSource, this, sourceFiles, targetPath);
 	}
 
-	public IFileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, List<FileEntry> sourceFiles, string targetPath)
+	public IFileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)
 	{
 		return new WfxPluginCopyOutOperation(this, targetFileSource, sourceFiles, targetPath);
 	}
 
-	public IFileSourceOperation CreateMoveOperation(List<FileEntry> sourceFiles, string targetPath)
+	public IFileSourceOperation CreateMoveOperation(FileEntries sourceFiles, string targetPath)
 	{
 		return new WfxPluginMoveOperation(this, sourceFiles, targetPath);
 	}
 
-	public IFileSourceOperation CreateDeleteOperation(List<FileEntry> filesToDelete)
+	public IFileSourceOperation CreateDeleteOperation(FileEntries filesToDelete)
 	{
 		return new WfxPluginDeleteOperation(this, filesToDelete);
 	}
@@ -554,12 +554,12 @@ public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 		return new WfxPluginExecuteOperation(this, executableFile, basePath, verb);
 	}
 
-	public IFileSourceOperation CreateSetFilePropertyOperation(List<FileEntry> targetFiles, Dictionary<FilePropertyType, object> newProperties)
+	public IFileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, Dictionary<FilePropertyType, object> newProperties)
 	{
 		return new WfxPluginSetFilePropertyOperation(this, targetFiles, newProperties);
 	}
 
-	public IFileSourceOperation CreateCalcStatisticsOperation(List<FileEntry> files)
+	public IFileSourceOperation CreateCalcStatisticsOperation(FileEntries files)
 	{
 		return new WfxPluginCalcStatisticsOperation(this, files);
 	}

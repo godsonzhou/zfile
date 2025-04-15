@@ -85,7 +85,7 @@ namespace Zfile.FileSources
 
             try
             {
-                file.ModificationTime = WcxFileTimeToDateTime(header.FileTime);
+                file.ModificationTime = FileTimeToDateTime(header.FileTime);
             }
             catch (Exception) { }
 
@@ -114,7 +114,7 @@ namespace Zfile.FileSources
 
         public override FileSourceProperties GetProperties()
         {
-            return FileSourceProperties.UsesConnections | FileSourceProperties.ListFlatView;
+            return FileSourceProperties.UsersConnections | FileSourceProperties.ListFlatView;
         }
 
         protected override FilePropertiesTypes GetSupportedFileProperties()
@@ -146,7 +146,7 @@ namespace Zfile.FileSources
 
         protected override string GetPacker()
         {
-            return _wcxModule.ModuleName;
+            return _wcxModule.Name;
         }
 
         private void SetCryptCallback()
@@ -164,7 +164,7 @@ namespace Zfile.FileSources
             {
                 if (arcHandle == IntPtr.Zero)
                 {
-                    arcHandle = _wcxModule.OpenArchiveHandle(ArchiveFileName, (int)OpenMode.PK_OM_LIST, out _openResult);
+                    arcHandle = _wcxModule.OpenArchive(ArchiveFileName, (int)OpenMode.PK_OM_LIST, out _openResult);
                     if (arcHandle == IntPtr.Zero || _openResult != 0)
                         return false;
                 }
@@ -412,9 +412,9 @@ namespace Zfile.FileSources
                             if (wcxPlugin != wcxPrevious)
                             {
                                 wcxPrevious = wcxPlugin;
-                                if (wcxPlugin.WcxCanYouHandleThisFile(archiveFileName))
+                                if (wcxPlugin.CanYouHandleThisFile(archiveFileName))
                                 {
-                                    archiveHandle = wcxPlugin.OpenArchiveHandle(archiveFileName, (int)OpenMode.PK_OM_LIST, out openResult);
+                                    archiveHandle = wcxPlugin.OpenArchive(archiveFileName, (int)OpenMode.PK_OM_LIST, out openResult);
                                     if (archiveHandle != IntPtr.Zero && openResult == 0)
                                     {
                                         found = true;
@@ -567,48 +567,7 @@ namespace Zfile.FileSources
         }
     }
 
-    public enum CryptMode
-    {
-        PK_CRYPT_SAVE_PASSWORD = 1,
-        PK_CRYPT_LOAD_PASSWORD = 2,
-        PK_CRYPT_LOAD_PASSWORD_NO_UI = 3,
-        PK_CRYPT_COPY_PASSWORD = 4,
-        PK_CRYPT_MOVE_PASSWORD = 5,
-        PK_CRYPT_DELETE_PASSWORD = 6
-    }
-
-    public enum CryptResult
-    {
-        E_SUCCESS = 0,
-        E_ECREATE = 1,
-        E_EWRITE = 2,
-        E_EREAD = 3,
-        E_NO_FILES = 4
-    }
-
-    public enum CryptOpt
-    {
-        PK_CRYPTOPT_MASTERPASS_SET = 1
-    }
-
-    public enum OpenMode
-    {
-        PK_OM_LIST = 0,
-        PK_OM_EXTRACT = 1
-    }
-
-    public enum PackerCaps
-    {
-        PK_CAPS_NEW = 1,
-        PK_CAPS_MODIFY = 2,
-        PK_CAPS_MULTIPLE = 4,
-        PK_CAPS_DELETE = 8,
-        PK_CAPS_OPTIONS = 16,
-        PK_CAPS_MEMPACK = 32,
-        PK_CAPS_BY_CONTENT = 64,
-        PK_CAPS_SEARCHTEXT = 128,
-        PK_CAPS_HIDE = 256
-    }
+  
 
     public class ModuleNotLoadedException : Exception
     {

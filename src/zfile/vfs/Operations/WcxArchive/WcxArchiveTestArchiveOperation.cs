@@ -13,7 +13,7 @@ namespace Zfile.Operations;
         [ThreadStatic]
         private static WcxArchiveTestArchiveOperation _wcxTestArchiveOperationT;
 
-        public WcxArchiveTestArchiveOperation(IFileSource sourceFileSource, List<FileEntry> sourceFiles) 
+        public WcxArchiveTestArchiveOperation(IFileSource sourceFileSource, FileEntries sourceFiles) 
             : base(sourceFileSource, sourceFiles)
         {
             _wcxArchiveFileSource = (IWcxArchiveFileSource)sourceFileSource;
@@ -38,7 +38,7 @@ namespace Zfile.Operations;
             var wcxModule = _wcxArchiveFileSource.WcxModule;
 
             var arcHandle = wcxModule.OpenArchive(_wcxArchiveFileSource.ArchiveFileName,
-                                                      (int)UnpackFlags.PK_OM_EXTRACT,
+                                                      (int)OpenMode.PK_OM_EXTRACT,
                                                       out int openResult);
             if (arcHandle == 0)
             {

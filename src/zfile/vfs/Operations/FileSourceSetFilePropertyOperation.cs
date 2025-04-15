@@ -101,8 +101,8 @@ namespace Zfile.Operations
         private FileSourceSetFilePropertyOperationStatistics _statisticsAtStartTime;
         private readonly object _statisticsLock = new object();
         private IFileSource _fileSource;
-        private List<FileEntry> _targetFiles;
-        private List<FileEntry> _templateFiles;
+        private FileEntries _targetFiles;
+        private FileEntries _templateFiles;
         private FileProperty[] _newProperties;
         private bool _recursive;
         private bool _skipErrors;
@@ -135,7 +135,7 @@ namespace Zfile.Operations
         /// <summary>
         /// Gets the target files
         /// </summary>
-        public List<FileEntry> TargetFiles => _targetFiles;
+        public FileEntries TargetFiles => _targetFiles;
 
         /// <summary>
         /// Gets or sets the new properties
@@ -149,7 +149,7 @@ namespace Zfile.Operations
         /// <summary>
         /// Gets the template files
         /// </summary>
-        public List<FileEntry> TemplateFiles => _templateFiles;
+        public FileEntries TemplateFiles => _templateFiles;
 
         /// <summary>
         /// Gets or sets whether to process recursively
@@ -188,7 +188,7 @@ namespace Zfile.Operations
         /// <param name="aTargetFileSource">File source on which the operation will be executed</param>
         /// <param name="theTargetFiles">List of files which properties should be changed</param>
         /// <param name="theNewProperties">Describes the set of properties that should be set for each file of theTargetFiles</param>
-        protected FileSourceSetFilePropertyOperation(IFileSource aTargetFileSource, List<FileEntry> theTargetFiles, FileProperty[] theNewProperties)
+        protected FileSourceSetFilePropertyOperation(IFileSource aTargetFileSource, FileEntries theTargetFiles, FileProperty[] theNewProperties)
             : base(aTargetFileSource)
         {
             _statistics = new FileSourceSetFilePropertyOperationStatistics
@@ -295,7 +295,7 @@ namespace Zfile.Operations
         /// Sets the template files
         /// </summary>
         /// <param name="theTemplateFiles">The template files</param>
-        public void SetTemplateFiles(List<FileEntry> theTemplateFiles)
+        public void SetTemplateFiles(FileEntries theTemplateFiles)
         {
             _templateFiles = theTemplateFiles;
         }
@@ -321,8 +321,8 @@ namespace Zfile.Operations
                     SetFilePropertyResult setResult = SetFilePropertyResult.Success;
 
                     // Double-check that the property really is supported by the file
-                    if ((aFile.SupportedProperties & prop) != 0 ||
-                        (_fileSource.RetrievableFileProperties & prop) != 0)
+                    if (((uint)aFile.SupportedProperties & (uint)prop) != 0 ||
+                        ((uint)_fileSource.RetrievableFilePropertieses & (uint)prop) != 0)
                     {
                         // Get template property from template file (if exists) or NewProperties
                         FileProperty templateProperty = null;

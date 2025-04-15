@@ -19,6 +19,7 @@ namespace Zfile.FileSources
 	/// </summary>
 	public enum FileSourceOperationTypes
 	{
+		None = 0,
 		List,
 		Copy,
 		CopyIn,
@@ -69,25 +70,25 @@ namespace Zfile.FileSources
 	/// <summary>
 	/// Represents file properties types
 	/// </summary>
-	[Flags]
-	public enum FilePropertyType : uint
-	{
-		Name = 0,
-		Size = 1,
-		CompressedSize = 2,
-		Owner = 3,
-		Attributes = 4,
-		ModificationTime = 5,
-		CreationTime = 6,
-		LastAccessTime = 7,
-		ChangeTime = 8,
-		Link = 9,
-		Type = 10,
-		Comment = 11,
-		Invalid = 12,
-		Variant = 128,
-		Maximum = 255
-	}
+	//[Flags]
+	//public enum FilePropertyType : uint
+	//{
+	//	Name = 0,
+	//	Size = 1,
+	//	CompressedSize = 2,
+	//	Owner = 3,
+	//	Attributes = 4,
+	//	ModificationTime = 5,
+	//	CreationTime = 6,
+	//	LastAccessTime = 7,
+	//	ChangeTime = 8,
+	//	Link = 9,
+	//	Type = 10,
+	//	Comment = 11,
+	//	Invalid = 12,
+	//	Variant = 128,
+	//	Maximum = 255
+	//}
 
 	/// <summary>
 	/// Represents path types
@@ -287,7 +288,7 @@ namespace Zfile.FileSources
 		/// </summary>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The files in the target path</returns>
-		List<FileEntry> GetFiles(string targetPath);
+		FileEntries GetFiles(string targetPath);
 
 		/// <summary>
 		/// Gets or sets the parent file source of this file source
@@ -330,7 +331,7 @@ namespace Zfile.FileSources
 		/// <param name="sourceFiles">The source files</param>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The copy operation</returns>
-		IFileSourceOperation CreateCopyOperation(List<FileEntry> sourceFiles, string targetPath);
+		IFileSourceOperation CreateCopyOperation(FileEntries sourceFiles, string targetPath);
 
 		/// <summary>
 		/// Creates a copy in operation for the specified source file source, source files and target path
@@ -339,7 +340,7 @@ namespace Zfile.FileSources
 		/// <param name="sourceFiles">The source files</param>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The copy in operation</returns>
-		IFileSourceOperation CreateCopyInOperation(IFileSource sourceFileSource, List<FileEntry> sourceFiles, string targetPath);
+		IFileSourceOperation CreateCopyInOperation(IFileSource sourceFileSource, FileEntries sourceFiles, string targetPath);
 
 		/// <summary>
 		/// Creates a copy out operation for the specified target file source, source files and target path
@@ -348,7 +349,7 @@ namespace Zfile.FileSources
 		/// <param name="sourceFiles">The source files</param>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The copy out operation</returns>
-		IFileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, List<FileEntry> sourceFiles, string targetPath);
+		IFileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, FileEntries sourceFiles, string targetPath);
 
 		/// <summary>
 		/// Creates a move operation for the specified source files and target path
@@ -356,21 +357,21 @@ namespace Zfile.FileSources
 		/// <param name="sourceFiles">The source files</param>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The move operation</returns>
-		IFileSourceOperation CreateMoveOperation(List<FileEntry> sourceFiles, string targetPath);
+		IFileSourceOperation CreateMoveOperation(FileEntries sourceFiles, string targetPath);
 
 		/// <summary>
 		/// Creates a delete operation for the specified files to delete
 		/// </summary>
 		/// <param name="filesToDelete">The files to delete</param>
 		/// <returns>The delete operation</returns>
-		IFileSourceOperation CreateDeleteOperation(List<FileEntry> filesToDelete);
+		IFileSourceOperation CreateDeleteOperation(FileEntries filesToDelete);
 
 		/// <summary>
 		/// Creates a wipe operation for the specified files to wipe
 		/// </summary>
 		/// <param name="filesToWipe">The files to wipe</param>
 		/// <returns>The wipe operation</returns>
-		IFileSourceOperation CreateWipeOperation(List<FileEntry> filesToWipe);
+		IFileSourceOperation CreateWipeOperation(FileEntries filesToWipe);
 
 		/// <summary>
 		/// Creates a split operation for the specified source file and target path
@@ -386,7 +387,7 @@ namespace Zfile.FileSources
 		/// <param name="sourceFiles">The source files</param>
 		/// <param name="targetFile">The target file</param>
 		/// <returns>The combine operation</returns>
-		IFileSourceOperation CreateCombineOperation(List<FileEntry> sourceFiles, string targetFile);
+		IFileSourceOperation CreateCombineOperation(FileEntries sourceFiles, string targetFile);
 
 		/// <summary>
 		/// Creates a create directory operation for the specified base path and directory path
@@ -410,7 +411,7 @@ namespace Zfile.FileSources
 		/// </summary>
 		/// <param name="sourceFiles">The source files</param>
 		/// <returns>The test archive operation</returns>
-		IFileSourceOperation CreateTestArchiveOperation(List<FileEntry> sourceFiles);
+		IFileSourceOperation CreateTestArchiveOperation(FileEntries sourceFiles);
 
 		/// <summary>
 		/// Creates a calculate checksum operation for the specified files, target path and target mask
@@ -419,14 +420,14 @@ namespace Zfile.FileSources
 		/// <param name="targetPath">The target path</param>
 		/// <param name="targetMask">The target mask</param>
 		/// <returns>The calculate checksum operation</returns>
-		IFileSourceOperation CreateCalcChecksumOperation(List<FileEntry> files, string targetPath, string targetMask);
+		IFileSourceOperation CreateCalcChecksumOperation(FileEntries files, string targetPath, string targetMask);
 
 		/// <summary>
 		/// Creates a calculate statistics operation for the specified files
 		/// </summary>
 		/// <param name="files">The files</param>
 		/// <returns>The calculate statistics operation</returns>
-		IFileSourceOperation CreateCalcStatisticsOperation(List<FileEntry> files);
+		IFileSourceOperation CreateCalcStatisticsOperation(FileEntries files);
 
 		/// <summary>
 		/// Creates a set file property operation for the specified target files and new properties
@@ -434,7 +435,7 @@ namespace Zfile.FileSources
 		/// <param name="targetFiles">The target files</param>
 		/// <param name="newProperties">The new properties</param>
 		/// <returns>The set file property operation</returns>
-		IFileSourceOperation CreateSetFilePropertyOperation(List<FileEntry> targetFiles, Dictionary<FilePropertyType, object> newProperties);
+		IFileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, Dictionary<FilePropertyType, object> newProperties);
 
 		/// <summary>
 		/// Gets the operation class for the specified operation type
@@ -520,7 +521,7 @@ namespace Zfile.FileSources
 		/// <param name="files">The files</param>
 		/// <param name="menu">The menu</param>
 		/// <returns>True if the context menu was queried successfully, false otherwise</returns>
-		bool QueryContextMenu(List<FileEntry> files, ref ContextMenuStrip menu);
+		bool QueryContextMenu(FileEntries files, ref ContextMenuStrip menu);
 
 		/// <summary>
 		/// Gets a connection for the specified operation
@@ -947,9 +948,9 @@ namespace Zfile.FileSources
 		/// </summary>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The files in the target path</returns>
-		public virtual List<FileEntry> GetFiles(string targetPath)
+		public virtual FileEntries GetFiles(string targetPath)
 		{
-			return new List<FileEntry>();
+			return new FileEntries(targetPath);
 		}
 
 		/// <summary>
@@ -997,7 +998,7 @@ namespace Zfile.FileSources
 		/// <param name="sourceFiles">The source files</param>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The copy operation</returns>
-		public abstract IFileSourceOperation CreateCopyOperation(List<FileEntry> sourceFiles, string targetPath);
+		public abstract IFileSourceOperation CreateCopyOperation(FileEntries sourceFiles, string targetPath);
 
 		/// <summary>
 		/// Creates a copy in operation for the specified source file source, source files and target path
@@ -1006,7 +1007,7 @@ namespace Zfile.FileSources
 		/// <param name="sourceFiles">The source files</param>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The copy in operation</returns>
-		public abstract IFileSourceOperation CreateCopyInOperation(IFileSource sourceFileSource, List<FileEntry> sourceFiles, string targetPath);
+		public abstract IFileSourceOperation CreateCopyInOperation(IFileSource sourceFileSource, FileEntries sourceFiles, string targetPath);
 
 		/// <summary>
 		/// Creates a copy out operation for the specified target file source, source files and target path
@@ -1015,7 +1016,7 @@ namespace Zfile.FileSources
 		/// <param name="sourceFiles">The source files</param>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The copy out operation</returns>
-		public abstract IFileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, List<FileEntry> sourceFiles, string targetPath);
+		public abstract IFileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, FileEntries sourceFiles, string targetPath);
 
 		/// <summary>
 		/// Creates a move operation for the specified source files and target path
@@ -1023,21 +1024,21 @@ namespace Zfile.FileSources
 		/// <param name="sourceFiles">The source files</param>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The move operation</returns>
-		public abstract IFileSourceOperation CreateMoveOperation(List<FileEntry> sourceFiles, string targetPath);
+		public abstract IFileSourceOperation CreateMoveOperation(FileEntries sourceFiles, string targetPath);
 
 		/// <summary>
 		/// Creates a delete operation for the specified files to delete
 		/// </summary>
 		/// <param name="filesToDelete">The files to delete</param>
 		/// <returns>The delete operation</returns>
-		public abstract IFileSourceOperation CreateDeleteOperation(List<FileEntry> filesToDelete);
+		public abstract IFileSourceOperation CreateDeleteOperation(FileEntries filesToDelete);
 
 		/// <summary>
 		/// Creates a wipe operation for the specified files to wipe
 		/// </summary>
 		/// <param name="filesToWipe">The files to wipe</param>
 		/// <returns>The wipe operation</returns>
-		public abstract IFileSourceOperation CreateWipeOperation(List<FileEntry> filesToWipe);
+		public abstract IFileSourceOperation CreateWipeOperation(FileEntries filesToWipe);
 
 		/// <summary>
 		/// Creates a split operation for the specified source file and target path
@@ -1053,7 +1054,7 @@ namespace Zfile.FileSources
 		/// <param name="sourceFiles">The source files</param>
 		/// <param name="targetFile">The target file</param>
 		/// <returns>The combine operation</returns>
-		public abstract IFileSourceOperation CreateCombineOperation(List<FileEntry> sourceFiles, string targetFile);
+		public abstract IFileSourceOperation CreateCombineOperation(FileEntries sourceFiles, string targetFile);
 
 		/// <summary>
 		/// Creates a create directory operation for the specified base path and directory path
@@ -1077,7 +1078,7 @@ namespace Zfile.FileSources
 		/// </summary>
 		/// <param name="sourceFiles">The source files</param>
 		/// <returns>The test archive operation</returns>
-		public abstract IFileSourceOperation CreateTestArchiveOperation(List<FileEntry> sourceFiles);
+		public abstract IFileSourceOperation CreateTestArchiveOperation(FileEntries sourceFiles);
 
 		/// <summary>
 		/// Creates a calculate checksum operation for the specified files, target path and target mask
@@ -1086,14 +1087,14 @@ namespace Zfile.FileSources
 		/// <param name="targetPath">The target path</param>
 		/// <param name="targetMask">The target mask</param>
 		/// <returns>The calculate checksum operation</returns>
-		public abstract IFileSourceOperation CreateCalcChecksumOperation(List<FileEntry> files, string targetPath, string targetMask);
+		public abstract IFileSourceOperation CreateCalcChecksumOperation(FileEntries files, string targetPath, string targetMask);
 
 		/// <summary>
 		/// Creates a calculate statistics operation for the specified files
 		/// </summary>
 		/// <param name="files">The files</param>
 		/// <returns>The calculate statistics operation</returns>
-		public abstract IFileSourceOperation CreateCalcStatisticsOperation(List<FileEntry> files);
+		public abstract IFileSourceOperation CreateCalcStatisticsOperation(FileEntries files);
 
 		/// <summary>
 		/// Creates a set file property operation for the specified target files and new properties
@@ -1101,7 +1102,7 @@ namespace Zfile.FileSources
 		/// <param name="targetFiles">The target files</param>
 		/// <param name="newProperties">The new properties</param>
 		/// <returns>The set file property operation</returns>
-		public abstract IFileSourceOperation CreateSetFilePropertyOperation(List<FileEntry> targetFiles, Dictionary<FilePropertyType, object> newProperties);
+		public abstract IFileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, Dictionary<FilePropertyType, object> newProperties);
 
 		/// <summary>
 		/// Gets the operation class for the specified operation type
@@ -1228,7 +1229,7 @@ namespace Zfile.FileSources
 		/// <param name="files">The files</param>
 		/// <param name="menu">The menu</param>
 		/// <returns>True if the context menu was queried successfully, false otherwise</returns>
-		public virtual bool QueryContextMenu(List<FileEntry> files, ref ContextMenuStrip menu)
+		public virtual bool QueryContextMenu(FileEntries files, ref ContextMenuStrip menu)
 		{
 			return false;
 		}

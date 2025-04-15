@@ -26,7 +26,7 @@ namespace Zfile.Operations
 		// so this static variable is used to store currently running operation.
 		private static WcxArchiveDeleteOperation _wcxDeleteOperation = null;
 
-		public WcxArchiveDeleteOperation(IFileSource targetFileSource, List<FileEntry> filesToDelete)
+		public WcxArchiveDeleteOperation(IFileSource targetFileSource, FileEntries filesToDelete)
 			: base(targetFileSource, filesToDelete)
 		{
 			_wcxArchiveFileSource = (IWcxArchiveFileSource)targetFileSource;
@@ -112,7 +112,7 @@ namespace Zfile.Operations
 			}
 		}
 
-		private void CountFiles(List<FileEntry> files, string fileMask)
+		private void CountFiles(FileEntries files, string fileMask)
 		{
 			var arcFileList = _wcxArchiveFileSource.ArchiveFileList.LockList();
 			try
@@ -140,7 +140,7 @@ namespace Zfile.Operations
 			UpdateStatistics(_statistics);
 		}
 
-		private string GetFileList(List<FileEntry> files)
+		private string GetFileList(FileEntries files)
 		{
 			string result = "";
 

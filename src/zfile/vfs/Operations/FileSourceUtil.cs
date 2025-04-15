@@ -375,7 +375,7 @@ namespace Zfile.Operations
             if (fileSource.GetOperationsTypes().HasFlag(FileSourceOperationTypes.SetFileProperty))
             {
                 FileNameProperty newNameProperty = new FileNameProperty(newFileName);
-                List<FileEntry> files = new List<FileEntry>();
+                FileEntries files = new FileEntries();
                 files.Add(file.Clone());
 
                 try

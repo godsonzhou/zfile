@@ -12,7 +12,7 @@ namespace Zfile.Operations
         private readonly object _statisticsLock = new object();
         private IFileSource _sourceFileSource;
         private IFileSource _targetFileSource;
-        private List<FileEntry> _sourceFiles;
+        private FileEntries _sourceFiles;
         private string _renameMask;
 
         protected string _targetPath;
@@ -34,7 +34,7 @@ namespace Zfile.Operations
         /// <summary>
         /// Gets the source files
         /// </summary>
-        public List<FileEntry> SourceFiles => _sourceFiles;
+        public FileEntries SourceFiles => _sourceFiles;
 
         /// <summary>
         /// Gets the source file source
@@ -99,7 +99,7 @@ namespace Zfile.Operations
         /// <param name="theSourceFiles">Files which are to be copied</param>
         /// <param name="aTargetPath">Path in the target file source where the files should be copied to</param>
         public FileSourceCopyOperation(IFileSource aSourceFileSource, IFileSource aTargetFileSource, 
-                                      List<FileEntry> theSourceFiles, string aTargetPath)
+                                      FileEntries theSourceFiles, string aTargetPath)
             : base(GetOperationFileSource(aSourceFileSource, aTargetFileSource))
         {
             _statistics = new FileSourceCopyOperationStatistics
@@ -118,7 +118,7 @@ namespace Zfile.Operations
 
             _sourceFileSource = aSourceFileSource;
             _targetFileSource = aTargetFileSource;
-            _sourceFiles = theSourceFiles ?? new List<FileEntry>();
+            _sourceFiles = theSourceFiles ?? new FileEntries();
             _targetPath = Helper.IncludeTrailingPathDelimiter(aTargetPath);
 
             _renameMask = "";
@@ -273,7 +273,7 @@ namespace Zfile.Operations
         /// <param name="theSourceFiles">Files which are to be copied</param>
         /// <param name="aTargetPath">Path in the target file source where the files should be copied to</param>
         public FileSourceCopyInOperation(IFileSource aSourceFileSource, IFileSource aTargetFileSource,
-                                        List<FileEntry> theSourceFiles, string aTargetPath)
+                                        FileEntries theSourceFiles, string aTargetPath)
             : base(aSourceFileSource, aTargetFileSource, theSourceFiles, aTargetPath)
         {
         }
@@ -299,7 +299,7 @@ namespace Zfile.Operations
         /// <param name="theSourceFiles">Files which are to be copied</param>
         /// <param name="aTargetPath">Path in the target file source where the files should be copied to</param>
         public FileSourceCopyOutOperation(IFileSource aSourceFileSource, IFileSource aTargetFileSource,
-                                         List<FileEntry> theSourceFiles, string aTargetPath)
+                                         FileEntries theSourceFiles, string aTargetPath)
             : base(aSourceFileSource, aTargetFileSource, theSourceFiles, aTargetPath)
         {
         }

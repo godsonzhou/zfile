@@ -50,7 +50,7 @@ namespace Zfile.Operations
         private FileSourceCalcChecksumOperationStatistics _statisticsAtStartTime;
         private readonly object _statisticsLock = new object();
         private IFileSource _fileSource;
-        private List<FileEntry> _files;
+        private FileEntries _files;
         private CalcCheckSumOperationMode _mode;
         private string _targetPath;
         private string _targetMask;
@@ -76,7 +76,7 @@ namespace Zfile.Operations
         /// <summary>
         /// Gets the files
         /// </summary>
-        protected List<FileEntry> Files => _files;
+        protected FileEntries Files => _files;
 
         /// <summary>
         /// Gets the target path
@@ -136,7 +136,7 @@ namespace Zfile.Operations
         /// <param name="theFiles">Files which are to be checksummed</param>
         /// <param name="aTargetPath">Target path for checksum files</param>
         /// <param name="aTargetMask">Target mask for checksum files</param>
-        public FileSourceCalcChecksumOperation(IFileSource aTargetFileSource, List<FileEntry> theFiles, 
+        public FileSourceCalcChecksumOperation(IFileSource aTargetFileSource, FileEntries theFiles, 
                                               string aTargetPath, string aTargetMask)
             : base(aTargetFileSource)
         {
@@ -152,7 +152,7 @@ namespace Zfile.Operations
             };
 
             _fileSource = aTargetFileSource;
-            _files = theFiles ?? new List<FileEntry>();
+            _files = theFiles ?? new FileEntries();
 
             _targetPath = aTargetPath;
             _targetMask = aTargetMask;

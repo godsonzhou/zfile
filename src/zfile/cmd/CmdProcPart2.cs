@@ -983,7 +983,7 @@ namespace Zfile
 				}
 				else
 				{
-					if (owner.OpenArchive(zipPath, UnpackFlags.PK_OM_EXTRACT))
+					if (owner.OpenArchive(zipPath, OpenMode.PK_OM_EXTRACT))
 					{
 						// 使用Form1的ExtractArchiveFile方法
 						if (!owner.ExtractArchiveFile(zipPath, "", extractPath))

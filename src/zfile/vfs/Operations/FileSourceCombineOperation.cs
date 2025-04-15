@@ -11,7 +11,7 @@ namespace Zfile.Operations
         private FileSourceCopyOperationStatistics _statisticsAtStartTime;
         private readonly object _statisticsLock = new object();
         private IFileSource _fileSource;
-        private List<FileEntry> _sourceFiles;
+        private FileEntries _sourceFiles;
         private string _targetFile;
         private bool _requireDynamicMode;
         private bool _weGotTheCRC32VerificationFile;
@@ -31,7 +31,7 @@ namespace Zfile.Operations
         /// <summary>
         /// Gets the source files
         /// </summary>
-        protected List<FileEntry> SourceFiles => _sourceFiles;
+        protected FileEntries SourceFiles => _sourceFiles;
 
         /// <summary>
         /// Gets or sets the target file
@@ -84,7 +84,7 @@ namespace Zfile.Operations
         /// <param name="aFileSource">File source within which the operation should take place</param>
         /// <param name="theSourceFiles">Files which are to be combined</param>
         /// <param name="aTargetFile">Target name of combined file</param>
-        public FileSourceCombineOperation(IFileSource aFileSource, List<FileEntry> theSourceFiles, string aTargetFile)
+        public FileSourceCombineOperation(IFileSource aFileSource, FileEntries theSourceFiles, string aTargetFile)
             : base(aFileSource)
         {
             _statistics = new FileSourceCopyOperationStatistics
@@ -102,7 +102,7 @@ namespace Zfile.Operations
             };
 
             _fileSource = aFileSource;
-            _sourceFiles = theSourceFiles ?? new List<FileEntry>();
+            _sourceFiles = theSourceFiles ?? new FileEntries();
             _targetFile = aTargetFile;
             _requireDynamicMode = false; // By default, DC mode which means user selected ALL the files
             _expectedCRC32 = 0x00000000; // By default, the expected CRC32 is 0, which is undefined

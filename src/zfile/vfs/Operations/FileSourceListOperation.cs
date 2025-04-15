@@ -9,7 +9,7 @@ namespace Zfile.Operations
     {
         private IFileSource _fileSource;
         private string _path;
-        private List<FileEntry> _files;
+        private FileEntries _files;
         private bool _flatView;
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace Zfile.Operations
         /// <summary>
         /// Gets the files
         /// </summary>
-        public List<FileEntry> Files => GetFiles();
+        public FileEntries Files => GetFiles();
 
         /// <summary>
         /// Gets the path
@@ -90,7 +90,7 @@ namespace Zfile.Operations
         /// Gets the files
         /// </summary>
         /// <returns>The files</returns>
-        protected List<FileEntry> GetFiles()
+        protected FileEntries GetFiles()
         {
             return _files;
         }
@@ -99,7 +99,7 @@ namespace Zfile.Operations
         /// Retrieves files and revokes ownership of the list
         /// </summary>
         /// <returns>The files</returns>
-        public List<FileEntry> ReleaseFiles()
+        public FileEntries ReleaseFiles()
         {
             var result = _files;
             _files = null; // revoke ownership

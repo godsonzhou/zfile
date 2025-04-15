@@ -12,7 +12,7 @@ namespace Zfile.Operations
         private FileSourceCopyOperationStatistics _statisticsAtStartTime;
         private readonly object _statisticsLock = new object();
         private IFileSource _fileSource;
-        private List<FileEntry> _sourceFiles;
+        private FileEntries _sourceFiles;
         private string _targetPath;
         private string _renameMask;
 
@@ -39,7 +39,7 @@ namespace Zfile.Operations
         /// <summary>
         /// Gets the source files
         /// </summary>
-        protected List<FileEntry> SourceFiles => _sourceFiles;
+        protected FileEntries SourceFiles => _sourceFiles;
 
         /// <summary>
         /// Gets the target path
@@ -79,7 +79,7 @@ namespace Zfile.Operations
         /// <param name="aFileSource">File source within which the operation should take place</param>
         /// <param name="theSourceFiles">Files which are to be moved</param>
         /// <param name="aTargetPath">Path in the file source where the files should be moved</param>
-        public FileSourceMoveOperation(IFileSource aFileSource, List<FileEntry> theSourceFiles, string aTargetPath)
+        public FileSourceMoveOperation(IFileSource aFileSource, FileEntries theSourceFiles, string aTargetPath)
             : base(aFileSource)
         {
             _statistics = new FileSourceCopyOperationStatistics
@@ -99,7 +99,7 @@ namespace Zfile.Operations
             _statisticsLock = new object();
 
             _fileSource = aFileSource;
-            _sourceFiles = theSourceFiles ?? new List<FileEntry>();
+            _sourceFiles = theSourceFiles ?? new FileEntries();
             _targetPath = Helper.IncludeTrailingPathDelimiter(aTargetPath);
 
             _renameMask = "";

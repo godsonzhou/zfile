@@ -18,11 +18,11 @@ namespace Zfile.Operations;
 
         public WcxArchiveCopyInOperation(IFileSource sourceFileSource, 
                                         IFileSource targetFileSource, 
-                                        List<FileEntry> sourceFiles, 
+                                        FileEntries sourceFiles, 
                                         string targetPath) : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
         {
             _wcxArchiveFileSource = (IWcxArchiveFileSource)targetFileSource;
-            _packingFlags = WcxModule.PK_PACK_SAVE_PATHS;
+            _packingFlags = PackFilesFlags.PK_PACK_SAVE_PATHS;
             _tarBefore = false;
 
             _needsConnection = (_wcxArchiveFileSource.WcxModule.BackgroundFlags & WcxModule.BACKGROUND_PACK) == 0;
@@ -59,8 +59,8 @@ namespace Zfile.Operations;
                     // Populate archive file list
                     foreach (var item in fileList)
                     {
-                        var clonedItem = ((ObjectEx)item).Clone();
-                        _fileList.Add(((WcxHeader)clonedItem).FileName.ToLowerInvariant(), clonedItem);
+                        var clonedItem = item.Clone();
+                        _fileList.Add(clonedItem.FileName.ToLowerInvariant(), clonedItem);
                     }
                 }
                 finally
@@ -141,7 +141,7 @@ namespace Zfile.Operations;
             }
         }
 
-        private string GetFileList(List<FileEntry> theFiles)
+        private string GetFileList(FileEntries theFiles)
         {
             string result = "";
             bool archiveExists = _fileList.Count > 0;
@@ -225,7 +225,7 @@ namespace Zfile.Operations;
             }
         }
 
-        private void DeleteFiles(List<FileEntry> files)
+        private void DeleteFiles(FileEntries files)
         {
             for (int i = files.Count - 1; i >= 0; i--)
             {
@@ -392,7 +392,7 @@ namespace Zfile.Operations;
 
                 if (tarWriter.ProcessTree(_fullFilesTree, _statistics))
                 {
-                    if (result && (_packingFlags & WcxModule.PK_PACK_MOVE_FILES) != 0)
+                    if (result && (_packingFlags & PackFilesFlags.PK_PACK_MOVE_FILES) != 0)
                         DeleteFiles(_fullFilesTree);
                     else
                     {

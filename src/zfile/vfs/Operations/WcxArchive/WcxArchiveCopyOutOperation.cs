@@ -1,147 +1,381 @@
-using Zfile;
-using Zfile.FileSources;
-using ZFile.FileSources.WcxArchive;
-namespace ZFile.Operations.WcxArchive
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+
+namespace Files.FileSources.WcxArchive
 {
-	public class WcxArchiveCopyOutOperation : FileSourceOperation
-	{
-		private IWcxArchiveFileSource _wcxArchiveFileSource;
-		private FileSourceCopyOperationStatistics _statistics;
-		private bool _renamingFiles;
-		private string _renameNameMask;
-		private string _renameExtMask;
-		private bool _extractWithoutPath;
-		private string _targetPath;
-		private List<FileSystemInfo> _sourceFiles;
+    public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
+    {
+        private IWcxArchiveFileSource _wcxArchiveFileSource;
+        private FileSourceCopyOperationStatistics _statistics;
+        private bool _renamingFiles;
+        private string _renameNameMask, _renameExtMask;
+        private bool _extractWithoutPath;
+        private string _currentFilePath;
+        private string _currentTargetFilePath;
 
-		public WcxArchiveCopyOutOperation(IFileSource sourceFileSource, IFileSource targetFileSource, List<FileSystemInfo> sourceFiles, string targetPath)
-			: base(sourceFileSource)
-		{
-			_wcxArchiveFileSource = sourceFileSource as IWcxArchiveFileSource;
-			_sourceFiles = sourceFiles;
-			_targetPath = targetPath;
-			_extractWithoutPath = false;
-		}
+        // Static variables for WCX callbacks
+        private static WcxArchiveCopyOutOperation _wcxCopyOutOperationG = null;
+        [ThreadStatic]
+        private static WcxArchiveCopyOutOperation _wcxCopyOutOperationT;
 
-		public override void Initialize()
-		{
-			_extractWithoutPath = _sourceFiles.Count == 1;
-			_renamingFiles = !string.IsNullOrEmpty(RenameMask) && RenameMask != "*.*";
-			if (_renamingFiles)
-				SplitFileMask(RenameMask, out _renameNameMask, out _renameExtMask);
-			_statistics = new FileSourceCopyOperationStatistics();
-		}
+        public WcxArchiveCopyOutOperation(IFileSource sourceFileSource, 
+                                         IFileSource targetFileSource, 
+                                         Files sourceFiles, 
+                                         string targetPath) : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
+        {
+            _wcxArchiveFileSource = (IWcxArchiveFileSource)sourceFileSource;
+            _fileExistsOption = FileSourceOperationOptionFileExists.None;
+            _extractWithoutPath = false;
 
-		public override async Task ExecuteAsync()
-		{
-			var arcHandle = _wcxArchiveFileSource.WcxModule.OpenArchiveHandle(_wcxArchiveFileSource.ArchiveFileName, OpenMode.PK_OM_EXTRACT);
-			if (arcHandle == IntPtr.Zero)
-				throw new OperationAbortedException("Failed to open archive");
+            _needsConnection = (_wcxArchiveFileSource.WcxModule.BackgroundFlags & WcxModule.BACKGROUND_UNPACK) == 0;
+        }
 
-			try
-			{
-				var createdPaths = new Dictionary<string, WcxHeader>();
-				CreateDirectoriesAndCountFiles(_sourceFiles, null, _targetPath, _sourceFiles[0].FullName, createdPaths);
-				SetProcessDataProc(arcHandle);
-				_wcxArchiveFileSource.WcxModule.SetChangeVolProc(arcHandle);
+        public override void Initialize()
+        {
+            // Is plugin allow multiple Operations?
+            if (_needsConnection)
+                _wcxCopyOutOperationG = this;
+            else
+                _wcxCopyOutOperationT = this;
 
-				WcxHeader header;
-				while ((header = _wcxArchiveFileSource.WcxModule.ReadHeader(arcHandle)) != null)
-				{
-					CheckOperationState();
+            // Extract without path from flat view
+            if (!_extractWithoutPath)
+            {
+                _extractWithoutPath = SourceFiles.Flat;
+            }
 
-					if (!header.IsDirectory && MatchesFileList(_sourceFiles, header.FileName))
-					{
-						var targetFileName = _extractWithoutPath ?
-							Path.GetFileName(header.FileName) :
-							Path.Combine(_targetPath, header.FileName);
+            if ((ExtractFlags & ExtractFlag.SmartExtract) != 0)
+            {
+                int count = 0;
+                var arcFileList = _wcxArchiveFileSource.ArchiveFileList.Clone();
+                try
+                {
+                    foreach (var item in arcFileList)
+                    {
+                        var header = (WcxHeader)item;
+                        string fileName = Path.DirectorySeparatorChar + header.FileName;
 
-						if (_renamingFiles)
-							targetFileName = Path.Combine(
-								Path.GetDirectoryName(targetFileName),
-								ApplyRenameMask(Path.GetFileName(targetFileName), _renameNameMask, _renameExtMask));
+                        if (IsInPath(Path.DirectorySeparatorChar.ToString(), fileName, false, false))
+                        {
+                            count++;
+                            if (count > 1)
+                            {
+                                _targetPath = _targetPath + Path.GetFileNameWithoutExtension(_wcxArchiveFileSource.ArchiveFileName) + Path.DirectorySeparatorChar;
+                                break;
+                            }
+                        }
+                    }
+                }
+                finally
+                {
+                    arcFileList = null;
+                }
+            }
 
-						_statistics.CurrentFileFrom = header.FileName;
-						_statistics.CurrentFileTo = targetFileName;
-						_statistics.CurrentFileTotalBytes = header.UnpSize;
-						_statistics.CurrentFileDoneBytes = 0;
-						UpdateStatistics(_statistics);
+            // Check rename mask
+            _renamingFiles = (RenameMask != "*.*") && (RenameMask != "");
+            if (_renamingFiles) SplitFileMask(RenameMask, out _renameNameMask, out _renameExtMask);
+            
+            // Get initialized statistics; then we change only what is needed.
+            _statistics = RetrieveStatistics();
+        }
 
-						var result = _wcxArchiveFileSource.WcxModule.ProcessFile(
-							arcHandle,
-							ProcessMode.PK_EXTRACT,
-							string.Empty,
-							targetFileName);
+        public override void MainExecute()
+        {
+            var wcxModule = _wcxArchiveFileSource.WcxModule;
 
-						if (result != FileSourceOperationResult.success)
-						{
-							if (result == FileSourceOperationResult.Aborted)
-								throw new OperationAbortedException();
+            var arcHandle = wcxModule.OpenArchiveHandle(_wcxArchiveFileSource.ArchiveFileName,
+                                                      WcxModule.PK_OM_EXTRACT,
+                                                      out int openResult);
+            if (arcHandle == 0)
+            {
+                AskQuestion(WcxModule.GetErrorMsg(openResult), "", new[] { FileSourceOperationUIResponse.Ok }, 
+                            FileSourceOperationUIResponse.Ok, FileSourceOperationUIResponse.Ok);
+                RaiseAbortOperation();
+            }
 
-							LogError($"Error extracting {header.FileName} to {targetFileName}", result);
-						}
-						else
-						{
-							LogSuccess($"Successfully extracted {header.FileName} to {targetFileName}");
-						}
+            // Extract all selected files/folders
+            MaskList maskList = null;
+            if (string.IsNullOrEmpty(_extractMask) || _extractMask == "*.*" || _extractMask == "*")
+                maskList = null;
+            else
+                maskList = new MaskList(_extractMask);
 
-						_statistics.DoneFiles++;
-						UpdateStatistics(_statistics);
-					}
-					else
-					{
-						_wcxArchiveFileSource.WcxModule.ProcessFile(
-							arcHandle,
-							ProcessMode.PK_SKIP,
-							string.Empty,
-							string.Empty);
-					}
-				}
+            // Convert file list so that filenames are relative to archive root.
+            var files = SourceFiles.Clone();
+            ChangeFileListRoot(Path.DirectorySeparatorChar.ToString(), files);
 
-				if (!_extractWithoutPath)
-					SetDirectoryAttributes(createdPaths);
-			}
-			finally
-			{
-				_wcxArchiveFileSource.WcxModule.CloseArchive(arcHandle);
-			}
-		}
+            var createdPaths = new StringHashListUtf8(true);
 
-		private void SetProcessDataProc(IntPtr arcHandle)
-		{
-			_wcxArchiveFileSource.WcxModule.SetProcessDataProc(arcHandle, (fileName, size) =>
-			{
-				if (State == OperationState.Stopping)
-					return 0;
+            try
+            {
+                // Count total files size and create needed directories.
+                CreateDirsAndCountFiles(files, maskList,
+                                        _targetPath, files.Path,
+                                        ref createdPaths);
 
-				if (size > 0)
-				{
-					_statistics.CurrentFileDoneBytes += size;
-					if (_statistics.CurrentFileDoneBytes > _statistics.CurrentFileTotalBytes)
-						_statistics.CurrentFileDoneBytes = _statistics.CurrentFileTotalBytes;
-					_statistics.DoneBytes += size;
-				}
-				else if (size < 0)
-				{
-					if (size >= -100 && size <= -1)
-					{
-						if (_statistics.TotalBytes == 0)
-							_statistics.TotalBytes = 100;
-						_statistics.DoneBytes = _statistics.TotalBytes * (-size) / 100;
-					}
-					else if (size >= -1100 && size <= -1000)
-					{
-						if (_statistics.CurrentFileTotalBytes == 0)
-							_statistics.CurrentFileTotalBytes = 100;
-						_statistics.CurrentFileDoneBytes = _statistics.CurrentFileTotalBytes * ((-size) - 1000) / 100;
-					}
-				}
+                SetProcessDataProc(arcHandle);
+                wcxModule.WcxSetChangeVolProc(arcHandle);
 
-				UpdateStatistics(_statistics);
-				return ProcessMessages() ? 1 : 0;
-			});
-		}
+                WcxHeader header;
+                while ((header = wcxModule.ReadWCXHeader(arcHandle)) != null)
+                {
+                    try
+                    {
+                        CheckOperationState();
 
-		public string RenameMask { get; set; }
-	}
+                        // Now check if the file is to be extracted.
+                        if (!FileAttributes.IsDirectory(header.FileAttr) &&           // Omit directories (we handle them ourselves).
+                            MatchesFileList(files, header.FileName) &&    // Check if it's included in the filelist
+                            (maskList == null || maskList.Matches(Path.GetFileName(header.FileName)))) // And name matches file mask
+                        {
+                            string targetFileName;
+                            if (_extractWithoutPath)
+                                targetFileName = Path.GetFileName(header.FileName);
+                            else
+                                targetFileName = ExtractDirLevel(files.Path, header.FileName);
+
+                            if (_renamingFiles)
+                            {
+                                targetFileName = Path.GetDirectoryName(targetFileName) +
+                                                ApplyRenameMask(Path.GetFileName(targetFileName),
+                                                                _renameNameMask, _renameExtMask);
+                            }
+
+                            targetFileName = _targetPath + ReplaceInvalidChars(targetFileName);
+
+                            _statistics.CurrentFileFrom = header.FileName;
+                            _statistics.CurrentFileTo = targetFileName;
+                            _statistics.CurrentFileTotalBytes = header.UnpSize;
+                            _statistics.CurrentFileDoneBytes = 0;
+
+                            UpdateStatistics(_statistics);
+
+                            int result;
+                            if (DoFileExists(header, ref targetFileName) == FileSourceOperationOptionFileExists.Overwrite)
+                                result = wcxModule.WcxProcessFile(arcHandle, WcxModule.PK_EXTRACT, "", targetFileName);
+                            else
+                                result = wcxModule.WcxProcessFile(arcHandle, WcxModule.PK_SKIP, "", "");
+
+                            if (result != WcxModule.E_SUCCESS)
+                            {
+                                // User aborted operation.
+                                if (result == WcxModule.E_EABORTED) RaiseAbortOperation();
+
+                                ShowError(string.Format("Error extracting {0} -> {1}: {2}",
+                                           _wcxArchiveFileSource.ArchiveFileName + Path.DirectorySeparatorChar +
+                                           header.FileName, targetFileName, WcxModule.GetErrorMsg(result)), result, LogOption.ArcOp);
+                            }
+                            else
+                            {
+                                LogMessage(string.Format("Successfully extracted {0} -> {1}",
+                                            _wcxArchiveFileSource.ArchiveFileName + Path.DirectorySeparatorChar +
+                                            header.FileName, targetFileName), LogOption.ArcOp, LogMsgType.Success);
+                            }
+
+                            _statistics.DoneFiles++;
+                            UpdateStatistics(_statistics);
+                        }
+                        else // Skip
+                        {
+                            int result = wcxModule.WcxProcessFile(arcHandle, WcxModule.PK_SKIP, "", "");
+
+                            // Check for errors
+                            if (result != WcxModule.E_SUCCESS)
+                            {
+                                ShowError(string.Format("Error extracting {0}: {1}",
+                                           _wcxArchiveFileSource.ArchiveFileName + Path.DirectorySeparatorChar +
+                                           header.FileName, WcxModule.GetErrorMsg(result)), result, LogOption.ArcOp);
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        header = null;
+                    }
+                }
+
+                if (!_extractWithoutPath) SetDirsAttributes(createdPaths);
+            }
+            finally
+            {
+                // Close archive, ignore function result
+                wcxModule.CloseArchive(arcHandle);
+                files = null;
+                maskList = null;
+                createdPaths = null;
+            }
+        }
+
+        public override void Finalize()
+        {
+            ClearCurrentOperation();
+        }
+
+        public override string GetDescription(FileSourceOperationDescriptionDetails details)
+        {
+            switch (details)
+            {
+                case FileSourceOperationDescriptionDetails.JobAndTarget:
+                    return string.Format("Extracting from {0} to {1}", _wcxArchiveFileSource.ArchiveFileName, _targetPath);
+                default:
+                    return "Extracting";
+            }
+        }
+
+        private void CreateDirsAndCountFiles(Files theFiles, MaskList maskList,
+                                           string destPath, string currentArchiveDir,
+                                           ref StringHashListUtf8 createdPaths)
+        {
+            // Implementation of directory creation and file counting logic
+            // This would be a complex method with similar logic to the Pascal version
+        }
+
+        private bool SetDirsAttributes(StringHashListUtf8 paths)
+        {
+            bool result = true;
+
+            for (int pathIndex = 0; pathIndex < paths.Count; pathIndex++)
+            {
+                // Get attributes
+                var header = (WcxHeader)paths.List[pathIndex].Data;
+
+                if (header != null)
+                {
+                    string targetDir = paths.List[pathIndex].Key;
+
+                    try
+                    {
+                        // Restore attributes
+                        File.SetAttributes(targetDir, (FileAttributes)header.FileAttr);
+
+                        var time = WcxFileTimeToFileTime(header.FileTime);
+
+                        // Set creation, modification time
+                        File.SetCreationTime(targetDir, time);
+                        File.SetLastWriteTime(targetDir, time);
+                        File.SetLastAccessTime(targetDir, time);
+                    }
+                    catch
+                    {
+                        result = false;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private void QuestionActionHandler(FileSourceOperationUIAction action)
+        {
+            if (action == FileSourceOperationUIAction.Compare)
+            {
+                var file = new File("");
+                try
+                {
+                    file.FullPath = IncludeFrontPathDelimiter(_currentFilePath);
+                    ShowCompareFilesUI(file, _currentTargetFilePath);
+                }
+                finally
+                {
+                    file = null;
+                }
+            }
+        }
+
+        private FileSourceOperationOptionFileExists DoFileExists(WcxHeader header, ref string absoluteTargetFileName)
+        {
+            // Implementation of file exists handling logic
+            // This would be a complex method with similar logic to the Pascal version
+            return FileSourceOperationOptionFileExists.None;
+        }
+
+        private void ShowError(string message, int error, LogOption logOptions = LogOption.None)
+        {
+            LogMessage(message, logOptions, LogMsgType.Error);
+
+            if (!GlobalSettings.SkipFileOpError && error > WcxModule.E_SUCCESS)
+            {
+                if (AskQuestion(message, "", new[] { FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort },
+                               FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort) == FileSourceOperationUIResponse.Abort)
+                {
+                    RaiseAbortOperation();
+                }
+            }
+        }
+
+        private void LogMessage(string message, LogOption logOptions, LogMsgType logMsgType)
+        {
+            switch (logMsgType)
+            {
+                case LogMsgType.Error:
+                    if (!GlobalSettings.LogOptions.HasFlag(LogOption.Errors)) return;
+                    break;
+                case LogMsgType.Info:
+                    if (!GlobalSettings.LogOptions.HasFlag(LogOption.Info)) return;
+                    break;
+                case LogMsgType.Success:
+                    if (!GlobalSettings.LogOptions.HasFlag(LogOption.Success)) return;
+                    break;
+            }
+
+            if (logOptions <= GlobalSettings.LogOptions)
+            {
+                Logger.Write(Thread, message, logMsgType);
+            }
+        }
+
+        private void SetProcessDataProc(IntPtr arcData)
+        {
+            if (_needsConnection)
+                _wcxArchiveFileSource.WcxModule.WcxSetProcessDataProc(arcData, ProcessDataProcAG, ProcessDataProcWG);
+            else
+                _wcxArchiveFileSource.WcxModule.WcxSetProcessDataProc(arcData, ProcessDataProcAT, ProcessDataProcWT);
+        }
+
+        public static void ClearCurrentOperation()
+        {
+            _wcxCopyOutOperationG = null;
+        }
+
+        public static Type GetOptionsUIClass()
+        {
+            return typeof(WcxArchiveCopyOperationOptionsUI);
+        }
+
+        public bool ExtractWithoutPath
+        {
+            get { return _extractWithoutPath; }
+            set { _extractWithoutPath = value; }
+        }
+
+        // WCX callback methods would be implemented here
+        private static int ProcessDataProc(WcxArchiveCopyOutOperation operation, string fileName, int size, IntPtr updateName)
+        {
+            // Implementation of process data callback
+            return 1;
+        }
+
+        private static int ProcessDataProcAG(IntPtr fileName, int size)
+        {
+            return ProcessDataProc(_wcxCopyOutOperationG, System.Runtime.InteropServices.Marshal.PtrToStringAnsi(fileName), size, fileName);
+        }
+
+        private static int ProcessDataProcWG(IntPtr fileName, int size)
+        {
+            return ProcessDataProc(_wcxCopyOutOperationG, System.Runtime.InteropServices.Marshal.PtrToStringUni(fileName), size, fileName);
+        }
+
+        private static int ProcessDataProcAT(IntPtr fileName, int size)
+        {
+            return ProcessDataProc(_wcxCopyOutOperationT, System.Runtime.InteropServices.Marshal.PtrToStringAnsi(fileName), size, fileName);
+        }
+
+        private static int ProcessDataProcWT(IntPtr fileName, int size)
+        {
+            return ProcessDataProc(_wcxCopyOutOperationT, System.Runtime.InteropServices.Marshal.PtrToStringUni(fileName), size, fileName);
+        }
+    }
 }

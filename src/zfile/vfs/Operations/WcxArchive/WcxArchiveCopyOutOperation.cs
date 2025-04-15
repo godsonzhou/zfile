@@ -18,7 +18,7 @@ namespace Zfile.Operations;
 
         public WcxArchiveCopyOutOperation(IFileSource sourceFileSource, 
                                          IFileSource targetFileSource, 
-                                         Files sourceFiles, 
+                                         List<FileEntry> sourceFiles, 
                                          string targetPath) : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
         {
             _wcxArchiveFileSource = (IWcxArchiveFileSource)sourceFileSource;
@@ -28,7 +28,7 @@ namespace Zfile.Operations;
             _needsConnection = (_wcxArchiveFileSource.WcxModule.BackgroundFlags & WcxModule.BACKGROUND_UNPACK) == 0;
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             // Is plugin allow multiple Operations?
             if (_needsConnection)

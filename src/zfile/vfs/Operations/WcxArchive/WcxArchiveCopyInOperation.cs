@@ -225,7 +225,7 @@ namespace Zfile.Operations;
             }
         }
 
-        private void DeleteFiles(Files files)
+        private void DeleteFiles(List<FileEntry> files)
         {
             for (int i = files.Count - 1; i >= 0; i--)
             {

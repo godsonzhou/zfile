@@ -26,7 +26,7 @@ namespace Zfile.Operations
 		// so this static variable is used to store currently running operation.
 		private static WcxArchiveDeleteOperation _wcxDeleteOperation = null;
 
-		public WcxArchiveDeleteOperation(IFileSource targetFileSource, Files filesToDelete)
+		public WcxArchiveDeleteOperation(IFileSource targetFileSource, List<FileEntry> filesToDelete)
 			: base(targetFileSource, filesToDelete)
 		{
 			_wcxArchiveFileSource = (IWcxArchiveFileSource)targetFileSource;

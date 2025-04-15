@@ -11,6 +11,7 @@ namespace Zfile.Operations
 		public FileSourceOperationStateChangedNotify FunctionToCall;
 		public FileSourceOperationState States;
 	}
+	public class FileSourceOperationAbortingException : Exception;
 
 	public interface IFileSourceOperation
 	{
@@ -144,7 +145,7 @@ namespace Zfile.Operations
             _progress = 0.0;
             
             // Check if file source uses connections
-            _needsConnection = _fileSource != null && _fileSource.Properties.HasFlag(FileSourceProperties.UsesConnections);
+            _needsConnection = _fileSource != null && _fileSource.Properties.HasFlag(FileSourceProperties.UsersConnections);
         }
 
         /// <summary>

@@ -113,7 +113,7 @@ namespace Zfile.Operations;
                                         ref createdPaths);
 
                 SetProcessDataProc(arcHandle);
-                wcxModule.WcxSetChangeVolProc(arcHandle);
+                wcxModule.SetChangeVolProc(arcHandle);
 
                 WcxHeader header;
                 while ((header = wcxModule.ReadWCXHeader(arcHandle)) != null)
@@ -131,7 +131,7 @@ namespace Zfile.Operations;
                             if (_extractWithoutPath)
                                 targetFileName = Path.GetFileName(header.FileName);
                             else
-                                targetFileName = ExtractDirLevel(files.Path, header.FileName);
+                                targetFileName = Helper.ExtractDirLevel(files.Path, header.FileName);
 
                             if (_renamingFiles)
                             {
@@ -151,9 +151,9 @@ namespace Zfile.Operations;
 
                             int result;
                             if (DoFileExists(header, ref targetFileName) == FileSourceOperationOptionFileExists.Overwrite)
-                                result = wcxModule.WcxProcessFile(arcHandle, WcxModule.PK_EXTRACT, "", targetFileName);
+                                result = wcxModule.ProcessFile(arcHandle, ProcessMode.PK_EXTRACT, "", targetFileName);
                             else
-                                result = wcxModule.WcxProcessFile(arcHandle, WcxModule.PK_SKIP, "", "");
+                                result = wcxModule.ProcessFile(arcHandle, ProcessMode.PK_SKIP, "", "");
 
                             if (result != WcxModule.E_SUCCESS)
                             {
@@ -176,7 +176,7 @@ namespace Zfile.Operations;
                         }
                         else // Skip
                         {
-                            int result = wcxModule.WcxProcessFile(arcHandle, WcxModule.PK_SKIP, "", "");
+                            int result = wcxModule.ProcessFile(arcHandle, ProcessMode.PK_SKIP, "", "");
 
                             // Check for errors
                             if (result != WcxModule.E_SUCCESS)
@@ -205,7 +205,7 @@ namespace Zfile.Operations;
             }
         }
 
-        public override void Finalize()
+        protected override void Finalize()
         {
             ClearCurrentOperation();
         }
@@ -221,7 +221,7 @@ namespace Zfile.Operations;
             }
         }
 
-        private void CreateDirsAndCountFiles(Files theFiles, MaskList maskList,
+        private void CreateDirsAndCountFiles(List<FileEntry> theFiles, MaskList maskList,
                                            string destPath, string currentArchiveDir,
                                            ref StringHashListUtf8 createdPaths)
         {
@@ -266,12 +266,12 @@ namespace Zfile.Operations;
 
         private void QuestionActionHandler(FileSourceOperationUIAction action)
         {
-            if (action == FileSourceOperationUIAction.Compare)
+            if (action == FileSourceOperationUIAction.CompareAction)
             {
-                var file = new File("");
+                var file = new FileEntry("");
                 try
                 {
-                    file.FullPath = IncludeFrontPathDelimiter(_currentFilePath);
+                    file.FullPath = Helper.IncludeFrontPathDelimiter(_currentFilePath);
                     ShowCompareFilesUI(file, _currentTargetFilePath);
                 }
                 finally
@@ -326,9 +326,9 @@ namespace Zfile.Operations;
         private void SetProcessDataProc(IntPtr arcData)
         {
             if (_needsConnection)
-                _wcxArchiveFileSource.WcxModule.WcxSetProcessDataProc(arcData, ProcessDataProcAG, ProcessDataProcWG);
+                _wcxArchiveFileSource.WcxModule.SetProcessDataProc(arcData, ProcessDataProcAG, ProcessDataProcWG);
             else
-                _wcxArchiveFileSource.WcxModule.WcxSetProcessDataProc(arcData, ProcessDataProcAT, ProcessDataProcWT);
+                _wcxArchiveFileSource.WcxModule.SetProcessDataProc(arcData, ProcessDataProcAT, ProcessDataProcWT);
         }
 
         public static void ClearCurrentOperation()

@@ -17,7 +17,7 @@ namespace Zfile.Operations
 		{
 			Files.Clear();
 
-			if (_wcxArchiveFileSource.Changed)
+			if (_wcxArchiveFileSource.Changed())
 			{
 				_wcxArchiveFileSource.Reload(Path);
 			}

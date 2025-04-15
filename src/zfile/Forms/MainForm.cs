@@ -2583,7 +2583,7 @@ namespace Zfile
 			var wcxModule = wcxModuleList.GetModuleByExt(ext);
 			if (wcxModule == null)
 				return false;
-			if ((wcxModule.caps & (int)PackerCaps.PK_CAPS_MODIFY) == 0)
+			if ((wcxModule.PluginCapabilities & (int)PackerCaps.PK_CAPS_MODIFY) == 0)
 			{
 				MessageBox.Show("该插件不支持修改压缩文件内容", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return false;
@@ -2612,7 +2612,7 @@ namespace Zfile
 			var wcxModule = wcxModuleList.GetModuleByExt(ext);
 			if (wcxModule == null)
 				return false;
-			if((wcxModule.caps & (int)PackerCaps.PK_CAPS_DELETE) == 0)
+			if((wcxModule.PluginCapabilities & (int)PackerCaps.PK_CAPS_DELETE) == 0)
 			{
 				MessageBox.Show("该插件不支持删除文件", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return false;

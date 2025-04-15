@@ -189,7 +189,7 @@ public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 					Attributes = findData.FileAttributes,
 					CreationTime = DateTime.FromFileTime(findData.CreationTime),
 					LastAccessTime = DateTime.FromFileTime(findData.LastAccessTime),
-					LastWriteTime = DateTime.FromFileTime(findData.LastWriteTime),
+					ModificationTime = DateTime.FromFileTime(findData.LastWriteTime),
 					IsDirectory = (findData.FileAttributes & WfxConstants.FILE_ATTRIBUTE_DIRECTORY) != 0
 				};
 
@@ -321,7 +321,7 @@ public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 			if (files.Count != 1)
 				throw new Exception("Only a single directory can be set with ExcludeRootDir=True");
 
-			FillAndCountRecursive(files[0].FullPath, newFiles, ref filesCount, ref filesSize, countDirs);
+			FillAndCountRecursive(files[0].Path, newFiles, ref filesCount, ref filesSize, countDirs);
 		}
 		else
 		{
@@ -333,7 +333,7 @@ public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 				{
 					if (countDirs)
 						filesCount++;
-					FillAndCountRecursive(file.FullPath, newFiles, ref filesCount, ref filesSize, countDirs);
+					FillAndCountRecursive(file.Path, newFiles, ref filesCount, ref filesSize, countDirs);
 				}
 				else
 				{
@@ -358,7 +358,7 @@ public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 				Attributes = findData.FileAttributes,
 				CreationTime = DateTime.FromFileTime(findData.CreationTime),
 				LastAccessTime = DateTime.FromFileTime(findData.LastAccessTime),
-				LastWriteTime = DateTime.FromFileTime(findData.LastWriteTime),
+				ModificationTime = DateTime.FromFileTime(findData.LastWriteTime),
 				IsDirectory = (findData.FileAttributes & WfxConstants.FILE_ATTRIBUTE_DIRECTORY) != 0
 			};
 
@@ -395,7 +395,7 @@ public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 					Attributes = findData.FileAttributes,
 					CreationTime = DateTime.FromFileTime(findData.CreationTime),
 					LastAccessTime = DateTime.FromFileTime(findData.LastAccessTime),
-					LastWriteTime = DateTime.FromFileTime(findData.LastWriteTime),
+					ModificationTime = DateTime.FromFileTime(findData.LastWriteTime),
 					IsDirectory = (findData.FileAttributes & WfxConstants.FILE_ATTRIBUTE_DIRECTORY) != 0
 				};
 				return true;

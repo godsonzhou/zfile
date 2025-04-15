@@ -1,3 +1,4 @@
+
 namespace Zfile
 {
     /// <summary>
@@ -281,7 +282,17 @@ namespace Zfile
                 return new List<T>(_list);
             }
         }
-    }
+
+		internal void Dispose()
+		{
+			throw new NotImplementedException();
+		}
+
+		internal IEnumerable<T> Clone()
+		{
+			throw new NotImplementedException();
+		}
+	}
 
     /// <summary>
     /// Helper class for SynEdit control

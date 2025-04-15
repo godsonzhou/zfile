@@ -132,7 +132,7 @@ namespace Zfile.Forms
 			if (selectedModule != null)
 			{
 				// 更新CAPS值
-				Caps = selectedModule.caps;
+				Caps = selectedModule.PluginCapabilities;
 				UpdateCapCheckBoxes();
 			}
 			else

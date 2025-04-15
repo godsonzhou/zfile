@@ -8,7 +8,7 @@ namespace Zfile.Operations;
         private StringHashListUtf8 _fileList;
         private bool _tarBefore;
         private string _tarFileName;
-        private File _currentFile;
+        private FileEntry _currentFile;
         private string _currentTargetFilePath;
 
         // Static variables for WCX callbacks
@@ -18,7 +18,7 @@ namespace Zfile.Operations;
 
         public WcxArchiveCopyInOperation(IFileSource sourceFileSource, 
                                         IFileSource targetFileSource, 
-                                        Files sourceFiles, 
+                                        List<FileEntry> sourceFiles, 
                                         string targetPath) : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
         {
             _wcxArchiveFileSource = (IWcxArchiveFileSource)targetFileSource;
@@ -77,25 +77,25 @@ namespace Zfile.Operations;
 
             var wcxModule = _wcxArchiveFileSource.WcxModule;
 
-            string destPath = ExcludeFrontPathDelimiter(_targetPath);
-            destPath = ExcludeTrailingPathDelimiter(destPath);
+            string destPath = Helper.ExcludeFrontPathDelimiter(_targetPath);
+            destPath = Helper.ExcludeTrailingPathDelimiter(destPath);
 
             _statistics.CurrentFileTo = _wcxArchiveFileSource.ArchiveFileName;
             if (_tarBefore) _statistics.CurrentFileDoneBytes = -1;
             UpdateStatistics(_statistics);
 
             SetProcessDataProc(WcxModule.WcxInvalidHandle);
-            wcxModule.WcxSetChangeVolProc(WcxModule.WcxInvalidHandle);
+            wcxModule.SetChangeVolProc(WcxModule.WcxInvalidHandle);
 
             // Convert TFiles into String
             string fileList = GetFileList(_fullFilesTree);
             // Nothing to pack (user skip all files)
             if (fileList == "\0") return;
 
-            int result = wcxModule.WcxPackFiles(
+            int result = wcxModule.PackFiles(
                            _wcxArchiveFileSource.ArchiveFileName,
                            destPath, // no trailing path delimiter here
-                           IncludeTrailingPathDelimiter(_fullFilesTree.Path), // end with path delimiter here
+                           Helper.IncludeTrailingPathDelimiter(_fullFilesTree.Path), // end with path delimiter here
                            fileList,
                            _packingFlags);
 
@@ -122,7 +122,7 @@ namespace Zfile.Operations;
             if (_tarBefore) File.Delete(_tarFileName);
         }
 
-        public override void Finalize()
+        protected override void Finalize()
         {
             ClearCurrentOperation();
         }
@@ -141,22 +141,22 @@ namespace Zfile.Operations;
             }
         }
 
-        private string GetFileList(Files theFiles)
+        private string GetFileList(List<FileEntry> theFiles)
         {
             string result = "";
             bool archiveExists = _fileList.Count > 0;
-            string subPath = ExcludeFrontPathDelimiter(_targetPath).ToLowerInvariant();
+            string subPath = Helper.ExcludeFrontPathDelimiter(_targetPath).ToLowerInvariant();
 
             foreach (var file in theFiles)
             {
                 // Filenames must be relative to the current directory.
-                string fileName = ExtractDirLevel(theFiles.Path, file.FullPath);
+                string fileName = Helper.ExtractDirLevel(theFiles.Path, file.FullPath);
 
                 // Special treatment of directories.
                 if (file.IsDirectory)
                 {
                     // TC ends paths to directories to be packed with '\'.
-                    fileName = IncludeTrailingPathDelimiter(fileName);
+                    fileName = Helper.IncludeTrailingPathDelimiter(fileName);
                 }
                 // Need to check file existence
                 else if (archiveExists)
@@ -240,24 +240,24 @@ namespace Zfile.Operations;
         private void SetProcessDataProc(IntPtr arcData)
         {
             if (_needsConnection)
-                _wcxArchiveFileSource.WcxModule.WcxSetProcessDataProc(arcData, ProcessDataProcAG, ProcessDataProcWG);
+                _wcxArchiveFileSource.WcxModule.SetProcessDataProc(arcData, ProcessDataProcAG, ProcessDataProcWG);
             else
-                _wcxArchiveFileSource.WcxModule.WcxSetProcessDataProc(arcData, ProcessDataProcAT, ProcessDataProcWT);
+                _wcxArchiveFileSource.WcxModule.SetProcessDataProc(arcData, ProcessDataProcAT, ProcessDataProcWT);
         }
 
         private void QuestionActionHandler(FileSourceOperationUIAction action)
         {
-            if (action == FileSourceOperationUIAction.Compare)
-                ShowCompareFilesUI(_currentFile, IncludeFrontPathDelimiter(_currentTargetFilePath));
+            if (action == FileSourceOperationUIAction.CompareAction)
+                ShowCompareFilesUI(_currentFile, Helper.IncludeFrontPathDelimiter(_currentTargetFilePath));
         }
 
-        private string FileExistsMessage(File sourceFile, WcxHeader targetHeader)
+        private string FileExistsMessage(FileEntry sourceFile, WcxHeader targetHeader)
         {
             string result = "File exists. Overwrite?\n" + targetHeader.FileName + "\n";
 
             result += string.Format("Size: {0}, Date: {1}\n", 
                                    targetHeader.UnpSize.ToString(),
-                                   WcxFileTimeToDateTime(targetHeader.FileTime).ToString());
+                                   FileTimeToDateTime(targetHeader.FileTime).ToString());
 
             result += "\nWith file:\n" + sourceFile.FullPath + "\n" +
                       string.Format("Size: {0}, Date: {1}", 
@@ -267,7 +267,7 @@ namespace Zfile.Operations;
             return result;
         }
 
-        private FileSourceOperationOptionFileExists FileExists(File sourceFile, WcxHeader targetHeader)
+        private FileSourceOperationOptionFileExists FileExists(FileEntry sourceFile, WcxHeader targetHeader)
         {
             switch (_fileExistsOption)
             {
@@ -283,7 +283,7 @@ namespace Zfile.Operations;
                                                     FileSourceOperationUIResponse.OverwriteSmaller,
                                                     FileSourceOperationUIResponse.OverwriteOlder,
                                                     FileSourceOperationUIResponse.Cancel,
-                                                    FileSourceOperationUIResponse.Compare },
+                                                    FileSourceOperationUIResponse.CompareAction },
                                              FileSourceOperationUIResponse.Overwrite, 
                                              FileSourceOperationUIResponse.Skip,
                                              QuestionActionHandler);
@@ -326,15 +326,15 @@ namespace Zfile.Operations;
             }
         }
 
-        private FileSourceOperationOptionFileExists OverwriteOlder(File sourceFile, WcxHeader targetHeader)
+        private FileSourceOperationOptionFileExists OverwriteOlder(FileEntry sourceFile, WcxHeader targetHeader)
         {
-            if (sourceFile.ModificationTime > WcxFileTimeToDateTime(targetHeader.FileTime))
+            if (sourceFile.ModificationTime > FileTimeToDateTime(targetHeader.FileTime))
                 return FileSourceOperationOptionFileExists.Overwrite;
             else
                 return FileSourceOperationOptionFileExists.Skip;
         }
 
-        private FileSourceOperationOptionFileExists OverwriteSmaller(File sourceFile, WcxHeader targetHeader)
+        private FileSourceOperationOptionFileExists OverwriteSmaller(FileEntry sourceFile, WcxHeader targetHeader)
         {
             if (sourceFile.Size > targetHeader.UnpSize)
                 return FileSourceOperationOptionFileExists.Overwrite;
@@ -342,7 +342,7 @@ namespace Zfile.Operations;
                 return FileSourceOperationOptionFileExists.Skip;
         }
 
-        private FileSourceOperationOptionFileExists OverwriteLarger(File sourceFile, WcxHeader targetHeader)
+        private FileSourceOperationOptionFileExists OverwriteLarger(FileEntry sourceFile, WcxHeader targetHeader)
         {
             if (sourceFile.Size < targetHeader.UnpSize)
                 return FileSourceOperationOptionFileExists.Overwrite;
@@ -368,7 +368,7 @@ namespace Zfile.Operations;
             try
             {
                 if (_wcxArchiveFileSource.WcxModule.PackToMem != null && 
-                    (_wcxArchiveFileSource.WcxModule.PluginCapabilities & WcxModule.PK_CAPS_MEMPACK) != 0)
+                    (_wcxArchiveFileSource.WcxModule.PluginCapabilities & (int)PackerCaps.PK_CAPS_MEMPACK) != 0)
                 {
                     _tarFileName = _wcxArchiveFileSource.ArchiveFileName;
                     tarWriter = new TarWriter(_tarFileName,

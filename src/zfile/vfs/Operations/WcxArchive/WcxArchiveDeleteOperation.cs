@@ -14,7 +14,8 @@ namespace Zfile.Operations
 		Errors,
 		Info,
 		Success,
-		ArcOp
+		ArcOp,
+		None
 	}
 	public class WcxArchiveDeleteOperation : FileSourceDeleteOperation
 	{
@@ -71,7 +72,7 @@ namespace Zfile.Operations
 			}
 		}
 
-		public override void Finalize()
+		protected override void Finalize()
 		{
 			ClearCurrentOperation();
 		}
@@ -111,7 +112,7 @@ namespace Zfile.Operations
 			}
 		}
 
-		private void CountFiles(Files files, string fileMask)
+		private void CountFiles(List<FileEntry> files, string fileMask)
 		{
 			var arcFileList = _wcxArchiveFileSource.ArchiveFileList.LockList();
 			try
@@ -139,20 +140,20 @@ namespace Zfile.Operations
 			UpdateStatistics(_statistics);
 		}
 
-		private string GetFileList(Files files)
+		private string GetFileList(List<FileEntry> files)
 		{
 			string result = "";
 
 			foreach (var file in files)
 			{
 				// Filenames must be relative to archive root and shouldn't start with path delimiter.
-				string fileName = ExcludeFrontPathDelimiter(file.FullPath);
+				string fileName = Helper.ExcludeFrontPathDelimiter(file.FullPath);
 
 				// Special treatment of directories.
 				if (file.IsDirectory)
 					// TC ends paths to directories to be deleted with '\*.*'
 					// (which means delete this directory and all files in it).
-					fileName = IncludeTrailingPathDelimiter(fileName) + "*.*";
+					fileName = Helper.IncludeTrailingPathDelimiter(fileName) + "*.*";
 
 				result += fileName + "\0";
 			}

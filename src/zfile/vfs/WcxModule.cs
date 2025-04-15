@@ -431,7 +431,9 @@ namespace Zfile
 		public const int E_NO_FILES	= 22; //	No files found
 		public const int E_TOO_MANY_FILES	= 23; //	Too many files to pack
 		public const int E_NOT_SUPPORTED	= 24; //	Function not supported
-												  // 函数指针
+
+		public static nint WcxInvalidHandle = 0;
+		// 函数指针
 		private TOpenArchive _openArchive;
 		private TOpenArchiveW _openArchiveW;
 		private TReadHeader _readHeader;
@@ -467,7 +469,7 @@ namespace Zfile
 		public string Name { get;  set; }
 		public string FilePath { get => _modulePath; set => _modulePath = value; }
 		public List<string> DetectStrings = new();
-		public int caps;
+		public int PluginCapabilities;
 
 		public WcxModule()
 		{
@@ -559,7 +561,7 @@ namespace Zfile
 				_getBackgroundFlags = GetDelegate<TGetBackgroundFlags>("GetBackgroundFlags");
 
 				//get packer caps
-				caps = _getPackerCaps?.Invoke() ?? 0;
+				PluginCapabilities = _getPackerCaps?.Invoke() ?? 0;
 				return true;
 			}
 			catch

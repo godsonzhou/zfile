@@ -13,14 +13,14 @@ namespace Zfile.Operations;
         [ThreadStatic]
         private static WcxArchiveTestArchiveOperation _wcxTestArchiveOperationT;
 
-        public WcxArchiveTestArchiveOperation(IFileSource sourceFileSource, Files sourceFiles) 
+        public WcxArchiveTestArchiveOperation(IFileSource sourceFileSource, List<FileEntry> sourceFiles) 
             : base(sourceFileSource, sourceFiles)
         {
             _wcxArchiveFileSource = (IWcxArchiveFileSource)sourceFileSource;
             _needsConnection = (_wcxArchiveFileSource.WcxModule.BackgroundFlags & WcxModule.BACKGROUND_UNPACK) == 0;
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             // Is plugin allow multiple Operations?
             if (_needsConnection)
@@ -38,7 +38,7 @@ namespace Zfile.Operations;
             var wcxModule = _wcxArchiveFileSource.WcxModule;
 
             var arcHandle = wcxModule.OpenArchiveHandle(_wcxArchiveFileSource.ArchiveFileName,
-                                                      WcxModule.PK_OM_EXTRACT,
+                                                      UnpackFlags.PK_OM_EXTRACT,
                                                       out int openResult);
             if (arcHandle == 0)
             {
@@ -54,7 +54,7 @@ namespace Zfile.Operations;
             try
             {
                 SetProcessDataProc(arcHandle);
-                wcxModule.WcxSetChangeVolProc(arcHandle);
+                wcxModule.SetChangeVolProc(arcHandle);
 
                 WcxHeader header;
                 while ((header = wcxModule.ReadWCXHeader(arcHandle)) != null)
@@ -95,7 +95,7 @@ namespace Zfile.Operations;
                         }
                         else // Skip
                         {
-                            int result = wcxModule.WcxProcessFile(arcHandle, WcxModule.PK_SKIP, "", "");
+                            int result = wcxModule.ProcessFile(arcHandle, ProcessMode.PK_SKIP, "", "");
 
                             // Check for errors
                             if (result != WcxModule.E_SUCCESS)
@@ -119,7 +119,7 @@ namespace Zfile.Operations;
             }
         }
 
-        public override void Finalize()
+        protected override void Finalize()
         {
             ClearCurrentOperation();
         }
@@ -162,9 +162,9 @@ namespace Zfile.Operations;
         private void SetProcessDataProc(IntPtr arcData)
         {
             if (_needsConnection)
-                _wcxArchiveFileSource.WcxModule.WcxSetProcessDataProc(arcData, ProcessDataProcAG, ProcessDataProcWG);
+                _wcxArchiveFileSource.WcxModule.SetProcessDataProc(arcData, ProcessDataProcAG, ProcessDataProcWG);
             else
-                _wcxArchiveFileSource.WcxModule.WcxSetProcessDataProc(arcData, ProcessDataProcAT, ProcessDataProcWT);
+                _wcxArchiveFileSource.WcxModule.SetProcessDataProc(arcData, ProcessDataProcAT, ProcessDataProcWT);
         }
 
         public static void ClearCurrentOperation()

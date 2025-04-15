@@ -948,5 +948,19 @@ namespace Zfile
 		{
 			throw new NotImplementedException();
 		}
+
+		internal static string ExcludeFrontPathDelimiter(object fullPath)
+		{
+			throw new NotImplementedException();
+		}
+
+		internal static string IncludeFrontPathDelimiter(string currentFilePath)
+		{
+			throw new NotImplementedException();
+		}
+		internal static string ExcludeTrailingPathDelimiter(string fullPath)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

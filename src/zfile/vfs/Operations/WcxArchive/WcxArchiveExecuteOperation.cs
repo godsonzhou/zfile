@@ -5,7 +5,7 @@ namespace Zfile.Operations
 	{
 		private IWcxArchiveFileSource _wcxArchiveFileSource;
 
-		public WcxArchiveExecuteOperation(IFileSource targetFileSource, File executableFile, string currentPath, string verb)
+		public WcxArchiveExecuteOperation(IFileSource targetFileSource, FileEntry executableFile, string currentPath, string verb)
 			: base(targetFileSource, executableFile, currentPath, verb)
 		{
 			_wcxArchiveFileSource = (IWcxArchiveFileSource)targetFileSource;

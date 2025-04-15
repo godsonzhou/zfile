@@ -68,7 +68,7 @@ namespace Zfile.FileSources
             CreateConnections();
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
             _arcFileList?.Dispose();
             base.Dispose();

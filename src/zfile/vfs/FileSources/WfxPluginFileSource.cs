@@ -1,5 +1,5 @@
 namespace Zfile.FileSources;
-
+using FileSystemOperations;
 public interface IWfxPluginFileSource : IFileSource
 {
 	void FillAndCount(FileEntries files, bool countDirs, bool excludeRootDir,

@@ -1,5 +1,6 @@
 using Zfile.FileSources;
-using ZFile.FileSources.WcxArchive;
+using MultiArchive;
+using FileSystemOperations;
 namespace Zfile.Operations
 {
     /// <summary>
@@ -462,7 +463,7 @@ namespace Zfile.Operations
                                             WcxModule wcxModule = WcxPlugins.LoadModule(plugin);
                                             if (wcxModule != null)
                                             {
-                                                int flags = wcxModule.GetPluginCapabilities();
+                                                int flags = wcxModule.PluginCapabilities;
                                                 foreach (string ext in extension.Split(','))
                                                 {
                                                     result = WcxPlugins.Add(ext, flags, plugin);

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-
+using Zfile.Operations;
 namespace Files.FileSources.WcxArchive
 {
     public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation

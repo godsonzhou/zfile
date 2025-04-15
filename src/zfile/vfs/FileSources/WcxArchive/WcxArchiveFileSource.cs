@@ -1,21 +1,7 @@
 using Zfile.Operations;
 namespace Zfile.FileSources
 {
-	public enum FileSourceProperties
-	{
-		DirectAccess,
-		CaseSensitive,
-		Virtual,
-		LinkToLocalFiles,
-		UsersConnections,
-		ListOnMainThread,
-		CopyInOnMainThread,
-		CopyOutOnMainThread,
-		ListFlatView,
-		NoneParent,
-		DefaultView,
-		ContextMenu
-	}
+	
 	public interface IWcxArchiveFileSource : IArchiveFileSource
 	{
 		ThreadSafeList<WcxHeader> ArchiveFileList { get; }

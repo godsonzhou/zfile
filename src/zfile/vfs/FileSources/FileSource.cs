@@ -51,27 +51,42 @@ namespace Zfile.FileSources
 		HasAttributesSupport = 1 << 5,
 		HasReloadSupport = 1 << 6
 	}
-
+	public enum FileSourceProperties
+	{
+		DirectAccess,
+		CaseSensitive,
+		Virtual,
+		LinkToLocalFiles,
+		UsersConnections,
+		ListOnMainThread,
+		CopyInOnMainThread,
+		CopyOutOnMainThread,
+		ListFlatView,
+		NoneParent,
+		DefaultView,
+		ContextMenu
+	}
 	/// <summary>
 	/// Represents file properties types
 	/// </summary>
 	[Flags]
 	public enum FilePropertyType
 	{
-		None = 0,
-		Name = 1 << 0,
-		Size = 1 << 1,
-		Attributes = 1 << 2,
-		ModificationTime = 1 << 3,
-		CreationTime = 1 << 4,
-		LastAccessTime = 1 << 5,
-		Link = 1 << 6,
-		Owner = 1 << 7,
-		Group = 1 << 8,
-		Type = 1 << 9,
-		Comment = 1 << 10,
-		CompressedSize = 1 << 11,
-		Extension = 1 << 12
+		Name = 0,
+		Size = 1,
+		CompressedSize = 2,
+		Owner = 3,
+		Attributes = 4,
+		ModificationTime = 5,
+		CreationTime = 6,
+		LastAccessTime = 7,
+		ChangeTime = 8,
+		Link = 9,
+		Type = 10,
+		Comment = 11,
+		Invalid = 12,
+		Variant = 128,
+		Maximum = 255
 	}
 
 	/// <summary>

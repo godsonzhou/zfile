@@ -95,7 +95,7 @@ namespace Zfile.Operations
         /// <summary>
         /// Gets the description of this operation
         /// </summary>
-        public string Description => GetDescription(FileSourceOperationDescriptionDetails.Basic);
+        public virtual string Description => GetDescription(FileSourceOperationDescriptionDetails.Basic);
 
         /// <summary>
         /// Gets or sets whether the operation should be executed with elevated privileges
@@ -662,7 +662,7 @@ namespace Zfile.Operations
         /// Disposes resources
         /// </summary>
         /// <param name="disposing">True if called from Dispose(), false if called from finalizer</param>
-        protected virtual void Dispose(bool disposing)
+        public virtual void Dispose(bool disposing)
         {
             if (disposing)
             {

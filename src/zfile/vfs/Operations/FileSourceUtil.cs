@@ -22,8 +22,8 @@ namespace Zfile.Operations
                 return;
 
             // For now work only for local files
-            if (fileSource.Properties.HasFlag(FileSourceProperty.DirectAccess) || 
-                fileSource.Properties.HasFlag(FileSourceProperty.LinksToLocalFiles))
+            if (fileSource.Properties.HasFlag(FileSourceProperties.DirectAccess) || 
+                fileSource.Properties.HasFlag(FileSourceProperties.LinkToLocalFiles))
             {
                 // Now test if exists Open command in "extassoc.xml"
                 string cmd = string.Empty;
@@ -37,7 +37,7 @@ namespace Zfile.Operations
                         // Resolve filename here since ProcessExtCommandFork doesn't do it (as of 2017)
                         // The limitation is that only one file will be opened on a FileSource of links
                         FileEntry fileCopy = null;
-                        if (fileSource.Properties.HasFlag(FileSourceProperty.LinksToLocalFiles))
+                        if (fileSource.Properties.HasFlag(FileSourceProperties.LinkToLocalFiles))
                         {
                             fileCopy = file.Clone();
                             fileSource.GetLocalName(fileCopy);
@@ -293,8 +293,8 @@ namespace Zfile.Operations
             {
                 if (!string.Equals(fileView.CurrentPath, file.Path, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (fileSource.Properties.HasFlag(FileSourceProperty.DirectAccess) ||
-                        fileSource.Properties.HasFlag(FileSourceProperty.LinksToLocalFiles))
+                    if (fileSource.Properties.HasFlag(FileSourceProperties.DirectAccess) ||
+                        fileSource.Properties.HasFlag(FileSourceProperties.LinkToLocalFiles))
                     {
                         SetFileSystemPath(fileView, file.Path);
                     }

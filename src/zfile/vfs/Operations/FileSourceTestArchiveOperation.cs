@@ -70,11 +70,11 @@ namespace Zfile.Operations
         /// <summary>
         /// Releases all resources used by the <see cref="FileSourceTestArchiveOperation"/> object
         /// </summary>
-        public override void Dispose()
+        public override void Dispose(bool disposing)
         {
-            base.Dispose();
+            base.Dispose(disposing);
 
-            if (statisticsLock != null)
+            if (statisticsLock != null && disposing)
             {
                 statisticsLock.Dispose();
                 statisticsLock = null;

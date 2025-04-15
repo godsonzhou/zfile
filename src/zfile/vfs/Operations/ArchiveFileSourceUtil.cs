@@ -23,14 +23,14 @@ namespace Zfile.Operations
             bool archiveSign,
             bool includeHidden)
         {
-            if (sourceFileSource.Properties.HasFlag(FileSourceProperty.DirectAccess))
+            if (sourceFileSource.Properties.HasFlag(FileSourceProperties.DirectAccess))
             {
                 return GetArchiveFileSourceDirect(sourceFileSource, archiveFile.FullPath, archiveType, archiveSign, includeHidden);
             }
 
             IArchiveFileSource result = null;
 
-            if (sourceFileSource.Properties.HasFlag(FileSourceProperty.LinksToLocalFiles))
+            if (sourceFileSource.Properties.HasFlag(FileSourceProperties.LinkToLocalFiles))
             {
                 FileEntry localArchiveFile = archiveFile.Clone();
                 try

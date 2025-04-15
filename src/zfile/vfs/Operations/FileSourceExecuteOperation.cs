@@ -5,18 +5,18 @@ namespace Zfile.Operations
     /// <summary>
     /// Represents the description details for file source operations
     /// </summary>
-    public enum FileSourceOperationDescriptionDetails
-    {
-        /// <summary>
-        /// Basic description
-        /// </summary>
-        Basic,
+    //public enum FileSourceOperationDescriptionDetails
+    //{
+    //    /// <summary>
+    //    /// Basic description
+    //    /// </summary>
+    //    Basic,
         
-        /// <summary>
-        /// Job and target description
-        /// </summary>
-        JobAndTarget
-    }
+    //    /// <summary>
+    //    /// Job and target description
+    //    /// </summary>
+    //    JobAndTarget
+    //}
     
     /// <summary>
     /// Represents the result of a file source execute operation
@@ -45,7 +45,7 @@ namespace Zfile.Operations
     /// <summary>
     /// Represents a file source execute operation
     /// </summary>
-    public class FileSourceExecuteOperation : FileSourceOperation
+    public abstract class FileSourceExecuteOperation : FileSourceOperation
     {
         private IFileSource _fileSource;
         private string _currentPath;

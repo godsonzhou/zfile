@@ -1,0 +1,103 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+
+namespace FileSystemOperations
+{
+    public class FileSystemListOperation : FileSourceListOperation
+    {
+        public FileSystemListOperation(IFileSource fileSource, string path) 
+            : base(fileSource, path)
+        {
+            Files = new List<FileInfo>();
+        }
+
+        private void FlatView(string path)
+        {
+            try
+            {
+                var files = Directory.GetFileSystemEntries(path, "*");
+                foreach (var file in files)
+                {
+                    CheckOperationState();
+
+                    var fileName = Path.GetFileName(file);
+                    if (fileName == "." || fileName == "..")
+                        continue;
+
+                    if (Directory.Exists(file))
+                    {
+                        FlatView(Path.Combine(file, Path.DirectorySeparatorChar.ToString()));
+                    }
+                    else
+                    {
+                        var fileInfo = FileSystemFileSource.CreateFileFromFile(file);
+                        Files.Add(fileInfo);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Write($"Error in FlatView: {ex.Message}", LogMessageType.Error);
+            }
+        }
+
+        public override void MainExecute()
+        {
+            Files.Clear();
+
+            if (FlatView)
+            {
+                FlatView(Path);
+                return;
+            }
+
+            var isRootPath = FileSource.IsPathAtRoot(Path);
+
+            try
+            {
+                var files = Directory.GetFileSystemEntries(Path, "*");
+                if (files.Length == 0)
+                {
+                    // 没有找到文件
+                    if (!isRootPath)
+                    {
+                        var parentFile = FileSystemFileSource.CreateFile(Path);
+                        parentFile.Name = "..";
+                        parentFile.Attributes = FileAttributes.Directory;
+                        Files.Add(parentFile);
+                    }
+                }
+                else
+                {
+                    foreach (var file in files)
+                    {
+                        CheckOperationState();
+
+                        var fileName = Path.GetFileName(file);
+                        if (fileName == ".")
+                            continue;
+
+                        // 在根目录中不包含".."
+                        if (fileName == ".." && isRootPath)
+                            continue;
+
+                        var fileInfo = FileSystemFileSource.CreateFileFromFile(file);
+                        Files.Add(fileInfo);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Write($"Error in MainExecute: {ex.Message}", LogMessageType.Error);
+            }
+        }
+
+        private void CheckOperationState()
+        {
+            if (OperationState == OperationState.Cancelled)
+                throw new OperationCanceledException();
+        }
+    }
+} 

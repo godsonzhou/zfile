@@ -1,3 +1,4 @@
+using Zfile.Operations;
 namespace Zfile.FileSources;
 using FileSystemOperations;
 public interface IWfxPluginFileSource : IFileSource

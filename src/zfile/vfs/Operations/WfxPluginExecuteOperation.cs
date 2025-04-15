@@ -1,66 +1,62 @@
-using System;
-using System.Windows.Forms;
 using Zfile.FileSources;
-using Zfile.Operations;
 
-namespace Files.FileSources.WfxPlugin
+namespace Zfile.Operations;
+
+public class WfxPluginExecuteOperation : FileSourceExecuteOperation
 {
-	public class WfxPluginExecuteOperation : FileSourceExecuteOperation
+	private readonly IWfxPluginFileSource _wfxPluginFileSource;
+
+	public WfxPluginExecuteOperation(
+		IFileSource targetFileSource,
+		ref File executableFile,
+		string currentPath,
+		string verb) : base(targetFileSource, executableFile, currentPath, verb)
 	{
-		private readonly IWfxPluginFileSource _wfxPluginFileSource;
+		_wfxPluginFileSource = targetFileSource as IWfxPluginFileSource;
+	}
 
-		public WfxPluginExecuteOperation(
-			IFileSource targetFileSource,
-			ref File executableFile,
-			string currentPath,
-			string verb) : base(targetFileSource, executableFile, currentPath, verb)
+	public override void Initialize()
+	{
+		_wfxPluginFileSource.WfxModule.WfxStatusInfo(CurrentPath, FS_STATUS_START, FS_STATUS_OP_EXEC);
+	}
+
+	public override void MainExecute()
+	{
+		string remoteName;
+		if (Verb.StartsWith("quote "))
 		{
-			_wfxPluginFileSource = targetFileSource as IWfxPluginFileSource;
+			remoteName = CurrentPath;
+		}
+		else
+		{
+			remoteName = AbsolutePath;
 		}
 
-		public override void Initialize()
+		var result = _wfxPluginFileSource.WfxModule.WfxExecuteFile(
+			Application.OpenForms[0].Tag,
+			remoteName,
+			Verb);
+
+		switch (result)
 		{
-			_wfxPluginFileSource.WfxModule.WfxStatusInfo(CurrentPath, FS_STATUS_START, FS_STATUS_OP_EXEC);
+			case FS_EXEC_OK:
+				ExecuteOperationResult = FileSourceExecuteOperationResult.Success;
+				break;
+			case FS_EXEC_ERROR:
+				ExecuteOperationResult = FileSourceExecuteOperationResult.Error;
+				break;
+			case FS_EXEC_YOURSELF:
+				ExecuteOperationResult = FileSourceExecuteOperationResult.YourSelf;
+				break;
+			case FS_EXEC_SYMLINK:
+				ResultString = remoteName;
+				ExecuteOperationResult = FileSourceExecuteOperationResult.SymLink;
+				break;
 		}
+	}
 
-		public override void MainExecute()
-		{
-			string remoteName;
-			if (Verb.StartsWith("quote "))
-			{
-				remoteName = CurrentPath;
-			}
-			else
-			{
-				remoteName = AbsolutePath;
-			}
-
-			var result = _wfxPluginFileSource.WfxModule.WfxExecuteFile(
-				Application.OpenForms[0].Tag,
-				remoteName,
-				Verb);
-
-			switch (result)
-			{
-				case FS_EXEC_OK:
-					ExecuteOperationResult = FileSourceExecuteOperationResult.Success;
-					break;
-				case FS_EXEC_ERROR:
-					ExecuteOperationResult = FileSourceExecuteOperationResult.Error;
-					break;
-				case FS_EXEC_YOURSELF:
-					ExecuteOperationResult = FileSourceExecuteOperationResult.YourSelf;
-					break;
-				case FS_EXEC_SYMLINK:
-					ResultString = remoteName;
-					ExecuteOperationResult = FileSourceExecuteOperationResult.SymLink;
-					break;
-			}
-		}
-
-		public override void Finalize()
-		{
-			_wfxPluginFileSource.WfxModule.WfxStatusInfo(CurrentPath, FS_STATUS_END, FS_STATUS_OP_EXEC);
-		}
+	public override void Finalize()
+	{
+		_wfxPluginFileSource.WfxModule.WfxStatusInfo(CurrentPath, FS_STATUS_END, FS_STATUS_OP_EXEC);
 	}
 }

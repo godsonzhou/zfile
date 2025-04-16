@@ -10,7 +10,7 @@ namespace zfile
         /// </summary>
         /// <param name="owner">The owner component</param>
         /// <param name="fileSource">The file source</param>
-        public FileSourceOperationOptionsUI(IComponent owner, object fileSource) : base()
+        public FileSourceOperationOptionsUI(Control owner, object fileSource) : base()
         {
             // Base implementation does nothing
         }

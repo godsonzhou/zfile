@@ -8,7 +8,7 @@ namespace zfile
         private IFileSource _fileSource;
         private string _path;
         private FileEntries _files;
-        private bool _flatView;
+        protected bool _flatView;
 
         /// <summary>
         /// Gets the operation type

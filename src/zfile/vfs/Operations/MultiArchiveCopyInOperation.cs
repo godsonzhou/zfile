@@ -14,8 +14,14 @@ namespace zfile
         private string _tempFile;
         private int _errorLevel;
         private string _commandLine;
+		public int PackingFlags { get; set; }
+		public string Password { get; set; }
+		public string VolumeSize { get; set; }
+		public string CustomParams { get; set; }
+		public bool TarBefore { get; set; }
+		public FileSourceCopyOperationStatistics Statistics;
 
-        public MultiArchiveCopyInOperation(IFileSource sourceFileSource, IFileSource targetFileSource, FileEntry[] sourceFiles, string targetPath)
+		public MultiArchiveCopyInOperation(IFileSource sourceFileSource, IFileSource targetFileSource, FileEntry[] sourceFiles, string targetPath)
             : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
         {
             _fileSource = targetFileSource as IMultiArchiveFileSource;
@@ -206,10 +212,6 @@ namespace zfile
             // 实现文件批量删除
         }
 
-        public int PackingFlags { get; set; }
-        public string Password { get; set; }
-        public string VolumeSize { get; set; }
-        public string CustomParams { get; set; }
-        public bool TarBefore { get; set; }
-    }
+   
+	}
 } 

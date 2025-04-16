@@ -192,7 +192,7 @@ namespace zfile
                       fileToVerify.Attributes.HasFlag(FileAttributes.ReparsePoint)))
                 {
                     statistics.TotalFiles++;
-                    statistics.TotalBytes += fileToVerify.Length;
+                    statistics.TotalBytes += fileToVerify.Size;
 
                     fullFilesTree.Add(fileToVerify);
                     var entry = new ChecksumEntry

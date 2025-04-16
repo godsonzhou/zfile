@@ -37,7 +37,7 @@ namespace zfile
 				{
 					CheckOperationState();
 
-					var currFileName = Path.DirectorySeparatorChar + header.FileName;
+					var currFileName = System.IO.Path.DirectorySeparatorChar + header.FileName;
 
 					if (!IsInPath(Path, currFileName, _flatView, false))
 						continue;

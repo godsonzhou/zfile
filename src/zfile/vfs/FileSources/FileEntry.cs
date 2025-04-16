@@ -258,6 +258,7 @@ public class FileEntry
     private List<FileVariantProperty> _variantProperties;
     private FilePropertyType _supportedProperties;
 
+	public string FullName => $"{Path}{System.IO.Path.DirectorySeparatorChar}{Name}";
 	public Dictionary<FilePropertyType, FileProperty> Properties => _properties;
 	private void SplitIntoNameAndExtension(string fileName, out string fileNameOnly, out string extension)
     {

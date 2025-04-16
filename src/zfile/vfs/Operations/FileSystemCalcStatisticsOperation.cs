@@ -91,11 +91,11 @@ namespace zfile
                 // 也许在Unix上使用FPS_ISREG()检查？
 
                 statistics.Files++;
-                statistics.Size += file.Length;
-                if (file.LastWriteTime < statistics.OldestFile)
-                    statistics.OldestFile = file.LastWriteTime;
-                if (file.LastWriteTime > statistics.NewestFile)
-                    statistics.NewestFile = file.LastWriteTime;
+                statistics.Size += file.Size;
+                if (file.ModificationTime < statistics.OldestFile)
+                    statistics.OldestFile = file.ModificationTime;
+                if (file.ModificationTime > statistics.NewestFile)
+                    statistics.NewestFile = file.ModificationTime;
             }
 
             UpdateStatistics(statistics);

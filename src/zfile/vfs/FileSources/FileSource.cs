@@ -94,7 +94,8 @@ namespace zfile
 		Stopping,
 		Stopped,
 		Finished,
-		Failed
+		Failed,
+		Cancelled
 	}
 
 	/// <summary>

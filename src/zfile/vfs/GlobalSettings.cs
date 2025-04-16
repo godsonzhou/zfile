@@ -35,6 +35,10 @@ namespace zfile
 		{
 			// 实现日志记录逻辑
 		}
+		public static void Write(string message, LogOption type, bool Reservedflag = true)
+		{
+			// 实现日志记录逻辑
+		}
 	}
 	public enum LogOption
 	{
@@ -122,7 +126,7 @@ namespace zfile
         public static bool OperationOptionCheckFreeSpace { get; set; } = true;
         public static bool OperationOptionCorrectLinks { get; set; } = true;
         public static FileSourceOperationOptionGeneral OperationOptionCopyOnWrite { get; set; } = FileSourceOperationOptionGeneral.No;
-        public static FileSourceOperationOptionGeneral OperationOptionFileExists { get; set; } = FileSourceOperationOptionGeneral.AskUser;
+        public static FileSourceOperationOptionFileExists OperationOptionFileExists { get; set; } = FileSourceOperationOptionFileExists.None;
         public static FileSourceOperationOptionGeneral OperationOptionDirectoryExists { get; set; } = FileSourceOperationOptionGeneral.AskUser;
         public static bool OperationOptionCopyAttributes { get; set; } = true;
         public static bool OperationOptionCopyXattributes { get; set; } = true;
@@ -139,5 +143,6 @@ namespace zfile
 		public static LogOption LogOptions { get; set; }
 		public static bool LogDelete { get; set; }
 		public static int CopyBlockSize { get; set; } = 65536;
+		public static string AutoExtractOpenMask { get; set; } = "*.zip;*.rar;*.7z;*.tar;*.gz;*.bz2;*.xz";
 	}
 } 

@@ -63,7 +63,7 @@ namespace zfile
             if (FileAttributes.ReparsePoint == (file.Attributes & FileAttributes.ReparsePoint))
             {
                 var linkAttrs = File.GetAttributes(path);
-                file.LinkProperty.LinkTo = File.ResolveLinkTarget(path, true)?.FullName;
+                file.LinkProperty.LinkTarget = File.ResolveLinkTarget(path, true)?.FullName;
                 file.LinkProperty.IsValid = linkAttrs != (FileAttributes)(-1);
                 if (file.LinkProperty.IsValid)
                 {
@@ -86,8 +86,8 @@ namespace zfile
             var FileEntry = new FileEntry(filePath);
 
             file.Attributes = FileEntry.Attributes;
-            file.Size = FileEntry.Length;
-            file.ModificationTime = FileEntry.LastWriteTime;
+            file.Size = FileEntry.Size;
+            file.ModificationTime = FileEntry.ModificationTime;
             file.CreationTime = FileEntry.CreationTime;
             file.LastAccessTime = FileEntry.LastAccessTime;
             file.LinkProperty = new FileLinkProperty();
@@ -95,7 +95,7 @@ namespace zfile
             if ((file.Attributes & FileAttributes.ReparsePoint) != 0)
             {
                 var linkAttrs = File.GetAttributes(filePath);
-                file.LinkProperty.LinkTo = File.ResolveLinkTarget(filePath, true)?.FullName;
+                file.LinkProperty.LinkTarget = File.ResolveLinkTarget(filePath, true)?.FullName;
                 file.LinkProperty.IsValid = linkAttrs != (FileAttributes)(-1);
                 if (file.LinkProperty.IsValid)
                 {
@@ -149,10 +149,10 @@ namespace zfile
                     file.Attributes = FileEntry.Attributes;
 
                 if (!assignedProperties.HasFlag(FilePropertyType.Size))
-                    file.Size = FileEntry.Length;
+                    file.Size = FileEntry.Size;
 
                 if (!assignedProperties.HasFlag(FilePropertyType.ModificationTime))
-                    file.ModificationTime = FileEntry.LastWriteTime;
+                    file.ModificationTime = FileEntry.ModificationTime;
 
                 if (!assignedProperties.HasFlag(FilePropertyType.CreationTime))
                     file.CreationTime = FileEntry.CreationTime;
@@ -166,7 +166,7 @@ namespace zfile
                     if ((file.Attributes & FileAttributes.ReparsePoint) != 0)
                     {
                         var linkAttrs = File.GetAttributes(fullPath);
-                        file.LinkProperty.LinkTo = File.ResolveLinkTarget(fullPath, true)?.FullName;
+                        file.LinkProperty.LinkTarget = File.ResolveLinkTarget(fullPath, true)?.FullName;
                         file.LinkProperty.IsValid = linkAttrs != (FileAttributes)(-1);
                         if (file.LinkProperty.IsValid)
                         {
@@ -188,7 +188,7 @@ namespace zfile
 
                 if (propertiesToSet.HasFlag(FilePropertyType.CompressedSize))
                 {
-                    file.CompressedSize = new FileCompressedSizeProperty();
+                    file.CompressedSizeProperty = new FileCompressedSizeProperty();
                     file.CompressedSize.Value = GetCompressedFileSize(fullPath);
                 }
             }
@@ -213,7 +213,7 @@ namespace zfile
             return fileSource as IFileSystemFileSource;
         }
 
-        public override FileSourceOperationType GetOperationsTypes()
+        public FileSourceOperationType GetOperationsTypes()
         {
             return FileSourceOperationType.List |
                    FileSourceOperationType.Copy |
@@ -231,7 +231,7 @@ namespace zfile
                    FileSourceOperationType.Execute;
         }
 
-        public override FileSourceProperties GetProperties()
+        public FileSourceProperties GetProperties()
         {
             var properties = FileSourceProperties.DirectAccess |
                            FileSourceProperties.ListFlatView |
@@ -246,7 +246,7 @@ namespace zfile
             return properties;
         }
 
-        public override string GetCurrentWorkingDirectory()
+        public string GetCurrentWorkingDirectory()
         {
             var currentDir = Directory.GetCurrentDirectory();
             if (!string.IsNullOrEmpty(currentDir))
@@ -308,7 +308,7 @@ namespace zfile
             try
             {
                 Directory.CreateDirectory(path);
-                if (GlobalSettings.LogOptions.HasFlag(LogOption.DirectoryOperations) &&
+                if (GlobalSettings.LogOptions.HasFlag(LogOption.DirectoryOperation) &&
                     GlobalSettings.LogOptions.HasFlag(LogOption.Success))
                 {
                     Logger.Write(string.Format(Resources.MsgLogSuccess + Resources.MsgLogMkDir, path),
@@ -318,7 +318,7 @@ namespace zfile
             }
             catch (Exception)
             {
-                if (GlobalSettings.LogOptions.HasFlag(LogOption.DirectoryOperations) &&
+                if (GlobalSettings.LogOptions.HasFlag(LogOption.DirectoryOperation) &&
                     GlobalSettings.LogOptions.HasFlag(LogOption.Error))
                 {
                     Logger.Write(string.Format(Resources.MsgLogError + Resources.MsgLogMkDir, path),
@@ -350,9 +350,9 @@ namespace zfile
             }
         }
 
-        public override FilePropertyType GetSupportedFileProperties()
+        public FilePropertyType GetSupportedFileProperties()
         {
-            var properties = base.GetSupportedFileProperties();
+            var properties = base.SupportedFileProperties;
             properties |= FilePropertyType.Size |
                         FilePropertyType.Attributes |
                         FilePropertyType.ModificationTime |
@@ -371,9 +371,9 @@ namespace zfile
             return properties;
         }
 
-        public override FilePropertyType GetRetrievableFileProperties()
+        public FilePropertyType GetRetrievableFileProperties()
         {
-            var properties = base.GetRetrievableFileProperties();
+            var properties = base.RetrievableFileProperties;
             properties |= FilePropertyType.Size |
                         FilePropertyType.Attributes |
                         FilePropertyType.ModificationTime |

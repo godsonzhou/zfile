@@ -31,7 +31,7 @@ namespace zfile
 
         private SearchTemplate template;
 
-        public FileSystemCopyMoveOperationOptionsUI(Component owner, IFileSource fileSource)
+        public FileSystemCopyMoveOperationOptionsUI(Control owner, IFileSource fileSource)
             : base(owner, fileSource)
         {
             InitializeComponents();

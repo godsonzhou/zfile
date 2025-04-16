@@ -9,7 +9,7 @@ namespace zfile
             ref FileEntry executableFile,
             string currentPath,
             string verb)
-            : base(targetFileSource, ref executableFile, currentPath, verb)
+            : base(targetFileSource, executableFile, currentPath, verb)
         {
             _multiArchiveFileSource = targetFileSource as IMultiArchiveFileSource;
         }
@@ -23,7 +23,7 @@ namespace zfile
         {
             if (Verb != "properties" && MatchesMaskList(ExecutableFile.Name, GlobalSettings.AutoExtractOpenMask))
             {
-                ExecuteOperationResult = FileSourceExecuteOperationResult.Yourself;
+                ExecuteOperationResult = FileSourceExecuteOperationResult.YourSelf;
             }
             else
             {
@@ -42,7 +42,7 @@ namespace zfile
             return false; // 临时实现
         }
 
-        private FileSourceExecuteOperationResult ShowPackInfoDialog(IMultiArchiveFileSource fileSource, File file)
+        private FileSourceExecuteOperationResult ShowPackInfoDialog(IMultiArchiveFileSource fileSource, FileEntry file)
         {
             // 实现显示归档信息对话框
             return FileSourceExecuteOperationResult.Success; // 临时实现

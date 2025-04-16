@@ -1,3 +1,4 @@
+using System.Diagnostics;
 namespace zfile
 {
     public class FileSystemExecuteOperation : FileSourceExecuteOperation
@@ -37,7 +38,7 @@ namespace zfile
                     Cursor.Current = Cursors.Default;
                     ShowFilePropertiesDialog(fileSystemFileSource, files);
                 }
-                catch (ContextMenuException ex)
+                catch (Exception ex)
                 {
                     ShowException(ex);
                 }

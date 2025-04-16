@@ -43,7 +43,7 @@ namespace zfile
         {
             Files.Clear();
 
-            if (FlatView)
+            if (_flatView)
             {
                 FlatView(Path);
                 return;
@@ -92,7 +92,7 @@ namespace zfile
 
         private void CheckOperationState()
         {
-            if (OperationState == FileSourceOperationState.Cancelled)
+            if (GetState() == FileSourceOperationState.Cancelled)
                 throw new OperationCanceledException();
         }
     }

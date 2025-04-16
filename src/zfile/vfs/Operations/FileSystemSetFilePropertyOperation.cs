@@ -95,10 +95,6 @@ namespace zfile
             }
         }
 
-        protected override void Finalize()
-        {
-        }
-
         protected override SetFilePropertyResult SetNewProperty(FileEntry file, FileProperty templateProperty)
         {
             var result = SetFilePropertyResult.Success;
@@ -126,12 +122,12 @@ namespace zfile
                         break;
 
                     case FilePropertyType.Attributes:
-                        if ((templateProperty as FileAttributesProperty).Value !=
-                            (file.Properties[FilePropertyType.Attributes] as FileAttributesProperty).Value)
+                        if ((templateProperty as FileAttributesProperty)?.Value !=
+                            (file.Properties[FilePropertyType.Attributes] as FileAttributesProperty)?.Value)
                         {
                             if (!FileSystemUtil.SetAttributesUAC(
                                 file.FullPath,
-                                (templateProperty as FileAttributesProperty).Value))
+                                (templateProperty as FileAttributesProperty)?.Value))
                             {
                                 result = SetFilePropertyResult.Error;
                             }
@@ -143,12 +139,12 @@ namespace zfile
                         break;
 
                     case FilePropertyType.ModificationTime:
-                        if ((templateProperty as FileModificationDateTimeProperty).Value !=
-                            (file.Properties[FilePropertyType.ModificationTime] as FileModificationDateTimeProperty).Value)
+                        if ((templateProperty as FileModificationDateTimeProperty)?.Value !=
+                            (file.Properties[FilePropertyType.ModificationTime] as FileModificationDateTimeProperty)?.Value)
                         {
                             if (!FileSystemUtil.SetTimeExUAC(
                                 file.FullPath,
-                                DateTimeToFileTimeEx((templateProperty as FileModificationDateTimeProperty).Value),
+                                DateTimeToFileTimeEx((templateProperty as FileModificationDateTimeProperty)?.Value),
                                 FileTimeExNull,
                                 FileTimeExNull))
                             {
@@ -162,13 +158,13 @@ namespace zfile
                         break;
 
                     case FilePropertyType.CreationTime:
-                        if ((templateProperty as FileCreationDateTimeProperty).Value !=
-                            (file.Properties[FilePropertyType.CreationTime] as FileCreationDateTimeProperty).Value)
+                        if ((templateProperty as FileCreationDateTimeProperty)?.Value !=
+                            (file.Properties[FilePropertyType.CreationTime] as FileCreationDateTimeProperty)?.Value)
                         {
                             if (!FileSystemUtil.SetTimeExUAC(
                                 file.FullPath,
                                 FileTimeExNull,
-                                DateTimeToFileTimeEx((templateProperty as FileCreationDateTimeProperty).Value),
+                                DateTimeToFileTimeEx((templateProperty as FileCreationDateTimeProperty)?.Value),
                                 FileTimeExNull))
                             {
                                 result = SetFilePropertyResult.Error;
@@ -181,14 +177,14 @@ namespace zfile
                         break;
 
                     case FilePropertyType.LastAccessTime:
-                        if ((templateProperty as FileLastAccessDateTimeProperty).Value !=
-                            (file.Properties[FilePropertyType.LastAccessTime] as FileLastAccessDateTimeProperty).Value)
+                        if ((templateProperty as FileLastAccessDateTimeProperty)?.Value !=
+                            (file.Properties[FilePropertyType.LastAccessTime] as FileLastAccessDateTimeProperty)?.Value)
                         {
                             if (!FileSystemUtil.SetTimeExUAC(
                                 file.FullPath,
                                 FileTimeExNull,
                                 FileTimeExNull,
-                                DateTimeToFileTimeEx((templateProperty as FileLastAccessDateTimeProperty).Value)))
+                                DateTimeToFileTimeEx((templateProperty as FileLastAccessDateTimeProperty)?.Value)))
                             {
                                 result = SetFilePropertyResult.Error;
                             }
@@ -323,7 +319,7 @@ namespace zfile
                                     FileSourceOperationUIResponse.OverwriteLarger,
                                     FileSourceOperationUIResponse.OverwriteOlder,
                                     FileSourceOperationUIResponse.Abort,
-                                    FileSourceOperationUIResponse.Compare
+                                    FileSourceOperationUIResponse.CompareAction
                                 },
                                 FileSourceOperationUIResponse.Overwrite,
                                 FileSourceOperationUIResponse.Abort,
@@ -445,7 +441,7 @@ namespace zfile
                 return SetFilePropertyResult.Error;
         }
 
-        protected override void ShowCompareFilesUI(FileEntry sourceFile, string targetFilePath)
+        protected void ShowCompareFilesUI(FileEntry sourceFile, string targetFilePath)
         {
             var targetFile = FileSource.CreateFileObject(Path.GetDirectoryName(targetFilePath));
             try

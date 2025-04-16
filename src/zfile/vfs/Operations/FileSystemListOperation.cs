@@ -92,7 +92,7 @@ namespace zfile
 
         private void CheckOperationState()
         {
-            if (OperationState == OperationState.Cancelled)
+            if (OperationState == FileSourceOperationState.Cancelled)
                 throw new OperationCanceledException();
         }
     }

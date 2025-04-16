@@ -162,7 +162,7 @@ namespace zfile
         /// <summary>
         /// Gets the supported properties
         /// </summary>
-        public FilePropertyType SupportedProperties => _supportedProperties;
+        public FilePropertyType SupportedProperties { get => _supportedProperties; set => _supportedProperties = value; }
 
         /// <summary>
         /// Gets or sets whether to skip errors
@@ -362,26 +362,26 @@ namespace zfile
 
                         if (_skipErrors)
                         {
-                            Logger.Log(Thread, message, LogOption.Error);
+                            Logger.Write(Thread, message, LogOption.Error);
                         }
                         else
                         {
-                            FileSourceOperationUIAnswer answer = AskQuestion(
+                            FileSourceOperationUIResponse answer = AskQuestion(
                                 question, "",
                                 new[] { FileSourceOperationUIResponse.Retry, FileSourceOperationUIResponse.Skip, 
                                        FileSourceOperationUIResponse.SkipAll, FileSourceOperationUIResponse.Abort },
                                 FileSourceOperationUIResponse.Retry,
-                                FileSourceOperationUIAnswer.Abort);
+                                FileSourceOperationUIResponse.Abort);
 
                             switch (answer)
                             {
-                                case FileSourceOperationUIAnswer.Retry:
+                                case FileSourceOperationUIResponse.Retry:
                                     retry = true;
                                     break;
-                                case FileSourceOperationUIAnswer.SkipAll:
+                                case FileSourceOperationUIResponse.SkipAll:
                                     _skipErrors = true;
                                     break;
-                                case FileSourceOperationUIAnswer.Abort:
+                                case FileSourceOperationUIResponse.Abort:
                                     RaiseAbortOperation();
                                     break;
                             }

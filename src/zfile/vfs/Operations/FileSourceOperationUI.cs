@@ -39,36 +39,36 @@ namespace zfile
     /// <summary>
     /// UI answers (excluding actions)
     /// </summary>
-    public enum FileSourceOperationUIAnswer
-    {
-        Invalid = FileSourceOperationUIResponse.Invalid,
-        Ok = FileSourceOperationUIResponse.Ok,
-        No = FileSourceOperationUIResponse.No,
-        Yes = FileSourceOperationUIResponse.Yes,
-        Cancel = FileSourceOperationUIResponse.Cancel,
-        None = FileSourceOperationUIResponse.None,
-        Append = FileSourceOperationUIResponse.Append,
-        Resume = FileSourceOperationUIResponse.Resume,
-        CopyInto = FileSourceOperationUIResponse.CopyInto,
-        CopyIntoAll = FileSourceOperationUIResponse.CopyIntoAll,
-        Overwrite = FileSourceOperationUIResponse.Overwrite,
-        OverwriteAll = FileSourceOperationUIResponse.OverwriteAll,
-        OverwriteOlder = FileSourceOperationUIResponse.OverwriteOlder,
-        OverwriteSmaller = FileSourceOperationUIResponse.OverwriteSmaller,
-        OverwriteLarger = FileSourceOperationUIResponse.OverwriteLarger,
-        AutoRenameSource = FileSourceOperationUIResponse.AutoRenameSource,
-        AutoRenameTarget = FileSourceOperationUIResponse.AutoRenameTarget,
-        RenameSource = FileSourceOperationUIResponse.RenameSource,
-        Skip = FileSourceOperationUIResponse.Skip,
-        SkipAll = FileSourceOperationUIResponse.SkipAll,
-        Ignore = FileSourceOperationUIResponse.Ignore,
-        IgnoreAll = FileSourceOperationUIResponse.IgnoreAll,
-        All = FileSourceOperationUIResponse.All,
-        Retry = FileSourceOperationUIResponse.Retry,
-        Abort = FileSourceOperationUIResponse.Abort,
-        RetryAdmin = FileSourceOperationUIResponse.RetryAdmin,
-        Unlock = FileSourceOperationUIResponse.Unlock
-    }
+    //public enum FileSourceOperationUIResponse
+    //{
+    //    Invalid = FileSourceOperationUIResponse.Invalid,
+    //    Ok = FileSourceOperationUIResponse.Ok,
+    //    No = FileSourceOperationUIResponse.No,
+    //    Yes = FileSourceOperationUIResponse.Yes,
+    //    Cancel = FileSourceOperationUIResponse.Cancel,
+    //    None = FileSourceOperationUIResponse.None,
+    //    Append = FileSourceOperationUIResponse.Append,
+    //    Resume = FileSourceOperationUIResponse.Resume,
+    //    CopyInto = FileSourceOperationUIResponse.CopyInto,
+    //    CopyIntoAll = FileSourceOperationUIResponse.CopyIntoAll,
+    //    Overwrite = FileSourceOperationUIResponse.Overwrite,
+    //    OverwriteAll = FileSourceOperationUIResponse.OverwriteAll,
+    //    OverwriteOlder = FileSourceOperationUIResponse.OverwriteOlder,
+    //    OverwriteSmaller = FileSourceOperationUIResponse.OverwriteSmaller,
+    //    OverwriteLarger = FileSourceOperationUIResponse.OverwriteLarger,
+    //    AutoRenameSource = FileSourceOperationUIResponse.AutoRenameSource,
+    //    AutoRenameTarget = FileSourceOperationUIResponse.AutoRenameTarget,
+    //    RenameSource = FileSourceOperationUIResponse.RenameSource,
+    //    Skip = FileSourceOperationUIResponse.Skip,
+    //    SkipAll = FileSourceOperationUIResponse.SkipAll,
+    //    Ignore = FileSourceOperationUIResponse.Ignore,
+    //    IgnoreAll = FileSourceOperationUIResponse.IgnoreAll,
+    //    All = FileSourceOperationUIResponse.All,
+    //    Retry = FileSourceOperationUIResponse.Retry,
+    //    Abort = FileSourceOperationUIResponse.Abort,
+    //    RetryAdmin = FileSourceOperationUIResponse.RetryAdmin,
+    //    Unlock = FileSourceOperationUIResponse.Unlock
+    //}
 
     /// <summary>
     /// UI actions
@@ -106,12 +106,12 @@ namespace zfile
         /// <param name="defaultCancelResponse">Default cancel response</param>
         /// <param name="actionHandler">Handler for UI actions</param>
         /// <returns>User's answer</returns>
-        public abstract FileSourceOperationUIAnswer AskQuestion(
+        public abstract FileSourceOperationUIResponse AskQuestion(
             string msg, 
             string question,
             FileSourceOperationUIResponse[] possibleResponses,
             FileSourceOperationUIResponse defaultOKResponse,
-            FileSourceOperationUIAnswer defaultCancelResponse,
+            FileSourceOperationUIResponse defaultCancelResponse,
             FileSourceOperationUIActionHandler actionHandler = null);
     }
 }

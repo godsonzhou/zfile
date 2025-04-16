@@ -24,6 +24,7 @@ namespace zfile
 		internal static string MsgLogError;
 		internal static string MsgLogWipe;
 		internal static string MsgLogWipeDir;
+		internal static IFormatProvider? MsgErrDateNotSupported;
 
 		public static string MsgLogSuccess { get; internal set; }
 		public static string MsgLogMkDir { get; internal set; }

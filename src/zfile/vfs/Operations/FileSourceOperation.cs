@@ -83,9 +83,9 @@ namespace zfile
         private string _uiQuestion;
         private FileSourceOperationUIResponse[] _uiPossibleResponses;
         private FileSourceOperationUIResponse _uiDefaultOKResponse;
-        private FileSourceOperationUIAnswer _uiDefaultCancelResponse;
+        private FileSourceOperationUIResponse _uiDefaultCancelResponse;
         private IFileSourceOperationUIActionHandler _uiActionHandler;
-        private FileSourceOperationUIAnswer _uiResponse;
+        private FileSourceOperationUIResponse _uiResponse;
         private bool _tryAskQuestionResult;
 
         /// <summary>
@@ -621,12 +621,12 @@ namespace zfile
         /// <summary>
         /// General function to ask questions from operations
         /// </summary>
-        protected FileSourceOperationUIAnswer AskQuestion(
+        protected FileSourceOperationUIResponse AskQuestion(
             string message, 
             string question,
             FileSourceOperationUIResponse[] possibleResponses,
             FileSourceOperationUIResponse defaultOKResponse,
-            FileSourceOperationUIAnswer defaultCancelResponse,
+            FileSourceOperationUIResponse defaultCancelResponse,
             IFileSourceOperationUIActionHandler actionHandler = null)
         {
             // Store parameters for UI question

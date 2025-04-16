@@ -258,7 +258,8 @@ public class FileEntry
     private List<FileVariantProperty> _variantProperties;
     private FilePropertyType _supportedProperties;
 
-    private void SplitIntoNameAndExtension(string fileName, out string fileNameOnly, out string extension)
+	public Dictionary<FilePropertyType, FileProperty> Properties => _properties;
+	private void SplitIntoNameAndExtension(string fileName, out string fileNameOnly, out string extension)
     {
         int dotIndex = fileName.LastIndexOf('.');
         if (dotIndex > 0 && dotIndex < fileName.Length - 1)

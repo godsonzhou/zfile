@@ -25,12 +25,12 @@ namespace zfile
         /// <param name="defaultCancelResponse">Default cancel response</param>
         /// <param name="actionHandler">Handler for UI actions</param>
         /// <returns>User's answer</returns>
-        public override FileSourceOperationUIAnswer AskQuestion(
+        public override FileSourceOperationUIResponse AskQuestion(
             string msg, 
             string question,
             FileSourceOperationUIResponse[] possibleResponses,
             FileSourceOperationUIResponse defaultOKResponse,
-            FileSourceOperationUIAnswer defaultCancelResponse,
+            FileSourceOperationUIResponse defaultCancelResponse,
             FileSourceOperationUIActionHandler actionHandler = null)
         {
             _uiActionHandler = actionHandler;
@@ -118,37 +118,37 @@ namespace zfile
         /// </summary>
         /// <param name="result">The message box result</param>
         /// <returns>The UI response</returns>
-        private FileSourceOperationUIAnswer ResultToResponse(MessageBoxResult result)
+        private FileSourceOperationUIResponse ResultToResponse(MessageBoxResult result)
         {
             switch (result)
             {
-                case MessageBoxResult.OK: return FileSourceOperationUIAnswer.Ok;
-                case MessageBoxResult.No: return FileSourceOperationUIAnswer.No;
-                case MessageBoxResult.Yes: return FileSourceOperationUIAnswer.Yes;
-                case MessageBoxResult.Cancel: return FileSourceOperationUIAnswer.Cancel;
-                case MessageBoxResult.None: return FileSourceOperationUIAnswer.None;
-                case MessageBoxResult.Append: return FileSourceOperationUIAnswer.Append;
-                case MessageBoxResult.Resume: return FileSourceOperationUIAnswer.Resume;
-                case MessageBoxResult.CopyInto: return FileSourceOperationUIAnswer.CopyInto;
-                case MessageBoxResult.CopyIntoAll: return FileSourceOperationUIAnswer.CopyIntoAll;
-                case MessageBoxResult.Overwrite: return FileSourceOperationUIAnswer.Overwrite;
-                case MessageBoxResult.OverwriteAll: return FileSourceOperationUIAnswer.OverwriteAll;
-                case MessageBoxResult.OverwriteOlder: return FileSourceOperationUIAnswer.OverwriteOlder;
-                case MessageBoxResult.OverwriteSmaller: return FileSourceOperationUIAnswer.OverwriteSmaller;
-                case MessageBoxResult.OverwriteLarger: return FileSourceOperationUIAnswer.OverwriteLarger;
-                case MessageBoxResult.AutoRenameSource: return FileSourceOperationUIAnswer.AutoRenameSource;
-                case MessageBoxResult.AutoRenameTarget: return FileSourceOperationUIAnswer.AutoRenameTarget;
-                case MessageBoxResult.RenameSource: return FileSourceOperationUIAnswer.RenameSource;
-                case MessageBoxResult.Skip: return FileSourceOperationUIAnswer.Skip;
-                case MessageBoxResult.SkipAll: return FileSourceOperationUIAnswer.SkipAll;
-                case MessageBoxResult.Ignore: return FileSourceOperationUIAnswer.Ignore;
-                case MessageBoxResult.IgnoreAll: return FileSourceOperationUIAnswer.IgnoreAll;
-                case MessageBoxResult.All: return FileSourceOperationUIAnswer.All;
-                case MessageBoxResult.Retry: return FileSourceOperationUIAnswer.Retry;
-                case MessageBoxResult.Abort: return FileSourceOperationUIAnswer.Abort;
-                case MessageBoxResult.RetryAdmin: return FileSourceOperationUIAnswer.RetryAdmin;
-                case MessageBoxResult.Unlock: return FileSourceOperationUIAnswer.Unlock;
-                default: return FileSourceOperationUIAnswer.Invalid;
+                case MessageBoxResult.OK: return FileSourceOperationUIResponse.Ok;
+                case MessageBoxResult.No: return FileSourceOperationUIResponse.No;
+                case MessageBoxResult.Yes: return FileSourceOperationUIResponse.Yes;
+                case MessageBoxResult.Cancel: return FileSourceOperationUIResponse.Cancel;
+                case MessageBoxResult.None: return FileSourceOperationUIResponse.None;
+                case MessageBoxResult.Append: return FileSourceOperationUIResponse.Append;
+                case MessageBoxResult.Resume: return FileSourceOperationUIResponse.Resume;
+                case MessageBoxResult.CopyInto: return FileSourceOperationUIResponse.CopyInto;
+                case MessageBoxResult.CopyIntoAll: return FileSourceOperationUIResponse.CopyIntoAll;
+                case MessageBoxResult.Overwrite: return FileSourceOperationUIResponse.Overwrite;
+                case MessageBoxResult.OverwriteAll: return FileSourceOperationUIResponse.OverwriteAll;
+                case MessageBoxResult.OverwriteOlder: return FileSourceOperationUIResponse.OverwriteOlder;
+                case MessageBoxResult.OverwriteSmaller: return FileSourceOperationUIResponse.OverwriteSmaller;
+                case MessageBoxResult.OverwriteLarger: return FileSourceOperationUIResponse.OverwriteLarger;
+                case MessageBoxResult.AutoRenameSource: return FileSourceOperationUIResponse.AutoRenameSource;
+                case MessageBoxResult.AutoRenameTarget: return FileSourceOperationUIResponse.AutoRenameTarget;
+                case MessageBoxResult.RenameSource: return FileSourceOperationUIResponse.RenameSource;
+                case MessageBoxResult.Skip: return FileSourceOperationUIResponse.Skip;
+                case MessageBoxResult.SkipAll: return FileSourceOperationUIResponse.SkipAll;
+                case MessageBoxResult.Ignore: return FileSourceOperationUIResponse.Ignore;
+                case MessageBoxResult.IgnoreAll: return FileSourceOperationUIResponse.IgnoreAll;
+                case MessageBoxResult.All: return FileSourceOperationUIResponse.All;
+                case MessageBoxResult.Retry: return FileSourceOperationUIResponse.Retry;
+                case MessageBoxResult.Abort: return FileSourceOperationUIResponse.Abort;
+                case MessageBoxResult.RetryAdmin: return FileSourceOperationUIResponse.RetryAdmin;
+                case MessageBoxResult.Unlock: return FileSourceOperationUIResponse.Unlock;
+                default: return FileSourceOperationUIResponse.Invalid;
             }
         }
 

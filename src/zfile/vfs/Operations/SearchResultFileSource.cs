@@ -16,7 +16,7 @@ namespace zfile
             var properties = base.GetProperties();
             properties &= ~(FileSourceProperties.NoneParent | FileSourceProperties.ListFlatView);
             if (properties.HasFlag(FileSourceProperties.DirectAccess))
-                properties |= FileSourceProperties.LinksToLocalFiles;
+                properties |= FileSourceProperties.LinkToLocalFiles;
             return properties;
         }
 
@@ -25,19 +25,19 @@ namespace zfile
             return IsPathAtRoot(newDir);
         }
 
-        public static new FileInfo CreateFile(string path)
+        public static new FileEntry CreateFile(string path)
         {
             return FileSystemFileSource.CreateFile(path);
         }
 
-        public override IFileSourceOperation CreateListOperation(string targetPath)
+        public override IFileSourceOperation? CreateListOperation(string targetPath)
         {
-            return new SearchResultListOperation(this, targetPath);
+            return new SearchResultListOperation(this, targetPath) as IFileSourceOperation;
         }
 
-        public override bool GetLocalName(ref FileInfo file)
+        public override bool GetLocalName(ref FileEntry file)
         {
-            if (FileSource.Properties.HasFlag(FileSourceProperties.LinksToLocalFiles))
+            if (FileSource.Properties.HasFlag(FileSourceProperties.LinkToLocalFiles))
                 return FileSource.GetLocalName(ref file);
             return true;
         }

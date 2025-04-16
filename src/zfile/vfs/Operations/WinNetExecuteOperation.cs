@@ -8,7 +8,7 @@ namespace zfile
 
         public WinNetExecuteOperation(
             IFileSource targetFileSource,
-            ref FileInfo executableFile,
+            ref FileEntry executableFile,
             string currentPath,
             string verb)
             : base(targetFileSource, ref executableFile, currentPath, verb)

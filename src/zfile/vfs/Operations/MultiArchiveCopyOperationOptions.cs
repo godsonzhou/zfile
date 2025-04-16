@@ -69,7 +69,7 @@ namespace zfile
             });
 
             // 加载默认选项
-            switch (GlobalConfig.OperationOptionFileExists)
+            switch (GlobalSettings.OperationOptionFileExists)
             {
                 case FileSourceOperationOptionFileExists.None:
                     _cmbFileExists.SelectedIndex = 0;

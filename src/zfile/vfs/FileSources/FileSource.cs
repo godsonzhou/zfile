@@ -272,7 +272,7 @@ namespace zfile
 		/// </summary>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The list operation</returns>
-		IFileSourceOperation CreateListOperation(string targetPath);
+		IFileSourceOperation? CreateListOperation(string targetPath);
 
 		/// <summary>
 		/// Creates a copy operation for the specified source files and target path
@@ -868,7 +868,7 @@ namespace zfile
 		/// </summary>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The list operation</returns>
-		public abstract IFileSourceOperation CreateListOperation(string targetPath);
+		public abstract IFileSourceOperation? CreateListOperation(string targetPath);
 
 		/// <summary>
 		/// Creates a copy operation for the specified source files and target path

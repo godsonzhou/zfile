@@ -122,7 +122,7 @@ namespace zfile
             _renameMask = "";
 
             // Set default copy time option based on global setting
-            if (Settings.OperationOptionCopyTime)
+            if (GlobalSettings.OperationOptionCopyTime)
                 _copyAttributesOptions |= CopyAttributesOptions.CopyTime;
         }
 

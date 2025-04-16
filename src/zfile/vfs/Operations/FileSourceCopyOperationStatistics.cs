@@ -15,7 +15,13 @@ namespace zfile
         public long DoneBytes;
         public long BytesPerSecond;
         public DateTime RemainingTime;
-    }
+	
+		public long SkippedFiles { get; set; }
+		public long SkippedBytes { get; set; }
+		public long FailedFiles { get; set; }
+		public long FailedBytes { get; set; }
+	
+	}
 
     /// <summary>
     /// File exists option for operations

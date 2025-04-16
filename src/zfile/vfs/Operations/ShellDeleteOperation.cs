@@ -49,8 +49,8 @@ namespace zfile
                 try
                 {
                     IShellItemArray itemArray;
-                    OleCheck(SHCreateShellItemArrayFromIDLists(sourceFilesTree.Count, sourceFilesTree.ToArray(), out itemArray));
-                    OleCheck(fileOp.DeleteItems(itemArray));
+                    w32.OleCheck(SHCreateShellItemArrayFromIDLists(sourceFilesTree.Count, sourceFilesTree.ToArray(), out itemArray));
+                    w32.OleCheck(fileOp.DeleteItems(itemArray));
                     int result = fileOp.PerformOperations();
                     if (result != 0)
                     {
@@ -84,7 +84,7 @@ namespace zfile
             }
         }
 
-        private void OleCheck(int hr)
+        private void w32.OleCheck(int hr)
         {
             if (hr != 0)
                 Marshal.ThrowExceptionForHR(hr);

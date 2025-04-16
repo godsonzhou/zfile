@@ -2,6 +2,14 @@
 using WinShell;
 namespace zfile
 {
+	public interface IShellFileSource : IVirtualFileSource
+	{
+		bool SetCurrentWorkingDirectory(string newDir);
+		int CreateFolder(IShellFolder2 parent,  string newDir);
+		int FindFolder(string path, out IShellFolder2 folder);
+		int FindObject(string obj, out IntPtr pidl);
+		int FindObject(IShellFolder2 parent, string name, out IntPtr pidl);
+	}
 	public class ShellFileSource : VirtualFileSource, IShellFileSource
 	{
 		private string _rootPath;
@@ -11,9 +19,9 @@ namespace zfile
 
 		public ShellFileSource()
 		{
-			OleCheck(API.SHGetDesktopFolder(out _desktopFolder));
-			OleCheck(API.SHGetFolderLocation(IntPtr.Zero, CSIDL.DRIVES, IntPtr.Zero, 0, out _drives));
-			OleCheck(_desktopFolder.BindToObject(_drives, null, ref IID_IShellFolder2, out _rootFolder));
+			w32.OleCheck(API.SHGetDesktopFolder(out _desktopFolder));
+			w32.OleCheck(API.SHGetFolderLocation(IntPtr.Zero, CSIDL.DRIVES, IntPtr.Zero, 0, out _drives));
+			w32.OleCheck(_desktopFolder.BindToObject(_drives, IntPtr.Zero, ref Guids.IID_IShellFolder2, out _rootFolder));
 			_rootPath = GetDisplayName(_desktopFolder, _drives, SHGDN.INFOLDER);
 
 			OperationsClasses[FileSourceOperationType.Move] = typeof(ShellMoveOperation);
@@ -62,8 +70,8 @@ namespace zfile
 			{
 				IntPtr drivesPidl;
 				IShellFolder desktopFolder;
-				OleCheck(API.SHGetDesktopFolder(out desktopFolder));
-				OleCheck(SHGetFolderLocation(IntPtr.Zero, CSIDL.DRIVES, IntPtr.Zero, 0, out drivesPidl));
+				w32.OleCheck(API.SHGetDesktopFolder(out desktopFolder));
+				w32.OleCheck(SHGetFolderLocation(IntPtr.Zero, CSIDL.DRIVES, IntPtr.Zero, 0, out drivesPidl));
 				try
 				{
 					return GetDisplayName(desktopFolder, drivesPidl, SHGDN.INFOLDER);
@@ -83,14 +91,14 @@ namespace zfile
 
 			IntPtr drivesPidl;
 			IShellFolder desktopFolder;
-			OleCheck(API.SHGetDesktopFolder(out desktopFolder));
-			OleCheck(API.SHGetFolderLocation(IntPtr.Zero, CSIDL.DRIVES, IntPtr.Zero, 0, out drivesPidl));
+			w32.OleCheck(API.SHGetDesktopFolder(out desktopFolder));
+			w32.OleCheck(API.SHGetFolderLocation(IntPtr.Zero, CSIDL.DRIVES, IntPtr.Zero, 0, out drivesPidl));
 			try
 			{
 				IShellFolder2 folder;
-				OleCheck(desktopFolder.BindToObject(drivesPidl, null, ref IID_IShellFolder2, out folder));
+				w32.OleCheck(desktopFolder.BindToObject(drivesPidl, IntPtr.Zero, ref Guids.IID_IShellFolder2, out folder));
 				IEnumIDList enumIdList;
-				OleCheck(folder.EnumObjects(IntPtr.Zero, (uint)(SHCONTF.FOLDERS | SHCONTF.STORAGE), out enumIdList));
+				w32.OleCheck(folder.EnumObjects(IntPtr.Zero, (uint)(SHCONTF.FOLDERS | SHCONTF.STORAGE), out enumIdList));
 				string rootPath = "\\\\\\" + GetDisplayName(desktopFolder, drivesPidl, SHGDN.INFOLDER);
 
 				IntPtr pidl;

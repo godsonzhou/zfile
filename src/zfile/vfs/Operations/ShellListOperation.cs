@@ -36,11 +36,11 @@ namespace zfile
         {
             const uint SFGAOF_DEFAULT = (uint)(SFGAO.STORAGE | SFGAO.HIDDEN | SFGAO.FOLDER);
             IntPtr parent;
-            OleCheck(API.SHGetIDListFromObject(folder, out parent));
+            w32.OleCheck(API.SHGetIDListFromObject(folder, out parent));
             try
             {
                 IEnumIDList enumIDList;
-                OleCheck(folder.EnumObjects(0, grfFlags, out enumIDList));
+                w32.OleCheck(folder.EnumObjects(0, grfFlags, out enumIDList));
 
                 IntPtr pidl;
                 uint numIDs;
@@ -124,16 +124,16 @@ namespace zfile
         {
             const uint SFGAOF_DEFAULT = (uint)(SFGAO.FILESYSTEM | SFGAO.FOLDER);
             IShellFolder desktopFolder;
-            OleCheck(API.SHGetDesktopFolder(out desktopFolder));
+            w32.OleCheck(API.SHGetDesktopFolder(out desktopFolder));
             IntPtr drivesPidl;
-            OleCheck(API.SHGetFolderLocation(0, CSIDL.DRIVES, 0, 0, out drivesPidl));
+            w32.OleCheck(API.SHGetFolderLocation(0, CSIDL.DRIVES, 0, 0, out drivesPidl));
             try
             {
                 IShellFolder2 folder;
-                OleCheck(desktopFolder.BindToObject(drivesPidl, IntPtr.Zero, typeof(IShellFolder2).GUID, out folder));
+                w32.OleCheck(desktopFolder.BindToObject(drivesPidl, IntPtr.Zero, typeof(IShellFolder2).GUID, out folder));
 
                 IEnumIDList enumIDList;
-                OleCheck(folder.EnumObjects(0, (uint)(SHCONTF.FOLDERS | SHCONTF.STORAGE), out enumIDList));
+                w32.OleCheck(folder.EnumObjects(0, (uint)(SHCONTF.FOLDERS | SHCONTF.STORAGE), out enumIDList));
 
                 IntPtr pidl;
                 uint numIDs;
@@ -202,7 +202,7 @@ namespace zfile
             }
         }
 
-        private void OleCheck(int hr)
+        private void w32.OleCheck(int hr)
         {
             if (hr != 0)
                 Marshal.ThrowExceptionForHR(hr);

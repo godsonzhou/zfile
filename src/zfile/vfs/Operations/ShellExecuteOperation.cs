@@ -23,9 +23,9 @@ namespace zfile
                 {
                     IntPtr pidl = ((FileShellProperty)ExecutableFile.LinkProperty).Item;
                     IShellFolder2 folder;
-                    OleCheck(API.SHBindToParent(pidl, typeof(IShellFolder2).GUID, out folder, out pidl));
+                    w32.OleCheck(API.SHBindToParent(pidl, typeof(IShellFolder2).GUID, out folder, out pidl));
                     IContextMenu menu;
-                    OleCheck(folder.GetUIObjectOf(MainForm.Handle, 1, new[] { pidl }, typeof(IContextMenu).GUID, IntPtr.Zero, out menu));
+                    w32.OleCheck(folder.GetUIObjectOf(MainForm.Handle, 1, new[] { pidl }, typeof(IContextMenu).GUID, IntPtr.Zero, out menu));
                     if (menu != null)
                     {
                         var cmici = new CMINVOKECOMMANDINFOEX
@@ -35,7 +35,7 @@ namespace zfile
                             lpVerb = Verb,
                             nShow = SW_SHOWNORMAL
                         };
-                        OleCheck(menu.InvokeCommand(ref cmici));
+                        w32.OleCheck(menu.InvokeCommand(ref cmici));
                     }
                 }
                 catch
@@ -64,7 +64,7 @@ namespace zfile
             }
         }
 
-        private void OleCheck(int hr)
+        private void w32.OleCheck(int hr)
         {
             if (hr != 0)
                 Marshal.ThrowExceptionForHR(hr);

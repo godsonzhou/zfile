@@ -71,10 +71,10 @@ namespace zfile
             {
                 IShellFolder2 folder;
                 Guid iid = typeof(IShellFolder2).GUID;
-                OleCheck(parent.BindToObject(objectPtr, IntPtr.Zero, ref iid, out folder));
+                w32.OleCheck(parent.BindToObject(objectPtr, IntPtr.Zero, ref iid, out folder));
 
                 IEnumIDList enumIDList;
-                OleCheck(folder.EnumObjects(IntPtr.Zero,
+                w32.OleCheck(folder.EnumObjects(IntPtr.Zero,
                     SHCONTF.FOLDERS | SHCONTF.NONFOLDERS |
                     SHCONTF.SHCONTF_STORAGE | SHCONTF.INCLUDEHIDDEN,
                     out enumIDList));
@@ -132,7 +132,7 @@ namespace zfile
             }
         }
 
-        private void OleCheck(int hr)
+        private void w32.OleCheck(int hr)
         {
             if (hr != 0)
                 Marshal.ThrowExceptionForHR(hr);

@@ -1,8 +1,10 @@
+using System.Runtime.InteropServices;
+
 namespace zfile
 {
     public class FileSystemOperationHelper : IDisposable
     {
-        private readonly Action<string, out bool> _askQuestion;
+        private readonly Action<string, bool> _askQuestion;
         private readonly Action _raiseAbortOperation;
         private readonly Action _appProcessMessages;
         private readonly Action _checkOperationState;
@@ -11,23 +13,230 @@ namespace zfile
         private readonly Thread _thread;
         private readonly FileSourceOperationHelperMode _mode;
         private readonly string _targetPath;
-        private readonly FileSourceCopyOperationStatistics _statistics;
+        private FileSourceCopyOperationStatistics _statistics;
 
-        public bool Verify { get; set; }
-        public string RenameMask { get; set; }
-        public FileSourceOperationOptionGeneral CopyOnWrite { get; set; }
-        public bool ReserveSpace { get; set; }
-        public bool CheckFreeSpace { get; set; }
-        public CopyAttributesOption CopyAttributesOptions { get; set; }
-        public bool SkipAllBigFiles { get; set; }
+        //public bool Verify { get; set; }
+        //public string RenameMask { get; set; }
+        //public FileSourceOperationOptionGeneral CopyOnWrite { get; set; }
+        //public bool ReserveSpace { get; set; }
+        //public bool CheckFreeSpace { get; set; }
+        //public CopyAttributesOption CopyAttributesOptions { get; set; }
+        //public bool SkipAllBigFiles { get; set; }
         public bool AutoRenameItself { get; set; }
-        public bool CorrectSymLinks { get; set; }
-        public FileSourceOperationOptionGeneral FileExistsOption { get; set; }
-        public FileSourceOperationOptionGeneral DirExistsOption { get; set; }
-        public FileSourceOperationOptionSetPropertyError SetPropertyError { get; set; }
+		//public bool CorrectSymLinks { get; set; }
+		//public FileSourceOperationOptionGeneral FileExistsOption { get; set; }
+		//public FileSourceOperationOptionGeneral DirExistsOption { get; set; }
+		//public FileSourceOperationOptionSetPropertyError SetPropertyError { get; set; }
+		private Thread _operationThread;
+		//private FileSystemOperationHelperMode _mode;
+		private IntPtr _buffer;
+		private uint _bufferSize;
+		private string _rootTargetPath;
+		private string _renameMask;
+		private string _renameNameMask;
+		private string _renameExtMask;
+		private FileSourceOperationOptionSetPropertyError _setPropertyError;
+		//private FileSourceCopyOperationStatistics _statistics;
+		private Description _description;
+		private string _logCaption;
+		private bool _renamingFiles;
+		private bool _renamingRootDir;
+		private FileEntry _rootDir;
+		private bool _verify;
+		private bool _reserveSpace;
+		private bool _checkFreeSpace;
+		private bool _skipAllBigFiles;
+		private bool _skipAllSpecialFiles;
+		private bool _skipRenameError;
+		private bool _skipOpenForReadingError;
+		private bool _skipOpenForWritingError;
+		private bool _skipReadError;
+		private bool _skipWriteError;
+		private bool _skipCopyError;
+		private bool _autoRenameItSelf;
+		private bool _correctSymLinks;
+		private CopyAttributesOptions _copyAttributesOptions;
+		private FileSourceOperationUIResponse _maxPathOption;
+		private FileSourceOperationOptionGeneral _copyOnWrite;
+		private FileSourceOperationUIResponse _deleteFileOption;
+		private FileSourceOperationOptionFileExists _fileExistsOption;
+		private FileSourceOperationOptionDirectoryExists _dirExistsOption;
 
-        public FileSystemOperationHelper(
-            Action<string, out bool> askQuestion,
+		private FileEntry _currentFile;
+		private string _currentTargetFilePath;
+
+		//private AskQuestionFunction _askQuestion;
+		private Action _abortOperation;
+		//private CheckOperationStateFunction _checkOperationState;
+		//private UpdateStatisticsFunction _updateStatistics;
+		//private AppProcessMessagesFunction _appProcessMessages;
+		//private ShowCompareFilesUIFunction _showCompareFilesUI;
+		private FileSystemOperationHelperMoveOrCopy _moveOrCopy;
+
+		//public FileSystemOperationHelper(
+		//	AskQuestionFunction askQuestionFunction,
+		//	AbortOperationFunction abortOperationFunction,
+		//	AppProcessMessagesFunction appProcessMessagesFunction,
+		//	CheckOperationStateFunction checkOperationStateFunction,
+		//	UpdateStatisticsFunction updateStatisticsFunction,
+		//	ShowCompareFilesUIFunction showCompareFilesUIFunction,
+		//	Thread operationThread,
+		//	FileSystemOperationHelperMode mode,
+		//	string targetPath,
+		//	FileSourceCopyOperationStatistics startingStatistics)
+		//{
+		//	_askQuestion = askQuestionFunction;
+		//	_abortOperation = abortOperationFunction;
+		//	_appProcessMessages = appProcessMessagesFunction;
+		//	_checkOperationState = checkOperationStateFunction;
+		//	_updateStatistics = updateStatisticsFunction;
+		//	_showCompareFilesUI = showCompareFilesUIFunction;
+		//	_operationThread = operationThread;
+		//	_mode = mode;
+		//	_rootTargetPath = targetPath;
+		//	_statistics = startingStatistics;
+		//}
+
+		public void Initialize()
+		{
+			// 初始化操作
+		}
+
+		public bool Verify { get; set; }
+		public FileSourceOperationOptionGeneral CopyOnWrite { get; set; }
+		public FileSourceOperationOptionFileExists FileExistsOption { get; set; }
+		public FileSourceOperationOptionDirectoryExists DirExistsOption { get; set; }
+		public bool CheckFreeSpace { get; set; }
+		public bool ReserveSpace { get; set; }
+		public FileSourceOperationOptionSetPropertyError SetPropertyError { get; set; }
+		public bool SkipAllBigFiles { get; set; }
+		public bool AutoRenameItSelf { get; set; }
+		public CopyAttributesOptions CopyAttributesOptions { get; set; }
+		public bool CorrectSymLinks { get; set; }
+		public string RenameMask { get; set; }
+
+		private void ShowError(string message)
+		{
+			// 显示错误信息
+		}
+
+		private void LogMessage(string message, LogOptions logOptions, LogMsgType logMsgType)
+		{
+			// 记录日志信息
+		}
+
+		private bool DeleteFile(FileEntry sourceFile)
+		{
+			// 删除文件
+			return true;
+		}
+
+		private bool CheckFileHash(string fileName, string hash, long size)
+		{
+			// 检查文件哈希
+			return true;
+		}
+
+		private bool CompareFiles(string fileName1, string fileName2, long size)
+		{
+			// 比较文件
+			return true;
+		}
+
+		private bool CopyFile(FileEntry sourceFile, string targetFileName, FileSystemOperationHelperCopyMode mode)
+		{
+			// 复制文件
+			return true;
+		}
+
+		private bool MoveFile(FileEntry sourceFile, string targetFileName, FileSystemOperationHelperCopyMode mode)
+		{
+			// 移动文件
+			return true;
+		}
+
+		private void CopyProperties(FileEntry sourceFile, string targetFileName)
+		{
+			// 复制文件属性
+		}
+
+		private bool ProcessNode(FileTreeNode fileTreeNode, string currentTargetPath)
+		{
+			// 处理节点
+			return true;
+		}
+
+		private bool ProcessDirectory(FileTreeNode node, string absoluteTargetFileName)
+		{
+			// 处理目录
+			return true;
+		}
+
+		private bool ProcessLink(FileTreeNode node, string absoluteTargetFileName)
+		{
+			// 处理链接
+			return true;
+		}
+
+		private bool ProcessFile(FileTreeNode node, string absoluteTargetFileName)
+		{
+			// 处理文件
+			return true;
+		}
+
+		private FileSystemOperationTargetExistsResult TargetExists(
+			FileTreeNode node,
+			ref string absoluteTargetFileName)
+		{
+			// 检查目标是否存在
+			return FileSystemOperationTargetExistsResult.NotExists;
+		}
+
+		private FileSourceOperationOptionDirectoryExists DirExists(
+			FileEntry file,
+			string absoluteTargetFileName,
+			bool allowCopyInto,
+			bool allowDelete)
+		{
+			// 检查目录是否存在
+			return FileSourceOperationOptionDirectoryExists.None;
+		}
+
+		private void QuestionActionHandler(FileSourceOperationUIAction action)
+		{
+			// 处理问题操作
+		}
+
+		private FileSourceOperationOptionFileExists FileExists(
+			FileEntry file,
+			ref string absoluteTargetFileName,
+			bool allowAppend)
+		{
+			// 检查文件是否存在
+			return FileSourceOperationOptionFileExists.None;
+		}
+
+		private void SkipStatistics(FileTreeNode node)
+		{
+			// 跳过统计
+		}
+
+		private void CountStatistics(FileTreeNode node)
+		{
+			// 统计文件
+		}
+
+		public void Dispose()
+		{
+			// 释放资源
+			if (_buffer != IntPtr.Zero)
+			{
+				Marshal.FreeHGlobal(_buffer);
+				_buffer = IntPtr.Zero;
+			}
+		}
+		public FileSystemOperationHelper(
+            Action<string, bool> askQuestion,
             Action raiseAbortOperation,
             Action appProcessMessages,
             Action checkOperationState,
@@ -50,10 +259,7 @@ namespace zfile
             _statistics = statistics;
         }
 
-        public void Initialize()
-        {
-            // Initialize any necessary resources
-        }
+      
 
         public void ProcessTree(FileTree tree)
         {
@@ -161,9 +367,6 @@ namespace zfile
             }
         }
 
-        public void Dispose()
-        {
-            // Clean up any resources
-        }
+      
     }
 } 

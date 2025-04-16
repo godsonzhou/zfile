@@ -36,13 +36,13 @@ namespace zfile
                 }
 
                 IShellFolder2 folder;
-                OleCheck(shellFileSource.FindFolder(TargetPath, out folder));
+                w32.OleCheck(shellFileSource.FindFolder(TargetPath, out folder));
 
                 IntPtr objectPtr;
-                OleCheck(SHGetIDListFromObject(folder, out objectPtr));
+                w32.OleCheck(SHGetIDListFromObject(folder, out objectPtr));
                 try
                 {
-                    OleCheck(SHCreateItemFromIDList(objectPtr, typeof(IShellItem).GUID, out targetFolder));
+                    w32.OleCheck(SHCreateItemFromIDList(objectPtr, typeof(IShellItem).GUID, out targetFolder));
                 }
                 finally
                 {
@@ -68,8 +68,8 @@ namespace zfile
                 try
                 {
                     IShellItemArray itemArray;
-                    OleCheck(SHCreateShellItemArrayFromIDLists((uint)sourceFilesTree.Count, sourceFilesTree.ToArray(), out itemArray));
-                    OleCheck(fileOp.MoveItems(itemArray, targetFolder));
+                    w32.OleCheck(SHCreateShellItemArrayFromIDLists((uint)sourceFilesTree.Count, sourceFilesTree.ToArray(), out itemArray));
+                    w32.OleCheck(fileOp.MoveItems(itemArray, targetFolder));
                     int result = fileOp.PerformOperations();
                     if (result != 0)
                     {
@@ -112,7 +112,7 @@ namespace zfile
             }
         }
 
-        private void OleCheck(int hr)
+        private void w32.OleCheck(int hr)
         {
             if (hr != 0)
                 Marshal.ThrowExceptionForHR(hr);

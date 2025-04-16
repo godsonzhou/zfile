@@ -28,21 +28,21 @@ namespace zfile
             try
             {
                 IShellFolder desktopFolder;
-                OleCheck(API.SHGetDesktopFolder(out desktopFolder));
+                w32.OleCheck(API.SHGetDesktopFolder(out desktopFolder));
 
                 IntPtr trashPIDL;
-                OleCheck(API.SHGetFolderLocation(IntPtr.Zero, CSIDL.BITBUCKET, 
+                w32.OleCheck(API.SHGetFolderLocation(IntPtr.Zero, CSIDL.BITBUCKET, 
                     IntPtr.Zero, 0, out trashPIDL));
 
                 try
                 {
                     IShellFolder2 folder;
                     Guid iid = typeof(IShellFolder2).GUID;
-                    OleCheck(desktopFolder.BindToObject(trashPIDL, IntPtr.Zero, 
+                    w32.OleCheck(desktopFolder.BindToObject(trashPIDL, IntPtr.Zero, 
                         ref iid, out folder));
 
                     IEnumIDList enumIDList;
-                    OleCheck(folder.EnumObjects(IntPtr.Zero, 
+                    w32.OleCheck(folder.EnumObjects(IntPtr.Zero, 
                         SHCONTF.FOLDERS | SHCONTF.NONFOLDERS | 
                         SHCONTF.INCLUDEHIDDEN, out enumIDList));
 
@@ -111,7 +111,7 @@ namespace zfile
             return value?.ToString() ?? string.Empty;
         }
 
-        private void OleCheck(int hr)
+        private void w32.OleCheck(int hr)
         {
             if (hr != 0)
                 Marshal.ThrowExceptionForHR(hr);

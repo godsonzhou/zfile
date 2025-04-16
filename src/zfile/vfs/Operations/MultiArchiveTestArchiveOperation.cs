@@ -3,12 +3,12 @@ namespace zfile
     public class MultiArchiveTestArchiveOperation : FileSourceOperation
     {
         private readonly IMultiArchiveFileSource _multiArchiveFileSource;
-        private readonly Files _sourceFiles;
+        private readonly FileEntries _sourceFiles;
         private bool _testResult;
 
         public MultiArchiveTestArchiveOperation(
             IMultiArchiveFileSource fileSource,
-            ref Files sourceFiles)
+            ref FileEntries sourceFiles)
         {
             _multiArchiveFileSource = fileSource;
             _sourceFiles = sourceFiles;

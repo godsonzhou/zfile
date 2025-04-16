@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
-namespace Zfile.Forms
+namespace zfile.Forms
 {
 	public class SearchforDialog : Form
 	{

@@ -1,4 +1,4 @@
-namespace Zfile.FileSources
+namespace zfile
 {
 	#region Enums and Data Structures
 
@@ -450,7 +450,9 @@ namespace Zfile.FileSources
 		/// <param name="path">The path</param>
 		/// <returns>True if the path is at the root, false otherwise</returns>
 		bool IsPathAtRoot(string path);
-
+		string CurrentPath { get; }
+	
+	
 		/// <summary>
 		/// Gets the parent directory of the specified path
 		/// </summary>

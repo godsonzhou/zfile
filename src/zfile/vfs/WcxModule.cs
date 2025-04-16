@@ -1,10 +1,5 @@
-﻿using CSCore.Win32;
-using MCPSharp.Model;
-using SharpCompress.Archives;
-using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
-using static OpenQA.Selenium.BiDi.Modules.Session.ProxyConfiguration;
 /*
 主要功能：
 基础结构定义：
@@ -53,9 +48,8 @@ Unicode支持：
 提供进度回调
 安全地管理非托管资源
 */
-namespace Zfile
+namespace zfile
 {
-	 
 	public enum WcxResult:int
 	{
 		PK_OK = 0,

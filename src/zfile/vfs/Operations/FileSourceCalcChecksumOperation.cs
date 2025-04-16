@@ -1,19 +1,5 @@
-using Zfile.FileSources;
-
-namespace Zfile.Operations
+namespace zfile
 {
-    /// <summary>
-    /// Checksum operation mode
-    /// </summary>
-    public enum CalcCheckSumOperationMode
-    {
-        /// <summary>Calculate checksum</summary>
-        Calc,
-        
-        /// <summary>Verify checksum</summary>
-        Verify
-    }
-
     /// <summary>
     /// Verify checksum result
     /// </summary>
@@ -283,24 +269,5 @@ namespace Zfile.Operations
         }
     }
 
-    /// <summary>
-    /// Hash algorithm
-    /// </summary>
-    public enum HashAlgorithm
-    {
-        /// <summary>MD5 algorithm</summary>
-        MD5,
-        
-        /// <summary>SHA1 algorithm</summary>
-        SHA1,
-        
-        /// <summary>SHA256 algorithm</summary>
-        SHA256,
-        
-        /// <summary>SHA512 algorithm</summary>
-        SHA512,
-        
-        /// <summary>CRC32 algorithm</summary>
-        CRC32
-    }
+ 
 }

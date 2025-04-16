@@ -1,8 +1,8 @@
 ﻿using System.IO.Compression;
 using System.Text;
-using Zfile.Forms;
+using zfile.Forms;
 
-namespace Zfile
+namespace zfile
 {
 	public partial class CmdProc
 	{

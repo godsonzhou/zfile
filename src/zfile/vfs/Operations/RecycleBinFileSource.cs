@@ -1,9 +1,4 @@
-using System;
-using System.IO;
-using System.Collections.Generic;
-using Zfile.FileSources;
-using Zfile;
-namespace FileSystemOperations
+namespace zfile
 {
     public interface IRecycleBinFileSource : IVirtualFileSource
     {

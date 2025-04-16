@@ -1,4 +1,4 @@
-namespace Zfile
+namespace zfile
 {
     /// <summary>
     /// 种子下载详细信息类，用于提供种子下载的详细状态和调试信息

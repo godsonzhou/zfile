@@ -2,7 +2,7 @@ using FluentFTP;
 using System.Diagnostics;
 using System.Text;
 
-namespace Zfile
+namespace zfile
 {
     /// <summary>
     /// FTP文件源异步实现，用于处理FTP虚拟文件系统的异步操作

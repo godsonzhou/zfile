@@ -1,9 +1,22 @@
 using System;
+using System.Runtime.InteropServices;
 
 namespace WinShell
 {
-    // 定义 SHIL 枚举，用于指定图像列表的大小
-    public enum SHIL : int
+	[StructLayout(LayoutKind.Sequential)]
+	public struct SHCOLUMNID
+	{
+		public Guid fmtid;
+		public uint pid;
+	}
+
+	public enum PID_DISPLACED
+	{
+		PID_DISPLACED_FROM = 2,
+		PID_DISPLACED_DATE = 3
+	}
+	// 定义 SHIL 枚举，用于指定图像列表的大小
+	public enum SHIL : int
     {
         SHIL_LARGE = 0,
         SHIL_SMALL = 1,
@@ -95,7 +108,7 @@ namespace WinShell
 	//	FORPARSING = 0x8000,
 	//}
 	[Flags()]
-    public enum SHCONTF
+    public enum SHCONTF : uint
     {
 		HECKING_FOR_CHILDREN = 0x00010,
 		FOLDERS = 0x20,

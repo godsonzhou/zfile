@@ -1,4 +1,4 @@
-namespace Zfile
+namespace zfile
 {
 	using System;
 	using System.ComponentModel;

@@ -1,4 +1,4 @@
-﻿﻿namespace Zfile
+﻿﻿namespace zfile
 {
     partial class MainForm
     {

@@ -1,7 +1,6 @@
 using System.Runtime.InteropServices;
-using Zfile;
 using WinShell;
-namespace FileSystemOperations
+namespace zfile
 {
     public class RecycleBinListOperation : FileSystemListOperation
     {
@@ -20,19 +19,19 @@ namespace FileSystemOperations
         public RecycleBinListOperation(IFileSource fileSource, string path)
             : base(fileSource, path)
         {
-            Files = new FileEntries();
+            files = new FileEntries();
         }
 
         public override void MainExecute()
         {
-            Files.Clear();
+            files.Clear();
             try
             {
                 IShellFolder desktopFolder;
-                OleCheck(SHGetDesktopFolder(out desktopFolder));
+                OleCheck(API.SHGetDesktopFolder(out desktopFolder));
 
                 IntPtr trashPIDL;
-                OleCheck(SHGetFolderLocation(IntPtr.Zero, CSIDL.BITBUCKET, 
+                OleCheck(API.SHGetFolderLocation(IntPtr.Zero, CSIDL.BITBUCKET, 
                     IntPtr.Zero, 0, out trashPIDL));
 
                 try
@@ -72,7 +71,7 @@ namespace FileSystemOperations
                                     Convert.ToDouble(GetDetails(folder, pidl, SCID_DateDeleted)));
                             }
 
-                            Files.Add(file);
+                            files.Add(file);
                         }
                         finally
                         {
@@ -148,37 +147,7 @@ namespace FileSystemOperations
     //        out IntPtr ppidlOut);
     //}
 
-    [ComImport]
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    [Guid("93F2F68C-1D1B-11D3-A30E-00C04F79ABD1")]
-    public interface IShellFolder2 : IShellFolder
-    {
-        new void ParseDisplayName(IntPtr hwnd, IntPtr pbc, string pszDisplayName, 
-            ref uint pchEaten, out IntPtr ppidl, ref uint pdwAttributes);
-        new void EnumObjects(IntPtr hwnd, uint grfFlags, out IEnumIDList ppenumIDList);
-        new void BindToObject(IntPtr pidl, IntPtr pbc, [In] ref Guid riid, 
-            [MarshalAs(UnmanagedType.IUnknown)] out object ppv);
-        new void BindToStorage(IntPtr pidl, IntPtr pbc, [In] ref Guid riid, 
-            out IntPtr ppv);
-        new void CompareIDs(IntPtr lParam, IntPtr pidl1, IntPtr pidl2);
-        new void CreateViewObject(IntPtr hwndOwner, [In] ref Guid riid, 
-            out IntPtr ppv);
-        new void GetAttributesOf(uint cidl, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] IntPtr[] apidl, 
-            ref uint rgfInOut);
-        new void GetUIObjectOf(IntPtr hwndOwner, uint cidl, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] IntPtr[] apidl, 
-            [In] ref Guid riid, IntPtr rgfReserved, out IntPtr ppv);
-        new void GetDisplayNameOf(IntPtr pidl, uint uFlags, out IntPtr ppszName);
-        new void SetNameOf(IntPtr hwnd, IntPtr pidl, string pszName, uint uFlags, 
-            out IntPtr ppidlOut);
-        void GetDefaultSearchGUID(out Guid pguid);
-        void EnumSearches(out IntPtr ppenum);
-        void GetDefaultColumn(uint dwRes, out uint pSort, out uint pDisplay);
-        void GetDefaultColumnState(uint iColumn, out uint pcsFlags);
-        void GetDetailsEx(IntPtr pidl, ref SHCOLUMNID pscid, out object pv);
-        void GetDetailsOf(IntPtr pidl, uint iColumn, out IntPtr psd);
-        void MapColumnToSCID(uint iColumn, out SHCOLUMNID pscid);
-    }
-
+ 
     //[ComImport]
     //[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     //[Guid("000214F2-0000-0000-C000-000000000046")]
@@ -191,18 +160,7 @@ namespace FileSystemOperations
     //    void Clone(out IEnumIDList ppenum);
     //}
 
-    [StructLayout(LayoutKind.Sequential)]
-    public struct SHCOLUMNID
-    {
-        public Guid fmtid;
-        public uint pid;
-    }
-
-    public enum PID_DISPLACED
-    {
-        PID_DISPLACED_FROM = 2,
-        PID_DISPLACED_DATE = 3
-    }
+  
 
     //public enum SHCONTF
     //{

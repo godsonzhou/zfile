@@ -1,6 +1,4 @@
-using Zfile.FileSources;
-
-namespace Zfile.Operations
+namespace zfile
 {
     /// <summary>
     /// Represents the description details for file source operations

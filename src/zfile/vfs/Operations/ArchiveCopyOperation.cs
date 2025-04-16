@@ -1,4 +1,4 @@
-namespace Zfile.Operations
+namespace zfile
 {
     /// <summary>
     /// Extract flag enumeration

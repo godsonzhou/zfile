@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Zfile.Forms
+namespace zfile.Forms
 {
     public class EditorForm : Form
     {

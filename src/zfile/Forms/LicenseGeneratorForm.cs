@@ -1,4 +1,4 @@
-namespace Zfile.Forms
+namespace zfile.Forms
 {
     public partial class LicenseGeneratorForm : Form
     {

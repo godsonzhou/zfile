@@ -10,7 +10,7 @@ using Microsoft.Extensions.AI;
 using System.Collections;
 using System.Diagnostics;
 
-namespace Zfile
+namespace zfile
 {
     public class MCPClientManager
     {

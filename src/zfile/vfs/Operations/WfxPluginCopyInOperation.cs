@@ -1,7 +1,6 @@
 using FileSystemOperations;
-using Zfile.FileSources;
 
-namespace Zfile.Operations;
+namespace zfile;
 
 public class WfxPluginCopyInOperation : FileSourceCopyInOperation
 {

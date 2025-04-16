@@ -1,13 +1,7 @@
 using FileSystemOperations;
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Runtime.InteropServices;
-using System.Threading;
-using Zfile.Operations;
-using Zfile;
 
-namespace Files.FileSources.FileSystem
+namespace zfile
 {
 	public static class FileSystemUtil
 	{

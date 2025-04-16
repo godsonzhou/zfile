@@ -1,7 +1,5 @@
 using System.Runtime.InteropServices;
-using Zfile.FileSources;
-using Zfile;
-namespace FileSystemOperations
+namespace zfile
 {
     public interface IFileSystemFileSource : ILocalFileSource
     {

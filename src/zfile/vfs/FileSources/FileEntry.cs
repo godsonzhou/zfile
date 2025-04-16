@@ -1,6 +1,6 @@
 using System.Collections;
 
-namespace Zfile;
+namespace zfile;
 public static class Constants
 {
 	public const int CSIDL_DRIVES = 0x0011;
@@ -776,7 +776,7 @@ public class FileEntries : IEnumerable<FileEntry>
         set { _flat = value; }
     }
 
-    public FileEntries(string path)
+    public FileEntries(string path = "")
     {
         _list = new List<FileEntry>();
         _ownsObjects = true;

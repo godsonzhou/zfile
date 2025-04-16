@@ -1,6 +1,4 @@
-using Zfile.Operations;
-using Zfile.FileSources;
-namespace FileSystemOperations
+namespace zfile
 {
     public class ShellCreateDirectoryOperation : FileSourceCreateDirectoryOperation
     {

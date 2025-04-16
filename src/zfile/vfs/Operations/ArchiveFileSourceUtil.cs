@@ -1,7 +1,4 @@
-using Zfile.FileSources;
-using MultiArchive;
-using FileSystemOperations;
-namespace Zfile.Operations
+namespace zfile
 {
     /// <summary>
     /// Archive file source utility functions

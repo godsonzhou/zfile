@@ -1,5 +1,4 @@
-using Zfile.FileSources;
-namespace Zfile.Operations
+namespace zfile
 {
     /// <summary>
     /// Result of setting a file property
@@ -649,38 +648,38 @@ namespace Zfile.Operations
     /// <summary>
     /// Logger class
     /// </summary>
-    public static class Logger
-    {
-        /// <summary>
-        /// Logs a message
-        /// </summary>
-        /// <param name="thread">The thread</param>
-        /// <param name="message">The message</param>
-        /// <param name="messageType">The message type</param>
-        public static void Log(Thread thread, string message, LogMessageType messageType)
-        {
-            // Implementation would go here
-        }
-    }
+    //public static class Logger
+    //{
+    //    /// <summary>
+    //    /// Logs a message
+    //    /// </summary>
+    //    /// <param name="thread">The thread</param>
+    //    /// <param name="message">The message</param>
+    //    /// <param name="messageType">The message type</param>
+    //    public static void Log(Thread thread, string message, LogMessageType messageType)
+    //    {
+    //        // Implementation would go here
+    //    }
+    //}
 
-    /// <summary>
-    /// Log message type
-    /// </summary>
-    public enum LogMessageType
-    {
-        /// <summary>
-        /// Error message
-        /// </summary>
-        Error,
+    ///// <summary>
+    ///// Log message type
+    ///// </summary>
+    //public enum LogMessageType
+    //{
+    //    /// <summary>
+    //    /// Error message
+    //    /// </summary>
+    //    Error,
 
-        /// <summary>
-        /// Warning message
-        /// </summary>
-        Warning,
+    //    /// <summary>
+    //    /// Warning message
+    //    /// </summary>
+    //    Warning,
 
-        /// <summary>
-        /// Information message
-        /// </summary>
-        Info
-    }
+    //    /// <summary>
+    //    /// Information message
+    //    /// </summary>
+    //    Info
+    //}
 }

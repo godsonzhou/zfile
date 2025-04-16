@@ -1,8 +1,6 @@
-using System;
 using System.Runtime.InteropServices;
-using Zfile.Operations;
 using WinShell;
-namespace FileSystemOperations
+namespace zfile
 {
     public class ShellExecuteOperation : FileSourceExecuteOperation
     {

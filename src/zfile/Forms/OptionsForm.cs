@@ -1,6 +1,6 @@
 ﻿using System.Data;
-using Zfile.Forms;
-namespace Zfile
+using zfile.Forms;
+namespace zfile
 {
 	public class AddWlxMappingForm : Form
 	{

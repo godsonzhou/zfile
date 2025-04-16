@@ -1,7 +1,7 @@
 using Files.FileSources.FileSystem;
-using Zfile;
-using Zfile.FileSources;
-using Zfile.Operations;
+using zfile;
+using zfile.FileSources;
+using zfile.Operations;
 
 namespace FileSystemOperations
 {

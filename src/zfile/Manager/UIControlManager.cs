@@ -2,8 +2,8 @@ using Sheng.Winform.Controls;
 using System.Diagnostics;
 using System.Text;
 using WinShell;
-using Zfile.Forms;
-namespace Zfile
+using zfile.Forms;
+namespace zfile
 {
 	public class UIControlManager : IDisposable
 	{

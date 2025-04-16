@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-namespace Zfile
+namespace zfile
 {
     public class FileCompareForm : Form
     {

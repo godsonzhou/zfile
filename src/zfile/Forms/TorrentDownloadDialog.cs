@@ -11,7 +11,7 @@ using System.Windows.Forms;
 using MonoTorrent;
 using MonoTorrent.Client;
 
-namespace Zfile.Forms
+namespace zfile.Forms
 {
     /// <summary>
     /// 种子下载对话框，用于添加磁力链接或种子文件下载

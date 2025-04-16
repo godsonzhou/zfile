@@ -6,9 +6,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Zfile.Forms;
+using zfile.Forms;
 
-namespace Zfile
+namespace zfile
 {
     /// <summary>
     /// Chrome扩展消息处理类，实现Native Messaging协议

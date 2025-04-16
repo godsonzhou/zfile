@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace Zfile
+namespace zfile
 {
 
     public static class WfxModuleExtensions

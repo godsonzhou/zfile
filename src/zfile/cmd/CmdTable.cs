@@ -1,4 +1,4 @@
-﻿namespace Zfile
+﻿namespace zfile
 {
 	public struct CmdTableItem(string cmdName, int cmdId, string description, string zhDesc)
 	{

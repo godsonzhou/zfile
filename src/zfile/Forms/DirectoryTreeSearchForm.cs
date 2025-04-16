@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace Zfile.Forms
+namespace zfile.Forms
 {
     public partial class DirectoryTreeSearchForm : Form
     {

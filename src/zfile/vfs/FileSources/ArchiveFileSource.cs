@@ -1,4 +1,4 @@
-namespace Zfile.FileSources
+namespace zfile
 {
     /// <summary>
     /// Interface for archive file sources

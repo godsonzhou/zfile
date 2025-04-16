@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using MCPSharp;
 
-namespace Zfile
+namespace zfile
 {
 	public class LLM_Helper
 	{

@@ -1,22 +1,6 @@
-using Zfile.FileSources;
-
-namespace Zfile.Operations
+namespace zfile
 {
-	public enum LogMsgType
-	{
-		Success,
-		Error,
-		Info
-	}
-
-	public enum LogOption
-	{
-		Errors,
-		Info,
-		Success,
-		ArcOp,
-		None
-	}
+	
 	public class WcxArchiveDeleteOperation : FileSourceDeleteOperation
 	{
 		private IWcxArchiveFileSource _wcxArchiveFileSource;

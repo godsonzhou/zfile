@@ -1,5 +1,4 @@
-using Zfile.FileSources;
-namespace Zfile
+namespace zfile
 {
     public class FileSourceRecord
     {

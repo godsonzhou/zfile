@@ -25,7 +25,7 @@ if (module != null)
     // ... 其他操作
 }
 */
-namespace Zfile
+namespace zfile
 {
 	public class WlxConstants
 	{

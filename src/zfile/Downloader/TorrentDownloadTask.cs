@@ -1,6 +1,6 @@
-using Zfile.Forms;
+using zfile.Forms;
 
-namespace Zfile
+namespace zfile
 {
     /// <summary>
     /// 种子下载任务类，继承自DownloadTask，用于处理磁力链接和种子文件下载

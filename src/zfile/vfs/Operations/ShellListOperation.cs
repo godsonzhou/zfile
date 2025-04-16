@@ -1,9 +1,6 @@
-using System;
 using System.Runtime.InteropServices;
-using System.Collections.Generic;
-using Zfile.FileSources;
 using WinShell;
-namespace FileSystemOperations
+namespace zfile
 {
     public class ShellListOperation : FileSourceListOperation
     {
@@ -12,12 +9,12 @@ namespace FileSystemOperations
         public ShellListOperation(IFileSource fileSource, string path) : base(fileSource, path)
         {
             shellFileSource = fileSource as IShellFileSource;
-            Files = new List<FileInfo>();
+            files = new FileEntries();
         }
 
         public override void MainExecute()
         {
-            Files.Clear();
+            files.Clear();
             try
             {
                 if (shellFileSource.IsPathAtRoot(Path))
@@ -39,7 +36,7 @@ namespace FileSystemOperations
         {
             const uint SFGAOF_DEFAULT = (uint)(SFGAO.STORAGE | SFGAO.HIDDEN | SFGAO.FOLDER);
             IntPtr parent;
-            OleCheck(SHGetIDListFromObject(folder, out parent));
+            OleCheck(API.SHGetIDListFromObject(folder, out parent));
             try
             {
                 IEnumIDList enumIDList;
@@ -127,16 +124,16 @@ namespace FileSystemOperations
         {
             const uint SFGAOF_DEFAULT = (uint)(SFGAO.FILESYSTEM | SFGAO.FOLDER);
             IShellFolder desktopFolder;
-            OleCheck(SHGetDesktopFolder(out desktopFolder));
+            OleCheck(API.SHGetDesktopFolder(out desktopFolder));
             IntPtr drivesPidl;
-            OleCheck(SHGetFolderLocation(0, CSIDL.DRIVES, 0, 0, out drivesPidl));
+            OleCheck(API.SHGetFolderLocation(0, CSIDL.DRIVES, 0, 0, out drivesPidl));
             try
             {
                 IShellFolder2 folder;
                 OleCheck(desktopFolder.BindToObject(drivesPidl, IntPtr.Zero, typeof(IShellFolder2).GUID, out folder));
 
                 IEnumIDList enumIDList;
-                OleCheck(folder.EnumObjects(0, SHCONTF.FOLDERS | SHCONTF.STORAGE, out enumIDList));
+                OleCheck(folder.EnumObjects(0, (uint)(SHCONTF.FOLDERS | SHCONTF.STORAGE), out enumIDList));
 
                 IntPtr pidl;
                 uint numIDs;

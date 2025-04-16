@@ -9,7 +9,7 @@ using System.Text;
 using DiffPlex.DiffBuilder;
 using DiffPlex.DiffBuilder.Model;
 
-namespace Zfile
+namespace zfile
 {
 	public class FileContentWatcher
 	{

@@ -128,6 +128,36 @@ namespace WinShell
 		int GetDisplayNameOf(IntPtr pidl, SHGDN uFlags, IntPtr pName);      //out STRRET pName);  //bugfix: remove 'out' prefix of pName parameter
 		void SetNameOf(IntPtr hwnd, IntPtr pidl, [MarshalAs(UnmanagedType.LPWStr)] string pszName, SHCONTF uFlags, out IntPtr ppidlOut);
 	}
+	[ComImport]
+	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+	[Guid("93F2F68C-1D1B-11D3-A30E-00C04F79ABD1")]
+	public interface IShellFolder2 : IShellFolder
+	{
+		new void ParseDisplayName(IntPtr hwnd, IntPtr pbc, string pszDisplayName,
+			ref uint pchEaten, out IntPtr ppidl, ref uint pdwAttributes);
+		new void EnumObjects(IntPtr hwnd, uint grfFlags, out IEnumIDList ppenumIDList);
+		new void BindToObject(IntPtr pidl, IntPtr pbc, [In] ref Guid riid,
+			[MarshalAs(UnmanagedType.IUnknown)] out object ppv);
+		new void BindToStorage(IntPtr pidl, IntPtr pbc, [In] ref Guid riid,
+			out IntPtr ppv);
+		new void CompareIDs(IntPtr lParam, IntPtr pidl1, IntPtr pidl2);
+		new void CreateViewObject(IntPtr hwndOwner, [In] ref Guid riid,
+			out IntPtr ppv);
+		new void GetAttributesOf(uint cidl, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] IntPtr[] apidl,
+			ref uint rgfInOut);
+		new void GetUIObjectOf(IntPtr hwndOwner, uint cidl, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] IntPtr[] apidl,
+			[In] ref Guid riid, IntPtr rgfReserved, out IntPtr ppv);
+		new void GetDisplayNameOf(IntPtr pidl, uint uFlags, out IntPtr ppszName);
+		new void SetNameOf(IntPtr hwnd, IntPtr pidl, string pszName, uint uFlags,
+			out IntPtr ppidlOut);
+		void GetDefaultSearchGUID(out Guid pguid);
+		void EnumSearches(out IntPtr ppenum);
+		void GetDefaultColumn(uint dwRes, out uint pSort, out uint pDisplay);
+		void GetDefaultColumnState(uint iColumn, out uint pcsFlags);
+		void GetDetailsEx(IntPtr pidl, ref SHCOLUMNID pscid, out object pv);
+		void GetDetailsOf(IntPtr pidl, uint iColumn, out IntPtr psd);
+		void MapColumnToSCID(uint iColumn, out SHCOLUMNID pscid);
+	}
 
 	[ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("000214E4-0000-0000-C000-000000000046")]
 	public interface IContextMenu

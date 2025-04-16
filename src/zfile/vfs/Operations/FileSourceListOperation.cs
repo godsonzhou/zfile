@@ -1,6 +1,4 @@
-using Zfile.FileSources;
-
-namespace Zfile.Operations
+namespace zfile
 {
     /// <summary>
     /// Operation that lists files in a file source

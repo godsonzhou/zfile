@@ -1,8 +1,6 @@
-using System;
 using System.Runtime.InteropServices;
-using System.Collections.Generic;
 using WinShell;
-namespace FileSystemOperations
+namespace zfile
 {
     public class ItemList : List<IntPtr>
     {

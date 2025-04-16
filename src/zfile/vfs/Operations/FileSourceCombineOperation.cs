@@ -1,6 +1,4 @@
-using Zfile.FileSources;
-
-namespace Zfile.Operations
+namespace zfile
 {
     /// <summary>
     /// Operation that combines files within the same file source.

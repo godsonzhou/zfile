@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Forms;
 
-namespace Zfile.Forms
+namespace zfile.Forms
 {
     partial class IdmForm
     {

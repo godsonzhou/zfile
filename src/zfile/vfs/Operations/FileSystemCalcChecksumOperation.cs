@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
-using Zfile.Operations;
-namespace FileSystemOperations
+
+namespace zfile
 {
     public class FileSystemCalcChecksumOperation : FileSourceCalcChecksumOperation
     {
@@ -266,20 +266,5 @@ namespace FileSystemOperations
         public HashAlgorithm Algorithm { get; set; }
     }
 
-    public enum HashAlgorithm
-    {
-        MD5,
-        SHA1,
-        SHA256,
-        SHA512,
-        SFV
-    }
-
-    public enum LogOptions
-    {
-        Info,
-        Warning,
-        Error,
-        Success
-    }
+ 
 } 

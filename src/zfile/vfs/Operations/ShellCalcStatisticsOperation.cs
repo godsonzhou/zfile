@@ -1,7 +1,6 @@
 using System.Runtime.InteropServices;
-using Zfile;
-using Zfile.Operations;
-namespace FileSystemOperations
+
+namespace zfile
 {
     public class ShellCalcStatisticsOperation : FileSourceCalcStatisticsOperation
     {

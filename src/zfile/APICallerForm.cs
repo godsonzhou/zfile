@@ -1,9 +1,9 @@
 using Newtonsoft.Json;
 using Sheng.Winform.Controls;
 using System.Diagnostics;
-using Zfile.Forms;
+using zfile.Forms;
 
-namespace Zfile
+namespace zfile
 {
 	public class Data
 	{

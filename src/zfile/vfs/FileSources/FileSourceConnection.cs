@@ -1,4 +1,4 @@
-namespace Zfile.FileSources
+namespace zfile
 {
     /// <summary>
     /// Represents a connection to a file source

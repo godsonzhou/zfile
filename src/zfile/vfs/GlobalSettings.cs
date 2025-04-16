@@ -1,6 +1,83 @@
-namespace FileSystemOperations
+namespace zfile
 {
-    public static class GlobalSettings
+	public enum LogMsgType
+	{
+		Success,
+		Error,
+		Info
+	}
+
+	public enum LogOption
+	{
+		Errors,
+		Info,
+		Success,
+		ArcOp,
+		None
+	}
+	/// <summary>
+	/// Checksum operation mode
+	/// </summary>
+	public enum CalcCheckSumOperationMode
+	{
+		/// <summary>Calculate checksum</summary>
+		Calc,
+
+		/// <summary>Verify checksum</summary>
+		Verify
+	}
+	public enum HashAlgorithm
+	{
+		MD5,
+		SHA1,
+		SHA256,
+		SHA512,
+		SFV
+	}
+
+	public enum LogOptions
+	{
+		Info,
+		Warning,
+		Error,
+		Success
+	}
+	public enum FileExistsOption
+	{
+		None,
+		Overwrite,
+		OverwriteOlder,
+		Skip
+	}
+
+	public enum DirectoryExistsOption
+	{
+		None,
+		CopyInto,
+		Skip
+	}
+
+	public enum SetPropertyErrorOption
+	{
+		None,
+		DontSet,
+		IgnoreErrors
+	}
+
+	public enum CopyOnWriteOption
+	{
+		None,
+		Yes,
+		No
+	}
+
+	public enum SymLinksOption
+	{
+		Follow,
+		DontFollow,
+		None
+	}
+	public static class GlobalSettings
     {
         public static FileSourceOperationOptionGeneral OperationOptionSymLinks { get; set; } = FileSourceOperationOptionGeneral.AskUser;
         public static FileSourceOperationOptionSetPropertyError OperationOptionSetPropertyError { get; set; } = FileSourceOperationOptionSetPropertyError.Skip;

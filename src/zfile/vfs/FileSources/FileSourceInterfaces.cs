@@ -1,27 +1,5 @@
-using Zfile;
-namespace FileSystemOperations
+namespace zfile
 {
-    public interface IFileSource
-    {
-        string CurrentPath { get; }
-        bool IsPathAtRoot(string path);
-        bool IsPathAtRoot(FileInfo file);
-        bool IsPathAtRoot(DirectoryInfo dir);
-        bool IsPathAtRoot(FileSystemInfo fileSystemInfo);
-        bool IsPathAtRoot(string path, out string parentPath);
-        bool IsPathAtRoot(FileInfo file, out string parentPath);
-        bool IsPathAtRoot(DirectoryInfo dir, out string parentPath);
-        bool IsPathAtRoot(FileSystemInfo fileSystemInfo, out string parentPath);
-        bool IsPathAtRoot(string path, out string parentPath, out string rootPath);
-        bool IsPathAtRoot(FileInfo file, out string parentPath, out string rootPath);
-        bool IsPathAtRoot(DirectoryInfo dir, out string parentPath, out string rootPath);
-        bool IsPathAtRoot(FileSystemInfo fileSystemInfo, out string parentPath, out string rootPath);
-        bool IsPathAtRoot(string path, out string parentPath, out string rootPath, out string rootName);
-        bool IsPathAtRoot(FileInfo file, out string parentPath, out string rootPath, out string rootName);
-        bool IsPathAtRoot(DirectoryInfo dir, out string parentPath, out string rootPath, out string rootName);
-        bool IsPathAtRoot(FileSystemInfo fileSystemInfo, out string parentPath, out string rootPath, out string rootName);
-    }
-
     public abstract class FileSourceCopyOperation : IDisposable
     {
         protected IFileSource SourceFileSource { get; }

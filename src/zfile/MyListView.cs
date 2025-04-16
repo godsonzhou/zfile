@@ -1,4 +1,4 @@
-﻿namespace Zfile
+﻿namespace zfile
 {
 	public class MyListView : ListView
 	{

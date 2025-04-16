@@ -5,7 +5,7 @@ using System.Text;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace Zfile
+namespace zfile
 {
     /// <summary>
     /// 种子下载管理器，提供磁力链接和种子文件下载功能

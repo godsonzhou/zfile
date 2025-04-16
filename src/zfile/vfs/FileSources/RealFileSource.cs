@@ -1,4 +1,4 @@
-namespace Zfile.FileSources
+namespace zfile
 {
     public interface IRealFileSource : IFileSource
     {

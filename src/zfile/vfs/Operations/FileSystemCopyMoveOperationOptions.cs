@@ -1,13 +1,6 @@
-using System;
-using System.Windows.Forms;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Zfile.Operations;
-namespace FileSystemOperations
+
+namespace zfile
 {
     public class FileSystemCopyMoveOperationOptionsUI : FileSourceOperationOptionsUI
     {
@@ -246,39 +239,5 @@ namespace FileSystemOperations
     }
 
     // 枚举定义
-    public enum FileExistsOption
-    {
-        None,
-        Overwrite,
-        OverwriteOlder,
-        Skip
-    }
-
-    public enum DirectoryExistsOption
-    {
-        None,
-        CopyInto,
-        Skip
-    }
-
-    public enum SetPropertyErrorOption
-    {
-        None,
-        DontSet,
-        IgnoreErrors
-    }
-
-    public enum CopyOnWriteOption
-    {
-        None,
-        Yes,
-        No
-    }
-
-    public enum SymLinksOption
-    {
-        Follow,
-        DontFollow,
-        None
-    }
+ 
 } 

@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using WinShell;
-using Zfile.FileSources;
-namespace FileSystemOperations
+
+namespace zfile
 {
     public class ShellCopyOperation : FileSourceCopyOperation
     {

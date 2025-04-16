@@ -1,4 +1,4 @@
-namespace FileSystemOperations
+namespace zfile
 {
 	public enum FileSourceOperationOptionSymLink
 	{

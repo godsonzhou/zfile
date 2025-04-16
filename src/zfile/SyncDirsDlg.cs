@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Text;
-using Zfile.Forms;
-namespace Zfile
+using zfile.Forms;
+namespace zfile
 {
     public enum SyncFileState
     {

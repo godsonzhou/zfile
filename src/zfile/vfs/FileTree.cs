@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-
-namespace FileSystemOperations
+namespace zfile
 {
     public class FileTree : IDisposable
     {

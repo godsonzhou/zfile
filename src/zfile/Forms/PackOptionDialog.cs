@@ -2,7 +2,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace Zfile.Forms
+namespace zfile.Forms
 {
     public class PackOptionDialog : Form
     {

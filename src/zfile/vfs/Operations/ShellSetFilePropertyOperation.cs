@@ -1,6 +1,6 @@
-using Zfile.Operations;
 using WinShell;
-namespace FileSystemOperations
+
+namespace zfile
 {
     public class ShellSetFilePropertyOperation : FileSourceSetFilePropertyOperation
     {
@@ -122,7 +122,7 @@ namespace FileSystemOperations
         {
             if ((GlobalSettings.LogOptions & LogOptions.Errors) != 0)
             {
-                Log.Write(Thread, message, LogMsgType.Error);
+                Logger.Write(Thread, message, LogMsgType.Error);
             }
 
             if (AskQuestion(message, "", new[] { FileSourceOperationResponse.Skip, FileSourceOperationResponse.Abort },

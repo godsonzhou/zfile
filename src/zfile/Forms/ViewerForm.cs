@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Timer = System.Windows.Forms.Timer;
 
-namespace Zfile.Forms
+namespace zfile.Forms
 {
 	public class ViewerForm : Form
 	{

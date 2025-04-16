@@ -1,4 +1,4 @@
-namespace Zfile.FileSources
+namespace zfile
 {
     /// <summary>
     /// Base exception class for file source exceptions

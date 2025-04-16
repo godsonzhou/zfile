@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
-namespace Zfile
+namespace zfile
 {
     public static class LicenseValidator
 	{

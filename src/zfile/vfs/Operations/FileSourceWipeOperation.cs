@@ -1,6 +1,6 @@
-using Zfile.FileSources;
+using zfile.FileSources;
 
-namespace Zfile.Operations
+namespace zfile.Operations
 {
     /// <summary>
     /// Statistics for wipe operation

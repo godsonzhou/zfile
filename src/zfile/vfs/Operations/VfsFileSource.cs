@@ -1,5 +1,4 @@
-using Zfile.FileSources;
-namespace FileSystemOperations
+namespace zfile
 {
     public interface IVfsFileSource : IVirtualFileSource
     {

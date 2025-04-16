@@ -1,5 +1,5 @@
-using Zfile.FileSources;
-namespace Zfile.Forms
+using zfile.FileSources;
+namespace zfile.Forms
 {
 	public partial class ConnectionManagerForm : Form
 	{

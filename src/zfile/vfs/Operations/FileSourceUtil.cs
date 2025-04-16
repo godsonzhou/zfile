@@ -1,7 +1,6 @@
-using Zfile.FileSources;
 using System.Diagnostics;
-using FileSystemOperations;
-namespace Zfile.Operations
+
+namespace zfile
 {
     /// <summary>
     /// File source utility functions

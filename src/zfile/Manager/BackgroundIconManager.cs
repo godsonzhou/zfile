@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 
-namespace Zfile
+namespace zfile
 {
     /// <summary>
     /// 后台图标管理器，负责在后台线程中生成图标并更新UI

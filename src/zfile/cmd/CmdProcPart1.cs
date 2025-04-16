@@ -2,9 +2,9 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
-using Zfile.Forms;
+using zfile.Forms;
 
-namespace Zfile
+namespace zfile
 {
 	public partial class CmdProc
 	{

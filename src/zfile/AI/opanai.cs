@@ -2,7 +2,7 @@
 using System.Text;
 using System.Text.Json;
 
-namespace Zfile
+namespace zfile
 {
 
 	// 与 OpenAI 兼容的通用请求/响应结构

@@ -1,11 +1,7 @@
 using FileSystemOperations;
-using System;
 using System.ComponentModel;
-using System.Windows.Forms;
-using Zfile.FileSources;
-using Zfile.Operations;
 
-namespace Files.FileSources.WfxPlugin
+namespace zfile
 {
 	public class WfxPluginCopyMoveOperationOptionsUI : FileSourceOperationOptionsUI
 	{

@@ -1,5 +1,5 @@
 using System.Data;
-namespace Zfile
+namespace zfile
 {
     public class AutoSwitchViewPanel : Panel
     {

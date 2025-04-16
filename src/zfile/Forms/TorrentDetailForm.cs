@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Zfile.Forms
+namespace zfile.Forms
 {
     /// <summary>
     /// 种子下载详细信息窗口，用于显示种子下载的详细状态和调试信息

@@ -1,8 +1,6 @@
-using System;
-using System.IO;
 using System.Text.RegularExpressions;
 
-namespace FileSystemOperations
+namespace zfile
 {
     public class SearchTemplate : IDisposable
     {

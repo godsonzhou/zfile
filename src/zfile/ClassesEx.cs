@@ -1,5 +1,5 @@
 
-namespace Zfile
+namespace zfile
 {
     /// <summary>
     /// Base class that provides cloning functionality

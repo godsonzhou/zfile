@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 
-namespace Zfile;
+namespace zfile;
 public class ChunkDownloader
 {
 	public string _url;

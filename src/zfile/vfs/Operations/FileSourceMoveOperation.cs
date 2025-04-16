@@ -1,6 +1,4 @@
-using Zfile.FileSources;
-
-namespace Zfile.Operations
+namespace zfile
 {
     /// <summary>
     /// Operation that moves or renames files within the same file source

@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace Zfile.Forms
+namespace zfile.Forms
 {
     public partial class MultiRenameForm : Form
     {

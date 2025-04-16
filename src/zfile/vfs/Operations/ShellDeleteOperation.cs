@@ -1,7 +1,6 @@
 using System.Runtime.InteropServices;
-using Zfile.Operations;
-using Zfile.FileSources;
-namespace FileSystemOperations
+
+namespace zfile
 {
     public class ShellDeleteOperation : FileSourceDeleteOperation
     {

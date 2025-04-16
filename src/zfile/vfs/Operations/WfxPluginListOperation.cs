@@ -1,7 +1,4 @@
-using Zfile;
-using Zfile.FileSources;
-using Zfile.Operations;
-namespace FileSystemOperations
+namespace zfile
 {
     public class WfxPluginListOperation : FileSourceListOperation
     {

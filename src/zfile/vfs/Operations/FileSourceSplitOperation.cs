@@ -1,6 +1,6 @@
-using Zfile.FileSources;
+using zfile.FileSources;
 
-namespace Zfile.Operations
+namespace zfile.Operations
 {
     /// <summary>
     /// Operation that splits file within the same file source.

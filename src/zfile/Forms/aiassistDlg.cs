@@ -7,7 +7,7 @@ using System.Linq;
 using System.Windows.Forms;
 using Microsoft.Extensions.Primitives;
 
-namespace Zfile.Forms
+namespace zfile.Forms
 {
 	public class AIassistDlg : Form
 	{

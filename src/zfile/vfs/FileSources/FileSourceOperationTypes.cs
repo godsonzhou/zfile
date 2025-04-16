@@ -1,6 +1,4 @@
-using System;
-
-namespace FileSystemOperations
+namespace zfile
 {
 	[Flags]
     public enum FileSourceOperationType : uint

@@ -1,9 +1,9 @@
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.Net;
-using Zfile.Forms;
+using zfile.Forms;
 
-namespace Zfile
+namespace zfile
 {
     /// <summary>
     /// IDM下载管理器，提供UI界面与下载功能的连接

@@ -3,7 +3,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.IO;
 
-namespace Zfile
+namespace zfile
 {
     /// <summary>
     /// 系统托盘图标管理器，用于显示下载管理器状态

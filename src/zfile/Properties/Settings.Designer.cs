@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Zfile.Properties {
+namespace zfile.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]

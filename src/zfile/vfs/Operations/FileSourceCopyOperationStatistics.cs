@@ -1,4 +1,4 @@
-namespace Zfile.Operations
+namespace zfile
 {
     /// <summary>
     /// Statistics for copy operation
@@ -47,13 +47,5 @@ namespace Zfile.Operations
         Abort
     }
 
-    /// <summary>
-    /// Symlink option for operations
-    /// </summary>
-    public enum FileSourceOperationOptionSymLink
-    {
-        None,
-        Follow,
-        Skip
-    }
+   
 }

@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Forms;
 
-namespace Zfile.Operations
+namespace zfile.Operations
 {
     /// <summary>
     /// Base class for file source operation options UI

@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Zfile.Forms
+namespace zfile.Forms
 {
 	public class SettingsForm : Form
 	{

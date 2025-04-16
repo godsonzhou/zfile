@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Linq;
-using Zfile.FileSources;
-
-namespace Zfile.Operations
+namespace zfile
 {
 	public struct StateChangedEventEntry
 	{

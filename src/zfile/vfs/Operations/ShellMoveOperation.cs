@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 
-namespace FileSystemOperations
+namespace zfile
 {
     public class ShellMoveOperation : FileSourceMoveOperation
     {

@@ -945,17 +945,3 @@ public class FileTreeNode
     }
 }
 
-public class FileTree : FileTreeNode
-{
-    public FileTree() : base()
-    {
-    }
-
-    public FileTree(FileEntry file) : base(file)
-    {
-    }
-
-    public FileTree(FileEntry file, Type dataType) : base(file, dataType)
-    {
-    }
-}

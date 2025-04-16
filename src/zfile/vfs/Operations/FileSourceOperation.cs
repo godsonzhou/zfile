@@ -8,7 +8,27 @@ namespace zfile
 	public class FileSourceOperationAbortingException : Exception;
 
 	public interface IFileSourceOperation
-	{
+	{   /// <summary>
+		/// Gets the operation type
+		/// </summary>
+		FileSourceOperationTypes OperationType { get; }
+
+		/// <summary>
+		/// Gets the file source associated with this operation
+		/// </summary>
+		IFileSource FileSource { get; }
+
+		/// <summary>
+		/// Gets the target path for this operation
+		/// </summary>
+		string TargetPath { get; }
+
+		/// <summary>
+		/// Gets the description of this operation
+		/// </summary>
+		string Description { get; }
+
+
 		int OperationHandle { get; }
 		FileSourceOperationState State { get; }
 		bool IsFree { get; }
@@ -22,7 +42,12 @@ namespace zfile
 		string OperationName { get; }
 		bool IsAborted { get; }
 		void Abort();
-		event EventHandler<EventArgs> StateChanged;
+
+		/// <summary>
+		/// Event raised when the operation state changes
+		/// </summary>
+		event EventHandler<FileSourceOperationState> StateChanged;
+		//event EventHandler<EventArgs> StateChanged;
 		event EventHandler<EventArgs> ProgressChanged;
 	}
 	/// <summary>
@@ -78,15 +103,26 @@ namespace zfile
         /// </summary>
         public virtual string TargetPath => string.Empty;
 
-        /// <summary>
-        /// Gets the operation state
-        /// </summary>
-        public FileSourceOperationState State => GetState();
-
-        /// <summary>
-        /// Gets the start time of the operation
-        /// </summary>
-        public DateTime StartTime => _startTime;
+        
+		/// <summary>
+		/// Gets the operation state
+		/// </summary>
+		public FileSourceOperationState State
+		{
+			get => _state;
+			protected set
+			{
+				if (_state != value)
+				{
+					_state = value;
+					StateChanged?.Invoke(this, _state);
+				}
+			}
+		}
+		/// <summary>
+		/// Gets the start time of the operation
+		/// </summary>
+		public DateTime StartTime => _startTime;
 
         /// <summary>
         /// Gets the progress of the operation (0.0 to 1.0)

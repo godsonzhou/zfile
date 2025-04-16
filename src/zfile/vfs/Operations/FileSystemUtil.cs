@@ -1,4 +1,3 @@
-using FileSystemOperations;
 using System.Runtime.InteropServices;
 
 namespace zfile

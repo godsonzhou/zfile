@@ -60,11 +60,11 @@ namespace zfile
             return false;
         }
 
-        public void FillAndCount(string fileMask, Files files, bool countDirs,
-            out Files newFiles, out long filesCount, out long filesSize)
+        public void FillAndCount(string fileMask, FileEntries files, bool countDirs,
+            out FileEntries newFiles, out long filesCount, out long filesSize)
         {
             // 实现文件填充和计数
-            newFiles = new Files();
+            newFiles = new FileEntries();
             filesCount = 0;
             filesSize = 0;
         }

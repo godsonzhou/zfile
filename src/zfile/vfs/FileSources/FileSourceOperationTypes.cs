@@ -32,19 +32,19 @@ namespace zfile
 		ExtractArchiveToTempAndDeleteAllAndMoveAndDelete
 	}
 
-    [Flags]
-    public enum CopyAttributesOption
-    {
-        None = 0,
-        CopyAttributes = 1,
-        CopyXattributes = 2,
-        CopyTime = 4,
-        CopyOwnership = 8,
-        CopyPermissions = 16,
-        RemoveReadOnlyAttr = 32
-    }
+	[Flags]
+	public enum CopyAttributesOption
+	{
+		None = 0,
+		CopyAttributes = 1,
+		CopyXattributes = 2,
+		CopyTime = 4,
+		CopyOwnership = 8,
+		CopyPermissions = 16,
+		RemoveReadOnlyAttr = 32
+	}
 
-    public enum FileSourceOperationOptionGeneral
+	public enum FileSourceOperationOptionGeneral
     {
         No,
         Yes,

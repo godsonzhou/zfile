@@ -1,5 +1,4 @@
-﻿using FileSystemOperations;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using WinShell;
 namespace zfile
 {

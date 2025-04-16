@@ -150,57 +150,6 @@ namespace zfile
 	#region Interfaces
 
 	/// <summary>
-	/// Interface for file source operations
-	/// </summary>
-	public interface IFileSourceOperation
-	{
-		/// <summary>
-		/// Gets the operation type
-		/// </summary>
-		FileSourceOperationTypes OperationType { get; }
-
-		/// <summary>
-		/// Gets the operation state
-		/// </summary>
-		FileSourceOperationState State { get; }
-
-		/// <summary>
-		/// Gets the file source associated with this operation
-		/// </summary>
-		IFileSource FileSource { get; }
-
-		/// <summary>
-		/// Gets the target path for this operation
-		/// </summary>
-		string TargetPath { get; }
-
-		/// <summary>
-		/// Gets the description of this operation
-		/// </summary>
-		string Description { get; }
-
-		/// <summary>
-		/// Starts the operation
-		/// </summary>
-		void Start();
-
-		/// <summary>
-		/// Pauses the operation
-		/// </summary>
-		void Pause();
-
-		/// <summary>
-		/// Stops the operation
-		/// </summary>
-		void Stop();
-
-		/// <summary>
-		/// Event raised when the operation state changes
-		/// </summary>
-		event EventHandler<FileSourceOperationState> StateChanged;
-	}
-
-	/// <summary>
 	/// Interface for file source
 	/// </summary>
 	public interface IFileSource : IDisposable
@@ -703,81 +652,7 @@ namespace zfile
 	//	}
 	//}
 
-	/// <summary>
-	/// Base class for file source operations
-	/// </summary>
-	public abstract class FileSourceOperation : IFileSourceOperation
-	{
-		private FileSourceOperationState _state;
-
-		/// <summary>
-		/// Gets the operation type
-		/// </summary>
-		public abstract FileSourceOperationTypes OperationType { get; }
-
-		/// <summary>
-		/// Gets the operation state
-		/// </summary>
-		public FileSourceOperationState State
-		{
-			get => _state;
-			protected set
-			{
-				if (_state != value)
-				{
-					_state = value;
-					StateChanged?.Invoke(this, _state);
-				}
-			}
-		}
-
-		/// <summary>
-		/// Gets the file source associated with this operation
-		/// </summary>
-		public IFileSource FileSource { get; }
-
-		/// <summary>
-		/// Gets the target path for this operation
-		/// </summary>
-		public string TargetPath { get; }
-
-		/// <summary>
-		/// Gets the description of this operation
-		/// </summary>
-		public abstract string Description { get; }
-
-		/// <summary>
-		/// Creates a new instance of the FileSourceOperation class
-		/// </summary>
-		/// <param name="fileSource">The file source</param>
-		/// <param name="targetPath">The target path</param>
-		protected FileSourceOperation(IFileSource fileSource, string targetPath)
-		{
-			FileSource = fileSource;
-			TargetPath = targetPath;
-			_state = FileSourceOperationState.NotStarted;
-		}
-
-		/// <summary>
-		/// Starts the operation
-		/// </summary>
-		public abstract void Start();
-
-		/// <summary>
-		/// Pauses the operation
-		/// </summary>
-		public abstract void Pause();
-
-		/// <summary>
-		/// Stops the operation
-		/// </summary>
-		public abstract void Stop();
-
-		/// <summary>
-		/// Event raised when the operation state changes
-		/// </summary>
-		public event EventHandler<FileSourceOperationState> StateChanged;
-	}
+	
 
 	/// <summary>
 	/// Base class for file sources
@@ -844,6 +719,7 @@ namespace zfile
 		/// Gets or sets the parent file source of this file source
 		/// </summary>
 		public virtual IFileSource ParentFileSource { get; set; }
+		public abstract string CurrentPath { get; }
 
 		/// <summary>
 		/// Creates a new instance of the FileSource class

@@ -34,6 +34,9 @@ namespace zfile
 		internal static string MsgLogRmDir;
 		internal static IFormatProvider? MsgErrDirExists;
 		internal static IFormatProvider? MsgErrForceDir;
+		internal static IFormatProvider? MsgNotDelete;
+		internal static string MsgErrEWrite;
+		internal static string MsgErrNotSupported;
 
 		public static string MsgLogSuccess { get; internal set; }
 		public static string MsgLogMkDir { get; internal set; }
@@ -121,6 +124,8 @@ namespace zfile
 	}
 	public static class GlobalSettings
     {
+		internal static bool ProcessComments;
+
 		/// <summary>
 		/// Whether to skip file operation errors
 		/// </summary>

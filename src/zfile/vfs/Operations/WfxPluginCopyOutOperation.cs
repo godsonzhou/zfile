@@ -11,7 +11,7 @@ namespace zfile
         private bool _needsConnection;
 
         public WfxPluginCopyOutOperation(IFileSource sourceFileSource, IFileSource targetFileSource, ref FileEntries sourceFiles, string targetPath)
-            : base(sourceFileSource, targetFileSource, ref sourceFiles, targetPath)
+            : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
         {
             _wfxPluginFileSource = sourceFileSource as IWfxPluginFileSource;
             _callbackDataClass = (CallbackDataClass)_wfxPluginFileSource.WfxOperationList.Objects[_wfxPluginFileSource.PluginNumber];

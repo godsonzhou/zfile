@@ -22,7 +22,19 @@ public enum FilePropertyType
 	ChangeTime = 1 << 13,
 	Variant = 1 << 14
 }
-
+public class NtfsFileAttributesProperty : FileProperty
+{
+	public FileAttributes Value { get; set; }
+	public override FileProperty Clone()
+	{
+		return new NtfsFileAttributesProperty { Value = this.Value };
+	}
+	public override bool Equals(FileProperty other)
+	{
+		return other is NtfsFileAttributesProperty prop && Value == prop.Value;
+	}
+	public override FilePropertyType ID => FilePropertyType.Attributes;
+}
 public abstract class FileProperty
 {
     public abstract FileProperty Clone();
@@ -709,6 +721,12 @@ public class FileEntry
         string ext = Extension.ToLower();
         return ext == "exe" || ext == "bat" || ext == "cmd" || ext == "com";
     }
+
+	public bool IsReadOnly
+	{
+		get => (!_supportedProperties.HasFlag(FilePropertyType.Attributes)) ?
+				false : (Attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly;
+	}
 }
 
 public class FileEntries : IEnumerable<FileEntry>

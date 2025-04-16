@@ -22,8 +22,8 @@ namespace zfile
         protected override void Initialize()
         {
             _wfxPluginFileSource.WfxModule.WfxStatusInfo(FilesToDelete.Path, FsStatus.Start, FsStatusOperation.Delete);
-            _statistics = RetrieveStatistics;
-            _wfxPluginFileSource.FillAndCount(FilesToDelete, true, false, ref _fullFilesTreeToDelete, ref _statistics.TotalFiles, ref _statistics.TotalBytes);
+            _statistics = RetrieveStatistics();
+            _wfxPluginFileSource.FillAndCount(FilesToDelete, true, false, out _fullFilesTreeToDelete, out _statistics.TotalFiles, out _statistics.TotalBytes);
         }
 
         protected override void MainExecute()
@@ -55,21 +55,21 @@ namespace zfile
             var fileName = file.Path + file.Name;
             var retry = false;
 
-            if (FileIsReadOnly(file.Attributes))
+            if (FileSystemUtil.FileIsReadOnly(file.Attributes))
             {
                 switch (_deleteReadOnly)
                 {
                     case FileSourceOperationOptionGeneral.None:
                         switch (AskQuestion(string.Format(Resources.MsgFileReadOnly, fileName), string.Empty,
-                            new[] { FileSourceOperationUIResult.Yes, FileSourceOperationUIResult.All, FileSourceOperationUIResult.Skip, FileSourceOperationUIResult.SkipAll },
-                            FileSourceOperationUIResult.Yes, FileSourceOperationUIResult.Skip))
+                            new[] { FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.All, FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.SkipAll },
+							FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.Skip))
                         {
-                            case FileSourceOperationUIResult.All:
+                            case FileSourceOperationUIResponse.All:
                                 _deleteReadOnly = FileSourceOperationOptionGeneral.Yes;
                                 break;
-                            case FileSourceOperationUIResult.Skip:
+                            case FileSourceOperationUIResponse.Skip:
                                 return false;
-                            case FileSourceOperationUIResult.SkipAll:
+                            case FileSourceOperationUIResponse.SkipAll:
                                 _deleteReadOnly = FileSourceOperationOptionGeneral.No;
                                 return false;
                         }
@@ -131,16 +131,16 @@ namespace zfile
                     else
                     {
                         switch (AskQuestion(question, string.Empty,
-                            new[] { FileSourceOperationUIResult.Retry, FileSourceOperationUIResult.Skip, FileSourceOperationUIResult.SkipAll, FileSourceOperationUIResult.Abort },
-                            FileSourceOperationUIResult.Retry, FileSourceOperationUIResult.Skip))
+                            new[] { FileSourceOperationUIResponse.Retry, FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.SkipAll, FileSourceOperationUIResponse.Abort },
+                            FileSourceOperationUIResponse.Retry, FileSourceOperationUIResponse.Skip))
                         {
-                            case FileSourceOperationUIResult.Retry:
+                            case FileSourceOperationUIResponse.Retry:
                                 retry = true;
                                 break;
-                            case FileSourceOperationUIResult.SkipAll:
+                            case FileSourceOperationUIResponse.SkipAll:
                                 _skipErrors = true;
                                 break;
-                            case FileSourceOperationUIResult.Abort:
+                            case FileSourceOperationUIResponse.Abort:
                                 RaiseAbortOperation();
                                 break;
                         }

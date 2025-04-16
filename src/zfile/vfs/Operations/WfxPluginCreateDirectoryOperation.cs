@@ -20,7 +20,7 @@ namespace zfile
             switch (result)
             {
                 case WfxResult.NotSupported:
-                    AskQuestion(Resources.MsgErrNotSupported, string.Empty, new[] { FileSourceOperationUIResult.Ok }, FileSourceOperationUIResult.Ok, FileSourceOperationUIResult.Ok);
+                    AskQuestion(Resources.MsgErrNotSupported, string.Empty, new[] { FileSourceOperationUIResponse.Ok }, FileSourceOperationUIResponse.Ok, FileSourceOperationUIResponse.Ok);
                     break;
                 case WfxResult.Success:
                     if ((LogOption.VfsOp & LogOption.Success) != 0)

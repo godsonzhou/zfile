@@ -1,23 +1,7 @@
 using System.Collections;
 
 namespace zfile;
-public static class Constants
-{
-	public const int CSIDL_DRIVES = 0x0011;
-	public const int SHGDN_INFOLDER = 0x0001;
-	public const int SHGDN_FORPARSING = 0x8000;
-	public const int COPYENGINE_E_USER_CANCELLED = unchecked((int)0x80270000);
 
-	public const int SW_SHOWNORMAL = 1;
-	public const int SEE_MASK_IDLIST = 0x00000004;
-
-	public const string CLSID_FileOperation = "3AD05575-8857-4850-9277-11B85BDB8E09";
-
-	public const int FOF_SILENT = 0x0004;
-	public const int FOF_NOCONFIRMMKDIR = 0x0200;
-	public const int FOF_NOCONFIRMATION = 0x0010;
-	public const int FOF_NORECURSION = 0x1000;
-}
 [Flags]
 public enum FilePropertyType
 {
@@ -43,6 +27,10 @@ public abstract class FileProperty
 {
     public abstract FileProperty Clone();
     public abstract bool Equals(FileProperty other);
+	/// <summary>
+	/// Gets the property ID
+	/// </summary>
+	public abstract FilePropertyType ID { get; }
 }
 
 public class FileNameProperty : FileProperty
@@ -57,7 +45,11 @@ public class FileNameProperty : FileProperty
     public override bool Equals(FileProperty other)
     {
         return other is FileNameProperty prop && Value == prop.Value;
-    }
+	}    /// <summary>
+		 /// Gets the property ID
+		 /// </summary>
+	public override FilePropertyType ID => FilePropertyType.Name;
+
 }
 
 public class FileSizeProperty : FileProperty
@@ -73,6 +65,7 @@ public class FileSizeProperty : FileProperty
     {
         return other is FileSizeProperty prop && Value == prop.Value;
     }
+	public override FilePropertyType ID => FilePropertyType.Size;
 }
 
 public class FileCompressedSizeProperty : FileProperty
@@ -88,6 +81,7 @@ public class FileCompressedSizeProperty : FileProperty
     {
         return other is FileCompressedSizeProperty prop && Value == prop.Value;
     }
+	public override FilePropertyType ID => FilePropertyType.CompressedSize;
 }
 
 public class FileAttributesProperty : FileProperty
@@ -103,6 +97,7 @@ public class FileAttributesProperty : FileProperty
     {
         return other is FileAttributesProperty prop && Value == prop.Value;
     }
+	public override FilePropertyType ID => FilePropertyType.Attributes;
 }
 
 public class FileModificationDateTimeProperty : FileProperty
@@ -118,6 +113,7 @@ public class FileModificationDateTimeProperty : FileProperty
     {
         return other is FileModificationDateTimeProperty prop && Value == prop.Value;
     }
+	public override FilePropertyType ID => FilePropertyType.ModificationTime;
 }
 
 public class FileCreationDateTimeProperty : FileProperty
@@ -133,6 +129,7 @@ public class FileCreationDateTimeProperty : FileProperty
     {
         return other is FileCreationDateTimeProperty prop && Value == prop.Value;
     }
+	public override FilePropertyType ID => FilePropertyType.CreationTime;
 }
 
 public class FileLastAccessDateTimeProperty : FileProperty
@@ -148,6 +145,7 @@ public class FileLastAccessDateTimeProperty : FileProperty
     {
         return other is FileLastAccessDateTimeProperty prop && Value == prop.Value;
     }
+	public override FilePropertyType ID => FilePropertyType.LastAccessTime;
 }
 
 public class FileChangeDateTimeProperty : FileProperty
@@ -163,6 +161,7 @@ public class FileChangeDateTimeProperty : FileProperty
     {
         return other is FileChangeDateTimeProperty prop && Value == prop.Value;
     }
+	public override FilePropertyType ID => FilePropertyType.ChangeTime;
 }
 
 public class FileLinkProperty : FileProperty
@@ -181,6 +180,7 @@ public class FileLinkProperty : FileProperty
                LinkTarget == prop.LinkTarget && 
                IsLinkToDirectory == prop.IsLinkToDirectory;
     }
+	public override FilePropertyType ID => FilePropertyType.Link;
 }
 
 public class FileOwnerProperty : FileProperty
@@ -196,6 +196,7 @@ public class FileOwnerProperty : FileProperty
     {
         return other is FileOwnerProperty prop && Value == prop.Value;
     }
+	public override FilePropertyType ID => FilePropertyType.Owner;
 }
 
 public class FileTypeProperty : FileProperty
@@ -211,6 +212,7 @@ public class FileTypeProperty : FileProperty
     {
         return other is FileTypeProperty prop && Value == prop.Value;
     }
+	public override FilePropertyType ID => FilePropertyType.Type;
 }
 
 public class FileCommentProperty : FileProperty
@@ -226,6 +228,7 @@ public class FileCommentProperty : FileProperty
     {
         return other is FileCommentProperty prop && Value == prop.Value;
     }
+	public override FilePropertyType ID => FilePropertyType.Comment;
 }
 
 public class FileVariantProperty : FileProperty
@@ -243,6 +246,7 @@ public class FileVariantProperty : FileProperty
                (Value == null && prop.Value == null || 
                 Value != null && Value.Equals(prop.Value));
     }
+	public override FilePropertyType ID => FilePropertyType.Variant;
 }
 
 public class FileEntry
@@ -706,7 +710,7 @@ public class FileEntry
 
 public class FileEntries : IEnumerable<FileEntry>
 {
-    private FileEntries _list;
+    private List<FileEntry> _list;
     private bool _flat;
     private bool _ownsObjects;
     private string _path;
@@ -743,7 +747,7 @@ public class FileEntries : IEnumerable<FileEntry>
         set { _list[index] = value; }
     }
 
-    public FileEntries List => _list;
+    public List<FileEntry> List => _list;
 
     public bool OwnsObjects
     {
@@ -778,7 +782,7 @@ public class FileEntries : IEnumerable<FileEntry>
 
     public FileEntries(string path = "")
     {
-        _list = new FileEntries();
+        _list = new List<FileEntry>();
         _ownsObjects = true;
         _path = path;
     }

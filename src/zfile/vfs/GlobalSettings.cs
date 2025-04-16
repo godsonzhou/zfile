@@ -2,6 +2,23 @@ using System.Reflection.Metadata;
 
 namespace zfile
 {
+	public static class Constants
+	{
+		public const int CSIDL_DRIVES = 0x0011;
+		public const int SHGDN_INFOLDER = 0x0001;
+		public const int SHGDN_FORPARSING = 0x8000;
+		public const int COPYENGINE_E_USER_CANCELLED = unchecked((int)0x80270000);
+
+		public const int SW_SHOWNORMAL = 1;
+		public const int SEE_MASK_IDLIST = 0x00000004;
+
+		public const string CLSID_FileOperation = "3AD05575-8857-4850-9277-11B85BDB8E09";
+
+		public const int FOF_SILENT = 0x0004;
+		public const int FOF_NOCONFIRMMKDIR = 0x0200;
+		public const int FOF_NOCONFIRMATION = 0x0010;
+		public const int FOF_NORECURSION = 0x1000;
+	}
 	public static class Resources
 	{
 		internal static string MsgLogError;
@@ -85,7 +102,16 @@ namespace zfile
 	}
 	public static class GlobalSettings
     {
-        public static FileSourceOperationOptionGeneral OperationOptionSymLinks { get; set; } = FileSourceOperationOptionGeneral.AskUser;
+		/// <summary>
+		/// Whether to skip file operation errors
+		/// </summary>
+		public static bool SkipFileOpError { get; set; } = false;
+
+		/// <summary>
+		/// File operations progress kind
+		/// </summary>
+		public static FileOperationsProgressKind FileOperationsProgressKind { get; set; } = FileOperationsProgressKind.SeparateWindow;
+		public static FileSourceOperationOptionGeneral OperationOptionSymLinks { get; set; } = FileSourceOperationOptionGeneral.AskUser;
         public static FileSourceOperationOptionSetPropertyError OperationOptionSetPropertyError { get; set; } = FileSourceOperationOptionSetPropertyError.Skip;
         public static bool OperationOptionReserveSpace { get; set; } = true;
         public static bool OperationOptionCheckFreeSpace { get; set; } = true;
@@ -107,6 +133,5 @@ namespace zfile
 		public static bool LogDirectoryOperations { get; set; }
 		public static LogOption LogOptions { get; set; }
 		public static bool LogDelete { get; set; }
-		public static bool SkipFileOpError { get; set; } = true;
 	}
 } 

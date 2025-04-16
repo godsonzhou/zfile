@@ -421,7 +421,7 @@ namespace zfile
 
                                     // Determine plugins path
                                     string pluginsPath;
-                                    if (Globals.UseConfigInProgramDir)
+                                    if (GlobalSettings.UseConfigInProgramDir)
                                         pluginsPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
                                     else
                                         pluginsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "plugins");

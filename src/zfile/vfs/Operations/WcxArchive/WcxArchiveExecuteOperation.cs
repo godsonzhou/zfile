@@ -16,7 +16,7 @@ namespace zfile
 
 		protected override void MainExecute()
 		{
-			if (Verb != "properties" && Masks.MatchesMaskList(ExecutableFile.Name, Globals.AutoExtractOpenMask))
+			if (Verb != "properties" && Masks.MatchesMaskList(ExecutableFile.Name, GlobalSettings.AutoExtractOpenMask))
 			{
 				ExecuteOperationResult = FileSourceExecuteOperationResult.YourSelf;
 			}

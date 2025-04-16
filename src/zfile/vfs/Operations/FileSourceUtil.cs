@@ -30,7 +30,7 @@ namespace zfile
                 string parameters = string.Empty;
                 string startPath = string.Empty;
 
-                if (Globals.Extensions.GetExtActionCmd(file, "open", out cmd, out parameters, out startPath))
+                if (GlobalSettings.Extensions.GetExtActionCmd(file, "open", out cmd, out parameters, out startPath))
                 {
                     try
                     {

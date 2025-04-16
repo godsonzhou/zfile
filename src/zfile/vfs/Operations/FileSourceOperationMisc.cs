@@ -66,12 +66,12 @@ namespace zfile
         {
             if (operationItem.Queue.IsFree || operationItem.Queue.Count == 1)
             {
-                if (Globals.FileOperationsProgressKind == FileOperationsProgressKind.SeparateWindow ||
-                    Globals.FileOperationsProgressKind == FileOperationsProgressKind.SeparateWindowMinimized)
+                if (GlobalSettings.FileOperationsProgressKind == FileOperationsProgressKind.SeparateWindow ||
+                    GlobalSettings.FileOperationsProgressKind == FileOperationsProgressKind.SeparateWindowMinimized)
                 {
                     OperationProgressWindowOptions options = OperationProgressWindowOptions.None;
                     
-                    if (Globals.FileOperationsProgressKind == FileOperationsProgressKind.SeparateWindowMinimized)
+                    if (GlobalSettings.FileOperationsProgressKind == FileOperationsProgressKind.SeparateWindowMinimized)
                         options |= OperationProgressWindowOptions.StartMinimized;
                     
                     FileOperationDialog.ShowFor(operationItem.Handle, options);

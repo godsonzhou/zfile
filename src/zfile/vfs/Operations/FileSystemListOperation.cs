@@ -71,7 +71,7 @@ namespace zfile
                     {
                         CheckOperationState();
 
-                        var fileName = Path.GetFileName(file);
+                        var fileName = System.IO.Path.GetFileName(file);
                         if (fileName == ".")
                             continue;
 
@@ -86,7 +86,7 @@ namespace zfile
             }
             catch (Exception ex)
             {
-                Log.Write($"Error in MainExecute: {ex.Message}", LogOption.Error);
+                Logger.Write($"Error in MainExecute: {ex.Message}", LogOption.Error);
             }
         }
 

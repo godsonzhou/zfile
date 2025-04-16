@@ -204,7 +204,7 @@ namespace zfile
             _newProperties = theNewProperties;
             _templateFiles = null;
             _recursive = false;
-            _skipErrors = Globals.SkipFileOpError;
+            _skipErrors = GlobalSettings.SkipFileOpError;
 
             _supportedProperties = 0;
         }
@@ -458,114 +458,22 @@ namespace zfile
     }
 
     /// <summary>
-    /// File property base class
-    /// </summary>
-    public abstract class FileProperty
-    {
-        /// <summary>
-        /// Gets the property ID
-        /// </summary>
-        public abstract FilePropertyType ID { get; }
-    }
-
-    /// <summary>
-    /// File name property
-    /// </summary>
-    public class FileNameProperty : FileProperty
-    {
-        /// <summary>
-        /// Gets the property ID
-        /// </summary>
-        public override FilePropertyType ID => FilePropertyType.Name;
-
-        /// <summary>
-        /// Gets or sets the value
-        /// </summary>
-        public string Value { get; set; }
-    }
-
-    /// <summary>
     /// File attributes property
     /// </summary>
-    public class FileAttributesProperty : FileProperty
-    {
-        /// <summary>
-        /// Gets the property ID
-        /// </summary>
-        public override FilePropertyType ID => FilePropertyType.Attributes;
+    //public class FileAttributesProperty : FileProperty
+    //{
+    //    /// <summary>
+    //    /// Gets the property ID
+    //    /// </summary>
+    //    public override FilePropertyType ID => FilePropertyType.Attributes;
 
-        /// <summary>
-        /// Gets or sets the value
-        /// </summary>
-        public FileAttributes Value { get; set; }
-    }
+    //    /// <summary>
+    //    /// Gets or sets the value
+    //    /// </summary>
+    //    public FileAttributes Value { get; set; }
+    //}
 
-    /// <summary>
-    /// File property type
-    /// </summary>
-    [Flags]
-    public enum FilePropertyType
-    {
-        /// <summary>
-        /// No property
-        /// </summary>
-        None = 0,
-
-        /// <summary>
-        /// File name
-        /// </summary>
-        Name = 1,
-
-        /// <summary>
-        /// File attributes
-        /// </summary>
-        Attributes = 2,
-
-        /// <summary>
-        /// File size
-        /// </summary>
-        Size = 4,
-
-        /// <summary>
-        /// Modification time
-        /// </summary>
-        ModificationTime = 8,
-
-        /// <summary>
-        /// Creation time
-        /// </summary>
-        CreationTime = 16,
-
-        /// <summary>
-        /// Last access time
-        /// </summary>
-        LastAccessTime = 32,
-
-        /// <summary>
-        /// File link
-        /// </summary>
-        Link = 64,
-
-        /// <summary>
-        /// File owner
-        /// </summary>
-        Owner = 128,
-
-        /// <summary>
-        /// File type
-        /// </summary>
-        Type = 256,
-
-        /// <summary>
-        /// File comment
-        /// </summary>
-        Comment = 512,
-
-        /// <summary>
-        /// All properties
-        /// </summary>
-        All = 1023
-    }
+   
 
     /// <summary>
     /// File source operation description details
@@ -629,57 +537,5 @@ namespace zfile
         public static readonly string MsgErrSetOwnership = "Cannot set ownership of {0}";
     }
 
-    /// <summary>
-    /// Static class for global settings
-    /// </summary>
-    public static class Globals
-    {
-        /// <summary>
-        /// Whether to skip file operation errors
-        /// </summary>
-        public static bool SkipFileOpError { get; set; } = false;
-
-        /// <summary>
-        /// File operations progress kind
-        /// </summary>
-        public static FileOperationsProgressKind FileOperationsProgressKind { get; set; } = FileOperationsProgressKind.SeparateWindow;
-    }
-
-    /// <summary>
-    /// Logger class
-    /// </summary>
-    //public static class Logger
-    //{
-    //    /// <summary>
-    //    /// Logs a message
-    //    /// </summary>
-    //    /// <param name="thread">The thread</param>
-    //    /// <param name="message">The message</param>
-    //    /// <param name="messageType">The message type</param>
-    //    public static void Log(Thread thread, string message, LogMessageType messageType)
-    //    {
-    //        // Implementation would go here
-    //    }
-    //}
-
-    ///// <summary>
-    ///// Log message type
-    ///// </summary>
-    //public enum LogMessageType
-    //{
-    //    /// <summary>
-    //    /// Error message
-    //    /// </summary>
-    //    Error,
-
-    //    /// <summary>
-    //    /// Warning message
-    //    /// </summary>
-    //    Warning,
-
-    //    /// <summary>
-    //    /// Information message
-    //    /// </summary>
-    //    Info
-    //}
+    
 }

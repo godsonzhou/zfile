@@ -6,7 +6,7 @@ namespace zfile
 
     public class RecycleBinFileSource : VirtualFileSource, IRecycleBinFileSource
     {
-        protected override bool SetCurrentWorkingDirectory(string newDir)
+        public override bool SetCurrentWorkingDirectory(string newDir)
         {
             return IsPathAtRoot(newDir);
         }

@@ -33,7 +33,7 @@ namespace zfile
                 FileEntry localArchiveFile = archiveFile.Clone();
                 try
                 {
-                    if (sourceFileSource.GetLocalName(localArchiveFile))
+                    if (sourceFileSource.GetLocalName(ref localArchiveFile))
                     {
                         ITempFileSystemFileSource tempFS = new TempFileSystemFileSource(localArchiveFile.Path);
                         // Source FileSource manages the files, not the TempFileSource
@@ -50,7 +50,7 @@ namespace zfile
                 }
             }
 
-            if (result == null && sourceFileSource.GetOperationsTypes().HasFlag(FileSourceOperationType.CopyOut))
+            if (result == null && sourceFileSource.OperationsTypes.HasFlag(FileSourceOperationType.CopyOut))
             {
                 // If checking by extension we don't have to unpack files yet
                 // First check if there is a registered plugin for the archive extension
@@ -158,12 +158,12 @@ namespace zfile
             try
             {
                 // If in archive
-                if (fileView.FileSource is IArchiveFileSource)
+                if (fileView.ActiveFileSource is IArchiveFileSource)
                 {
                     FileEntries filesToTest = new FileEntries(files);
-                    if (fileView.FileSource.GetOperationsTypes().HasFlag(FileSourceOperationType.TestArchive))
+                    if (fileView.ActiveFileSource.OperationsTypes.HasFlag(FileSourceOperationType.TestArchive))
                     {
-                        IFileSourceOperation operation = fileView.FileSource.CreateTestArchiveOperation(filesToTest);
+                        IFileSourceOperation operation = fileView.ActiveFileSource.CreateTestArchiveOperation(filesToTest);
 
                         if (operation != null)
                         {
@@ -181,7 +181,7 @@ namespace zfile
                     }
                 }
                 // If filesystem
-                else if (fileView.FileSource is FileSystemFileSource)
+                else if (fileView.ActiveFileSource is FileSystemFileSource)
                 {
                     // If archives count > 1 then put to queue
                     OperationsManagerQueueIdentifier queueId;
@@ -200,8 +200,8 @@ namespace zfile
                             if (archiveFileSource != null)
                             {
                                 // Check if List and TestArchive are supported
-                                if (archiveFileSource.GetOperationsTypes().HasFlag(FileSourceOperationType.List) &&
-                                    archiveFileSource.GetOperationsTypes().HasFlag(FileSourceOperationType.TestArchive))
+                                if (archiveFileSource.OperationsTypes.HasFlag(FileSourceOperationType.List) &&
+                                    archiveFileSource.OperationsTypes.HasFlag(FileSourceOperationType.TestArchive))
                                 {
                                     // Get files to test
                                     FileEntries filesToTest = archiveFileSource.GetFiles(archiveFileSource.GetRootDir());

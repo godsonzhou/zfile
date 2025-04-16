@@ -10,7 +10,7 @@ namespace zfile
         private int _infoOperation;
 
         public WfxPluginMoveOperation(IFileSource fileSource, ref FileEntries sourceFiles, string targetPath)
-            : base(fileSource, ref sourceFiles, targetPath)
+            : base(fileSource, sourceFiles, targetPath)
         {
             _wfxPluginFileSource = fileSource as IWfxPluginFileSource;
             _callbackDataClass = (CallbackDataClass)_wfxPluginFileSource.WfxOperationList.Objects[_wfxPluginFileSource.PluginNumber];

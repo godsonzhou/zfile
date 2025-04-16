@@ -177,7 +177,7 @@ namespace zfile
         {
             if (IsNetworkPath(targetFile))
                 return null;
-            return base.CreateCombineOperation(ref sourceFiles, targetFile);
+            return base.CreateCombineOperation(sourceFiles, targetFile);
         }
 
         public override IFileSourceOperation CreateCreateDirectoryOperation(string basePath, string directoryPath)

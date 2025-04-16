@@ -399,7 +399,7 @@ namespace zfile
 
             if (logOptions <= GlobalSettings.LogOptions)
             {
-                Log.Write(message, logError ? LogOption.Error : LogOption.Info);
+                Logger.Write(message, logError ? LogOption.Error : LogOption.Info);
             }
         }
     }

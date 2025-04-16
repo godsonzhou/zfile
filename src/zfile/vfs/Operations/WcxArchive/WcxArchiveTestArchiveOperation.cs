@@ -21,7 +21,7 @@ namespace zfile;
         protected override void Initialize()
         {
             // Is plugin allow multiple Operations?
-            if (_needsConnection)
+            if (NeedsConnection)
                 _wcxTestArchiveOperationG = this;
             else
                 _wcxTestArchiveOperationT = this;

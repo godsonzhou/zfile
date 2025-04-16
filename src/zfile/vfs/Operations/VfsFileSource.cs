@@ -30,12 +30,12 @@ namespace zfile
             return result;
         }
 
-        public override FileSourceOperationType GetOperationsTypes()
+        public FileSourceOperationType GetOperationsTypes()
         {
             return FileSourceOperationType.List | FileSourceOperationType.Execute;
         }
 
-        public override FileSourceProperties GetProperties()
+        public FileSourceProperties GetProperties()
         {
             return FileSourceProperties.Virtual;
         }
@@ -45,18 +45,18 @@ namespace zfile
             return "vfs:" + Path.DirectorySeparatorChar;
         }
 
-        protected override FilePropertiesTypes GetSupportedFileProperties()
+        protected FilePropertyType GetSupportedFileProperties()
         {
-            return base.GetSupportedFileProperties() | FilePropertiesTypes.Attributes | FilePropertiesTypes.Link;
+            return base.SupportedFileProperties | FilePropertyType.Attributes | FilePropertyType.Link;
         }
 
-        public override FileSourceOperation CreateListOperation(string targetPath)
+        public FileSourceOperation CreateListOperation(string targetPath)
         {
             IFileSource targetFileSource = this;
             return new VfsListOperation(targetFileSource, targetPath);
         }
 
-        public override FileSourceOperation CreateExecuteOperation(ref FileEntry executableFile, string basePath, string verb)
+        public FileSourceOperation CreateExecuteOperation(ref FileEntry executableFile, string basePath, string verb)
         {
             IFileSource targetFileSource = this;
             return new VfsExecuteOperation(targetFileSource, ref executableFile, basePath, verb);

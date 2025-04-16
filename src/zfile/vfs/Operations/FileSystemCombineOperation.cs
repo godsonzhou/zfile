@@ -2,9 +2,9 @@ namespace zfile
 {
     public class FileSystemCombineOperation : FileSourceCombineOperation
     {
-        private FileEntries fullFilesTreeToCombine;  // 源文件，包括所有文件
+        private FileEntries? fullFilesTreeToCombine;  // 源文件，包括所有文件
         private FileSourceCombineOperationStatistics statistics; // 统计信息的本地副本
-        private string targetPath;
+        private string? targetPath;
         private byte[] buffer;
         private bool checkFreeSpace;
         private int extensionLengthRequired;

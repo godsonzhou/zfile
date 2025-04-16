@@ -25,13 +25,13 @@ namespace zfile
                 case WfxResult.Success:
                     if ((LogOption.VfsOp & LogOption.Success) != 0)
                     {
-                        Logger.Write(Thread, string.Format(Resources.MsgLogSuccess + Resources.MsgLogMkDir, AbsolutePath), LogOption.Success);
+                        Logger.Write(string.Format(Resources.MsgLogSuccess + Resources.MsgLogMkDir, AbsolutePath), LogOption.Success);
                     }
                     break;
                 default:
                     if ((LogOption.VfsOp & LogOption.Error) != 0)
                     {
-                        Logger.Write(Thread, string.Format(Resources.MsgLogError + Resources.MsgLogMkDir, AbsolutePath), LogOption.Error);
+                        Logger.Write(string.Format(Resources.MsgLogError + Resources.MsgLogMkDir, AbsolutePath), LogOption.Error);
                     }
                     break;
             }

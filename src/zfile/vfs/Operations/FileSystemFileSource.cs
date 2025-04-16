@@ -160,7 +160,7 @@ namespace zfile
                 if (!assignedProperties.HasFlag(FilePropertyType.LastAccessTime))
                     file.LastAccessTime = FileEntry.LastAccessTime;
 
-                if (propertiesToSet.HasFlag(FilePropertType.Link))
+                if (propertiesToSet.HasFlag(FilePropertyType.Link))
                 {
                     file.LinkProperty = new FileLinkProperty();
                     if ((file.Attributes & FileAttributes.ReparsePoint) != 0)

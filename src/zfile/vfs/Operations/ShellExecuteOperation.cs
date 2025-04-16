@@ -46,7 +46,7 @@ namespace zfile
             }
             else if (shellFileSource.IsPathAtRoot(CurrentPath))
             {
-                ResultString = ExecutableFile.LinkProperty.LinkTo;
+                ResultString = ExecutableFile.LinkProperty.LinkTarget;
                 ExecuteOperationResult = FileSourceExecuteOperationResult.SymLink;
             }
             else

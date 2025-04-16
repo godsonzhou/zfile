@@ -2,6 +2,11 @@ using System.Reflection.Metadata;
 
 namespace zfile
 {
+	public enum WfxResult
+	{
+		Success,
+		NotSupported
+	}
 	public static class Constants
 	{
 		public const int CSIDL_DRIVES = 0x0011;
@@ -37,6 +42,10 @@ namespace zfile
 		internal static IFormatProvider? MsgNotDelete;
 		internal static string MsgErrEWrite;
 		internal static string MsgErrNotSupported;
+		internal static string MsgNoFreeSpaceCont;
+		internal static IFormatProvider? MsgInsertNextDisk;
+		internal static string MsgErrEOpen;
+		internal static IFormatProvider? MsgCannotDeleteDirectory;
 
 		public static string MsgLogSuccess { get; internal set; }
 		public static string MsgLogMkDir { get; internal set; }
@@ -125,6 +134,7 @@ namespace zfile
 	public static class GlobalSettings
     {
 		internal static bool ProcessComments;
+		internal static int HashBlockSize;
 
 		/// <summary>
 		/// Whether to skip file operation errors

@@ -1,6 +1,15 @@
 namespace zfile
 {
-    public class FileSystemSetFilePropertyOperation : FileSourceSetFilePropertyOperation
+	public class DateOutOfRangeException : Exception
+	{
+		public DateTime DateTime { get; }
+		public DateOutOfRangeException(DateTime dateTime) : base($"日期超出范围: {dateTime}")
+		{
+			DateTime = dateTime;
+		}
+	}
+
+	public class FileSystemSetFilePropertyOperation : FileSourceSetFilePropertyOperation
     {
         private FileEntries fullFilesTree;
         private FileSourceSetFilePropertyOperationStatistics statistics;
@@ -250,7 +259,7 @@ namespace zfile
 
         private void QuestionActionHandler(FileSourceOperationUIAction action)
         {
-            if (action == FileSourceOperationUIAction.Compare)
+            if (action == FileSourceOperationUIAction.CompareAction)
             {
                 ShowCompareFilesUI(currentFile, currentTargetFilePath);
             }

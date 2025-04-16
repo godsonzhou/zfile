@@ -38,10 +38,10 @@ namespace zfile
             switch (Mode)
             {
                 case CalcCheckSumOperationMode.Calc:
-                    FillAndCount(Files, false, false,
-                        fullFilesTree,
-                        ref statistics.TotalFiles,
-                        ref statistics.TotalBytes);     // 获取完整的文件列表（递归）
+                    FileSystemUtil.FillAndCount(Files, false, false,
+                        out fullFilesTree,
+                        out statistics.TotalFiles,
+                        out statistics.TotalBytes);     // 获取完整的文件列表（递归）
 
                     if (Algorithm == HashAlgorithm.SFV && OneFile)
                     {
@@ -129,7 +129,7 @@ namespace zfile
                         }
                         catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException)
                         {
-                            ShowMessage($"无法创建/写入文件 {targetFileName}: {ex.Message}");
+                            MessageBox.Show($"无法创建/写入文件 {targetFileName}: {ex.Message}");
                         }
                     }
                     break;
@@ -148,7 +148,7 @@ namespace zfile
                     string checksum;
                     if (CalculateChecksum(stream, out checksum))
                     {
-                        AddFile(file.DirectoryName, file.Name, checksum);
+                        AddFile(file.Path, file.Name, checksum);
                         return true;
                     }
                 }

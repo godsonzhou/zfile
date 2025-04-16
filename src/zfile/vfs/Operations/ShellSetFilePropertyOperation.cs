@@ -122,11 +122,11 @@ namespace zfile
         {
             if ((GlobalSettings.LogOptions & LogOption.Error) != 0)
             {
-                Logger.Write(Thread, message, LogOption.Error);
+                Logger.Write(message, LogOption.Error);
             }
 
-            if (AskQuestion(message, "", new[] { FileSourceOperationResponse.Skip, FileSourceOperationResponse.Abort },
-                           FileSourceOperationResponse.Skip, FileSourceOperationResponse.Abort) == FileSourceOperationResponse.Abort)
+            if (AskQuestion(message, "", new[] { FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort },
+                           FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort) == FileSourceOperationUIResponse.Abort)
             {
                 RaiseAbortOperation();
             }

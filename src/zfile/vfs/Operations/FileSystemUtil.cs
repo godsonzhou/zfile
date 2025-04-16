@@ -98,6 +98,66 @@ namespace zfile
 				sourceSize,
 				sourceTime);
 		}
+
+		internal static bool SetTimeExUAC(string fullPath, object fileTimeExNull1, object fileTimeExNull2, object value)
+		{
+			throw new NotImplementedException();
+		}
+
+		internal static bool RenameFileUAC(string oldName, string newName)
+		{
+			throw new NotImplementedException();
+		}
+
+		internal static bool GetAttributesUAC(string newName, out FileAttributeData newAttr)
+		{
+			throw new NotImplementedException();
+		}
+
+		internal static bool IsDirectory(object attr)
+		{
+			throw new NotImplementedException();
+		}
+
+		internal static bool SetAttributesUAC(string fullPath, FileAttributes? value)
+		{
+			throw new NotImplementedException();
+		}
+
+		internal static void GetDiskFreeSpace(string targetPath, out long freeSpace, out long totalSpace)
+		{
+			throw new NotImplementedException();
+		}
+
+		internal static void FileSetReadOnlyUAC(string fileName, bool v)
+		{
+			throw new NotImplementedException();
+		}
+
+		internal static bool FileFlush(nint handle)
+		{
+			throw new NotImplementedException();
+		}
+
+		internal static bool FileTruncate(nint handle, int v)
+		{
+			throw new NotImplementedException();
+		}
+
+		internal static bool FileAccess(string fileName, FileAccess write)
+		{
+			throw new NotImplementedException();
+		}
+
+		internal static bool DeleteFileUAC(string tempFileName)
+		{
+			throw new NotImplementedException();
+		}
+
+		internal static bool RemoveDirectoryUAC(string tempFileName)
+		{
+			throw new NotImplementedException();
+		}
 	}
 
 	public delegate void UpdateStatisticsFunction(ref FileSourceCopyOperationStatistics newStatistics);

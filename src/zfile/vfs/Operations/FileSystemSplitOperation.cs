@@ -180,10 +180,6 @@ namespace zfile
             }
         }
 
-        protected override void Finalize()
-        {
-        }
-
         private bool Split(FileStream sourceFileStream, string targetFile)
         {
             bool result = false;
@@ -272,7 +268,7 @@ namespace zfile
 
             if (logOptions <= GlobalSettings.LogOptions)
             {
-                Log.Write(message, logError ? LogOption.Error : LogOption.Info);
+                Logger.Write(message, logError ? LogOption.Error : LogOption.Info);
             }
         }
     }

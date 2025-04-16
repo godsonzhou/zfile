@@ -106,7 +106,7 @@ namespace zfile
 					var header = (WcxHeader)item;
 
 					// Check if the file from the archive fits the selection given via theFiles.
-					if (!FileAttributes.IsDirectory(header.FileAttr) &&           // Omit directories
+					if ((header.FileAttr & FileAttributes.Directory) != FileAttributes.Directory &&           // Omit directories
 						MatchesFileEntries(files, header.FileName) &&    // Check if it's included in the FileEntries
 						(fileMask == "*.*" || fileMask == "*" ||    // And name matches file mask
 						 MatchesMaskList(Path.GetFileName(header.FileName), fileMask)))

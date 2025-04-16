@@ -71,8 +71,8 @@ namespace zfile
             FileEntries subFiles;
             long filesCount, bytesCount;
 
-            // 只为子文件统计，因为根目录的统计已经完成
-            FillAndCount(rootFiles, true, true, out subFiles, out filesCount, out bytesCount);
+			// 只为子文件统计，因为根目录的统计已经完成
+			FileSystemUtil.FillAndCount(rootFiles, true, true, out subFiles, out filesCount, out bytesCount);
 
             statistics.TotalFiles += filesCount;
             statistics.TotalBytes += bytesCount;
@@ -147,11 +147,11 @@ namespace zfile
 
                     if (file.IsDirectory)
                     {
-                        deleteResult = RemoveDirectoryUAC(fileName);
+                        deleteResult = FileSystemUtil.RemoveDirectoryUAC(fileName);
                     }
                     else
                     {
-                        deleteResult = DeleteFileUAC(fileName);
+                        deleteResult = FileSystemUtil.DeleteFileUAC(fileName);
                     }
                 }
                 else
@@ -213,7 +213,7 @@ namespace zfile
                         {
                             if (file.IsLink && file.IsDirectory)
                             {
-                                deleteResult = RemoveDirectoryUAC(fileName);
+                                deleteResult = FileSystemUtil.RemoveDirectoryUAC(fileName);
                             }
                             else if (file.IsDirectory)
                             {
@@ -222,7 +222,7 @@ namespace zfile
                             }
                             else
                             {
-                                deleteResult = DeleteFileUAC(fileName);
+                                deleteResult = FileSystemUtil.DeleteFileUAC(fileName);
                             }
                         }
                     }
@@ -242,7 +242,7 @@ namespace zfile
                     {
                         LogMessage(
                             string.Format(Resources.MsgLogSuccess + Resources.MsgLogRmDir, fileName),
-                            LogOption.DirectoryOperations | LogOption.Delete,
+                            LogOption.DirectoryOperation | LogOption.Delete,
                             LogOption.Success);
                     }
                     else
@@ -257,7 +257,7 @@ namespace zfile
                 {
                     if (file.IsDirectory)
                     {
-                        logOptions = LogOption.DirectoryOperations | LogOption.Delete;
+                        logOptions = LogOption.DirectoryOperation | LogOption.Delete;
                         message = string.Format(Resources.MsgLogError + Resources.MsgLogRmDir, fileName);
                         question = string.Format(Resources.MsgCannotDeleteDirectory, fileName);
                     }
@@ -374,7 +374,7 @@ namespace zfile
                 statistics.DoneBytes += file.Size;
                 UpdateStatistics(statistics);
 
-                AppProcessMessages();
+				AppProcessMessages();
                 CheckOperationState();
             }
         }
@@ -383,7 +383,7 @@ namespace zfile
         {
             if (skipErrors)
             {
-                Log.Write(Thread, message, LogOption.Error, true);
+                Logger.Write(Thread, message, LogOption.Error, true);
                 return FileSourceOperationUIResponse.Skip;
             }
             else
@@ -414,7 +414,7 @@ namespace zfile
 
             if ((logOptions & GlobalSettings.LogOptions) == logOptions)
             {
-                Log.Write(Thread, message, logMsgType);
+                Logger.Write(Thread, message, logMsgType);
             }
         }
 

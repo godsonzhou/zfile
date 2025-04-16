@@ -724,9 +724,9 @@ public class FileEntry
 
 	public bool IsReadOnly
 	{
-		get => (!_supportedProperties.HasFlag(FilePropertyType.Attributes)) ?
-				false : (Attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly;
+		get => _supportedProperties.HasFlag(FilePropertyType.Attributes) && (Attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly;
 	}
+	
 }
 
 public class FileEntries : IEnumerable<FileEntry>

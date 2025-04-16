@@ -5,7 +5,7 @@ namespace zfile
     public class MultiArchiveCopyInOperation : ArchiveCopyInOperation
     {
         private readonly IMultiArchiveFileSource _fileSource;
-        private FileEntry[] _removeFilesTree;
+        private FileEntries _removeFilesTree;
         private string _password;
         private string _volumeSize;
         private string _customParams;
@@ -21,7 +21,7 @@ namespace zfile
 		public bool TarBefore { get; set; }
 		public FileSourceCopyOperationStatistics Statistics;
 
-		public MultiArchiveCopyInOperation(IFileSource sourceFileSource, IFileSource targetFileSource, FileEntry[] sourceFiles, string targetPath)
+		public MultiArchiveCopyInOperation(IFileSource sourceFileSource, IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)
             : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
         {
             _fileSource = targetFileSource as IMultiArchiveFileSource;
@@ -76,7 +76,7 @@ namespace zfile
 
             AddStateChangedListener(new[] { FileSourceOperationState.Starting, FileSourceOperationState.Pausing, FileSourceOperationState.Stopping }, FileSourceOperationStateChangedNotify);
 
-            if (SourceFiles.Length == 1)
+            if (SourceFiles.Count == 1)
             {
                 Statistics.CurrentFileFrom = SourceFiles[0].FullPath;
             }
@@ -88,7 +88,7 @@ namespace zfile
 
             ElevateAction = DuplicateAction.Error;
 
-            FillAndCount(SourceFiles, false, false, out _removeFilesTree, out Statistics.TotalFiles, out Statistics.TotalBytes);
+            FileSystemUtil.FillAndCount(SourceFiles, false, false, out _removeFilesTree, out Statistics.TotalFiles, out Statistics.TotalBytes);
         }
 
         protected override void MainExecute()
@@ -107,7 +107,7 @@ namespace zfile
             if (_commandLine.Contains("%F"))
             {
                 // 逐个文件打包
-                for (int i = _removeFilesTree.Length - 1; i >= 0; i--)
+                for (int i = _removeFilesTree.Count - 1; i >= 0; i--)
                 {
                     var file = _removeFilesTree[i];
                     UpdateProgress(rootPath + file.FullPath, destPath, 0);

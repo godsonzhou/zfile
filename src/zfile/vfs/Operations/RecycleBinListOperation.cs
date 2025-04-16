@@ -43,8 +43,8 @@ namespace zfile
 
                     IEnumIDList enumIDList;
                     w32.OleCheck(folder.EnumObjects(IntPtr.Zero, 
-                        SHCONTF.FOLDERS | SHCONTF.NONFOLDERS | 
-                        SHCONTF.INCLUDEHIDDEN, out enumIDList));
+                        (uint)(SHCONTF.FOLDERS | SHCONTF.NONFOLDERS | 
+                        SHCONTF.INCLUDEHIDDEN), out enumIDList));
 
                     IntPtr pidl;
                     uint numIDs;

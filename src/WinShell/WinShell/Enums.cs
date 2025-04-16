@@ -126,8 +126,9 @@ namespace WinShell
 	}
     public enum SIGDN : uint
     {
-        FILESYSPATH = 0x80058000
-    }
+        FILESYSPATH = 0x80058000,
+		DESKTOPABSOLUTEEDITING = 0x80028000 //todo: need confirm
+	}
     
     [Flags()]
     public enum SFGAO

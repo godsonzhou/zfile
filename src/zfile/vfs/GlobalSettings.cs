@@ -25,6 +25,13 @@ namespace zfile
 		internal static string MsgLogWipe;
 		internal static string MsgLogWipeDir;
 		internal static IFormatProvider? MsgErrDateNotSupported;
+		internal static IFormatProvider? MsgFileReadOnly;
+		internal static IFormatProvider? FileExistsMessage;
+		internal static IFormatProvider? MsgErrRename;
+		internal static string MsgLogMove;
+		internal static string MsgLogCopy;
+		internal static string MsgLogDelete;
+		internal static string MsgLogRmDir;
 
 		public static string MsgLogSuccess { get; internal set; }
 		public static string MsgLogMkDir { get; internal set; }
@@ -50,7 +57,8 @@ namespace zfile
 		ArcOp,
 		VfsOp,
 		Delete,
-		DirectoryOperation
+		DirectoryOperation,
+		CopyMoveLink
 	}
 	
 	/// <summary>

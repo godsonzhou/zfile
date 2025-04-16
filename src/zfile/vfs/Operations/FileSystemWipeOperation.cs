@@ -52,7 +52,7 @@ namespace zfile
             Fill(1);
 
             // 获取初始化的统计信息
-            statistics = RetrieveStatistics;
+            statistics = RetrieveStatistics();
 
             FileSystemUtil.FillAndCount(FilesToWipe, true, false,
                 out fullFilesTreeToDelete,

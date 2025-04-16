@@ -189,7 +189,7 @@ namespace zfile
                 if (propertiesToSet.HasFlag(FilePropertyType.CompressedSize))
                 {
                     file.CompressedSizeProperty = new FileCompressedSizeProperty();
-                    file.CompressedSize.Value = GetCompressedFileSize(fullPath);
+                    file.CompressedSize = GetCompressedFileSize(fullPath);
                 }
             }
             else

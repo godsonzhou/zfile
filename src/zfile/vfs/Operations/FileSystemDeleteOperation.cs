@@ -31,7 +31,7 @@ namespace zfile
         protected override void Initialize()
         {
             // 获取初始化的统计信息；然后我们只更改需要的内容
-            statistics = RetrieveStatistics;
+            statistics = RetrieveStatistics();
 
             if (recycle)
             {
@@ -40,7 +40,7 @@ namespace zfile
             }
             else
             {
-                FillAndCount(FilesToDelete, true, false,
+                FileSystemUtil.FillAndCount(FilesToDelete, true, false,
                     out fullFilesTreeToDelete,
                     out statistics.TotalFiles,
                     out statistics.TotalBytes);     // 获取文件的完整列表（递归）

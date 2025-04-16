@@ -180,5 +180,10 @@ namespace zfile
 
             return result;
         }
-    }
+
+		private object DateTimeToWfxFileTime(DateTime value)
+		{
+			throw new NotImplementedException();
+		}
+	}
 } 

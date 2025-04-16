@@ -529,6 +529,26 @@ namespace WinShell
 		public static extern IntPtr FindFirstFile(string lpFileName, out WIN32_FIND_DATA lpFindFileData);
 		[DllImport("kernel32.dll")]
 		public static extern bool FindClose(IntPtr hFindFile);
+		[DllImport("shell32.dll")]
+		public static extern int SHBindToParent(IntPtr pidl, ref Guid riid, out object ppv, out IntPtr ppidlLast);
+
+		[DllImport("shell32.dll")]
+		public static extern int SHGetIDListFromObject([MarshalAs(UnmanagedType.IUnknown)] object punk, out IntPtr ppidl);
+
+		[DllImport("shell32.dll")]
+		public static extern int SHCreateItemFromIDList(IntPtr pidl, ref Guid riid, [MarshalAs(UnmanagedType.IUnknown)] out object ppv);
+
+		[DllImport("shell32.dll")]
+		public static extern int SHCreateItemFromParsingName([MarshalAs(UnmanagedType.LPWStr)] string pszPath, IntPtr pbc, ref Guid riid, [MarshalAs(UnmanagedType.IUnknown)] out object ppv);
+
+		[DllImport("shell32.dll")]
+		public static extern int SHCreateShellItemArray(IntPtr pidlParent, IShellFolder psf, uint cidl, IntPtr[] ppidl, out IShellItemArray ppsiItemArray);
+
+		[DllImport("shell32.dll")]
+		public static extern int SHCreateShellItemArrayFromIDLists(uint cidl, IntPtr[] rgpidl, out IShellItemArray ppsiItemArray);
+
+		//[DllImport("shell32.dll")]
+		//public static extern IntPtr ILClone(IntPtr pidl);
 	}
 
 	// [Flags]

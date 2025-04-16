@@ -47,7 +47,8 @@ namespace zfile
 
 	public enum FileSourceOperationOptionGeneral
     {
-        No,
+		None,
+		No,
         Yes,
         AskUser
     }

@@ -146,7 +146,7 @@ namespace zfile
                         var file = ShellFileSource.CreateFile(Path);
                         file.Name = GetDisplayNameEx(folder, pidl, SHGDN.INFOLDER);
                         ((FileShellProperty)file.LinkProperty).Item = ILCombine(drivesPidl, pidl);
-                        file.LinkProperty.LinkTo = GetDisplayName(folder, pidl, SHGDN.INFOLDER | SHGDN.FORPARSING);
+                        file.LinkProperty.LinkTarget = GetDisplayName(folder, pidl, SHGDN.INFOLDER | SHGDN.FORPARSING);
 
                         uint attributes = SFGAOF_DEFAULT;
                         file.Attributes = FileAttributes.Device | FileAttributes.Virtual;

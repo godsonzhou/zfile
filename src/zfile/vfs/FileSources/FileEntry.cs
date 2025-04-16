@@ -22,6 +22,19 @@ public enum FilePropertyType
 	ChangeTime = 1 << 13,
 	Variant = 1 << 14
 }
+public class UnixFileAttributesProperty : FileProperty
+{
+	public FileAttributes Value { get; set; }
+	public override FileProperty Clone()
+	{
+		return new UnixFileAttributesProperty { Value = this.Value };
+	}
+	public override bool Equals(FileProperty other)
+	{
+		return other is UnixFileAttributesProperty prop && Value == prop.Value;
+	}
+	public override FilePropertyType ID => FilePropertyType.Attributes;
+}
 public class NtfsFileAttributesProperty : FileProperty
 {
 	public FileAttributes Value { get; set; }

@@ -1,5 +1,5 @@
 using System.Runtime.InteropServices;
-
+using WinShell;
 namespace zfile
 {
     public class ShellMoveOperation : FileSourceMoveOperation
@@ -31,7 +31,7 @@ namespace zfile
             {
                 foreach (var file in SourceFiles)
                 {
-                    var item = ILClone(((FileShellProperty)file.LinkProperty).Item);
+                    var item = API.ILClone(((FileShellProperty)file.LinkProperty).Item);
                     sourceFilesTree.Add(item);
                 }
 
@@ -39,10 +39,10 @@ namespace zfile
                 w32.OleCheck(shellFileSource.FindFolder(TargetPath, out folder));
 
                 IntPtr objectPtr;
-                w32.OleCheck(SHGetIDListFromObject(folder, out objectPtr));
+                w32.OleCheck(API.SHGetIDListFromObject(folder, out objectPtr));
                 try
                 {
-                    w32.OleCheck(SHCreateItemFromIDList(objectPtr, typeof(IShellItem).GUID, out targetFolder));
+                    w32.OleCheck(API.SHCreateItemFromIDList(objectPtr, typeof(IShellItem).GUID, out targetFolder));
                 }
                 finally
                 {
@@ -59,7 +59,7 @@ namespace zfile
         {
             var sink = new FileOperationProgressSink(ref statistics, UpdateStatistics, CheckOperationStateSafe);
 
-            fileOp.SetOperationFlags(FOF.SILENT | FOF.NOCONFIRMMKDIR);
+            fileOp.SetOperationFlags(Constants.FOF_SILENT | Constants.FOF_NOCONFIRMMKDIR);
 
             try
             {
@@ -67,8 +67,8 @@ namespace zfile
                 fileOp.Advise(sink, out cookie);
                 try
                 {
-                    IShellItemArray itemArray;
-                    w32.OleCheck(SHCreateShellItemArrayFromIDLists((uint)sourceFilesTree.Count, sourceFilesTree.ToArray(), out itemArray));
+                    //IShellItemArray itemArray;
+                    w32.OleCheck(API.SHCreateShellItemArrayFromIDLists((uint)sourceFilesTree.Count, sourceFilesTree.ToArray(), out var itemArray));
                     w32.OleCheck(fileOp.MoveItems(itemArray, targetFolder));
                     int result = fileOp.PerformOperations();
                     if (result != 0)
@@ -94,10 +94,6 @@ namespace zfile
             }
         }
 
-        protected override void Finalize()
-        {
-        }
-
         private void ShowError(string message)
         {
             if ((GlobalSettings.LogOptions & LogOption.Error) != 0)
@@ -105,19 +101,12 @@ namespace zfile
                 Logger.Write(Thread, message, LogOption.Error);
             }
 
-            if (AskQuestion(message, "", new[] { FileSourceOperationResponse.Skip, FileSourceOperationResponse.Abort },
-                           FileSourceOperationResponse.Skip, FileSourceOperationResponse.Abort) == FileSourceOperationResponse.Abort)
+            if (AskQuestion(message, "", new[] { FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort },
+                           FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort) == FileSourceOperationUIResponse.Abort)
             {
                 RaiseAbortOperation();
             }
         }
-
-        private void w32.OleCheck(int hr)
-        {
-            if (hr != 0)
-                Marshal.ThrowExceptionForHR(hr);
-        }
     }
-
   
 } 

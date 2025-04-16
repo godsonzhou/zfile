@@ -27,18 +27,15 @@ namespace zfile
             fullFilesTree = null;
 
             // 在调用基类构造函数后赋值
-            SupportedProperties = new List<FilePropertyType>
-            {
-                FilePropertyType.Name,
+            SupportedProperties = FilePropertyType.Name |
 #if UNIX
                 // 在设置MODE之前设置所有者/组，因为它会清除SUID位
                 FilePropertyType.Owner,
 #endif
-                FilePropertyType.Attributes,
-                FilePropertyType.ModificationTime,
-                FilePropertyType.CreationTime,
-                FilePropertyType.LastAccessTime
-            };
+                FilePropertyType.Attributes |
+                FilePropertyType.ModificationTime |
+                FilePropertyType.CreationTime |
+                FilePropertyType.LastAccessTime;
 
             if (GlobalSettings.ProcessComments)
             {
@@ -73,7 +70,7 @@ namespace zfile
             else
             {
                 long totalBytes;
-                FillAndCount(TargetFiles, true, false,
+                FileSystemUtil.FillAndCount(TargetFiles, true, false,
                             out fullFilesTree,
                             out statistics.TotalFiles,
                             out totalBytes);     // 获取完整的文件列表（递归）
@@ -107,13 +104,14 @@ namespace zfile
         protected override SetFilePropertyResult SetNewProperty(FileEntry file, FileProperty templateProperty)
         {
             var result = SetFilePropertyResult.Success;
+			Object? FileTimeExNull = null;
 
-            try
+			try
             {
                 switch (templateProperty.ID)
                 {
                     case FilePropertyType.Name:
-                        if ((templateProperty as FileNameProperty).Value != file.Name)
+                        if ((templateProperty as FileNameProperty)?.Value != file.Name)
                         {
                             result = RenameFile(
                                 file,
@@ -121,7 +119,7 @@ namespace zfile
 
                             if (result == SetFilePropertyResult.Success && GlobalSettings.ProcessComments)
                             {
-                                description.Rename(file.FullPath, (templateProperty as FileNameProperty).Value);
+                                description.Rename(file.FullPath, (templateProperty as FileNameProperty)?.Value);
                             }
                         }
                         else

@@ -83,7 +83,7 @@ namespace zfile
                 try
                 {
                     IShellItemArray itemArray;
-                    w32.OleCheck(SHCreateShellItemArrayFromIDLists(sourceFilesTree.Count, sourceFilesTree.ToArray(), out itemArray));
+                    w32.OleCheck(API.SHCreateShellItemArrayFromIDLists(sourceFilesTree.Count, sourceFilesTree.ToArray(), out itemArray));
                     w32.OleCheck(fileOp.CopyItems(itemArray, targetFolder));
                     int result = fileOp.PerformOperations();
                     if (result != 0)
@@ -112,7 +112,7 @@ namespace zfile
                 Logger.Write(Thread.CurrentThread, message, LogOption.Error);
             }
 
-            if (MessageBox.Show(message, "", MessageBoxButtons.SkipCancel, MessageBoxIcon.Error) == DialogResult.Cancel)
+            if (MyMessageBox.Show(message, "", MessageBoxButtons.SkipCancel, MessageBoxIcon.Error) == DialogResult.Cancel)
             {
                 RaiseAbortOperation();
             }

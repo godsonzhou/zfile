@@ -1,3 +1,5 @@
+using OpenQA.Selenium.DevTools.V131.Storage;
+
 namespace zfile
 {
 	public struct StateChangedEventEntry
@@ -93,7 +95,7 @@ namespace zfile
         /// Gets the operation type
         /// </summary>
         public abstract FileSourceOperationType OperationType { get; }
-
+		
         /// <summary>
         /// Gets the file source
         /// </summary>
@@ -478,7 +480,10 @@ namespace zfile
         {
             _startTime = newStartTime;
         }
-        
+        protected virtual FileSourceOperationType GetID()
+		{
+			return OperationType;
+		}
         /// <summary>
         /// Gets the current state of the operation
         /// </summary>

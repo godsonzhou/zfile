@@ -8,27 +8,20 @@ namespace zfile
         private FileSourceOperationSymlinkOption _symLinkOption;
 
         public WfxPluginSetFilePropertyOperation(IFileSource targetFileSource, ref FileEntries targetFiles, ref FileProperties newProperties)
-            : base(targetFileSource, ref targetFiles, ref newProperties)
+            : base(targetFileSource, targetFiles, ref newProperties)
         {
             _symLinkOption = FileSourceOperationSymlinkOption.None;
             _fullFilesTree = null;
             _wfxPluginFileSource = targetFileSource as IWfxPluginFileSource;
 
             // Assign after calling inherited constructor.
-            SupportedProperties = new[]
-            {
-                FilePropertyType.Name,
-                FilePropertyType.Attributes,
-                FilePropertyType.ModificationTime,
-                FilePropertyType.CreationTime,
-                FilePropertyType.LastAccessTime
-            };
+            SupportedProperties = FilePropertyType.Name | FilePropertyType.Attributes | FilePropertyType.ModificationTime |FilePropertyType.CreationTime | FilePropertyType.LastAccessTime;
         }
 
         protected override void Initialize()
         {
-            _wfxPluginFileSource.WfxModule.WfxStatusInfo(TargetFiles.Path, FsStatus.Start, FsStatusOperation.Attrib);
-            _statistics = RetrieveStatistics;
+            _wfxPluginFileSource.WfxModule.setStatusInfo(TargetFiles.Path, FsStatus.Start, FsStatusOperation.Attrib);
+            _statistics = RetrieveStatistics();
 
             if (!Recursive)
             {
@@ -38,7 +31,7 @@ namespace zfile
             else
             {
                 long totalBytes;
-                _wfxPluginFileSource.FillAndCount(TargetFiles, true, false, ref _fullFilesTree, ref _statistics.TotalFiles, ref totalBytes);
+                _wfxPluginFileSource.FillAndCount(TargetFiles, true, false, out _fullFilesTree, out _statistics.TotalFiles, out totalBytes);
             }
         }
 
@@ -65,7 +58,7 @@ namespace zfile
 
         protected override void Finalize()
         {
-            _wfxPluginFileSource.WfxModule.WfxStatusInfo(TargetFiles.Path, FsStatus.End, FsStatusOperation.Attrib);
+            _wfxPluginFileSource.WfxModule.setStatusInfo(TargetFiles.Path, FsStatus.End, FsStatusOperation.Attrib);
         }
 
         protected override SetFilePropertyResult SetNewProperty(FileEntry file, FileProperty templateProperty)
@@ -78,7 +71,10 @@ namespace zfile
                     var nameProperty = (FileNameProperty)templateProperty;
                     if (nameProperty.Value != file.Name)
                     {
-                        if (!WfxRenameFile(_wfxPluginFileSource, file, nameProperty.Value))
+						var remotefileinfo = new RemoteFileInfo();
+						remotefileinfo.SizeLow = file.Size;
+						remotefileinfo.LastWriteTime = file.ModificationTime;
+						if (_wfxPluginFileSource.WfxModule.MoveFile(file.Name, nameProperty.Value, false, remotefileinfo) != 0)
                         {
                             result = SetFilePropertyResult.Error;
                         }
@@ -99,14 +95,14 @@ namespace zfile
 
                         if (templateProperty is NtfsFileAttributesProperty)
                         {
-                            if (!_wfxPluginFileSource.WfxModule.WfxSetAttr(fileName, newAttributes))
+                            if (!_wfxPluginFileSource.WfxModule.SetAttr(fileName, (int)newAttributes))
                             {
                                 result = SetFilePropertyResult.Error;
                             }
                         }
                         else if (templateProperty is UnixFileAttributesProperty)
                         {
-                            if (_wfxPluginFileSource.WfxModule.WfxExecuteFile(Application.MainForm.Tag, fileName,
+                            if (_wfxPluginFileSource.WfxModule.ExecuteFile(Application.MainForm.Tag, fileName,
                                 "chmod " + Convert.ToString(newAttributes & ~S_IFMT, 8)) != FsExecResult.Ok)
                             {
                                 result = SetFilePropertyResult.Error;
@@ -129,7 +125,7 @@ namespace zfile
                     if (modTimeProperty.Value != currentModTime.Value)
                     {
                         var ftTime = DateTimeToWfxFileTime(modTimeProperty.Value);
-                        if (!_wfxPluginFileSource.WfxModule.WfxSetTime(file.FullPath, null, null, ref ftTime))
+                        if (!_wfxPluginFileSource.WfxModule.SetTime(file.FullPath, 0, 0, ftTime))
                         {
                             result = SetFilePropertyResult.Error;
                         }
@@ -146,7 +142,7 @@ namespace zfile
                     if (createTimeProperty.Value != currentCreateTime.Value)
                     {
                         var ftTime = DateTimeToWfxFileTime(createTimeProperty.Value);
-                        if (!_wfxPluginFileSource.WfxModule.WfxSetTime(file.FullPath, ref ftTime, null, null))
+                        if (!_wfxPluginFileSource.WfxModule.SetTime(file.FullPath, ftTime, 0, 0))
                         {
                             result = SetFilePropertyResult.Error;
                         }
@@ -163,7 +159,7 @@ namespace zfile
                     if (accessTimeProperty.Value != currentAccessTime.Value)
                     {
                         var ftTime = DateTimeToWfxFileTime(accessTimeProperty.Value);
-                        if (!_wfxPluginFileSource.WfxModule.WfxSetTime(file.FullPath, null, ref ftTime, null))
+                        if (!_wfxPluginFileSource.WfxModule.SetTime(file.FullPath, 0, ftTime, 0))
                         {
                             result = SetFilePropertyResult.Error;
                         }
@@ -181,7 +177,7 @@ namespace zfile
             return result;
         }
 
-		private object DateTimeToWfxFileTime(DateTime value)
+		private nint DateTimeToWfxFileTime(DateTime value)
 		{
 			throw new NotImplementedException();
 		}

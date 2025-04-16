@@ -2,7 +2,7 @@ namespace zfile
 {
     public class WfxPluginListOperation : FileSourceListOperation
     {
-        private readonly IWfxPluginFileSource _wfxPluginFileSource;
+        private readonly IWfxPluginFileSource? _wfxPluginFileSource;
         private readonly CallbackDataClass _callbackDataClass;
         private readonly string _currentPath;
 
@@ -12,7 +12,7 @@ namespace zfile
             Files = new FileEntries(path);
             _wfxPluginFileSource = fileSource as IWfxPluginFileSource;
             _callbackDataClass = (CallbackDataClass)_wfxPluginFileSource.WfxOperationList.Objects[_wfxPluginFileSource.PluginNumber];
-            _currentPath = ExcludeBackPathDelimiter(path);
+            _currentPath = Helper.ExcludeTrailingPathDelimiter(path);
         }
 
         private int UpdateProgress(string sourceName, string targetName, int percentDone)
@@ -22,14 +22,14 @@ namespace zfile
                 return 1;
             }
 
-            Log.Write(Resources.MsgLoadingFileEntries + percentDone + "%", LogOption.Info, false, false);
+            Logger.Write(Resources.MsgLoadingFileEntries + percentDone + "%", LogOption.Info, false);
 
             return CheckOperationStateSafe() ? 0 : 1;
         }
 
         protected override void Initialize()
         {
-            _wfxPluginFileSource.WfxModule.WfxStatusInfo(_currentPath, FsStatus.Start, FsStatusOperation.List);
+            _wfxPluginFileSource.WfxModule.setStatusInfo(_currentPath, FsStatus.Start, FsStatusOperation.List);
             _callbackDataClass.UpdateProgressFunction = UpdateProgress;
             UpdateProgressFunction = UpdateProgress;
         }
@@ -69,7 +69,7 @@ namespace zfile
             {
                 if (!haveUpDir)
                 {
-                    var file = WfxPluginFileSource.CreateFile(Path);
+                    var file = _wfxPluginFileSource.CreateFile(Path);
                     file.Name = "..";
                     file.Attributes = GenericAttribute.Folder;
                     Files.Insert(0, file);
@@ -79,7 +79,7 @@ namespace zfile
 
         protected override void Finalize()
         {
-            _wfxPluginFileSource.WfxModule.WfxStatusInfo(_currentPath, FsStatus.End, FsStatusOperation.List);
+            _wfxPluginFileSource.WfxModule.setStatusInfo(_currentPath, FsStatus.End, FsStatusOperation.List);
             _callbackDataClass.UpdateProgressFunction = null;
             UpdateProgressFunction = null;
         }

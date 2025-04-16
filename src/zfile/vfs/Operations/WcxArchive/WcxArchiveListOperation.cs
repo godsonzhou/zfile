@@ -59,7 +59,7 @@ namespace zfile
 			}
 			finally
 			{
-				arcFileEntries.Dispose();
+				//arcFileEntries.Dispose();
 			}
 		}
 	}

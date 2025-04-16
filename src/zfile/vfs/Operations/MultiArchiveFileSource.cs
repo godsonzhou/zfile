@@ -69,22 +69,22 @@ namespace zfile
             filesSize = 0;
         }
 
-        protected override string GetPacker()
+        protected string GetPacker()
         {
             return _multiArcItem.Packer;
         }
 
-        protected override FilePropertiesTypes GetSupportedFileProperties()
+        protected FilePropertyType GetSupportedFileProperties()
         {
-            return FilePropertiesTypes.All;
+            return FilePropertyType.All;
         }
 
-        protected override bool SetCurrentWorkingDirectory(string newDir)
+        protected bool SetCurrentWorkingDirectory(string newDir)
         {
             return true;
         }
 
-        protected override void DoReload(string[] pathsToReload)
+        public override void DoReload(string[] pathsToReload)
         {
             // 实现重新加载
         }

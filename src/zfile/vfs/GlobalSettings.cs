@@ -46,6 +46,7 @@ namespace zfile
 		internal static IFormatProvider? MsgInsertNextDisk;
 		internal static string MsgErrEOpen;
 		internal static IFormatProvider? MsgCannotDeleteDirectory;
+		internal static int MsgLoadingFileEntries;
 
 		public static string MsgLogSuccess { get; internal set; }
 		public static string MsgLogMkDir { get; internal set; }

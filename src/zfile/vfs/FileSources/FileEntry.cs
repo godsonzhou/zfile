@@ -3,7 +3,7 @@ using System.Collections;
 namespace zfile;
 
 [Flags]
-public enum FilePropertyType
+public enum FilePropertyType : uint
 {
 	None = 0,
 	Name = 1 << 0,
@@ -20,7 +20,8 @@ public enum FilePropertyType
 	CompressedSize = 1 << 11,
 	Extension = 1 << 12,
 	ChangeTime = 1 << 13,
-	Variant = 1 << 14
+	Variant = 1 << 14,
+	All = 0xffffffff
 }
 public class UnixFileAttributesProperty : FileProperty
 {

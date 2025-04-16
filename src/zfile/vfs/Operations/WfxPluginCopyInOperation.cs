@@ -2,7 +2,7 @@ namespace zfile;
 
 public class WfxPluginCopyInOperation : FileSourceCopyInOperation
 {
-	private readonly IWfxPluginFileSource _wfxPluginFileSource;
+	private readonly IWfxPluginFileSource? _wfxPluginFileSource;
 	private WfxPluginOperationHelper _operationHelper;
 	private CallbackDataClass _callbackDataClass;
 	private FileTree _sourceFilesTree;
@@ -63,7 +63,7 @@ public class WfxPluginCopyInOperation : FileSourceCopyInOperation
 
 	protected override void Initialize()
 	{
-		_wfxPluginFileSource.WfxModule.WfxStatusInfo(TargetPath, FS_STATUS_START, _infoOperation);
+		_wfxPluginFileSource.WfxModule.setStatusInfo(TargetPath, FS_STATUS_START, _infoOperation);
 		_callbackDataClass.UpdateProgressFunction = UpdateProgress;
 		UpdateProgressFunction = UpdateProgress;
 
@@ -115,14 +115,14 @@ public class WfxPluginCopyInOperation : FileSourceCopyInOperation
 
 	protected override void Finalize()
 	{
-		_wfxPluginFileSource.WfxModule.WfxStatusInfo(TargetPath, FS_STATUS_END, _infoOperation);
+		_wfxPluginFileSource.WfxModule.setStatusInfo(TargetPath, FS_STATUS_END, _infoOperation);
 		_callbackDataClass.UpdateProgressFunction = null;
 		UpdateProgressFunction = null;
 		FileExistsOption = _operationHelper.FileExistsOption;
 		_operationHelper.Dispose();
 	}
 
-	public override Type GetOptionsUIClass()
+	public Type GetOptionsUIClass()
 	{
 		return typeof(WfxPluginCopyInOperationOptionsUI);
 	}

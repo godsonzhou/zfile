@@ -37,13 +37,13 @@ namespace zfile;
         protected override void Initialize()
         {
             // Is plugin allow multiple Operations?
-            if (_needsConnection)
+            if (NeedsConnection)
                 _wcxCopyInOperationG = this;
             else
                 _wcxCopyInOperationT = this;
 
             // Gets full list of files (recursive)
-            FillAndCount(SourceFiles,
+            FileSystemUtil.FillAndCount(SourceFiles,
                          ref _fullFilesTree,
                          ref _statistics.TotalFiles,
                          ref _statistics.TotalBytes);
@@ -182,9 +182,9 @@ namespace zfile;
                 _tarBefore = value;
                 if (_tarBefore && _wcxArchiveFileSource.WcxModule.PackToMem != null && 
                     (_wcxArchiveFileSource.WcxModule.PluginCapabilities & WcxModule.PK_CAPS_MEMPACK) != 0)
-                    _needsConnection = (_wcxArchiveFileSource.WcxModule.BackgroundFlags & WcxModule.BACKGROUND_MEMPACK) == 0;
+                    NeedsConnection = (_wcxArchiveFileSource.WcxModule.BackgroundFlags & WcxModule.BACKGROUND_MEMPACK) == 0;
                 else
-                    _needsConnection = (_wcxArchiveFileSource.WcxModule.BackgroundFlags & WcxModule.BACKGROUND_PACK) == 0;
+                    NeedsConnection = (_wcxArchiveFileSource.WcxModule.BackgroundFlags & WcxModule.BACKGROUND_PACK) == 0;
             }
         }
 

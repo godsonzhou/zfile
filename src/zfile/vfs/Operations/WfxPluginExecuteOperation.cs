@@ -15,7 +15,7 @@ public class WfxPluginExecuteOperation : FileSourceExecuteOperation
 
 	protected override void Initialize()
 	{
-		_wfxPluginFileSource.WfxModule.WfxStatusInfo(CurrentPath, FS_STATUS_START, FS_STATUS_OP_EXEC);
+		_wfxPluginFileSource.WfxModule.setStatusInfo(CurrentPath, FS_STATUS_START, FS_STATUS_OP_EXEC);
 	}
 
 	protected override void MainExecute()
@@ -30,7 +30,7 @@ public class WfxPluginExecuteOperation : FileSourceExecuteOperation
 			remoteName = AbsolutePath;
 		}
 
-		var result = _wfxPluginFileSource.WfxModule.WfxExecuteFile(
+		var result = _wfxPluginFileSource.WfxModule.ExecuteFile(
 			Application.OpenForms[0].Tag,
 			remoteName,
 			Verb);
@@ -55,6 +55,6 @@ public class WfxPluginExecuteOperation : FileSourceExecuteOperation
 
 	protected override void Finalize()
 	{
-		_wfxPluginFileSource.WfxModule.WfxStatusInfo(CurrentPath, FS_STATUS_END, FS_STATUS_OP_EXEC);
+		_wfxPluginFileSource.WfxModule.setStatusInfo(CurrentPath, FS_STATUS_END, FS_STATUS_OP_EXEC);
 	}
 }

@@ -32,6 +32,8 @@ namespace zfile
 		internal static string MsgLogCopy;
 		internal static string MsgLogDelete;
 		internal static string MsgLogRmDir;
+		internal static IFormatProvider? MsgErrDirExists;
+		internal static IFormatProvider? MsgErrForceDir;
 
 		public static string MsgLogSuccess { get; internal set; }
 		public static string MsgLogMkDir { get; internal set; }

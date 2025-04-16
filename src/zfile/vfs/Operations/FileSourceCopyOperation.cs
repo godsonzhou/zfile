@@ -27,12 +27,12 @@ namespace zfile
         /// <summary>
         /// Gets the target path
         /// </summary>
-        protected string TargetPath => _targetPath;
+        public override string TargetPath { get => _targetPath; set => _targetPath = value; }
 
-        /// <summary>
-        /// Gets the source files
-        /// </summary>
-        public FileEntries SourceFiles => _sourceFiles;
+		/// <summary>
+		/// Gets the source files
+		/// </summary>
+		public FileEntries SourceFiles => _sourceFiles;
 
         /// <summary>
         /// Gets the source file source

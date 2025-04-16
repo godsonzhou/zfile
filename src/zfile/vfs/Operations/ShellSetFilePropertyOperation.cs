@@ -80,7 +80,7 @@ namespace zfile
             if (Failed(API.SHCreateItemFromIDList(pidl, typeof(IShellItem).GUID, out item)))
                 return SetFilePropertyResult.Error;
 
-            switch (templateProperty.GetID())
+            switch (templateProperty.ID)
             {
                 case FilePropertyType.Name:
                     var fileNameProperty = (FileNameProperty)templateProperty;

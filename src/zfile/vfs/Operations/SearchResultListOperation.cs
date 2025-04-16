@@ -2,7 +2,7 @@ namespace zfile
 {
     public class SearchResultListOperation : FileSourceListOperation
     {
-        private readonly ISearchResultFileSource _fileSource;
+        private readonly ISearchResultFileSource? _fileSource;
 
         public SearchResultListOperation(IFileSource fileSource, string path)
             : base(fileSource, path)

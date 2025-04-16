@@ -47,10 +47,14 @@ namespace zfile
         /// </summary>
         protected string tarFileName;
 
-        /// <summary>
-        /// Gets or sets a value indicating whether to create new archive
-        /// </summary>
-        public bool CreateNew
+		protected ArchiveCopyInOperation(IFileSource aSourceFileSource, IFileSource aTargetFileSource, FileEntries theSourceFiles, string aTargetPath) : base(aSourceFileSource, aTargetFileSource, theSourceFiles, aTargetPath)
+		{
+		}
+
+		/// <summary>
+		/// Gets or sets a value indicating whether to create new archive
+		/// </summary>
+		public bool CreateNew
         {
             get { return createNew; }
             set { createNew = value; }
@@ -81,10 +85,14 @@ namespace zfile
         /// </summary>
         protected ExtractFlag extractFlags;
 
-        /// <summary>
-        /// Gets or sets the extract mask
-        /// </summary>
-        public string ExtractMask
+		protected ArchiveCopyOutOperation(IFileSource aSourceFileSource, IFileSource aTargetFileSource, FileEntries theSourceFiles, string aTargetPath) : base(aSourceFileSource, aTargetFileSource, theSourceFiles, aTargetPath)
+		{
+		}
+
+		/// <summary>
+		/// Gets or sets the extract mask
+		/// </summary>
+		public string ExtractMask
         {
             get { return extractMask; }
             set { extractMask = value; }

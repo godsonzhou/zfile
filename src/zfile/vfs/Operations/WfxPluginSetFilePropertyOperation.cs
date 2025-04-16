@@ -72,7 +72,7 @@ namespace zfile
         {
             var result = SetFilePropertyResult.Success;
 
-            switch (templateProperty.GetID())
+            switch (templateProperty.ID)
             {
                 case FilePropertyType.Name:
                     var nameProperty = (FileNameProperty)templateProperty;

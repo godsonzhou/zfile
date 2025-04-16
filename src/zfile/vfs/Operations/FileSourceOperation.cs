@@ -88,6 +88,7 @@ namespace zfile
         private FileSourceOperationUIResponse _uiResponse;
         private bool _tryAskQuestionResult;
 
+		public virtual bool NeedsConnection { get => _needsConnection; set => _needsConnection = value; }
         /// <summary>
         /// Gets the operation type
         /// </summary>
@@ -101,7 +102,7 @@ namespace zfile
         /// <summary>
         /// Gets the target path
         /// </summary>
-        public virtual string TargetPath => string.Empty;
+        public virtual string TargetPath { get; set; } 
 
         
 		/// <summary>

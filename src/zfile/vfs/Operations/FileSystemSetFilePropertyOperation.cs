@@ -101,7 +101,7 @@ namespace zfile
 
             try
             {
-                switch (templateProperty.GetID())
+                switch (templateProperty.ID)
                 {
                     case FilePropertyType.Name:
                         if ((templateProperty as FileNameProperty).Value != file.Name)
@@ -443,7 +443,7 @@ namespace zfile
 
         protected void ShowCompareFilesUI(FileEntry sourceFile, string targetFilePath)
         {
-            var targetFile = FileSource.CreateFileObject(Path.GetDirectoryName(targetFilePath));
+            var targetFile = FileSource.CreateFile(Path.GetDirectoryName(targetFilePath));
             try
             {
                 targetFile.Name = Path.GetFileName(targetFilePath);

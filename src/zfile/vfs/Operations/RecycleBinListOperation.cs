@@ -56,10 +56,10 @@ namespace zfile
 
                             var file = RecycleBinFileSource.CreateFile(Path);
                             file.FullPath = GetDisplayName(folder, pidl, SHGDN.NORMAL);
-                            file.LinkProperty.LinkTo = GetDisplayName(folder, pidl, SHGDN.FORPARSING);
+                            file.LinkProperty.LinkTarget = GetDisplayName(folder, pidl, SHGDN.FORPARSING);
 
                             FileAttributeData attr;
-                            if (FileSystemUtil.FileGetAttr(file.LinkProperty.LinkTo, out attr))
+                            if (FileSystemUtil.FileGetAttr(file.LinkProperty.LinkTarget, out attr))
                             {
                                 file.Size = attr.Size;
                                 file.Attributes = attr.Attributes;

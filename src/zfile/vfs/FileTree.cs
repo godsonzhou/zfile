@@ -7,7 +7,7 @@ namespace zfile
 
         public string Path { get; }
         public IReadOnlyList<FileTree> SubNodes => _subNodes;
-        public IReadOnlyFileEntries Files => _files;
+        public FileEntries Files => _files;
 
         public FileTree(string path)
         {

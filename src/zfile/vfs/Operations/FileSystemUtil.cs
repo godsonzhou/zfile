@@ -5,7 +5,10 @@ namespace zfile
 	public static class FileSystemUtil
 	{
 		private const string HASH_TYPE = "HASH_BEST";
-
+		public static bool IsInPath(string path1, string path2, bool allowPartial, bool caseSensitive)
+		{
+			return path1.StartsWith(path2, caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
+		}
 		public static string ApplyRenameMask(FileEntry file, string nameMask, string extMask)
 		{
 			// 只对文件进行重命名

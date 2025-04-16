@@ -2,7 +2,7 @@ namespace zfile
 {
     public class FileSystemCreateDirectoryOperation : FileSourceCreateDirectoryOperation
     {
-        private IFileSystemFileSource fileSystemFileSource;
+        private IFileSystemFileSource? fileSystemFileSource;
 
         public FileSystemCreateDirectoryOperation(
             IFileSource targetFileSource,
@@ -37,10 +37,10 @@ namespace zfile
                 if (!ForceDirectoriesUAC(AbsolutePath))
                 {
                     // 记录错误日志
-                    if (GlobalSettings.LogOptions.HasFlag(LogOption.DirectoryOperations) && 
+                    if (GlobalSettings.LogOptions.HasFlag(LogOption.DirectoryOperation) && 
                         GlobalSettings.LogOptions.HasFlag(LogOption.Error))
                     {
-                        Log.Write(Thread, string.Format(Resources.MsgLogError + Resources.MsgLogMkDir, AbsolutePath), 
+                        Logger.Write(Thread, string.Format(Resources.MsgLogError + Resources.MsgLogMkDir, AbsolutePath), 
                             LogOption.Error);
                     }
 
@@ -53,10 +53,10 @@ namespace zfile
                 else
                 {
                     // 记录成功日志
-                    if (GlobalSettings.LogOptions.HasFlag(LogOption.DirectoryOperations) && 
+                    if (GlobalSettings.LogOptions.HasFlag(LogOption.DirectoryOperation) && 
                         GlobalSettings.LogOptions.HasFlag(LogOption.Success))
                     {
-                        Log.Write(Thread, string.Format(Resources.MsgLogSuccess + Resources.MsgLogMkDir, AbsolutePath), 
+                        Logger.Write(Thread, string.Format(Resources.MsgLogSuccess + Resources.MsgLogMkDir, AbsolutePath), 
                             LogOption.Success);
                     }
                 }
@@ -64,7 +64,7 @@ namespace zfile
             catch (Exception ex)
             {
                 // 处理异常
-                Log.Write(Thread, string.Format(Resources.MsgLogError + Resources.MsgLogMkDir + ": {0}", 
+                Logger.Write(Thread, string.Format(Resources.MsgLogError + Resources.MsgLogMkDir + ": {0}", 
                     AbsolutePath, ex.Message), LogOption.Error);
                 throw;
             }

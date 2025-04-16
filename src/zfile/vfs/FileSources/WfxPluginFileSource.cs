@@ -122,7 +122,7 @@ public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 		return files;
 	}
 
-	public FileEntry CreateFileObject(string path)
+	public FileEntry CreateFile(string path)
 	{
 		// Create a file object for the specified path
 		var fileName = Path.GetFileName(path);

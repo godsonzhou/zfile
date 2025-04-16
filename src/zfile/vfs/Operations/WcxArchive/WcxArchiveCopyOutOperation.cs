@@ -52,7 +52,7 @@ namespace zfile;
                         var header = (WcxHeader)item;
                         string fileName = Path.DirectorySeparatorChar + header.FileName;
 
-                        if (IsInPath(Path.DirectorySeparatorChar.ToString(), fileName, false, false))
+                        if (FileSystemUtil.IsInPath(Path.DirectorySeparatorChar.ToString(), fileName, false, false))
                         {
                             count++;
                             if (count > 1)

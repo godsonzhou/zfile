@@ -39,7 +39,7 @@ namespace zfile
 
 					var currFileName = System.IO.Path.DirectorySeparatorChar + header.FileName;
 
-					if (!IsInPath(Path, currFileName, _flatView, false))
+					if (!FileSystemUtil.IsInPath(Path, currFileName, _flatView, false))
 						continue;
 
 					FileEntry file;

@@ -60,7 +60,7 @@ namespace zfile
                     for (int i = 0; i < arcFileEntries.ToList().Count; i++)
                     {
                         string fileName = Path.DirectorySeparatorChar + arcFileEntries[i].FileName;
-                        if (IsInPath(Path.DirectorySeparatorChar.ToString(), fileName, false, false))
+                        if (FileSystemUtil.IsInPath(Path.DirectorySeparatorChar.ToString(), fileName, false, false))
                         {
                             count++;
                             if (count > 1)

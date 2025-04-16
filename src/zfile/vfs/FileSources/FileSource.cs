@@ -229,7 +229,7 @@ namespace zfile
 		/// </summary>
 		/// <param name="path">The path</param>
 		/// <returns>The file object</returns>
-		FileEntry CreateFileObject(string path);
+		FileEntry CreateFile(string path);
 
 		/// <summary>
 		/// Checks if the file source can retrieve the specified properties for the file
@@ -816,7 +816,7 @@ namespace zfile
 		/// </summary>
 		/// <param name="path">The path</param>
 		/// <returns>The file object</returns>
-		public virtual FileEntry CreateFileObject(string path)
+		public virtual FileEntry CreateFile(string path)
 		{
 			return new FileEntry(path);
 		}

@@ -2,10 +2,12 @@ namespace zfile
 {
     public class MultiArchiveCalcStatisticsOperation : FileSourceCalcStatisticsOperation
     {
-        private readonly IMultiArchiveFileSource _fileSource;
+        private readonly IMultiArchiveFileSource? _fileSource;
         private FileSourceCalcStatisticsOperationStatistics _statistics;
 
-        public MultiArchiveCalcStatisticsOperation(IFileSource targetFileSource, FileEntry[] files)
+		public override FileSourceOperationType OperationType => FileSourceOperationType.CalcStatistics;
+
+		public MultiArchiveCalcStatisticsOperation(IFileSource targetFileSource, FileEntries files)
             : base(targetFileSource, files)
         {
             _fileSource = targetFileSource as IMultiArchiveFileSource;
@@ -19,7 +21,7 @@ namespace zfile
 
         protected override void MainExecute()
         {
-            for (int i = 0; i < Files.Length; i++)
+            for (int i = 0; i < Files.Count; i++)
             {
                 ProcessFile(Files[i]);
                 CheckOperationState();
@@ -66,7 +68,7 @@ namespace zfile
                     var archiveItem = FileEntries[i];
                     string currFileName = Path.DirectorySeparatorChar + archiveItem.Name;
 
-                    if (!IsInPath(srcPath, currFileName, true, false))
+                    if (!FileSystemUtil.IsInPath(srcPath, currFileName, true, false))
                         continue;
 
                     if (_fileSource.FileIsDirectory(archiveItem))
@@ -100,9 +102,6 @@ namespace zfile
             }
         }
 
-        private bool IsInPath(string path1, string path2, bool allowPartial, bool caseSensitive)
-        {
-            return path1.StartsWith(path2, caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
-        }
+      
     }
 } 

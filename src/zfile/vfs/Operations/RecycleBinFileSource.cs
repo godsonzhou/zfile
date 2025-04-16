@@ -39,9 +39,9 @@ namespace zfile
             return true;
         }
 
-        public FileSourceOperationTypes GetOperationsTypes()
+        public FileSourceOperationType GetOperationsTypes()
         {
-            return FileSourceOperationTypes.List;
+            return FileSourceOperationType.List;
         }
 
         public FilePropertyType GetSupportedFileProperties()

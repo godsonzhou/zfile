@@ -52,7 +52,7 @@ namespace zfile
         /// <summary>
         /// Gets the operation type
         /// </summary>
-        public override FileSourceOperationTypes OperationType => FileSourceOperationTypes.CalcChecksum;
+        public override FileSourceOperationType OperationType => FileSourceOperationType.CalcChecksum;
 
         /// <summary>
         /// Gets the file source

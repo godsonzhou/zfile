@@ -213,7 +213,7 @@ namespace zfile
             return fileSource as IFileSystemFileSource;
         }
 
-        public override FileSourceOperationTypes GetOperationsTypes()
+        public override FileSourceOperationType GetOperationsTypes()
         {
             return FileSourceOperationType.List |
                    FileSourceOperationType.Copy |

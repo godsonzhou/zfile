@@ -30,9 +30,9 @@ namespace zfile
             return result;
         }
 
-        public override FileSourceOperationTypes GetOperationsTypes()
+        public override FileSourceOperationType GetOperationsTypes()
         {
-            return FileSourceOperationTypes.List | FileSourceOperationTypes.Execute;
+            return FileSourceOperationType.List | FileSourceOperationType.Execute;
         }
 
         public override FileSourceProperties GetProperties()

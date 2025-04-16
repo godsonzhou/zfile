@@ -326,7 +326,7 @@ namespace zfile
                     }
                 }
 
-                File.Copy(file.FullName, targetFilePath, true);
+                File.Copy(file.Name, targetFilePath, true);
 
                 if (CopyAttributesOptions != CopyAttributesOption.None)
                 {

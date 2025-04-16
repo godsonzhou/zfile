@@ -29,7 +29,7 @@ namespace zfile
         /// <summary>
         /// Gets the operation type
         /// </summary>
-        public override FileSourceOperationTypes OperationType => FileSourceOperationTypes.Delete;
+        public override FileSourceOperationType OperationType => FileSourceOperationType.Delete;
 
         /// <summary>
         /// Gets the file source

@@ -13,7 +13,7 @@ namespace zfile
         /// <summary>
         /// Gets the operation type
         /// </summary>
-        public override FileSourceOperationTypes OperationType => FileSourceOperationTypes.List;
+        public override FileSourceOperationType OperationType => FileSourceOperationType.List;
 
         /// <summary>
         /// Gets the file source

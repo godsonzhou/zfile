@@ -119,7 +119,7 @@ namespace zfile
         /// <summary>
         /// Gets the operation type
         /// </summary>
-        public override FileSourceOperationTypes OperationType => FileSourceOperationTypes.SetFileProperty;
+        public override FileSourceOperationType OperationType => FileSourceOperationType.SetFileProperty;
 
         /// <summary>
         /// Attributes to include

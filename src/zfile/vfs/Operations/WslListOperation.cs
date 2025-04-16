@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using WinShell;
 namespace zfile
@@ -50,7 +51,8 @@ namespace zfile
             }
             catch (Exception e)
             {
-                ShowError(thread, e.Message);
+                //ShowError(thread, e.Message);
+				Debug.Print(e.Message);
             }
         }
 

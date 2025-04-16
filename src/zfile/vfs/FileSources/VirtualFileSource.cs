@@ -21,9 +21,9 @@ namespace zfile
 
 		public override FilePropertyType RetrievableFileProperties => FilePropertyType.Standard;
 
-		public override bool IsOperational => true;
+		public bool IsOperational => true;
 
-		public override void AddVirtualSource(IFileSource source)
+		public void AddVirtualSource(IFileSource source)
 		{
 			if (source == null)
 				return;
@@ -38,7 +38,7 @@ namespace zfile
 			}
 		}
 
-		public override void RemoveVirtualSource(IFileSource source)
+		public void RemoveVirtualSource(IFileSource source)
 		{
 			if (source == null)
 				return;
@@ -53,7 +53,7 @@ namespace zfile
 			}
 		}
 
-		public override IEnumerable<IFileSource> GetVirtualSources()
+		public IEnumerable<IFileSource> GetVirtualSources()
 		{
 			lock (_syncRoot)
 			{

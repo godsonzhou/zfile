@@ -11,7 +11,7 @@ namespace zfile
 	{   /// <summary>
 		/// Gets the operation type
 		/// </summary>
-		FileSourceOperationTypes OperationType { get; }
+		FileSourceOperationType OperationType { get; }
 
 		/// <summary>
 		/// Gets the file source associated with this operation
@@ -91,7 +91,7 @@ namespace zfile
         /// <summary>
         /// Gets the operation type
         /// </summary>
-        public abstract FileSourceOperationTypes OperationType { get; }
+        public abstract FileSourceOperationType OperationType { get; }
 
         /// <summary>
         /// Gets the file source

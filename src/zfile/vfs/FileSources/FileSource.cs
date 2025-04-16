@@ -14,28 +14,7 @@ namespace zfile
 	//	public HorizontalAlignment Align { get; set; }
 	//}
 
-	/// <summary>
-	/// Represents file source operation types
-	/// </summary>
-	public enum FileSourceOperationTypes
-	{
-		None = 0,
-		List,
-		Copy,
-		CopyIn,
-		CopyOut,
-		Move,
-		Delete,
-		Wipe,
-		Split,
-		Combine,
-		CreateDirectory,
-		Execute,
-		TestArchive,
-		CalcChecksum,
-		CalcStatistics,
-		SetFileProperty
-	}
+	
 
 	/// <summary>
 	/// Represents file source properties
@@ -225,7 +204,7 @@ namespace zfile
 		/// <summary>
 		/// Gets the operation types supported by this file source
 		/// </summary>
-		FileSourceOperationTypes[] OperationsTypes { get; }
+		FileSourceOperationType[] OperationsTypes { get; }
 
 		/// <summary>
 		/// Gets the properties of this file source
@@ -391,7 +370,7 @@ namespace zfile
 		/// </summary>
 		/// <param name="operationType">The operation type</param>
 		/// <returns>The operation class</returns>
-		Type GetOperationClass(FileSourceOperationTypes operationType);
+		Type GetOperationClass(FileSourceOperationType operationType);
 
 		/// <summary>
 		/// Checks if the specified path is at the root of the file source
@@ -708,7 +687,7 @@ namespace zfile
 		/// <summary>
 		/// Gets the operation types supported by this file source
 		/// </summary>
-		public abstract FileSourceOperationTypes[] OperationsTypes { get; }
+		public abstract FileSourceOperationType[] OperationsTypes { get; }
 
 		/// <summary>
 		/// Gets the properties of this file source
@@ -995,7 +974,7 @@ namespace zfile
 		/// </summary>
 		/// <param name="operationType">The operation type</param>
 		/// <returns>The operation class</returns>
-		public abstract Type GetOperationClass(FileSourceOperationTypes operationType);
+		public abstract Type GetOperationClass(FileSourceOperationType operationType);
 
 		/// <summary>
 		/// Checks if the specified path is at the root of the file source

@@ -20,7 +20,7 @@ namespace zfile
         /// <summary>
         /// Gets the operation type
         /// </summary>
-        public override FileSourceOperationTypes OperationType => FileSourceOperationTypes.Split;
+        public override FileSourceOperationType OperationType => FileSourceOperationType.Split;
 
         /// <summary>
         /// Gets the file source

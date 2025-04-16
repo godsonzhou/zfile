@@ -3,7 +3,8 @@ namespace zfile
 	[Flags]
     public enum FileSourceOperationType : uint
     {
-        Copy,
+		None = 0,
+		Copy,
         CopyIn,
         CopyOut,
         Move,

@@ -22,7 +22,7 @@ namespace zfile
         /// <summary>
         /// Gets the operation type
         /// </summary>
-        public override FileSourceOperationTypes OperationType => FileSourceOperationTypes.Copy;
+        public override FileSourceOperationType OperationType => FileSourceOperationType.Copy;
 
         /// <summary>
         /// Gets the target path
@@ -261,7 +261,7 @@ namespace zfile
         /// <summary>
         /// Gets the operation type
         /// </summary>
-        public override FileSourceOperationTypes OperationType => FileSourceOperationTypes.CopyIn;
+        public override FileSourceOperationType OperationType => FileSourceOperationType.CopyIn;
 
         /// <summary>
         /// Creates a new instance of the <see cref="FileSourceCopyInOperation"/> class
@@ -287,7 +287,7 @@ namespace zfile
         /// <summary>
         /// Gets the operation type
         /// </summary>
-        public override FileSourceOperationTypes OperationType => FileSourceOperationTypes.CopyOut;
+        public override FileSourceOperationType OperationType => FileSourceOperationType.CopyOut;
 
         /// <summary>
         /// Creates a new instance of the <see cref="FileSourceCopyOutOperation"/> class

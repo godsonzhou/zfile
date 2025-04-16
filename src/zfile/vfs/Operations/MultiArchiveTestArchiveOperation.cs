@@ -6,7 +6,9 @@ namespace zfile
         private readonly FileEntries _sourceFiles;
         private bool _testResult;
 
-        public MultiArchiveTestArchiveOperation(
+		public override FileSourceOperationType OperationType => FileSourceOperationType.TestArchive;
+
+		public MultiArchiveTestArchiveOperation(
             IMultiArchiveFileSource fileSource,
             ref FileEntries sourceFiles)
         {
@@ -74,5 +76,15 @@ namespace zfile
             args = args.Replace("%p", _multiArchiveFileSource.Password);
             return args;
         }
-    }
+
+		public override string GetDescription(FileSourceOperationDescriptionDetails details)
+		{
+			throw new NotImplementedException();
+		}
+
+		protected override void UpdateStatisticsAtStartTime()
+		{
+			throw new NotImplementedException();
+		}
+	}
 } 

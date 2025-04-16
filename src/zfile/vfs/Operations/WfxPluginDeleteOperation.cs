@@ -10,7 +10,7 @@ namespace zfile
         private FileSourceOperationOptionGeneral _deleteReadOnly;
 
         public WfxPluginDeleteOperation(IFileSource targetFileSource, ref FileEntries filesToDelete)
-            : base(targetFileSource, ref filesToDelete)
+            : base(targetFileSource, filesToDelete)
         {
             _symLinkOption = FileSourceOperationSymlinkOption.None;
             _skipErrors = false;
@@ -55,7 +55,8 @@ namespace zfile
             var fileName = file.Path + file.Name;
             var retry = false;
 
-            if (FileSystemUtil.FileIsReadOnly(file.Attributes))
+            //if (FileSystemUtil.FileIsReadOnly(file.Attributes))
+			if(file.IsReadOnly)
             {
                 switch (_deleteReadOnly)
                 {
@@ -86,11 +87,11 @@ namespace zfile
 
                 if (file.IsDirectory)
                 {
-                    result = _wfxPluginFileSource.WfxModule.WfxRemoveDir(fileName);
+                    result = _wfxPluginFileSource.WfxModule.RemoveDirectory(fileName);
                 }
                 else
                 {
-                    result = _wfxPluginFileSource.WfxModule.WfxDeleteFile(fileName);
+                    result = _wfxPluginFileSource.WfxModule.DeleteFile(fileName);
                 }
 
                 if (result)
@@ -151,19 +152,19 @@ namespace zfile
             return false;
         }
 
-        private FileSourceOperationUIResult ShowError(string message)
+        private FileSourceOperationUIResponse ShowError(string message)
         {
             if (GlobalSettings.SkipFileOpError)
             {
-                Logger.Write(_Thread, message, LogOption.Error, true);
-                return FileSourceOperationUIResult.Skip;
+                Logger.Write(message, LogOption.Error, true);
+                return FileSourceOperationUIResponse.Skip;
             }
             else
             {
                 var result = AskQuestion(message, string.Empty,
-                    new[] { FileSourceOperationUIResult.Skip, FileSourceOperationUIResult.Cancel },
-                    FileSourceOperationUIResult.Skip, FileSourceOperationUIResult.Cancel);
-                if (result == FileSourceOperationUIResult.Cancel)
+                    new[] { FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Cancel },
+					FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Cancel);
+                if (result == FileSourceOperationUIResponse.Cancel)
                 {
                     RaiseAbortOperation();
                 }
@@ -188,7 +189,7 @@ namespace zfile
 
             if ((logOptions & GlobalSettings.LogOptions) != 0)
             {
-                Logger.Write(_Thread, message, logMsgType);
+                Logger.Write(message, logMsgType);
             }
         }
     }

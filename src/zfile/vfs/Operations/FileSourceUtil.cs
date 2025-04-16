@@ -40,7 +40,7 @@ namespace zfile
                         if (fileSource.Properties.HasFlag(FileSourceProperties.LinkToLocalFiles))
                         {
                             fileCopy = file.Clone();
-                            fileSource.GetLocalName(fileCopy);
+                            fileSource.GetLocalName(ref fileCopy);
                         }
 
                         if (ProcessExtCommandFork(cmd, parameters, startPath, fileCopy))
@@ -52,7 +52,7 @@ namespace zfile
                     }
                 }
 
-                if (fileSource.GetOperationsTypes().HasFlag(FileSourceOperationType.CalcChecksum) && 
+                if (fileSource.OperationsTypes.HasFlag(FileSourceOperationType.CalcChecksum) && 
                     FileExtIsHash(file.Extension))
                 {
                     ProcessExtCommandFork("cm_CheckSumVerify");
@@ -60,18 +60,18 @@ namespace zfile
                 }
             }
 
-            if (fileSource.GetOperationsTypes().HasFlag(FileSourceOperationType.Execute))
+            if (fileSource.OperationsTypes.HasFlag(FileSourceOperationType.Execute))
             {
                 try
                 {
                     FileEntry fileCopy = file.Clone();
-                    IFileSourceOperation operation = fileSource.CreateExecuteOperation(
+                    var operation = fileSource.CreateExecuteOperation(
                         fileCopy, fileView.CurrentPath, "open") as FileSourceExecuteOperation;
 
                     if (operation != null)
                     {
                         operation.Execute();
-                        switch (((FileSourceExecuteOperation)operation).ExecuteOperationResult)
+                        switch (operation.ExecuteOperationResult)
                         {
                             case FileSourceExecuteOperationResult.Error:
                                 // Show error message
@@ -81,7 +81,7 @@ namespace zfile
                                     MessageBox.Show(operation.ResultString, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                 break;
 
-                            case FileSourceExecuteOperationResult.Yourself:
+                            case FileSourceExecuteOperationResult.YourSelf:
                                 // Copy out file to temp file system and execute
                                 if (!ShowFileExecuteYourSelf(fileView, file, false))
                                     Debug.WriteLine("Execution error!");
@@ -137,7 +137,7 @@ namespace zfile
                 return true;
 
             // Work only for VfsFileSource
-            if (fileView.FileSource is VfsFileSource)
+            if (fileView.ActiveFileSource is VfsFileSource)
             {
                 // Check if there is a registered WFX plugin by file system root name
                 IFileSource newFileSource = FileSourceManager.Find(typeof(WfxPluginFileSource), "wfx://" + file.Name);
@@ -230,7 +230,7 @@ namespace zfile
         public static bool ChooseFileSource(FileView fileView, string path, bool local = false)
         {
             string remotePath = path;
-            IFileSource fileSource = ParseFileSource(ref remotePath, fileView.FileSource);
+            IFileSource fileSource = ParseFileSource(ref remotePath, fileView.ActiveFileSource);
 
             // If found special FileSource for path
             if (fileSource != null)
@@ -239,7 +239,7 @@ namespace zfile
                 if (remotePath != path)
                     fileView.AddFileSource(fileSource, remotePath);
                 // If found FileSource is same as current then simply change path
-                else if (fileView.FileSource.Equals(fileSource))
+                else if (fileView.ActiveFileSource.Equals(fileSource))
                     fileView.CurrentPath = path;
                 // Else create new FileSource with given path
                 else
@@ -314,7 +314,7 @@ namespace zfile
         /// <param name="file">File</param>
         public static void ChooseSymbolicLink(FileView fileView, FileEntry file)
         {
-            if (!(fileView.FileSource is FileSystemFileSource))
+            if (!(fileView.ActiveFileSource is FileSystemFileSource))
             {
                 fileView.ChangePathToChild(file);
                 return;
@@ -326,7 +326,7 @@ namespace zfile
             {
                 if (Directory.Exists(path))
                 {
-                    fileView.CurrentPath = fileView.CurrentPath + Path.DirectorySeparatorChar + file.Name + Path.DirectorySeparatorChar;
+                    fileView.CurrentPath += Path.DirectorySeparatorChar + file.Name + Path.DirectorySeparatorChar;
                 }
                 else
                 {
@@ -354,7 +354,7 @@ namespace zfile
         /// <param name="path">Path</param>
         public static void SetFileSystemPath(FileView fileView, string path)
         {
-            if (fileView.FileSource is FileSystemFileSource)
+            if (fileView.ActiveFileSource is FileSystemFileSource)
                 fileView.CurrentPath = path;
             else
                 fileView.AddFileSource(FileSystemFileSource.GetFileSource(), path);
@@ -372,7 +372,7 @@ namespace zfile
         {
             SetFilePropertyResult result = SetFilePropertyResult.Error;
 
-            if (fileSource.GetOperationsTypes().HasFlag(FileSourceOperationType.SetFileProperty))
+            if (fileSource.OperationsTypes.HasFlag(FileSourceOperationType.SetFileProperty))
             {
                 FileNameProperty newNameProperty = new FileNameProperty(newFileName);
                 FileEntries files = new FileEntries();
@@ -428,22 +428,22 @@ namespace zfile
         public static bool GetCopyOperationType(IFileSource sourceFileSource, IFileSource targetFileSource, out FileSourceOperationType operationType)
         {
             // If same file source and address
-            if (sourceFileSource.GetOperationsTypes().HasFlag(FileSourceOperationType.Copy) &&
-                targetFileSource.GetOperationsTypes().HasFlag(FileSourceOperationType.Copy) &&
+            if (sourceFileSource.OperationsTypes.HasFlag(FileSourceOperationType.Copy) &&
+                targetFileSource.OperationsTypes.HasFlag(FileSourceOperationType.Copy) &&
                 sourceFileSource.Equals(targetFileSource) &&
-                string.Equals(sourceFileSource.GetCurrentAddress(), targetFileSource.GetCurrentAddress(), StringComparison.OrdinalIgnoreCase))
+                string.Equals(sourceFileSource.CurrentAddress, targetFileSource.CurrentAddress, StringComparison.OrdinalIgnoreCase))
             {
                 operationType = FileSourceOperationType.Copy;
                 return true;
             }
             else if (targetFileSource is FileSystemFileSource &&
-                     sourceFileSource.GetOperationsTypes().HasFlag(FileSourceOperationType.CopyOut))
+                     sourceFileSource.OperationsTypes.HasFlag(FileSourceOperationType.CopyOut))
             {
                 operationType = FileSourceOperationType.CopyOut;
                 return true;
             }
             else if (sourceFileSource is FileSystemFileSource &&
-                     targetFileSource.GetOperationsTypes().HasFlag(FileSourceOperationType.CopyIn))
+                     targetFileSource.OperationsTypes.HasFlag(FileSourceOperationType.CopyIn))
             {
                 operationType = FileSourceOperationType.CopyIn;
                 return true;

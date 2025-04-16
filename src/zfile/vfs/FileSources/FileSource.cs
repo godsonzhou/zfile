@@ -205,7 +205,7 @@ namespace zfile
 		/// <summary>
 		/// Gets the operation types supported by this file source
 		/// </summary>
-		FileSourceOperationType[] OperationsTypes { get; }
+		FileSourceOperationType OperationsTypes { get; }
 
 		/// <summary>
 		/// Gets the properties of this file source

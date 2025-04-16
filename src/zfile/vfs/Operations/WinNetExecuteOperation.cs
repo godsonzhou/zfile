@@ -11,7 +11,7 @@ namespace zfile
             ref FileEntry executableFile,
             string currentPath,
             string verb)
-            : base(targetFileSource, ref executableFile, currentPath, verb)
+            : base(targetFileSource, executableFile, currentPath, verb)
         {
             _winNetFileSource = targetFileSource as IWinNetFileSource;
         }

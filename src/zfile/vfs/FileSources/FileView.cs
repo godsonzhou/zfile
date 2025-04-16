@@ -15,7 +15,7 @@ namespace zfile
 		}
 
 		public IFileSource ActiveFileSource => _activeFileSource;
-		public string CurrentPath => _currentPath;
+		public string CurrentPath { get => _currentPath; set => _currentPath = value; }
 
 		public void AddFileSource(IFileSource fileSource, string path)
 		{

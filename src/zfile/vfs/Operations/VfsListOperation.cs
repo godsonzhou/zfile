@@ -24,7 +24,7 @@ namespace zfile
                     var file = VfsFileSource.CreateFile(Path);
                     file.Name = _vfsFileSource.VfsFileEntries.Name[i];
                     file.Attributes = FileAttributes.Normal | FileAttributes.Virtual;
-                    file.LinkProperty.LinkTo = Path.GetFullPath(_vfsFileSource.VfsFileEntries.FileName[i]);
+                    file.LinkProperty.LinkTarget = Path.GetFullPath(_vfsFileSource.VfsFileEntries.FileName[i]);
                     Files.Add(file);
                 }
             }
@@ -41,7 +41,7 @@ namespace zfile
                     string path;
                     if (vfsModule.FileSourceClass.GetMainIcon(out path))
                     {
-                        file.LinkProperty.LinkTo = Path.GetFullPath(path);
+                        file.LinkProperty.LinkTarget = System.IO.Path.GetFullPath(path);
                         file.Attributes = FileAttributes.Offline | FileAttributes.Virtual;
                     }
                     Files.Add(file);

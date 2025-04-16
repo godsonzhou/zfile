@@ -13,7 +13,7 @@ public class WfxPluginCopyInOperation : FileSourceCopyInOperation
 	public WfxPluginCopyInOperation(
 		IFileSource sourceFileSource,
 		IFileSource targetFileSource,
-		ref Files sourceFiles,
+		ref FileEntries sourceFiles,
 		string targetPath) : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
 	{
 		_wfxPluginFileSource = targetFileSource as IWfxPluginFileSource;

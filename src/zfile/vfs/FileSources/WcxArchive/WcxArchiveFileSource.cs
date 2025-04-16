@@ -94,7 +94,7 @@ namespace zfile
             return file;
         }
 
-        public override FileSourceOperationType GetOperationTypes()
+        public FileSourceOperationType GetOperationTypes()
         {
             var result = FileSourceOperationType.List | FileSourceOperationType.CopyOut | 
                         FileSourceOperationType.TestArchive | FileSourceOperationType.Execute | 
@@ -111,14 +111,14 @@ namespace zfile
             return result;
         }
 
-        public override FileSourceProperties GetProperties()
+        public FileSourceProperties GetProperties()
         {
             return FileSourceProperties.UsersConnections | FileSourceProperties.ListFlatView;
         }
 
-        protected override FilePropertiesTypes GetSupportedFileProperties()
+        protected FilePropertyType GetSupportedFileProperties()
         {
-            return base.GetSupportedFileProperties();
+            return base.SupportedFileProperties;
         }
 
         public override bool SetCurrentWorkingDirectory(string newDir)
@@ -143,7 +143,7 @@ namespace zfile
             return false;
         }
 
-        protected override string GetPacker()
+        protected string GetPacker()
         {
             return _wcxModule.Name;
         }

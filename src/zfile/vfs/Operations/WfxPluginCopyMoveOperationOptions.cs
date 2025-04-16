@@ -12,7 +12,7 @@ namespace zfile
 		private Panel pnlCheckboxes;
 		private Panel pnlComboBoxes;
 
-		public WfxPluginCopyMoveOperationOptionsUI(Component owner, IFileSource fileSource)
+		public WfxPluginCopyMoveOperationOptionsUI(Control owner, IFileSource fileSource)
 			: base(owner, fileSource)
 		{
 			InitializeComponent();

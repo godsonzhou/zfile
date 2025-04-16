@@ -77,7 +77,7 @@ namespace zfile
                 return;
 
             _filesCount++;
-            _filesSize += file.Length;
+            _filesSize += file.Size;
             _currentTree.AddFile(file);
         }
 

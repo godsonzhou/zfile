@@ -64,7 +64,7 @@ namespace zfile
                 for (int i = 0; i < FileEntries.Count; i++)
                 {
                     var archiveItem = FileEntries[i];
-                    string currFileName = Path.DirectorySeparatorChar + archiveItem.FileName;
+                    string currFileName = Path.DirectorySeparatorChar + archiveItem.Name;
 
                     if (!IsInPath(srcPath, currFileName, true, false))
                         continue;

@@ -52,8 +52,8 @@ namespace zfile
 
                         var file = ShellFileSource.CreateFile(Path);
                         file.Name = GetDisplayNameEx(folder, pidl, SHGDN.INFOLDER);
-                        ((FileShellProperty)file.Link).Item = API.ILCombine(parent, pidl);
-                        file.Link.LinkTarget = GetDisplayName(folder, pidl, SHGDN.INFOLDER | SHGDN.FORPARSING);
+                        ((FileShellProperty)file.LinkProperty).Item = API.ILCombine(parent, pidl);
+                        file.LinkProperty.LinkTarget = GetDisplayName(folder, pidl, SHGDN.INFOLDER | SHGDN.FORPARSING);
 
                         uint attributes = SFGAOF_DEFAULT;
                         if (folder.GetAttributesOf(1, new[] { pidl }, ref attributes) == 0)

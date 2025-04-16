@@ -40,7 +40,7 @@ namespace zfile
                 foreach (var file in SourceFiles)
                 {
                     var item = Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(IntPtr)));
-                    Marshal.StructureToPtr(((FileShellProperty)file.Link).Item, item, false);
+                    Marshal.StructureToPtr(((FileShellProperty)file.LinkProperty).Item, item, false);
                     sourceFilesTree.Add(item);
                 }
 

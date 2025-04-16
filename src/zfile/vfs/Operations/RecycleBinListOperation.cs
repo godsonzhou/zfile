@@ -56,17 +56,17 @@ namespace zfile
 
                             var file = RecycleBinFileSource.CreateFile(Path);
                             file.FullPath = GetDisplayName(folder, pidl, SHGDN.NORMAL);
-                            file.Link.LinkTo = GetDisplayName(folder, pidl, SHGDN.FORPARSING);
+                            file.LinkProperty.LinkTo = GetDisplayName(folder, pidl, SHGDN.FORPARSING);
 
                             FileAttributeData attr;
-                            if (FileSystemUtil.FileGetAttr(file.Link.LinkTo, out attr))
+                            if (FileSystemUtil.FileGetAttr(file.LinkProperty.LinkTo, out attr))
                             {
                                 file.Size = attr.Size;
                                 file.Attributes = attr.Attributes;
                                 file.CreationTime = DateTime.FromFileTime(attr.PlatformTime);
                                 file.LastAccessTime = DateTime.FromFileTime(attr.LastAccessTime);
                                 file.ModificationTime = DateTime.FromFileTime(attr.LastWriteTime);
-                                file.Comment.Value = GetDetails(folder, pidl, SCID_OriginalLocation);
+                                file.CommentProperty.Value = GetDetails(folder, pidl, SCID_OriginalLocation);
                                 file.ChangeTime = DateTime.FromOADate(
                                     Convert.ToDouble(GetDetails(folder, pidl, SCID_DateDeleted)));
                             }

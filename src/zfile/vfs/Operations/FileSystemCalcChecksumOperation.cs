@@ -82,8 +82,8 @@ namespace zfile
             {
                 var file = fullFilesTree[currentFileIndex];
 
-                statistics.CurrentFile = file.FullName;
-                statistics.CurrentFileTotalBytes = file.Length;
+                statistics.CurrentFile = file.Name;
+                statistics.CurrentFileTotalBytes = file.Size;
                 statistics.CurrentFileDoneBytes = 0;
 
                 UpdateStatistics(statistics);
@@ -106,7 +106,7 @@ namespace zfile
                     }
 
                     statistics.DoneFiles++;
-                    statistics.DoneBytes = oldDoneBytes + file.Length;
+                    statistics.DoneBytes = oldDoneBytes + file.Size;
 
                     UpdateStatistics(statistics);
                 }

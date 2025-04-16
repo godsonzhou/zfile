@@ -497,7 +497,7 @@ public class FileEntry
         set { SetProperty(FilePropertyType.ChangeTime, value); }
     }
 
-    public FileLinkProperty Link
+    public FileLinkProperty LinkProperty
     {
         get { return (FileLinkProperty)_properties[FilePropertyType.Link]; }
         set { SetProperty(FilePropertyType.Link, value); }
@@ -515,7 +515,7 @@ public class FileEntry
         set { SetProperty(FilePropertyType.Type, value); }
     }
 
-    public FileCommentProperty Comment
+    public FileCommentProperty CommentProperty
     {
         get { return (FileCommentProperty)_properties[FilePropertyType.Comment]; }
         set { SetProperty(FilePropertyType.Comment, value); }
@@ -877,8 +877,8 @@ public class FileTreeNode
     private FileEntry _file;
     private List<FileTreeNode> _subNodes;
     private object _data;
-
-    public int SubNodesCount
+	public List<FileTreeNode> SubNodes => _subNodes;
+	public int SubNodesCount
     {
         get { return _subNodes.Count; }
         set

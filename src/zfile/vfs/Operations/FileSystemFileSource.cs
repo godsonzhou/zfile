@@ -43,10 +43,10 @@ namespace zfile
             file.ModificationTime = DateTime.Now;
             file.CreationTime = DateTime.Now;
             file.LastAccessTime = DateTime.Now;
-            file.Link = new FileLinkProperty();
+            file.LinkProperty = new FileLinkProperty();
             file.Owner = new FileOwnerProperty();
             file.Type = new FileTypeProperty();
-            file.Comment = new FileCommentProperty();
+            file.CommentProperty = new FileCommentProperty();
             return file;
         }
 
@@ -58,17 +58,17 @@ namespace zfile
             file.ModificationTime = searchRec.Time;
             file.CreationTime = searchRec.PlatformTime;
             file.LastAccessTime = searchRec.LastAccessTime;
-            file.Link = new FileLinkProperty();
+            file.LinkProperty = new FileLinkProperty();
 
             if (FileAttributes.ReparsePoint == (file.Attributes & FileAttributes.ReparsePoint))
             {
                 var linkAttrs = File.GetAttributes(path);
-                file.Link.LinkTo = File.ResolveLinkTarget(path, true)?.FullName;
-                file.Link.IsValid = linkAttrs != (FileAttributes)(-1);
-                if (file.Link.IsValid)
+                file.LinkProperty.LinkTo = File.ResolveLinkTarget(path, true)?.FullName;
+                file.LinkProperty.IsValid = linkAttrs != (FileAttributes)(-1);
+                if (file.LinkProperty.IsValid)
                 {
-                    file.Link.IsLinkToDirectory = (linkAttrs & FileAttributes.Directory) != 0;
-                    if (file.Link.IsLinkToDirectory)
+                    file.LinkProperty.IsLinkToDirectory = (linkAttrs & FileAttributes.Directory) != 0;
+                    if (file.LinkProperty.IsLinkToDirectory)
                         file.Size = 0;
                 }
             }
@@ -90,16 +90,16 @@ namespace zfile
             file.ModificationTime = FileEntry.LastWriteTime;
             file.CreationTime = FileEntry.CreationTime;
             file.LastAccessTime = FileEntry.LastAccessTime;
-            file.Link = new FileLinkProperty();
+            file.LinkProperty = new FileLinkProperty();
 
             if ((file.Attributes & FileAttributes.ReparsePoint) != 0)
             {
                 var linkAttrs = File.GetAttributes(filePath);
-                file.Link.LinkTo = File.ResolveLinkTarget(filePath, true)?.FullName;
-                file.Link.IsValid = linkAttrs != (FileAttributes)(-1);
-                if (file.Link.IsValid)
+                file.LinkProperty.LinkTo = File.ResolveLinkTarget(filePath, true)?.FullName;
+                file.LinkProperty.IsValid = linkAttrs != (FileAttributes)(-1);
+                if (file.LinkProperty.IsValid)
                 {
-                    file.Link.IsLinkToDirectory = (linkAttrs & FileAttributes.Directory) != 0;
+                    file.LinkProperty.IsLinkToDirectory = (linkAttrs & FileAttributes.Directory) != 0;
                 }
             }
 
@@ -162,15 +162,15 @@ namespace zfile
 
                 if (propertiesToSet.HasFlag(FilePropertType.Link))
                 {
-                    file.Link = new FileLinkProperty();
+                    file.LinkProperty = new FileLinkProperty();
                     if ((file.Attributes & FileAttributes.ReparsePoint) != 0)
                     {
                         var linkAttrs = File.GetAttributes(fullPath);
-                        file.Link.LinkTo = File.ResolveLinkTarget(fullPath, true)?.FullName;
-                        file.Link.IsValid = linkAttrs != (FileAttributes)(-1);
-                        if (file.Link.IsValid)
+                        file.LinkProperty.LinkTo = File.ResolveLinkTarget(fullPath, true)?.FullName;
+                        file.LinkProperty.IsValid = linkAttrs != (FileAttributes)(-1);
+                        if (file.LinkProperty.IsValid)
                         {
-                            file.Link.IsLinkToDirectory = (linkAttrs & FileAttributes.Directory) != 0;
+                            file.LinkProperty.IsLinkToDirectory = (linkAttrs & FileAttributes.Directory) != 0;
                         }
                     }
                 }
@@ -200,8 +200,8 @@ namespace zfile
 
             if (propertiesToSet.HasFlag(FilePropertyType.Comment))
             {
-                file.Comment = new FileCommentProperty();
-                file.Comment.Value = description.ReadDescription(fullPath);
+                file.CommentProperty = new FileCommentProperty();
+                file.CommentProperty.Value = description.ReadDescription(fullPath);
             }
         }
 

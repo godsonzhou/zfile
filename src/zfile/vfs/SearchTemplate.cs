@@ -57,21 +57,21 @@ namespace zfile
             _attributesUnsetMask = attributesUnsetMask;
         }
 
-        public bool Check(FileInfo file)
+        public bool Check(FileEntry file)
         {
             if (file == null)
                 return false;
 
             // Check file size
-            if (_minFileSize > 0 && file.Length < _minFileSize)
+            if (_minFileSize > 0 && file.Size < _minFileSize)
                 return false;
-            if (_maxFileSize > 0 && file.Length > _maxFileSize)
+            if (_maxFileSize > 0 && file.Size > _maxFileSize)
                 return false;
 
             // Check file date
-            if (_minFileDate != default && file.LastWriteTime < _minFileDate)
+            if (_minFileDate != default && file.ModificationTime < _minFileDate)
                 return false;
-            if (_maxFileDate != default && file.LastWriteTime > _maxFileDate)
+            if (_maxFileDate != default && file.ModificationTime > _maxFileDate)
                 return false;
 
             // Check attributes
@@ -83,7 +83,7 @@ namespace zfile
             // Check name/path
             if (_searchInPath)
             {
-                string textToSearch = _caseSensitive ? file.FullName : file.FullName.ToLower();
+                string textToSearch = _caseSensitive ? file.Name : file.Name.ToLower();
                 string searchPattern = _caseSensitive ? _searchTemplate : _searchTemplate.ToLower();
 
                 if (_regExp)

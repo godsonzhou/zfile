@@ -894,7 +894,10 @@ namespace zfile
 		/// <param name="sourceFiles">The source files</param>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The copy out operation</returns>
-		public abstract IFileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, FileEntries sourceFiles, string targetPath);
+		public virtual IFileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)
+		{
+			throw new NotImplementedException();
+		}
 
 		/// <summary>
 		/// Creates a move operation for the specified source files and target path
@@ -902,14 +905,19 @@ namespace zfile
 		/// <param name="sourceFiles">The source files</param>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The move operation</returns>
-		public abstract IFileSourceOperation CreateMoveOperation(FileEntries sourceFiles, string targetPath);
+		public virtual IFileSourceOperation CreateMoveOperation(FileEntries sourceFiles, string targetPath) { 
+			throw new NotImplementedException();
+		}
 
 		/// <summary>
 		/// Creates a delete operation for the specified files to delete
 		/// </summary>
 		/// <param name="filesToDelete">The files to delete</param>
 		/// <returns>The delete operation</returns>
-		public abstract IFileSourceOperation CreateDeleteOperation(FileEntries filesToDelete);
+		public virtual IFileSourceOperation CreateDeleteOperation(FileEntries filesToDelete)
+		{
+			throw new NotImplementedException();
+		}
 
 		/// <summary>
 		/// Creates a wipe operation for the specified files to wipe

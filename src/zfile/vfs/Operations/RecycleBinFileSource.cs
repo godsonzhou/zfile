@@ -22,14 +22,14 @@ namespace zfile
         public static FileEntry CreateFile(string path)
         {
             var file = new FileEntry(path);
-            file.Attributes = new FileAttributesProperty();
-            file.Size = new FileSizeProperty();
-            file.ModificationTime = new FileModificationDateTimeProperty();
-            file.CreationTime = new FileCreationDateTimeProperty();
-            file.LastAccessTime = new FileLastAccessDateTimeProperty();
-            file.ChangeTime = new FileChangeDateTimeProperty();
-            file.Link = new FileLinkProperty();
-            file.Comment = new FileCommentProperty();
+            file.AttributesProperty = new FileAttributesProperty();
+            file.SizeProperty = new FileSizeProperty();
+            file.ModificationTimeProperty = new FileModificationDateTimeProperty();
+            file.CreationTimeProperty = new FileCreationDateTimeProperty();
+            file.LastAccessTimeProperty = new FileLastAccessDateTimeProperty();
+            file.ChangeTimeProperty = new FileChangeDateTimeProperty();
+            file.LinkProperty = new FileLinkProperty();
+            file.CommentProperty = new FileCommentProperty();
             return file;
         }
 
@@ -39,14 +39,14 @@ namespace zfile
             return true;
         }
 
-        public override FileSourceOperationTypes GetOperationsTypes()
+        public FileSourceOperationTypes GetOperationsTypes()
         {
             return FileSourceOperationTypes.List;
         }
 
-        public override FilePropertyType GetSupportedFileProperties()
+        public FilePropertyType GetSupportedFileProperties()
         {
-            return base.GetSupportedFileProperties() |
+            return base.SupportedFileProperties |
                    FilePropertyType.Size |
                    FilePropertyType.Attributes |
                    FilePropertyType.ModificationTime |
@@ -59,7 +59,7 @@ namespace zfile
 
         public override bool GetLocalName(ref FileEntry file)
         {
-            file.FullPath = file.Link.LinkTo;
+            file.FullPath = file.LinkProperty.LinkTarget;
             return true;
         }
 
@@ -70,14 +70,14 @@ namespace zfile
                    Path.DirectorySeparatorChar;
         }
 
-        public override FileSourceProperties GetProperties()
+        public FileSourceProperties GetProperties()
         {
             return FileSourceProperties.DirectAccess | 
                    FileSourceProperties.Virtual | 
                    FileSourceProperties.LinkToLocalFiles;
         }
 
-        public override FileSourceOperation CreateListOperation(string targetPath)
+        public override IFileSourceOperation CreateListOperation(string targetPath)
         {
             IFileSource targetFileSource = this;
             return new RecycleBinListOperation(targetFileSource, targetPath);

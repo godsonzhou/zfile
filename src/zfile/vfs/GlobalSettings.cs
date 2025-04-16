@@ -22,6 +22,8 @@ namespace zfile
 	public static class Resources
 	{
 		internal static string MsgLogError;
+		internal static string MsgLogWipe;
+		internal static string MsgLogWipeDir;
 
 		public static string MsgLogSuccess { get; internal set; }
 		public static string MsgLogMkDir { get; internal set; }
@@ -41,7 +43,9 @@ namespace zfile
 		Error,
 		Success,
 		ArcOp,
-		VfsOp
+		VfsOp,
+		Delete,
+		DirectoryOperation
 	}
 	
 	/// <summary>
@@ -133,5 +137,6 @@ namespace zfile
 		public static bool LogDirectoryOperations { get; set; }
 		public static LogOption LogOptions { get; set; }
 		public static bool LogDelete { get; set; }
+		public static int CopyBlockSize { get; set; } = 65536;
 	}
 } 

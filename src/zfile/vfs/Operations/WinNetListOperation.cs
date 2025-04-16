@@ -74,7 +74,7 @@ namespace zfile
 						var file = WinNetFileSource.CreateFile(Path);
 						var resource = Marshal.PtrToStructure<NetResource>(netResourceList);
 						file.FullPath = resource.RemoteName;
-						file.Comment.Value = resource.Comment;
+						file.CommentProperty.Value = resource.Comment;
 						if (resource.DisplayType == ResourceDisplayType.Share)
 							file.Attributes = FileAttributes.Directory;
 						Files.Add(file);
@@ -114,7 +114,7 @@ namespace zfile
 						var file = WinNetFileSource.CreateFile(Path);
 						var info = Marshal.PtrToStructure<ShareInfo1>(shareInfo);
 						file.Name = info.NetName;
-						file.Comment.Value = info.Remark;
+						file.CommentProperty.Value = info.Remark;
 						switch (info.Type & 0xFF)
 						{
 							case ShareType.DiskTree:

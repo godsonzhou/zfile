@@ -1,5 +1,5 @@
 using System.Runtime.InteropServices;
-
+using WinShell;
 namespace zfile
 {
     public class ShellDeleteOperation : FileSourceDeleteOperation
@@ -40,7 +40,7 @@ namespace zfile
         protected override void MainExecute()
         {
             var sink = new FileOperationProgressSink(statistics, UpdateStatistics, CheckOperationStateSafe);
-            fileOp.SetOperationFlags(FOF_SILENT | FOF_NOCONFIRMATION | FOF_NORECURSION);
+            fileOp.SetOperationFlags(Constants.FOF_SILENT | Constants.FOF_NOCONFIRMATION | Constants.FOF_NORECURSION);
 
             try
             {

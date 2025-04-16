@@ -26,7 +26,7 @@ namespace zfile
                 bool found = false;
                 for (int i = 0; i < currentNode.SubNodes.Count; i++)
                 {
-                    if (IsInPath(Path.Combine(currentPath, currentNode.SubNodes[i].TheFile.Name),
+                    if (IsInPath(System.IO.Path.Combine(currentPath, currentNode.SubNodes[i].TheFile.Name),
                                 Path, true, false))
                     {
                         currentNode = currentNode.SubNodes[i];
@@ -42,7 +42,7 @@ namespace zfile
             {
                 var file = FileSource.CreateFile(Path);
                 file.Name = "..";
-                if (file.SupportedProperties.HasFlag(FilePropertiesTypes.Attributes))
+                if (file.SupportedProperties.HasFlag(FilePropertyType.Attributes))
                     file.Attributes = FileAttributes.Directory;
                 Files.Add(file);
             }

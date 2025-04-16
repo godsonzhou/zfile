@@ -54,7 +54,7 @@ namespace zfile
 			file.ModificationTimeProperty = new FileModificationDateTimeProperty();
 			file.CreationTimeProperty = new FileCreationDateTimeProperty();
 			file.LinkProperty = new FileShellProperty();
-			file.Comment = new FileCommentProperty();
+			file.CommentProperty = new FileCommentProperty();
 			return file;
 		}
 

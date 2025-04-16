@@ -32,7 +32,7 @@ namespace zfile
                 {
                     string maybeAdditionalSourceFilename = Path.Combine(
                         SourceFiles[0].DirectoryName,
-                        $"{Path.GetFileNameWithoutExtension(SourceFiles[0].FullName)}.{maybeFileIndex:D{extensionLengthRequired}}");
+                        $"{Path.GetFileNameWithoutExtension(SourceFiles[0].Name)}.{maybeFileIndex:extensionLengthRequired}");
 
                     if (File.Exists(maybeAdditionalSourceFilename) || maybeFileIndex == 1)
                     {
@@ -48,7 +48,7 @@ namespace zfile
                     maybeFileIndex++;
                 } while (!File.Exists(Path.Combine(
                     SourceFiles[0].DirectoryName,
-                    $"{Path.GetFileNameWithoutExtension(SourceFiles[0].FullName)}.{maybeFileIndex:D{extensionLengthRequired}}"))) && maybeFileIndex != 1);
+                    $"{Path.GetFileNameWithoutExtension(SourceFiles[0].Name)}.{maybeFileIndex:DextensionLengthRequired}"))) && maybeFileIndex != 1);
 
                 SourceFiles.RemoveAt(0); // 现在可以删除第一个文件，它可能是系列中的任何一个
             }
@@ -120,7 +120,7 @@ namespace zfile
                         {
                             string dynamicNextFilename = Path.Combine(
                                 SourceFiles[0].DirectoryName,
-                                $"{Path.GetFileNameWithoutExtension(SourceFiles[0].FullName)}.{(currentFileIndex + 1):D{extensionLengthRequired}}");
+                                $"{Path.GetFileNameWithoutExtension(SourceFiles[0].Name)}.{(currentFileIndex + 1):D{extensionLengthRequired}}");
                             BegForPresenceOfThisFile(dynamicNextFilename);
                             var dynamicNextFile = new FileEntry(dynamicNextFilename);
                             SourceFiles.Add(dynamicNextFile);
@@ -129,8 +129,8 @@ namespace zfile
 
                         var file = fullFilesTreeToCombine[currentFileIndex];
 
-                        statistics.CurrentFileFrom = file.FullName;
-                        statistics.CurrentFileTotalBytes = file.Length;
+                        statistics.CurrentFileFrom = file.Name;
+                        statistics.CurrentFileTotalBytes = file.Size;
                         statistics.CurrentFileDoneBytes = 0;
                         UpdateStatistics(statistics);
 

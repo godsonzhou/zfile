@@ -32,7 +32,7 @@ namespace zfile
             {
                 foreach (var file in TargetFiles)
                 {
-                    var item = API.ILClone(((FileShellProperty)file.Link).Item);
+                    var item = API.ILClone(((FileShellProperty)file.LinkProperty).Item);
                     sourceFilesTree.Add(item);
                 }
             }

@@ -1,7 +1,7 @@
 ﻿using FileSystemOperations;
 using System.Runtime.InteropServices;
 
-namespace Zfile.FileSources.ShellFolder
+namespace Zfile.FileSources
 {
 	public class ShellFileSource : VirtualFileSource, IShellFileSource
 	{

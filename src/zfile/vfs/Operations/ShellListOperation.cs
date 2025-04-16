@@ -1,7 +1,8 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
-
+using Zfile.FileSources;
+using WinShell;
 namespace FileSystemOperations
 {
     public class ShellListOperation : FileSourceListOperation
@@ -211,5 +212,5 @@ namespace FileSystemOperations
         }
     }
 
- 
-} 
+
+}

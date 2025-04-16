@@ -1,7 +1,8 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
-
+using Zfile.FileSources;
+using Zfile;
 namespace FileSystemOperations
 {
     public interface IRecycleBinFileSource : IVirtualFileSource
@@ -23,9 +24,9 @@ namespace FileSystemOperations
                 StringComparison.OrdinalIgnoreCase);
         }
 
-        public static FileInfo CreateFile(string path)
+        public static FileEntry CreateFile(string path)
         {
-            var file = new FileInfo(path);
+            var file = new FileEntry(path);
             file.Attributes = new FileAttributesProperty();
             file.Size = new FileSizeProperty();
             file.ModificationTime = new FileModificationDateTimeProperty();
@@ -48,17 +49,17 @@ namespace FileSystemOperations
             return FileSourceOperationTypes.List;
         }
 
-        public override FilePropertiesTypes GetSupportedFileProperties()
+        public override FilePropertyType GetSupportedFileProperties()
         {
             return base.GetSupportedFileProperties() |
-                   FilePropertiesTypes.Size |
-                   FilePropertiesTypes.Attributes |
-                   FilePropertiesTypes.ModificationTime |
-                   FilePropertiesTypes.CreationTime |
-                   FilePropertiesTypes.LastAccessTime |
-                   FilePropertiesTypes.ChangeTime |
-                   FilePropertiesTypes.Link |
-                   FilePropertiesTypes.Comment;
+                   FilePropertyType.Size |
+                   FilePropertyType.Attributes |
+                   FilePropertyType.ModificationTime |
+                   FilePropertyType.CreationTime |
+                   FilePropertyType.LastAccessTime |
+                   FilePropertyType.ChangeTime |
+                   FilePropertyType.Link |
+                   FilePropertyType.Comment;
         }
 
         public override bool GetLocalName(ref FileInfo file)
@@ -78,7 +79,7 @@ namespace FileSystemOperations
         {
             return FileSourceProperties.DirectAccess | 
                    FileSourceProperties.Virtual | 
-                   FileSourceProperties.LinksToLocalFiles;
+                   FileSourceProperties.LinkToLocalFiles;
         }
 
         public override FileSourceOperation CreateListOperation(string targetPath)

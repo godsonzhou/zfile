@@ -1,4 +1,5 @@
 using Zfile.Operations;
+using Zfile.FileSources;
 namespace FileSystemOperations
 {
     public class WfxPluginCopyOutOperation : FileSourceCopyOutOperation
@@ -134,4 +135,4 @@ namespace FileSystemOperations
             set => SetNeedsConnection(value);
         }
     }
-} 
+}

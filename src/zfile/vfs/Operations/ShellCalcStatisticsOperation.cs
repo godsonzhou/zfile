@@ -75,8 +75,8 @@ namespace FileSystemOperations
 
                 IEnumIDList enumIDList;
                 OleCheck(folder.EnumObjects(IntPtr.Zero,
-                    SHCONTF.SHCONTF_FOLDERS | SHCONTF.SHCONTF_NONFOLDERS |
-                    SHCONTF.SHCONTF_STORAGE | SHCONTF.SHCONTF_INCLUDEHIDDEN,
+                    SHCONTF.FOLDERS | SHCONTF.NONFOLDERS |
+                    SHCONTF.SHCONTF_STORAGE | SHCONTF.INCLUDEHIDDEN,
                     out enumIDList));
 
                 IntPtr pidl;
@@ -161,18 +161,18 @@ namespace FileSystemOperations
         Success
     }
 
-    public enum SFGAO
-    {
-        SFGAO_FOLDER = 0x20000000
-    }
-	
-	public static class Logger
+    // public enum SFGAO
+    // {
+    //     SFGAO_FOLDER = 0x20000000
+    // }
+
+    public static class Logger
     {
         public static void Write(System.Threading.Thread thread, string message, LogMessageType type)
         {
             // 实现日志记录逻辑
         }
-	}
+    }
 
-	
-} 
+
+}

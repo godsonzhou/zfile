@@ -1,8 +1,6 @@
-using System;
-using System.IO;
 using System.Runtime.InteropServices;
-using System.Collections.Generic;
-
+using Zfile;
+using WinShell;
 namespace FileSystemOperations
 {
     public class RecycleBinListOperation : FileSystemListOperation
@@ -22,7 +20,7 @@ namespace FileSystemOperations
         public RecycleBinListOperation(IFileSource fileSource, string path)
             : base(fileSource, path)
         {
-            Files = new List<FileInfo>();
+            Files = new FileEntries();
         }
 
         public override void MainExecute()
@@ -34,7 +32,7 @@ namespace FileSystemOperations
                 OleCheck(SHGetDesktopFolder(out desktopFolder));
 
                 IntPtr trashPIDL;
-                OleCheck(SHGetFolderLocation(IntPtr.Zero, CSIDL.CSIDL_BITBUCKET, 
+                OleCheck(SHGetFolderLocation(IntPtr.Zero, CSIDL.BITBUCKET, 
                     IntPtr.Zero, 0, out trashPIDL));
 
                 try
@@ -46,8 +44,8 @@ namespace FileSystemOperations
 
                     IEnumIDList enumIDList;
                     OleCheck(folder.EnumObjects(IntPtr.Zero, 
-                        SHCONTF.SHCONTF_FOLDERS | SHCONTF.SHCONTF_NONFOLDERS | 
-                        SHCONTF.SHCONTF_INCLUDEHIDDEN, out enumIDList));
+                        SHCONTF.FOLDERS | SHCONTF.NONFOLDERS | 
+                        SHCONTF.INCLUDEHIDDEN, out enumIDList));
 
                     IntPtr pidl;
                     uint numIDs;
@@ -58,8 +56,8 @@ namespace FileSystemOperations
                             CheckOperationState();
 
                             var file = RecycleBinFileSource.CreateFile(Path);
-                            file.FullPath = GetDisplayName(folder, pidl, SHGDN.SHGDN_NORMAL);
-                            file.Link.LinkTo = GetDisplayName(folder, pidl, SHGDN.SHGDN_FORPARSING);
+                            file.FullPath = GetDisplayName(folder, pidl, SHGDN.NORMAL);
+                            file.Link.LinkTo = GetDisplayName(folder, pidl, SHGDN.FORPARSING);
 
                             FileAttributeData attr;
                             if (FileSystemUtil.FileGetAttr(file.Link.LinkTo, out attr))
@@ -206,23 +204,23 @@ namespace FileSystemOperations
         PID_DISPLACED_DATE = 3
     }
 
-    public enum SHCONTF
-    {
-        SHCONTF_FOLDERS = 0x20,
-        SHCONTF_NONFOLDERS = 0x40,
-        SHCONTF_INCLUDEHIDDEN = 0x80
-    }
+    //public enum SHCONTF
+    //{
+    //    FOLDERS = 0x20,
+    //    NONFOLDERS = 0x40,
+    //    INCLUDEHIDDEN = 0x80
+    //}
 
-    public enum SHGDN
-    {
-        SHGDN_NORMAL = 0,
-        SHGDN_FORPARSING = 0x8000
-    }
+    //public enum SHGDN
+    //{
+    //    NORMAL = 0,
+    //    FORPARSING = 0x8000
+    //}
 
-    public enum CSIDL
-    {
-        CSIDL_BITBUCKET = 0x0a
-    }
+    //public enum CSIDL
+    //{
+    //    BITBUCKET = 0x0a
+    //}
 
     [DllImport("shell32.dll")]
     public static extern int SHGetDesktopFolder(out IShellFolder ppshf);

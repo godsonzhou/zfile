@@ -1,6 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
-
+using Zfile.Operations;
 namespace FileSystemOperations
 {
     public class WslFileSource : WinNetFileSource
@@ -65,4 +65,4 @@ namespace FileSystemOperations
             return false;
         }
     }
-} 
+}

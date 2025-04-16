@@ -153,9 +153,9 @@ namespace zfile
         {
             if (GlobalSettings.SkipFileOpError)
             {
-                if (GlobalSettings.LogOptions.HasFlag(LogOptions.Errors))
+                if (GlobalSettings.LogOptions.HasFlag(LogOption.Error))
                 {
-                    Log.Write(_operationThread, message, LogMessageType.Error, true);
+                    Log.Write(_operationThread, message, LogOption.Error, true);
                 }
             }
             else
@@ -168,11 +168,11 @@ namespace zfile
             }
         }
 
-        private void LogMessage(string message, LogOptions logOptions, LogMessageType logMsgType)
+        private void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
         {
-            if (logMsgType == LogMessageType.Error && !GlobalSettings.LogOptions.HasFlag(LogOptions.Errors)) return;
-            if (logMsgType == LogMessageType.Info && !GlobalSettings.LogOptions.HasFlag(LogOptions.Info)) return;
-            if (logMsgType == LogMessageType.Success && !GlobalSettings.LogOptions.HasFlag(LogOptions.Success)) return;
+            if (logMsgType == LogOption.Error && !GlobalSettings.LogOptions.HasFlag(LogOption.Error)) return;
+            if (logMsgType == LogOption.Info && !GlobalSettings.LogOptions.HasFlag(LogOption.Info)) return;
+            if (logMsgType == LogOption.Success && !GlobalSettings.LogOptions.HasFlag(LogOption.Success)) return;
 
             if (logOptions <= GlobalSettings.LogOptions)
             {

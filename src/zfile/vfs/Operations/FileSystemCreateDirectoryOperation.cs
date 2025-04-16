@@ -37,11 +37,11 @@ namespace zfile
                 if (!ForceDirectoriesUAC(AbsolutePath))
                 {
                     // 记录错误日志
-                    if (GlobalSettings.LogOptions.HasFlag(LogOptions.DirectoryOperations) && 
-                        GlobalSettings.LogOptions.HasFlag(LogOptions.Errors))
+                    if (GlobalSettings.LogOptions.HasFlag(LogOption.DirectoryOperations) && 
+                        GlobalSettings.LogOptions.HasFlag(LogOption.Error))
                     {
                         Log.Write(Thread, string.Format(Resources.MsgLogError + Resources.MsgLogMkDir, AbsolutePath), 
-                            LogMessageType.Error);
+                            LogOption.Error);
                     }
 
                     AskQuestion(string.Format(Resources.MsgErrForceDir, AbsolutePath), 
@@ -53,11 +53,11 @@ namespace zfile
                 else
                 {
                     // 记录成功日志
-                    if (GlobalSettings.LogOptions.HasFlag(LogOptions.DirectoryOperations) && 
-                        GlobalSettings.LogOptions.HasFlag(LogOptions.Success))
+                    if (GlobalSettings.LogOptions.HasFlag(LogOption.DirectoryOperations) && 
+                        GlobalSettings.LogOptions.HasFlag(LogOption.Success))
                     {
                         Log.Write(Thread, string.Format(Resources.MsgLogSuccess + Resources.MsgLogMkDir, AbsolutePath), 
-                            LogMessageType.Success);
+                            LogOption.Success);
                     }
                 }
             }
@@ -65,7 +65,7 @@ namespace zfile
             {
                 // 处理异常
                 Log.Write(Thread, string.Format(Resources.MsgLogError + Resources.MsgLogMkDir + ": {0}", 
-                    AbsolutePath, ex.Message), LogMessageType.Error);
+                    AbsolutePath, ex.Message), LogOption.Error);
                 throw;
             }
         }

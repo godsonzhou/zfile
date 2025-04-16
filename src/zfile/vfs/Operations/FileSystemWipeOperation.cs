@@ -343,19 +343,19 @@ namespace zfile
             {
                 if (!wipeResult)
                     LogMessage(string.Format(Resources.MsgLogError + Resources.MsgLogWipeDir, fileName), 
-                        LogOptions.DirectoryOperation | LogOptions.Delete, true);
+                        LogOption.DirectoryOperation | LogOption.Delete, true);
                 else
                     LogMessage(string.Format(Resources.MsgLogSuccess + Resources.MsgLogWipeDir, fileName), 
-                        LogOptions.DirectoryOperation | LogOptions.Delete, false);
+                        LogOption.DirectoryOperation | LogOption.Delete, false);
             }
             else
             {
                 if (!wipeResult)
                     LogMessage(string.Format(Resources.MsgLogError + Resources.MsgLogWipe, fileName), 
-                        LogOptions.Delete, true);
+                        LogOption.Delete, true);
                 else
                     LogMessage(string.Format(Resources.MsgLogSuccess + Resources.MsgLogWipe, fileName), 
-                        LogOptions.Delete, false);
+                        LogOption.Delete, false);
             }
 
             // 如果需要，处理注释
@@ -367,7 +367,7 @@ namespace zfile
         {
             if (GlobalSettings.SkipFileOpError)
             {
-                LogMessage(message, LogOptions.Error, true);
+                LogMessage(message, LogOption.Error, true);
                 return false;
             }
             else if (!skipErrors)
@@ -392,14 +392,14 @@ namespace zfile
             return false;
         }
 
-        private void LogMessage(string message, LogOptions logOptions, bool logError)
+        private void LogMessage(string message, LogOption logOptions, bool logError)
         {
             if (logError && !GlobalSettings.LogErrors)
                 return;
 
             if (logOptions <= GlobalSettings.LogOptions)
             {
-                Log.Write(message, logError ? LogMessageType.Error : LogMessageType.Info);
+                Log.Write(message, logError ? LogOption.Error : LogOption.Info);
             }
         }
     }

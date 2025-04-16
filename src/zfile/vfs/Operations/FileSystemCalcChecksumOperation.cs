@@ -155,7 +155,7 @@ namespace zfile
             }
             catch (Exception ex)
             {
-                LogMessage($"计算校验和时出错: {ex.Message}", LogOptions.Error);
+                LogMessage($"计算校验和时出错: {ex.Message}", LogOption.Error);
             }
             return false;
         }
@@ -171,14 +171,14 @@ namespace zfile
                     {
                         bool result = string.Equals(actualChecksum, expectedChecksum, StringComparison.OrdinalIgnoreCase);
                         LogMessage($"验证 {file.Name}: {(result ? "成功" : "失败")}", 
-                            result ? LogOptions.Success : LogOptions.Error);
+                            result ? LogOption.Success : LogOption.Error);
                         return result;
                     }
                 }
             }
             catch (Exception ex)
             {
-                LogMessage($"验证校验和时出错: {ex.Message}", LogOptions.Error);
+                LogMessage($"验证校验和时出错: {ex.Message}", LogOption.Error);
             }
             return false;
         }
@@ -205,7 +205,7 @@ namespace zfile
             }
             catch (FileNotFoundException)
             {
-                LogMessage($"文件未找到: {fileName}", LogOptions.Error);
+                LogMessage($"文件未找到: {fileName}", LogOption.Error);
             }
         }
 
@@ -223,7 +223,7 @@ namespace zfile
             }
             catch (Exception ex)
             {
-                LogMessage($"计算校验和时出错: {ex.Message}", LogOptions.Error);
+                LogMessage($"计算校验和时出错: {ex.Message}", LogOption.Error);
                 return false;
             }
         }
@@ -245,7 +245,7 @@ namespace zfile
             }
         }
 
-        private void LogMessage(string message, LogOptions options)
+        private void LogMessage(string message, LogOption options)
         {
             // TODO: 实现日志记录
         }

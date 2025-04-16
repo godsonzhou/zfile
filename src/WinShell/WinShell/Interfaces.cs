@@ -135,7 +135,7 @@ namespace WinShell
 	{
 		new void ParseDisplayName(IntPtr hwnd, IntPtr pbc, string pszDisplayName,
 			ref uint pchEaten, out IntPtr ppidl, ref uint pdwAttributes);
-		new void EnumObjects(IntPtr hwnd, uint grfFlags, out IEnumIDList ppenumIDList);
+		new int EnumObjects(IntPtr hwnd, uint grfFlags, out IEnumIDList ppenumIDList);
 		new void BindToObject(IntPtr pidl, IntPtr pbc, [In] ref Guid riid,
 			[MarshalAs(UnmanagedType.IUnknown)] out object ppv);
 		new void BindToStorage(IntPtr pidl, IntPtr pbc, [In] ref Guid riid,

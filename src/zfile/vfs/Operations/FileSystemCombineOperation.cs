@@ -219,7 +219,7 @@ namespace zfile
             Console.WriteLine($"错误: {message}");
         }
 
-        private void LogMessage(string message, LogOptions options, LogMessageType msgType)
+        private void LogMessage(string message, LogOption options, LogOption msgType)
         {
             // TODO: 实现日志记录
             Console.WriteLine($"[{msgType}] {message}");

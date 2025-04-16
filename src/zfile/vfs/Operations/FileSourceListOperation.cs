@@ -23,7 +23,7 @@ namespace zfile
         /// <summary>
         /// Gets the files
         /// </summary>
-        public FileEntries Files => GetFiles();
+        public FileEntries Files { get  => _files; set => _files = value; }
 
         /// <summary>
         /// Gets the path

@@ -308,21 +308,21 @@ namespace zfile
             try
             {
                 Directory.CreateDirectory(path);
-                if (GlobalSettings.LogOptions.HasFlag(LogOptions.DirectoryOperations) &&
-                    GlobalSettings.LogOptions.HasFlag(LogOptions.Success))
+                if (GlobalSettings.LogOptions.HasFlag(LogOption.DirectoryOperations) &&
+                    GlobalSettings.LogOptions.HasFlag(LogOption.Success))
                 {
                     Logger.Write(string.Format(Resources.MsgLogSuccess + Resources.MsgLogMkDir, path),
-                        LogMessageType.Success);
+                        LogOption.Success);
                 }
                 return true;
             }
             catch (Exception)
             {
-                if (GlobalSettings.LogOptions.HasFlag(LogOptions.DirectoryOperations) &&
-                    GlobalSettings.LogOptions.HasFlag(LogOptions.Errors))
+                if (GlobalSettings.LogOptions.HasFlag(LogOption.DirectoryOperations) &&
+                    GlobalSettings.LogOptions.HasFlag(LogOption.Error))
                 {
                     Logger.Write(string.Format(Resources.MsgLogError + Resources.MsgLogMkDir, path),
-                        LogMessageType.Error);
+                        LogOption.Error);
                 }
                 return false;
             }

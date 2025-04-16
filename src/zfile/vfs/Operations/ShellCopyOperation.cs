@@ -109,7 +109,7 @@ namespace zfile
         {
             if (GlobalSettings.LogCopyMove && GlobalSettings.LogErrors)
             {
-                Logger.Write(Thread.CurrentThread, message, LogMessageType.Error);
+                Logger.Write(Thread.CurrentThread, message, LogOption.Error);
             }
 
             if (MessageBox.Show(message, "", MessageBoxButtons.SkipCancel, MessageBoxIcon.Error) == DialogResult.Cancel)

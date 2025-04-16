@@ -1,5 +1,5 @@
 using System.Runtime.InteropServices;
-
+using WinShell;
 namespace zfile
 {
     public class ShellCalcStatisticsOperation : FileSourceCalcStatisticsOperation
@@ -75,8 +75,8 @@ namespace zfile
 
                 IEnumIDList enumIDList;
                 w32.OleCheck(folder.EnumObjects(IntPtr.Zero,
-                    SHCONTF.FOLDERS | SHCONTF.NONFOLDERS |
-                    SHCONTF.SHCONTF_STORAGE | SHCONTF.INCLUDEHIDDEN,
+                    (uint)(SHCONTF.FOLDERS | SHCONTF.NONFOLDERS |
+                    SHCONTF.STORAGE | SHCONTF.INCLUDEHIDDEN),
                     out enumIDList));
 
                 IntPtr pidl;
@@ -107,21 +107,21 @@ namespace zfile
             }
             catch (Exception ex)
             {
-                LogMessage(ex.Message, LogOptions.Error, LogMessageType.Error);
+                LogMessage(ex.Message, LogOption.Error, LogOption.Error);
             }
         }
 
-        private void LogMessage(string message, LogOptions logOptions, LogMessageType logMsgType)
+        private void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
         {
             switch (logMsgType)
             {
-                case LogMessageType.Error:
+                case LogOption.Error:
                     if (!GlobalSettings.LogErrors) return;
                     break;
-                case LogMessageType.Info:
+                case LogOption.Info:
                     if (!GlobalSettings.LogInfo) return;
                     break;
-                case LogMessageType.Success:
+                case LogOption.Success:
                     if (!GlobalSettings.LogSuccess) return;
                     break;
             }
@@ -132,17 +132,11 @@ namespace zfile
             }
         }
 
-        private void w32.OleCheck(int hr)
-        {
-            if (hr != 0)
-                Marshal.ThrowExceptionForHR(hr);
-        }
-
         private bool GetIsFolder(IShellFolder2 folder, IntPtr pidl)
         {
-            uint attributes = SFGAO.SFGAO_FOLDER;
+            uint attributes = (uint)SFGAO.FOLDER;
             folder.GetAttributesOf(1, new[] { pidl }, ref attributes);
-            return (attributes & SFGAO.SFGAO_FOLDER) != 0;
+            return (attributes & (uint)SFGAO.FOLDER) != 0;
         }
 
         private long GetDetails(IShellFolder2 folder, IntPtr pidl, SHCOLUMNID columnID)
@@ -152,27 +146,5 @@ namespace zfile
             return Convert.ToInt64(value ?? 0);
         }
     }
-
-
-    public enum LogMessageType
-    {
-        Error,
-        Info,
-        Success
-    }
-
-    // public enum SFGAO
-    // {
-    //     SFGAO_FOLDER = 0x20000000
-    // }
-
-    public static class Logger
-    {
-        public static void Write(System.Threading.Thread thread, string message, LogMessageType type)
-        {
-            // 实现日志记录逻辑
-        }
-    }
-
 
 }

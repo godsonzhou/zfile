@@ -1,20 +1,23 @@
 namespace zfile
 {
-	public enum LogMsgType
-	{
-		Success,
-		Error,
-		Info
-	}
 
+	public static class Logger
+	{
+		public static void Write(System.Threading.Thread thread, string message, LogOption type)
+		{
+			// 实现日志记录逻辑
+		}
+	}
 	public enum LogOption
 	{
-		Errors,
+		None,
 		Info,
+		Warning,
+		Error,
 		Success,
-		ArcOp,
-		None
+		ArcOp
 	}
+	
 	/// <summary>
 	/// Checksum operation mode
 	/// </summary>
@@ -35,13 +38,7 @@ namespace zfile
 		SFV
 	}
 
-	public enum LogOptions
-	{
-		Info,
-		Warning,
-		Error,
-		Success
-	}
+	
 	public enum FileExistsOption
 	{
 		None,
@@ -99,7 +96,7 @@ namespace zfile
 		public static bool LogInfo { get; set; }
 		public static bool LogSuccess { get; set; }
 		public static bool LogDirectoryOperations { get; set; }
-		public static LogOptions LogOptions { get; set; }
+		public static LogOption LogOptions { get; set; }
 		public static bool LogDelete { get; set; }
 	}
 } 

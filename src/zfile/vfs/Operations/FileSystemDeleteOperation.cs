@@ -95,7 +95,7 @@ namespace zfile
             int lastError;
             var removeDirectly = FileSourceOperationOptionGeneral.None;
             string message, question;
-            LogOptions logOptions;
+            LogOption logOptions;
             bool deleteResult;
 
             if (file.IsReadOnly)
@@ -242,35 +242,35 @@ namespace zfile
                     {
                         LogMessage(
                             string.Format(Resources.MsgLogSuccess + Resources.MsgLogRmDir, fileName),
-                            LogOptions.DirectoryOperations | LogOptions.Delete,
-                            LogMessageType.Success);
+                            LogOption.DirectoryOperations | LogOption.Delete,
+                            LogOption.Success);
                     }
                     else
                     {
                         LogMessage(
                             string.Format(Resources.MsgLogSuccess + Resources.MsgLogDelete, fileName),
-                            LogOptions.Delete,
-                            LogMessageType.Success);
+                            LogOption.Delete,
+                            LogOption.Success);
                     }
                 }
                 else
                 {
                     if (file.IsDirectory)
                     {
-                        logOptions = LogOptions.DirectoryOperations | LogOptions.Delete;
+                        logOptions = LogOption.DirectoryOperations | LogOption.Delete;
                         message = string.Format(Resources.MsgLogError + Resources.MsgLogRmDir, fileName);
                         question = string.Format(Resources.MsgCannotDeleteDirectory, fileName);
                     }
                     else
                     {
-                        logOptions = LogOptions.Delete;
+                        logOptions = LogOption.Delete;
                         message = string.Format(Resources.MsgLogError + Resources.MsgLogDelete, fileName);
                         question = string.Format(Resources.MsgNotDelete, fileName);
                     }
 
                     if (skipErrors || removeDirectly == FileSourceOperationOptionGeneral.No)
                     {
-                        LogMessage(message, logOptions, LogMessageType.Error);
+                        LogMessage(message, logOptions, LogOption.Error);
                     }
                     else
                     {
@@ -383,7 +383,7 @@ namespace zfile
         {
             if (skipErrors)
             {
-                Log.Write(Thread, message, LogMessageType.Error, true);
+                Log.Write(Thread, message, LogOption.Error, true);
                 return FileSourceOperationUIResponse.Skip;
             }
             else
@@ -397,18 +397,18 @@ namespace zfile
             }
         }
 
-        private void LogMessage(string message, LogOptions logOptions, LogMessageType logMsgType)
+        private void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
         {
             switch (logMsgType)
             {
-                case LogMessageType.Error:
-                    if (!GlobalSettings.LogOptions.HasFlag(LogOptions.Errors)) return;
+                case LogOption.Error:
+                    if (!GlobalSettings.LogOptions.HasFlag(LogOption.Error)) return;
                     break;
-                case LogMessageType.Info:
-                    if (!GlobalSettings.LogOptions.HasFlag(LogOptions.Info)) return;
+                case LogOption.Info:
+                    if (!GlobalSettings.LogOptions.HasFlag(LogOption.Info)) return;
                     break;
-                case LogMessageType.Success:
-                    if (!GlobalSettings.LogOptions.HasFlag(LogOptions.Success)) return;
+                case LogOption.Success:
+                    if (!GlobalSettings.LogOptions.HasFlag(LogOption.Success)) return;
                     break;
             }
 

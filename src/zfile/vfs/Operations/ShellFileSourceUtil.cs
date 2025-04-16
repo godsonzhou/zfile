@@ -129,19 +129,19 @@ namespace zfile
 
         public int PostMoveItem(uint dwFlags, IShellItem psiItem, IShellItem psiDestinationFolder, string pszNewName, int hrMove, IShellItem psiNewlyCreated)
         {
-            if ((GlobalSettings.LogOptions & LogOptions.CopyMoveLink) != 0 && hrMove != COPYENGINE_E_USER_CANCELLED)
+            if ((GlobalSettings.LogOptions & LogOption.CopyMoveLink) != 0 && hrMove != COPYENGINE_E_USER_CANCELLED)
             {
                 if (hrMove == 0)
                 {
                     LogMessage(string.Format(Resources.MsgLogSuccess + Resources.MsgLogMove, 
                         copyStatistics.CurrentFileFrom + " -> " + copyStatistics.CurrentFileTo),
-                        LogOptions.CopyMoveLink, LogMsgType.Success);
+                        LogOption.CopyMoveLink, LogOption.Success);
                 }
                 else
                 {
                     LogMessage(string.Format(Resources.MsgLogError + Resources.MsgLogMove,
                         copyStatistics.CurrentFileFrom + " -> " + copyStatistics.CurrentFileTo),
-                        LogOptions.CopyMoveLink, LogMsgType.Error);
+                        LogOption.CopyMoveLink, LogOption.Error);
                 }
             }
             return 0; // S_OK
@@ -174,19 +174,19 @@ namespace zfile
 
         public int PostCopyItem(uint dwFlags, IShellItem psiItem, IShellItem psiDestinationFolder, string pszNewName, int hrCopy, IShellItem psiNewlyCreated)
         {
-            if ((GlobalSettings.LogOptions & LogOptions.CopyMoveLink) != 0 && hrCopy != COPYENGINE_E_USER_CANCELLED)
+            if ((GlobalSettings.LogOptions & LogOption.CopyMoveLink) != 0 && hrCopy != COPYENGINE_E_USER_CANCELLED)
             {
                 if (hrCopy == 0)
                 {
                     LogMessage(string.Format(Resources.MsgLogSuccess + Resources.MsgLogCopy,
                         copyStatistics.CurrentFileFrom + " -> " + copyStatistics.CurrentFileTo),
-                        LogOptions.CopyMoveLink, LogMsgType.Success);
+                        LogOption.CopyMoveLink, LogOption.Success);
                 }
                 else
                 {
                     LogMessage(string.Format(Resources.MsgLogError + Resources.MsgLogCopy,
                         copyStatistics.CurrentFileFrom + " -> " + copyStatistics.CurrentFileTo),
-                        LogOptions.CopyMoveLink, LogMsgType.Error);
+                        LogOption.CopyMoveLink, LogOption.Error);
                 }
             }
             return 0; // S_OK
@@ -204,7 +204,7 @@ namespace zfile
 
         public int PostDeleteItem(uint dwFlags, IShellItem psiItem, int hrDelete, IShellItem psiNewlyCreated)
         {
-            if ((GlobalSettings.LogOptions & LogOptions.Delete) != 0 && hrDelete != COPYENGINE_E_USER_CANCELLED)
+            if ((GlobalSettings.LogOptions & LogOption.Delete) != 0 && hrDelete != COPYENGINE_E_USER_CANCELLED)
             {
                 uint attributes;
                 psiItem.GetAttributes(SFGAO.FOLDER, out attributes);
@@ -213,12 +213,12 @@ namespace zfile
                 if (hrDelete == 0)
                 {
                     LogMessage(string.Format(Resources.MsgLogSuccess + text, deleteStatistics.CurrentFile),
-                        LogOptions.Delete, LogMsgType.Success);
+                        LogOption.Delete, LogOption.Success);
                 }
                 else
                 {
                     LogMessage(string.Format(Resources.MsgLogError + text, deleteStatistics.CurrentFile),
-                        LogOptions.Delete, LogMsgType.Error);
+                        LogOption.Delete, LogOption.Error);
                 }
             }
             return 0; // S_OK
@@ -273,7 +273,7 @@ namespace zfile
             return 0; // S_OK
         }
 
-        private void LogMessage(string message, LogOptions logOptions, LogMsgType logMsgType)
+        private void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
         {
             if ((logOptions & GlobalSettings.LogOptions) != 0)
             {

@@ -111,7 +111,7 @@ namespace zfile
         {
             if (!string.IsNullOrEmpty(e.Data))
             {
-                LogMessage(e.Data, LogOptions.None, LogMsgType.Info);
+                LogMessage(e.Data, LogOption.None, LogOption.Info);
             }
         }
 
@@ -139,12 +139,12 @@ namespace zfile
             }
         }
 
-        private void ShowError(string message, LogOptions logOptions = LogOptions.None)
+        private void ShowError(string message, LogOption logOptions = LogOption.None)
         {
-            LogMessage(message, logOptions, LogMsgType.Error);
+            LogMessage(message, logOptions, LogOption.Error);
         }
 
-        private void LogMessage(string message, LogOptions logOptions, LogMsgType logMsgType)
+        private void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
         {
             // 实现日志记录
         }

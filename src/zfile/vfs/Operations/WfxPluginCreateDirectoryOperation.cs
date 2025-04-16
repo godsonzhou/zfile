@@ -23,15 +23,15 @@ namespace zfile
                     AskQuestion(Resources.MsgErrNotSupported, string.Empty, new[] { FileSourceOperationUIResult.Ok }, FileSourceOperationUIResult.Ok, FileSourceOperationUIResult.Ok);
                     break;
                 case WfxResult.Success:
-                    if ((LogOptions.VfsOp & LogOptions.Success) != 0)
+                    if ((LogOption.VfsOp & LogOption.Success) != 0)
                     {
-                        Log.Write(Thread, string.Format(Resources.MsgLogSuccess + Resources.MsgLogMkDir, AbsolutePath), LogMessageType.Success);
+                        Log.Write(Thread, string.Format(Resources.MsgLogSuccess + Resources.MsgLogMkDir, AbsolutePath), LogOption.Success);
                     }
                     break;
                 default:
-                    if ((LogOptions.VfsOp & LogOptions.Errors) != 0)
+                    if ((LogOption.VfsOp & LogOption.Error) != 0)
                     {
-                        Log.Write(Thread, string.Format(Resources.MsgLogError + Resources.MsgLogMkDir, AbsolutePath), LogMessageType.Error);
+                        Log.Write(Thread, string.Format(Resources.MsgLogError + Resources.MsgLogMkDir, AbsolutePath), LogOption.Error);
                     }
                     break;
             }

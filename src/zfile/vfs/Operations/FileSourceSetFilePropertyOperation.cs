@@ -362,7 +362,7 @@ namespace zfile
 
                         if (_skipErrors)
                         {
-                            Logger.Log(Thread, message, LogMessageType.Error);
+                            Logger.Log(Thread, message, LogOption.Error);
                         }
                         else
                         {

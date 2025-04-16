@@ -22,7 +22,7 @@ namespace zfile
                 return 1;
             }
 
-            Log.Write(Resources.MsgLoadingFileList + percentDone + "%", LogMessageType.Info, false, false);
+            Log.Write(Resources.MsgLoadingFileList + percentDone + "%", LogOption.Info, false, false);
 
             return CheckOperationStateSafe() ? 0 : 1;
         }

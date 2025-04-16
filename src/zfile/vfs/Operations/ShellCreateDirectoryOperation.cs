@@ -20,7 +20,7 @@ namespace zfile
                 {
                     Logger.Write(Thread.CurrentThread,
                                string.Format("Success: Create directory {0}", AbsolutePath),
-                               LogMessageType.Success);
+                               LogOption.Success);
                 }
             }
             else
@@ -29,7 +29,7 @@ namespace zfile
                 {
                     Logger.Write(Thread.CurrentThread,
                                string.Format("Error: Create directory {0}", AbsolutePath),
-                               LogMessageType.Error);
+                               LogOption.Error);
                 }
 
                 if (System.Windows.Forms.MessageBox.Show(string.Format("Error creating directory: {0}", AbsolutePath),

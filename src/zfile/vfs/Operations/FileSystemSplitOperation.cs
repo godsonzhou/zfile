@@ -253,7 +253,7 @@ namespace zfile
         {
             if (GlobalSettings.SkipFileOpError)
             {
-                LogMessage(message, LogOptions.Error, true);
+                LogMessage(message, LogOption.Error, true);
             }
             else
             {
@@ -265,14 +265,14 @@ namespace zfile
             }
         }
 
-        private void LogMessage(string message, LogOptions logOptions, bool logError)
+        private void LogMessage(string message, LogOption logOptions, bool logError)
         {
             if (logError && !GlobalSettings.LogErrors)
                 return;
 
             if (logOptions <= GlobalSettings.LogOptions)
             {
-                Log.Write(message, logError ? LogMessageType.Error : LogMessageType.Info);
+                Log.Write(message, logError ? LogOption.Error : LogOption.Info);
             }
         }
     }

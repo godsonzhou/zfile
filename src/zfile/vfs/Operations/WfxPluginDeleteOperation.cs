@@ -97,11 +97,11 @@ namespace zfile
                 {
                     if (file.IsDirectory)
                     {
-                        LogMessage(string.Format(Resources.MsgLogSuccess + Resources.MsgLogRmDir, fileName), LogOptions.VfsOp, LogMessageType.Success);
+                        LogMessage(string.Format(Resources.MsgLogSuccess + Resources.MsgLogRmDir, fileName), LogOption.VfsOp, LogOption.Success);
                     }
                     else
                     {
-                        LogMessage(string.Format(Resources.MsgLogSuccess + Resources.MsgLogDelete, fileName), LogOptions.VfsOp, LogMessageType.Success);
+                        LogMessage(string.Format(Resources.MsgLogSuccess + Resources.MsgLogDelete, fileName), LogOption.VfsOp, LogOption.Success);
                     }
                     return true;
                 }
@@ -109,24 +109,24 @@ namespace zfile
                 {
                     string message;
                     string question;
-                    LogOptions logOptions;
+                    LogOption logOptions;
 
                     if (file.IsDirectory)
                     {
-                        logOptions = LogOptions.VfsOp;
+                        logOptions = LogOption.VfsOp;
                         message = string.Format(Resources.MsgLogError + Resources.MsgLogRmDir, fileName);
                         question = string.Format(Resources.MsgNotDelete, fileName);
                     }
                     else
                     {
-                        logOptions = LogOptions.VfsOp;
+                        logOptions = LogOption.VfsOp;
                         message = string.Format(Resources.MsgLogError + Resources.MsgLogDelete, fileName);
                         question = string.Format(Resources.MsgNotDelete, fileName);
                     }
 
                     if (GlobalOptions.SkipFileOpError || _skipErrors)
                     {
-                        LogMessage(message, logOptions, LogMessageType.Error);
+                        LogMessage(message, logOptions, LogOption.Error);
                     }
                     else
                     {
@@ -155,7 +155,7 @@ namespace zfile
         {
             if (GlobalOptions.SkipFileOpError)
             {
-                Log.Write(Thread, message, LogMessageType.Error, true);
+                Log.Write(Thread, message, LogOption.Error, true);
                 return FileSourceOperationUIResult.Skip;
             }
             else
@@ -171,18 +171,18 @@ namespace zfile
             }
         }
 
-        private void LogMessage(string message, LogOptions logOptions, LogMessageType logMsgType)
+        private void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
         {
             switch (logMsgType)
             {
-                case LogMessageType.Error:
-                    if ((LogOptions.Errors & GlobalOptions.LogOptions) == 0) return;
+                case LogOption.Error:
+                    if ((LogOption.Error & GlobalOptions.LogOptions) == 0) return;
                     break;
-                case LogMessageType.Info:
-                    if ((LogOptions.Info & GlobalOptions.LogOptions) == 0) return;
+                case LogOption.Info:
+                    if ((LogOption.Info & GlobalOptions.LogOptions) == 0) return;
                     break;
-                case LogMessageType.Success:
-                    if ((LogOptions.Success & GlobalOptions.LogOptions) == 0) return;
+                case LogOption.Success:
+                    if ((LogOption.Success & GlobalOptions.LogOptions) == 0) return;
                     break;
             }
 

@@ -52,7 +52,7 @@ namespace zfile
 			else
 			{
 				LogMessage(string.Format("Successfully deleted from {0}",
-						   _wcxArchiveFileSource.ArchiveFileName), LogOption.ArcOp, LogMsgType.Success);
+						   _wcxArchiveFileSource.ArchiveFileName), LogOption.ArcOp, LogOption.Success);
 			}
 		}
 
@@ -63,7 +63,7 @@ namespace zfile
 
 		private void ShowError(string message, int error, LogOption logOptions = LogOption.None)
 		{
-			LogMessage(message, logOptions, LogMsgType.Error);
+			LogMessage(message, logOptions, LogOption.Error);
 
 			if (!GlobalSettings.SkipFileOpError && error > WcxModule.E_SUCCESS)
 			{
@@ -75,17 +75,17 @@ namespace zfile
 			}
 		}
 
-		private void LogMessage(string message, LogOption logOptions, LogMsgType logMsgType)
+		private void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
 		{
 			switch (logMsgType)
 			{
-				case LogMsgType.Error:
-					if (!GlobalSettings.LogOptions.HasFlag(LogOption.Errors)) return;
+				case LogOption.Error:
+					if (!GlobalSettings.LogOptions.HasFlag(LogOption.Error)) return;
 					break;
-				case LogMsgType.Info:
+				case LogOption.Info:
 					if (!GlobalSettings.LogOptions.HasFlag(LogOption.Info)) return;
 					break;
-				case LogMsgType.Success:
+				case LogOption.Success:
 					if (!GlobalSettings.LogOptions.HasFlag(LogOption.Success)) return;
 					break;
 			}

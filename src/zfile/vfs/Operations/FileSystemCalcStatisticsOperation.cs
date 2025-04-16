@@ -119,13 +119,13 @@ namespace zfile
                 catch (FileNotFoundException)
                 {
                     LogMessage($"无效的符号链接: {file.FullName} -> {pathToFile}", 
-                        LogOptions.Error, LogMessageType.Error);
+                        LogOption.Error, LogOption.Error);
                 }
             }
             else
             {
                 LogMessage($"无效的符号链接: {file.FullName} -> {pathToFile}", 
-                    LogOptions.Error, LogMessageType.Error);
+                    LogOption.Error, LogOption.Error);
             }
         }
 
@@ -145,7 +145,7 @@ namespace zfile
             }
             catch (UnauthorizedAccessException)
             {
-                LogMessage($"无法访问目录: {srcPath}", LogOptions.Error, LogMessageType.Error);
+                LogMessage($"无法访问目录: {srcPath}", LogOption.Error, LogOption.Error);
             }
         }
 
@@ -161,7 +161,7 @@ namespace zfile
             }
         }
 
-        private void LogMessage(string message, LogOptions options, LogMessageType msgType)
+        private void LogMessage(string message, LogOption options, LogOption msgType)
         {
             if (!ShouldLogMessage(msgType))
                 return;
@@ -173,16 +173,16 @@ namespace zfile
             }
         }
 
-        private bool ShouldLogMessage(LogMessageType msgType)
+        private bool ShouldLogMessage(LogOption msgType)
         {
             switch (msgType)
             {
-                case LogMessageType.Error:
-                    return GlobalSettings.LogOptions.HasFlag(LogOptions.Error);
-                case LogMessageType.Info:
-                    return GlobalSettings.LogOptions.HasFlag(LogOptions.Info);
-                case LogMessageType.Success:
-                    return GlobalSettings.LogOptions.HasFlag(LogOptions.Success);
+                case LogOption.Error:
+                    return GlobalSettings.LogOptions.HasFlag(LogOption.Error);
+                case LogOption.Info:
+                    return GlobalSettings.LogOptions.HasFlag(LogOption.Info);
+                case LogOption.Success:
+                    return GlobalSettings.LogOptions.HasFlag(LogOption.Success);
                 default:
                     return false;
             }

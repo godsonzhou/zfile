@@ -75,7 +75,7 @@ namespace zfile
         {
             if (GlobalSettings.LogErrors && GlobalSettings.LogDelete)
             {
-                Logger.Write(Thread.CurrentThread, message, LogMessageType.Error);
+                Logger.Write(Thread.CurrentThread, message, LogOption.Error);
             }
 
             if (System.Windows.Forms.MessageBox.Show(message, "", MessageBoxButtons.SkipCancel, MessageBoxIcon.Error) == DialogResult.Cancel)

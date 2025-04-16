@@ -120,7 +120,7 @@ namespace zfile
 			// 显示错误信息
 		}
 
-		private void LogMessage(string message, LogOptions logOptions, LogMsgType logMsgType)
+		private void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
 		{
 			// 记录日志信息
 		}

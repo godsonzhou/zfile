@@ -1,3 +1,4 @@
+using System.IO;
 namespace zfile
 {
     public class FileSystemListOperation : FileSourceListOperation
@@ -5,7 +6,7 @@ namespace zfile
         public FileSystemListOperation(IFileSource fileSource, string path) 
             : base(fileSource, path)
         {
-            files = new FileEntries();
+            Files = new FileEntries();
         }
 
         private void FlatView(string path)
@@ -17,13 +18,13 @@ namespace zfile
                 {
                     CheckOperationState();
 
-                    var fileName = Path.GetFileName(file);
+                    var fileName = System.IO.Path.GetFileName(file);
                     if (fileName == "." || fileName == "..")
                         continue;
 
                     if (Directory.Exists(file))
                     {
-                        FlatView(Path.Combine(file, Path.DirectorySeparatorChar.ToString()));
+                        FlatView(System.IO.Path.Combine(file, System.IO.Path.DirectorySeparatorChar.ToString()));
                     }
                     else
                     {
@@ -34,7 +35,7 @@ namespace zfile
             }
             catch (Exception ex)
             {
-                Log.Write($"Error in FlatView: {ex.Message}", LogMessageType.Error);
+                Logger.Write($"Error in FlatView: {ex.Message}", LogOption.Error);
             }
         }
 
@@ -85,7 +86,7 @@ namespace zfile
             }
             catch (Exception ex)
             {
-                Log.Write($"Error in MainExecute: {ex.Message}", LogMessageType.Error);
+                Log.Write($"Error in MainExecute: {ex.Message}", LogOption.Error);
             }
         }
 

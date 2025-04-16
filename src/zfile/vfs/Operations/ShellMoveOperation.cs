@@ -100,9 +100,9 @@ namespace zfile
 
         private void ShowError(string message)
         {
-            if ((GlobalSettings.LogOptions & LogOptions.Errors) != 0)
+            if ((GlobalSettings.LogOptions & LogOption.Error) != 0)
             {
-                Logger.Write(Thread, message, LogMsgType.Error);
+                Logger.Write(Thread, message, LogOption.Error);
             }
 
             if (AskQuestion(message, "", new[] { FileSourceOperationResponse.Skip, FileSourceOperationResponse.Abort },

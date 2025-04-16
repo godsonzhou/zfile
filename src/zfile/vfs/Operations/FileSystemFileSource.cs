@@ -83,13 +83,13 @@ namespace zfile
                 throw new FileNotFoundException(filePath);
 
             var file = new FileEntry(Path.GetDirectoryName(filePath));
-            var fileInfo = new FileEntry(filePath);
+            var FileEntry = new FileEntry(filePath);
 
-            file.Attributes = fileInfo.Attributes;
-            file.Size = fileInfo.Length;
-            file.ModificationTime = fileInfo.LastWriteTime;
-            file.CreationTime = fileInfo.CreationTime;
-            file.LastAccessTime = fileInfo.LastAccessTime;
+            file.Attributes = FileEntry.Attributes;
+            file.Size = FileEntry.Length;
+            file.ModificationTime = FileEntry.LastWriteTime;
+            file.CreationTime = FileEntry.CreationTime;
+            file.LastAccessTime = FileEntry.LastAccessTime;
             file.Link = new FileLinkProperty();
 
             if ((file.Attributes & FileAttributes.ReparsePoint) != 0)
@@ -107,9 +107,9 @@ namespace zfile
             return file;
         }
 
-        public static List<FileEntry> CreateFilesFromFileList(string path, List<string> fileNamesList, bool omitNotExisting = false)
+        public static FileEntries CreateFilesFromFileEntries(string path, List<string> fileNamesList, bool omitNotExisting = false)
         {
-            var result = new List<FileEntry>();
+            var result = new FileEntries();
             if (fileNamesList != null && fileNamesList.Count > 0)
             {
                 foreach (var fileName in fileNamesList)
@@ -141,24 +141,24 @@ namespace zfile
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // Windows特定实现
-                var fileInfo = new FileInfo(fullPath);
-                if (!fileInfo.Exists)
+                var FileEntry = new FileEntry(fullPath);
+                if (!FileEntry.Exists)
                     throw new FileNotFoundException(fullPath);
 
                 if (!assignedProperties.HasFlag(FilePropertyType.Attributes))
-                    file.Attributes = fileInfo.Attributes;
+                    file.Attributes = FileEntry.Attributes;
 
                 if (!assignedProperties.HasFlag(FilePropertyType.Size))
-                    file.Size = fileInfo.Length;
+                    file.Size = FileEntry.Length;
 
                 if (!assignedProperties.HasFlag(FilePropertyType.ModificationTime))
-                    file.ModificationTime = fileInfo.LastWriteTime;
+                    file.ModificationTime = FileEntry.LastWriteTime;
 
                 if (!assignedProperties.HasFlag(FilePropertyType.CreationTime))
-                    file.CreationTime = fileInfo.CreationTime;
+                    file.CreationTime = FileEntry.CreationTime;
 
                 if (!assignedProperties.HasFlag(FilePropertyType.LastAccessTime))
-                    file.LastAccessTime = fileInfo.LastAccessTime;
+                    file.LastAccessTime = FileEntry.LastAccessTime;
 
                 if (propertiesToSet.HasFlag(FilePropertType.Link))
                 {
@@ -401,42 +401,42 @@ namespace zfile
             return new FileSystemListOperation(this, targetPath);
         }
 
-        public override FileSourceOperation CreateCopyOperation(List<FileInfo> sourceFiles, string targetPath)
+        public override FileSourceOperation CreateCopyOperation(FileEntries sourceFiles, string targetPath)
         {
             return new FileSystemCopyOperation(this, this, sourceFiles, targetPath);
         }
 
-        public override FileSourceOperation CreateCopyInOperation(IFileSource sourceFileSource, List<FileInfo> sourceFiles, string targetPath)
+        public override FileSourceOperation CreateCopyInOperation(IFileSource sourceFileSource, FileEntries sourceFiles, string targetPath)
         {
             return new FileSystemCopyInOperation(sourceFileSource, this, sourceFiles, targetPath);
         }
 
-        public override FileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, List<FileInfo> sourceFiles, string targetPath)
+        public override FileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)
         {
             return new FileSystemCopyOutOperation(this, targetFileSource, sourceFiles, targetPath);
         }
 
-        public override FileSourceOperation CreateMoveOperation(List<FileInfo> sourceFiles, string targetPath)
+        public override FileSourceOperation CreateMoveOperation(FileEntries sourceFiles, string targetPath)
         {
             return new FileSystemMoveOperation(this, sourceFiles, targetPath);
         }
 
-        public override FileSourceOperation CreateDeleteOperation(List<FileInfo> filesToDelete)
+        public override FileSourceOperation CreateDeleteOperation(FileEntries filesToDelete)
         {
             return new FileSystemDeleteOperation(this, filesToDelete);
         }
 
-        public override FileSourceOperation CreateWipeOperation(List<FileInfo> filesToWipe)
+        public override FileSourceOperation CreateWipeOperation(FileEntries filesToWipe)
         {
             return new FileSystemWipeOperation(this, filesToWipe);
         }
 
-        public override FileSourceOperation CreateSplitOperation(FileInfo sourceFile, string targetPath)
+        public override FileSourceOperation CreateSplitOperation(FileEntry sourceFile, string targetPath)
         {
             return new FileSystemSplitOperation(this, sourceFile, targetPath);
         }
 
-        public override FileSourceOperation CreateCombineOperation(List<FileInfo> sourceFiles, string targetFile)
+        public override FileSourceOperation CreateCombineOperation(FileEntries sourceFiles, string targetFile)
         {
             return new FileSystemCombineOperation(this, sourceFiles, targetFile);
         }
@@ -446,22 +446,22 @@ namespace zfile
             return new FileSystemCreateDirectoryOperation(this, basePath, directoryPath);
         }
 
-        public override FileSourceOperation CreateExecuteOperation(FileInfo executableFile, string basePath, string verb)
+        public override FileSourceOperation CreateExecuteOperation(FileEntry executableFile, string basePath, string verb)
         {
             return new FileSystemExecuteOperation(this, executableFile, basePath, verb);
         }
 
-        public override FileSourceOperation CreateCalcChecksumOperation(List<FileInfo> files, string targetPath, string targetMask)
+        public override FileSourceOperation CreateCalcChecksumOperation(FileEntries files, string targetPath, string targetMask)
         {
             return new FileSystemCalcChecksumOperation(this, files, targetPath, targetMask);
         }
 
-        public override FileSourceOperation CreateCalcStatisticsOperation(List<FileInfo> files)
+        public override FileSourceOperation CreateCalcStatisticsOperation(FileEntries files)
         {
             return new FileSystemCalcStatisticsOperation(this, files);
         }
 
-        public override FileSourceOperation CreateSetFilePropertyOperation(List<FileInfo> targetFiles, FileProperties newProperties)
+        public override FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, FileProperties newProperties)
         {
             return new FileSystemSetFilePropertyOperation(this, targetFiles, newProperties);
         }

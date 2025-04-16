@@ -2,7 +2,7 @@ namespace zfile
 {
     public class FileSystemCombineOperation : FileSourceCombineOperation
     {
-        private List<FileInfo> fullFilesTreeToCombine;  // 源文件，包括所有文件
+        private FileEntries fullFilesTreeToCombine;  // 源文件，包括所有文件
         private FileSourceCombineOperationStatistics statistics; // 统计信息的本地副本
         private string targetPath;
         private byte[] buffer;
@@ -10,7 +10,7 @@ namespace zfile
         private int extensionLengthRequired;
 
         public FileSystemCombineOperation(IFileSource fileSource, 
-            List<FileInfo> sourceFiles, 
+            FileEntries sourceFiles, 
             string targetFile)
             : base(fileSource, sourceFiles, targetFile)
         {
@@ -20,7 +20,7 @@ namespace zfile
             buffer = new byte[GlobalSettings.CopyBlockSize];
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             // 如果处于"RequireDynamicMode"，我们只有一个文件在"SourceFiles"列表中
             if (RequireDynamicMode)
@@ -42,7 +42,7 @@ namespace zfile
                             BegForPresenceOfThisFile(maybeAdditionalSourceFilename);
                         }
 
-                        var maybeFile = new FileInfo(maybeAdditionalSourceFilename);
+                        var maybeFile = new FileEntry(maybeAdditionalSourceFilename);
                         SourceFiles.Add(maybeFile);
                     }
                     maybeFileIndex++;
@@ -70,7 +70,7 @@ namespace zfile
             }
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             try
             {
@@ -122,7 +122,7 @@ namespace zfile
                                 SourceFiles[0].DirectoryName,
                                 $"{Path.GetFileNameWithoutExtension(SourceFiles[0].FullName)}.{(currentFileIndex + 1):D{extensionLengthRequired}}");
                             BegForPresenceOfThisFile(dynamicNextFilename);
-                            var dynamicNextFile = new FileInfo(dynamicNextFilename);
+                            var dynamicNextFile = new FileEntry(dynamicNextFilename);
                             SourceFiles.Add(dynamicNextFile);
                             fullFilesTreeToCombine.Add(dynamicNextFile);
                         }
@@ -188,7 +188,7 @@ namespace zfile
             }
         }
 
-        private bool Combine(FileInfo sourceFile, FileStream targetStream)
+        private bool Combine(FileEntry sourceFile, FileStream targetStream)
         {
             try
             {

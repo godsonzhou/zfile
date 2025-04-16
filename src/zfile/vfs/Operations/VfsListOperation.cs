@@ -7,24 +7,24 @@ namespace zfile
         public VfsListOperation(IFileSource fileSource, string path)
             : base(fileSource, path)
         {
-            Files = new FileList(path);
+            Files = new FileEntries(path);
             _vfsFileSource = fileSource as IVfsFileSource;
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             Files.Clear();
 
             // 处理VFS文件列表
-            for (int i = 0; i < _vfsFileSource.VfsFileList.Count; i++)
+            for (int i = 0; i < _vfsFileSource.VfsFileEntries.Count; i++)
             {
                 CheckOperationState();
-                if (_vfsFileSource.VfsFileList.Enabled[i])
+                if (_vfsFileSource.VfsFileEntries.Enabled[i])
                 {
                     var file = VfsFileSource.CreateFile(Path);
-                    file.Name = _vfsFileSource.VfsFileList.Name[i];
+                    file.Name = _vfsFileSource.VfsFileEntries.Name[i];
                     file.Attributes = FileAttributes.Normal | FileAttributes.Virtual;
-                    file.LinkProperty.LinkTo = Path.GetFullPath(_vfsFileSource.VfsFileList.FileName[i]);
+                    file.LinkProperty.LinkTo = Path.GetFullPath(_vfsFileSource.VfsFileEntries.FileName[i]);
                     Files.Add(file);
                 }
             }

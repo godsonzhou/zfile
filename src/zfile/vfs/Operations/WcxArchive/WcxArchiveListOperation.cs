@@ -11,7 +11,7 @@ namespace zfile
 			_wcxArchiveFileSource = (IWcxArchiveFileSource)fileSource;
 		}
 
-		public override void MainExecute()
+		protected override void MainExecute()
 		{
 			Files.Clear();
 
@@ -30,10 +30,10 @@ namespace zfile
 				Files.Add(parentDir);
 			}
 
-			var arcFileList = _wcxArchiveFileSource.ArchiveFileList.Clone();
+			var arcFileEntries = _wcxArchiveFileSource.ArchiveFileEntries.Clone();
 			try
 			{
-				foreach (var header in arcFileList)
+				foreach (var header in arcFileEntries)
 				{
 					CheckOperationState();
 
@@ -59,7 +59,7 @@ namespace zfile
 			}
 			finally
 			{
-				arcFileList.Dispose();
+				arcFileEntries.Dispose();
 			}
 		}
 	}

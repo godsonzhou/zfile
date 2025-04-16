@@ -5,20 +5,20 @@ namespace zfile
         private readonly IWfxPluginFileSource _wfxPluginFileSource;
         private FileSourceCalcStatisticsOperationStatistics _statistics;
 
-        public WfxPluginCalcStatisticsOperation(IFileSource targetFileSource, ref FileList files)
+        public WfxPluginCalcStatisticsOperation(IFileSource targetFileSource, ref FileEntries files)
             : base(targetFileSource, ref files)
         {
             _wfxPluginFileSource = targetFileSource as IWfxPluginFileSource;
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             _statistics = RetrieveStatistics();
 
             _wfxPluginFileSource.WfxModule.WfxStatusInfo(Files.Path, FsStatus.Start, FsStatusOperation.CalcSize);
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             for (int currentFileIndex = 0; currentFileIndex < Files.Count; currentFileIndex++)
             {
@@ -26,12 +26,12 @@ namespace zfile
             }
         }
 
-        public override void Finalize()
+        protected override void Finalize()
         {
             _wfxPluginFileSource.WfxModule.WfxStatusInfo(Files.Path, FsStatus.End, FsStatusOperation.CalcSize);
         }
 
-        private void ProcessFile(FileInfo file)
+        private void ProcessFile(FileEntry file)
         {
             _statistics.CurrentFile = file.Path + file.Name;
             UpdateStatistics(_statistics);

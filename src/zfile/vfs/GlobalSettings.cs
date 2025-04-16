@@ -2,7 +2,13 @@ using System.Reflection.Metadata;
 
 namespace zfile
 {
+	public static class Resources
+	{
+		internal static string MsgLogError;
 
+		public static string MsgLogSuccess { get; internal set; }
+		public static string MsgLogMkDir { get; internal set; }
+	}
 	public static class Logger
 	{
 		public static void Write(System.Threading.Thread thread, string message, LogOption type, bool Reservedflag = true )
@@ -17,7 +23,8 @@ namespace zfile
 		Warning,
 		Error,
 		Success,
-		ArcOp
+		ArcOp,
+		VfsOp
 	}
 	
 	/// <summary>

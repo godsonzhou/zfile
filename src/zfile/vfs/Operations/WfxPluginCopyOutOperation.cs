@@ -10,7 +10,7 @@ namespace zfile
         private int _infoOperation;
         private bool _needsConnection;
 
-        public WfxPluginCopyOutOperation(IFileSource sourceFileSource, IFileSource targetFileSource, ref FileList sourceFiles, string targetPath)
+        public WfxPluginCopyOutOperation(IFileSource sourceFileSource, IFileSource targetFileSource, ref FileEntries sourceFiles, string targetPath)
             : base(sourceFileSource, targetFileSource, ref sourceFiles, targetPath)
         {
             _wfxPluginFileSource = sourceFileSource as IWfxPluginFileSource;
@@ -65,7 +65,7 @@ namespace zfile
             return 0;
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             _wfxPluginFileSource.WfxModule.WfxStatusInfo(SourceFiles.Path, FsStatus.Start, _infoOperation);
             _callbackDataClass.UpdateProgressFunction = UpdateProgress;
@@ -108,12 +108,12 @@ namespace zfile
             _operationHelper.Initialize();
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             _operationHelper.ProcessTree(_sourceFilesTree, _statistics);
         }
 
-        public override void Finalize()
+        protected override void Finalize()
         {
             _wfxPluginFileSource.WfxModule.WfxStatusInfo(SourceFiles.Path, FsStatus.End, _infoOperation);
             _callbackDataClass.UpdateProgressFunction = null;

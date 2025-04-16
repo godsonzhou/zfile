@@ -12,7 +12,7 @@ namespace zfile
             shellFileSource = targetFileSource as IShellFileSource;
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             if (shellFileSource.CreateDirectory(AbsolutePath))
             {

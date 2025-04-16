@@ -3,7 +3,7 @@ namespace zfile;
     public class WcxArchiveCopyInOperation : ArchiveCopyInOperation
     {
         private IWcxArchiveFileSource _wcxArchiveFileSource;
-        private StringHashListUtf8 _fileList;
+        private StringHashListUtf8 _FileEntries;
         private bool _tarBefore;
         private string _tarFileName;
         private FileEntry _currentFile;
@@ -25,7 +25,7 @@ namespace zfile;
 
             _needsConnection = (_wcxArchiveFileSource.WcxModule.BackgroundFlags & WcxModule.BACKGROUND_PACK) == 0;
 
-            _fileList = new StringHashListUtf8(true);
+            _FileEntries = new StringHashListUtf8(true);
 
             // Get initialized statistics; then we change only what is needed.
             _statistics = RetrieveStatistics();
@@ -51,24 +51,24 @@ namespace zfile;
             // Need to check file existence
             if (_fileExistsOption != FileSourceOperationOptionFileExists.Overwrite)
             {
-                var fileList = _wcxArchiveFileSource.ArchiveFileList.LockList();
+                var FileEntries = _wcxArchiveFileSource.ArchiveFileEntries.LockList();
                 try
                 {
                     // Populate archive file list
-                    foreach (var item in fileList)
+                    foreach (var item in FileEntries)
                     {
                         var clonedItem = item.Clone();
-                        _fileList.Add(clonedItem.FileName.ToLowerInvariant(), clonedItem);
+                        _FileEntries.Add(clonedItem.FileName.ToLowerInvariant(), clonedItem);
                     }
                 }
                 finally
                 {
-                    _wcxArchiveFileSource.ArchiveFileList.UnlockList();
+                    _wcxArchiveFileSource.ArchiveFileEntries.UnlockList();
                 }
             }
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             // Put to TAR archive if needed
             if (_tarBefore && Tar()) return;
@@ -86,15 +86,15 @@ namespace zfile;
             wcxModule.SetChangeVolProc(WcxModule.WcxInvalidHandle);
 
             // Convert TFiles into String
-            string fileList = GetFileList(_fullFilesTree);
+            string FileEntries = GetFileEntries(_fullFilesTree);
             // Nothing to pack (user skip all files)
-            if (fileList == "\0") return;
+            if (FileEntries == "\0") return;
 
             int result = wcxModule.PackFiles(
                            _wcxArchiveFileSource.ArchiveFileName,
                            destPath, // no trailing path delimiter here
                            Helper.IncludeTrailingPathDelimiter(_fullFilesTree.Path), // end with path delimiter here
-                           fileList,
+                           FileEntries,
                            _packingFlags);
 
             // Check for errors.
@@ -139,10 +139,10 @@ namespace zfile;
             }
         }
 
-        private string GetFileList(FileEntries theFiles)
+        private string GetFileEntries(FileEntries theFiles)
         {
             string result = "";
-            bool archiveExists = _fileList.Count > 0;
+            bool archiveExists = _FileEntries.Count > 0;
             string subPath = Helper.ExcludeFrontPathDelimiter(_targetPath).ToLowerInvariant();
 
             foreach (var file in theFiles)
@@ -159,7 +159,7 @@ namespace zfile;
                 // Need to check file existence
                 else if (archiveExists)
                 {
-                    var header = (WcxHeader)_fileList[subPath + fileName.ToLowerInvariant()];
+                    var header = (WcxHeader)_FileEntries[subPath + fileName.ToLowerInvariant()];
                     if (header != null)
                     {
                         if (FileExists(file, header) == FileSourceOperationOptionFileExists.Skip)

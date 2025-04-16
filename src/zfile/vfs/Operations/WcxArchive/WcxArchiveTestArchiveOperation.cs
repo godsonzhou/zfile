@@ -31,7 +31,7 @@ namespace zfile;
             _statistics.ArchiveFile = _wcxArchiveFileSource.ArchiveFileName;
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             var wcxModule = _wcxArchiveFileSource.WcxModule;
 
@@ -47,7 +47,7 @@ namespace zfile;
 
             // Convert file list so that filenames are relative to archive root.
             var files = SourceFiles.Clone();
-            ChangeFileListRoot(Path.DirectorySeparatorChar.ToString(), files);
+            ChangeFileEntriesRoot(Path.DirectorySeparatorChar.ToString(), files);
 
             try
             {
@@ -63,7 +63,7 @@ namespace zfile;
 
                         // Now check if the file is to be tested.
                         if (!FileAttributes.IsDirectory(header.FileAttr) &&           // Omit directories (we handle them ourselves).
-                            MatchesFileList(files, header.FileName))    // Check if it's included in the filelist
+                            MatchesFileEntries(files, header.FileName))    // Check if it's included in the FileEntries
                         {
                             _statistics.CurrentFile = header.FileName;
                             _statistics.CurrentFileTotalBytes = header.UnpSize;

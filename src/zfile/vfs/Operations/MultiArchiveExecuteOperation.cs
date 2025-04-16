@@ -6,7 +6,7 @@ namespace zfile
 
         public MultiArchiveExecuteOperation(
             IFileSource targetFileSource,
-            ref File executableFile,
+            ref FileEntry executableFile,
             string currentPath,
             string verb)
             : base(targetFileSource, ref executableFile, currentPath, verb)
@@ -14,12 +14,12 @@ namespace zfile
             _multiArchiveFileSource = targetFileSource as IMultiArchiveFileSource;
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             // 初始化操作
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             if (Verb != "properties" && MatchesMaskList(ExecutableFile.Name, GlobalSettings.AutoExtractOpenMask))
             {
@@ -31,7 +31,7 @@ namespace zfile
             }
         }
 
-        public override void Finalize()
+        protected override void Finalize()
         {
             // 清理操作
         }

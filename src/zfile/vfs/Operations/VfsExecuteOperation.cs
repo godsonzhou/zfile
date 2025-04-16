@@ -4,26 +4,26 @@ namespace zfile
     {
         private readonly IVfsFileSource _vfsFileSource;
 
-        public VfsExecuteOperation(IFileSource targetFileSource, ref FileInfo executableFile, string currentPath, string verb)
+        public VfsExecuteOperation(IFileSource targetFileSource, ref FileEntry executableFile, string currentPath, string verb)
             : base(targetFileSource, ref executableFile, currentPath, verb)
         {
             _vfsFileSource = targetFileSource as IVfsFileSource;
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             ExecuteOperationResult = FileSourceExecuteOperationResult.Success;
 
             if (string.Equals(Verb, "properties", StringComparison.OrdinalIgnoreCase))
             {
-                var index = _vfsFileSource.VfsFileList.FindFirstEnabledByName(RelativePath);
+                var index = _vfsFileSource.VfsFileEntries.FindFirstEnabledByName(RelativePath);
                 if (index >= 0)
                 {
-                    var wfxModule = GlobalSettings.WfxPlugins.LoadModule(_vfsFileSource.VfsFileList.FileName[index]);
+                    var wfxModule = GlobalSettings.WfxPlugins.LoadModule(_vfsFileSource.VfsFileEntries.FileName[index]);
                     if (wfxModule != null)
                     {
                         wfxModule.VfsInit();
@@ -33,7 +33,7 @@ namespace zfile
             }
         }
 
-        public override void Finalize()
+        protected override void Finalize()
         {
         }
     }

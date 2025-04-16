@@ -5,19 +5,19 @@ namespace zfile
         private readonly IMultiArchiveFileSource _fileSource;
         private FileSourceCalcStatisticsOperationStatistics _statistics;
 
-        public MultiArchiveCalcStatisticsOperation(IFileSource targetFileSource, FileInfo[] files)
+        public MultiArchiveCalcStatisticsOperation(IFileSource targetFileSource, FileEntry[] files)
             : base(targetFileSource, files)
         {
             _fileSource = targetFileSource as IMultiArchiveFileSource;
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             // 获取初始化的统计信息；然后我们只更改需要的内容
             _statistics = RetrieveStatistics();
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             for (int i = 0; i < Files.Length; i++)
             {
@@ -26,7 +26,7 @@ namespace zfile
             }
         }
 
-        private void ProcessFile(FileInfo file)
+        private void ProcessFile(FileEntry file)
         {
             _statistics.CurrentFile = file.Path + file.Name;
             UpdateStatistics(_statistics);
@@ -58,12 +58,12 @@ namespace zfile
 
         private void ProcessSubDirs(string srcPath)
         {
-            var fileList = _fileSource.ArchiveFileList.LockList();
+            var FileEntries = _fileSource.ArchiveFileEntries.LockList();
             try
             {
-                for (int i = 0; i < fileList.Count; i++)
+                for (int i = 0; i < FileEntries.Count; i++)
                 {
-                    var archiveItem = fileList[i];
+                    var archiveItem = FileEntries[i];
                     string currFileName = Path.DirectorySeparatorChar + archiveItem.FileName;
 
                     if (!IsInPath(srcPath, currFileName, true, false))
@@ -96,7 +96,7 @@ namespace zfile
             }
             finally
             {
-                _fileSource.ArchiveFileList.UnlockList();
+                _fileSource.ArchiveFileEntries.UnlockList();
             }
         }
 

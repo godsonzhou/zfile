@@ -57,7 +57,7 @@ namespace zfile
                    FilePropertyType.Comment;
         }
 
-        public override bool GetLocalName(ref FileInfo file)
+        public override bool GetLocalName(ref FileEntry file)
         {
             file.FullPath = file.Link.LinkTo;
             return true;

@@ -310,8 +310,8 @@ namespace zfile
 
         private void FillRecord(ArchiveItem value)
         {
-            value.FileName = GetFileName(_fileName);
-            value.FileExt = GetFileName(_fileExt);
+            value.FileName = Path.GetFileName(_fileName);
+            value.FileExt = Path.GetFileName(_fileExt);
             value.PackSize = long.TryParse(_packSize, out long packSize) ? packSize : -1;
             value.UnpSize = long.TryParse(_size, out long size) ? size : -1;
             value.Year = YearShortToLong(int.TryParse(_year, out int year) ? year : 0);

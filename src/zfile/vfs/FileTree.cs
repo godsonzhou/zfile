@@ -3,17 +3,17 @@ namespace zfile
     public class FileTree : IDisposable
     {
         private readonly List<FileTree> _subNodes;
-        private readonly List<FileInfo> _files;
+        private readonly FileEntries _files;
 
         public string Path { get; }
         public IReadOnlyList<FileTree> SubNodes => _subNodes;
-        public IReadOnlyList<FileInfo> Files => _files;
+        public IReadOnlyFileEntries Files => _files;
 
         public FileTree(string path)
         {
             Path = path;
             _subNodes = new List<FileTree>();
-            _files = new List<FileInfo>();
+            _files = new FileEntries();
         }
 
         public void AddSubNode(FileTree node)
@@ -21,7 +21,7 @@ namespace zfile
             _subNodes.Add(node);
         }
 
-        public void AddFile(FileInfo file)
+        public void AddFile(FileEntry file)
         {
             _files.Add(file);
         }
@@ -58,7 +58,7 @@ namespace zfile
             _checkOperationState = checkOperationState;
         }
 
-        public void BuildFromFiles(List<FileInfo> files)
+        public void BuildFromFiles(FileEntries files)
         {
             _currentTree = new FileTree(string.Empty);
             _filesCount = 0;
@@ -71,7 +71,7 @@ namespace zfile
             }
         }
 
-        private void ProcessFile(FileInfo file)
+        private void ProcessFile(FileEntry file)
         {
             if (SearchTemplate != null && !SearchTemplate.Check(file))
                 return;

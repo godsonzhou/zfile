@@ -6,16 +6,16 @@ namespace zfile
     {
         private readonly IMultiArchiveFileSource _fileSource;
         private FileSourceCopyOperationStatistics _statistics;
-        private FileInfo[] _fullFilesTreeToExtract;
+        private FileEntry[] _fullFilesTreeToExtract;
         private string _password;
         private bool _extractWithoutPath;
-        private FileInfo _currentFile;
+        private FileEntry _currentFile;
         private string _currentTargetFilePath;
         private Process _exProcess;
         private string _tempFile;
         private int _errorLevel;
 
-        public MultiArchiveCopyOutOperation(IFileSource sourceFileSource, IFileSource targetFileSource, FileInfo[] sourceFiles, string targetPath)
+        public MultiArchiveCopyOutOperation(IFileSource sourceFileSource, IFileSource targetFileSource, FileEntry[] sourceFiles, string targetPath)
             : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
         {
             _fileSource = sourceFileSource as IMultiArchiveFileSource;
@@ -36,7 +36,7 @@ namespace zfile
             _fullFilesTreeToExtract = null;
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             _exProcess = new Process();
             _exProcess.StartInfo.RedirectStandardOutput = true;
@@ -54,12 +54,12 @@ namespace zfile
             if (_fileSource.MultiArcItem.ExtractFlags.HasFlag(ExtractFlags.SmartExtract))
             {
                 int count = 0;
-                var arcFileList = _fileSource.ArchiveFileList.Clone();
+                var arcFileEntries = _fileSource.ArchiveFileEntries.Clone();
                 try
                 {
-                    for (int i = 0; i < arcFileList.Count; i++)
+                    for (int i = 0; i < arcFileEntries.Count; i++)
                     {
-                        string fileName = Path.DirectorySeparatorChar + arcFileList[i].FileName;
+                        string fileName = Path.DirectorySeparatorChar + arcFileEntries[i].FileName;
                         if (IsInPath(Path.DirectorySeparatorChar.ToString(), fileName, false, false))
                         {
                             count++;
@@ -73,7 +73,7 @@ namespace zfile
                 }
                 finally
                 {
-                    arcFileList.Clear();
+                    arcFileEntries.Clear();
                 }
             }
 
@@ -85,13 +85,13 @@ namespace zfile
             _fileSource.FillAndCount(ExtractMask, SourceFiles, true, out _fullFilesTreeToExtract, out _statistics.TotalFiles, out _statistics.TotalBytes);
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             string targetFileName;
             string sourcePath;
             string tempDir;
             var createdPaths = new Dictionary<string, FileAttributes>();
-            FileInfo[] filesToExtract = null;
+            FileEntry[] filesToExtract = null;
 
             try
             {
@@ -166,7 +166,7 @@ namespace zfile
             }
         }
 
-        private void CreateDirs(FileInfo[] files, string destPath, string currentArchiveDir, Dictionary<string, FileAttributes> createdPaths)
+        private void CreateDirs(FileEntry[] files, string destPath, string currentArchiveDir, Dictionary<string, FileAttributes> createdPaths)
         {
             foreach (var file in files)
             {
@@ -199,7 +199,7 @@ namespace zfile
             return result;
         }
 
-        private FileSourceOperationOptionFileExists DoFileExists(FileInfo file, string absoluteTargetFileName)
+        private FileSourceOperationOptionFileExists DoFileExists(FileEntry file, string absoluteTargetFileName)
         {
             if (!File.Exists(absoluteTargetFileName))
                 return FileSourceOperationOptionFileExists.None;

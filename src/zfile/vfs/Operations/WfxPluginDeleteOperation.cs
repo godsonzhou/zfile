@@ -3,13 +3,13 @@ namespace zfile
     public class WfxPluginDeleteOperation : FileSourceDeleteOperation
     {
         private readonly IWfxPluginFileSource _wfxPluginFileSource;
-        private FileList _fullFilesTreeToDelete;
+        private FileEntries _fullFilesTreeToDelete;
         private FileSourceDeleteOperationStatistics _statistics;
         private FileSourceOperationSymlinkOption _symLinkOption;
         private bool _skipErrors;
         private FileSourceOperationOptionGeneral _deleteReadOnly;
 
-        public WfxPluginDeleteOperation(IFileSource targetFileSource, ref FileList filesToDelete)
+        public WfxPluginDeleteOperation(IFileSource targetFileSource, ref FileEntries filesToDelete)
             : base(targetFileSource, ref filesToDelete)
         {
             _symLinkOption = FileSourceOperationSymlinkOption.None;
@@ -19,14 +19,14 @@ namespace zfile
             _wfxPluginFileSource = targetFileSource as IWfxPluginFileSource;
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             _wfxPluginFileSource.WfxModule.WfxStatusInfo(FilesToDelete.Path, FsStatus.Start, FsStatusOperation.Delete);
             _statistics = RetrieveStatistics;
             _wfxPluginFileSource.FillAndCount(FilesToDelete, true, false, ref _fullFilesTreeToDelete, ref _statistics.TotalFiles, ref _statistics.TotalBytes);
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             for (int currentFileIndex = _fullFilesTreeToDelete.Count - 1; currentFileIndex >= 0; currentFileIndex--)
             {
@@ -45,12 +45,12 @@ namespace zfile
             }
         }
 
-        public override void Finalize()
+        protected override void Finalize()
         {
             _wfxPluginFileSource.WfxModule.WfxStatusInfo(FilesToDelete.Path, FsStatus.End, FsStatusOperation.Delete);
         }
 
-        private bool ProcessFile(FileInfo file)
+        private bool ProcessFile(FileEntry file)
         {
             var fileName = file.Path + file.Name;
             var retry = false;
@@ -124,7 +124,7 @@ namespace zfile
                         question = string.Format(Resources.MsgNotDelete, fileName);
                     }
 
-                    if (GlobalOptions.SkipFileOpError || _skipErrors)
+                    if (GlobalSettings.SkipFileOpError || _skipErrors)
                     {
                         LogMessage(message, logOptions, LogOption.Error);
                     }
@@ -153,9 +153,9 @@ namespace zfile
 
         private FileSourceOperationUIResult ShowError(string message)
         {
-            if (GlobalOptions.SkipFileOpError)
+            if (GlobalSettings.SkipFileOpError)
             {
-                Log.Write(Thread, message, LogOption.Error, true);
+                Logger.Write(_Thread, message, LogOption.Error, true);
                 return FileSourceOperationUIResult.Skip;
             }
             else
@@ -176,19 +176,19 @@ namespace zfile
             switch (logMsgType)
             {
                 case LogOption.Error:
-                    if ((LogOption.Error & GlobalOptions.LogOptions) == 0) return;
+                    if ((LogOption.Error & GlobalSettings.LogOptions) == 0) return;
                     break;
                 case LogOption.Info:
-                    if ((LogOption.Info & GlobalOptions.LogOptions) == 0) return;
+                    if ((LogOption.Info & GlobalSettings.LogOptions) == 0) return;
                     break;
                 case LogOption.Success:
-                    if ((LogOption.Success & GlobalOptions.LogOptions) == 0) return;
+                    if ((LogOption.Success & GlobalSettings.LogOptions) == 0) return;
                     break;
             }
 
-            if ((logOptions & GlobalOptions.LogOptions) != 0)
+            if ((logOptions & GlobalSettings.LogOptions) != 0)
             {
-                Log.Write(Thread, message, logMsgType);
+                Logger.Write(_Thread, message, logMsgType);
             }
         }
     }

@@ -13,12 +13,12 @@ namespace zfile
             fileSystemFileSource = targetFileSource as IFileSystemFileSource;
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             // 初始化操作，当前不需要额外处理
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             try
             {
@@ -70,7 +70,7 @@ namespace zfile
             }
         }
 
-        public override void Finalize()
+        protected override void Finalize()
         {
             // 清理操作，当前不需要额外处理
         }

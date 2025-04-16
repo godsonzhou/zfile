@@ -13,12 +13,12 @@ public class WfxPluginExecuteOperation : FileSourceExecuteOperation
 		_wfxPluginFileSource = targetFileSource as IWfxPluginFileSource;
 	}
 
-	public override void Initialize()
+	protected override void Initialize()
 	{
 		_wfxPluginFileSource.WfxModule.WfxStatusInfo(CurrentPath, FS_STATUS_START, FS_STATUS_OP_EXEC);
 	}
 
-	public override void MainExecute()
+	protected override void MainExecute()
 	{
 		string remoteName;
 		if (Verb.StartsWith("quote "))
@@ -53,7 +53,7 @@ public class WfxPluginExecuteOperation : FileSourceExecuteOperation
 		}
 	}
 
-	public override void Finalize()
+	protected override void Finalize()
 	{
 		_wfxPluginFileSource.WfxModule.WfxStatusInfo(CurrentPath, FS_STATUS_END, FS_STATUS_OP_EXEC);
 	}

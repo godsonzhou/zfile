@@ -22,19 +22,19 @@ namespace zfile
                 return 1;
             }
 
-            Log.Write(Resources.MsgLoadingFileList + percentDone + "%", LogOption.Info, false, false);
+            Log.Write(Resources.MsgLoadingFileEntries + percentDone + "%", LogOption.Info, false, false);
 
             return CheckOperationStateSafe() ? 0 : 1;
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             _wfxPluginFileSource.WfxModule.WfxStatusInfo(_currentPath, FsStatus.Start, FsStatusOperation.List);
             _callbackDataClass.UpdateProgressFunction = UpdateProgress;
             UpdateProgressFunction = UpdateProgress;
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             var haveUpDir = false;
             try
@@ -77,7 +77,7 @@ namespace zfile
             }
         }
 
-        public override void Finalize()
+        protected override void Finalize()
         {
             _wfxPluginFileSource.WfxModule.WfxStatusInfo(_currentPath, FsStatus.End, FsStatusOperation.List);
             _callbackDataClass.UpdateProgressFunction = null;

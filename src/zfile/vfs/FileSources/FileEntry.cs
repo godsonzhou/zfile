@@ -706,7 +706,7 @@ public class FileEntry
 
 public class FileEntries : IEnumerable<FileEntry>
 {
-    private List<FileEntry> _list;
+    private FileEntries _list;
     private bool _flat;
     private bool _ownsObjects;
     private string _path;
@@ -743,7 +743,7 @@ public class FileEntries : IEnumerable<FileEntry>
         set { _list[index] = value; }
     }
 
-    public List<FileEntry> List => _list;
+    public FileEntries List => _list;
 
     public bool OwnsObjects
     {
@@ -778,7 +778,7 @@ public class FileEntries : IEnumerable<FileEntry>
 
     public FileEntries(string path = "")
     {
-        _list = new List<FileEntry>();
+        _list = new FileEntries();
         _ownsObjects = true;
         _path = path;
     }

@@ -5,7 +5,7 @@ namespace zfile
     public class MultiArchiveCopyInOperation : ArchiveCopyInOperation
     {
         private readonly IMultiArchiveFileSource _fileSource;
-        private FileInfo[] _removeFilesTree;
+        private FileEntry[] _removeFilesTree;
         private string _password;
         private string _volumeSize;
         private string _customParams;
@@ -15,7 +15,7 @@ namespace zfile
         private int _errorLevel;
         private string _commandLine;
 
-        public MultiArchiveCopyInOperation(IFileSource sourceFileSource, IFileSource targetFileSource, FileInfo[] sourceFiles, string targetPath)
+        public MultiArchiveCopyInOperation(IFileSource sourceFileSource, IFileSource targetFileSource, FileEntry[] sourceFiles, string targetPath)
             : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
         {
             _fileSource = targetFileSource as IMultiArchiveFileSource;
@@ -37,7 +37,7 @@ namespace zfile
             _removeFilesTree = null;
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             if (Path.GetExtension(_fileSource.ArchiveFileName) == _fileSource.GetSfxExt() && 
                 !string.IsNullOrEmpty(_fileSource.MultiArcItem.AddSelfExtract))
@@ -85,7 +85,7 @@ namespace zfile
             FillAndCount(SourceFiles, false, false, out _removeFilesTree, out Statistics.TotalFiles, out Statistics.TotalBytes);
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             // 如果需要，先打包成TAR
             if (TarBefore)
@@ -94,7 +94,7 @@ namespace zfile
             var multiArcItem = _fileSource.MultiArcItem;
             string destPath = TargetPath.TrimStart(Path.DirectorySeparatorChar).TrimEnd(Path.DirectorySeparatorChar);
             string rootPath = _removeFilesTree[0].Path;
-            ChangeFileListRoot(string.Empty, _removeFilesTree);
+            ChangeFileEntriesRoot(string.Empty, _removeFilesTree);
 
             // 获取最大可接受的命令错误级别
             _errorLevel = ExtractErrorLevel(_commandLine);
@@ -196,12 +196,12 @@ namespace zfile
             return true;
         }
 
-        private void DeleteFile(string basePath, FileInfo file)
+        private void DeleteFile(string basePath, FileEntry file)
         {
             // 实现文件删除
         }
 
-        private void DeleteFiles(string basePath, FileInfo[] files)
+        private void DeleteFiles(string basePath, FileEntry[] files)
         {
             // 实现文件批量删除
         }

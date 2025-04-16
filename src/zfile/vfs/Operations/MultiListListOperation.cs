@@ -7,11 +7,11 @@ namespace zfile
         public MultiListListOperation(IFileSource fileSource, string path)
             : base(fileSource, path)
         {
-            Files = new List<FileInfo>();
+            Files = new FileEntries();
             _fileSource = fileSource as IMultiListFileSource;
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             Files.Clear();
 

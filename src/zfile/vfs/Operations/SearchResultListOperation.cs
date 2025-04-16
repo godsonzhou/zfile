@@ -7,19 +7,19 @@ namespace zfile
         public SearchResultListOperation(IFileSource fileSource, string path)
             : base(fileSource, path)
         {
-            Files = new List<FileInfo>();
+            Files = new FileEntries();
             _fileSource = fileSource as ISearchResultFileSource;
             NeedsConnection = false;
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             Files.Clear();
 
             // 目前"扁平模式"始终启用（添加树中的所有文件）
             if (FileSource.IsPathAtRoot(Path))
             {
-                AddNode(_fileSource.FileList);
+                AddNode(_fileSource.FileEntries);
             }
         }
 

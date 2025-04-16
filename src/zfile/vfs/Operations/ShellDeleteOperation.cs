@@ -10,14 +10,14 @@ namespace zfile
         private FileSourceDeleteOperationStatistics statistics;
 
         public ShellDeleteOperation(IFileSource targetFileSource,
-                                  List<FileInfo> filesToDelete)
+                                  FileEntries filesToDelete)
             : base(targetFileSource, filesToDelete)
         {
             shellFileSource = targetFileSource as IShellFileSource;
             fileOp = (IFileOperation)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(CLSID_FileOperation)));
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             statistics = RetrieveStatistics();
             sourceFilesTree = new List<IntPtr>();
@@ -37,7 +37,7 @@ namespace zfile
             }
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             var sink = new FileOperationProgressSink(statistics, UpdateStatistics, CheckOperationStateSafe);
             fileOp.SetOperationFlags(FOF_SILENT | FOF_NOCONFIRMATION | FOF_NORECURSION);

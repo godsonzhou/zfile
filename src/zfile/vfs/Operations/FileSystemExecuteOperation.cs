@@ -13,7 +13,7 @@ namespace zfile
         /// <param name="verb">执行动作</param>
         public FileSystemExecuteOperation(
             IFileSource targetFileSource,
-            FileInfo executableFile,
+            FileEntry executableFile,
             string currentPath,
             string verb)
             : base(targetFileSource, executableFile, currentPath, verb)
@@ -21,17 +21,17 @@ namespace zfile
             fileSystemFileSource = targetFileSource as IFileSystemFileSource;
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             Cursor.Current = Cursors.WaitCursor;
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             if (Verb == "properties")
             {
                 ExecuteOperationResult = FileSourceExecuteOperationResult.Success;
-                var files = new List<FileInfo> { ExecutableFile };
+                var files = new FileEntries { ExecutableFile };
                 try
                 {
                     Cursor.Current = Cursors.Default;
@@ -65,7 +65,7 @@ namespace zfile
             }
         }
 
-        public override void Finalize()
+        protected override void Finalize()
         {
             Cursor.Current = Cursors.Default;
         }
@@ -113,7 +113,7 @@ namespace zfile
             }
         }
 
-        private void ShowFilePropertiesDialog(IFileSystemFileSource fileSource, List<FileInfo> files)
+        private void ShowFilePropertiesDialog(IFileSystemFileSource fileSource, FileEntries files)
         {
             // 实现文件属性对话框显示
             // 这里需要根据实际UI框架来实现

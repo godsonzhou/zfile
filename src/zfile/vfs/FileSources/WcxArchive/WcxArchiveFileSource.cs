@@ -3,7 +3,7 @@ namespace zfile
 	
 	public interface IWcxArchiveFileSource : IArchiveFileSource
 	{
-		ThreadSafeList<WcxHeader> ArchiveFileList { get; }
+		ThreadSafeList<WcxHeader> ArchiveFileEntries { get; }
 		int PluginCapabilities { get; }
 		WcxModule WcxModule { get; }
 	}
@@ -11,7 +11,7 @@ namespace zfile
     {
         private string _moduleFileName;
         private int _pluginCapabilities;
-        private ThreadSafeList<WcxHeader> _arcFileList;
+        private ThreadSafeList<WcxHeader> _arcFileEntries;
         private WcxModule _wcxModule;
         private int _openResult;
         private List<FileSourceConnection> _connections;
@@ -19,7 +19,7 @@ namespace zfile
         private object _operationsQueueLock = new object();
         private object _connectionsLock = new object();
 
-        public ThreadSafeList<WcxHeader> ArchiveFileList => _arcFileList;
+        public ThreadSafeList<WcxHeader> ArchiveFileEntries => _arcFileEntries;
         public int PluginCapabilities => _pluginCapabilities;
         public WcxModule WcxModule => _wcxModule;
 
@@ -28,7 +28,7 @@ namespace zfile
         {
             _moduleFileName = wcxPluginFileName;
             _pluginCapabilities = wcxPluginCapabilities;
-            _arcFileList = new ThreadSafeList<WcxHeader>();
+            _arcFileEntries = new ThreadSafeList<WcxHeader>();
             _wcxModule = WcxPlugins.LoadModule(_moduleFileName);
             _connections = new List<FileSourceConnection>();
             _operationsQueue = new List<FileSourceOperation>();
@@ -51,7 +51,7 @@ namespace zfile
             : base(archiveFileSource, archiveFileName)
         {
             _pluginCapabilities = wcxPluginCapabilities;
-            _arcFileList = new ThreadSafeList<WcxHeader>();
+            _arcFileEntries = new ThreadSafeList<WcxHeader>();
             _wcxModule = wcxPluginModule;
             _connections = new List<FileSourceConnection>();
             _operationsQueue = new List<FileSourceOperation>();
@@ -69,7 +69,7 @@ namespace zfile
 
         protected override void Dispose(bool disposing)
         {
-            _arcFileList?.Dispose();
+            _arcFileEntries?.Dispose();
             base.Dispose();
         }
 
@@ -128,9 +128,9 @@ namespace zfile
 
             newDir = Path.GetFullPath(newDir + Path.DirectorySeparatorChar);
 
-            lock (_arcFileList)
+            lock (_arcFileEntries)
             {
-                foreach (var header in _arcFileList)
+                foreach (var header in _arcFileEntries)
                 {
                     if (header.IsDirectory && header.FileName.Length > 0)
                     {
@@ -168,12 +168,12 @@ namespace zfile
                         return false;
                 }
 
-                _arcFileList.Clear();
+                _arcFileEntries.Clear();
 
                 var header = new WcxHeader();
                 while (_wcxModule.ReadWCXHeader(arcHandle, ref header) == 0)
                 {
-                    _arcFileList.Add(header.Clone());
+                    _arcFileEntries.Add(header.Clone());
                     header = new WcxHeader();
                 }
 

@@ -2,7 +2,7 @@ namespace zfile
 {
     public class FileSystemDeleteOperation : FileSourceDeleteOperation
     {
-        private List<FileInfo> fullFilesTreeToDelete;  // 源文件，包括所有子目录中的文件/目录
+        private FileEntries fullFilesTreeToDelete;  // 源文件，包括所有子目录中的文件/目录
         private FileSourceDeleteOperationStatistics statistics; // 统计信息的本地副本
         private Description description;
 
@@ -15,7 +15,7 @@ namespace zfile
 
         public FileSystemDeleteOperation(
             IFileSource targetFileSource,
-            List<FileInfo> filesToDelete)
+            FileEntries filesToDelete)
             : base(targetFileSource, filesToDelete)
         {
             symLinkOption = FileSourceOperationOptionSymLink.None;
@@ -28,7 +28,7 @@ namespace zfile
                 description = new Description(true);
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             // 获取初始化的统计信息；然后我们只更改需要的内容
             statistics = RetrieveStatistics;
@@ -55,20 +55,20 @@ namespace zfile
 #endif
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             ProcessList(fullFilesTreeToDelete);
         }
 
-        public override void Finalize()
+        protected override void Finalize()
         {
             // 清理操作，当前不需要额外处理
         }
 
-        private void DeleteSubDirectory(FileInfo file)
+        private void DeleteSubDirectory(FileEntry file)
         {
-            var rootFiles = new List<FileInfo> { file };
-            List<FileInfo> subFiles;
+            var rootFiles = new FileEntries { file };
+            FileEntries subFiles;
             long filesCount, bytesCount;
 
             // 只为子文件统计，因为根目录的统计已经完成
@@ -88,7 +88,7 @@ namespace zfile
             recycle = true;
         }
 
-        private void ProcessFile(FileInfo file)
+        private void ProcessFile(FileEntry file)
         {
             var fileName = file.FullPath;
             bool retry;
@@ -359,7 +359,7 @@ namespace zfile
             } while (retry);
         }
 
-        private void ProcessList(List<FileInfo> files)
+        private void ProcessList(FileEntries files)
         {
             for (int i = files.Count - 1; i >= 0; i--)
             {

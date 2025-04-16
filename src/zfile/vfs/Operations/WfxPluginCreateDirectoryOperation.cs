@@ -10,11 +10,11 @@ namespace zfile
             _wfxPluginFileSource = targetFileSource as IWfxPluginFileSource;
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             var result = _wfxPluginFileSource.WfxModule.WfxMkDir(BasePath, AbsolutePath);
             switch (result)
@@ -25,19 +25,19 @@ namespace zfile
                 case WfxResult.Success:
                     if ((LogOption.VfsOp & LogOption.Success) != 0)
                     {
-                        Log.Write(Thread, string.Format(Resources.MsgLogSuccess + Resources.MsgLogMkDir, AbsolutePath), LogOption.Success);
+                        Logger.Write(Thread, string.Format(Resources.MsgLogSuccess + Resources.MsgLogMkDir, AbsolutePath), LogOption.Success);
                     }
                     break;
                 default:
                     if ((LogOption.VfsOp & LogOption.Error) != 0)
                     {
-                        Log.Write(Thread, string.Format(Resources.MsgLogError + Resources.MsgLogMkDir, AbsolutePath), LogOption.Error);
+                        Logger.Write(Thread, string.Format(Resources.MsgLogError + Resources.MsgLogMkDir, AbsolutePath), LogOption.Error);
                     }
                     break;
             }
         }
 
-        public override void Finalize()
+        protected override void Finalize()
         {
         }
     }

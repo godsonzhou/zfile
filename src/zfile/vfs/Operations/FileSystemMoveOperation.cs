@@ -17,7 +17,7 @@ namespace zfile
         private bool skipAllBigFiles;
         private bool correctSymlinks;
 
-        public FileSystemMoveOperation(IFileSource fileSource, List<FileInfo> sourceFiles, string targetPath)
+        public FileSystemMoveOperation(IFileSource fileSource, FileEntries sourceFiles, string targetPath)
             : base(fileSource, sourceFiles, targetPath)
         {
             // 读取全局设置
@@ -46,7 +46,7 @@ namespace zfile
             searchTemplate?.Dispose();
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             // 获取初始化的统计信息
             statistics = RetrieveStatistics();
@@ -98,7 +98,7 @@ namespace zfile
             operationHelper.Initialize();
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             operationHelper.ProcessTree(sourceFilesTree);
         }
@@ -128,7 +128,7 @@ namespace zfile
             return false;
         }
 
-        public override void Finalize()
+        protected override void Finalize()
         {
             FileExistsOption = operationHelper.FileExistsOption;
             operationHelper?.Dispose();

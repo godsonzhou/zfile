@@ -6,7 +6,7 @@ public interface IWfxPluginFileSource : IFileSource
 	void FillAndCount(FileEntries files, bool countDirs, bool excludeRootDir,
 		out FileEntries newFiles, out long filesCount, out long filesSize);
 	bool FillSingleFile(string fullPath, out FileEntry file);
-	int WfxCopyMove(string sourceFile, string targetFile, int flags, RemoteFileInfo remoteInfo,
+	int WfxCopyMove(string sourceFile, string targetFile, int flags, RemoteFileEntry remoteInfo,
 		bool isInternal, bool isCopyMoveIn);
 	int PluginNumber { get; }
 	WfxModule WfxModule { get; }
@@ -221,12 +221,12 @@ public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 
 	public bool DeleteFile(string path)
 	{
-		return _wfxModule.DeleteFile(path) == WfxConstants.WFX_SUCCESS;
+		return _wfxModule.DeleteFile(path);
 	}
 
 	public bool DeleteDirectory(string path)
 	{
-		return _wfxModule.RemoveDirectory(path) == WfxConstants.WFX_SUCCESS;
+		return _wfxModule.RemoveDirectory(path);
 	}
 
 	public bool FileSystemEntryExists(string path)
@@ -405,7 +405,7 @@ public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 		return false;
 	}
 
-	public int WfxCopyMove(string sourceFile, string targetFile, int flags, RemoteFileInfo remoteInfo,
+	public int WfxCopyMove(string sourceFile, string targetFile, int flags, RemoteFileEntry remoteInfo,
 		bool isInternal, bool isCopyMoveIn)
 	{
 		if (isInternal)

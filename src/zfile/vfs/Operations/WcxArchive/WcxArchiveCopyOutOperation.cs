@@ -44,10 +44,10 @@ namespace zfile;
             if ((ExtractFlags & ExtractFlag.SmartExtract) != 0)
             {
                 int count = 0;
-                var arcFileList = _wcxArchiveFileSource.ArchiveFileList.Clone();
+                var arcFileEntries = _wcxArchiveFileSource.ArchiveFileEntries.Clone();
                 try
                 {
-                    foreach (var item in arcFileList)
+                    foreach (var item in arcFileEntries)
                     {
                         var header = (WcxHeader)item;
                         string fileName = Path.DirectorySeparatorChar + header.FileName;
@@ -65,7 +65,7 @@ namespace zfile;
                 }
                 finally
                 {
-                    arcFileList = null;
+                    arcFileEntries = null;
                 }
             }
 
@@ -77,7 +77,7 @@ namespace zfile;
             _statistics = RetrieveStatistics();
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             var wcxModule = _wcxArchiveFileSource.WcxModule;
 
@@ -100,7 +100,7 @@ namespace zfile;
 
             // Convert file list so that filenames are relative to archive root.
             var files = SourceFiles.Clone();
-            ChangeFileListRoot(Path.DirectorySeparatorChar.ToString(), files);
+            ChangeFileEntriesRoot(Path.DirectorySeparatorChar.ToString(), files);
 
             var createdPaths = new StringHashListUtf8(true);
 
@@ -123,7 +123,7 @@ namespace zfile;
 
                         // Now check if the file is to be extracted.
                         if (!FileAttributes.IsDirectory(header.FileAttr) &&           // Omit directories (we handle them ourselves).
-                            MatchesFileList(files, header.FileName) &&    // Check if it's included in the filelist
+                            MatchesFileEntries(files, header.FileName) &&    // Check if it's included in the FileEntries
                             (maskList == null || maskList.Matches(Path.GetFileName(header.FileName)))) // And name matches file mask
                         {
                             string targetFileName;

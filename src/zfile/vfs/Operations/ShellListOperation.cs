@@ -12,7 +12,7 @@ namespace zfile
             files = new FileEntries();
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             files.Clear();
             try

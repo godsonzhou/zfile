@@ -2,14 +2,14 @@ namespace zfile
 {
     public interface IVfsFileSource : IVirtualFileSource
     {
-        WfxModuleList VfsFileList { get; }
+        WfxModuleList VfsFileEntries { get; }
     }
 
     public class VfsFileSource : VirtualFileSource, IVfsFileSource
     {
         private readonly WfxModuleList _wfxModuleList;
 
-        public WfxModuleList VfsFileList => _wfxModuleList;
+        public WfxModuleList VfsFileEntries => _wfxModuleList;
 
         public VfsFileSource(WfxModuleList wfxModuleList)
         {
@@ -22,9 +22,9 @@ namespace zfile
             _wfxModuleList?.Dispose();
         }
 
-        public static FileInfo CreateFile(string path)
+        public static FileEntry CreateFile(string path)
         {
-            var result = new FileInfo(path);
+            var result = new FileEntry(path);
             result.LinkProperty = new FileLinkProperty();
             result.AttributesProperty = new NtfsFileAttributesProperty();
             return result;
@@ -56,7 +56,7 @@ namespace zfile
             return new VfsListOperation(targetFileSource, targetPath);
         }
 
-        public override FileSourceOperation CreateExecuteOperation(ref FileInfo executableFile, string basePath, string verb)
+        public override FileSourceOperation CreateExecuteOperation(ref FileEntry executableFile, string basePath, string verb)
         {
             IFileSource targetFileSource = this;
             return new VfsExecuteOperation(targetFileSource, ref executableFile, basePath, verb);

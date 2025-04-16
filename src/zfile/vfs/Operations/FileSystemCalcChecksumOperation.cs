@@ -4,7 +4,7 @@ namespace zfile
 {
     public class FileSystemCalcChecksumOperation : FileSourceCalcChecksumOperation
     {
-        private List<FileInfo> fullFilesTree;  // 源文件，包括子目录中的所有文件/目录
+        private FileEntries fullFilesTree;  // 源文件，包括子目录中的所有文件/目录
         private FileSourceCalcChecksumOperationStatistics statistics; // 统计信息的本地副本
         private List<string> checkSumFile;
         private byte[] buffer;
@@ -16,7 +16,7 @@ namespace zfile
         private bool skipErrors;
 
         public FileSystemCalcChecksumOperation(IFileSource targetFileSource, 
-            List<FileInfo> files, 
+            FileEntries files, 
             string targetPath, 
             string targetMask)
             : base(targetFileSource, files, targetPath, targetMask)
@@ -25,12 +25,12 @@ namespace zfile
             symLinkOption = FileSourceOperationOptionSymLink.None;
             fileExistsOption = FileSourceOperationOptionFileExists.None;
             skipErrors = false;
-            fullFilesTree = new List<FileInfo>();
+            fullFilesTree = new FileEntries();
             checkSumFile = new List<string>();
             checksumsList = new List<ChecksumEntry>();
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             // 获取初始化的统计信息；然后我们只更改需要的内容
             statistics = RetrieveStatistics();
@@ -63,7 +63,7 @@ namespace zfile
             // TODO: 实现验证模式的初始化逻辑
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             string targetFileName = null;
             if (OneFile && Mode == CalcCheckSumOperationMode.Calc)
@@ -139,7 +139,7 @@ namespace zfile
             }
         }
 
-        private bool CalcChecksumProcessFile(FileInfo file)
+        private bool CalcChecksumProcessFile(FileEntry file)
         {
             try
             {
@@ -160,7 +160,7 @@ namespace zfile
             return false;
         }
 
-        private bool VerifyChecksumProcessFile(FileInfo file, string expectedChecksum)
+        private bool VerifyChecksumProcessFile(FileEntry file, string expectedChecksum)
         {
             try
             {
@@ -187,7 +187,7 @@ namespace zfile
         {
             try
             {
-                var fileToVerify = new FileInfo(Path.Combine(path, fileName));
+                var fileToVerify = new FileEntry(Path.Combine(path, fileName));
                 if (!(fileToVerify.Attributes.HasFlag(FileAttributes.Directory) || 
                       fileToVerify.Attributes.HasFlag(FileAttributes.ReparsePoint)))
                 {

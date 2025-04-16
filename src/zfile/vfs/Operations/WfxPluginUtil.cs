@@ -18,7 +18,7 @@ namespace zfile
             set => _wfxModule = value;
         }
 
-        protected override void AddLinkTarget(FileInfo file, FileTreeNode currentNode)
+        protected override void AddLinkTarget(FileEntry file, FileTreeNode currentNode)
         {
             if (file.AttributesProperty is NtfsFileAttributesProperty)
             {
@@ -70,7 +70,7 @@ namespace zfile
 
     public class WfxPluginOperationHelper
     {
-        private FileInfo _rootDir;
+        private FileEntry _rootDir;
         private IWfxPluginFileSource _wfxPluginFileSource;
         private Thread _operationThread;
         private WfxPluginOperationHelperMode _mode;
@@ -86,8 +86,8 @@ namespace zfile
         private CopyAttributesOptions _copyAttributesOptions;
         private FileSourceOperationOptionFileExists _fileExistsOption;
 
-        private FileInfo _currentFile;
-        private FileInfo _currentTargetFile;
+        private FileEntry _currentFile;
+        private FileEntry _currentTargetFile;
         private string _currentTargetFilePath;
 
         private AskQuestionFunction _askQuestion;
@@ -185,7 +185,7 @@ namespace zfile
     {
         public static bool WfxRenameFile(IWfxPluginFileSource fileSource, FileEntry file, string newFileName)
         {
-            var remoteInfo = new RemoteFileInfo
+            var remoteInfo = new RemoteFileEntry
             {
                 SizeLow = (int)(file.Size & 0xFFFFFFFF),
                 SizeHigh = (int)(file.Size >> 32),

@@ -12,19 +12,19 @@ namespace zfile
         private FileSourceCalcStatisticsOperationStatistics statistics; // 统计信息的本地副本
         private FileSourceOperationOptionSymLink symLinkOption;
 
-        public FileSystemCalcStatisticsOperation(IFileSource targetFileSource, List<FileInfo> files)
+        public FileSystemCalcStatisticsOperation(IFileSource targetFileSource, FileEntries files)
             : base(targetFileSource, files)
         {
             symLinkOption = FileSourceOperationOptionSymLink.None;
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             // 获取初始化的统计信息；然后我们只更改需要的内容
             statistics = RetrieveStatistics();
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             for (int currentFileIndex = 0; currentFileIndex < Files.Count; currentFileIndex++)
             {
@@ -38,7 +38,7 @@ namespace zfile
 			throw new NotImplementedException();
 		}
 
-		private void ProcessFile(FileInfo file)
+		private void ProcessFile(FileEntry file)
         {
             statistics.CurrentFile = file.FullName;
             UpdateStatistics(statistics);
@@ -106,14 +106,14 @@ namespace zfile
 			throw new NotImplementedException();
 		}
 
-		private void ProcessLink(FileInfo file)
+		private void ProcessLink(FileEntry file)
         {
             string pathToFile = GetLinkTarget(file.FullName);
             if (!string.IsNullOrEmpty(pathToFile))
             {
                 try
                 {
-                    var linkFile = new FileInfo(pathToFile);
+                    var linkFile = new FileEntry(pathToFile);
                     ProcessFile(linkFile);
                 }
                 catch (FileNotFoundException)
@@ -138,7 +138,7 @@ namespace zfile
                     if (Path.GetFileName(entry) == "." || Path.GetFileName(entry) == "..")
                         continue;
 
-                    var file = new FileInfo(entry);
+                    var file = new FileEntry(entry);
                     ProcessFile(file);
                     CheckOperationState();
                 }

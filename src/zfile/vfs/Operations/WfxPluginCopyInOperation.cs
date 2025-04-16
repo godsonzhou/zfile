@@ -61,7 +61,7 @@ public class WfxPluginCopyInOperation : FileSourceCopyInOperation
 		return AppProcessMessages(true) ? 0 : 1;
 	}
 
-	public override void Initialize()
+	protected override void Initialize()
 	{
 		_wfxPluginFileSource.WfxModule.WfxStatusInfo(TargetPath, FS_STATUS_START, _infoOperation);
 		_callbackDataClass.UpdateProgressFunction = UpdateProgress;
@@ -108,12 +108,12 @@ public class WfxPluginCopyInOperation : FileSourceCopyInOperation
 		_operationHelper.Initialize();
 	}
 
-	public override void MainExecute()
+	protected override void MainExecute()
 	{
 		_operationHelper.ProcessTree(_sourceFilesTree, _statistics);
 	}
 
-	public override void Finalize()
+	protected override void Finalize()
 	{
 		_wfxPluginFileSource.WfxModule.WfxStatusInfo(TargetPath, FS_STATUS_END, _infoOperation);
 		_callbackDataClass.UpdateProgressFunction = null;

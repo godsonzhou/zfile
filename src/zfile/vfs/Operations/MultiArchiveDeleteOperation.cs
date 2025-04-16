@@ -6,14 +6,14 @@ namespace zfile
     {
         private readonly IMultiArchiveFileSource _fileSource;
         private FileSourceDeleteOperationStatistics _statistics;
-        private FileInfo[] _fullFilesTreeToDelete;
+        private FileEntry[] _fullFilesTreeToDelete;
         private string _password;
         private Process _exProcess;
         private string _tempFile;
         private int _errorLevel;
         private string _commandLine;
 
-        public MultiArchiveDeleteOperation(IFileSource fileSource, FileInfo[] filesToDelete)
+        public MultiArchiveDeleteOperation(IFileSource fileSource, FileEntry[] filesToDelete)
             : base(fileSource, filesToDelete)
         {
             _fileSource = fileSource as IMultiArchiveFileSource;
@@ -32,7 +32,7 @@ namespace zfile
             _fullFilesTreeToDelete = null;
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             _exProcess = new Process();
             _exProcess.StartInfo.RedirectStandardOutput = true;
@@ -65,12 +65,12 @@ namespace zfile
             _errorLevel = ExtractErrorLevel(_commandLine);
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             var multiArcItem = _fileSource.MultiArcItem;
             string destPath = string.Empty;
             string rootPath = _fullFilesTreeToDelete[0].Path;
-            ChangeFileListRoot(string.Empty, _fullFilesTreeToDelete);
+            ChangeFileEntriesRoot(string.Empty, _fullFilesTreeToDelete);
 
             if (_commandLine.Contains("%F"))
             {

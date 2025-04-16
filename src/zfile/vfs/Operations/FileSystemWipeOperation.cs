@@ -8,14 +8,14 @@ namespace zfile
         private readonly RandomNumberGenerator random;
         private readonly byte[][] buffer;
         private readonly Description description;
-        private List<FileInfo> fullFilesTreeToDelete;
+        private FileEntries fullFilesTreeToDelete;
         private FileSourceWipeOperationStatistics statistics;
         private bool skipErrors;
         private int wipePassNumber;
         private FileSourceOperationOptionSymLink symLinkOption;
         private FileSourceOperationOptionGeneral deleteReadOnly;
 
-        public FileSystemWipeOperation(IFileSource targetFileSource, List<FileInfo> filesToWipe)
+        public FileSystemWipeOperation(IFileSource targetFileSource, FileEntries filesToWipe)
             : base(targetFileSource, filesToWipe)
         {
             skipErrors = false;
@@ -46,7 +46,7 @@ namespace zfile
             random.Dispose();
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             Fill(0);
             Fill(1);
@@ -63,7 +63,7 @@ namespace zfile
                 description.Clear();
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             for (int currentFileIndex = fullFilesTreeToDelete.Count - 1; currentFileIndex >= 0; currentFileIndex--)
             {
@@ -295,7 +295,7 @@ namespace zfile
             return result;
         }
 
-        private void Wipe(FileInfo file)
+        private void Wipe(FileEntry file)
         {
             string fileName = file.FullPath;
             bool wipeResult;

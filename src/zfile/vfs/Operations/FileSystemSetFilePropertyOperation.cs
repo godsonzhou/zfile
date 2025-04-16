@@ -2,16 +2,16 @@ namespace zfile
 {
     public class FileSystemSetFilePropertyOperation : FileSourceSetFilePropertyOperation
     {
-        private List<FileInfo> fullFilesTree;
+        private FileEntries fullFilesTree;
         private FileSourceSetFilePropertyOperationStatistics statistics;
         private Description description;
         private FileSourceOperationOptionSymLink symLinkOption;
         private FileSourceOperationUIResponse fileExistsOption;
         private FileSourceOperationUIResponse dirExistsOption;
-        private FileInfo currentFile;
+        private FileEntry currentFile;
         private string currentTargetFilePath;
 
-        public FileSystemSetFilePropertyOperation(IFileSource targetFileSource, List<FileInfo> targetFiles, FileProperties newProperties)
+        public FileSystemSetFilePropertyOperation(IFileSource targetFileSource, FileEntries targetFiles, FileProperties newProperties)
             : base(targetFileSource, targetFiles, newProperties)
         {
             symLinkOption = FileSourceOperationOptionSymLink.None;
@@ -51,7 +51,7 @@ namespace zfile
             }
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             // 获取初始化的统计信息
             statistics = RetrieveStatistics();
@@ -71,7 +71,7 @@ namespace zfile
             }
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             for (int currentFileIndex = 0; currentFileIndex < fullFilesTree.Count; currentFileIndex++)
             {
@@ -80,7 +80,7 @@ namespace zfile
                 statistics.CurrentFile = file.FullPath;
                 UpdateStatistics(statistics);
 
-                FileInfo templateFile = null;
+                FileEntry templateFile = null;
                 if (TemplateFiles != null && currentFileIndex < TemplateFiles.Count)
                 {
                     templateFile = TemplateFiles[currentFileIndex];
@@ -95,11 +95,11 @@ namespace zfile
             }
         }
 
-        public override void Finalize()
+        protected override void Finalize()
         {
         }
 
-        protected override SetFilePropertyResult SetNewProperty(FileInfo file, FileProperty templateProperty)
+        protected override SetFilePropertyResult SetNewProperty(FileEntry file, FileProperty templateProperty)
         {
             var result = SetFilePropertyResult.Success;
 
@@ -260,7 +260,7 @@ namespace zfile
             }
         }
 
-        private SetFilePropertyResult RenameFile(FileInfo file, string newName)
+        private SetFilePropertyResult RenameFile(FileEntry file, string newName)
         {
             var oldName = file.FullPath;
             FileAttributeData newAttr;
@@ -445,7 +445,7 @@ namespace zfile
                 return SetFilePropertyResult.Error;
         }
 
-        protected override void ShowCompareFilesUI(FileInfo sourceFile, string targetFilePath)
+        protected override void ShowCompareFilesUI(FileEntry sourceFile, string targetFilePath)
         {
             var targetFile = FileSource.CreateFileObject(Path.GetDirectoryName(targetFilePath));
             try

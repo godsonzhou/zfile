@@ -29,7 +29,7 @@ namespace zfile
 			CountFiles(FilesToDelete, "*.*");
 		}
 
-		public override void MainExecute()
+		protected override void MainExecute()
 		{
 			var wcxModule = _wcxArchiveFileSource.WcxModule;
 
@@ -37,7 +37,7 @@ namespace zfile
 			wcxModule.SetProcessDataProc(WcxModule.WcxInvalidHandle, ProcessDataProcA, ProcessDataProcW);
 
 			int result = wcxModule.DeleteFiles(_wcxArchiveFileSource.ArchiveFileName,
-											   GetFileList(FilesToDelete));
+											   GetFileEntries(FilesToDelete));
 
 			// Check for errors.
 			if (result != WcxModule.E_SUCCESS)
@@ -98,16 +98,16 @@ namespace zfile
 
 		private void CountFiles(FileEntries files, string fileMask)
 		{
-			var arcFileList = _wcxArchiveFileSource.ArchiveFileList.LockList();
+			var arcFileEntries = _wcxArchiveFileSource.ArchiveFileEntries.LockList();
 			try
 			{
-				foreach (var item in arcFileList)
+				foreach (var item in arcFileEntries)
 				{
 					var header = (WcxHeader)item;
 
 					// Check if the file from the archive fits the selection given via theFiles.
 					if (!FileAttributes.IsDirectory(header.FileAttr) &&           // Omit directories
-						MatchesFileList(files, header.FileName) &&    // Check if it's included in the filelist
+						MatchesFileEntries(files, header.FileName) &&    // Check if it's included in the FileEntries
 						(fileMask == "*.*" || fileMask == "*" ||    // And name matches file mask
 						 MatchesMaskList(Path.GetFileName(header.FileName), fileMask)))
 					{
@@ -118,13 +118,13 @@ namespace zfile
 			}
 			finally
 			{
-				_wcxArchiveFileSource.ArchiveFileList.UnlockList();
+				_wcxArchiveFileSource.ArchiveFileEntries.UnlockList();
 			}
 
 			UpdateStatistics(_statistics);
 		}
 
-		private string GetFileList(FileEntries files)
+		private string GetFileEntries(FileEntries files)
 		{
 			string result = "";
 

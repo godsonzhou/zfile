@@ -7,19 +7,19 @@ namespace zfile
         private IShellFileSource shellFileSource;
         private FileSourceCalcStatisticsOperationStatistics statistics;
 
-        public ShellCalcStatisticsOperation(IFileSource targetFileSource, List<FileInfo> files)
+        public ShellCalcStatisticsOperation(IFileSource targetFileSource, FileEntries files)
             : base(targetFileSource, files)
         {
             shellFileSource = targetFileSource as IShellFileSource;
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             // 获取初始化的统计信息；然后我们只更改需要的内容
             statistics = RetrieveStatistics();
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             foreach (var file in Files)
             {

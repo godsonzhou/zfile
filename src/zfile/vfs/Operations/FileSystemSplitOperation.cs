@@ -12,7 +12,7 @@ namespace zfile
         private bool checkFreeSpace;
         private uint currentCRC32;
 
-        public FileSystemSplitOperation(IFileSource fileSource, FileInfo sourceFile, string targetPath)
+        public FileSystemSplitOperation(IFileSource fileSource, FileEntry sourceFile, string targetPath)
             : base(fileSource, sourceFile, targetPath)
         {
             checkFreeSpace = true;
@@ -35,7 +35,7 @@ namespace zfile
             return Encoding.Default.GetString(Encoding.UTF8.GetBytes(str)).Replace("?", "_");
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             // 获取初始化的统计信息
             statistics = RetrieveStatistics;
@@ -45,7 +45,7 @@ namespace zfile
             statistics.TotalBytes = SourceFile.Size;
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             try
             {
@@ -180,7 +180,7 @@ namespace zfile
             }
         }
 
-        public override void Finalize()
+        protected override void Finalize()
         {
         }
 

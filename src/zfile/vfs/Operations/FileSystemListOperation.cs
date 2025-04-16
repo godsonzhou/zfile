@@ -28,8 +28,8 @@ namespace zfile
                     }
                     else
                     {
-                        var fileInfo = FileSystemFileSource.CreateFileFromFile(file);
-                        Files.Add(fileInfo);
+                        var FileEntry = FileSystemFileSource.CreateFileFromFile(file);
+                        Files.Add(FileEntry);
                     }
                 }
             }
@@ -39,7 +39,7 @@ namespace zfile
             }
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             Files.Clear();
 
@@ -79,8 +79,8 @@ namespace zfile
                         if (fileName == ".." && isRootPath)
                             continue;
 
-                        var fileInfo = FileSystemFileSource.CreateFileFromFile(file);
-                        Files.Add(fileInfo);
+                        var FileEntry = FileSystemFileSource.CreateFileFromFile(file);
+                        Files.Add(FileEntry);
                     }
                 }
             }

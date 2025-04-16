@@ -13,7 +13,7 @@ namespace zfile
 
         public ShellCopyOperation(IFileSource sourceFileSource,
                                 IFileSource targetFileSource,
-                                List<FileInfo> sourceFiles,
+                                FileEntries sourceFiles,
                                 string targetPath)
             : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
         {
@@ -30,7 +30,7 @@ namespace zfile
             fileOp = (IFileOperation)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(CLSID_FileOperation)));
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             statistics = RetrieveStatistics();
             sourceFilesTree = new List<IntPtr>();
@@ -71,7 +71,7 @@ namespace zfile
             }
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             var sink = new FileOperationProgressSink(statistics, UpdateStatistics, CheckOperationStateSafe);
             fileOp.SetOperationFlags(FOF_SILENT | FOF_NOCONFIRMMKDIR);
@@ -125,7 +125,7 @@ namespace zfile
     {
         public ShellCopyInOperation(IFileSource sourceFileSource,
                                   IFileSource targetFileSource,
-                                  List<FileInfo> sourceFiles,
+                                  FileEntries sourceFiles,
                                   string targetPath)
             : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
         {
@@ -136,7 +136,7 @@ namespace zfile
             return FileSourceOperationType.CopyIn;
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             statistics = RetrieveStatistics();
             sourceFilesTree = new List<IntPtr>();
@@ -166,7 +166,7 @@ namespace zfile
     {
         public ShellCopyOutOperation(IFileSource sourceFileSource,
                                    IFileSource targetFileSource,
-                                   List<FileInfo> sourceFiles,
+                                   FileEntries sourceFiles,
                                    string targetPath)
             : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
         {

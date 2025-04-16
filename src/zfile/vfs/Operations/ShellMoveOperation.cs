@@ -10,7 +10,7 @@ namespace zfile
         private readonly IShellFileSource shellFileSource;
         private FileSourceMoveOperationStatistics statistics;
 
-        public ShellMoveOperation(IFileSource fileSource, List<FileInfo> sourceFiles, string targetPath)
+        public ShellMoveOperation(IFileSource fileSource, FileEntries sourceFiles, string targetPath)
             : base(fileSource, sourceFiles, targetPath)
         {
             shellFileSource = fileSource as IShellFileSource;
@@ -22,7 +22,7 @@ namespace zfile
             sourceFilesTree = null;
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             statistics = RetrieveStatistics();
 
@@ -55,7 +55,7 @@ namespace zfile
             }
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             var sink = new FileOperationProgressSink(ref statistics, UpdateStatistics, CheckOperationStateSafe);
 
@@ -94,7 +94,7 @@ namespace zfile
             }
         }
 
-        public override void Finalize()
+        protected override void Finalize()
         {
         }
 

@@ -274,7 +274,7 @@ namespace zfile
             }
         }
 
-        private void ProcessFiles(System.Collections.Generic.IReadOnlyList<FileInfo> files)
+        private void ProcessFiles(System.Collections.Generic.IReadOnlyFileEntries files)
         {
             foreach (var file in files)
             {
@@ -283,7 +283,7 @@ namespace zfile
             }
         }
 
-        private void ProcessFile(FileInfo file)
+        private void ProcessFile(FileEntry file)
         {
             try
             {

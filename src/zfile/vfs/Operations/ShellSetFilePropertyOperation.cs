@@ -10,7 +10,7 @@ namespace zfile
         private readonly IShellFileSource shellFileSource;
         private FileSourceSetFilePropertyOperationStatistics statistics;
 
-        public ShellSetFilePropertyOperation(IFileSource targetFileSource, List<FileInfo> targetFiles, List<FileProperty> newProperties)
+        public ShellSetFilePropertyOperation(IFileSource targetFileSource, FileEntries targetFiles, List<FileProperty> newProperties)
             : base(targetFileSource, targetFiles, newProperties)
         {
             shellFileSource = targetFileSource as IShellFileSource;
@@ -23,7 +23,7 @@ namespace zfile
             sourceFilesTree = null;
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             statistics = RetrieveStatistics();
 
@@ -42,7 +42,7 @@ namespace zfile
             }
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             var sink = new FileOperationProgressSink(ref statistics, UpdateStatistics, CheckOperationStateSafe);
 
@@ -71,7 +71,7 @@ namespace zfile
             }
         }
 
-        protected override SetFilePropertyResult SetNewProperty(FileInfo file, FileProperty templateProperty)
+        protected override SetFilePropertyResult SetNewProperty(FileEntry file, FileProperty templateProperty)
         {
             var result = SetFilePropertyResult.Success;
 

@@ -327,12 +327,12 @@ namespace zfile
             {
                 foreach (string filePath in Directory.GetFileSystemEntries(srcPath, "*"))
                 {
-                    FileInfo fileInfo = new FileInfo(filePath);
+                    FileEntry FileEntry = new FileEntry(filePath);
                     string fileName = Path.GetFileName(filePath);
 
                     if (fileName == "." || fileName == "..") continue;
 
-                    FileEntry file = new FileEntry(srcPath, fileInfo);
+                    FileEntry file = new FileEntry(srcPath, FileEntry);
 
                     if (file.IsLink)
                     {
@@ -379,7 +379,7 @@ namespace zfile
             {
                 try
                 {
-                    FileEntry file = new FileEntry(Path.GetDirectoryName(fileName), new FileInfo(fileName));
+                    FileEntry file = new FileEntry(Path.GetDirectoryName(fileName), new FileEntry(fileName));
                     // Check if there is a ArchiveFileSource for possible archive
                     IArchiveFileSource fileSource = GetArchiveFileSource(new FileSystemFileSource(), file, string.Empty, false, false);
 

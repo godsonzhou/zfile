@@ -3,21 +3,21 @@ namespace zfile
     public interface IMultiArchiveFileSource : IArchiveFileSource
     {
         string Password { get; }
-        ThreadObjectList ArchiveFileList { get; }
+        ThreadSafeList<FileEntry> ArchiveFileEntries { get; }
         MultiArcItem MultiArcItem { get; }
 
         bool FileIsLink(ArchiveItem archiveItem);
         bool FileIsDirectory(ArchiveItem archiveItem);
 
-        void FillAndCount(string fileMask, Files files, bool countDirs,
-            out Files newFiles, out long filesCount, out long filesSize);
+        void FillAndCount(string fileMask, FileEntries files, bool countDirs,
+            out FileEntries newFiles, out long filesCount, out long filesSize);
     }
 
     public class MultiArchiveFileSource : ArchiveFileSource, IMultiArchiveFileSource
     {
         private string _password;
         private readonly OutputParser _outputParser;
-        private readonly ThreadObjectList _arcFileList;
+        private readonly ThreadSafeList<FileEntry> _arcFileEntries;
         private readonly MultiArcItem _multiArcItem;
         private readonly StringHashListUtf8 _allDirsList;
         private readonly StringHashListUtf8 _existsDirList;
@@ -31,7 +31,7 @@ namespace zfile
             : base(archiveFileSource, archiveFileName)
         {
             _multiArcItem = multiArcItem;
-            _arcFileList = new ThreadObjectList();
+            _arcFileEntries = new ThreadSafeList<FileEntry>();
             _outputParser = new OutputParser(multiArcItem, archiveFileName);
             _outputParser.OnGetArchiveItem += OnGetArchiveItem;
 
@@ -45,7 +45,7 @@ namespace zfile
         }
 
         public string Password => _password;
-        public ThreadObjectList ArchiveFileList => _arcFileList;
+        public ThreadSafeList<FileEntry> ArchiveFileEntries => _arcFileEntries;
         public MultiArcItem MultiArcItem => _multiArcItem;
 
         public bool FileIsLink(ArchiveItem archiveItem)

@@ -15,12 +15,12 @@ namespace zfile
             _archiveItems = new List<ArchiveItem>();
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             // 初始化操作
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             try
             {
@@ -41,7 +41,7 @@ namespace zfile
             }
         }
 
-        public override void Finalize()
+        protected override void Finalize()
         {
             // 清理操作
         }

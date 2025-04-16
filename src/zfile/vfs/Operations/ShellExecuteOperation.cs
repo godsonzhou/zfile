@@ -7,7 +7,7 @@ namespace zfile
         private IShellFileSource shellFileSource;
 
         public ShellExecuteOperation(IFileSource targetFileSource,
-                                   FileInfo executableFile,
+                                   FileEntry executableFile,
                                    string currentPath,
                                    string verb)
             : base(targetFileSource, executableFile, currentPath, verb)
@@ -15,7 +15,7 @@ namespace zfile
             shellFileSource = targetFileSource as IShellFileSource;
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             if (Verb == "properties")
             {

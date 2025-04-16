@@ -54,7 +54,7 @@ namespace zfile
             }
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             Files.Clear();
             if (_winNetFileSource.IsNetworkPath(Path))

@@ -85,7 +85,7 @@ namespace zfile
 		public FileSystemCopyOperation(
 			IFileSource sourceFileSource,
 			IFileSource targetFileSource,
-			List<FileInfo> sourceFiles,
+			FileEntries sourceFiles,
 			string targetPath)
 			: base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
 		{
@@ -118,7 +118,7 @@ namespace zfile
 				CopyAttributesOptions |= CopyAttributesOption.RemoveReadOnlyAttr;
 		}
 
-		public override void Initialize()
+		protected override void Initialize()
 		{
 			_statistics = RetrieveStatistics();
 
@@ -175,12 +175,12 @@ namespace zfile
 			_operationHelper.Initialize();
 		}
 
-		public override void MainExecute()
+		protected override void MainExecute()
 		{
 			_operationHelper.ProcessTree(_sourceFilesTree);
 		}
 
-		public override void Finalize()
+		protected override void Finalize()
 		{
 			FileExistsOption = _operationHelper.FileExistsOption;
 			_operationHelper.Dispose();

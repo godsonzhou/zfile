@@ -1,5 +1,3 @@
-using FileSystemOperations;
-
 namespace zfile;
 
 public class WfxPluginCopyInOperation : FileSourceCopyInOperation

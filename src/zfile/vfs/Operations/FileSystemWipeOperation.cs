@@ -1,9 +1,7 @@
-using System;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
-namespace FileSystemOperations
+namespace zfile
 {
     public class FileSystemWipeOperation : FileSourceWipeOperation
     {

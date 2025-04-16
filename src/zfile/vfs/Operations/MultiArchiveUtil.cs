@@ -1,8 +1,6 @@
-using System;
-using System.IO;
 using System.Text;
 
-namespace MultiArchive
+namespace zfile
 {
     public static class MultiArchiveUtil
     {

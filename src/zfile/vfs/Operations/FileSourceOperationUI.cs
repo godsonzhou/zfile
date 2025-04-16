@@ -1,4 +1,4 @@
-namespace zfile.Operations
+namespace zfile
 {
     /// <summary>
     /// Possible responses for file source operation UI questions

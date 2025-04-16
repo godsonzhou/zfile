@@ -1,7 +1,4 @@
-using System;
-using System.Windows.Forms;
-
-namespace zfile.Operations
+namespace zfile
 {
     /// <summary>
     /// Base class for file source operation options UI

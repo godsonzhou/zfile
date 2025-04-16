@@ -1,7 +1,4 @@
-using System;
-using System.IO;
-
-namespace MultiArchive
+namespace zfile
 {
     public class MultiArchiveTestArchiveOperation : FileSourceOperation
     {

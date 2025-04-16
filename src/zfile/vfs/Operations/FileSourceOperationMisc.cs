@@ -1,7 +1,6 @@
-using System;
 using System.Globalization;
-using zfile.FileSources;
-namespace zfile.Operations
+
+namespace zfile
 {
     /// <summary>
     /// Miscellaneous functions for file source operations and queues

@@ -1,4 +1,4 @@
-namespace zfile.Operations
+namespace zfile
 {
     /// <summary>
     /// Implementation of file source operation UI using message boxes

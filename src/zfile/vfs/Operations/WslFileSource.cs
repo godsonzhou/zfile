@@ -1,7 +1,4 @@
-using System;
-using System.Runtime.InteropServices;
-using zfile.Operations;
-namespace FileSystemOperations
+namespace zfile
 {
     public class WslFileSource : WinNetFileSource
     {

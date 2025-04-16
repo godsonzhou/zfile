@@ -1,9 +1,4 @@
-using Files.FileSources.FileSystem;
-using zfile;
-using zfile.FileSources;
-using zfile.Operations;
-
-namespace FileSystemOperations
+namespace zfile
 {
 	public class FileSystemCopyOperation : FileSourceCopyOperation
 	{

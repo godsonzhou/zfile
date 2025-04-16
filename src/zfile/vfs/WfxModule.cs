@@ -82,7 +82,7 @@ namespace zfile
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct RemoteInfo
+    public struct RemoteFileInfo
     {
         public long SizeLow;
         public long SizeHigh;
@@ -100,7 +100,7 @@ namespace zfile
     
     // 可选的函数
     public delegate void FsSetCryptCallback(IntPtr CryptProc, int CryptoNr, int Flags);
-    public delegate int FsGetFile(string RemoteName, string LocalName, int CopyFlags, RemoteInfo RemoteInfo);
+    public delegate int FsGetFile(string RemoteName, string LocalName, int CopyFlags, RemoteFileInfo RemoteInfo);
     public delegate int FsPutFile(string LocalName, string RemoteName, int CopyFlags);
     public delegate bool FsDeleteFile(string RemoteName);
     public delegate bool FsRemoveDir(string RemoteName);
@@ -112,7 +112,7 @@ namespace zfile
     public delegate bool FsSetAttr(string RemoteName, int NewAttr);
     public delegate bool FsSetTime(string RemoteName, IntPtr CreationTime, IntPtr LastAccessTime, IntPtr LastWriteTime);
     public delegate int FsExtractCustomIcon(string RemoteName, int ExtractFlags, out IntPtr TheIcon);
-    public delegate int FsRenMovFile(string OldName, string NewName, bool Move, bool OverWrite, RemoteInfo RemoteInfo);
+    public delegate int FsRenMovFile(string OldName, string NewName, bool Move, bool OverWrite, RemoteFileInfo RemoteInfo);
     public delegate bool FsDisconnect(string DisconnectRoot);
     public delegate int FsGetPreviewBitmap(string RemoteName, int Width, int Height, IntPtr ReturnedBitmap);
     public delegate bool FsLinksToLocalFiles();
@@ -127,8 +127,8 @@ namespace zfile
     public delegate void FsSetCryptCallbackW(IntPtr CryptProcW, int CryptoNr, int Flags);
     public delegate bool FsMkDirW(string Path);
     public delegate int FsExecuteFileW(IntPtr MainWin, string RemoteName, string Verb);
-    public delegate int FsRenMovFileW(string OldName, string NewName, bool Move, bool OverWrite, RemoteInfo RemoteInfo);
-    public delegate int FsGetFileW(string RemoteName, string LocalName, int CopyFlags, RemoteInfo RemoteInfo);
+    public delegate int FsRenMovFileW(string OldName, string NewName, bool Move, bool OverWrite, RemoteFileInfo RemoteInfo);
+    public delegate int FsGetFileW(string RemoteName, string LocalName, int CopyFlags, RemoteFileInfo RemoteInfo);
     public delegate int FsPutFileW(string LocalName, string RemoteName, int CopyFlags);
     public delegate bool FsDeleteFileW(string RemoteName);
     public delegate bool FsRemoveDirW(string RemoteName);
@@ -406,7 +406,7 @@ namespace zfile
             return _isUnicode ? _fsRemoveDirW(remoteName) : _fsRemoveDir(remoteName);
         }
 
-        public int CopyFile(string remoteName, string localName, int copyFlags, RemoteInfo remoteInfo)
+        public int CopyFile(string remoteName, string localName, int copyFlags, RemoteFileInfo remoteInfo)
         {
             return _isUnicode ? 
                 _fsGetFileW(remoteName, localName, copyFlags, remoteInfo) :
@@ -427,7 +427,7 @@ namespace zfile
                 _fsExecuteFile(mainWin, remoteName, verb);
         }
 
-        public int MoveFile(string oldName, string newName, bool overWrite, RemoteInfo remoteInfo)
+        public int MoveFile(string oldName, string newName, bool overWrite, RemoteFileInfo remoteInfo)
         {
             return _isUnicode ?
                 _fsRenMovFileW(oldName, newName, true, overWrite, remoteInfo) :

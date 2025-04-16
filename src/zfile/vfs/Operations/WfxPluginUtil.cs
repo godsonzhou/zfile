@@ -1,7 +1,4 @@
-using System;
-using System.Runtime.InteropServices;
-
-namespace FileSystemOperations
+namespace zfile
 {
     public enum WfxPluginOperationHelperMode
     {
@@ -188,7 +185,7 @@ namespace FileSystemOperations
     {
         public static bool WfxRenameFile(IWfxPluginFileSource fileSource, FileInfo file, string newFileName)
         {
-            var remoteInfo = new RemoteInfo
+            var remoteInfo = new RemoteFileInfo
             {
                 SizeLow = (int)(file.Size & 0xFFFFFFFF),
                 SizeHigh = (int)(file.Size >> 32),

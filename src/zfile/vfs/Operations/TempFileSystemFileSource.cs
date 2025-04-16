@@ -1,4 +1,4 @@
-namespace FileSystemOperations
+namespace zfile
 {
     public interface ITempFileSystemFileSource : IFileSystemFileSource
     {
@@ -64,7 +64,12 @@ namespace FileSystemOperations
             return GetDiskFreeSpace(_tempRootDir, out freeSize, out totalSize);
         }
 
-        public override bool IsPathAtRoot(string path)
+		private bool GetDiskFreeSpace(string tempRootDir, out long freeSize, out long totalSize)
+		{
+			throw new NotImplementedException();
+		}
+
+		public override bool IsPathAtRoot(string path)
         {
             return Path.Combine(path, string.Empty) == _tempRootDir;
         }

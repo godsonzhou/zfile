@@ -9,12 +9,12 @@ namespace zfile
         public ShellListOperation(IFileSource fileSource, string path) : base(fileSource, path)
         {
             shellFileSource = fileSource as IShellFileSource;
-            files = new FileEntries();
+            Files = new FileEntries();
         }
 
         protected override void MainExecute()
         {
-            files.Clear();
+            Files.Clear();
             try
             {
                 if (shellFileSource.IsPathAtRoot(Path))
@@ -52,8 +52,8 @@ namespace zfile
 
                         var file = ShellFileSource.CreateFile(Path);
                         file.Name = GetDisplayNameEx(folder, pidl, SHGDN.INFOLDER);
-                        ((FileShellProperty)file.LinkProperty).Item = ILCombine(parent, pidl);
-                        file.LinkProperty.LinkTo = GetDisplayName(folder, pidl, SHGDN.INFOLDER | SHGDN.FORPARSING);
+                        ((FileShellProperty)file.Link).Item = API.ILCombine(parent, pidl);
+                        file.Link.LinkTarget = GetDisplayName(folder, pidl, SHGDN.INFOLDER | SHGDN.FORPARSING);
 
                         uint attributes = SFGAOF_DEFAULT;
                         if (folder.GetAttributesOf(1, new[] { pidl }, ref attributes) == 0)
@@ -198,16 +198,8 @@ namespace zfile
             IShellFolder2 folder;
             if (shellFileSource.FindFolder(Path.TrimEnd('\\'), out folder) == 0)
             {
-                ListFolder(folder, SHCONTF.FOLDERS | SHCONTF.NONFOLDERS | SHCONTF.INCLUDEHIDDEN);
+                ListFolder(folder, (uint)(SHCONTF.FOLDERS | SHCONTF.NONFOLDERS | SHCONTF.INCLUDEHIDDEN));
             }
         }
-
-        private void w32.OleCheck(int hr)
-        {
-            if (hr != 0)
-                Marshal.ThrowExceptionForHR(hr);
-        }
     }
-
-
 }

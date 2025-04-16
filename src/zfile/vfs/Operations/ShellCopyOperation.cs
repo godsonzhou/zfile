@@ -40,7 +40,7 @@ namespace zfile
                 foreach (var file in SourceFiles)
                 {
                     var item = Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(IntPtr)));
-                    Marshal.StructureToPtr(((FileShellProperty)file.LinkProperty).Item, item, false);
+                    Marshal.StructureToPtr(((FileShellProperty)file.Link).Item, item, false);
                     sourceFilesTree.Add(item);
                 }
 
@@ -53,7 +53,7 @@ namespace zfile
                         w32.OleCheck(API.SHGetIDListFromObject(folder, out objectPtr));
                         try
                         {
-                            w32.OleCheck(SHCreateItemFromIDList(objectPtr, typeof(IShellItem).GUID, out targetFolder));
+                            w32.OleCheck(API.SHCreateItemFromIDList(objectPtr, typeof(IShellItem).GUID, out targetFolder));
                         }
                         finally
                         {
@@ -61,7 +61,7 @@ namespace zfile
                         }
                         break;
                     case FileSourceOperationType.CopyOut:
-                        w32.OleCheck(SHCreateItemFromParsingName(TargetPath, IntPtr.Zero, typeof(IShellItem).GUID, out targetFolder));
+                        w32.OleCheck(API.SHCreateItemFromParsingName(TargetPath, IntPtr.Zero, typeof(IShellItem).GUID, out targetFolder));
                         break;
                 }
             }
@@ -74,7 +74,7 @@ namespace zfile
         protected override void MainExecute()
         {
             var sink = new FileOperationProgressSink(statistics, UpdateStatistics, CheckOperationStateSafe);
-            fileOp.SetOperationFlags(FOF_SILENT | FOF_NOCONFIRMMKDIR);
+            fileOp.SetOperationFlags(Constants.FOF_SILENT | Constants.FOF_NOCONFIRMMKDIR);
 
             try
             {

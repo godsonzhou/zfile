@@ -111,12 +111,6 @@ namespace zfile
             return value?.ToString() ?? string.Empty;
         }
 
-        private void w32.OleCheck(int hr)
-        {
-            if (hr != 0)
-                Marshal.ThrowExceptionForHR(hr);
-        }
-
         private void ShowError(string message)
         {
             // 实现错误显示逻辑

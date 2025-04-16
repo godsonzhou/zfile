@@ -458,24 +458,6 @@ namespace zfile
     }
 
     /// <summary>
-    /// File attributes property
-    /// </summary>
-    //public class FileAttributesProperty : FileProperty
-    //{
-    //    /// <summary>
-    //    /// Gets the property ID
-    //    /// </summary>
-    //    public override FilePropertyType ID => FilePropertyType.Attributes;
-
-    //    /// <summary>
-    //    /// Gets or sets the value
-    //    /// </summary>
-    //    public FileAttributes Value { get; set; }
-    //}
-
-   
-
-    /// <summary>
     /// File source operation description details
     /// </summary>
     public enum FileSourceOperationDescriptionDetails

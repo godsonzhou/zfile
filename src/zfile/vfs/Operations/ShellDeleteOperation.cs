@@ -84,11 +84,6 @@ namespace zfile
             }
         }
 
-        private void w32.OleCheck(int hr)
-        {
-            if (hr != 0)
-                Marshal.ThrowExceptionForHR(hr);
-        }
     }
   
 } 

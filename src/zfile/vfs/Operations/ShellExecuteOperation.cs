@@ -64,11 +64,7 @@ namespace zfile
             }
         }
 
-        private void w32.OleCheck(int hr)
-        {
-            if (hr != 0)
-                Marshal.ThrowExceptionForHR(hr);
-        }
+      
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -110,9 +106,7 @@ namespace zfile
         public IntPtr hProcess;
     }
 
- 
-
-    public static class MainForm
+    public static partial class MainForm
     {
         public static IntPtr Handle { get; set; }
     }

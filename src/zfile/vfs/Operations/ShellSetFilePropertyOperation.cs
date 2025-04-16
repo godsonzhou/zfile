@@ -32,7 +32,7 @@ namespace zfile
             {
                 foreach (var file in TargetFiles)
                 {
-                    var item = API.ILClone(((FileShellProperty)file.LinkProperty).Item);
+                    var item = API.ILClone(((FileShellProperty)file.Link).Item);
                     sourceFilesTree.Add(item);
                 }
             }
@@ -46,7 +46,7 @@ namespace zfile
         {
             var sink = new FileOperationProgressSink(ref statistics, UpdateStatistics, CheckOperationStateSafe);
 
-            fileOp.SetOperationFlags(FOF.SILENT | FOF.NOCONFIRMMKDIR);
+            fileOp.SetOperationFlags(Constants.FOF_SILENT | Constants.FOF_NOCONFIRMMKDIR);
 
             uint cookie;
             fileOp.Advise(sink, out cookie);

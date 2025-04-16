@@ -124,29 +124,29 @@ namespace FileSystemOperations
         }
     }
 
-    [ComImport]
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    [Guid("000214E6-0000-0000-C000-000000000046")]
-    public interface IShellFolder
-    {
-        void ParseDisplayName(IntPtr hwnd, IntPtr pbc, string pszDisplayName, 
-            ref uint pchEaten, out IntPtr ppidl, ref uint pdwAttributes);
-        void EnumObjects(IntPtr hwnd, uint grfFlags, out IEnumIDList ppenumIDList);
-        void BindToObject(IntPtr pidl, IntPtr pbc, [In] ref Guid riid, 
-            [MarshalAs(UnmanagedType.IUnknown)] out object ppv);
-        void BindToStorage(IntPtr pidl, IntPtr pbc, [In] ref Guid riid, 
-            out IntPtr ppv);
-        void CompareIDs(IntPtr lParam, IntPtr pidl1, IntPtr pidl2);
-        void CreateViewObject(IntPtr hwndOwner, [In] ref Guid riid, 
-            out IntPtr ppv);
-        void GetAttributesOf(uint cidl, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] IntPtr[] apidl, 
-            ref uint rgfInOut);
-        void GetUIObjectOf(IntPtr hwndOwner, uint cidl, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] IntPtr[] apidl, 
-            [In] ref Guid riid, IntPtr rgfReserved, out IntPtr ppv);
-        void GetDisplayNameOf(IntPtr pidl, uint uFlags, out IntPtr ppszName);
-        void SetNameOf(IntPtr hwnd, IntPtr pidl, string pszName, uint uFlags, 
-            out IntPtr ppidlOut);
-    }
+    //[ComImport]
+    //[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    //[Guid("000214E6-0000-0000-C000-000000000046")]
+    //public interface IShellFolder
+    //{
+    //    void ParseDisplayName(IntPtr hwnd, IntPtr pbc, string pszDisplayName, 
+    //        ref uint pchEaten, out IntPtr ppidl, ref uint pdwAttributes);
+    //    void EnumObjects(IntPtr hwnd, uint grfFlags, out IEnumIDList ppenumIDList);
+    //    void BindToObject(IntPtr pidl, IntPtr pbc, [In] ref Guid riid, 
+    //        [MarshalAs(UnmanagedType.IUnknown)] out object ppv);
+    //    void BindToStorage(IntPtr pidl, IntPtr pbc, [In] ref Guid riid, 
+    //        out IntPtr ppv);
+    //    void CompareIDs(IntPtr lParam, IntPtr pidl1, IntPtr pidl2);
+    //    void CreateViewObject(IntPtr hwndOwner, [In] ref Guid riid, 
+    //        out IntPtr ppv);
+    //    void GetAttributesOf(uint cidl, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] IntPtr[] apidl, 
+    //        ref uint rgfInOut);
+    //    void GetUIObjectOf(IntPtr hwndOwner, uint cidl, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] IntPtr[] apidl, 
+    //        [In] ref Guid riid, IntPtr rgfReserved, out IntPtr ppv);
+    //    void GetDisplayNameOf(IntPtr pidl, uint uFlags, out IntPtr ppszName);
+    //    void SetNameOf(IntPtr hwnd, IntPtr pidl, string pszName, uint uFlags, 
+    //        out IntPtr ppidlOut);
+    //}
 
     [ComImport]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -179,17 +179,17 @@ namespace FileSystemOperations
         void MapColumnToSCID(uint iColumn, out SHCOLUMNID pscid);
     }
 
-    [ComImport]
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    [Guid("000214F2-0000-0000-C000-000000000046")]
-    public interface IEnumIDList
-    {
-        [PreserveSig]
-        int Next(uint celt, out IntPtr rgelt, out uint pceltFetched);
-        void Skip(uint celt);
-        void Reset();
-        void Clone(out IEnumIDList ppenum);
-    }
+    //[ComImport]
+    //[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    //[Guid("000214F2-0000-0000-C000-000000000046")]
+    //public interface IEnumIDList
+    //{
+    //    [PreserveSig]
+    //    int Next(uint celt, out IntPtr rgelt, out uint pceltFetched);
+    //    void Skip(uint celt);
+    //    void Reset();
+    //    void Clone(out IEnumIDList ppenum);
+    //}
 
     [StructLayout(LayoutKind.Sequential)]
     public struct SHCOLUMNID
@@ -222,10 +222,5 @@ namespace FileSystemOperations
     //    BITBUCKET = 0x0a
     //}
 
-    [DllImport("shell32.dll")]
-    public static extern int SHGetDesktopFolder(out IShellFolder ppshf);
-
-    [DllImport("shell32.dll")]
-    public static extern int SHGetFolderLocation(IntPtr hwndOwner, CSIDL nFolder, 
-        IntPtr hToken, uint dwReserved, out IntPtr ppidl);
+ 
 } 

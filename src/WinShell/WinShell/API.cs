@@ -291,9 +291,14 @@ namespace WinShell
         public const int COINIT_MULTITHREADED = 0x0;
         public const int COINIT_DISABLE_OLE1DDE = 0x4;
         public const int COINIT_SPEED_OVER_MEMORY = 0x8;
+		public static void OleCheck(int hr)
+		{
+			if (hr != 0)
+				Marshal.ThrowExceptionForHR(hr);
+		}
 
-        // 添加COM初始化方法
-        public static bool InitializeCOM(int coinit = COINIT_APARTMENTTHREADED)
+		// 添加COM初始化方法
+		public static bool InitializeCOM(int coinit = COINIT_APARTMENTTHREADED)
         {
             int hr = API.CoInitializeEx(IntPtr.Zero, coinit);
             return hr == S_OK || hr == S_FALSE;
@@ -452,7 +457,9 @@ namespace WinShell
 		[DllImport("shell32.dll", SetLastError = true)]
 		public static extern int SHGetDesktopFolder(out IShellFolder ppshf);
 
-		
+		[DllImport("shell32.dll")]
+		public static extern int SHGetFolderLocation(IntPtr hwndOwner, CSIDL nFolder,
+			IntPtr hToken, uint dwReserved, out IntPtr ppidl);
 
 		[DllImport("user32.dll", SetLastError = true)]
 		public static extern bool DestroyIcon(IntPtr hIcon);

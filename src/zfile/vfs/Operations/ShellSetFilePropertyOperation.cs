@@ -1,7 +1,5 @@
-using System;
-using System.Runtime.InteropServices;
-using System.Collections.Generic;
-
+using Zfile.Operations;
+using WinShell;
 namespace FileSystemOperations
 {
     public class ShellSetFilePropertyOperation : FileSourceSetFilePropertyOperation
@@ -34,7 +32,7 @@ namespace FileSystemOperations
             {
                 foreach (var file in TargetFiles)
                 {
-                    var item = ILClone(((FileShellProperty)file.LinkProperty).Item);
+                    var item = API.ILClone(((FileShellProperty)file.LinkProperty).Item);
                     sourceFilesTree.Add(item);
                 }
             }
@@ -79,7 +77,7 @@ namespace FileSystemOperations
 
             var pidl = (IntPtr)sourceFilesTree[currentFileIndex];
             IShellItem item;
-            if (Failed(SHCreateItemFromIDList(pidl, typeof(IShellItem).GUID, out item)))
+            if (Failed(API.SHCreateItemFromIDList(pidl, typeof(IShellItem).GUID, out item)))
                 return SetFilePropertyResult.Error;
 
             switch (templateProperty.GetID())

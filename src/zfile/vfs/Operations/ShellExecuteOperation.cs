@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
-
+using Zfile.Operations;
+using WinShell;
 namespace FileSystemOperations
 {
     public class ShellExecuteOperation : FileSourceExecuteOperation
@@ -24,12 +25,12 @@ namespace FileSystemOperations
                 {
                     IntPtr pidl = ((FileShellProperty)ExecutableFile.LinkProperty).Item;
                     IShellFolder2 folder;
-                    OleCheck(SHBindToParent(pidl, typeof(IShellFolder2).GUID, out folder, out pidl));
+                    OleCheck(API.SHBindToParent(pidl, typeof(IShellFolder2).GUID, out folder, out pidl));
                     IContextMenu menu;
                     OleCheck(folder.GetUIObjectOf(MainForm.Handle, 1, new[] { pidl }, typeof(IContextMenu).GUID, IntPtr.Zero, out menu));
                     if (menu != null)
                     {
-                        var cmici = new CMINVOKECOMMANDINFO
+                        var cmici = new CMINVOKECOMMANDINFOEX
                         {
                             cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFO)),
                             hwnd = MainForm.Handle,
@@ -58,7 +59,7 @@ namespace FileSystemOperations
                     fMask = SEE_MASK_IDLIST
                 };
 
-                if (ShellExecuteEx(ref execInfo))
+                if (API.ShellExecuteEx(ref execInfo))
                     ExecuteOperationResult = FileSourceExecuteOperationResult.Success;
                 else
                     ExecuteOperationResult = FileSourceExecuteOperationResult.Error;

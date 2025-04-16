@@ -1,7 +1,6 @@
-using System;
 using System.Runtime.InteropServices;
-using System.Collections.Generic;
-
+using WinShell;
+using Zfile.FileSources;
 namespace FileSystemOperations
 {
     public class ShellCopyOperation : FileSourceCopyOperation
@@ -51,7 +50,7 @@ namespace FileSystemOperations
                         IShellFolder2 folder;
                         OleCheck(shellFileSource.FindFolder(TargetPath, out folder));
                         IntPtr objectPtr;
-                        OleCheck(SHGetIDListFromObject(folder, out objectPtr));
+                        OleCheck(API.SHGetIDListFromObject(folder, out objectPtr));
                         try
                         {
                             OleCheck(SHCreateItemFromIDList(objectPtr, typeof(IShellItem).GUID, out targetFolder));
@@ -119,11 +118,7 @@ namespace FileSystemOperations
             }
         }
 
-        private void OleCheck(int hr)
-        {
-            if (hr != 0)
-                Marshal.ThrowExceptionForHR(hr);
-        }
+       
     }
 
     public class ShellCopyInOperation : ShellCopyOperation
@@ -150,15 +145,15 @@ namespace FileSystemOperations
             {
                 foreach (var file in SourceFiles)
                 {
-                    var objectPtr = ILCreateFromPath(file.FullPath);
+                    var objectPtr = API.ILCreateFromPath(file.FullPath);
                     sourceFilesTree.Add(objectPtr);
                 }
 
                 IShellFolder2 folder;
                 OleCheck(shellFileSource.FindFolder(TargetPath, out folder));
                 IntPtr objectPtr;
-                OleCheck(SHGetIDListFromObject(folder, out objectPtr));
-                OleCheck(SHCreateItemFromIDList(objectPtr, typeof(IShellItem).GUID, out targetFolder));
+                OleCheck(API.SHGetIDListFromObject(folder, out objectPtr));
+                OleCheck(API.SHCreateItemFromIDList(objectPtr, typeof(IShellItem).GUID, out targetFolder));
             }
             catch (Exception ex)
             {

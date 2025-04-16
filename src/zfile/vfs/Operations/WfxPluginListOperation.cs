@@ -1,6 +1,6 @@
-using System;
-using System.Runtime.InteropServices;
-
+using Zfile;
+using Zfile.FileSources;
+using Zfile.Operations;
 namespace FileSystemOperations
 {
     public class WfxPluginListOperation : FileSourceListOperation
@@ -12,7 +12,7 @@ namespace FileSystemOperations
         public WfxPluginListOperation(IFileSource fileSource, string path)
             : base(fileSource, path)
         {
-            Files = new FileList(path);
+            Files = new FileEntries(path);
             _wfxPluginFileSource = fileSource as IWfxPluginFileSource;
             _callbackDataClass = (CallbackDataClass)_wfxPluginFileSource.WfxOperationList.Objects[_wfxPluginFileSource.PluginNumber];
             _currentPath = ExcludeBackPathDelimiter(path);

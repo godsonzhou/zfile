@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Windows.Forms;
-
 namespace Zfile.Operations
 {
     /// <summary>
@@ -209,7 +205,7 @@ namespace Zfile.Operations
     /// <summary>
     /// Static class for showing message boxes
     /// </summary>
-    public static class MessageBox
+    public static class MyMessageBox
     {
         /// <summary>
         /// Delegate for handling message box actions

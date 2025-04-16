@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-
+using Zfile;
 namespace FileSystemOperations
 {
     public interface IFileSource
@@ -30,7 +26,7 @@ namespace FileSystemOperations
     {
         protected IFileSource SourceFileSource { get; }
         protected IFileSource TargetFileSource { get; }
-        protected List<FileInfo> SourceFiles { get; }
+        protected FileEntries SourceFiles { get; }
         protected string TargetPath { get; }
         protected CopyAttributesOption CopyAttributesOptions { get; set; }
         protected FileSourceOperationOptionGeneral FileExistsOption { get; set; }
@@ -42,7 +38,7 @@ namespace FileSystemOperations
         protected FileSourceCopyOperation(
             IFileSource sourceFileSource,
             IFileSource targetFileSource,
-            List<FileInfo> sourceFiles,
+            FileEntries sourceFiles,
             string targetPath)
         {
             SourceFileSource = sourceFileSource;

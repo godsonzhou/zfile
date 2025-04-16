@@ -104,7 +104,7 @@ namespace FileSystemOperations
         {
             if ((GlobalSettings.LogOptions & LogOptions.Errors) != 0)
             {
-                Log.Write(Thread, message, LogMsgType.Error);
+                Logger.Write(Thread, message, LogMsgType.Error);
             }
 
             if (AskQuestion(message, "", new[] { FileSourceOperationResponse.Skip, FileSourceOperationResponse.Abort },

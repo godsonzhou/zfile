@@ -175,7 +175,7 @@ namespace Zfile.Operations
                         }
                         else
                         {
-                            MessageBox.Show("Not implemented", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            System.Windows.Forms.MessageBox.Show("Not implemented", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         }
                     }
                     else

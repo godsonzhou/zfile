@@ -34,7 +34,7 @@ namespace FileSystemOperations
                                LogMessageType.Error);
                 }
 
-                if (MessageBox.Show(string.Format("Error creating directory: {0}", AbsolutePath),
+                if (System.Windows.Forms.MessageBox.Show(string.Format("Error creating directory: {0}", AbsolutePath),
                                   "Error",
                                   MessageBoxButtons.OK,
                                   MessageBoxIcon.Error) == DialogResult.OK)

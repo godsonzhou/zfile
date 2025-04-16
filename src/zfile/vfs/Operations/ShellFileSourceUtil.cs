@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
-
+using WinShell;
 namespace FileSystemOperations
 {
     public class ItemList : List<IntPtr>
@@ -279,7 +279,7 @@ namespace FileSystemOperations
         {
             if ((logOptions & GlobalSettings.LogOptions) != 0)
             {
-                Log.Write(null, message, logMsgType);
+                Logger.Write(null, message, logMsgType);
             }
         }
     }

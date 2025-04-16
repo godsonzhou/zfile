@@ -8,7 +8,7 @@ public class WfxPluginExecuteOperation : FileSourceExecuteOperation
 
 	public WfxPluginExecuteOperation(
 		IFileSource targetFileSource,
-		ref File executableFile,
+		ref FileEntry executableFile,
 		string currentPath,
 		string verb) : base(targetFileSource, executableFile, currentPath, verb)
 	{

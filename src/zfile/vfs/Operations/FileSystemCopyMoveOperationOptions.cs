@@ -6,7 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Zfile.Operations;
 namespace FileSystemOperations
 {
     public class FileSystemCopyMoveOperationOptionsUI : FileSourceOperationOptionsUI

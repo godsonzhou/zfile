@@ -8,7 +8,7 @@ namespace Zfile.Operations
     public enum CalcCheckSumOperationMode
     {
         /// <summary>Calculate checksum</summary>
-        Calculate,
+        Calc,
         
         /// <summary>Verify checksum</summary>
         Verify
@@ -156,7 +156,7 @@ namespace Zfile.Operations
 
             _targetPath = aTargetPath;
             _targetMask = aTargetMask;
-            _mode = CalcCheckSumOperationMode.Calculate;
+            _mode = CalcCheckSumOperationMode.Calc;
             _algorithm = HashAlgorithm.MD5;
             _oneFile = false;
             _openFileAfterOperationCompleted = false;
@@ -192,7 +192,7 @@ namespace Zfile.Operations
         {
             switch (Mode)
             {
-                case CalcCheckSumOperationMode.Calculate:
+                case CalcCheckSumOperationMode.Calc:
                     switch (details)
                     {
                         case FileSourceOperationDescriptionDetails.JobAndTarget:

@@ -1,10 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace FileSystemOperations
 {
 	public enum FileSourceOperationOptionSymLink
@@ -40,7 +33,12 @@ namespace FileSystemOperations
             }
         }
 
-        private void ProcessFile(FileInfo file)
+		private void CheckOperationState()
+		{
+			throw new NotImplementedException();
+		}
+
+		private void ProcessFile(FileInfo file)
         {
             statistics.CurrentFile = file.FullName;
             UpdateStatistics(statistics);
@@ -103,7 +101,12 @@ namespace FileSystemOperations
             UpdateStatistics(statistics);
         }
 
-        private void ProcessLink(FileInfo file)
+		private void UpdateStatistics(FileSourceCalcStatisticsOperationStatistics statistics)
+		{
+			throw new NotImplementedException();
+		}
+
+		private void ProcessLink(FileInfo file)
         {
             string pathToFile = GetLinkTarget(file.FullName);
             if (!string.IsNullOrEmpty(pathToFile))

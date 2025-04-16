@@ -1,6 +1,6 @@
 ﻿using FileSystemOperations;
 using System.Runtime.InteropServices;
-
+using WinShell;
 namespace Zfile.FileSources
 {
 	public class ShellFileSource : VirtualFileSource, IShellFileSource
@@ -12,10 +12,10 @@ namespace Zfile.FileSources
 
 		public ShellFileSource()
 		{
-			OleCheck(SHGetDesktopFolder(out _desktopFolder));
-			OleCheck(SHGetFolderLocation(IntPtr.Zero, CSIDL_DRIVES, IntPtr.Zero, 0, out _drives));
+			OleCheck(API.SHGetDesktopFolder(out _desktopFolder));
+			OleCheck(API.SHGetFolderLocation(IntPtr.Zero, CSIDL.DRIVES, IntPtr.Zero, 0, out _drives));
 			OleCheck(_desktopFolder.BindToObject(_drives, null, ref IID_IShellFolder2, out _rootFolder));
-			_rootPath = GetDisplayName(_desktopFolder, _drives, SHGDN_INFOLDER);
+			_rootPath = GetDisplayName(_desktopFolder, _drives, SHGDN.INFOLDER);
 
 			OperationsClasses[FileSourceOperationType.Move] = typeof(ShellMoveOperation);
 			OperationsClasses[FileSourceOperationType.Copy] = typeof(ShellCopyOperation);
@@ -63,11 +63,11 @@ namespace Zfile.FileSources
 			{
 				IntPtr drivesPidl;
 				IShellFolder desktopFolder;
-				OleCheck(SHGetDesktopFolder(out desktopFolder));
-				OleCheck(SHGetFolderLocation(IntPtr.Zero, CSIDL_DRIVES, IntPtr.Zero, 0, out drivesPidl));
+				OleCheck(API.SHGetDesktopFolder(out desktopFolder));
+				OleCheck(SHGetFolderLocation(IntPtr.Zero, CSIDL.DRIVES, IntPtr.Zero, 0, out drivesPidl));
 				try
 				{
-					return GetDisplayName(desktopFolder, drivesPidl, SHGDN_INFOLDER);
+					return GetDisplayName(desktopFolder, drivesPidl, SHGDN.INFOLDER);
 				}
 				finally
 				{
@@ -78,21 +78,21 @@ namespace Zfile.FileSources
 
 		public static void ListDrives(DrivesList drivesList, bool upperCase)
 		{
-			const uint SFGAOF_DEFAULT = SFGAO_FILESYSTEM | SFGAO_FOLDER;
+			const uint SFGAOF_DEFAULT = (uint)(SFGAO.FILESYSTEM | SFGAO.FOLDER);
 			string[] upperLetters = { "Ù", "Ú", "Û", "Ü", "Ũ", "Ū", "Ŭ", "Ů", "Ű", "Ų", "Ȕ", "Ȗ" };
 			string[] lowerLetters = { "ù", "ú", "û", "ü", "ũ", "ū", "ŭ", "ů", "ű", "ų", "ȕ", "ȗ" };
 
 			IntPtr drivesPidl;
 			IShellFolder desktopFolder;
-			OleCheck(SHGetDesktopFolder(out desktopFolder));
-			OleCheck(SHGetFolderLocation(IntPtr.Zero, CSIDL_DRIVES, IntPtr.Zero, 0, out drivesPidl));
+			OleCheck(API.SHGetDesktopFolder(out desktopFolder));
+			OleCheck(API.SHGetFolderLocation(IntPtr.Zero, CSIDL.DRIVES, IntPtr.Zero, 0, out drivesPidl));
 			try
 			{
 				IShellFolder2 folder;
 				OleCheck(desktopFolder.BindToObject(drivesPidl, null, ref IID_IShellFolder2, out folder));
 				IEnumIDList enumIdList;
-				OleCheck(folder.EnumObjects(IntPtr.Zero, SHCONTF_FOLDERS | SHCONTF_STORAGE, out enumIdList));
-				string rootPath = "\\\\\\" + GetDisplayName(desktopFolder, drivesPidl, SHGDN_INFOLDER);
+				OleCheck(folder.EnumObjects(IntPtr.Zero, (uint)(SHCONTF.FOLDERS | SHCONTF.STORAGE), out enumIdList));
+				string rootPath = "\\\\\\" + GetDisplayName(desktopFolder, drivesPidl, SHGDN.INFOLDER);
 
 				IntPtr pidl;
 				uint numIds;
@@ -104,9 +104,9 @@ namespace Zfile.FileSources
 						uint rgfInOut = SFGAOF_DEFAULT;
 						if (folder.GetAttributesOf(1, ref pidl, ref rgfInOut) == 0)
 						{
-							if ((SFGAOF_DEFAULT & rgfInOut) == SFGAO_FOLDER)
+							if ((SFGAOF_DEFAULT & rgfInOut) == (uint)SFGAO.FOLDER)
 							{
-								string deviceId = GetDisplayName(folder, pidl, SHGDN_FORPARSING);
+								string deviceId = GetDisplayName(folder, pidl, SHGDN.FORPARSING);
 								if (deviceId.Contains("\\\\?\\usb"))
 								{
 									var drive = new Drive();
@@ -122,7 +122,7 @@ namespace Zfile.FileSources
 									drive.DeviceId = deviceId;
 									drive.DriveType = DriveType.Special;
 									drive.IsMediaAvailable = true;
-									drive.DriveLabel = GetDisplayNameEx(folder, pidl, SHGDN_INFOLDER);
+									drive.DriveLabel = GetDisplayNameEx(folder, pidl, SHGDN.INFOLDER);
 									drive.Path = rootPath + Path.DirectorySeparatorChar + drive.DriveLabel;
 									drivesList.Add(drive);
 									index++;

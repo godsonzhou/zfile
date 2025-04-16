@@ -1,11 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Security.Cryptography;
-
+using Zfile.Operations;
 namespace FileSystemOperations
 {
     public class FileSystemCalcChecksumOperation : FileSourceCalcChecksumOperation
@@ -43,7 +37,7 @@ namespace FileSystemOperations
 
             switch (Mode)
             {
-                case ChecksumMode.Calc:
+                case CalcCheckSumOperationMode.Calc:
                     FillAndCount(Files, false, false,
                         fullFilesTree,
                         ref statistics.TotalFiles,
@@ -55,7 +49,7 @@ namespace FileSystemOperations
                         checkSumFile.Add("; (Compatible: Double Commander)");
                     }
                     break;
-                case ChecksumMode.Verify:
+                case CalcCheckSumOperationMode.Verify:
                     InitializeVerifyMode();
                     break;
             }
@@ -72,7 +66,7 @@ namespace FileSystemOperations
         public override void MainExecute()
         {
             string targetFileName = null;
-            if (OneFile && Mode == ChecksumMode.Calc)
+            if (OneFile && Mode == CalcCheckSumOperationMode.Calc)
             {
                 targetFileName = TargetMask;
                 switch (FileExists(targetFileName))
@@ -101,10 +95,10 @@ namespace FileSystemOperations
 
                     switch (Mode)
                     {
-                        case ChecksumMode.Calc:
+                        case CalcCheckSumOperationMode.Calc:
                             CalcChecksumProcessFile(file);
                             break;
-                        case ChecksumMode.Verify:
+                        case CalcCheckSumOperationMode.Verify:
                             var entry = checksumsList[currentFileIndex];
                             Algorithm = entry.Algorithm;
                             VerifyChecksumProcessFile(file, entry.Checksum);
@@ -122,7 +116,7 @@ namespace FileSystemOperations
 
             switch (Mode)
             {
-                case ChecksumMode.Calc:
+                case CalcCheckSumOperationMode.Calc:
                     if (OneFile)
                     {
                         try
@@ -139,7 +133,7 @@ namespace FileSystemOperations
                         }
                     }
                     break;
-                case ChecksumMode.Verify:
+                case CalcCheckSumOperationMode.Verify:
                     // 验证模式的处理
                     break;
             }
@@ -279,12 +273,6 @@ namespace FileSystemOperations
         SHA256,
         SHA512,
         SFV
-    }
-
-    public enum ChecksumMode
-    {
-        Calc,
-        Verify
     }
 
     public enum LogOptions

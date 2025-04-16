@@ -79,7 +79,7 @@ namespace FileSystemOperations
                 Logger.Write(Thread.CurrentThread, message, LogMessageType.Error);
             }
 
-            if (MessageBox.Show(message, "", MessageBoxButtons.SkipCancel, MessageBoxIcon.Error) == DialogResult.Cancel)
+            if (System.Windows.Forms.MessageBox.Show(message, "", MessageBoxButtons.SkipCancel, MessageBoxIcon.Error) == DialogResult.Cancel)
             {
                 RaiseAbortOperation();
             }

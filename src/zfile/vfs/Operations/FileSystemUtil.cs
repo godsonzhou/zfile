@@ -13,7 +13,7 @@ namespace Files.FileSources.FileSystem
 	{
 		private const string HASH_TYPE = "HASH_BEST";
 
-		public static string ApplyRenameMask(File file, string nameMask, string extMask)
+		public static string ApplyRenameMask(FileEntry file, string nameMask, string extMask)
 		{
 			// 只对文件进行重命名
 			if (file.IsDirectory || file.IsLink)
@@ -23,10 +23,10 @@ namespace Files.FileSources.FileSystem
 		}
 
 		public static void FillAndCount(
-			Files files,
+			FileEntries files,
 			bool countDirs,
 			bool excludeRootDir,
-			out Files newFiles,
+			out FileEntries newFiles,
 			out long filesCount,
 			out long filesSize)
 		{
@@ -38,12 +38,12 @@ namespace Files.FileSources.FileSystem
 				if (files.Count != 1)
 					throw new Exception("Only a single directory can be set with ExcludeRootDir=True");
 
-				newFiles = new Files(files[0].FullPath);
+				newFiles = new FileEntries(files[0].FullPath);
 				FillAndCountRec(files[0].FullPath + Path.DirectorySeparatorChar);
 			}
 			else
 			{
-				newFiles = new Files(files.Path);
+				newFiles = new FileEntries(files.Path);
 				foreach (var file in files)
 				{
 					newFiles.Add(file);
@@ -130,13 +130,13 @@ namespace Files.FileSources.FileSystem
 	}
 
 	public delegate bool FileSystemOperationHelperMoveOrCopy(
-		File sourceFile,
+		FileEntry sourceFile,
 		string targetFileName,
 		FileSystemOperationHelperCopyMode mode);
 
 	public class FileSystemTreeBuilder : FileSourceTreeBuilder
 	{
-		protected override void AddLinkTarget(File file, FileTreeNode currentNode)
+		protected override void AddLinkTarget(FileEntry file, FileTreeNode currentNode)
 		{
 			// 实现链接目标的添加
 		}
@@ -163,7 +163,7 @@ namespace Files.FileSources.FileSystem
 		private string _logCaption;
 		private bool _renamingFiles;
 		private bool _renamingRootDir;
-		private File _rootDir;
+		private FileEntry _rootDir;
 		private bool _verify;
 		private bool _reserveSpace;
 		private bool _checkFreeSpace;
@@ -184,7 +184,7 @@ namespace Files.FileSources.FileSystem
 		private FileSourceOperationOptionFileExists _fileExistsOption;
 		private FileSourceOperationOptionDirectoryExists _dirExistsOption;
 
-		private File _currentFile;
+		private FileEntry _currentFile;
 		private string _currentTargetFilePath;
 
 		private AskQuestionFunction _askQuestion;
@@ -252,7 +252,7 @@ namespace Files.FileSources.FileSystem
 			// 记录日志信息
 		}
 
-		private bool DeleteFile(File sourceFile)
+		private bool DeleteFile(FileEntry sourceFile)
 		{
 			// 删除文件
 			return true;
@@ -270,19 +270,19 @@ namespace Files.FileSources.FileSystem
 			return true;
 		}
 
-		private bool CopyFile(File sourceFile, string targetFileName, FileSystemOperationHelperCopyMode mode)
+		private bool CopyFile(FileEntry	 sourceFile, string targetFileName, FileSystemOperationHelperCopyMode mode)
 		{
 			// 复制文件
 			return true;
 		}
 
-		private bool MoveFile(File sourceFile, string targetFileName, FileSystemOperationHelperCopyMode mode)
+		private bool MoveFile(FileEntry sourceFile, string targetFileName, FileSystemOperationHelperCopyMode mode)
 		{
 			// 移动文件
 			return true;
 		}
 
-		private void CopyProperties(File sourceFile, string targetFileName)
+		private void CopyProperties(FileEntry sourceFile, string targetFileName)
 		{
 			// 复制文件属性
 		}
@@ -320,7 +320,7 @@ namespace Files.FileSources.FileSystem
 		}
 
 		private FileSourceOperationOptionDirectoryExists DirExists(
-			File file,
+			FileEntry file,
 			string absoluteTargetFileName,
 			bool allowCopyInto,
 			bool allowDelete)
@@ -335,7 +335,7 @@ namespace Files.FileSources.FileSystem
 		}
 
 		private FileSourceOperationOptionFileExists FileExists(
-			File file,
+			FileEntry file,
 			ref string absoluteTargetFileName,
 			bool allowAppend)
 		{

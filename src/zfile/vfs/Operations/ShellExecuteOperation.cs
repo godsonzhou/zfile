@@ -23,7 +23,8 @@ namespace zfile
                 {
                     IntPtr pidl = ((FileShellProperty)ExecutableFile.LinkProperty).Item;
                     IShellFolder2 folder;
-                    w32.OleCheck(API.SHBindToParent(pidl, typeof(IShellFolder2).GUID, out folder, out pidl));
+					var type = typeof(IShellFolder2);
+					w32.OleCheck(API.SHBindToParent(pidl, ref typeof(IShellFolder2).GUID, out folder, out pidl));
                     IContextMenu menu;
                     w32.OleCheck(folder.GetUIObjectOf(MainForm.Handle, 1, new[] { pidl }, typeof(IContextMenu).GUID, IntPtr.Zero, out menu));
                     if (menu != null)
@@ -33,7 +34,7 @@ namespace zfile
                             cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFO)),
                             hwnd = MainForm.Handle,
                             lpVerb = Verb,
-                            nShow = SW_SHOWNORMAL
+                            nShow = (int)SW.SHOWNORMAL
                         };
                         w32.OleCheck(menu.InvokeCommand(ref cmici));
                     }

@@ -57,7 +57,7 @@ namespace zfile
             statistics = RetrieveStatistics;
             statistics.CurrentFileTo = TargetFile;
 
-            FillAndCount(SourceFiles, false, false,
+            FileSystemUtil.FillAndCount(SourceFiles, false, false,
                 fullFilesTreeToCombine,
                 ref statistics.TotalFiles,
                 ref statistics.TotalBytes); // 计算文件

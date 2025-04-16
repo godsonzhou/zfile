@@ -16,7 +16,7 @@ namespace zfile
             _winNetFileSource = targetFileSource as IWinNetFileSource;
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             ExecuteOperationResult = FileSourceExecuteOperationResult.Error;
             ResultString = Path.Combine("", ExecutableFile.FullPath);

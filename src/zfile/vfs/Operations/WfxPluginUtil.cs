@@ -91,7 +91,7 @@ namespace zfile
         private string _currentTargetFilePath;
 
         private AskQuestionFunction _askQuestion;
-        private AbortOperationFunction _abortOperation;
+        private Action _abortOperation;
         private CheckOperationStateFunction _checkOperationState;
         private UpdateStatisticsFunction _updateStatistics;
         private ShowCompareFilesUIFunction _showCompareFilesUI;
@@ -155,7 +155,7 @@ namespace zfile
             {
                 if (GlobalSettings.LogOptions.HasFlag(LogOption.Error))
                 {
-                    Log.Write(_operationThread, message, LogOption.Error, true);
+                    Logger.Write(_operationThread, message, LogOption.Error, true);
                 }
             }
             else
@@ -176,14 +176,14 @@ namespace zfile
 
             if (logOptions <= GlobalSettings.LogOptions)
             {
-                Log.Write(_operationThread, message, logMsgType);
+                Logger.Write(_operationThread, message, logMsgType);
             }
         }
     }
 
     public static class WfxPluginUtil
     {
-        public static bool WfxRenameFile(IWfxPluginFileSource fileSource, FileInfo file, string newFileName)
+        public static bool WfxRenameFile(IWfxPluginFileSource fileSource, FileEntry file, string newFileName)
         {
             var remoteInfo = new RemoteFileInfo
             {

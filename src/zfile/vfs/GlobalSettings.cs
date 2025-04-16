@@ -1,9 +1,11 @@
+using System.Reflection.Metadata;
+
 namespace zfile
 {
 
 	public static class Logger
 	{
-		public static void Write(System.Threading.Thread thread, string message, LogOption type)
+		public static void Write(System.Threading.Thread thread, string message, LogOption type, bool Reservedflag = true )
 		{
 			// 实现日志记录逻辑
 		}
@@ -98,5 +100,6 @@ namespace zfile
 		public static bool LogDirectoryOperations { get; set; }
 		public static LogOption LogOptions { get; set; }
 		public static bool LogDelete { get; set; }
+		public static bool SkipFileOpError { get; set; } = true;
 	}
 } 

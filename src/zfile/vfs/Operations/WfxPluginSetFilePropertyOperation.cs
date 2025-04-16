@@ -3,11 +3,11 @@ namespace zfile
     public class WfxPluginSetFilePropertyOperation : FileSourceSetFilePropertyOperation
     {
         private readonly IWfxPluginFileSource _wfxPluginFileSource;
-        private FileList _fullFilesTree;
+        private FileEntries _fullFilesTree;
         private FileSourceSetFilePropertyOperationStatistics _statistics;
         private FileSourceOperationSymlinkOption _symLinkOption;
 
-        public WfxPluginSetFilePropertyOperation(IFileSource targetFileSource, ref FileList targetFiles, ref FileProperties newProperties)
+        public WfxPluginSetFilePropertyOperation(IFileSource targetFileSource, ref FileEntries targetFiles, ref FileProperties newProperties)
             : base(targetFileSource, ref targetFiles, ref newProperties)
         {
             _symLinkOption = FileSourceOperationSymlinkOption.None;
@@ -25,7 +25,7 @@ namespace zfile
             };
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             _wfxPluginFileSource.WfxModule.WfxStatusInfo(TargetFiles.Path, FsStatus.Start, FsStatusOperation.Attrib);
             _statistics = RetrieveStatistics;
@@ -42,7 +42,7 @@ namespace zfile
             }
         }
 
-        public override void MainExecute()
+        protected override void MainExecute()
         {
             for (int currentFileIndex = 0; currentFileIndex < _fullFilesTree.Count; currentFileIndex++)
             {
@@ -63,12 +63,12 @@ namespace zfile
             }
         }
 
-        public override void Finalize()
+        protected override void Finalize()
         {
             _wfxPluginFileSource.WfxModule.WfxStatusInfo(TargetFiles.Path, FsStatus.End, FsStatusOperation.Attrib);
         }
 
-        protected override SetFilePropertyResult SetNewProperty(FileInfo file, FileProperty templateProperty)
+        protected override SetFilePropertyResult SetNewProperty(FileEntry file, FileProperty templateProperty)
         {
             var result = SetFilePropertyResult.Success;
 

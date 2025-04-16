@@ -1,5 +1,5 @@
 using System.Runtime.InteropServices;
-
+using WinShell;
 namespace zfile
 {
     public class WslListOperation : FileSystemListOperation
@@ -9,7 +9,7 @@ namespace zfile
         public WslListOperation(IFileSource fileSource, string path)
             : base(fileSource, path)
         {
-            Files = new FileList(path);
+            Files = new FileEntries(path);
             _winNetFileSource = fileSource as IWinNetFileSource;
         }
 
@@ -18,7 +18,7 @@ namespace zfile
             try
             {
                 var desktopFolder = GetDesktopFolder();
-                var path = Path.Combine(Path, "");
+                var path = System.IO.Path.Combine(Path, "");
                 var networkPidl = ParseDisplayName(desktopFolder, path);
                 try
                 {
@@ -32,8 +32,8 @@ namespace zfile
                             CheckOperationState();
 
                             var file = WinNetFileSource.CreateFile(Path);
-                            file.Attributes = FILE_ATTRIBUTE_DIRECTORY;
-                            file.FullPath = GetDisplayName(folder, pidl, SHGDN_FORPARSING | SHGDN_FORADDRESSBAR);
+                            file.Attributes = FileAttributes.Directory;
+                            file.FullPath = GetDisplayName(folder, pidl, (uint)(SHGDN.FORPARSING | SHGDN.FORADDRESSBAR));
 
                             Files.Add(file);
                         }
@@ -50,7 +50,7 @@ namespace zfile
             }
             catch (Exception e)
             {
-                ShowError(Thread, e.Message);
+                ShowError(thread, e.Message);
             }
         }
 

@@ -19,12 +19,12 @@ namespace zfile
         public RecycleBinListOperation(IFileSource fileSource, string path)
             : base(fileSource, path)
         {
-            files = new FileEntries();
+            Files = new FileEntries();
         }
 
         protected override void MainExecute()
         {
-            files.Clear();
+            Files.Clear();
             try
             {
                 IShellFolder desktopFolder;
@@ -71,7 +71,7 @@ namespace zfile
                                     Convert.ToDouble(GetDetails(folder, pidl, SCID_DateDeleted)));
                             }
 
-                            files.Add(file);
+                            Files.Add(file);
                         }
                         finally
                         {

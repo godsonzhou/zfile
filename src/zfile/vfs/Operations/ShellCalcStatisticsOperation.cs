@@ -7,7 +7,9 @@ namespace zfile
         private IShellFileSource shellFileSource;
         private FileSourceCalcStatisticsOperationStatistics statistics;
 
-        public ShellCalcStatisticsOperation(IFileSource targetFileSource, FileEntries files)
+		public override FileSourceOperationType OperationType => FileSourceOperationType.CalcStatistics;
+
+		public ShellCalcStatisticsOperation(IFileSource targetFileSource, FileEntries files)
             : base(targetFileSource, files)
         {
             shellFileSource = targetFileSource as IShellFileSource;
@@ -37,10 +39,10 @@ namespace zfile
             {
                 statistics.Directories++;
                 IShellFolder2 folder;
-                if (shellFileSource.FindFolder(file.Path, out folder))
+                if (shellFileSource.FindFolder(file.Path, out folder) == 0)
                 {
                     IntPtr objectPtr;
-                    if (shellFileSource.FindObject(folder, file.Name, out objectPtr))
+                    if (shellFileSource.FindObject(folder, file.Name, out objectPtr) == 0)
                     {
                         try
                         {

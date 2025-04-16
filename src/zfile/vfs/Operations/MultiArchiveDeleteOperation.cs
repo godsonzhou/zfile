@@ -23,7 +23,7 @@ namespace zfile
             // 获取初始化的统计信息；然后我们只更改需要的内容
             _statistics = RetrieveStatistics();
             _statistics.DoneFiles = -1;
-            _statistics.CurrentFileDoneBytes = -1;
+            _statistics.DoneBytes = -1;
             UpdateStatistics(_statistics);
         }
 

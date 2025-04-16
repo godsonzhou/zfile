@@ -127,7 +127,7 @@ namespace zfile
         public static bool OperationOptionCorrectLinks { get; set; } = true;
         public static FileSourceOperationOptionGeneral OperationOptionCopyOnWrite { get; set; } = FileSourceOperationOptionGeneral.No;
         public static FileSourceOperationOptionFileExists OperationOptionFileExists { get; set; } = FileSourceOperationOptionFileExists.None;
-        public static FileSourceOperationOptionGeneral OperationOptionDirectoryExists { get; set; } = FileSourceOperationOptionGeneral.AskUser;
+        public static FileSourceOperationOptionDirectoryExists OperationOptionDirectoryExists { get; set; } = FileSourceOperationOptionDirectoryExists.None;
         public static bool OperationOptionCopyAttributes { get; set; } = true;
         public static bool OperationOptionCopyXattributes { get; set; } = true;
         public static bool OperationOptionCopyTime { get; set; } = true;
@@ -142,7 +142,7 @@ namespace zfile
 		public static bool LogDirectoryOperations { get; set; }
 		public static LogOption LogOptions { get; set; }
 		public static bool LogDelete { get; set; }
-		public static int CopyBlockSize { get; set; } = 65536;
+		public static uint CopyBlockSize { get; set; } = 65536;
 		public static string AutoExtractOpenMask { get; set; } = "*.zip;*.rar;*.7z;*.tar;*.gz;*.bz2;*.xz";
 	}
 } 

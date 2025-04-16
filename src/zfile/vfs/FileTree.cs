@@ -39,7 +39,7 @@ namespace zfile
 
     public class FileSystemTreeBuilder : IDisposable
     {
-        private readonly Action<string, out bool> _askQuestion;
+        private readonly Action<string, bool> _askQuestion;
         private readonly Action _checkOperationState;
         private FileTree _currentTree;
         private long _filesCount;
@@ -51,8 +51,9 @@ namespace zfile
 
         public long FilesCount => _filesCount;
         public long FilesSize => _filesSize;
+		public bool Recursive { get; set; }
 
-        public FileSystemTreeBuilder(Action<string, out bool> askQuestion, Action checkOperationState)
+		public FileSystemTreeBuilder(Action<string, bool> askQuestion, Action checkOperationState)
         {
             _askQuestion = askQuestion;
             _checkOperationState = checkOperationState;

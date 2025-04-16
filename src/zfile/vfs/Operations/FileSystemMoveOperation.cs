@@ -27,7 +27,7 @@ namespace zfile
             if (GlobalSettings.OperationOptionCopyTime)
                 copyAttributesOptions |= CopyAttributesOptions.CopyTime;
             if (GlobalSettings.OperationOptionCopyOwnership)
-                copyAttributesOptions |= CopyAttributesOptions.CopyOwnership;
+                copyAttributesOptions |= CopyAttributesOptions.CopyOwner;
 
             FileExistsOption = GlobalSettings.OperationOptionFileExists;
             DirExistsOption = GlobalSettings.OperationOptionDirectoryExists;

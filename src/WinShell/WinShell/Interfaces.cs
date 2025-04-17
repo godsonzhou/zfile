@@ -133,22 +133,22 @@ namespace WinShell
 	[Guid("93F2F68C-1D1B-11D3-A30E-00C04F79ABD1")]
 	public interface IShellFolder2 : IShellFolder
 	{
-		new void ParseDisplayName(IntPtr hwnd, IntPtr pbc, string pszDisplayName,
+		void ParseDisplayName(IntPtr hwnd, IntPtr pbc, string pszDisplayName,
 			ref uint pchEaten, out IntPtr ppidl, ref uint pdwAttributes);
-		new int EnumObjects(IntPtr hwnd, uint grfFlags, out IEnumIDList ppenumIDList);
-		new int BindToObject(IntPtr pidl, IntPtr pbc, [In] ref Guid riid,
+		int EnumObjects(IntPtr hwnd, uint grfFlags, out IEnumIDList ppenumIDList);
+		int BindToObject(IntPtr pidl, IntPtr pbc, [In] ref Guid riid,
 			[MarshalAs(UnmanagedType.IUnknown)] out IShellFolder2 ppv);
 		new void BindToStorage(IntPtr pidl, IntPtr pbc, [In] ref Guid riid,
 			out IntPtr ppv);
 		new void CompareIDs(IntPtr lParam, IntPtr pidl1, IntPtr pidl2);
 		new void CreateViewObject(IntPtr hwndOwner, [In] ref Guid riid,
 			out IntPtr ppv);
-		new void GetAttributesOf(uint cidl, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] IntPtr[] apidl,
+		void GetAttributesOf(uint cidl, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] IntPtr[] apidl,
 			ref uint rgfInOut);
-		new void GetUIObjectOf(IntPtr hwndOwner, uint cidl, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] IntPtr[] apidl,
+		void GetUIObjectOf(IntPtr hwndOwner, uint cidl, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] IntPtr[] apidl,
 			[In] ref Guid riid, IntPtr rgfReserved, out IntPtr ppv);
-		new void GetDisplayNameOf(IntPtr pidl, uint uFlags, out IntPtr ppszName);
-		new void SetNameOf(IntPtr hwnd, IntPtr pidl, string pszName, uint uFlags,
+		void GetDisplayNameOf(IntPtr pidl, uint uFlags, out IntPtr ppszName);
+		void SetNameOf(IntPtr hwnd, IntPtr pidl, string pszName, uint uFlags,
 			out IntPtr ppidlOut);
 		void GetDefaultSearchGUID(out Guid pguid);
 		void EnumSearches(out IntPtr ppenum);

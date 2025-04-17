@@ -3,7 +3,7 @@ namespace zfile
     /// <summary>
     /// Statistics for delete operation
     /// </summary>
-    public class FileSourceDeleteOperationStatistics
+    public struct FileSourceDeleteOperationStatistics
     {
         public string CurrentFile;
         public long TotalFiles;

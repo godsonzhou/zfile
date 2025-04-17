@@ -1,4 +1,3 @@
-using zfile.FileSources;
 namespace zfile.Forms
 {
 	public partial class ConnectionManagerForm : Form

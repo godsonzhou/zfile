@@ -5,8 +5,8 @@ namespace zfile
     /// </summary>
     public abstract class FileSourceCombineOperation : FileSourceOperation
     {
-        private FileSourceCopyOperationStatistics _statistics;
-        private FileSourceCopyOperationStatistics _statisticsAtStartTime;
+        private FileSourceCombineOperationStatistics _statistics;
+        private FileSourceCombineOperationStatistics _statisticsAtStartTime;
         private readonly object _statisticsLock = new object();
         private IFileSource _fileSource;
         private FileEntries _sourceFiles;
@@ -85,7 +85,7 @@ namespace zfile
         public FileSourceCombineOperation(IFileSource aFileSource, FileEntries theSourceFiles, string aTargetFile)
             : base(aFileSource)
         {
-            _statistics = new FileSourceCopyOperationStatistics
+            _statistics = new FileSourceCombineOperationStatistics
             {
                 CurrentFileFrom = "",
                 CurrentFileTo = "",
@@ -125,7 +125,7 @@ namespace zfile
         /// Updates the statistics for this operation
         /// </summary>
         /// <param name="newStatistics">The new statistics to update with</param>
-        protected void UpdateStatistics(FileSourceCopyOperationStatistics newStatistics)
+        protected void UpdateStatistics(FileSourceCombineOperationStatistics newStatistics)
         {
             lock (_statisticsLock)
             {
@@ -164,7 +164,7 @@ namespace zfile
         /// Retrieves the current statistics for this operation
         /// </summary>
         /// <returns>The current statistics</returns>
-        public FileSourceCopyOperationStatistics RetrieveStatistics()
+        public FileSourceCombineOperationStatistics RetrieveStatistics()
         {
             lock (_statisticsLock)
             {

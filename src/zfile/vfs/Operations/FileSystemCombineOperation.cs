@@ -1,8 +1,17 @@
 namespace zfile
 {
-	public class FileSourceCombineOperationStatistics
+	public struct FileSourceCombineOperationStatistics
 	{
-		public FileSourceCombineOperationStatistics() { }
+		public string CurrentFileFrom;
+		public string CurrentFileTo;
+		public long TotalFiles;
+		public long DoneFiles;
+		public long TotalBytes;
+		public long DoneBytes;
+		public long CurrentFileTotalBytes;
+		public long CurrentFileDoneBytes;
+		public long BytesPerSecond;
+		public DateTime RemainingTime;
 	}
 
 	public class FileSystemCombineOperation : FileSourceCombineOperation
@@ -36,7 +45,7 @@ namespace zfile
                 do
                 {
                     string maybeAdditionalSourceFilename = Path.Combine(
-                        SourceFiles[0].DirectoryName,
+                        SourceFiles[0].Path,
                         $"{Path.GetFileNameWithoutExtension(SourceFiles[0].Name)}.{maybeFileIndex:extensionLengthRequired}");
 
                     if (File.Exists(maybeAdditionalSourceFilename) || maybeFileIndex == 1)
@@ -52,8 +61,8 @@ namespace zfile
                     }
                     maybeFileIndex++;
                 } while (!File.Exists(Path.Combine(
-                    SourceFiles[0].DirectoryName,
-                    $"{Path.GetFileNameWithoutExtension(SourceFiles[0].Name)}.{maybeFileIndex:DextensionLengthRequired}"))) && maybeFileIndex != 1);
+                    SourceFiles[0].Path,
+                    $"{Path.GetFileNameWithoutExtension(SourceFiles[0].Name)}.{maybeFileIndex:DextensionLengthRequired}")) && maybeFileIndex != 1);
 
                 SourceFiles.RemoveAt(0); // 现在可以删除第一个文件，它可能是系列中的任何一个
             }
@@ -125,7 +134,7 @@ namespace zfile
                         {
                             string dynamicNextFilename = Path.Combine(
                                 SourceFiles[0].Path,
-                                $"{Path.GetFileNameWithoutExtension(SourceFiles[0].Name)}.{(currentFileIndex + 1):D{extensionLengthRequired}}");
+                                $"{Path.GetFileNameWithoutExtension(SourceFiles[0].Name)}.{(currentFileIndex + 1):extensionLengthRequired}");
                             BegForPresenceOfThisFile(dynamicNextFilename);
                             var dynamicNextFile = new FileEntry(dynamicNextFilename);
                             SourceFiles.Add(dynamicNextFile);

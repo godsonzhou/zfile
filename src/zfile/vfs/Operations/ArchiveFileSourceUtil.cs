@@ -160,7 +160,7 @@ namespace zfile
                 // If in archive
                 if (fileView.ActiveFileSource is IArchiveFileSource)
                 {
-                    FileEntries filesToTest = new FileEntries(files);
+                    FileEntries filesToTest = files.Clone();
                     if (fileView.ActiveFileSource.OperationsTypes.HasFlag(FileSourceOperationType.TestArchive))
                     {
                         IFileSourceOperation operation = fileView.ActiveFileSource.CreateTestArchiveOperation(filesToTest);
@@ -195,7 +195,7 @@ namespace zfile
                         try
                         {
                             // Check if there is a ArchiveFileSource for possible archive
-                            IArchiveFileSource archiveFileSource = GetArchiveFileSource(fileView.FileSource, files[i], string.Empty, false, true);
+                            IArchiveFileSource archiveFileSource = GetArchiveFileSource(fileView.ActiveFileSource, files[i], string.Empty, false, true);
 
                             if (archiveFileSource != null)
                             {
@@ -332,7 +332,7 @@ namespace zfile
 
                     if (fileName == "." || fileName == "..") continue;
 
-                    FileEntry file = new FileEntry(srcPath, FileEntry);
+                    FileEntry file = new FileEntry(srcPath + FileEntry.Name);
 
                     if (file.IsLink)
                     {

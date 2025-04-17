@@ -122,9 +122,8 @@ namespace zfile
 
         private void UpdateProgress(string sourceName, string targetName, long incSize)
         {
-            _statistics.CurrentFileFrom = sourceName;
-            _statistics.CurrentFileTo = targetName;
-            _statistics.CurrentFileDoneBytes += incSize;
+            _statistics.CurrentFile = sourceName;
+            _statistics.DoneBytes += incSize;
             UpdateStatistics(_statistics);
         }
 

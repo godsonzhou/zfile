@@ -5,7 +5,7 @@ namespace zfile
     /// </summary>
     public abstract class FileSourceCopyOperation : FileSourceOperation
     {
-        private FileSourceCopyOperationStatistics _statistics;
+        protected FileSourceCopyOperationStatistics _statistics;
         private FileSourceCopyOperationStatistics _statisticsAtStartTime;
         private readonly object _statisticsLock = new object();
         private IFileSource _sourceFileSource;

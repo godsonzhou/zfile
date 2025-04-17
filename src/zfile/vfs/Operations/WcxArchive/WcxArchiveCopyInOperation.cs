@@ -20,10 +20,10 @@ namespace zfile;
                                         string targetPath) : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
         {
             _wcxArchiveFileSource = (IWcxArchiveFileSource)targetFileSource;
-            _packingFlags = PackFilesFlags.PK_PACK_SAVE_PATHS;
+            packingFlags = (int)PackFilesFlags.PK_PACK_SAVE_PATHS;
             _tarBefore = false;
 
-            _needsConnection = (_wcxArchiveFileSource.WcxModule.BackgroundFlags & WcxModule.BACKGROUND_PACK) == 0;
+            NeedsConnection = (_wcxArchiveFileSource.WcxModule.BackgroundFlags & WcxModule.BACKGROUND_PACK) == 0;
 
             _FileEntries = new StringHashListUtf8(true);
 
@@ -95,7 +95,7 @@ namespace zfile;
                            destPath, // no trailing path delimiter here
                            Helper.IncludeTrailingPathDelimiter(_fullFilesTree.Path), // end with path delimiter here
                            FileEntries,
-                           _packingFlags);
+                           packingFlags);
 
             // Check for errors.
             if (result != WcxModule.E_SUCCESS)
@@ -365,7 +365,7 @@ namespace zfile;
 
             try
             {
-                if (_wcxArchiveFileSource.WcxModule.PackToMem != null && 
+                if (_wcxArchiveFileSource.WcxModule._packToMem != null && 
                     (_wcxArchiveFileSource.WcxModule.PluginCapabilities & (int)PackerCaps.PK_CAPS_MEMPACK) != 0)
                 {
                     _tarFileName = _wcxArchiveFileSource.ArchiveFileName;
@@ -390,7 +390,7 @@ namespace zfile;
 
                 if (tarWriter.ProcessTree(_fullFilesTree, _statistics))
                 {
-                    if (result && (_packingFlags & PackFilesFlags.PK_PACK_MOVE_FILES) != 0)
+                    if (result && (packingFlags & (int)PackFilesFlags.PK_PACK_MOVE_FILES) != 0)
                         DeleteFiles(_fullFilesTree);
                     else
                     {

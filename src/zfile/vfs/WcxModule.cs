@@ -471,7 +471,7 @@ namespace zfile
 		private TSetProcessDataProcW _setProcessDataProcW;
 		private TStartMemPack _startMemPack;
 		private TStartMemPackW _startMemPackW;
-		private TPackToMem _packToMem;
+		internal TPackToMem _packToMem;
 		private TDoneMemPack _doneMemPack;
 		private TCanYouHandleThisFile _canYouHandleThisFile;
 		private TCanYouHandleThisFileW _canYouHandleThisFileW;

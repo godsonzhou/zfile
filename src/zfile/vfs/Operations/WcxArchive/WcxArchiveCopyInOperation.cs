@@ -237,7 +237,7 @@ namespace zfile;
 
         private void SetProcessDataProc(IntPtr arcData)
         {
-            if (_needsConnection)
+            if (NeedsConnection)
                 _wcxArchiveFileSource.WcxModule.SetProcessDataProc(arcData, ProcessDataProcAG, ProcessDataProcWG);
             else
                 _wcxArchiveFileSource.WcxModule.SetProcessDataProc(arcData, ProcessDataProcAT, ProcessDataProcWT);

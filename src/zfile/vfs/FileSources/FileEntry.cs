@@ -59,13 +59,13 @@ public abstract class FileProperty
 	public abstract FilePropertyType ID { get; }
 }
 
-public class FileNameProperty : FileProperty
+public class FileNameProperty(string filename) : FileProperty
 {
-    public string Value { get; set; }
+	public string Value { get; set; } = filename;
 
     public override FileProperty Clone()
     {
-        return new FileNameProperty { Value = this.Value };
+        return new FileNameProperty(Value);
     }
 
     public override bool Equals(FileProperty other)
@@ -562,7 +562,7 @@ public class FileEntry
         _variantProperties = new List<FileVariantProperty>();
         _supportedProperties = FilePropertyType.Name;
 
-        NameProperty = new FileNameProperty();
+        NameProperty = new FileNameProperty(System.IO.Path.GetFileName(path));
         Path = path;
     }
 

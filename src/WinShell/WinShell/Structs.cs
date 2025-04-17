@@ -4,7 +4,14 @@ using System.IO;
 using System.Runtime.InteropServices;
 namespace WinShell
 {
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+	[StructLayout(LayoutKind.Sequential)]
+	public struct PropertyKey
+	{
+		public Guid fmtid;
+		public uint pid;
+	}
+
+	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
     public struct WIN32_FIND_DATA
     {
         public FileAttributes dwFileAttributes;

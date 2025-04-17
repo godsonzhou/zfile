@@ -3,7 +3,7 @@ namespace zfile
     /// <summary>
     /// Statistics for copy operation
     /// </summary>
-    public struct FileSourceCopyOperationStatistics
+    public class FileSourceCopyOperationStatistics
     {
         public string CurrentFileFrom;
         public string CurrentFileTo;

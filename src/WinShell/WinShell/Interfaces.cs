@@ -6,11 +6,49 @@ using System.Text;
 namespace WinShell
 {
 	[ComImport]
+	[Guid("B63EA76D-1F85-456F-A19C-48159EFA858B")]
+	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+	public interface IShellItemArray
+	{
+		[PreserveSig]
+		int BindToHandler(IntPtr pbc, [MarshalAs(UnmanagedType.LPStruct)] Guid rbhid, [MarshalAs(UnmanagedType.LPStruct)] Guid riid, out IntPtr ppvOut);
+
+		[PreserveSig]
+		int GetPropertyStore(int Flags, [MarshalAs(UnmanagedType.LPStruct)] Guid riid, out IntPtr ppv);
+
+		[PreserveSig]
+		int GetPropertyDescriptionList([MarshalAs(UnmanagedType.LPStruct)] PropertyKey keyType, [MarshalAs(UnmanagedType.LPStruct)] Guid riid, out IntPtr ppv);
+
+		[PreserveSig]
+		int GetAttributes(int dwAttribFlags, uint sfgaoMask, out uint psfgaoAttribs);
+
+		[PreserveSig]
+		int GetCount(out uint pdwNumItems);
+
+		[PreserveSig]
+		int GetItemAt(uint dwIndex, out IShellItem ppsi);
+
+		[PreserveSig]
+		int EnumItems(out IntPtr ppenumShellItems);
+	}
+
+	[ComImport]
 	[Guid("43826d1e-e718-42ee-bc55-a1e261c37bfe")]
 	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 	public interface IShellItem
 	{
+		[PreserveSig]
 		void GetDisplayName(SIGDN sigdnName, out IntPtr ppszName);
+		[PreserveSig]
+		int GetAttributes(SFGAO sfgaoMask, out SFGAO psfgaoAttribs);
+
+		[PreserveSig]
+		int Compare(IShellItem psi, SICHINTF hint, out int piOrder);
+		[PreserveSig]
+		int BindToHandler(IntPtr pbc, [MarshalAs(UnmanagedType.LPStruct)] Guid bhid, [MarshalAs(UnmanagedType.LPStruct)] Guid riid, out IntPtr ppv);
+
+		[PreserveSig]
+		int GetParent(out IShellItem ppsi);
 	}
 	[ComImportAttribute()]
 	[GuidAttribute("46EB5926-582E-4017-9FDF-E8998DAA0950")]

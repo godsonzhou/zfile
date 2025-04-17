@@ -46,7 +46,7 @@ namespace zfile
 
                 if (fileProperty is FileShellProperty shellProperty)
                 {
-                    shellProperty.item = ILClone(item);
+                    shellProperty.item = API.ILClone(item);
                 }
             }
         }
@@ -110,9 +110,13 @@ namespace zfile
         public int PreRenameItem(uint dwFlags, IShellItem psiItem, string pszNewName)
         {
             string fileName;
-            if (psiItem.GetDisplayName(SIGDN.DESKTOPABSOLUTEEDITING, out fileName) == 0)
-            {
-                setFilePropertyStatistics.CurrentFile = fileName;
+			IntPtr pszname;
+			psiItem.GetDisplayName(SIGDN.DESKTOPABSOLUTEEDITING, out pszname);
+			if(pszname != IntPtr.Zero)
+			{
+				fileName = Marshal.PtrToStringUni(pszname);
+				setFilePropertyStatistics.CurrentFile = fileName;
+				Marshal.FreeCoTaskMem(pszname);
             }
             return 0; // S_OK
         }
@@ -129,7 +133,7 @@ namespace zfile
 
         public int PostMoveItem(uint dwFlags, IShellItem psiItem, IShellItem psiDestinationFolder, string pszNewName, int hrMove, IShellItem psiNewlyCreated)
         {
-            if ((GlobalSettings.LogOptions & LogOption.CopyMoveLink) != 0 && hrMove != COPYENGINE_E_USER_CANCELLED)
+            if ((GlobalSettings.LogOptions & LogOption.CopyMoveLink) != 0 && hrMove != Constants.COPYENGINE_E_USER_CANCELLED)
             {
                 if (hrMove == 0)
                 {
@@ -150,14 +154,20 @@ namespace zfile
         public int PreCopyItem(uint dwFlags, IShellItem psiItem, IShellItem psiDestinationFolder, string pszNewName)
         {
             string fileName;
-            if (psiItem.GetDisplayName(SIGDN.DESKTOPABSOLUTEEDITING, out fileName) == 0)
-            {
-                copyStatistics.CurrentFileFrom = fileName;
+			IntPtr pszname;
+			psiItem.GetDisplayName(SIGDN.DESKTOPABSOLUTEEDITING, out pszname);
+			if (pszname != IntPtr.Zero)
+			{
+				fileName = Marshal.PtrToStringUni(pszname);
+				copyStatistics.CurrentFileFrom = fileName;
+				Marshal.FreeCoTaskMem(pszname);
             }
 
-            if (psiDestinationFolder.GetDisplayName(SIGDN.DESKTOPABSOLUTEEDITING, out fileName) == 0)
-            {
-                copyStatistics.CurrentFileTo = fileName;
+			psiDestinationFolder.GetDisplayName(SIGDN.DESKTOPABSOLUTEEDITING, out pszname);
+			if (pszname != IntPtr.Zero)
+			{
+				fileName = Marshal.PtrToStringUni(pszname);
+				copyStatistics.CurrentFileTo = fileName;
                 if (!string.IsNullOrEmpty(pszNewName))
                 {
                     copyStatistics.CurrentFileTo += pszNewName;
@@ -166,7 +176,8 @@ namespace zfile
                 {
                     copyStatistics.CurrentFileTo += Path.GetFileName(copyStatistics.CurrentFileFrom);
                 }
-            }
+				Marshal.FreeCoTaskMem(pszname);
+			}
 
             updateCopyStatistics(ref copyStatistics);
             return 0; // S_OK
@@ -174,7 +185,7 @@ namespace zfile
 
         public int PostCopyItem(uint dwFlags, IShellItem psiItem, IShellItem psiDestinationFolder, string pszNewName, int hrCopy, IShellItem psiNewlyCreated)
         {
-            if ((GlobalSettings.LogOptions & LogOption.CopyMoveLink) != 0 && hrCopy != COPYENGINE_E_USER_CANCELLED)
+            if ((GlobalSettings.LogOptions & LogOption.CopyMoveLink) != 0 && hrCopy != Constants.COPYENGINE_E_USER_CANCELLED)
             {
                 if (hrCopy == 0)
                 {
@@ -195,20 +206,24 @@ namespace zfile
         public int PreDeleteItem(uint dwFlags, IShellItem psiItem)
         {
             string fileName;
-            if (psiItem.GetDisplayName(SIGDN.DESKTOPABSOLUTEEDITING, out fileName) == 0)
+			IntPtr pszname;
+			psiItem.GetDisplayName(SIGDN.DESKTOPABSOLUTEEDITING, out pszname);
+			if(pszname != IntPtr.Zero)
             {
-                deleteStatistics.CurrentFile = fileName;
-            }
+				fileName = Marshal.PtrToStringUni(pszname);
+				deleteStatistics.CurrentFile = fileName;
+				Marshal.FreeCoTaskMem(pszname);
+			}
             return 0; // S_OK
         }
 
         public int PostDeleteItem(uint dwFlags, IShellItem psiItem, int hrDelete, IShellItem psiNewlyCreated)
         {
-            if ((GlobalSettings.LogOptions & LogOption.Delete) != 0 && hrDelete != COPYENGINE_E_USER_CANCELLED)
+            if ((GlobalSettings.LogOptions & LogOption.Delete) != 0 && hrDelete != Constants.COPYENGINE_E_USER_CANCELLED)
             {
-                uint attributes;
-                psiItem.GetAttributes(SFGAO.FOLDER, out attributes);
-                string text = (attributes & (uint)SFGAO.FOLDER) == 0 ? Resources.MsgLogDelete : Resources.MsgLogRmDir;
+                //uint attributes;
+                psiItem.GetAttributes(SFGAO.FOLDER, out var attributes);
+                string text = ((uint)attributes & (uint)SFGAO.FOLDER) == 0 ? Resources.MsgLogDelete : Resources.MsgLogRmDir;
 
                 if (hrDelete == 0)
                 {
@@ -255,7 +270,7 @@ namespace zfile
                 updateSetFilePropertyStatistics(ref setFilePropertyStatistics);
             }
 
-            return checkOperationState() ? 0 : COPYENGINE_E_USER_CANCELLED;
+            return checkOperationState() ? 0 : Constants.COPYENGINE_E_USER_CANCELLED;
         }
 
         public int ResetTimer()

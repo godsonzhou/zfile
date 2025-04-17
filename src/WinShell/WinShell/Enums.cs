@@ -3,6 +3,11 @@ using System.Runtime.InteropServices;
 
 namespace WinShell
 {
+	public enum SICHINTF : uint
+	{
+		SICHINT_DISPLAY = 0x00000000,
+		// 其他比较提示...
+	}
 	[StructLayout(LayoutKind.Sequential)]
 	public struct SHCOLUMNID
 	{

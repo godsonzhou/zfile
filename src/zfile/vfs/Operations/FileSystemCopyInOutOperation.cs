@@ -5,7 +5,7 @@ namespace zfile
         public FileSystemCopyInOperation(
             IFileSource sourceFileSource,
             IFileSource targetFileSource,
-            List<FileInfo> sourceFiles,
+            FileEntries sourceFiles,
             string targetPath)
             : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
         {
@@ -22,7 +22,7 @@ namespace zfile
         public FileSystemCopyOutOperation(
             IFileSource sourceFileSource,
             IFileSource targetFileSource,
-            List<FileInfo> sourceFiles,
+            FileEntries sourceFiles,
             string targetPath)
             : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
         {

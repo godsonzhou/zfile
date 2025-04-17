@@ -175,9 +175,9 @@ namespace zfile
 					var fileInfo = new FileInfo(newName);
 					newAttr.Attr = fileInfo.Attributes;
 					newAttr.Size = fileInfo.Length;
-					newAttr.LastWriteTime = DateTime.ToFileTime(fileInfo.LastWriteTime);
-					newAttr.CreationTime = DateTime.ToFileTime(fileInfo.CreationTime);
-					newAttr.LastAccessTime = DateTime.ToFileTime(fileInfo.LastAccessTime);
+					newAttr.LastWriteTime = fileInfo.LastWriteTime.ToFileTime();
+					newAttr.CreationTime = fileInfo.CreationTime.ToFileTime();
+					newAttr.LastAccessTime = fileInfo.LastAccessTime.ToFileTime();
 					return true;
 				}
 				return false;

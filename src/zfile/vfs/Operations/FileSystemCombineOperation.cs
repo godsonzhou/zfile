@@ -59,7 +59,7 @@ namespace zfile
             }
 
             // 获取初始化的统计信息；然后我们只更改需要的内容
-            statistics = RetrieveStatistics;
+            statistics = RetrieveStatistics();
             statistics.CurrentFileTo = TargetFile;
 
             FileSystemUtil.FillAndCount(SourceFiles, false, false,
@@ -124,7 +124,7 @@ namespace zfile
                         if (currentFileIndex >= fullFilesTreeToCombine.Count)
                         {
                             string dynamicNextFilename = Path.Combine(
-                                SourceFiles[0].DirectoryName,
+                                SourceFiles[0].Path,
                                 $"{Path.GetFileNameWithoutExtension(SourceFiles[0].Name)}.{(currentFileIndex + 1):D{extensionLengthRequired}}");
                             BegForPresenceOfThisFile(dynamicNextFilename);
                             var dynamicNextFile = new FileEntry(dynamicNextFilename);

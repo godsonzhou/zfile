@@ -688,7 +688,7 @@ namespace zfile
 		/// <summary>
 		/// Gets the operation types supported by this file source
 		/// </summary>
-		public abstract FileSourceOperationType[] OperationsTypes { get; }
+		public abstract FileSourceOperationType OperationsTypes { get; }
 
 		/// <summary>
 		/// Gets the properties of this file source

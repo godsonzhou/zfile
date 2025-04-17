@@ -22,7 +22,7 @@ namespace zfile
         private void InitializeRegex()
         {
             // 初始化正则表达式列表
-            foreach (var pattern in _multiArcItem.OutputFormat)
+            foreach (var pattern in _multiArcItem.Format)
             {
                 _regexList.Add(new Regex(pattern, RegexOptions.Compiled));
             }
@@ -63,8 +63,8 @@ namespace zfile
             var item = new ArchiveItem
             {
                 FileName = match.Groups["FileName"].Value,
-                Size = long.Parse(match.Groups["Size"].Value),
-                PackedSize = long.Parse(match.Groups["PackedSize"].Value),
+                UnpSize = long.Parse(match.Groups["Size"].Value),
+                PackSize = long.Parse(match.Groups["PackedSize"].Value),
                 DateTime = DateTime.Parse(match.Groups["DateTime"].Value),
                 Attributes = ParseAttributes(match.Groups["Attributes"].Value)
             };

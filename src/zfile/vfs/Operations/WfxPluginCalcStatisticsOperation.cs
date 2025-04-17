@@ -71,12 +71,12 @@ namespace zfile
             var wfxModule = _wfxPluginFileSource.WfxModule;
             var handle = wfxModule.FindFiles(srcPath);
 			WfxFindData findData = handle.First();
-            if (handle == WfxModule.WfxInvalidHandle)
-            {
-                return;
-            }
+			//if (handle == WfxModule.WfxInvalidHandle)
+			//{
+			//	return;
+			//}
 
-            try
+			try
             {
                 do
                 {

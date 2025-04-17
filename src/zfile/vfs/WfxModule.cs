@@ -194,10 +194,11 @@ namespace zfile
         private FsMkDir _fsMkDir;
         private FsExecuteFile _fsExecuteFile;
         private FsRenMovFile _fsRenMovFile;
-        #endregion
+		internal static IntPtr WfxInvalidHandle = IntPtr.Zero;
+		#endregion
 
-        #region 属性
-        public string ModulePath => _modulePath;
+		#region 属性
+		public string ModulePath => _modulePath;
         public string PluginName => _pluginName;
         public bool IsLoaded => _moduleHandle != IntPtr.Zero;
         public bool IsUnicode => _isUnicode;

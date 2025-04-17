@@ -83,6 +83,7 @@ namespace zfile
 		public int Hour { get; set; }
 		public int Minute { get; set; }
 		public int Second { get; set; }
+		public DateTime DateTime { get; set; }
 		public FileAttributes Attributes { get; set; }
 
 		public object Clone()

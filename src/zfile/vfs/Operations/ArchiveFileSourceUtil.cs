@@ -114,7 +114,7 @@ namespace zfile
             bool archiveSign,
             bool includeHidden)
         {
-            if (!sourceFileSource.Properties.HasFlag(FileSourceProperty.DirectAccess))
+            if (!sourceFileSource.Properties.HasFlag(FileSourceProperties.DirectAccess))
                 return null;
 
             // Check if there is a registered WCX plugin for possible archive

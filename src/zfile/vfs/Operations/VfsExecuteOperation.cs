@@ -5,7 +5,7 @@ namespace zfile
         private readonly IVfsFileSource _vfsFileSource;
 
         public VfsExecuteOperation(IFileSource targetFileSource, ref FileEntry executableFile, string currentPath, string verb)
-            : base(targetFileSource, ref executableFile, currentPath, verb)
+            : base(targetFileSource, executableFile, currentPath, verb)
         {
             _vfsFileSource = targetFileSource as IVfsFileSource;
         }

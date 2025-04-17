@@ -138,6 +138,7 @@ namespace zfile
     {
 		internal static bool ProcessComments;
 		internal static int HashBlockSize;
+		internal static int WipePassNumber;
 
 		/// <summary>
 		/// Whether to skip file operation errors

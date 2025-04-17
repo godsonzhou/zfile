@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Net;
 
 namespace zfile;
 
@@ -287,6 +288,7 @@ public class FileEntry
 
 	public string FullName => $"{Path}{System.IO.Path.DirectorySeparatorChar}{Name}";
 	public Dictionary<FilePropertyType, FileProperty> Properties => _properties;
+	
 	private void SplitIntoNameAndExtension(string fileName, out string fileNameOnly, out string extension)
     {
         int dotIndex = fileName.LastIndexOf('.');
@@ -306,8 +308,29 @@ public class FileEntry
     {
         SplitIntoNameAndExtension(fileName, out _nameNoExt, out _extension);
     }
+	public Stream OpenRead()
+	{
+		return OpenRead(0, Size);
+	}
+	public Stream OpenRead(long offset, long size)
+	{
+		if (size <= 0)
+			return null;
+		Stream stream = null;
+		try
+		{
+			stream = new FileStream(FullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+			stream.Seek(offset, SeekOrigin.Begin);
+			return stream;
+		}
+		catch (Exception ex)
+		{
+			stream?.Dispose();
+			throw new IOException($"Failed to open file {FullPath}: {ex.Message}", ex);
+		}
+	}
 
-    protected FileProperty GetProperty(FilePropertyType propType)
+	protected FileProperty GetProperty(FilePropertyType propType)
     {
         if (propType < FilePropertyType.Variant)
         {

@@ -108,54 +108,54 @@ namespace zfile
             return _fileSource.CanRetrieveProperties(file, propertiesToSet);
         }
 
-        public override IFileSourceOperation CreateListOperation(string targetPath)
+        public override FileSourceOperation CreateListOperation(string targetPath)
         {
             return new MultiListListOperation(this, targetPath);
         }
 
-        public override IFileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, ref FileInfo[] sourceFiles, string targetPath)
+        public override FileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)
         {
-            return _fileSource.CreateCopyOutOperation(targetFileSource, ref sourceFiles, targetPath);
+            return _fileSource.CreateCopyOutOperation(targetFileSource, sourceFiles, targetPath);
         }
 
-        public override IFileSourceOperation CreateMoveOperation(ref FileInfo[] sourceFiles, string targetPath)
+        public override FileSourceOperation CreateMoveOperation(FileEntries sourceFiles, string targetPath)
         {
-            return _fileSource.CreateMoveOperation(ref sourceFiles, targetPath);
+            return _fileSource.CreateMoveOperation(sourceFiles, targetPath);
         }
 
-        public override IFileSourceOperation CreateDeleteOperation(ref FileInfo[] filesToDelete)
+        public override FileSourceOperation CreateDeleteOperation(FileEntries filesToDelete)
         {
-            return _fileSource.CreateDeleteOperation(ref filesToDelete);
+            return _fileSource.CreateDeleteOperation(filesToDelete);
         }
 
-        public override IFileSourceOperation CreateWipeOperation(ref FileInfo[] filesToWipe)
+        public override FileSourceOperation CreateWipeOperation(FileEntries filesToWipe)
         {
-            return _fileSource.CreateWipeOperation(ref filesToWipe);
+            return _fileSource.CreateWipeOperation(filesToWipe);
         }
 
-        public override IFileSourceOperation CreateExecuteOperation(ref FileInfo executableFile, string basePath, string verb)
+        public override FileSourceOperation CreateExecuteOperation(FileEntry executableFile, string basePath, string verb)
         {
-            return _fileSource.CreateExecuteOperation(ref executableFile, basePath, verb);
+            return _fileSource.CreateExecuteOperation(executableFile, basePath, verb);
         }
 
-        public override IFileSourceOperation CreateTestArchiveOperation(ref FileInfo[] sourceFiles)
+        public override FileSourceOperation CreateTestArchiveOperation(FileEntries sourceFiles)
         {
-            return _fileSource.CreateTestArchiveOperation(ref sourceFiles);
+            return _fileSource.CreateTestArchiveOperation(sourceFiles);
         }
 
-        public override IFileSourceOperation CreateCalcChecksumOperation(ref FileInfo[] files, string targetPath, string targetMask)
+        public override FileSourceOperation CreateCalcChecksumOperation(FileEntries files, string targetPath, string targetMask)
         {
-            return _fileSource.CreateCalcChecksumOperation(ref files, targetPath, targetMask);
+            return _fileSource.CreateCalcChecksumOperation(files, targetPath, targetMask);
         }
 
-        public override IFileSourceOperation CreateCalcStatisticsOperation(ref FileInfo[] files)
+        public override FileSourceOperation CreateCalcStatisticsOperation(FileEntries files)
         {
-            return _fileSource.CreateCalcStatisticsOperation(ref files);
+            return _fileSource.CreateCalcStatisticsOperation(files);
         }
 
-        public override IFileSourceOperation CreateSetFilePropertyOperation(ref FileInfo[] targetFiles, ref FileProperties newProperties)
+        public override FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, FileProperty[] newProperties)
         {
-            return _fileSource.CreateSetFilePropertyOperation(ref targetFiles, ref newProperties);
+            return _fileSource.CreateSetFilePropertyOperation(targetFiles, newProperties);
         }
     }
 } 

@@ -104,8 +104,9 @@ namespace zfile
         public override bool SetCurrentWorkingDirectory(string newDir)
         {
             if (IsNetworkPath(newDir))
-                return true;
-            return Directory.SetCurrentDirectory(newDir);
+                return false;
+            Directory.SetCurrentDirectory(newDir);
+			return true;
         }
 
         public static bool IsSupportedPath(string path)
@@ -131,14 +132,14 @@ namespace zfile
             return base.CreateCopyOperation(sourceFiles, targetPath);
         }
 
-        public override FileSourceOperation CreateCopyInOperation(IFileSource sourceFileSource, ref FileEntries sourceFiles, string targetPath)
+        public override FileSourceOperation CreateCopyInOperation(IFileSource sourceFileSource, FileEntries sourceFiles, string targetPath)
         {
             if (IsNetworkPath(targetPath))
                 return null;
             return base.CreateCopyInOperation(sourceFileSource, sourceFiles, targetPath);
         }
 
-        public override FileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, ref FileEntries sourceFiles, string targetPath)
+        public override FileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)
         {
             if (IsNetworkPath(sourceFiles.Path))
                 return null;
@@ -206,7 +207,7 @@ namespace zfile
             return base.CreateCalcStatisticsOperation(files);
         }
 
-        public override FileSourceOperation CreateSetFilePropertyOperation(ref FileEntries targetFiles, ref FileProperty[] newProperties)
+        public override FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, FileProperty[] newProperties)
         {
             if (IsNetworkPath(targetFiles.Path))
                 return null;

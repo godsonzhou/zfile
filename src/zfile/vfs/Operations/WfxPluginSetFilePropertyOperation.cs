@@ -108,11 +108,11 @@ namespace zfile
                         }
                         else if (templateProperty is UnixFileAttributesProperty)
                         {
-                            if (_wfxPluginFileSource.WfxModule.ExecuteFile(Application.MainForm.Tag, fileName,
-                                "chmod " + Convert.ToString(newAttributes & ~S_IFMT, 8)) != FsExecResult.Ok)
-                            {
-                                result = SetFilePropertyResult.Error;
-                            }
+                            //if (_wfxPluginFileSource.WfxModule.ExecuteFile(Application.MainForm.Tag, fileName,
+                            //    "chmod " + Convert.ToString(newAttributes & ~S_IFMT, 8)) != FsExecResult.Ok)
+                            //{
+                            //    result = SetFilePropertyResult.Error;
+                            //}
                         }
                         else
                         {

@@ -71,7 +71,7 @@ namespace zfile
                 {
                     var file = _wfxPluginFileSource.CreateFile(Path);
                     file.Name = "..";
-                    file.Attributes = GenericAttribute.Folder;
+                    file.Attributes = FileAttributes.Directory;
                     Files.Insert(0, file);
                 }
             }

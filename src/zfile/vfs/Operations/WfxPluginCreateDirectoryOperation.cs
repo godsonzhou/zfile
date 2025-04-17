@@ -16,13 +16,15 @@ namespace zfile
 
         protected override void MainExecute()
         {
-            var result = _wfxPluginFileSource.WfxModule.WfxMkDir(BasePath, AbsolutePath);
-            switch (result)
-            {
-                case WfxResult.NotSupported:
+			//var result = _wfxPluginFileSource.WfxModule.WfxMkDir(BasePath, AbsolutePath);
+			var result = _wfxPluginFileSource.WfxModule.CreateDirectory(BasePath + AbsolutePath);
+
+			switch (result)
+			{
+				case false: // WfxResult.NotSupported:
                     AskQuestion(Resources.MsgErrNotSupported, string.Empty, new[] { FileSourceOperationUIResponse.Ok }, FileSourceOperationUIResponse.Ok, FileSourceOperationUIResponse.Ok);
                     break;
-                case WfxResult.Success:
+				case true: // WfxResult.Success:
                     if ((LogOption.VfsOp & LogOption.Success) != 0)
                     {
                         Logger.Write(string.Format(Resources.MsgLogSuccess + Resources.MsgLogMkDir, AbsolutePath), LogOption.Success);

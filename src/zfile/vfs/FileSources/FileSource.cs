@@ -365,7 +365,7 @@ namespace zfile
 		/// <param name="targetFiles">The target files</param>
 		/// <param name="newProperties">The new properties</param>
 		/// <returns>The set file property operation</returns>
-		FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, Dictionary<FilePropertyType, object> newProperties);
+		FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, FileProperty[] newProperties);
 
 		/// <summary>
 		/// Gets the operation class for the specified operation type
@@ -1002,7 +1002,7 @@ namespace zfile
 		/// <param name="targetFiles">The target files</param>
 		/// <param name="newProperties">The new properties</param>
 		/// <returns>The set file property operation</returns>
-		public virtual FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, Dictionary<FilePropertyType, object> newProperties)
+		public virtual FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, FileProperty[] newProperties)
 		{
 			throw new NotImplementedException();
 		}

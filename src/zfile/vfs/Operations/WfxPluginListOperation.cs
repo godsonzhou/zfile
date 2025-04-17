@@ -29,7 +29,7 @@ namespace zfile
 
         protected override void Initialize()
         {
-            _wfxPluginFileSource.WfxModule.setStatusInfo(_currentPath, FsStatus.Start, FsStatusOperation.List);
+            _wfxPluginFileSource.WfxModule.setStatusInfo(_currentPath, (int)FsStatus.Start, (int)FsStatusOperation.List);
             _callbackDataClass.UpdateProgressFunction = UpdateProgress;
             UpdateProgressFunction = UpdateProgress;
         }
@@ -79,7 +79,7 @@ namespace zfile
 
         protected override void Finalize()
         {
-            _wfxPluginFileSource.WfxModule.setStatusInfo(_currentPath, FsStatus.End, FsStatusOperation.List);
+            _wfxPluginFileSource.WfxModule.setStatusInfo(_currentPath, (int)FsStatus.End, (int)FsStatusOperation.List);
             _callbackDataClass.UpdateProgressFunction = null;
             UpdateProgressFunction = null;
         }

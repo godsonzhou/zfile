@@ -180,7 +180,7 @@ namespace zfile;
             set 
             { 
                 _tarBefore = value;
-                if (_tarBefore && _wcxArchiveFileSource.WcxModule.PackToMem != null && 
+                if (_tarBefore && _wcxArchiveFileSource.WcxModule._packToMem != null && 
                     (_wcxArchiveFileSource.WcxModule.PluginCapabilities & WcxModule.PK_CAPS_MEMPACK) != 0)
                     NeedsConnection = (_wcxArchiveFileSource.WcxModule.BackgroundFlags & WcxModule.BACKGROUND_MEMPACK) == 0;
                 else

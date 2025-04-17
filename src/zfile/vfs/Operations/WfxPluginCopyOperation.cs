@@ -50,7 +50,7 @@ namespace zfile
 
         protected override void Initialize()
         {
-            _wfxPluginFileSource.WfxModule.setStatusInfo(SourceFiles.Path, FsStatus.Start, _infoOperation);
+            _wfxPluginFileSource.WfxModule.setStatusInfo(SourceFiles.Path, (int)FsStatus.Start, _infoOperation);
             _callbackDataClass.UpdateProgressFunction = UpdateProgress;
             UpdateProgressFunction = UpdateProgress;
 
@@ -93,12 +93,12 @@ namespace zfile
 
         protected override void MainExecute()
         {
-            _operationHelper.ProcessTree(_sourceFilesTree, _statistics);
+            _operationHelper.ProcessTree(_sourceFilesTree, ref _statistics);
         }
 
         protected override void Finalize()
         {
-            _wfxPluginFileSource.WfxModule.setStatusInfo(SourceFiles.Path, FsStatus.End, _infoOperation);
+            _wfxPluginFileSource.WfxModule.setStatusInfo(SourceFiles.Path, (int)FsStatus.End, _infoOperation);
             _callbackDataClass.UpdateProgressFunction = null;
             UpdateProgressFunction = null;
             FileExistsOption = _operationHelper.FileExistsOption;

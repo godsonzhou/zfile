@@ -1,5 +1,22 @@
 namespace zfile;
-
+public class StringHashListUtf8(bool flag)
+{
+	private bool _flag = flag;
+	
+}
+public class MaskList
+{
+	private string _mask;
+	public MaskList(string mask)
+	{
+		_mask = mask;
+	}
+	public bool Matches(string fileName)
+	{
+		// Implementation of matching logic
+		return true;
+	}
+}
 public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
 {
     private IWcxArchiveFileSource _wcxArchiveFileSource;

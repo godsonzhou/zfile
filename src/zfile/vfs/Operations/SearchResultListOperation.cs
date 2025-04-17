@@ -19,7 +19,7 @@ namespace zfile
             // 目前"扁平模式"始终启用（添加树中的所有文件）
             if (FileSource.IsPathAtRoot(Path))
             {
-                AddNode(_fileSource.FileEntries);
+                AddNode(_fileSource.FileList);
             }
         }
 

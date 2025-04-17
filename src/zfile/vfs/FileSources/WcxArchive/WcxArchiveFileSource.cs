@@ -566,7 +566,31 @@ namespace zfile
         }
     }
 
-  
+	public class PasswordStore
+	{
+		public string prefix;
+		public string group;
+		public string archiveName;
+		public int mode;
+		public string password;
+		public static bool DeletePassword(string prefix, string group, string archiveName)
+		{
+			// Implement password deletion logic
+			return true;
+		}
+		public static bool WritePassword(string prefix, string group, string archiveName, string password)
+		{
+			// Implement password writing logic
+			return true;
+		}
+		public static bool ReadPassword(string prefix, string group, string archiveName, out string password)
+		{
+			// Implement password reading logic
+			password = string.Empty;
+			return true;
+		}
+		public static bool HasMasterKey => true;
+	}
 
     public class ModuleNotLoadedException : Exception
     {

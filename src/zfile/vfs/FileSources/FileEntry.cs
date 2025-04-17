@@ -931,80 +931,161 @@ public class FileEntries : IEnumerable<FileEntry>
 	}
 }
 
-public class FileTreeNode
+
+/// <summary>
+/// Represents a node in a file tree.
+/// </summary>
+public class FileTreeNode : IDisposable
 {
-    private FileEntry _file;
-    private List<FileTreeNode> _subNodes;
-    private object _data;
+	private readonly List<FileTreeNode> _subNodes;
+	private object _data;
+
+	/// <summary>
+	/// Gets the file associated with this node.
+	/// </summary>
+	//public FileEntry TheFile { get; }
+
+	private FileEntry _file;
+	public FileEntry TheFile => _file;
+
+	public object Data
+	{
+		get { return _data; }
+		set
+		{
+			if (_data != value)
+			{
+				_data = value;
+			}
+		}
+	}
+	//private List<FileTreeNode> _subNodes;
+	//private object _data;
 	public List<FileTreeNode> SubNodes => _subNodes;
-	public int SubNodesCount
-    {
-        get { return _subNodes.Count; }
-        set
-        {
-            if (value < _subNodes.Count)
-            {
-                _subNodes.RemoveRange(value, _subNodes.Count - value);
-            }
-            else if (value > _subNodes.Count)
-            {
-                for (int i = _subNodes.Count; i < value; i++)
-                {
-                    _subNodes.Add(null);
-                }
-            }
-        }
-    }
+	//public int SubNodesCount
+	//{
+	//	get { return _subNodes.Count; }
+	//	set
+	//	{
+	//		if (value < _subNodes.Count)
+	//		{
+	//			_subNodes.RemoveRange(value, _subNodes.Count - value);
+	//		}
+	//		else if (value > _subNodes.Count)
+	//		{
+	//			for (int i = _subNodes.Count; i < value; i++)
+	//			{
+	//				_subNodes.Add(null);
+	//			}
+	//		}
+	//	}
+	//}
+	///// <summary>
+	///// Gets the subnodes of this node.
+	///// </summary>
+	//public IReadOnlyList<FileTreeNode> SubNodes => _subNodes;
 
-    public FileTreeNode this[int index] => _subNodes[index];
+	/// <summary>
+	/// Gets the number of subnodes.
+	/// </summary>
+	public int SubNodesCount => _subNodes.Count;
 
-    public FileEntry TheFile => _file;
+	/// <summary>
+	/// Creates a new instance of the FileTreeNode class.
+	/// </summary>
+	public FileTreeNode()
+	{
+		_subNodes = new List<FileTreeNode>();
+	}
 
-    public object Data
-    {
-        get { return _data; }
-        set
-        {
-            if (_data != value)
-            {
-                _data = value;
-            }
-        }
-    }
+	/// <summary>
+	/// Creates a new instance of the FileTreeNode class with the specified file.
+	/// </summary>
+	/// <param name="file">The file associated with this node.</param>
+	//public FileTreeNode(FileEntry file) : this()
+	//{
+	//	TheFile = file;
+	//}
+	public FileTreeNode this[int index] => _subNodes[index];
 
-    public FileTreeNode()
-    {
-        _subNodes = new List<FileTreeNode>();
-    }
+	public FileTreeNode(FileEntry file) : this()
+	{
+		_file = file;
+	}
 
-    public FileTreeNode(FileEntry file) : this()
-    {
-        _file = file;
-    }
+	//public FileTreeNode(FileEntry file, Type dataType) : this(file)
+	//{
+	//	if (dataType != null)
+	//	{
+	//		_data = Activator.CreateInstance(dataType);
+	//	}
+	//}
+	
+	/// <summary>
+	/// Adds a subnode with the specified file.
+	/// </summary>
+	/// <param name="file">The file to add.</param>
+	/// <returns>The index of the added node.</returns>
+	public int AddSubNode(FileEntry file)
+	{
+		var node = new FileTreeNode(file);
+		_subNodes.Add(node);
+		return _subNodes.Count - 1;
+	}
 
-    public FileTreeNode(FileEntry file, Type dataType) : this(file)
-    {
-        if (dataType != null)
-        {
-            _data = Activator.CreateInstance(dataType);
-        }
-    }
+	/// <summary>
+	/// Removes a subnode at the specified index.
+	/// </summary>
+	/// <param name="index">The index of the subnode to remove.</param>
+	public void RemoveSubNode(int index)
+	{
+		if (index >= 0 && index < _subNodes.Count)
+		{
+			_subNodes.RemoveAt(index);
+		}
+	}
+
+	/// <summary>
+	/// Disposes the object.
+	/// </summary>
+	public void Dispose()
+	{
+		foreach (var node in _subNodes)
+		{
+			node.Dispose();
+		}
+		_subNodes.Clear();
+		(_data as IDisposable)?.Dispose();
+	}
+
+	/// <summary>
+	/// Whether to process subdirectories recursively.
+	/// </summary>
+	public bool Recursive { get; set; }
+
+	/// <summary>
+	/// True if any of the subnodes (recursively) are links.
+	/// </summary>
+	public bool SubnodesHaveLinks { get; set; }
+
+	/// <summary>
+	/// Whether directory or subdirectories have any elements that will not be copied/moved.
+	/// </summary>
+	public bool SubnodesHaveExclusions { get; set; }
 
     ~FileTreeNode()
     {
         // In C# we don't need to manually free objects
     }
-
-    public int AddSubNode(FileEntry file)
-    {
-        var node = new FileTreeNode(file);
-        _subNodes.Add(node);
-        return _subNodes.Count - 1;
-    }
-
-    public void RemoveSubNode(int index)
-    {
-        _subNodes.RemoveAt(index);
-    }
 }
 
+/// <summary>
+/// Creates a new instance of the FileTreeNodeData class.
+/// </summary>
+/// <param name="recursive">Whether to process subdirectories recursively.</param>
+public class FileTreeNodeData(bool recursive)
+{
+	public bool Recursive = recursive;
+	public bool SubnodesHaveLinks = false;
+	public bool SubnodesHaveExclusions = false;
+}

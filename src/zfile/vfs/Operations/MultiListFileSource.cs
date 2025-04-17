@@ -50,7 +50,7 @@ namespace zfile
             DoReload(reloadedPaths);
         }
 
-        protected override void DoReload(string[] pathsToReload)
+        public override void DoReload(string[] pathsToReload)
         {
             // 实现重新加载逻辑
         }
@@ -66,7 +66,7 @@ namespace zfile
             // 其他操作只有在文件源支持时才支持
             // 但这只适用于单个文件源
             return FileSourceOperationType.List |
-                   (_fileSource.GetOperationsTypes() &
+                   (_fileSource.OperationsTypes &
                     (FileSourceOperationType.CopyOut |
                      FileSourceOperationType.Delete |
                      FileSourceOperationType.Wipe |

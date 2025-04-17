@@ -16,7 +16,8 @@ namespace zfile
 
         void FillAndCount(string fileMask, FileEntries files, bool countDirs,
             out FileEntries newFiles, out long filesCount, out long filesSize);
-    }
+		bool ReadArchive();
+	}
 
     public class MultiArchiveFileSource : ArchiveFileSource, IMultiArchiveFileSource
     {
@@ -135,5 +136,10 @@ namespace zfile
             // 实现读取归档
             return false;
         }
-    }
+
+		public bool ReadArchive()
+		{
+			throw new NotImplementedException();
+		}
+	}
 } 

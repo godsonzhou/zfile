@@ -7,9 +7,9 @@ namespace zfile
     {
         private IFileOperation fileOp;
         private IShellItem targetFolder;
-        private List<IntPtr> sourceFilesTree;
+        protected List<IntPtr> sourceFilesTree;
         private IShellFileSource shellFileSource;
-        private FileSourceCopyOperationStatistics statistics;
+        protected FileSourceCopyOperationStatistics statistics;
 
         public ShellCopyOperation(IFileSource sourceFileSource,
                                 IFileSource targetFileSource,
@@ -131,7 +131,7 @@ namespace zfile
         {
         }
 
-        public override FileSourceOperationType GetID()
+        protected override FileSourceOperationType GetID()
         {
             return FileSourceOperationType.CopyIn;
         }

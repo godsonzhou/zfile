@@ -8,7 +8,7 @@ namespace zfile
 
         public MultiArchiveListOperation(
             IMultiArchiveFileSource fileSource,
-            string targetPath)
+            string targetPath) : base( fileSource )
         {
             _multiArchiveFileSource = fileSource;
             _targetPath = targetPath;

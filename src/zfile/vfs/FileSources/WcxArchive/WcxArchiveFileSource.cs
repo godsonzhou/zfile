@@ -296,7 +296,7 @@ namespace zfile
             NotifyNextWaitingOperation(allowedOps);
         }
 
-        protected override void DoReload(string[] pathsToReload)
+        public override void DoReload(string[] pathsToReload)
         {
             ReadArchive();
         }

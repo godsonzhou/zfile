@@ -30,9 +30,9 @@ namespace zfile
             return FileSystemFileSource.CreateFile(path);
         }
 
-        public override IFileSourceOperation? CreateListOperation(string targetPath)
+        public override FileSourceOperation? CreateListOperation(string targetPath)
         {
-            return new SearchResultListOperation(this, targetPath) as IFileSourceOperation;
+            return new SearchResultListOperation(this, targetPath);
         }
 
         public override bool GetLocalName(ref FileEntry file)

@@ -22,6 +22,7 @@ public enum FilePropertyType : uint
 	Extension = 1 << 12,
 	ChangeTime = 1 << 13,
 	Variant = 1 << 14,
+	Standard = Name | Size | Attributes | ModificationTime | CreationTime | LastAccessTime | Link | Owner | Group | Type | Comment | CompressedSize | Extension | ChangeTime,
 	All = 0xffffffff
 }
 public class UnixFileAttributesProperty : FileProperty

@@ -24,7 +24,8 @@ namespace zfile
 	[Flags]
 	public enum MultiArcFlag
 	{
-		FileNameList = 1
+		FileNameList = 1,
+		SmartExtract = 2
 	}
 
 	/// <summary>

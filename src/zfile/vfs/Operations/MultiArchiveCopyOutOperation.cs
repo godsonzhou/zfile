@@ -51,7 +51,7 @@ namespace zfile
                 _exProcess.StartInfo.RedirectStandardInput = true;
             }
 
-            if (_fileSource.MultiArcItem.Flags.HasFlag(ExtractFlags.SmartExtract))
+            if (_fileSource.MultiArcItem.Flags.HasFlag(MultiArcFlag.SmartExtract))
             {
                 int count = 0;
                 var arcFileEntries = _fileSource.ArchiveFileEntries.Clone();

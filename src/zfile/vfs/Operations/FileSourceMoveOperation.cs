@@ -120,7 +120,7 @@ namespace zfile
         /// Updates the statistics for this operation
         /// </summary>
         /// <param name="newStatistics">The new statistics to update with</param>
-        protected void UpdateStatistics(FileSourceCopyOperationStatistics newStatistics)
+        protected void UpdateStatistics(FileSourceMoveOperationStatistics newStatistics)
         {
             lock (_statisticsLock)
             {

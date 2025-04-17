@@ -114,7 +114,7 @@ namespace zfile
 						{
 							if ((SFGAOF_DEFAULT & rgfInOut) == (uint)SFGAO.FOLDER)
 							{
-								string deviceId = GetDisplayName(folder, pidl, SHGDN.FORPARSING);
+								string deviceId = API.GetDisplayName(folder, pidl, SHGDN.FORPARSING);
 								if (deviceId.Contains("\\\\?\\usb"))
 								{
 									var drive = new Drive();

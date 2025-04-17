@@ -307,7 +307,7 @@ namespace zfile
 
                 if (CheckFreeSpace)
                 {
-                    long requiredSpace = file.Length;
+                    long requiredSpace = file.Size;
                     if (Verify)
                         requiredSpace *= 2;
                     if (ReserveSpace)
@@ -337,7 +337,7 @@ namespace zfile
                         if ((CopyAttributesOptions & CopyAttributesOption.CopyTime) != 0)
                         {
                             File.SetCreationTime(targetFilePath, file.CreationTime);
-                            File.SetLastWriteTime(targetFilePath, file.LastWriteTime);
+                            File.SetLastWriteTime(targetFilePath, file.ModificationTime);
                             File.SetLastAccessTime(targetFilePath, file.LastAccessTime);
                         }
                     }
@@ -356,13 +356,13 @@ namespace zfile
                 }
 
                 _statistics.DoneFiles++;
-                _statistics.DoneBytes += file.Length;
+                _statistics.DoneBytes += file.Size;
                 _updateStatistics(_statistics);
             }
             catch (Exception)
             {
                 _statistics.FailedFiles++;
-                _statistics.FailedBytes += file.Length;
+                _statistics.FailedBytes += file.Size;
                 _updateStatistics(_statistics);
             }
         }

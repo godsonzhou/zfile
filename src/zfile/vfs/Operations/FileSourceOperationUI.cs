@@ -35,14 +35,29 @@ namespace zfile
         RetryAdmin,
         Unlock,
         // Actions will never be returned since they do not close the window, handle them in ActionHandler.
-        CompareAction // The first action, hardcoded. Add new actions after this.
-    }
+        CompareAction, // The first action, hardcoded. Add new actions after this.
+ 
+		/// <summary>
+		/// Resume all response.
+		/// </summary>
+		ResumeAll,
 
-    /// <summary>
-    /// Delegate for handling UI actions
-    /// </summary>
-    /// <param name="action">The action to handle</param>
-    public delegate void FileSourceOperationUIActionHandler(FileSourceOperationUIResponse action);
+		/// <summary>
+		/// Rename response.
+		/// </summary>
+		Rename,
+
+		/// <summary>
+		/// Rename all response.
+		/// </summary>
+		RenameAll,
+	
+	}
+	/// <summary>
+	/// Delegate for handling UI actions
+	/// </summary>
+	/// <param name="action">The action to handle</param>
+	public delegate void FileSourceOperationUIActionHandler(FileSourceOperationUIResponse action);
 
     /// <summary>
     /// General interface for communication: operation <-> user

@@ -6,7 +6,7 @@ namespace zfile
 		Follow = 1,
 		DontFollow = 2
 	}
-
+	
 	public class FileSystemCalcStatisticsOperation : FileSourceCalcStatisticsOperation
     {
         private FileSourceCalcStatisticsOperationStatistics statistics; // 统计信息的本地副本

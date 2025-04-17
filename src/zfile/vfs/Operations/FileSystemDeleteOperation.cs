@@ -1,6 +1,25 @@
 namespace zfile
 {
-    public class FileSystemDeleteOperation : FileSourceDeleteOperation
+	public class Description(bool flag)
+	{
+		// Constructor logic here
+		private bool Flag = flag;
+		private string content;
+		public void Clear()
+		{
+			content = string.Empty;
+		}
+		public void DeleteDescription(string fileName)
+		{
+			// Logic to delete description
+			content = string.Empty;
+		}
+		public void Reset()
+		{
+
+		}
+	}
+	public class FileSystemDeleteOperation : FileSourceDeleteOperation
     {
         private FileEntries fullFilesTreeToDelete;  // 源文件，包括所有子目录中的文件/目录
         private FileSourceDeleteOperationStatistics statistics; // 统计信息的本地副本
@@ -296,9 +315,9 @@ namespace zfile
 #endif
                             question += Environment.NewLine + GetLastErrorMessage(lastError);
                         }
+						FileSourceOperationUIResponse[] possibleResponses;
 
 #if MSWINDOWS
-                        FileSourceOperationUIResponse[] possibleResponses;
                         if (ElevateAction != DuplicateAction.Accept && ElevationRequired(lastError))
                         {
                             possibleResponses = new FileSourceOperationUIResponse[] {
@@ -311,8 +330,8 @@ namespace zfile
                         }
                         else
 #endif
-                        {
-                            possibleResponses = new FileSourceOperationUIResponse[] {
+						{
+							possibleResponses = new FileSourceOperationUIResponse[] {
                                 FileSourceOperationUIResponse.Retry,
                                 FileSourceOperationUIResponse.Skip,
                                 FileSourceOperationUIResponse.SkipAll,

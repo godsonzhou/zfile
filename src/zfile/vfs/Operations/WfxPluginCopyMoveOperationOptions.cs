@@ -76,11 +76,11 @@ namespace zfile
 		{
 			if (cbCopyTime.Checked)
 			{
-				copyOperation.CopyAttributesOptions |= CopyAttributesOptions.CopyTime;
+				copyOperation.CopyAttributesOptions |= CopyAttributesOption.CopyTime;
 			}
 			else
 			{
-				copyOperation.CopyAttributesOptions &= ~CopyAttributesOptions.CopyTime;
+				copyOperation.CopyAttributesOptions &= ~CopyAttributesOption.CopyTime;
 			}
 		}
 

@@ -55,7 +55,7 @@ namespace zfile
 		private bool _skipCopyError;
 		private bool _autoRenameItSelf;
 		private bool _correctSymLinks;
-		private CopyAttributesOptions _copyAttributesOptions;
+		private CopyAttributesOption _copyAttributesOptions;
 		private FileSourceOperationUIResponse _maxPathOption;
 		private FileSourceOperationOptionGeneral _copyOnWrite;
 		private FileSourceOperationUIResponse _deleteFileOption;
@@ -111,7 +111,7 @@ namespace zfile
 		public FileSourceOperationOptionSetPropertyError SetPropertyError { get; set; }
 		public bool SkipAllBigFiles { get; set; }
 		public bool AutoRenameItSelf { get; set; }
-		public CopyAttributesOptions CopyAttributesOptions { get; set; }
+		public CopyAttributesOption CopyAttributesOptions { get; set; }
 		public bool CorrectSymLinks { get; set; }
 		public string RenameMask { get; set; }
 

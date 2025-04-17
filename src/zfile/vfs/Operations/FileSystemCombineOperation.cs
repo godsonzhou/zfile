@@ -1,6 +1,11 @@
 namespace zfile
 {
-    public class FileSystemCombineOperation : FileSourceCombineOperation
+	public class FileSourceCombineOperationStatistics
+	{
+		public FileSourceCombineOperationStatistics() { }
+	}
+
+	public class FileSystemCombineOperation : FileSourceCombineOperation
     {
         private FileEntries? fullFilesTreeToCombine;  // 源文件，包括所有文件
         private FileSourceCombineOperationStatistics statistics; // 统计信息的本地副本

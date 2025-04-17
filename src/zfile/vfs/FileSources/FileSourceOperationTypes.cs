@@ -34,7 +34,7 @@ namespace zfile
 	}
 
 	[Flags]
-	public enum CopyAttributesOption
+	public enum CopyAttributesOption : uint
 	{
 		None = 0,
 		CopyAttributes = 1,
@@ -42,7 +42,14 @@ namespace zfile
 		CopyTime = 4,
 		CopyOwnership = 8,
 		CopyPermissions = 16,
-		RemoveReadOnlyAttr = 32
+		RemoveReadOnlyAttr = 32,
+		/// <summary>Copy mode (Unix)</summary>
+		CopyMode = 64,
+		/// <summary>Copy owner (Unix)</summary>
+		CopyOwner = 128,
+		/// <summary>Copy security attributes (Windows)</summary>
+		CopySecurity = 256,
+		All = CopyAttributes | CopyXattributes | CopyTime | CopyOwnership | CopyPermissions | RemoveReadOnlyAttr | CopyMode | CopyOwner | CopySecurity
 	}
 
 	public enum FileSourceOperationOptionGeneral

@@ -2,7 +2,7 @@ namespace zfile
 {
     public class FileSystemMoveOperation : FileSourceMoveOperation
     {
-        private CopyAttributesOptions copyAttributesOptions;
+        private CopyAttributesOption copyAttributesOptions;
         private FileSystemOperationHelper operationHelper;
         private bool excludeEmptyTemplateDirectories;
         private SearchTemplate searchTemplate;
@@ -21,13 +21,13 @@ namespace zfile
             : base(fileSource, sourceFiles, targetPath)
         {
             // 读取全局设置
-            copyAttributesOptions = new CopyAttributesOptions();
+            copyAttributesOptions = new CopyAttributesOption();
             if (GlobalSettings.OperationOptionCopyAttributes)
-                copyAttributesOptions |= CopyAttributesOptions.CopyAttributes;
+                copyAttributesOptions |= CopyAttributesOption.CopyAttributes;
             if (GlobalSettings.OperationOptionCopyTime)
-                copyAttributesOptions |= CopyAttributesOptions.CopyTime;
+                copyAttributesOptions |= CopyAttributesOption.CopyTime;
             if (GlobalSettings.OperationOptionCopyOwnership)
-                copyAttributesOptions |= CopyAttributesOptions.CopyOwner;
+                copyAttributesOptions |= CopyAttributesOption.CopyOwner;
 
             FileExistsOption = GlobalSettings.OperationOptionFileExists;
             DirExistsOption = GlobalSettings.OperationOptionDirectoryExists;
@@ -158,7 +158,7 @@ namespace zfile
             set => reserveSpace = value;
         }
 
-        public CopyAttributesOptions CopyAttributesOptions
+        public CopyAttributesOption CopyAttributesOptions
         {
             get => copyAttributesOptions;
             set => copyAttributesOptions = value;

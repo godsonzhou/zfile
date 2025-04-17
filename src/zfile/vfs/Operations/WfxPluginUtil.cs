@@ -83,7 +83,7 @@ namespace zfile
         private bool _renamingRootDir;
         private bool _internal;
         private FileSourceCopyOperationStatistics _statistics;
-        private CopyAttributesOptions _copyAttributesOptions;
+        private CopyAttributesOption _copyAttributesOptions;
         private FileSourceOperationOptionFileExists _fileExistsOption;
 
         private FileEntry _currentFile;
@@ -137,7 +137,7 @@ namespace zfile
             set => _fileExistsOption = value;
         }
 
-        public CopyAttributesOptions CopyAttributesOptions
+        public CopyAttributesOption CopyAttributesOptions
         {
             get => _copyAttributesOptions;
             set => _copyAttributesOptions = value;

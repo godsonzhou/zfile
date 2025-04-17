@@ -13,7 +13,7 @@ namespace zfile
         private int _errorLevel;
         private string _commandLine;
 
-        public MultiArchiveDeleteOperation(IFileSource fileSource, FileEntry[] filesToDelete)
+        public MultiArchiveDeleteOperation(IFileSource fileSource, FileEntries filesToDelete)
             : base(fileSource, filesToDelete)
         {
             _fileSource = fileSource as IMultiArchiveFileSource;

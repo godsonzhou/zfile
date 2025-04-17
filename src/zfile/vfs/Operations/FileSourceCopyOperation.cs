@@ -14,7 +14,7 @@ namespace zfile
         private string _renameMask;
 
         protected string _targetPath;
-        protected CopyAttributesOptions _copyAttributesOptions;
+        protected CopyAttributesOption _copyAttributesOptions;
         protected FileSourceOperationOptionSymLink _symLinkOption;
         protected FileSourceOperationOptionFileExists _fileExistsOption;
         protected FileSourceOperationOptionDirectoryExists _dirExistsOption;
@@ -74,7 +74,7 @@ namespace zfile
         /// <summary>
         /// Gets or sets the copy attributes options
         /// </summary>
-        public CopyAttributesOptions CopyAttributesOptions
+        public CopyAttributesOption CopyAttributesOptions
         {
             get => _copyAttributesOptions;
             set => _copyAttributesOptions = value;
@@ -123,7 +123,7 @@ namespace zfile
 
             // Set default copy time option based on global setting
             if (GlobalSettings.OperationOptionCopyTime)
-                _copyAttributesOptions |= CopyAttributesOptions.CopyTime;
+                _copyAttributesOptions |= CopyAttributesOption.CopyTime;
         }
 
         /// <summary>
@@ -303,28 +303,4 @@ namespace zfile
         }
     }
 
-    /// <summary>
-    /// Copy attributes options
-    /// </summary>
-    [Flags]
-    public enum CopyAttributesOptions
-    {
-        /// <summary>No options</summary>
-        None = 0,
-        
-        /// <summary>Copy time attributes</summary>
-        CopyTime = 1 << 0,
-        
-        /// <summary>Copy attributes</summary>
-        CopyAttributes = 1 << 1,
-        
-        /// <summary>Copy mode (Unix)</summary>
-        CopyMode = 1 << 2,
-        
-        /// <summary>Copy owner (Unix)</summary>
-        CopyOwner = 1 << 3,
-        
-        /// <summary>Copy security attributes (Windows)</summary>
-        CopySecurity = 1 << 4
-    }
 }

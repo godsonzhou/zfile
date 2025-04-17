@@ -681,7 +681,7 @@ namespace zfile
                 _uiActionHandler);
             
             // Check if operation should be aborted
-            if (_uiResponse.Abort)
+            if (_uiResponse == FileSourceOperationUIResponse.Abort)
             {
                 throw new FileSourceOperationAbortingException();
             }

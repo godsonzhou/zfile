@@ -160,8 +160,8 @@ namespace zfile
             }
             else
             {
-                if (_askQuestion(message, "", new[] { FileSourceOperationUIAction.Skip, FileSourceOperationUIAction.Abort },
-                    FileSourceOperationUIAction.Skip, FileSourceOperationUIAction.Abort) == FileSourceOperationUIAction.Abort)
+                if (_askQuestion(message, "", new[] { FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort },
+                    FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort) == FileSourceOperationUIResponse.Abort)
                 {
                     _abortOperation();
                 }

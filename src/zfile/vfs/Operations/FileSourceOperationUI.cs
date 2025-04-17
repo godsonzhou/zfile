@@ -8,7 +8,9 @@ namespace zfile
         Invalid,
         Ok,
         No,
+		NoToAll,
         Yes,
+		YesToAll,
         Cancel,
         None,
         Append,      // for files
@@ -37,52 +39,10 @@ namespace zfile
     }
 
     /// <summary>
-    /// UI answers (excluding actions)
-    /// </summary>
-    //public enum FileSourceOperationUIResponse
-    //{
-    //    Invalid = FileSourceOperationUIResponse.Invalid,
-    //    Ok = FileSourceOperationUIResponse.Ok,
-    //    No = FileSourceOperationUIResponse.No,
-    //    Yes = FileSourceOperationUIResponse.Yes,
-    //    Cancel = FileSourceOperationUIResponse.Cancel,
-    //    None = FileSourceOperationUIResponse.None,
-    //    Append = FileSourceOperationUIResponse.Append,
-    //    Resume = FileSourceOperationUIResponse.Resume,
-    //    CopyInto = FileSourceOperationUIResponse.CopyInto,
-    //    CopyIntoAll = FileSourceOperationUIResponse.CopyIntoAll,
-    //    Overwrite = FileSourceOperationUIResponse.Overwrite,
-    //    OverwriteAll = FileSourceOperationUIResponse.OverwriteAll,
-    //    OverwriteOlder = FileSourceOperationUIResponse.OverwriteOlder,
-    //    OverwriteSmaller = FileSourceOperationUIResponse.OverwriteSmaller,
-    //    OverwriteLarger = FileSourceOperationUIResponse.OverwriteLarger,
-    //    AutoRenameSource = FileSourceOperationUIResponse.AutoRenameSource,
-    //    AutoRenameTarget = FileSourceOperationUIResponse.AutoRenameTarget,
-    //    RenameSource = FileSourceOperationUIResponse.RenameSource,
-    //    Skip = FileSourceOperationUIResponse.Skip,
-    //    SkipAll = FileSourceOperationUIResponse.SkipAll,
-    //    Ignore = FileSourceOperationUIResponse.Ignore,
-    //    IgnoreAll = FileSourceOperationUIResponse.IgnoreAll,
-    //    All = FileSourceOperationUIResponse.All,
-    //    Retry = FileSourceOperationUIResponse.Retry,
-    //    Abort = FileSourceOperationUIResponse.Abort,
-    //    RetryAdmin = FileSourceOperationUIResponse.RetryAdmin,
-    //    Unlock = FileSourceOperationUIResponse.Unlock
-    //}
-
-    /// <summary>
-    /// UI actions
-    /// </summary>
-    public enum FileSourceOperationUIAction
-    {
-        CompareAction = FileSourceOperationUIResponse.CompareAction
-    }
-
-    /// <summary>
     /// Delegate for handling UI actions
     /// </summary>
     /// <param name="action">The action to handle</param>
-    public delegate void FileSourceOperationUIActionHandler(FileSourceOperationUIAction action);
+    public delegate void FileSourceOperationUIActionHandler(FileSourceOperationUIResponse action);
 
     /// <summary>
     /// General interface for communication: operation <-> user

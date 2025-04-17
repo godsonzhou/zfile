@@ -243,9 +243,9 @@ namespace zfile;
                 _wcxArchiveFileSource.WcxModule.SetProcessDataProc(arcData, ProcessDataProcAT, ProcessDataProcWT);
         }
 
-        private void QuestionActionHandler(FileSourceOperationUIAction action)
+        private void QuestionActionHandler(FileSourceOperationUIResponse action)
         {
-            if (action == FileSourceOperationUIAction.CompareAction)
+            if (action == FileSourceOperationUIResponse.CompareAction)
                 ShowCompareFilesUI(_currentFile, Helper.IncludeFrontPathDelimiter(_currentTargetFilePath));
         }
 

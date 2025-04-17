@@ -24,7 +24,7 @@ namespace zfile
                     var file = VfsFileSource.CreateFile(Path);
                     file.Name = _vfsFileSource.VfsFileEntries.Name[i];
                     file.Attributes = FileAttributes.Normal | FileAttributes.Virtual;
-                    file.LinkProperty.LinkTarget = Path.GetFullPath(_vfsFileSource.VfsFileEntries.FileName[i]);
+                    file.LinkProperty.LinkTarget = System.IO.Path.GetFullPath(_vfsFileSource.VfsFileEntries.FileName[i]);
                     Files.Add(file);
                 }
             }

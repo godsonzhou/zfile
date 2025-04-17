@@ -28,7 +28,7 @@ namespace zfile
 
         protected override void Initialize()
         {
-            _wfxPluginFileSource.WfxModule.setStatusInfo(FilesToDelete.Path, FsStatus.Start, FsStatusOperation.Delete);
+            _wfxPluginFileSource.WfxModule.setStatusInfo(FilesToDelete.Path, (int)FsStatus.Start, (int)FsStatusOperation.Delete);
             _statistics = RetrieveStatistics();
             _wfxPluginFileSource.FillAndCount(FilesToDelete, true, false, out _fullFilesTreeToDelete, out _statistics.TotalFiles, out _statistics.TotalBytes);
         }
@@ -54,7 +54,7 @@ namespace zfile
 
         protected override void Finalize()
         {
-            _wfxPluginFileSource.WfxModule.setStatusInfo(FilesToDelete.Path, FsStatus.End, FsStatusOperation.Delete);
+            _wfxPluginFileSource.WfxModule.setStatusInfo(FilesToDelete.Path, (int)FsStatus.End, (int)FsStatusOperation.Delete);
         }
 
         private bool ProcessFile(FileEntry file)

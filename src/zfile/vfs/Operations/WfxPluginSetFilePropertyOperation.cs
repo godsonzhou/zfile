@@ -26,7 +26,7 @@ namespace zfile
 
         protected override void Initialize()
         {
-            _wfxPluginFileSource.WfxModule.setStatusInfo(TargetFiles.Path, FsStatus.Start, FsStatusOperation.Attrib);
+            _wfxPluginFileSource.WfxModule.setStatusInfo(TargetFiles.Path, (int)FsStatus.Start, (int)FsStatusOperation.Attrib);
             _statistics = RetrieveStatistics();
 
             if (!Recursive)
@@ -64,7 +64,7 @@ namespace zfile
 
         protected override void Finalize()
         {
-            _wfxPluginFileSource.WfxModule.setStatusInfo(TargetFiles.Path, FsStatus.End, FsStatusOperation.Attrib);
+            _wfxPluginFileSource.WfxModule.setStatusInfo(TargetFiles.Path, (int)FsStatus.End, (int)FsStatusOperation.Attrib);
         }
 
         protected override SetFilePropertyResult SetNewProperty(FileEntry file, FileProperty templateProperty)

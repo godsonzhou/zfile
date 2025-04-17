@@ -157,11 +157,11 @@ namespace zfile
         /// </summary>
         /// <param name="button">The message box action button</param>
         /// <returns>The UI action</returns>
-        private FileSourceOperationUIAction ButtonToUIAction(MessageBoxActionButton button)
+        private FileSourceOperationUIResponse ButtonToUIAction(MessageBoxActionButton button)
         {
             switch (button)
             {
-                case MessageBoxActionButton.Compare: return FileSourceOperationUIAction.CompareAction;
+                case MessageBoxActionButton.Compare: return FileSourceOperationUIResponse.CompareAction;
                 default: throw new ArgumentException("Unknown action button", nameof(button));
             }
         }

@@ -202,7 +202,7 @@ namespace zfile
 			return FileSourceOperationOptionDirectoryExists.None;
 		}
 
-		private void QuestionActionHandler(FileSourceOperationUIAction action)
+		private void QuestionActionHandler(FileSourceOperationUIResponse action)
 		{
 			// 处理问题操作
 		}

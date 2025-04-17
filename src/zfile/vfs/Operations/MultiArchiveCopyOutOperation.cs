@@ -51,7 +51,7 @@ namespace zfile
                 _exProcess.StartInfo.RedirectStandardInput = true;
             }
 
-            if (_fileSource.MultiArcItem.ExtractFlags.HasFlag(ExtractFlags.SmartExtract))
+            if (_fileSource.MultiArcItem.Flags.HasFlag(ExtractFlags.SmartExtract))
             {
                 int count = 0;
                 var arcFileEntries = _fileSource.ArchiveFileEntries.Clone();
@@ -210,20 +210,20 @@ namespace zfile
                     var action = AskQuestion(
                         "文件已存在",
                         $"文件 {file.Name} 已存在。是否覆盖？",
-                        new[] { FileSourceOperationUIAction.Yes, FileSourceOperationUIAction.No, FileSourceOperationUIAction.YesToAll, FileSourceOperationUIAction.NoToAll },
-                        FileSourceOperationUIAction.Yes,
-                        FileSourceOperationUIAction.No);
+                        new[] { FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.No, FileSourceOperationUIResponse.YesToAll, FileSourceOperationUIResponse.NoToAll },
+                        FileSourceOperationUIResponse.Yes,
+                        FileSourceOperationUIResponse.No);
 
                     switch (action)
                     {
-                        case FileSourceOperationUIAction.Yes:
+                        case FileSourceOperationUIResponse.Yes:
                             return FileSourceOperationOptionFileExists.Overwrite;
-                        case FileSourceOperationUIAction.No:
+                        case FileSourceOperationUIResponse.No:
                             return FileSourceOperationOptionFileExists.Skip;
-                        case FileSourceOperationUIAction.YesToAll:
+                        case FileSourceOperationUIResponse.YesToAll:
                             FileExistsOption = FileSourceOperationOptionFileExists.Overwrite;
                             return FileSourceOperationOptionFileExists.Overwrite;
-                        case FileSourceOperationUIAction.NoToAll:
+                        case FileSourceOperationUIResponse.NoToAll:
                             FileExistsOption = FileSourceOperationOptionFileExists.Skip;
                             return FileSourceOperationOptionFileExists.Skip;
                     }
@@ -287,7 +287,7 @@ namespace zfile
             }
         }
 
-        private void QuestionActionHandler(FileSourceOperationUIAction action)
+        private void QuestionActionHandler(FileSourceOperationUIResponse action)
         {
             // 实现问题处理
         }

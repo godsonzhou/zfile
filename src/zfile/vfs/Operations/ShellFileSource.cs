@@ -16,6 +16,7 @@ namespace zfile
 		private IntPtr _drives;
 		private IShellFolder2 _rootFolder;
 		private IShellFolder _desktopFolder;
+		private Dictionary<FileSourceOperationType, Type> OperationsClasses = new();
 
 		public ShellFileSource()
 		{

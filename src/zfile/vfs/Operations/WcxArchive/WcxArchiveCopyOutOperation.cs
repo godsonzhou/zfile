@@ -263,9 +263,9 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
         return result;
     }
 
-    private void QuestionActionHandler(FileSourceOperationUIAction action)
+    private void QuestionActionHandler(FileSourceOperationUIResponse action)
     {
-        if (action == FileSourceOperationUIAction.CompareAction)
+        if (action == FileSourceOperationUIResponse.CompareAction)
         {
             var file = new FileEntry("");
             try

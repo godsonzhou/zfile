@@ -3,7 +3,12 @@ using System.Text;
 
 namespace zfile
 {
-    public class FileSystemSplitOperation : FileSourceSplitOperation
+	public struct FileSourceSplitOperationStatistics
+	{
+
+	}
+
+	public class FileSystemSplitOperation : FileSourceSplitOperation
     {
         private FileSourceSplitOperationStatistics statistics;
         private string targetPath;
@@ -38,7 +43,7 @@ namespace zfile
         protected override void Initialize()
         {
             // 获取初始化的统计信息
-            statistics = RetrieveStatistics;
+            statistics = RetrieveStatistics();
 
             statistics.CurrentFileFrom = SourceFile.FullPath;
             statistics.TotalFiles = VolumeNumber;

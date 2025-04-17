@@ -255,9 +255,9 @@ namespace zfile
             return result;
         }
 
-        private void QuestionActionHandler(FileSourceOperationUIAction action)
+        private void QuestionActionHandler(FileSourceOperationUIResponse action)
         {
-            if (action == FileSourceOperationUIAction.CompareAction)
+            if (action == FileSourceOperationUIResponse.CompareAction)
             {
                 ShowCompareFilesUI(currentFile, currentTargetFilePath);
             }

@@ -33,7 +33,7 @@ namespace zfile
     /// <summary>
     /// Statistics for set file property operation
     /// </summary>
-    public struct FileSourceSetFilePropertyOperationStatistics
+    public class FileSourceSetFilePropertyOperationStatistics
     {
         /// <summary>
         /// Current file being processed

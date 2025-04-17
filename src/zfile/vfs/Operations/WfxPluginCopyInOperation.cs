@@ -63,7 +63,7 @@ public class WfxPluginCopyInOperation : FileSourceCopyInOperation
 
 	protected override void Initialize()
 	{
-		_wfxPluginFileSource.WfxModule.setStatusInfo(TargetPath, FS_STATUS_START, _infoOperation);
+		_wfxPluginFileSource.WfxModule.setStatusInfo(TargetPath, (int)FsStatus.Start, _infoOperation);
 		_callbackDataClass.UpdateProgressFunction = UpdateProgress;
 		UpdateProgressFunction = UpdateProgress;
 
@@ -73,7 +73,7 @@ public class WfxPluginCopyInOperation : FileSourceCopyInOperation
 		try
 		{
 			treeBuilder.ElevateAction = DuplicateAction.Error;
-			treeBuilder.SymLinkOption = FileSourceOperationSymLinkOption.Follow;
+			treeBuilder.SymLinkOption = FileSourceOperationOptionSymLink.Follow;
 			treeBuilder.BuildFromFiles(SourceFiles);
 			_sourceFilesTree = treeBuilder.ReleaseTree();
 			_statistics.TotalFiles = treeBuilder.FilesCount;

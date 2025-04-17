@@ -645,11 +645,11 @@ namespace zfile
 		private readonly List<FileSourceReloadEventHandler> _reloadEventListeners = new List<FileSourceReloadEventHandler>();
 		private readonly List<FileSourceConnection> _connections = new List<FileSourceConnection>();
 		private readonly object _syncRoot = new object();
-
+		protected Dictionary<FileSourceOperationType, Type> OperationsClasses = new();
 		/// <summary>
 		/// Gets the URI of this file source
 		/// </summary>
-		public abstract Uri Uri { get; }
+		public virtual Uri Uri { get; }
 
 		/// <summary>
 		/// Gets the class name of this file source
@@ -664,7 +664,7 @@ namespace zfile
 		/// <summary>
 		/// Gets the file system of this file source
 		/// </summary>
-		public abstract string FileSystem { get; }
+		public virtual string FileSystem { get; }
 
 		/// <summary>
 		/// Gets the current address of this file source
@@ -674,7 +674,7 @@ namespace zfile
 		/// <summary>
 		/// Gets the current working directory of this file source
 		/// </summary>
-		public abstract string CurrentWorkingDirectory { get; }
+		public virtual string CurrentWorkingDirectory { get; }
 
 		/// <summary>
 		/// Gets the supported file properties of this file source

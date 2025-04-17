@@ -16,7 +16,6 @@ namespace zfile
 		private IntPtr _drives;
 		private IShellFolder2 _rootFolder;
 		private IShellFolder _desktopFolder;
-		private Dictionary<FileSourceOperationType, Type> OperationsClasses = new();
 
 		public ShellFileSource()
 		{
@@ -72,7 +71,7 @@ namespace zfile
 				IntPtr drivesPidl;
 				IShellFolder desktopFolder;
 				w32.OleCheck(API.SHGetDesktopFolder(out desktopFolder));
-				w32.OleCheck(SHGetFolderLocation(IntPtr.Zero, CSIDL.DRIVES, IntPtr.Zero, 0, out drivesPidl));
+				w32.OleCheck(API.SHGetFolderLocation(IntPtr.Zero, CSIDL.DRIVES, IntPtr.Zero, 0, out drivesPidl));
 				try
 				{
 					return GetDisplayName(desktopFolder, drivesPidl, SHGDN.INFOLDER);
@@ -149,6 +148,26 @@ namespace zfile
 			{
 				Marshal.FreeCoTaskMem(drivesPidl);
 			}
+		}
+
+		public int CreateFolder(IShellFolder2 parent, string newDir)
+		{
+			throw new NotImplementedException();
+		}
+
+		public int FindFolder(string path, out IShellFolder2 folder)
+		{
+			throw new NotImplementedException();
+		}
+
+		public int FindObject(string obj, out nint pidl)
+		{
+			throw new NotImplementedException();
+		}
+
+		public int FindObject(IShellFolder2 parent, string name, out nint pidl)
+		{
+			throw new NotImplementedException();
 		}
 
 		// ... 其他接口实现 ...

@@ -34,7 +34,7 @@ namespace zfile
         /// <summary>
         /// Gets the packer used for this archive
         /// </summary>
-        public abstract string Packer { get; }
+        public virtual string Packer { get; }
 
         /// <summary>
         /// Gets the full path to the archive file on the parent file source

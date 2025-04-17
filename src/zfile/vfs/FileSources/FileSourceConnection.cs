@@ -22,11 +22,14 @@ namespace zfile
             get => _currentPath;
             set => _currentPath = value;
         }
-
-        /// <summary>
-        /// Creates a new instance of the FileSourceConnection class
-        /// </summary>
-        public FileSourceConnection()
+		protected virtual void SetCurrentPath(string path)
+		{
+			_currentPath = path;
+		}
+		/// <summary>
+		/// Creates a new instance of the FileSourceConnection class
+		/// </summary>
+		public FileSourceConnection()
         {
             _currentPath = string.Empty;
         }

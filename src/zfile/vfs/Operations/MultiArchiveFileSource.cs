@@ -1,6 +1,11 @@
 namespace zfile
 {
-    public interface IMultiArchiveFileSource : IArchiveFileSource
+	public enum MultiArcFormMode
+	{
+		UnixAttr = 1
+	}
+
+	public interface IMultiArchiveFileSource : IArchiveFileSource
     {
         string Password { get; }
         ThreadSafeList<FileEntry> ArchiveFileEntries { get; }
@@ -38,7 +43,7 @@ namespace zfile
             OperationsClasses[FileSourceOperationType.CopyIn] = typeof(MultiArchiveCopyInOperation);
             OperationsClasses[FileSourceOperationType.CopyOut] = typeof(MultiArchiveCopyOutOperation);
 
-            if ((multiArcItem.FormMode & MultiArcFormMode.UnixAttr) != 0)
+            if ((multiArcItem.FormMode & (int)MultiArcFormMode.UnixAttr) != 0)
             {
                 // 设置Unix属性相关配置
             }

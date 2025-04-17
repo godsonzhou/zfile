@@ -151,7 +151,7 @@ namespace zfile
 		/// File operations progress kind
 		/// </summary>
 		public static FileOperationsProgressKind FileOperationsProgressKind { get; set; } = FileOperationsProgressKind.SeparateWindow;
-		public static FileSourceOperationOptionGeneral OperationOptionSymLinks { get; set; } = FileSourceOperationOptionGeneral.AskUser;
+		public static FileSourceOperationOptionSymLink OperationOptionSymLinks { get; set; } = FileSourceOperationOptionSymLink.None;
         public static FileSourceOperationOptionSetPropertyError OperationOptionSetPropertyError { get; set; } = FileSourceOperationOptionSetPropertyError.Skip;
         public static bool OperationOptionReserveSpace { get; set; } = true;
         public static bool OperationOptionCheckFreeSpace { get; set; } = true;

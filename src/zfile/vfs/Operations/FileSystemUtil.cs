@@ -2,20 +2,55 @@ using System.Runtime.InteropServices;
 
 namespace zfile
 {
+	public struct FileAttributeData
+	{
+		public FileAttributes Attr;
+		public long Size;
+		public long LastWriteTime;
+		public long CreationTime;
+		public long LastAccessTime;
+	}
+
 	public static class FileSystemUtil
 	{
 		private const string HASH_TYPE = "HASH_BEST";
+		
+		public static DateTime FileTimeToDateTime(long fileTime)
+		{
+			return DateTime.FromFileTime(fileTime);
+		}
 		public static bool IsInPath(string path1, string path2, bool allowPartial, bool caseSensitive)
 		{
 			return path1.StartsWith(path2, caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
 		}
 		public static string ApplyRenameMask(FileEntry file, string nameMask, string extMask)
 		{
-			// 只对文件进行重命名
+			// Only rename files, not directories or links
 			if (file.IsDirectory || file.IsLink)
 				return file.Name;
 			else
-				return ApplyRenameMask(file, nameMask, extMask);
+				return ApplyRenameMask(file.Name, nameMask, extMask);
+		}
+
+		public static string ApplyRenameMask(string fileName, string nameMask, string extMask)
+		{
+			if (string.IsNullOrEmpty(nameMask) && string.IsNullOrEmpty(extMask))
+				return fileName;
+
+			string name = Path.GetFileNameWithoutExtension(fileName);
+			string ext = Path.GetExtension(fileName);
+			if (ext.StartsWith(".")) ext = ext.Substring(1);
+
+			if (!string.IsNullOrEmpty(nameMask) && nameMask != "*")
+				name = nameMask.Replace("*", name);
+
+			if (!string.IsNullOrEmpty(extMask) && extMask != "*")
+				ext = extMask.Replace("*", ext);
+
+			if (string.IsNullOrEmpty(ext))
+				return name;
+			else
+				return name + "." + ext;
 		}
 
 		public static void FillAndCount(
@@ -45,7 +80,7 @@ namespace zfile
 					newFiles.Add(file);
 					if (file.IsLink)
 					{
-						// 处理链接文件
+						// 锟斤拷锟斤拷锟斤拷锟斤拷锟侥硷拷
 					}
 					else if (file.IsDirectory)
 					{
@@ -73,7 +108,7 @@ namespace zfile
 
 					if (file.IsLink)
 					{
-						// 处理链接文件
+						// 锟斤拷锟斤拷锟斤拷锟斤拷锟侥硷拷
 					}
 					else if (file.IsDirectory)
 					{
@@ -99,64 +134,200 @@ namespace zfile
 				sourceTime);
 		}
 
-		internal static bool SetTimeExUAC(string fullPath, object fileTimeExNull1, object fileTimeExNull2, object value)
+		internal static bool SetTimeExUAC(string fullPath, DateTime? creationTime, DateTime? lastAccessTime, DateTime? lastWriteTime)
 		{
-			throw new NotImplementedException();
+			try
+			{
+				if (creationTime.HasValue)
+					File.SetCreationTime(fullPath, creationTime.Value);
+				if (lastAccessTime.HasValue)
+					File.SetLastAccessTime(fullPath, lastAccessTime.Value);
+				if (lastWriteTime.HasValue)
+					File.SetLastWriteTime(fullPath, lastWriteTime.Value);
+				return true;
+			}
+			catch
+			{
+				return false;
+			}
 		}
 
 		internal static bool RenameFileUAC(string oldName, string newName)
 		{
-			throw new NotImplementedException();
+			try
+			{
+				File.Move(oldName, newName);
+				return true;
+			}
+			catch
+			{
+				return false;
+			}
 		}
 
 		internal static bool GetAttributesUAC(string newName, out FileAttributeData newAttr)
 		{
-			throw new NotImplementedException();
+			newAttr = new FileAttributeData();
+			try
+			{
+				if (File.Exists(newName) || Directory.Exists(newName))
+				{
+					var fileInfo = new FileInfo(newName);
+					newAttr.Attr = fileInfo.Attributes;
+					newAttr.Size = fileInfo.Length;
+					newAttr.LastWriteTime = DateTime.ToFileTime(fileInfo.LastWriteTime);
+					newAttr.CreationTime = DateTime.ToFileTime(fileInfo.CreationTime);
+					newAttr.LastAccessTime = DateTime.ToFileTime(fileInfo.LastAccessTime);
+					return true;
+				}
+				return false;
+			}
+			catch
+			{
+				return false;
+			}
 		}
 
 		internal static bool IsDirectory(object attr)
 		{
-			throw new NotImplementedException();
+			if (attr is FileAttributes fileAttr)
+			{
+				return (fileAttr & FileAttributes.Directory) == FileAttributes.Directory;
+			}
+			return false;
 		}
 
 		internal static bool SetAttributesUAC(string fullPath, FileAttributes? value)
 		{
-			throw new NotImplementedException();
+			if (!value.HasValue)
+				return false;
+			
+			try
+			{
+				File.SetAttributes(fullPath, value.Value);
+				return true;
+			}
+			catch
+			{
+				return false;
+			}
 		}
 
 		internal static void GetDiskFreeSpace(string targetPath, out long freeSpace, out long totalSpace)
 		{
-			throw new NotImplementedException();
+			freeSpace = 0;
+			totalSpace = 0;
+			
+			try
+			{
+				string rootPath = Path.GetPathRoot(targetPath);
+				if (!string.IsNullOrEmpty(rootPath))
+				{
+					DriveInfo drive = new DriveInfo(rootPath);
+					freeSpace = drive.AvailableFreeSpace;
+					totalSpace = drive.TotalSize;
+				}
+			}
+			catch
+			{
+				// Return zeros on error
+			}
 		}
 
 		internal static void FileSetReadOnlyUAC(string fileName, bool v)
 		{
-			throw new NotImplementedException();
+			try
+			{
+				FileAttributes attributes = File.GetAttributes(fileName);
+				
+				if (v)
+					attributes |= FileAttributes.ReadOnly;
+				else
+					attributes &= ~FileAttributes.ReadOnly;
+				
+				File.SetAttributes(fileName, attributes);
+			}
+			catch
+			{
+				// Ignore errors
+			}
 		}
 
 		internal static bool FileFlush(nint handle)
 		{
-			throw new NotImplementedException();
+			try
+			{
+				return FlushFileBuffers(handle);
+			}
+			catch
+			{
+				return false;
+			}
 		}
+		
+		[DllImport("kernel32.dll", SetLastError = true)]
+		[return: MarshalAs(UnmanagedType.Bool)]
+		private static extern bool FlushFileBuffers(nint hFile);
 
-		internal static bool FileTruncate(nint handle, int v)
+		internal static bool FileTruncate(nint handle, int size)
 		{
-			throw new NotImplementedException();
+			try
+			{
+				return SetFilePointerEx(handle, size, IntPtr.Zero, 0) && SetEndOfFile(handle);
+			}
+			catch
+			{
+				return false;
+			}
 		}
+		
+		[DllImport("kernel32.dll", SetLastError = true)]
+		[return: MarshalAs(UnmanagedType.Bool)]
+		private static extern bool SetEndOfFile(nint hFile);
+		
+		[DllImport("kernel32.dll", SetLastError = true)]
+		[return: MarshalAs(UnmanagedType.Bool)]
+		private static extern bool SetFilePointerEx(nint hFile, long liDistanceToMove, IntPtr lpNewFilePointer, uint dwMoveMethod);
 
-		internal static bool FileAccess(string fileName, FileAccess write)
+		internal static bool FileAccess(string fileName, FileAccess access)
 		{
-			throw new NotImplementedException();
+			try
+			{
+				using (FileStream fs = new FileStream(fileName, FileMode.Open, access, FileShare.ReadWrite))
+				{
+					return true;
+				}
+			}
+			catch
+			{
+				return false;
+			}
 		}
 
 		internal static bool DeleteFileUAC(string tempFileName)
 		{
-			throw new NotImplementedException();
+			try
+			{
+				File.Delete(tempFileName);
+				return true;
+			}
+			catch
+			{
+				return false;
+			}
 		}
 
-		internal static bool RemoveDirectoryUAC(string tempFileName)
+		internal static bool RemoveDirectoryUAC(string directoryName)
 		{
-			throw new NotImplementedException();
+			try
+			{
+				Directory.Delete(directoryName);
+				return true;
+			}
+			catch
+			{
+				return false;
+			}
 		}
 	}
 
@@ -194,12 +365,50 @@ namespace zfile
 	{
 		protected override void AddLinkTarget(FileEntry file, FileTreeNode currentNode)
 		{
-			// 实现链接目标的添加
+			string linkedFilePath = Path.GetFullPath(file.FullPath);
+			if (!string.IsNullOrEmpty(linkedFilePath) && !(file.IsLinkToDirectory && FileSystemUtil.IsInPath(linkedFilePath, file.FullPath, true, true)))
+			{
+				try
+				{
+					FileEntry linkedFile = FileSystemFileSource.CreateFileFromFile(linkedFilePath);
+
+					// Add link to current node
+					var addedNode = currentNode.AddSubNode(file);
+					
+					// Then add linked file/directory as a subnode of the link
+					AddItem(linkedFile, addedNode);
+				}
+				catch
+				{
+					// Link target doesn't exist - add symlink instead of target
+					AddLink(file, currentNode);
+				}
+			}
+			else
+			{
+				// Error - cannot follow symlink - adding symlink instead of target
+				AddLink(file, currentNode);
+			}
 		}
 
 		protected override void AddFilesInDirectory(string srcPath, FileTreeNode currentNode)
 		{
-			// 实现目录中文件的添加
+			try
+			{
+				var entries = Directory.GetFileSystemEntries(srcPath);
+				foreach (var entry in entries)
+				{
+					string fileName = Path.GetFileName(entry);
+					if (fileName == "." || fileName == "..") continue;
+
+					FileEntry file = FileSystemFileSource.CreateFileFromFile(entry);
+					AddItem(file, currentNode);
+				}
+			}
+			catch
+			{
+				// Ignore errors
+			}
 		}
 	
 		private readonly Action<string, bool> _askQuestion;

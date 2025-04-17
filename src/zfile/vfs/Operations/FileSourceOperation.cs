@@ -692,6 +692,10 @@ namespace zfile
             return _uiResponse;
         }
         
+		internal void RaiseAbortOperation()
+		{
+			throw new FileSourceOperationAbortingException();
+		}
         /// <summary>
         /// Disposes resources
         /// </summary>

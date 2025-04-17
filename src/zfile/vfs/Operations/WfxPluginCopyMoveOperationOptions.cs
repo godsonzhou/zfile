@@ -127,7 +127,7 @@ namespace zfile
 
 	public class WfxPluginCopyInOperationOptionsUI : WfxPluginCopyMoveOperationOptionsUI
 	{
-		public WfxPluginCopyInOperationOptionsUI(Component owner, IFileSource fileSource)
+		public WfxPluginCopyInOperationOptionsUI(Control owner, IFileSource fileSource)
 			: base(owner, fileSource)
 		{
 			const int CAN_UPLOAD = BackgroundFlags.Upload | BackgroundFlags.AskUser;

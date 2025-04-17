@@ -101,7 +101,7 @@ namespace zfile
 				w32.OleCheck(folder.EnumObjects(IntPtr.Zero, (uint)(SHCONTF.FOLDERS | SHCONTF.STORAGE), out enumIdList));
 				string rootPath = "\\\\\\" + GetDisplayName(desktopFolder, drivesPidl, SHGDN.INFOLDER);
 
-				IntPtr pidl;
+				IntPtr[] pidl;
 				uint numIds;
 				int index = 0;
 				while (enumIdList.Next(1, out pidl, out numIds) == 0)

@@ -110,7 +110,7 @@ public class WfxPluginCopyInOperation : FileSourceCopyInOperation
 
 	protected override void MainExecute()
 	{
-		_operationHelper.ProcessTree(_sourceFilesTree, _statistics);
+		_operationHelper.ProcessTree(_sourceFilesTree, ref _statistics);
 	}
 
 	protected override void Finalize()

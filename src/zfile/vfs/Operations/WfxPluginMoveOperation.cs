@@ -1,6 +1,11 @@
 namespace zfile
 {
-    public class WfxPluginMoveOperation : FileSourceMoveOperation
+	public struct FileSourceMoveOperationStatistics
+	{
+
+	}
+
+	public class WfxPluginMoveOperation : FileSourceMoveOperation
     {
         private readonly IWfxPluginFileSource _wfxPluginFileSource;
         private WfxPluginOperationHelper _operationHelper;
@@ -15,7 +20,7 @@ namespace zfile
             _wfxPluginFileSource = fileSource as IWfxPluginFileSource;
             _callbackDataClass = (CallbackDataClass)_wfxPluginFileSource.WfxOperationList.Objects[_wfxPluginFileSource.PluginNumber];
 
-            _infoOperation = sourceFiles.Count > 1 ? FsStatusOperation.RenMovMulti : FsStatusOperation.RenMovSingle;
+            _infoOperation = (int)(sourceFiles.Count > 1 ? FsStatusOperation.RenMovMulti : FsStatusOperation.RenMovSingle);
         }
 
         private int UpdateProgress(string sourceName, string targetName, int percentDone)

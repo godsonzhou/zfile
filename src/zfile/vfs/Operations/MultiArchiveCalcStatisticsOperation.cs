@@ -101,7 +101,5 @@ namespace zfile
                 _fileSource.ArchiveFileEntries.UnlockList();
             }
         }
-
-      
     }
 } 

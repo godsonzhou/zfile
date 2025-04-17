@@ -1,6 +1,13 @@
 namespace zfile
 {
-    public class WfxPluginDeleteOperation : FileSourceDeleteOperation
+	public enum FileSourceOperationSymlinkOption
+	{
+		None = 0,
+		Follow = 1,
+		DontFollow = 2
+	}
+
+	public class WfxPluginDeleteOperation : FileSourceDeleteOperation
     {
         private readonly IWfxPluginFileSource _wfxPluginFileSource;
         private FileEntries _fullFilesTreeToDelete;

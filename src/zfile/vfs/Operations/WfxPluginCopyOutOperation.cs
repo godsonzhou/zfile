@@ -23,15 +23,15 @@ namespace zfile
             _needsConnection = value;
             if (!_needsConnection)
             {
-                _infoOperation = FsStatusOperation.GetMultiThread;
+                _infoOperation = (int)FsStatusOperation.GetMultiThread;
             }
             else if (SourceFiles.Count > 1)
             {
-                _infoOperation = FsStatusOperation.GetMulti;
+                _infoOperation = (int)FsStatusOperation.GetMulti;
             }
             else
             {
-                _infoOperation = FsStatusOperation.GetSingle;
+                _infoOperation = (int)FsStatusOperation.GetSingle;
             }
         }
 
@@ -71,7 +71,7 @@ namespace zfile
             _callbackDataClass.UpdateProgressFunction = UpdateProgress;
             UpdateProgressFunction = UpdateProgress;
 
-            _statistics = RetrieveStatistics;
+            _statistics = RetrieveStatistics();
 
             var treeBuilder = new WfxTreeBuilder(AskQuestion, CheckOperationState);
             try
@@ -133,4 +133,15 @@ namespace zfile
             set => SetNeedsConnection(value);
         }
     }
+	enum FsStatusOperation
+	{
+		GetMultiThread,
+		GetMulti,
+		GetSingle,
+		List,
+		RenMovMulti,
+		RenMovSingle,
+		Delete,
+		CalcSize
+	}
 }

@@ -14,6 +14,7 @@ namespace zfile
 	public partial class MainForm : Form
 	{
 		const int ILD_TRANSPARENT = 0x00000001;
+		//public static IntPtr Handle { get; set; }
 		public readonly FTPMGR fTPMGR;
 		public readonly AsyncFTPMGR asyncfTPMGR;
 		// Method to update thumbnail progress asynchronously

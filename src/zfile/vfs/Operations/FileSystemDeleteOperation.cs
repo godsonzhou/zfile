@@ -1,6 +1,6 @@
 namespace zfile
 {
-	public class Description(bool flag)
+	public class Description(bool flag) : IDisposable
 	{
 		// Constructor logic here
 		private bool Flag = flag;
@@ -17,6 +17,14 @@ namespace zfile
 		public void Reset()
 		{
 
+		}
+		public void SaveDescription()
+		{
+
+		}
+		public void Dispose()
+		{
+			// Dispose logic here
 		}
 	}
 	public class FileSystemDeleteOperation : FileSourceDeleteOperation

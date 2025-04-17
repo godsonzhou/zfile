@@ -107,8 +107,5 @@ namespace zfile
         public IntPtr hProcess;
     }
 
-    public static partial class MainForm
-    {
-        public static IntPtr Handle { get; set; }
-    }
+    
 } 

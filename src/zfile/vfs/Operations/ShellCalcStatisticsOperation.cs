@@ -71,9 +71,9 @@ namespace zfile
         {
             try
             {
-                IShellFolder2 folder;
+                //IShellFolder2 folder;
                 Guid iid = typeof(IShellFolder2).GUID;
-                w32.OleCheck(parent.BindToObject(objectPtr, IntPtr.Zero, ref iid, out folder));
+                w32.OleCheck(parent.BindToObject(objectPtr, IntPtr.Zero, ref iid, out IShellFolder2 folder));
 
                 IEnumIDList enumIDList;
                 w32.OleCheck(folder.EnumObjects(IntPtr.Zero,

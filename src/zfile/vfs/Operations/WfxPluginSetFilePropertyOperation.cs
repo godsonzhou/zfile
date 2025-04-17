@@ -13,8 +13,8 @@ namespace zfile
         private FileSourceSetFilePropertyOperationStatistics _statistics;
         private FileSourceOperationSymlinkOption _symLinkOption;
 
-        public WfxPluginSetFilePropertyOperation(IFileSource targetFileSource, ref FileEntries targetFiles, ref FileProperties newProperties)
-            : base(targetFileSource, targetFiles, ref newProperties)
+        public WfxPluginSetFilePropertyOperation(IFileSource targetFileSource, FileEntries targetFiles, FileProperty[] newProperties)
+            : base(targetFileSource, targetFiles, newProperties)
         {
             _symLinkOption = FileSourceOperationSymlinkOption.None;
             _fullFilesTree = null;
@@ -79,7 +79,7 @@ namespace zfile
                     {
 						var remotefileinfo = new RemoteFileInfo();
 						remotefileinfo.SizeLow = file.Size;
-						remotefileinfo.LastWriteTime = file.ModificationTime;
+						remotefileinfo.LastWriteTime = file.ModificationTime.ToFileTime();
 						if (_wfxPluginFileSource.WfxModule.MoveFile(file.Name, nameProperty.Value, false, remotefileinfo) != 0)
                         {
                             result = SetFilePropertyResult.Error;

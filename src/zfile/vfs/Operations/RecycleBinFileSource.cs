@@ -77,7 +77,7 @@ namespace zfile
                    FileSourceProperties.LinkToLocalFiles;
         }
 
-        public override IFileSourceOperation CreateListOperation(string targetPath)
+        public override FileSourceOperation CreateListOperation(string targetPath)
         {
             IFileSource targetFileSource = this;
             return new RecycleBinListOperation(targetFileSource, targetPath);

@@ -16,7 +16,7 @@ namespace zfile
         private bool _skipErrors;
         private FileSourceOperationOptionGeneral _deleteReadOnly;
 
-        public WfxPluginDeleteOperation(IFileSource targetFileSource, ref FileEntries filesToDelete)
+        public WfxPluginDeleteOperation(IFileSource targetFileSource, FileEntries filesToDelete)
             : base(targetFileSource, filesToDelete)
         {
             _symLinkOption = FileSourceOperationSymlinkOption.None;

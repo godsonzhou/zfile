@@ -30,7 +30,12 @@ namespace zfile
 		{
 
 		}
+		public string ReadDescription(string filepath) { 
+			return content;
+		}
+		
 	}
+
 	public class FileSystemDeleteOperation : FileSourceDeleteOperation
     {
         private FileEntries fullFilesTreeToDelete;  // 源文件，包括所有子目录中的文件/目录

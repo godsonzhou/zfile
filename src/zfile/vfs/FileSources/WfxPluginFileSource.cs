@@ -515,52 +515,52 @@ public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 		}
 	}
 
-	public IFileSourceOperation CreateListOperation(string targetPath)
+	public FileSourceOperation CreateListOperation(string targetPath)
 	{
 		return new WfxPluginListOperation(this, targetPath);
 	}
 
-	public IFileSourceOperation CreateCopyOperation(FileEntries sourceFiles, string targetPath)
+	public FileSourceOperation CreateCopyOperation(FileEntries sourceFiles, string targetPath)
 	{
 		return new WfxPluginCopyOperation(this, this, sourceFiles, targetPath);
 	}
 
-	public IFileSourceOperation CreateCopyInOperation(IFileSource sourceFileSource, FileEntries sourceFiles, string targetPath)
+	public FileSourceOperation CreateCopyInOperation(IFileSource sourceFileSource, FileEntries sourceFiles, string targetPath)
 	{
 		return new WfxPluginCopyInOperation(sourceFileSource, this, sourceFiles, targetPath);
 	}
 
-	public IFileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)
+	public FileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)
 	{
 		return new WfxPluginCopyOutOperation(this, targetFileSource, sourceFiles, targetPath);
 	}
 
-	public IFileSourceOperation CreateMoveOperation(FileEntries sourceFiles, string targetPath)
+	public FileSourceOperation CreateMoveOperation(FileEntries sourceFiles, string targetPath)
 	{
 		return new WfxPluginMoveOperation(this, sourceFiles, targetPath);
 	}
 
-	public IFileSourceOperation CreateDeleteOperation(FileEntries filesToDelete)
+	public FileSourceOperation CreateDeleteOperation(FileEntries filesToDelete)
 	{
 		return new WfxPluginDeleteOperation(this, filesToDelete);
 	}
 
-	public IFileSourceOperation CreateCreateDirectoryOperation(string basePath, string directoryPath)
+	public FileSourceOperation CreateCreateDirectoryOperation(string basePath, string directoryPath)
 	{
 		return new WfxPluginCreateDirectoryOperation(this, basePath, directoryPath);
 	}
 
-	public IFileSourceOperation CreateExecuteOperation(FileEntry executableFile, string basePath, string verb)
+	public FileSourceOperation CreateExecuteOperation(FileEntry executableFile, string basePath, string verb)
 	{
 		return new WfxPluginExecuteOperation(this, executableFile, basePath, verb);
 	}
 
-	public IFileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, Dictionary<FilePropertyType, object> newProperties)
+	public FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, Dictionary<FilePropertyType, object> newProperties)
 	{
 		return new WfxPluginSetFilePropertyOperation(this, targetFiles, newProperties);
 	}
 
-	public IFileSourceOperation CreateCalcStatisticsOperation(FileEntries files)
+	public FileSourceOperation CreateCalcStatisticsOperation(FileEntries files)
 	{
 		return new WfxPluginCalcStatisticsOperation(this, files);
 	}

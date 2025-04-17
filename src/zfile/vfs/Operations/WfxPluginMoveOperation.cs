@@ -29,7 +29,7 @@ namespace zfile
         private FileSourceMoveOperationStatistics _statistics;
         private int _infoOperation;
 
-        public WfxPluginMoveOperation(IFileSource fileSource, ref FileEntries sourceFiles, string targetPath)
+        public WfxPluginMoveOperation(IFileSource fileSource, FileEntries sourceFiles, string targetPath)
             : base(fileSource, sourceFiles, targetPath)
         {
             _wfxPluginFileSource = fileSource as IWfxPluginFileSource;

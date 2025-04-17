@@ -76,7 +76,8 @@ namespace zfile
 	{
 		Unknown,
 		Relative,
-		Absolute
+		Absolute,
+		Network
 	}
 
 	/// <summary>
@@ -252,7 +253,7 @@ namespace zfile
 		/// </summary>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The list operation</returns>
-		IFileSourceOperation? CreateListOperation(string targetPath);
+		FileSourceOperation? CreateListOperation(string targetPath);
 
 		/// <summary>
 		/// Creates a copy operation for the specified source files and target path
@@ -260,7 +261,7 @@ namespace zfile
 		/// <param name="sourceFiles">The source files</param>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The copy operation</returns>
-		IFileSourceOperation CreateCopyOperation(FileEntries sourceFiles, string targetPath);
+		FileSourceOperation CreateCopyOperation(FileEntries sourceFiles, string targetPath);
 
 		/// <summary>
 		/// Creates a copy in operation for the specified source file source, source files and target path
@@ -269,7 +270,7 @@ namespace zfile
 		/// <param name="sourceFiles">The source files</param>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The copy in operation</returns>
-		IFileSourceOperation CreateCopyInOperation(IFileSource sourceFileSource, FileEntries sourceFiles, string targetPath);
+		FileSourceOperation CreateCopyInOperation(IFileSource sourceFileSource, FileEntries sourceFiles, string targetPath);
 
 		/// <summary>
 		/// Creates a copy out operation for the specified target file source, source files and target path
@@ -278,7 +279,7 @@ namespace zfile
 		/// <param name="sourceFiles">The source files</param>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The copy out operation</returns>
-		IFileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, FileEntries sourceFiles, string targetPath);
+		FileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, FileEntries sourceFiles, string targetPath);
 
 		/// <summary>
 		/// Creates a move operation for the specified source files and target path
@@ -286,21 +287,21 @@ namespace zfile
 		/// <param name="sourceFiles">The source files</param>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The move operation</returns>
-		IFileSourceOperation CreateMoveOperation(FileEntries sourceFiles, string targetPath);
+		FileSourceOperation CreateMoveOperation(FileEntries sourceFiles, string targetPath);
 
 		/// <summary>
 		/// Creates a delete operation for the specified files to delete
 		/// </summary>
 		/// <param name="filesToDelete">The files to delete</param>
 		/// <returns>The delete operation</returns>
-		IFileSourceOperation CreateDeleteOperation(FileEntries filesToDelete);
+		FileSourceOperation CreateDeleteOperation(FileEntries filesToDelete);
 
 		/// <summary>
 		/// Creates a wipe operation for the specified files to wipe
 		/// </summary>
 		/// <param name="filesToWipe">The files to wipe</param>
 		/// <returns>The wipe operation</returns>
-		IFileSourceOperation CreateWipeOperation(FileEntries filesToWipe);
+		FileSourceOperation CreateWipeOperation(FileEntries filesToWipe);
 
 		/// <summary>
 		/// Creates a split operation for the specified source file and target path
@@ -308,7 +309,7 @@ namespace zfile
 		/// <param name="sourceFile">The source file</param>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The split operation</returns>
-		IFileSourceOperation CreateSplitOperation(FileEntry sourceFile, string targetPath);
+		FileSourceOperation CreateSplitOperation(FileEntry sourceFile, string targetPath);
 
 		/// <summary>
 		/// Creates a combine operation for the specified source files and target file
@@ -316,7 +317,7 @@ namespace zfile
 		/// <param name="sourceFiles">The source files</param>
 		/// <param name="targetFile">The target file</param>
 		/// <returns>The combine operation</returns>
-		IFileSourceOperation CreateCombineOperation(FileEntries sourceFiles, string targetFile);
+		FileSourceOperation CreateCombineOperation(FileEntries sourceFiles, string targetFile);
 
 		/// <summary>
 		/// Creates a create directory operation for the specified base path and directory path
@@ -324,7 +325,7 @@ namespace zfile
 		/// <param name="basePath">The base path</param>
 		/// <param name="directoryPath">The directory path</param>
 		/// <returns>The create directory operation</returns>
-		IFileSourceOperation CreateCreateDirectoryOperation(string basePath, string directoryPath);
+		FileSourceOperation CreateCreateDirectoryOperation(string basePath, string directoryPath);
 
 		/// <summary>
 		/// Creates an execute operation for the specified executable file, base path and verb
@@ -333,14 +334,14 @@ namespace zfile
 		/// <param name="basePath">The base path</param>
 		/// <param name="verb">The verb</param>
 		/// <returns>The execute operation</returns>
-		IFileSourceOperation CreateExecuteOperation(FileEntry executableFile, string basePath, string verb);
+		FileSourceOperation CreateExecuteOperation(FileEntry executableFile, string basePath, string verb);
 
 		/// <summary>
 		/// Creates a test archive operation for the specified source files
 		/// </summary>
 		/// <param name="sourceFiles">The source files</param>
 		/// <returns>The test archive operation</returns>
-		IFileSourceOperation CreateTestArchiveOperation(FileEntries sourceFiles);
+		FileSourceOperation CreateTestArchiveOperation(FileEntries sourceFiles);
 
 		/// <summary>
 		/// Creates a calculate checksum operation for the specified files, target path and target mask
@@ -349,14 +350,14 @@ namespace zfile
 		/// <param name="targetPath">The target path</param>
 		/// <param name="targetMask">The target mask</param>
 		/// <returns>The calculate checksum operation</returns>
-		IFileSourceOperation CreateCalcChecksumOperation(FileEntries files, string targetPath, string targetMask);
+		FileSourceOperation CreateCalcChecksumOperation(FileEntries files, string targetPath, string targetMask);
 
 		/// <summary>
 		/// Creates a calculate statistics operation for the specified files
 		/// </summary>
 		/// <param name="files">The files</param>
 		/// <returns>The calculate statistics operation</returns>
-		IFileSourceOperation CreateCalcStatisticsOperation(FileEntries files);
+		FileSourceOperation CreateCalcStatisticsOperation(FileEntries files);
 
 		/// <summary>
 		/// Creates a set file property operation for the specified target files and new properties
@@ -364,7 +365,7 @@ namespace zfile
 		/// <param name="targetFiles">The target files</param>
 		/// <param name="newProperties">The new properties</param>
 		/// <returns>The set file property operation</returns>
-		IFileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, Dictionary<FilePropertyType, object> newProperties);
+		FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, Dictionary<FilePropertyType, object> newProperties);
 
 		/// <summary>
 		/// Gets the operation class for the specified operation type
@@ -688,7 +689,7 @@ namespace zfile
 		/// <summary>
 		/// Gets the operation types supported by this file source
 		/// </summary>
-		public abstract FileSourceOperationType OperationsTypes { get; }
+		public virtual FileSourceOperationType OperationsTypes { get; }
 
 		/// <summary>
 		/// Gets the properties of this file source
@@ -699,7 +700,7 @@ namespace zfile
 		/// Gets or sets the parent file source of this file source
 		/// </summary>
 		public virtual IFileSource ParentFileSource { get; set; }
-		public abstract string CurrentPath { get; }
+		public virtual string CurrentPath { get; }
 
 		/// <summary>
 		/// Creates a new instance of the FileSource class
@@ -848,7 +849,10 @@ namespace zfile
 		/// </summary>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The list operation</returns>
-		public abstract IFileSourceOperation? CreateListOperation(string targetPath);
+		public virtual FileSourceOperation? CreateListOperation(string targetPath)
+		{
+			return null;
+		}
 
 		/// <summary>
 		/// Creates a copy operation for the specified source files and target path
@@ -856,7 +860,10 @@ namespace zfile
 		/// <param name="sourceFiles">The source files</param>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The copy operation</returns>
-		public abstract IFileSourceOperation CreateCopyOperation(FileEntries sourceFiles, string targetPath);
+		public virtual FileSourceOperation CreateCopyOperation(FileEntries sourceFiles, string targetPath)
+		{
+			throw new NotImplementedException();
+		}
 
 		/// <summary>
 		/// Creates a copy in operation for the specified source file source, source files and target path
@@ -865,7 +872,10 @@ namespace zfile
 		/// <param name="sourceFiles">The source files</param>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The copy in operation</returns>
-		public abstract IFileSourceOperation CreateCopyInOperation(IFileSource sourceFileSource, FileEntries sourceFiles, string targetPath);
+		public virtual FileSourceOperation CreateCopyInOperation(IFileSource sourceFileSource, FileEntries sourceFiles, string targetPath)
+		{
+			throw new NotImplementedException();
+		}
 
 		/// <summary>
 		/// Creates a copy out operation for the specified target file source, source files and target path
@@ -874,7 +884,7 @@ namespace zfile
 		/// <param name="sourceFiles">The source files</param>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The copy out operation</returns>
-		public virtual IFileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)
+		public virtual FileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)
 		{
 			throw new NotImplementedException();
 		}
@@ -885,7 +895,7 @@ namespace zfile
 		/// <param name="sourceFiles">The source files</param>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The move operation</returns>
-		public virtual IFileSourceOperation CreateMoveOperation(FileEntries sourceFiles, string targetPath) { 
+		public virtual FileSourceOperation CreateMoveOperation(FileEntries sourceFiles, string targetPath) { 
 			throw new NotImplementedException();
 		}
 
@@ -894,7 +904,7 @@ namespace zfile
 		/// </summary>
 		/// <param name="filesToDelete">The files to delete</param>
 		/// <returns>The delete operation</returns>
-		public virtual IFileSourceOperation CreateDeleteOperation(FileEntries filesToDelete)
+		public virtual FileSourceOperation CreateDeleteOperation(FileEntries filesToDelete)
 		{
 			throw new NotImplementedException();
 		}
@@ -904,7 +914,10 @@ namespace zfile
 		/// </summary>
 		/// <param name="filesToWipe">The files to wipe</param>
 		/// <returns>The wipe operation</returns>
-		public abstract IFileSourceOperation CreateWipeOperation(FileEntries filesToWipe);
+		public virtual FileSourceOperation CreateWipeOperation(FileEntries filesToWipe)
+		{
+			throw new NotImplementedException();
+		}
 
 		/// <summary>
 		/// Creates a split operation for the specified source file and target path
@@ -912,7 +925,10 @@ namespace zfile
 		/// <param name="sourceFile">The source file</param>
 		/// <param name="targetPath">The target path</param>
 		/// <returns>The split operation</returns>
-		public abstract IFileSourceOperation CreateSplitOperation(FileEntry sourceFile, string targetPath);
+		public virtual FileSourceOperation CreateSplitOperation(FileEntry sourceFile, string targetPath)
+		{
+			throw new NotImplementedException();
+		}
 
 		/// <summary>
 		/// Creates a combine operation for the specified source files and target file
@@ -920,7 +936,10 @@ namespace zfile
 		/// <param name="sourceFiles">The source files</param>
 		/// <param name="targetFile">The target file</param>
 		/// <returns>The combine operation</returns>
-		public abstract IFileSourceOperation CreateCombineOperation(FileEntries sourceFiles, string targetFile);
+		public virtual FileSourceOperation CreateCombineOperation(FileEntries sourceFiles, string targetFile)
+		{
+			throw new NotImplementedException();
+		}
 
 		/// <summary>
 		/// Creates a create directory operation for the specified base path and directory path
@@ -928,7 +947,10 @@ namespace zfile
 		/// <param name="basePath">The base path</param>
 		/// <param name="directoryPath">The directory path</param>
 		/// <returns>The create directory operation</returns>
-		public abstract IFileSourceOperation CreateCreateDirectoryOperation(string basePath, string directoryPath);
+		public virtual FileSourceOperation CreateCreateDirectoryOperation(string basePath, string directoryPath)
+		{
+			throw new NotImplementedException();
+		}
 
 		/// <summary>
 		/// Creates an execute operation for the specified executable file, base path and verb
@@ -937,14 +959,20 @@ namespace zfile
 		/// <param name="basePath">The base path</param>
 		/// <param name="verb">The verb</param>
 		/// <returns>The execute operation</returns>
-		public abstract IFileSourceOperation CreateExecuteOperation(FileEntry executableFile, string basePath, string verb);
+		public virtual FileSourceOperation CreateExecuteOperation(FileEntry executableFile, string basePath, string verb)
+		{
+			throw new NotImplementedException();
+		}
 
 		/// <summary>
 		/// Creates a test archive operation for the specified source files
 		/// </summary>
 		/// <param name="sourceFiles">The source files</param>
 		/// <returns>The test archive operation</returns>
-		public abstract IFileSourceOperation CreateTestArchiveOperation(FileEntries sourceFiles);
+		public virtual FileSourceOperation CreateTestArchiveOperation(FileEntries sourceFiles)
+		{
+			throw new NotImplementedException();
+		}
 
 		/// <summary>
 		/// Creates a calculate checksum operation for the specified files, target path and target mask
@@ -953,14 +981,20 @@ namespace zfile
 		/// <param name="targetPath">The target path</param>
 		/// <param name="targetMask">The target mask</param>
 		/// <returns>The calculate checksum operation</returns>
-		public abstract IFileSourceOperation CreateCalcChecksumOperation(FileEntries files, string targetPath, string targetMask);
+		public virtual FileSourceOperation CreateCalcChecksumOperation(FileEntries files, string targetPath, string targetMask)
+		{
+			throw new NotImplementedException();
+		}
 
 		/// <summary>
 		/// Creates a calculate statistics operation for the specified files
 		/// </summary>
 		/// <param name="files">The files</param>
 		/// <returns>The calculate statistics operation</returns>
-		public abstract IFileSourceOperation CreateCalcStatisticsOperation(FileEntries files);
+		public virtual FileSourceOperation CreateCalcStatisticsOperation(FileEntries files)
+		{
+			throw new NotImplementedException();
+		}
 
 		/// <summary>
 		/// Creates a set file property operation for the specified target files and new properties
@@ -968,14 +1002,20 @@ namespace zfile
 		/// <param name="targetFiles">The target files</param>
 		/// <param name="newProperties">The new properties</param>
 		/// <returns>The set file property operation</returns>
-		public abstract IFileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, Dictionary<FilePropertyType, object> newProperties);
+		public virtual FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, Dictionary<FilePropertyType, object> newProperties)
+		{
+			throw new NotImplementedException();
+		}
 
 		/// <summary>
 		/// Gets the operation class for the specified operation type
 		/// </summary>
 		/// <param name="operationType">The operation type</param>
 		/// <returns>The operation class</returns>
-		public abstract Type GetOperationClass(FileSourceOperationType operationType);
+		public virtual Type GetOperationClass(FileSourceOperationType operationType)
+		{
+			throw new NotImplementedException();
+		}
 
 		/// <summary>
 		/// Checks if the specified path is at the root of the file source

@@ -2,11 +2,11 @@ namespace zfile;
 
 public class WfxPluginExecuteOperation : FileSourceExecuteOperation
 {
-	private readonly IWfxPluginFileSource _wfxPluginFileSource;
+	private readonly IWfxPluginFileSource? _wfxPluginFileSource;
 
 	public WfxPluginExecuteOperation(
 		IFileSource targetFileSource,
-		ref FileEntry executableFile,
+		FileEntry executableFile,
 		string currentPath,
 		string verb) : base(targetFileSource, executableFile, currentPath, verb)
 	{
@@ -15,7 +15,7 @@ public class WfxPluginExecuteOperation : FileSourceExecuteOperation
 
 	protected override void Initialize()
 	{
-		_wfxPluginFileSource.WfxModule.setStatusInfo(CurrentPath, WfxConstants.FS_STATUS_START, FS_STATUS_OP_EXEC);
+		_wfxPluginFileSource?.WfxModule.setStatusInfo(CurrentPath, WfxConstants.FS_STATUS_START, FS_STATUS_OP_EXEC);
 	}
 
 	protected override void MainExecute()

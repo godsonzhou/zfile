@@ -5,8 +5,8 @@ namespace zfile
         private readonly IWfxPluginFileSource _wfxPluginFileSource;
         private FileSourceCalcStatisticsOperationStatistics _statistics;
 
-        public WfxPluginCalcStatisticsOperation(IFileSource targetFileSource, ref FileEntries files)
-            : base(targetFileSource, ref files)
+        public WfxPluginCalcStatisticsOperation(IFileSource targetFileSource, FileEntries files)
+            : base(targetFileSource, files)
         {
             _wfxPluginFileSource = targetFileSource as IWfxPluginFileSource;
         }
@@ -15,7 +15,7 @@ namespace zfile
         {
             _statistics = RetrieveStatistics();
 
-            _wfxPluginFileSource.WfxModule.WfxStatusInfo(Files.Path, FsStatus.Start, FsStatusOperation.CalcSize);
+            _wfxPluginFileSource.WfxModule.setStatusInfo(Files.Path, (int)FsStatus.Start, (int)FsStatusOperation.CalcSize);
         }
 
         protected override void MainExecute()

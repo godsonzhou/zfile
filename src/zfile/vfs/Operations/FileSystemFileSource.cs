@@ -461,7 +461,7 @@ namespace zfile
             return new FileSystemCalcStatisticsOperation(this, files);
         }
 
-        public override FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, FileProperties newProperties)
+        public override FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, FileProperty[] newProperties)
         {
             return new FileSystemSetFilePropertyOperation(this, targetFiles, newProperties);
         }

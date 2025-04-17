@@ -9,7 +9,7 @@ namespace zfile
         private FileSourceCopyOperationStatistics _statistics;
         private int _infoOperation;
 
-        public WfxPluginCopyOperation(IFileSource sourceFileSource, IFileSource targetFileSource, ref FileEntries sourceFiles, string targetPath)
+        public WfxPluginCopyOperation(IFileSource sourceFileSource, IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)
             : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
         {
             _wfxPluginFileSource = sourceFileSource as IWfxPluginFileSource;

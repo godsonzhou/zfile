@@ -10,7 +10,7 @@ namespace zfile
         private int _infoOperation;
         private bool _needsConnection;
 
-        public WfxPluginCopyOutOperation(IFileSource sourceFileSource, IFileSource targetFileSource, ref FileEntries sourceFiles, string targetPath)
+        public WfxPluginCopyOutOperation(IFileSource sourceFileSource, IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)
             : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
         {
             _wfxPluginFileSource = sourceFileSource as IWfxPluginFileSource;

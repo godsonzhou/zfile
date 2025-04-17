@@ -49,6 +49,7 @@ namespace zfile
 		internal static int MsgLoadingFileEntries;
 		internal static string? FileOpCopyMoveFileExistsOptions;
 		internal static IFormatProvider? MsgDelToTrashForce;
+		internal static string? VfsRecycleBin;
 
 		public static string MsgLogSuccess { get; internal set; }
 		public static string MsgLogMkDir { get; internal set; }

@@ -119,98 +119,98 @@ namespace zfile
             return true;
         }
 
-        public override IFileSourceOperation CreateListOperation(string targetPath)
+        public override FileSourceOperation CreateListOperation(string targetPath)
         {
             return new WinNetListOperation(this, targetPath);
         }
 
-        public override IFileSourceOperation CreateCopyOperation(ref FileEntries sourceFiles, string targetPath)
+        public override FileSourceOperation CreateCopyOperation(FileEntries sourceFiles, string targetPath)
         {
             if (IsNetworkPath(targetPath))
                 return null;
-            return base.CreateCopyOperation(ref sourceFiles, targetPath);
+            return base.CreateCopyOperation(sourceFiles, targetPath);
         }
 
-        public override IFileSourceOperation CreateCopyInOperation(IFileSource sourceFileSource, ref FileEntries sourceFiles, string targetPath)
+        public override FileSourceOperation CreateCopyInOperation(IFileSource sourceFileSource, ref FileEntries sourceFiles, string targetPath)
         {
             if (IsNetworkPath(targetPath))
                 return null;
-            return base.CreateCopyInOperation(sourceFileSource, ref sourceFiles, targetPath);
+            return base.CreateCopyInOperation(sourceFileSource, sourceFiles, targetPath);
         }
 
-        public override IFileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, ref FileEntries sourceFiles, string targetPath)
+        public override FileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, ref FileEntries sourceFiles, string targetPath)
         {
             if (IsNetworkPath(sourceFiles.Path))
                 return null;
-            return base.CreateCopyOutOperation(targetFileSource, ref sourceFiles, targetPath);
+            return base.CreateCopyOutOperation(targetFileSource, sourceFiles, targetPath);
         }
 
-        public override IFileSourceOperation CreateMoveOperation(ref FileEntries sourceFiles, string targetPath)
+        public override FileSourceOperation CreateMoveOperation(FileEntries sourceFiles, string targetPath)
         {
             if (IsNetworkPath(targetPath))
                 return null;
-            return base.CreateMoveOperation(ref sourceFiles, targetPath);
+            return base.CreateMoveOperation(sourceFiles, targetPath);
         }
 
-        public override IFileSourceOperation CreateDeleteOperation(ref FileEntries filesToDelete)
+        public override FileSourceOperation CreateDeleteOperation(FileEntries filesToDelete)
         {
             if (IsNetworkPath(filesToDelete.Path))
                 return null;
-            return base.CreateDeleteOperation(ref filesToDelete);
+            return base.CreateDeleteOperation(filesToDelete);
         }
 
-        public override IFileSourceOperation CreateWipeOperation(ref FileEntries filesToWipe)
+        public override FileSourceOperation CreateWipeOperation(FileEntries filesToWipe)
         {
             if (IsNetworkPath(filesToWipe.Path))
                 return null;
-            return base.CreateWipeOperation(ref filesToWipe);
+            return base.CreateWipeOperation(filesToWipe);
         }
 
-        public override IFileSourceOperation CreateSplitOperation(ref FileEntry sourceFile, string targetPath)
+        public override FileSourceOperation CreateSplitOperation(FileEntry sourceFile, string targetPath)
         {
             if (IsNetworkPath(targetPath))
                 return null;
-            return base.CreateSplitOperation(ref sourceFile, targetPath);
+            return base.CreateSplitOperation(sourceFile, targetPath);
         }
 
-        public override IFileSourceOperation CreateCombineOperation(ref FileEntries sourceFiles, string targetFile)
+        public override FileSourceOperation CreateCombineOperation(FileEntries sourceFiles, string targetFile)
         {
             if (IsNetworkPath(targetFile))
                 return null;
             return base.CreateCombineOperation(sourceFiles, targetFile);
         }
 
-        public override IFileSourceOperation CreateCreateDirectoryOperation(string basePath, string directoryPath)
+        public override FileSourceOperation CreateCreateDirectoryOperation(string basePath, string directoryPath)
         {
             if (IsNetworkPath(directoryPath))
                 return null;
             return base.CreateCreateDirectoryOperation(basePath, directoryPath);
         }
 
-        public override IFileSourceOperation CreateExecuteOperation(ref FileEntry executableFile, string basePath, string verb)
+        public override FileSourceOperation CreateExecuteOperation(FileEntry executableFile, string basePath, string verb)
         {
             return new WinNetExecuteOperation(this, ref executableFile, basePath, verb);
         }
 
-        public override IFileSourceOperation CreateCalcChecksumOperation(ref FileEntries files, string targetPath, string targetMask)
+        public override FileSourceOperation CreateCalcChecksumOperation(FileEntries files, string targetPath, string targetMask)
         {
             if (IsNetworkPath(targetPath))
                 return null;
-            return base.CreateCalcChecksumOperation(ref files, targetPath, targetMask);
+            return base.CreateCalcChecksumOperation(files, targetPath, targetMask);
         }
 
-        public override IFileSourceOperation CreateCalcStatisticsOperation(ref FileEntries files)
+        public override FileSourceOperation CreateCalcStatisticsOperation(FileEntries files)
         {
             if (IsNetworkPath(files.Path))
                 return null;
-            return base.CreateCalcStatisticsOperation(ref files);
+            return base.CreateCalcStatisticsOperation(files);
         }
 
-        public override IFileSourceOperation CreateSetFilePropertyOperation(ref FileEntries targetFiles, ref FileProperties newProperties)
+        public override FileSourceOperation CreateSetFilePropertyOperation(ref FileEntries targetFiles, ref FileProperty[] newProperties)
         {
             if (IsNetworkPath(targetFiles.Path))
                 return null;
-            return base.CreateSetFilePropertyOperation(ref targetFiles, ref newProperties);
+            return base.CreateSetFilePropertyOperation(targetFiles, newProperties);
         }
 
         [DllImport("mpr.dll", CharSet = CharSet.Unicode)]

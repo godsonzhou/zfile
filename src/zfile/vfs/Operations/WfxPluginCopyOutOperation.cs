@@ -142,6 +142,7 @@ namespace zfile
 		RenMovMulti,
 		RenMovSingle,
 		Delete,
-		CalcSize
+		CalcSize,
+		Attrib
 	}
 }

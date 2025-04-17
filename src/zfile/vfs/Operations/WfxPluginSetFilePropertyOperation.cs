@@ -1,6 +1,12 @@
 namespace zfile
 {
-    public class WfxPluginSetFilePropertyOperation : FileSourceSetFilePropertyOperation
+	public enum FsStatus : int
+	{
+		Start,
+		End
+	}
+
+	public class WfxPluginSetFilePropertyOperation : FileSourceSetFilePropertyOperation
     {
         private readonly IWfxPluginFileSource _wfxPluginFileSource;
         private FileEntries _fullFilesTree;

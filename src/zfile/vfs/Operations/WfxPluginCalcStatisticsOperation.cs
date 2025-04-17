@@ -28,7 +28,7 @@ namespace zfile
 
         protected override void Finalize()
         {
-            _wfxPluginFileSource.WfxModule.WfxStatusInfo(Files.Path, FsStatus.End, FsStatusOperation.CalcSize);
+            _wfxPluginFileSource.WfxModule.setStatusInfo(Files.Path, FsStatus.End, FsStatusOperation.CalcSize);
         }
 
         private void ProcessFile(FileEntry file)

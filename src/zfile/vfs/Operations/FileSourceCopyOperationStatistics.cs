@@ -3,7 +3,7 @@ namespace zfile
     /// <summary>
     /// Statistics for copy operation
     /// </summary>
-    public class FileSourceCopyOperationStatistics
+    public struct FileSourceCopyOperationStatistics
     {
         public string CurrentFileFrom;
         public string CurrentFileTo;
@@ -15,11 +15,11 @@ namespace zfile
         public long DoneBytes;
         public long BytesPerSecond;
         public DateTime RemainingTime;
-	
-		public long SkippedFiles { get; set; }
-		public long SkippedBytes { get; set; }
-		public long FailedFiles { get; set; }
-		public long FailedBytes { get; set; }
+
+		public long SkippedFiles;
+		public long SkippedBytes;
+		public long FailedFiles;
+		public long FailedBytes;
 	
 	}
 

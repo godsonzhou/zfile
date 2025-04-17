@@ -115,7 +115,7 @@ public class WfxPluginCopyInOperation : FileSourceCopyInOperation
 
 	protected override void Finalize()
 	{
-		_wfxPluginFileSource.WfxModule.setStatusInfo(TargetPath, FS_STATUS_END, _infoOperation);
+		_wfxPluginFileSource.WfxModule.setStatusInfo(TargetPath, (int)FsStatus.End, _infoOperation);
 		_callbackDataClass.UpdateProgressFunction = null;
 		UpdateProgressFunction = null;
 		FileExistsOption = _operationHelper.FileExistsOption;

@@ -7,7 +7,7 @@ namespace zfile
         private IFileOperation fileOp;
         private IShellItem targetFolder;
         private ItemList sourceFilesTree;
-        private readonly IShellFileSource shellFileSource;
+        private readonly IShellFileSource? shellFileSource;
         private FileSourceMoveOperationStatistics statistics;
 
         public ShellMoveOperation(IFileSource fileSource, FileEntries sourceFiles, string targetPath)
@@ -42,7 +42,7 @@ namespace zfile
                 w32.OleCheck(API.SHGetIDListFromObject(folder, out objectPtr));
                 try
                 {
-                    w32.OleCheck(API.SHCreateItemFromIDList(objectPtr, typeof(IShellItem).GUID, out targetFolder));
+                    w32.OleCheck(API.SHCreateItemFromIDList(objectPtr, ref typeof(IShellItem).GUID, out targetFolder));
                 }
                 finally
                 {

@@ -26,6 +26,10 @@ namespace zfile
 		{
 			// Dispose logic here
 		}
+		public void Rename(string filepath, string val)
+		{
+
+		}
 	}
 	public class FileSystemDeleteOperation : FileSourceDeleteOperation
     {

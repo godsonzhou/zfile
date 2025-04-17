@@ -5,8 +5,18 @@ namespace zfile
 {
 	public struct FileSourceSplitOperationStatistics
 	{
-
+		public string CurrentFileFrom;
+		public string CurrentFileTo;
+		public long TotalBytes;
+		public long DoneBytes;
+		public long CurrentFileTotalBytes;
+		public long CurrentFileDoneBytes;
+		public int TotalFiles;
+		public int DoneFiles;
+		public DateTime RemainingTime;
+		public long BytesPerSecond;
 	}
+	
 
 	public class FileSystemSplitOperation : FileSourceSplitOperation
     {

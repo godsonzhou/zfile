@@ -77,7 +77,7 @@ namespace zfile
 
             var pidl = (IntPtr)sourceFilesTree[currentFileIndex];
             IShellItem item;
-            if (Failed(API.SHCreateItemFromIDList(pidl, typeof(IShellItem).GUID, out item)))
+            if (Failed(API.SHCreateItemFromIDList(pidl, ref typeof(IShellItem).GUID, out item)))
                 return SetFilePropertyResult.Error;
 
             switch (templateProperty.ID)

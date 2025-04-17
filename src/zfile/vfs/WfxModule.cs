@@ -44,6 +44,14 @@ using System.Xml.Linq;
 
 namespace zfile
 {
+	public enum BackgroundFlags
+	{
+		Pack,
+		Unpack,
+		Upload,
+		Downloaded,
+		AskUser
+	}
     #region WFX常量和结构体
     public static class WfxConstants
     {
@@ -161,7 +169,7 @@ namespace zfile
         private FsSetDefaultParams _fsSetDefaultParams;
         private FsGetDefRootName _fsGetDefRootName;
         private FsSetAttr _fsSetAttr;
-        private FsSetTime _fsSetTime;
+        public FsSetTime _fsSetTime;
         private FsExtractCustomIcon _fsExtractCustomIcon;
         private FsDisconnect _fsDisconnect;
         private FsLinksToLocalFiles _fsLinksToLocalFiles;
@@ -174,7 +182,7 @@ namespace zfile
         private FsSetCryptCallbackW _fsSetCryptCallbackW;
         private FsStatusInfoW _fsStatusInfoW;
         private FsSetAttrW _fsSetAttrW;
-        private FsSetTimeW _fsSetTimeW;
+        public FsSetTimeW _fsSetTimeW;
         private FsExtractCustomIconW _fsExtractCustomIconW;
         private FsDisconnectW _fsDisconnectW;
         private FsGetLocalNameW _fsGetLocalNameW;
@@ -195,6 +203,7 @@ namespace zfile
         private FsExecuteFile _fsExecuteFile;
         private FsRenMovFile _fsRenMovFile;
 		internal static IntPtr WfxInvalidHandle = IntPtr.Zero;
+		internal BackgroundFlags BackgroundFlags;
 		#endregion
 
 		#region 属性

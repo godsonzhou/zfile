@@ -5,8 +5,8 @@ namespace zfile
     /// </summary>
     public abstract class FileSourceSplitOperation : FileSourceOperation
     {
-        private FileSourceCopyOperationStatistics _statistics;
-        private FileSourceCopyOperationStatistics _statisticsAtStartTime;
+        private FileSourceSplitOperationStatistics _statistics;
+        private FileSourceSplitOperationStatistics _statisticsAtStartTime;
         private readonly object _statisticsLock = new object();
         private IFileSource _fileSource;
         private FileEntry _sourceFile;
@@ -91,7 +91,7 @@ namespace zfile
         public FileSourceSplitOperation(IFileSource aFileSource, FileEntry aSourceFile, string aTargetPath)
             : base(aFileSource)
         {
-            _statistics = new FileSourceCopyOperationStatistics
+            _statistics = new FileSourceSplitOperationStatistics
             {
                 CurrentFileFrom = "",
                 CurrentFileTo = "",
@@ -127,7 +127,7 @@ namespace zfile
         /// Updates the statistics for this operation
         /// </summary>
         /// <param name="newStatistics">The new statistics to update with</param>
-        protected void UpdateStatistics(FileSourceCopyOperationStatistics newStatistics)
+        protected void UpdateStatistics(FileSourceSplitOperationStatistics newStatistics)
         {
             lock (_statisticsLock)
             {
@@ -166,7 +166,7 @@ namespace zfile
         /// Retrieves the current statistics for this operation
         /// </summary>
         /// <returns>The current statistics</returns>
-        public FileSourceCopyOperationStatistics RetrieveStatistics()
+        public FileSourceSplitOperationStatistics RetrieveStatistics()
         {
             lock (_statisticsLock)
             {

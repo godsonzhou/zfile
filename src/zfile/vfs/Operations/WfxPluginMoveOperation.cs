@@ -2,8 +2,23 @@ namespace zfile
 {
 	public struct FileSourceMoveOperationStatistics
 	{
+		public string CurrentFileFrom;
+		public string CurrentFileTo;
+		public long CurrentFileTotalBytes;
+		public long CurrentFileDoneBytes;
+		public long TotalFiles;
+		public long DoneFiles;
+		public long TotalBytes;
+		public long DoneBytes;
+		public long BytesPerSecond;
+		public DateTime RemainingTime;
 
+		public long SkippedFiles;
+		public long SkippedBytes;
+		public long FailedFiles;
+		public long FailedBytes;
 	}
+	
 
 	public class WfxPluginMoveOperation : FileSourceMoveOperation
     {
@@ -102,7 +117,7 @@ namespace zfile
 
         protected override void Finalize()
         {
-            _wfxPluginFileSource.WfxModule.setStatusInfo(SourceFiles.Path, FsStatus.End, _infoOperation);
+            _wfxPluginFileSource.WfxModule.setStatusInfo(SourceFiles.Path, (int)FsStatus.End, _infoOperation);
             _callbackDataClass.UpdateProgressFunction = null;
             UpdateProgressFunction = null;
             FileExistsOption = _operationHelper.FileExistsOption;

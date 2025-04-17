@@ -5,7 +5,7 @@ namespace zfile
 	public class WfxPluginCopyMoveOperationOptionsUI : FileSourceOperationOptionsUI
 	{
 		private CheckBox cbCopyTime;
-		private CheckBox cbWorkInBackground;
+		protected CheckBox cbWorkInBackground;
 		private ComboBox cmbFileExists;
 		private GroupBox grpOptions;
 		private Label lblFileExists;
@@ -43,7 +43,7 @@ namespace zfile
 			}
 
 			var wfxModule = ((IWfxPluginFileSource)FileSource).WfxModule;
-			cbCopyTime.Visible = wfxModule.FsSetTime != null || wfxModule.FsSetTimeW != null;
+			cbCopyTime.Visible = wfxModule._fsSetTime != null || wfxModule._fsSetTimeW != null;
 			cbCopyTime.Checked = cbCopyTime.Visible && GlobalSettings.OperationOptionCopyTime;
 		}
 
@@ -109,7 +109,7 @@ namespace zfile
 			SetCopyOptions(copyOutOperation);
 		}
 
-		private void CbWorkInBackground_CheckedChanged(object sender, EventArgs e)
+		protected void CbWorkInBackground_CheckedChanged(object sender, EventArgs e)
 		{
 			var copyDialog = (CopyDialog)Owner;
 			if (!cbWorkInBackground.Checked)
@@ -130,10 +130,10 @@ namespace zfile
 		public WfxPluginCopyInOperationOptionsUI(Control owner, IFileSource fileSource)
 			: base(owner, fileSource)
 		{
-			const int CAN_UPLOAD = BackgroundFlags.Upload | BackgroundFlags.AskUser;
+			const int CAN_UPLOAD = (int)(BackgroundFlags.Upload | BackgroundFlags.AskUser);
 			var wfxModule = ((IWfxPluginFileSource)fileSource).WfxModule;
 
-			cbWorkInBackground.Visible = (wfxModule.BackgroundFlags & CAN_UPLOAD) == CAN_UPLOAD;
+			cbWorkInBackground.Visible = ((int)wfxModule.BackgroundFlags & CAN_UPLOAD) == CAN_UPLOAD;
 			if (cbWorkInBackground.Visible)
 			{
 				cbWorkInBackground.Checked = false;
@@ -149,20 +149,20 @@ namespace zfile
 
 	public class WfxPluginCopyOutOperationOptionsUI : WfxPluginCopyMoveOperationOptionsUI
 	{
-		public WfxPluginCopyOutOperationOptionsUI(Component owner, IFileSource fileSource)
+		public WfxPluginCopyOutOperationOptionsUI(Control owner, IFileSource fileSource)
 			: base(owner, fileSource)
 		{
-			const int CAN_DOWNLOAD = BackgroundFlags.Download | BackgroundFlags.AskUser;
+			const int CAN_DOWNLOAD = (int)(BackgroundFlags.Downloaded | BackgroundFlags.AskUser);
 			var wfxModule = ((IWfxPluginFileSource)fileSource).WfxModule;
 
-			cbWorkInBackground.Visible = (wfxModule.BackgroundFlags & CAN_DOWNLOAD) == CAN_DOWNLOAD;
+			cbWorkInBackground.Visible = ((int)wfxModule.BackgroundFlags & CAN_DOWNLOAD) == CAN_DOWNLOAD;
 			if (cbWorkInBackground.Visible)
 			{
 				cbWorkInBackground.Checked = false;
 			}
 			else
 			{
-				cbWorkInBackground.Checked = (wfxModule.BackgroundFlags & BackgroundFlags.Download) != 0;
+				cbWorkInBackground.Checked = (wfxModule.BackgroundFlags & BackgroundFlags.Downloaded) != 0;
 			}
 
 			CbWorkInBackground_CheckedChanged(cbWorkInBackground, EventArgs.Empty);

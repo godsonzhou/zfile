@@ -14,7 +14,7 @@ namespace zfile
             : base(fileSource, sourceFiles, targetPath)
         {
             shellFileSource = fileSource as IShellFileSource;
-            fileOp = (IFileOperation)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(CLSID.FileOperation)));
+            fileOp = (IFileOperation)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(Constants.CLSID_FileOperation)));
         }
 
         ~ShellMoveOperation()
@@ -42,7 +42,8 @@ namespace zfile
                 w32.OleCheck(API.SHGetIDListFromObject(folder, out objectPtr));
                 try
                 {
-                    w32.OleCheck(API.SHCreateItemFromIDList(objectPtr, ref typeof(IShellItem).GUID, out targetFolder));
+					var guid = typeof(IShellItem).GUID;
+					w32.OleCheck(API.SHCreateItemFromIDList(objectPtr, ref guid, out targetFolder));
                 }
                 finally
                 {

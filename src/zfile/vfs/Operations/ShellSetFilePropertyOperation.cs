@@ -14,7 +14,7 @@ namespace zfile
             : base(targetFileSource, targetFiles, newProperties)
         {
             shellFileSource = targetFileSource as IShellFileSource;
-            fileOp = (IFileOperation)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(CLSID.FileOperation)));
+            fileOp = (IFileOperation)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(Constants.CLSID_FileOperation)));
             SupportedProperties = FilePropertyType.Name ;
         }
 

@@ -150,7 +150,7 @@ namespace zfile
 
         private void SetCryptCallback()
         {
-            var flags = PasswordStore.MasterKeySet ? (int)CryptOpt.PK_CRYPTOPT_MASTERPASS_SET : 0;
+            var flags = PasswordStore.HasMasterKey ? (int)CryptOpt.PK_CRYPTOPT_MASTERPASS_SET : 0;
             _wcxModule.SetCryptCallback(0, flags, CryptProcA, CryptProcW);
         }
 
@@ -590,6 +590,7 @@ namespace zfile
 			return true;
 		}
 		public static bool HasMasterKey => true;
+
 	}
 
     public class ModuleNotLoadedException : Exception

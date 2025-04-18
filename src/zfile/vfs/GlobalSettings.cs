@@ -90,7 +90,7 @@ namespace zfile
 		/// <summary>Verify checksum</summary>
 		Verify
 	}
-	public enum HashAlgorithm
+	public enum HashAlgorithm1
 	{
 		MD5,
 		SHA1,

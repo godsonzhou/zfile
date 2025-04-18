@@ -900,6 +900,7 @@ namespace zfile
 		public List<string> _cfg = new List<string>();
 		public Dictionary<string, WcxModule> _exts = new Dictionary<string, WcxModule>();
 		public bool isConfigChanged = false;
+		public List<string> Ext { get => _exts.Keys.ToList(); }
 		public WcxModuleList()
 		{
 			LoadConfiguration();

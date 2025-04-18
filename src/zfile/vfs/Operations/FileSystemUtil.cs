@@ -337,6 +337,9 @@ namespace zfile
 	}
 
 	public delegate void UpdateStatisticsFunction(ref FileSourceCopyOperationStatistics newStatistics);
+	public delegate void ShowCompareFilesUIFunction();
+	public delegate void ShowCompareFilesUIByFileObjectFunction(FileEntry file1, FileEntry file2);
+	
 
 	public enum FileSystemOperationTargetExistsResult
 	{

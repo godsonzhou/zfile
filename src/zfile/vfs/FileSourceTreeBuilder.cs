@@ -16,11 +16,12 @@ namespace zfile
     /// Delegate for checking the operation state.
     /// </summary>
     public delegate void CheckOperationStateFunction();
+	public delegate void AbortOperationFunction();
 
-    /// <summary>
-    /// Base class for building file trees.
-    /// </summary>
-    public abstract class FileSourceTreeBuilder : IDisposable
+	/// <summary>
+	/// Base class for building file trees.
+	/// </summary>
+	public abstract class FileSourceTreeBuilder : IDisposable
     {
         private FileTreeNode _filesTree;
         private long _filesCount;

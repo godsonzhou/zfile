@@ -48,6 +48,7 @@ namespace zfile
 		string OperationName { get; }
 		bool IsAborted { get; }
 		void Abort();
+		void ConnectionAvailableNotify();
 
 		/// <summary>
 		/// Event raised when the operation state changes

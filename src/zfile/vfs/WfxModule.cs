@@ -204,6 +204,7 @@ namespace zfile
         private FsRenMovFile _fsRenMovFile;
 		internal static IntPtr WfxInvalidHandle = IntPtr.Zero;
 		internal BackgroundFlags BackgroundFlags;
+		internal string VFSRootName;
 		#endregion
 
 		#region 属性
@@ -437,11 +438,11 @@ namespace zfile
                 _fsExecuteFile(mainWin, remoteName, verb);
         }
 
-        public int MoveFile(string oldName, string newName, bool overWrite, RemoteFileInfo remoteInfo)
+        public int MoveFile(string oldName, string newName, bool isMove, bool overWrite, RemoteFileInfo remoteInfo)
         {
             return _isUnicode ?
-                _fsRenMovFileW(oldName, newName, true, overWrite, remoteInfo) :
-                _fsRenMovFile(oldName, newName, true, overWrite, remoteInfo);
+                _fsRenMovFileW(oldName, newName, isMove, overWrite, remoteInfo) :
+                _fsRenMovFile(oldName, newName, isMove, overWrite, remoteInfo);
         }
         #endregion
 

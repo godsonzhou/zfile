@@ -71,7 +71,7 @@ namespace zfile
         /// <param name="address">The address</param>
         /// <param name="caseSensitive">Whether the address comparison is case sensitive</param>
         /// <returns>The file source if found, null otherwise</returns>
-        public IFileSource Find(Type fileSourceClass, string address, bool caseSensitive = true)
+        public IFileSource? Find(Type fileSourceClass, string address, bool caseSensitive = true)
         {
             if (fileSourceClass == null || string.IsNullOrEmpty(address))
                 return null;

@@ -405,14 +405,21 @@ public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 		return false;
 	}
 
-	public FsFileResult WfxCopyMove(string sourceFile, string targetFile, FsCopyFlags flags, FileEntry remoteInfo,
+	public int WfxCopyMove(string sourceFile, string targetFile, FsCopyFlags flags, FileEntry remoteInfo,
 		bool isInternal, bool isCopyMoveIn)
 	{
 		if (isInternal)
 		{
 			bool isMove = (flags & FsCopyFlags.Move) != 0;
 			bool overwrite = (flags & FsCopyFlags.Overwrite) != 0;
-			return _wfxModule.RenMoveFile(sourceFile, targetFile, isMove, overwrite, remoteInfo);
+			var _remoteInfo = new RemoteFileInfo
+			{
+				SizeLow = (int)(remoteInfo.Size & 0xFFFFFFFF),
+				SizeHigh = (int)(remoteInfo.Size >> 32),
+				Attr = (int)remoteInfo.Attributes,
+				LastWriteTime = DateTimeToWfxFileTime(remoteInfo.ModificationTime)
+			};
+			return _wfxModule.MoveFile(sourceFile, targetFile, isMove, overwrite, _remoteInfo);
 		}
 		else
 		{

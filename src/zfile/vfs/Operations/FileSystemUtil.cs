@@ -329,6 +329,11 @@ namespace zfile
 				return false;
 			}
 		}
+
+		internal static bool IsSameVolume(string? v1, string? v2)
+		{
+			throw new NotImplementedException();
+		}
 	}
 
 	public delegate void UpdateStatisticsFunction(ref FileSourceCopyOperationStatistics newStatistics);

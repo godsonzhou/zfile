@@ -134,7 +134,7 @@ namespace zfile
             operationHelper?.Dispose();
         }
 
-        public override Type GetOptionsUIClass()
+        public Type GetOptionsUIClass()
         {
             return typeof(FileSystemMoveOperationOptionsUI);
         }

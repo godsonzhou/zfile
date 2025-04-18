@@ -2,7 +2,7 @@ namespace zfile
 {
     public class WfxPluginCalcStatisticsOperation : FileSourceCalcStatisticsOperation
     {
-        private readonly IWfxPluginFileSource _wfxPluginFileSource;
+        private readonly IWfxPluginFileSource? _wfxPluginFileSource;
         private FileSourceCalcStatisticsOperationStatistics _statistics;
 
         public WfxPluginCalcStatisticsOperation(IFileSource targetFileSource, FileEntries files)
@@ -15,7 +15,7 @@ namespace zfile
         {
             _statistics = RetrieveStatistics();
 
-            _wfxPluginFileSource.WfxModule.setStatusInfo(Files.Path, (int)FsStatus.Start, (int)FsStatusOperation.CalcSize);
+            _wfxPluginFileSource?.WfxModule.setStatusInfo(Files.Path, (int)FsStatus.Start, (int)FsStatusOperation.CalcSize);
         }
 
         protected override void MainExecute()
@@ -28,7 +28,7 @@ namespace zfile
 
         protected override void Finalize()
         {
-            _wfxPluginFileSource.WfxModule.setStatusInfo(Files.Path, (int)FsStatus.End, (int)FsStatusOperation.CalcSize);
+            _wfxPluginFileSource?.WfxModule.setStatusInfo(Files.Path, (int)FsStatus.End, (int)FsStatusOperation.CalcSize);
         }
 
         private void ProcessFile(FileEntry file)
@@ -68,8 +68,8 @@ namespace zfile
 
         private void ProcessSubDirs(string srcPath)
         {
-            var wfxModule = _wfxPluginFileSource.WfxModule;
-            var handle = wfxModule.FindFiles(srcPath);
+            var wfxModule = _wfxPluginFileSource?.WfxModule;
+            var handle = wfxModule?.FindFiles(srcPath);
 			WfxFindData findData = handle.First();
 			//if (handle == WfxModule.WfxInvalidHandle)
 			//{

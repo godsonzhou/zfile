@@ -123,7 +123,7 @@ namespace zfile
 
     public class OperationsManager
     {
-        private static readonly int FreeOperationsQueueId = 0;
+        internal static readonly int FreeOperationsQueueId = 0;
         private static readonly int ModalQueueId = -1;
         private static readonly int SingleQueueId = 1;
 
@@ -187,9 +187,19 @@ namespace zfile
         {
             eventListeners.Remove(listener);
         }
-    }
 
-    public enum OperationEventType
+		internal static void AddOperationModal(FileSourceOperation operation)
+		{
+			throw new NotImplementedException();
+		}
+
+		internal static int GetNewQueueIdentifier()
+		{
+			throw new NotImplementedException();
+		}
+	}
+	
+	public enum OperationEventType
     {
         Added,
         Removed,

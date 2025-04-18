@@ -71,8 +71,8 @@ namespace zfile
                     FileEntries files = new FileEntries();
                     files.Add(archiveFile.Clone());
 
-                    IFileSourceOperation operation = sourceFileSource.CreateCopyOutOperation(
-                        tempFS, files, tempFS.FilesystemRoot);
+                    FileSourceOperation operation = sourceFileSource.CreateCopyOutOperation(
+                        tempFS, files, tempFS.FileSystemRoot);
 
                     if (operation != null)
                     {
@@ -82,7 +82,7 @@ namespace zfile
                         {
                             result = GetArchiveFileSourceDirect(
                                 tempFS,
-                                Path.Combine(tempFS.FilesystemRoot, archiveFile.Name),
+                                Path.Combine(tempFS.FileSystemRoot, archiveFile.Name),
                                 archiveType,
                                 archiveSign,
                                 includeHidden);
@@ -118,7 +118,7 @@ namespace zfile
                 return null;
 
             // Check if there is a registered WCX plugin for possible archive
-            IArchiveFileSource result = FileSourceManager.Find(typeof(WcxArchiveFileSource), archiveFileName) as IArchiveFileSource;
+            IArchiveFileSource? result = FileSourceManager.Instance.Find(typeof(WcxArchiveFileSource), archiveFileName) as IArchiveFileSource;
             if (result == null)
             {
                 if (archiveSign)
@@ -132,7 +132,7 @@ namespace zfile
             // Check if there is a registered MultiArc addon for possible archive
             if (result == null)
             {
-                result = FileSourceManager.Find(typeof(MultiArchiveFileSource), archiveFileName) as IArchiveFileSource;
+                result = FileSourceManager.Instance.Find(typeof(MultiArchiveFileSource), archiveFileName) as IArchiveFileSource;
                 if (result == null)
                 {
                     if (archiveSign)
@@ -153,7 +153,7 @@ namespace zfile
         /// <param name="fileView">File view</param>
         /// <param name="files">Files to test</param>
         /// <param name="queueIdentifier">Queue identifier</param>
-        public static void TestArchive(FileView fileView, FileEntries files, OperationsManagerQueueIdentifier queueIdentifier)
+        public static void TestArchive(FileView fileView, FileEntries files, int queueIdentifier)
         {
             try
             {
@@ -163,12 +163,12 @@ namespace zfile
                     FileEntries filesToTest = files.Clone();
                     if (fileView.ActiveFileSource.OperationsTypes.HasFlag(FileSourceOperationType.TestArchive))
                     {
-                        IFileSourceOperation operation = fileView.ActiveFileSource.CreateTestArchiveOperation(filesToTest);
+                        FileSourceOperation operation = fileView.ActiveFileSource.CreateTestArchiveOperation(filesToTest);
 
                         if (operation != null)
                         {
                             // Start operation
-                            OperationsManager.AddOperation(operation, queueIdentifier, false, true);
+                            OperationsManager.AddOperation(operation as IFileSourceOperation, queueIdentifier, false, true);
                         }
                         else
                         {
@@ -184,7 +184,7 @@ namespace zfile
                 else if (fileView.ActiveFileSource is FileSystemFileSource)
                 {
                     // If archives count > 1 then put to queue
-                    OperationsManagerQueueIdentifier queueId;
+                    int queueId;
                     if (files.Count > 1 && queueIdentifier == OperationsManager.FreeOperationsQueueId)
                         queueId = OperationsManager.GetNewQueueIdentifier();
                     else
@@ -211,12 +211,12 @@ namespace zfile
                                         try
                                         {
                                             // Test all files
-                                            IFileSourceOperation operation = archiveFileSource.CreateTestArchiveOperation(filesToTest);
+                                            FileSourceOperation operation = archiveFileSource.CreateTestArchiveOperation(filesToTest);
 
                                             if (operation != null)
                                             {
                                                 // Start operation
-                                                OperationsManager.AddOperation(operation, queueId, false, true);
+                                                OperationsManager.AddOperation((IFileSourceOperation)operation, queueId, false, true);
                                             }
                                             else
                                             {
@@ -399,7 +399,7 @@ namespace zfile
                                 sourceFiles.Add(archiveFile.Clone());
                                 ITempFileSystemFileSource temp = TempFileSystemFileSource.GetFileSource();
 
-                                ArchiveCopyOutOperation operation = fileSource.CreateCopyOutOperation(
+                                ArchiveCopyOutOperation? operation = fileSource.CreateCopyOutOperation(
                                     temp, sourceFiles, temp.GetRootDir()) as ArchiveCopyOutOperation;
                                 try
                                 {

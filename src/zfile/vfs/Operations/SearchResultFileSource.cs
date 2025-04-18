@@ -11,13 +11,16 @@ namespace zfile
             return Path.DirectorySeparatorChar + Path.DirectorySeparatorChar + Path.DirectorySeparatorChar + "SearchResult" + Path.DirectorySeparatorChar;
         }
 
-        public override FileSourceProperties GetProperties()
-        {
-            var properties = base.GetProperties();
-            properties &= ~(FileSourceProperties.NoneParent | FileSourceProperties.ListFlatView);
-            if (properties.HasFlag(FileSourceProperties.DirectAccess))
-                properties |= FileSourceProperties.LinkToLocalFiles;
-            return properties;
+        public override FileSourceProperties Properties
+        { 
+			get
+			{
+				var properties = base.Properties;
+				properties &= ~(FileSourceProperties.NoneParent | FileSourceProperties.ListFlatView);
+				if (properties.HasFlag(FileSourceProperties.DirectAccess))
+					properties |= FileSourceProperties.LinkToLocalFiles;
+				return properties;
+			}
         }
 
         public override bool SetCurrentWorkingDirectory(string newDir)

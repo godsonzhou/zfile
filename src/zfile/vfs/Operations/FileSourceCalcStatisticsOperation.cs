@@ -99,16 +99,16 @@ namespace zfile
         /// 获取操作类型ID
         /// </summary>
         /// <returns>操作类型</returns>
-        public FileSourceOperationType GetID()
+        protected override FileSourceOperationType GetID()
         {
             return FileSourceOperationType.CalcStatistics;
         }
-
-        /// <summary>
-        /// 更新统计信息
-        /// </summary>
-        /// <param name="newStatistics">新的统计信息</param>
-        protected void UpdateStatistics(FileSourceCalcStatisticsOperationStatistics newStatistics)
+		public override FileSourceOperationType OperationType => FileSourceOperationType.CalcStatistics;
+		/// <summary>
+		/// 更新统计信息
+		/// </summary>
+		/// <param name="newStatistics">新的统计信息</param>
+		protected void UpdateStatistics(FileSourceCalcStatisticsOperationStatistics newStatistics)
         {
             _statisticsLock.EnterWriteLock();
             try

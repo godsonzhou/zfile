@@ -301,7 +301,7 @@ namespace zfile
             ReadArchive();
         }
 
-        public override FileSourceConnection GetConnection(FileSourceOperation operation)
+        public FileSourceConnection GetConnection(FileSourceOperation operation)
         {
             FileSourceConnection result = null;
 

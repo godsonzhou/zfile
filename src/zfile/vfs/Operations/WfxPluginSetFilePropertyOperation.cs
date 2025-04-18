@@ -80,7 +80,7 @@ namespace zfile
 						var remotefileinfo = new RemoteFileInfo();
 						remotefileinfo.SizeLow = file.Size;
 						remotefileinfo.LastWriteTime = file.ModificationTime.ToFileTime();
-						if (_wfxPluginFileSource.WfxModule.MoveFile(file.Name, nameProperty.Value, false, remotefileinfo) != 0)
+						if (_wfxPluginFileSource.WfxModule.MoveFile(file.Name, nameProperty.Value, false, false, remotefileinfo) != 0)
                         {
                             result = SetFilePropertyResult.Error;
                         }

@@ -460,7 +460,7 @@ namespace zfile
 		/// </summary>
 		/// <param name="operation">The operation</param>
 		/// <returns>The connection</returns>
-		FileSourceConnection GetConnection(IFileSourceOperation operation);
+		FileSourceConnection GetConnection(FileSourceOperation operation);
 
 		/// <summary>
 		/// Removes the specified operation from the queue
@@ -1145,7 +1145,7 @@ namespace zfile
 		/// </summary>
 		/// <param name="operation">The operation</param>
 		/// <returns>The connection</returns>
-		public virtual FileSourceConnection GetConnection(IFileSourceOperation operation)
+		public virtual FileSourceConnection GetConnection(FileSourceOperation operation)
 		{
 			if (operation == null)
 				return null;
@@ -1289,7 +1289,7 @@ namespace zfile
 		/// Handles the completion of an operation
 		/// </summary>
 		/// <param name="operation">The completed operation</param>
-		public virtual void OperationFinished(IFileSourceOperation operation)
+		public virtual void OperationFinished(FileSourceOperation operation)
 		{
 			// Default implementation is empty
 		}

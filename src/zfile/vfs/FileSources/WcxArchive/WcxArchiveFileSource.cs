@@ -224,7 +224,7 @@ namespace zfile
             {
                 foreach (var connection in _connections)
                 {
-                    if (connection.Operation == operation)
+                    if (connection.AssignedOperation == operation)
                         return connection;
                 }
             }
@@ -266,10 +266,10 @@ namespace zfile
         {
             var connection = FindConnectionByOperation(operation);
             if (connection != null)
-                connection.Operation = null;
+                connection.AssignedOperation = null;
         }
 
-        protected override void OperationFinished(FileSourceOperation operation)
+        public override void OperationFinished(FileSourceOperation operation)
         {
             base.OperationFinished(operation);
             ClearCurrentOperation(operation);
@@ -334,9 +334,9 @@ namespace zfile
                 if (connIndex >= 0 && connIndex < _connections.Count)
                 {
                     result = _connections[connIndex];
-                    if (result.Operation == null)
+                    if (result.AssignedOperation == null)
                     {
-                        result.Operation = operation;
+                        result.AssignedOperation = operation;
                         return result;
                     }
                 }
@@ -347,7 +347,7 @@ namespace zfile
             return null;
         }
 
-        public override void RemoveOperationFromQueue(FileSourceOperation operation)
+        public void RemoveOperationFromQueue(FileSourceOperation operation)
         {
             RemoveFromConnectionQueue(operation);
         }

@@ -22,7 +22,7 @@ namespace zfile
 			w32.OleCheck(API.SHGetDesktopFolder(out _desktopFolder));
 			w32.OleCheck(API.SHGetFolderLocation(IntPtr.Zero, CSIDL.DRIVES, IntPtr.Zero, 0, out _drives));
 			w32.OleCheck(_desktopFolder.BindToObject(_drives, IntPtr.Zero, ref Guids.IID_IShellFolder2, out _rootFolder));
-			_rootPath = GetDisplayName(_desktopFolder, _drives, SHGDN.INFOLDER);
+			_rootPath = w32.GetDisplayName(_desktopFolder, _drives, SHGDN.INFOLDER);
 
 			OperationsClasses[FileSourceOperationType.Move] = typeof(ShellMoveOperation);
 			OperationsClasses[FileSourceOperationType.Copy] = typeof(ShellCopyOperation);
@@ -74,7 +74,7 @@ namespace zfile
 				w32.OleCheck(API.SHGetFolderLocation(IntPtr.Zero, CSIDL.DRIVES, IntPtr.Zero, 0, out drivesPidl));
 				try
 				{
-					return GetDisplayName(desktopFolder, drivesPidl, SHGDN.INFOLDER);
+					return w32.GetDisplayName(desktopFolder, drivesPidl, SHGDN.INFOLDER);
 				}
 				finally
 				{
@@ -99,7 +99,7 @@ namespace zfile
 				w32.OleCheck(desktopFolder.BindToObject(drivesPidl, IntPtr.Zero, ref Guids.IID_IShellFolder2, out folder));
 				IEnumIDList enumIdList;
 				w32.OleCheck(folder.EnumObjects(IntPtr.Zero, (uint)(SHCONTF.FOLDERS | SHCONTF.STORAGE), out enumIdList));
-				string rootPath = "\\\\\\" + GetDisplayName(desktopFolder, drivesPidl, SHGDN.INFOLDER);
+				string rootPath = "\\\\\\" + w32.GetDisplayName(desktopFolder, drivesPidl, SHGDN.INFOLDER);
 
 				IntPtr[] pidl;
 				uint numIds;
@@ -109,11 +109,11 @@ namespace zfile
 					try
 					{
 						uint rgfInOut = SFGAOF_DEFAULT;
-						if (folder.GetAttributesOf(1, ref pidl, ref rgfInOut) == 0)
+						if (folder.GetAttributesOf(1, pidl, ref rgfInOut) == 0)
 						{
 							if ((SFGAOF_DEFAULT & rgfInOut) == (uint)SFGAO.FOLDER)
 							{
-								string deviceId = API.GetDisplayName(folder, pidl, SHGDN.FORPARSING);
+								string deviceId = w32.GetDisplayName2(folder, pidl[0], SHGDN.FORPARSING);
 								if (deviceId.Contains("\\\\?\\usb"))
 								{
 									var drive = new Drive();
@@ -129,7 +129,7 @@ namespace zfile
 									drive.DeviceId = deviceId;
 									drive.DriveType = DriveType.Special;
 									drive.IsMediaAvailable = true;
-									drive.DriveLabel = GetDisplayNameEx(folder, pidl, SHGDN.INFOLDER);
+									drive.DriveLabel = w32.GetDisplayName2(folder, pidl[0], SHGDN.INFOLDER);
 									drive.Path = rootPath + Path.DirectorySeparatorChar + drive.DriveLabel;
 									drivesList.Add(drive);
 									index++;

@@ -291,6 +291,40 @@ namespace WinShell
         public const int COINIT_MULTITHREADED = 0x0;
         public const int COINIT_DISABLE_OLE1DDE = 0x4;
         public const int COINIT_SPEED_OVER_MEMORY = 0x8;
+
+		public static string GetDisplayName2(IShellFolder2 folder, IntPtr pidl, SHGDN flags)
+		{
+			IntPtr pszName;
+			folder.GetDisplayNameOf(pidl, (uint)flags, out pszName);
+			try
+			{
+				return Marshal.PtrToStringAuto(pszName);
+			}
+			finally
+			{
+				Marshal.FreeCoTaskMem(pszName);
+			}
+		}
+		public static string GetDisplayName(IShellFolder folder, IntPtr pidl, SHGDN flags)
+		{
+			IntPtr pszName = IntPtr.Zero;
+			folder.GetDisplayNameOf(pidl, flags, pszName);
+			try
+			{
+				return Marshal.PtrToStringAuto(pszName);
+			}
+			finally
+			{
+				Marshal.FreeCoTaskMem(pszName);
+			}
+		}
+		public static string GetDetails(IShellFolder2 folder, IntPtr pidl, SHCOLUMNID columnID)
+		{
+			object value;
+			folder.GetDetailsEx(pidl, ref columnID, out value);
+			return value?.ToString() ?? string.Empty;
+		}
+
 		public static void OleCheck(int hr)
 		{
 			if (hr != 0)

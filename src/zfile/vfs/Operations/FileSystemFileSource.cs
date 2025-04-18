@@ -1,6 +1,15 @@
 using System.Runtime.InteropServices;
 namespace zfile
 {
+	public struct SearchRec
+	{
+		public string Name;
+		public FileAttributes Attributes;
+		public long Size;
+		public DateTime Time;
+		public DateTime PlatformTime;
+		public DateTime LastAccessTime;
+	}
     public interface IFileSystemFileSource : ILocalFileSource
     {
         // 接口定义
@@ -207,7 +216,7 @@ namespace zfile
 
         public static IFileSystemFileSource GetFileSource()
         {
-            var fileSource = FileSourceManager.Find(typeof(FileSystemFileSource), string.Empty);
+            var fileSource = FileSourceManager.Instance.Find(typeof(FileSystemFileSource), string.Empty);
             if (fileSource == null)
                 return new FileSystemFileSource();
             return fileSource as IFileSystemFileSource;

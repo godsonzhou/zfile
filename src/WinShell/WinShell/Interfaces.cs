@@ -181,7 +181,7 @@ namespace WinShell
 		new void CompareIDs(IntPtr lParam, IntPtr pidl1, IntPtr pidl2);
 		new void CreateViewObject(IntPtr hwndOwner, [In] ref Guid riid,
 			out IntPtr ppv);
-		void GetAttributesOf(uint cidl, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] IntPtr[] apidl,
+		int GetAttributesOf(uint cidl, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] IntPtr[] apidl,
 			ref uint rgfInOut);
 		void GetUIObjectOf(IntPtr hwndOwner, uint cidl, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] IntPtr[] apidl,
 			[In] ref Guid riid, IntPtr rgfReserved, out IntPtr ppv);

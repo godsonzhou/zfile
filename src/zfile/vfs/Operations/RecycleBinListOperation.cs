@@ -55,8 +55,8 @@ namespace zfile
                             CheckOperationState();
 
                             var file = RecycleBinFileSource.CreateFile(Path);
-                            file.FullPath = GetDisplayName(folder, pidl, SHGDN.NORMAL);
-                            file.LinkProperty.LinkTarget = GetDisplayName(folder, pidl, SHGDN.FORPARSING);
+                            file.FullPath = w32.GetDisplayName(folder, pidl, SHGDN.NORMAL);
+                            file.LinkProperty.LinkTarget = w32.GetDisplayName(folder, pidl, SHGDN.FORPARSING);
 
                             FileAttributeData attr;
                             if (FileSystemUtil.FileGetAttr(file.LinkProperty.LinkTarget, out attr))
@@ -66,9 +66,9 @@ namespace zfile
                                 file.CreationTime = DateTime.FromFileTime(attr.PlatformTime);
                                 file.LastAccessTime = DateTime.FromFileTime(attr.LastAccessTime);
                                 file.ModificationTime = DateTime.FromFileTime(attr.LastWriteTime);
-                                file.CommentProperty.Value = GetDetails(folder, pidl, SCID_OriginalLocation);
+                                file.CommentProperty.Value = w32.GetDetails(folder, pidl, SCID_OriginalLocation);
                                 file.ChangeTime = DateTime.FromOADate(
-                                    Convert.ToDouble(GetDetails(folder, pidl, SCID_DateDeleted)));
+                                    Convert.ToDouble(w32.GetDetails(folder, pidl, SCID_DateDeleted)));
                             }
 
                             Files.Add(file);
@@ -88,27 +88,6 @@ namespace zfile
             {
                 ShowError(ex.Message);
             }
-        }
-
-        private string GetDisplayName(IShellFolder2 folder, IntPtr pidl, SHGDN flags)
-        {
-            IntPtr pszName;
-            folder.GetDisplayNameOf(pidl, (uint)flags, out pszName);
-            try
-            {
-                return Marshal.PtrToStringAuto(pszName);
-            }
-            finally
-            {
-                Marshal.FreeCoTaskMem(pszName);
-            }
-        }
-
-        private string GetDetails(IShellFolder2 folder, IntPtr pidl, SHCOLUMNID columnID)
-        {
-            object value;
-            folder.GetDetailsEx(pidl, ref columnID, out value);
-            return value?.ToString() ?? string.Empty;
         }
 
         private void ShowError(string message)

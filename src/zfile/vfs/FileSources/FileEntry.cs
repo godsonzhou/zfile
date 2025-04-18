@@ -764,7 +764,7 @@ public class FileEntry
 	{
 		get => _supportedProperties.HasFlag(FilePropertyType.Attributes) && (Attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly;
 	}
-	
+	public bool Exists { get; internal set; }
 }
 
 public class FileEntries : IEnumerable<FileEntry>

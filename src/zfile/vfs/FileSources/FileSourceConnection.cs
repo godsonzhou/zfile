@@ -5,14 +5,14 @@ namespace zfile
     /// </summary>
     public class FileSourceConnection
     {
-        private IFileSourceOperation _assignedOperation;
+        private FileSourceOperation _assignedOperation;
         private readonly object _operationLock = new object();
         private string _currentPath;
 
         /// <summary>
         /// Gets the assigned operation
         /// </summary>
-        public IFileSourceOperation AssignedOperation => _assignedOperation;
+        public FileSourceOperation AssignedOperation { get => _assignedOperation; set => _assignedOperation = value; }
 
         /// <summary>
         /// Gets or sets the current path
@@ -51,7 +51,7 @@ namespace zfile
         /// </summary>
         /// <param name="operation">The operation</param>
         /// <returns>True if the connection was acquired successfully, false otherwise</returns>
-        public bool Acquire(IFileSourceOperation operation)
+        public bool Acquire(FileSourceOperation operation)
         {
             if (operation == null)
                 return false;

@@ -38,7 +38,7 @@ namespace zfile
             return result;
         }
 
-        public override void CloneTo(FileProperty fileProperty)
+        public void CloneTo(FileProperty fileProperty)
         {
             if (fileProperty != null)
             {
@@ -297,5 +297,7 @@ namespace zfile
         }
     }
 
-  
+	public interface IFileOperationProgressSink
+	{
+	}
 } 

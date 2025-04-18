@@ -1,12 +1,11 @@
-using OpenQA.Selenium.DevTools.V131.Storage;
-
 namespace zfile
 {
 	public struct StateChangedEventEntry
 	{
-		public FileSourceOperationStateChangedNotify FunctionToCall;
+		public EventHandler<FileSourceOperationState> FunctionToCall;
 		public List<FileSourceOperationState> States;
 	}
+
 	public struct DuplicateOption
 	{
 
@@ -419,7 +418,7 @@ namespace zfile
         /// <summary>
         /// Finalizes the operation
         /// </summary>
-        protected virtual new void Finalize()
+        protected virtual void Finalize()
         {
             // Override in descendant classes
         }
@@ -574,7 +573,7 @@ namespace zfile
                 _stateChangedEventListeners.Add(new StateChangedEventEntry
                 {
                     FunctionToCall = functionToCall,
-                    States = new HashSet<FileSourceOperationState>(states)
+                    States = new List<FileSourceOperationState>(states)
                 });
             }
         }
@@ -725,11 +724,12 @@ namespace zfile
         }
     }
 
-	internal interface IFileSourceOperationUIActionHandler
+	public interface IFileSourceOperationUIActionHandler
 	{
 	}
 
 	public interface IFileSourceOperationUI
 	{
+		FileSourceOperationUIResponse AskQuestion(string uiMessage, string uiQuestion, FileSourceOperationUIResponse[] uiPossibleResponses, FileSourceOperationUIResponse uiDefaultOKResponse, FileSourceOperationUIResponse uiDefaultCancelResponse, IFileSourceOperationUIActionHandler uiActionHandler);
 	}
 }

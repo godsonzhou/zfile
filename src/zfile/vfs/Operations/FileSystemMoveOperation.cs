@@ -128,13 +128,13 @@ namespace zfile
             return false;
         }
 
-        protected override void Finalize()
-        {
-            FileExistsOption = operationHelper.FileExistsOption;
-            operationHelper?.Dispose();
-        }
+		//protected override void Finalize()
+		//{
+		//	FileExistsOption = operationHelper.FileExistsOption;
+		//	operationHelper?.Dispose();
+		//}
 
-        public Type GetOptionsUIClass()
+		public Type GetOptionsUIClass()
         {
             return typeof(FileSystemMoveOperationOptionsUI);
         }

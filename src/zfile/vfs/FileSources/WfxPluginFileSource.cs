@@ -6,7 +6,7 @@ public interface IWfxPluginFileSource : IFileSource
 	void FillAndCount(FileEntries files, bool countDirs, bool excludeRootDir,
 		out FileEntries newFiles, out long filesCount, out long filesSize);
 	bool FillSingleFile(string fullPath, out FileEntry file);
-	FsFileResult WfxCopyMove(string sourceFile, string targetFile, int flags, FileEntry remoteInfo,
+	FsFileResult WfxCopyMove(string sourceFile, string targetFile, FsCopyFlags flags, FileEntry remoteInfo,
 		bool isInternal, bool isCopyMoveIn);
 	int PluginNumber { get; }
 	WfxModule WfxModule { get; }
@@ -22,7 +22,7 @@ public class RemoteInfo
 /// <summary>
 /// Represents a WFX plugin file source
 /// </summary>
-public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
+public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 {
 	private readonly WfxModule _wfxModule;
 	private readonly string _pluginName;
@@ -404,8 +404,8 @@ public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 		}
 		return false;
 	}
-
-	public int WfxCopyMove(string sourceFile, string targetFile, FsCopyFlags flags, FileEntry remoteInfo,
+	
+	public FsFileResult WfxCopyMove(string sourceFile, string targetFile, FsCopyFlags flags, FileEntry remoteInfo,
 		bool isInternal, bool isCopyMoveIn)
 	{
 		if (isInternal)
@@ -419,7 +419,7 @@ public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 				Attr = (int)remoteInfo.Attributes,
 				LastWriteTime = DateTimeToWfxFileTime(remoteInfo.ModificationTime)
 			};
-			return _wfxModule.MoveFile(sourceFile, targetFile, isMove, overwrite, _remoteInfo);
+			return (FsFileResult)_wfxModule.MoveFile(sourceFile, targetFile, isMove, overwrite, _remoteInfo);
 		}
 		else
 		{
@@ -589,6 +589,8 @@ public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 			return null;
 		}
 	}
+
+
 }
 
 public enum FileSourceField

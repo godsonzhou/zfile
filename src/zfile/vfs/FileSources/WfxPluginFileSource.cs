@@ -187,7 +187,7 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 				{
 					Name = findData.FileName,
 					Size = findData.FileSize,
-					Attributes = findData.FileAttributes,
+					Attributes = (FileAttributes)findData.FileAttributes,
 					CreationTime = DateTime.FromFileTime(findData.CreationTime),
 					LastAccessTime = DateTime.FromFileTime(findData.LastAccessTime),
 					ModificationTime = DateTime.FromFileTime(findData.LastWriteTime),
@@ -356,7 +356,7 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 			{
 				Name = findData.FileName,
 				Size = findData.FileSize,
-				Attributes = findData.FileAttributes,
+				Attributes = (FileAttributes)findData.FileAttributes,
 				CreationTime = DateTime.FromFileTime(findData.CreationTime),
 				LastAccessTime = DateTime.FromFileTime(findData.LastAccessTime),
 				ModificationTime = DateTime.FromFileTime(findData.LastWriteTime),
@@ -393,7 +393,7 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 				{
 					Name = findData.FileName,
 					Size = findData.FileSize,
-					Attributes = findData.FileAttributes,
+					Attributes = (FileAttributes)findData.FileAttributes,
 					CreationTime = DateTime.FromFileTime(findData.CreationTime),
 					LastAccessTime = DateTime.FromFileTime(findData.LastAccessTime),
 					ModificationTime = DateTime.FromFileTime(findData.LastWriteTime),

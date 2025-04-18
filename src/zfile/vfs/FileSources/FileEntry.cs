@@ -59,6 +59,8 @@ public abstract class FileProperty
     /// Gets the property ID
     /// </summary>
     public abstract FilePropertyType ID { get; }
+	public bool IsValid { get; internal set; }
+
 }
 
 public class FileNameProperty(string filename) : FileProperty
@@ -94,6 +96,7 @@ public class FileSizeProperty : FileProperty
         return other is FileSizeProperty prop && Value == prop.Value;
     }
     public override FilePropertyType ID => FilePropertyType.Size;
+
 }
 
 public class FileCompressedSizeProperty : FileProperty

@@ -2,6 +2,13 @@ using System.Runtime.InteropServices;
 using WinShell;
 namespace zfile
 {
+	public enum SCID
+	{
+		Capacity = 0x0000000C,
+		FileSize = 0x0000000B,
+		DateCreated = 0x0000000D,
+		DateModified = 0x0000000E
+	}
     public class ShellListOperation : FileSourceListOperation
     {
         private readonly IShellFileSource shellFileSource;
@@ -51,9 +58,9 @@ namespace zfile
                         CheckOperationState();
 
                         var file = ShellFileSource.CreateFile(Path);
-                        file.Name = GetDisplayNameEx(folder, pidl, SHGDN.INFOLDER);
+                        file.Name = w32.GetDisplayName2(folder, pidl, SHGDN.INFOLDER);
                         ((FileShellProperty)file.LinkProperty).Item = API.ILCombine(parent, pidl);
-                        file.LinkProperty.LinkTarget = GetDisplayName(folder, pidl, SHGDN.INFOLDER | SHGDN.FORPARSING);
+                        file.LinkProperty.LinkTarget = w32.GetDisplayName(folder, pidl, SHGDN.INFOLDER | SHGDN.FORPARSING);
 
                         uint attributes = SFGAOF_DEFAULT;
                         if (folder.GetAttributesOf(1, new[] { pidl }, ref attributes) == 0)
@@ -72,7 +79,7 @@ namespace zfile
                             }
                         }
 
-                        object value = GetDetails(folder, pidl, SCID.FileSize);
+                        object value = w32.GetDetails(folder, pidl, SCID.FileSize);
                         if (value is long)
                         {
                             file.Size = (long)value;
@@ -86,7 +93,7 @@ namespace zfile
                             file.SizeProperty.IsValid = false;
                         }
 
-                        value = GetDetails(folder, pidl, SCID.DateModified);
+                        value = w32.GetDetails(folder, pidl, SCID.DateModified);
                         if (value != null)
                         {
                             file.ModificationTime = (DateTime)value;
@@ -96,7 +103,7 @@ namespace zfile
                             file.ModificationTimeProperty.IsValid = false;
                         }
 
-                        value = GetDetails(folder, pidl, SCID.DateCreated);
+                        value = w32.GetDetails(folder, pidl, SCID.DateCreated);
                         if (value != null)
                         {
                             file.CreationTime = (DateTime)value;
@@ -144,9 +151,9 @@ namespace zfile
                         CheckOperationState();
 
                         var file = ShellFileSource.CreateFile(Path);
-                        file.Name = GetDisplayNameEx(folder, pidl, SHGDN.INFOLDER);
-                        ((FileShellProperty)file.LinkProperty).Item = ILCombine(drivesPidl, pidl);
-                        file.LinkProperty.LinkTarget = GetDisplayName(folder, pidl, SHGDN.INFOLDER | SHGDN.FORPARSING);
+                        file.Name = w32.GetDisplayName2(folder, pidl, SHGDN.INFOLDER);
+                        ((FileShellProperty)file.LinkProperty).Item = API.ILCombine(drivesPidl, pidl);
+                        file.LinkProperty.LinkTarget = w32.GetDisplayName(folder, pidl, SHGDN.INFOLDER | SHGDN.FORPARSING);
 
                         uint attributes = SFGAOF_DEFAULT;
                         file.Attributes = FileAttributes.Device | FileAttributes.Virtual;

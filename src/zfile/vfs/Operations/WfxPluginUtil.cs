@@ -255,7 +255,7 @@ namespace zfile
             };
 
             return fileSource.WfxCopyMove(file.Path + file.Name, file.Path + newFileName,
-                (int)FsCopyFlags.Move, remoteInfo, true, true) == FsFileResult.Ok;
+                FsCopyFlags.Move, remoteInfo, true, true) == FsFileResult.Ok;
         }
 
         public static DateTime WfxFileTimeToDateTime(WfxFileTime fileTime)

@@ -590,7 +590,10 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 		}
 	}
 
-
+	internal static IFileSource? CreateByRootName(string name)
+	{
+		throw new NotImplementedException();
+	}
 }
 
 public enum FileSourceField

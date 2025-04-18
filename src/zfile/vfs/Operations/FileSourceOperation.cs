@@ -5,7 +5,11 @@ namespace zfile
 	public struct StateChangedEventEntry
 	{
 		public FileSourceOperationStateChangedNotify FunctionToCall;
-		public FileSourceOperationState States;
+		public List<FileSourceOperationState> States;
+	}
+	public struct DuplicateOption
+	{
+
 	}
 	public class FileSourceOperationAbortingException : Exception;
 
@@ -719,4 +723,12 @@ namespace zfile
             }
         }
     }
+
+	internal interface IFileSourceOperationUIActionHandler
+	{
+	}
+
+	public interface IFileSourceOperationUI
+	{
+	}
 }

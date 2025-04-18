@@ -10,7 +10,7 @@ namespace zfile
         private readonly IShellFileSource shellFileSource;
         private FileSourceSetFilePropertyOperationStatistics statistics;
 
-        public ShellSetFilePropertyOperation(IFileSource targetFileSource, FileEntries targetFiles, List<FileProperty> newProperties)
+        public ShellSetFilePropertyOperation(IFileSource targetFileSource, FileEntries targetFiles, FileProperty[] newProperties)
             : base(targetFileSource, targetFiles, newProperties)
         {
             shellFileSource = targetFileSource as IShellFileSource;

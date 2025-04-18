@@ -45,7 +45,7 @@ namespace zfile
             return true;
         }
 
-        public override IFileSourceOperation CreateListOperation(string targetPath)
+        public override FileSourceOperation CreateListOperation(string targetPath)
         {
             return new WslListOperation(this, targetPath);
         }

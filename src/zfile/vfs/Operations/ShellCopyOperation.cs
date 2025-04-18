@@ -6,9 +6,9 @@ namespace zfile
     public class ShellCopyOperation : FileSourceCopyOperation
     {
         private IFileOperation fileOp;
-        private IShellItem targetFolder;
+        protected IShellItem targetFolder;
         protected List<IntPtr> sourceFilesTree;
-        private IShellFileSource shellFileSource;
+        protected IShellFileSource shellFileSource;
         protected FileSourceCopyOperationStatistics statistics;
 
         public ShellCopyOperation(IFileSource sourceFileSource,
@@ -105,7 +105,7 @@ namespace zfile
             }
         }
 
-        private void ShowError(string message)
+        protected void ShowError(string message)
         {
             if (GlobalSettings.LogCopyMove && GlobalSettings.LogErrors)
             {
@@ -117,11 +117,22 @@ namespace zfile
                 RaiseAbortOperation();
             }
         }
-
-       
     }
 
-    public class ShellCopyInOperation : ShellCopyOperation
+	internal interface IFileOperation
+	{
+		void CopyItems(IShellItemArray shellItemArray, IShellItem shellItem) { }
+		int PerformOperations();
+		void SetOperationFlags(int flags) { }
+		void Advise(FileOperationProgressSink sink, out uint cookie);
+		void Unadvise(uint cookie);
+		int DeleteItems(IShellItemArray shellItemArray) { return 0; }
+		void MoveItems(IShellItemArray shellItemArray, IShellItem shellItem) { }
+		void RenameItem(IShellItem shellItem, string newName, object obj) { }
+	
+	}
+
+	public class ShellCopyInOperation : ShellCopyOperation
     {
         public ShellCopyInOperation(IFileSource sourceFileSource,
                                   IFileSource targetFileSource,
@@ -153,7 +164,7 @@ namespace zfile
                 w32.OleCheck(shellFileSource.FindFolder(TargetPath, out folder));
                 IntPtr objectPtr;
                 w32.OleCheck(API.SHGetIDListFromObject(folder, out objectPtr));
-                w32.OleCheck(API.SHCreateItemFromIDList(objectPtr, typeof(IShellItem).GUID, out targetFolder));
+                w32.OleCheck(API.SHCreateItemFromIDList(objectPtr, ref typeof(IShellItem).GUID, out targetFolder));
             }
             catch (Exception ex)
             {
@@ -172,7 +183,7 @@ namespace zfile
         {
         }
 
-        public override FileSourceOperationType GetID()
+        protected override FileSourceOperationType GetID()
         {
             return FileSourceOperationType.CopyOut;
         }

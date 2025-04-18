@@ -231,7 +231,7 @@ namespace zfile
                    FileSourceOperationType.Execute;
         }
 
-        public FileSourceProperties GetProperties()
+        public virtual FileSourceProperties GetProperties()
         {
             var properties = FileSourceProperties.DirectAccess |
                            FileSourceProperties.ListFlatView |

@@ -49,7 +49,7 @@ namespace zfile
                 try
                 {
                     IShellItemArray itemArray;
-                    w32.OleCheck(SHCreateShellItemArrayFromIDLists(sourceFilesTree.Count, sourceFilesTree.ToArray(), out itemArray));
+                    w32.OleCheck(API.SHCreateShellItemArrayFromIDLists((uint)sourceFilesTree.Count, sourceFilesTree.ToArray(), out itemArray));
                     w32.OleCheck(fileOp.DeleteItems(itemArray));
                     int result = fileOp.PerformOperations();
                     if (result != 0)
@@ -78,7 +78,7 @@ namespace zfile
                 Logger.Write(Thread.CurrentThread, message, LogOption.Error);
             }
 
-            if (System.Windows.Forms.MessageBox.Show(message, "", MessageBoxButtons.SkipCancel, MessageBoxIcon.Error) == DialogResult.Cancel)
+            if (MyMessageBox.Show(message, "", MessageBoxButtons.SkipCancel, MessageBoxIcon.Error) == DialogResult.Cancel)
             {
                 RaiseAbortOperation();
             }

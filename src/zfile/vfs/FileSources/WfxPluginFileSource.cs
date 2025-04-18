@@ -6,7 +6,7 @@ public interface IWfxPluginFileSource : IFileSource
 	void FillAndCount(FileEntries files, bool countDirs, bool excludeRootDir,
 		out FileEntries newFiles, out long filesCount, out long filesSize);
 	bool FillSingleFile(string fullPath, out FileEntry file);
-	int WfxCopyMove(string sourceFile, string targetFile, int flags, FileEntry remoteInfo,
+	FsFileResult WfxCopyMove(string sourceFile, string targetFile, int flags, FileEntry remoteInfo,
 		bool isInternal, bool isCopyMoveIn);
 	int PluginNumber { get; }
 	WfxModule WfxModule { get; }
@@ -405,14 +405,14 @@ public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 		return false;
 	}
 
-	public int WfxCopyMove(string sourceFile, string targetFile, int flags, FileEntry remoteInfo,
+	public FsFileResult WfxCopyMove(string sourceFile, string targetFile, FsCopyFlags flags, FileEntry remoteInfo,
 		bool isInternal, bool isCopyMoveIn)
 	{
 		if (isInternal)
 		{
-			bool isMove = (flags & WfxConstants.FS_COPYFLAGS_MOVE) != 0;
-			bool overwrite = (flags & WfxConstants.FS_COPYFLAGS_OVERWRITE) != 0;
-			return _wfxModule.RenameMoveFile(sourceFile, targetFile, isMove, overwrite, remoteInfo);
+			bool isMove = (flags & FsCopyFlags.Move) != 0;
+			bool overwrite = (flags & FsCopyFlags.Overwrite) != 0;
+			return _wfxModule.RenMoveFile(sourceFile, targetFile, isMove, overwrite, remoteInfo);
 		}
 		else
 		{
@@ -555,7 +555,7 @@ public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 		return new WfxPluginExecuteOperation(this, executableFile, basePath, verb);
 	}
 
-	public FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, Dictionary<FilePropertyType, object> newProperties)
+	public FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, FileProperty[] newProperties)
 	{
 		return new WfxPluginSetFilePropertyOperation(this, targetFiles, newProperties);
 	}

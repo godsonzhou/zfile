@@ -211,7 +211,7 @@ namespace zfile
 		/// <summary>
 		/// Gets the properties of this file source
 		/// </summary>
-		FileSourceProperty Properties { get; }
+		FileSourceProperties Properties { get; }
 
 		/// <summary>
 		/// Gets the files in the specified target path
@@ -694,7 +694,7 @@ namespace zfile
 		/// <summary>
 		/// Gets the properties of this file source
 		/// </summary>
-		public virtual FileSourceProperty Properties { get; protected set; }
+		public virtual FileSourceProperties Properties { get; protected set; }
 
 		/// <summary>
 		/// Gets or sets the parent file source of this file source

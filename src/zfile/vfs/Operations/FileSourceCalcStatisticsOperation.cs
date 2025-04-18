@@ -36,7 +36,7 @@ namespace zfile
         private readonly FileEntries _files;
 
         // 选项
-        private FileSourceOperationOptionSymLink _symLinkOption;
+        private FileSourceOperationSymLinkOption _symLinkOption;
         private bool _skipErrors;
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace zfile
             _fileSource = targetFileSource;
             _files = files;
 
-            _symLinkOption = FileSourceOperationOptionSymLink.None;
+            _symLinkOption = FileSourceOperationSymLinkOption.None;
             _skipErrors = GlobalSettings.SkipFileOpError;
         }
 
@@ -168,7 +168,7 @@ namespace zfile
         /// <summary>
         /// 符号链接选项
         /// </summary>
-        public FileSourceOperationOptionSymLink SymLinkOption
+        public FileSourceOperationSymLinkOption SymLinkOption
         {
             get { return _symLinkOption; }
             set { _symLinkOption = value; }

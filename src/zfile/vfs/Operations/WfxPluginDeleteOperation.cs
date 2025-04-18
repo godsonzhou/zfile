@@ -1,25 +1,18 @@
 namespace zfile
 {
-	public enum FileSourceOperationSymlinkOption
-	{
-		None = 0,
-		Follow = 1,
-		DontFollow = 2
-	}
-
 	public class WfxPluginDeleteOperation : FileSourceDeleteOperation
     {
         private readonly IWfxPluginFileSource _wfxPluginFileSource;
         private FileEntries _fullFilesTreeToDelete;
         private FileSourceDeleteOperationStatistics _statistics;
-        private FileSourceOperationSymlinkOption _symLinkOption;
+        private FileSourceOperationSymLinkOption _symLinkOption;
         private bool _skipErrors;
         private FileSourceOperationOptionGeneral _deleteReadOnly;
 
         public WfxPluginDeleteOperation(IFileSource targetFileSource, FileEntries filesToDelete)
             : base(targetFileSource, filesToDelete)
         {
-            _symLinkOption = FileSourceOperationSymlinkOption.None;
+            _symLinkOption = FileSourceOperationSymLinkOption.None;
             _skipErrors = false;
             _deleteReadOnly = FileSourceOperationOptionGeneral.None;
             _fullFilesTreeToDelete = null;

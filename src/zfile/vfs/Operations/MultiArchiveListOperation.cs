@@ -1,6 +1,6 @@
 namespace zfile
 {
-    public class MultiArchiveListOperation : FileSourceOperation
+    public class MultiArchiveListOperation : FileSourceListOperation
     {
         private readonly IMultiArchiveFileSource _multiArchiveFileSource;
         private readonly string _targetPath;
@@ -8,7 +8,7 @@ namespace zfile
 
         public MultiArchiveListOperation(
             IMultiArchiveFileSource fileSource,
-            string targetPath) : base( fileSource )
+            string targetPath) : base( fileSource, targetPath )
         {
             _multiArchiveFileSource = fileSource;
             _targetPath = targetPath;

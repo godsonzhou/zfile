@@ -12,7 +12,11 @@ namespace zfile
     {
         private WfxModule _wfxModule;
 
-        public WfxModule WfxModule
+		public WfxTreeBuilder(AskQuestionFunction askQuestionFunction, CheckOperationStateFunction checkOperationStateFunction) : base(askQuestionFunction, checkOperationStateFunction)
+		{
+		}
+
+		public WfxModule WfxModule
         {
             get => _wfxModule;
             set => _wfxModule = value;
@@ -180,8 +184,65 @@ namespace zfile
             }
         }
     }
+	public struct WfxFileTime
+	{
+		public long Time;
+		public uint dwLowDateTime;
+		public uint dwHighDateTime;
+		public static WfxFileTime FromWinFileTime(long winFileTime)
+		{
+			return new WfxFileTime
+			{
+				dwLowDateTime = (uint)(winFileTime & 0xFFFFFFFF),
+				dwHighDateTime = (uint)(winFileTime >> 32)
+			};
+		}
+		public long ToWinFileTime()
+		{
+			return ((long)dwHighDateTime << 32) | (uint)dwLowDateTime;
+		}
+	}
+	public class RemoteFileEntry : FileEntry 
+	{
+		public int SizeLow;
+		public int SizeHigh;
+		public int Attr;
+		public WfxFileTime LastWriteTime;
+		public string Path;
+		public string Name;
+		public RemoteFileEntry()
+		{
+			Path = string.Empty;
+			Name = string.Empty;
+			SizeLow = 0;
+			SizeHigh = 0;
+			Attr = 0;
+			LastWriteTime = new WfxFileTime();
+		}
+	}
+	[Flags]
+	public enum FsCopyFlags : int
+	{
+		None = 0,
+		Overwrite = 1,
+		NoConfirmMkDir = 2,
+		NoConfirm = 4,
+		NoRecursion = 8,
+		Move = 16,
+		DeleteSourceFiles = 32,
+		DeleteSourceDirs = 64,
+		DeleteEmptyDirs = 128,
+		DeleteEmptySourceDirs = 256,
+		DeleteEmptyTargetDirs = 512,
+		DeleteEmptyTargetDir = 1024
+	}
 
-    public static class WfxPluginUtil
+	public enum FsFileResult
+	{
+		Ok,
+		Error
+	}
+	public static class WfxPluginUtil
     {
         public static bool WfxRenameFile(IWfxPluginFileSource fileSource, FileEntry file, string newFileName)
         {
@@ -194,7 +255,7 @@ namespace zfile
             };
 
             return fileSource.WfxCopyMove(file.Path + file.Name, file.Path + newFileName,
-                FsCopyFlags.Move, ref remoteInfo, true, true) == FsFileResult.Ok;
+                (int)FsCopyFlags.Move, remoteInfo, true, true) == FsFileResult.Ok;
         }
 
         public static DateTime WfxFileTimeToDateTime(WfxFileTime fileTime)

@@ -80,7 +80,7 @@ namespace zfile
             try
             {
                 treeBuilder.WfxModule = _wfxPluginFileSource.WfxModule;
-                treeBuilder.SymLinkOption = FileSourceOperationSymlinkOption.DontFollow;
+                treeBuilder.SymLinkOption = FileSourceOperationSymLinkOption.DontFollow;
                 treeBuilder.BuildFromFiles(SourceFiles);
                 _sourceFilesTree = treeBuilder.ReleaseTree();
                 _statistics.TotalFiles = treeBuilder.FilesCount;

@@ -58,7 +58,7 @@ namespace zfile
             {
                 treeBuilder.Recursive = Recursive();
                 // 在移动操作中不跟随符号链接
-                treeBuilder.SymLinkOption = FileSourceOperationOptionSymLink.DontFollow;
+                treeBuilder.SymLinkOption = FileSourceOperationSymLinkOption.DontFollow;
                 treeBuilder.SearchTemplate = SearchTemplate;
                 treeBuilder.ExcludeEmptyTemplateDirectories = ExcludeEmptyTemplateDirectories;
 

@@ -12,7 +12,7 @@ namespace zfile
 
         // 选项
         private FileSourceOperationOptionFileExists fileExistsOption;
-        private FileSourceOperationOptionSymLink symLinkOption;
+        private FileSourceOperationSymLinkOption symLinkOption;
         private bool skipErrors;
 
         public FileSystemCalcChecksumOperation(IFileSource targetFileSource, 
@@ -22,7 +22,7 @@ namespace zfile
             : base(targetFileSource, files, targetPath, targetMask)
         {
             buffer = null;
-            symLinkOption = FileSourceOperationOptionSymLink.None;
+            symLinkOption = FileSourceOperationSymLinkOption.None;
             fileExistsOption = FileSourceOperationOptionFileExists.None;
             skipErrors = false;
             fullFilesTree = new FileEntries();

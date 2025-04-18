@@ -1,12 +1,19 @@
 namespace zfile
 {
+	public class CallbackDataClass
+	{
+		public CallbackDataClass() { }
+		public delegate UpdateProgressFunction;
+		
+
+	}
     public class WfxPluginCopyOperation : FileSourceCopyOperation
     {
-        private readonly IWfxPluginFileSource _wfxPluginFileSource;
+        private readonly IWfxPluginFileSource? _wfxPluginFileSource;
         private WfxPluginOperationHelper _operationHelper;
         private CallbackDataClass _callbackDataClass;
         private FileTree _sourceFilesTree;
-        private FileSourceCopyOperationStatistics _statistics;
+        //private FileSourceCopyOperationStatistics _statistics;
         private int _infoOperation;
 
         public WfxPluginCopyOperation(IFileSource sourceFileSource, IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)
@@ -15,7 +22,7 @@ namespace zfile
             _wfxPluginFileSource = sourceFileSource as IWfxPluginFileSource;
             _callbackDataClass = (CallbackDataClass)_wfxPluginFileSource.WfxOperationList.Objects[_wfxPluginFileSource.PluginNumber];
 
-            _infoOperation = sourceFiles.Count > 1 ? FsStatusOperation.RenMovMulti : FsStatusOperation.RenMovSingle;
+            _infoOperation = (int)(sourceFiles.Count > 1 ? FsStatusOperation.RenMovMulti : FsStatusOperation.RenMovSingle);
         }
 
         private int UpdateProgress(string sourceName, string targetName, int percentDone)
@@ -54,13 +61,13 @@ namespace zfile
             _callbackDataClass.UpdateProgressFunction = UpdateProgress;
             UpdateProgressFunction = UpdateProgress;
 
-            _statistics = RetrieveStatistics;
+            _statistics = RetrieveStatistics();
 
             var treeBuilder = new WfxTreeBuilder(AskQuestion, CheckOperationState);
             try
             {
                 treeBuilder.WfxModule = _wfxPluginFileSource.WfxModule;
-                treeBuilder.SymLinkOption = FileSourceOperationSymlinkOption.Follow;
+                treeBuilder.SymLinkOption = FileSourceOperationSymLinkOption.Follow;
                 treeBuilder.BuildFromFiles(SourceFiles);
                 _sourceFilesTree = treeBuilder.ReleaseTree();
                 _statistics.TotalFiles = treeBuilder.FilesCount;

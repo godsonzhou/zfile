@@ -101,11 +101,11 @@ namespace zfile
                         FileSourceOperationType.CalcStatistics;
 
             if (((_pluginCapabilities & (int)PackerCaps.PK_CAPS_NEW) != 0 || (_pluginCapabilities & (int)PackerCaps.PK_CAPS_MODIFY) != 0) &&
-                (_wcxModule.PackFiles != null || _wcxModule.PackFilesW != null))
+                (_wcxModule._packFiles != null || _wcxModule._packFilesW != null))
                 result |= FileSourceOperationType.CopyIn;
 
             if ((_pluginCapabilities & (int)PackerCaps.PK_CAPS_DELETE) != 0 &&
-                (_wcxModule.DeleteFiles != null || _wcxModule.DeleteFilesW != null))
+                (_wcxModule._deleteFiles != null || _wcxModule._deleteFilesW != null))
                 result |= FileSourceOperationType.Delete;
 
             return result;

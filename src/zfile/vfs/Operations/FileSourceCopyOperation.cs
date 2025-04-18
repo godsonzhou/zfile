@@ -15,7 +15,7 @@ namespace zfile
 
         protected string _targetPath;
         protected CopyAttributesOption _copyAttributesOptions;
-        protected FileSourceOperationOptionSymLink _symLinkOption;
+        protected FileSourceOperationSymLinkOption _symLinkOption;
         protected FileSourceOperationOptionFileExists _fileExistsOption;
         protected FileSourceOperationOptionDirectoryExists _dirExistsOption;
 
@@ -56,7 +56,7 @@ namespace zfile
         /// <summary>
         /// Gets or sets the symlink option
         /// </summary>
-        public FileSourceOperationOptionSymLink SymLinkOption
+        public FileSourceOperationSymLinkOption SymLinkOption
         {
             get => _symLinkOption;
             set => _symLinkOption = value;

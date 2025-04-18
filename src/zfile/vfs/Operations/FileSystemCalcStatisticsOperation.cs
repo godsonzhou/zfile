@@ -1,6 +1,6 @@
 namespace zfile
 {
-	public enum FileSourceOperationOptionSymLink
+	public enum FileSourceOperationSymLinkOption
 	{
 		None = 0,
 		Follow = 1,
@@ -10,14 +10,14 @@ namespace zfile
 	public class FileSystemCalcStatisticsOperation : FileSourceCalcStatisticsOperation
     {
         private FileSourceCalcStatisticsOperationStatistics statistics; // 统计信息的本地副本
-        private FileSourceOperationOptionSymLink symLinkOption;
+        private FileSourceOperationSymLinkOption symLinkOption;
 
 		public override FileSourceOperationType OperationType => FileSourceOperationType.CalcStatistics;
 
 		public FileSystemCalcStatisticsOperation(IFileSource targetFileSource, FileEntries files)
             : base(targetFileSource, files)
         {
-            symLinkOption = FileSourceOperationOptionSymLink.None;
+            symLinkOption = FileSourceOperationSymLinkOption.None;
         }
 
         protected override void Initialize()
@@ -51,13 +51,13 @@ namespace zfile
 
                 switch (symLinkOption)
                 {
-                    case FileSourceOperationOptionSymLink.Follow:
+                    case FileSourceOperationSymLinkOption.Follow:
                         ProcessLink(file);
                         break;
-                    case FileSourceOperationOptionSymLink.DontFollow:
+                    case FileSourceOperationSymLinkOption.DontFollow:
                         // 不执行任何操作
                         break;
-                    case FileSourceOperationOptionSymLink.None:
+                    case FileSourceOperationSymLinkOption.None:
                         var result = AskQuestion("", 
                             $"是否跟随符号链接 {file.Name}?",
                             new[] { "是", "全部", "否", "全部跳过" },
@@ -69,14 +69,14 @@ namespace zfile
                                 ProcessLink(file);
                                 break;
                             case "全部":
-                                symLinkOption = FileSourceOperationOptionSymLink.Follow;
+                                symLinkOption = FileSourceOperationSymLinkOption.Follow;
                                 ProcessLink(file);
                                 break;
                             case "否":
                                 // 不执行任何操作
                                 break;
                             case "全部跳过":
-                                symLinkOption = FileSourceOperationOptionSymLink.DontFollow;
+                                symLinkOption = FileSourceOperationSymLinkOption.DontFollow;
                                 break;
                         }
                         break;

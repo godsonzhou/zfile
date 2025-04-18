@@ -43,7 +43,7 @@ namespace zfile
         private Description description;
 
         // 选项
-        private FileSourceOperationOptionSymLink symLinkOption;
+        private FileSourceOperationSymLinkOption symLinkOption;
         private bool skipErrors;
         private bool recycle;
         private FileSourceOperationOptionGeneral deleteReadOnly;
@@ -54,7 +54,7 @@ namespace zfile
             FileEntries filesToDelete)
             : base(targetFileSource, filesToDelete)
         {
-            symLinkOption = FileSourceOperationOptionSymLink.None;
+            symLinkOption = FileSourceOperationSymLinkOption.None;
             skipErrors = GlobalSettings.SkipFileOpError;
             recycle = false;
             deleteReadOnly = FileSourceOperationOptionGeneral.None;
@@ -467,7 +467,7 @@ namespace zfile
             set { deleteReadOnly = value; }
         }
 
-        public FileSourceOperationOptionSymLink SymLinkOption
+        public FileSourceOperationSymLinkOption SymLinkOption
         {
             get { return symLinkOption; }
             set { symLinkOption = value; }

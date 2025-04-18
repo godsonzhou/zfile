@@ -417,7 +417,7 @@ namespace zfile
 		private long _filesCount;
 		private long _filesSize;
 
-		public FileSourceOperationOptionSymLink SymLinkOption { get; set; }
+		public FileSourceOperationSymLinkOption SymLinkOption { get; set; }
 		public SearchTemplate SearchTemplate { get; set; }
 		public bool ExcludeEmptyTemplateDirectories { get; set; }
 

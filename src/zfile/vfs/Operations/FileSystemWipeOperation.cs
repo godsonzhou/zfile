@@ -12,14 +12,14 @@ namespace zfile
         private FileSourceWipeOperationStatistics statistics;
         private bool skipErrors;
         private int wipePassNumber;
-        private FileSourceOperationOptionSymLink symLinkOption;
+        private FileSourceOperationSymLinkOption symLinkOption;
         private FileSourceOperationOptionGeneral deleteReadOnly;
 
         public FileSystemWipeOperation(IFileSource targetFileSource, FileEntries filesToWipe)
             : base(targetFileSource, filesToWipe)
         {
             skipErrors = false;
-            symLinkOption = FileSourceOperationOptionSymLink.None;
+            symLinkOption = FileSourceOperationSymLinkOption.None;
             deleteReadOnly = FileSourceOperationOptionGeneral.None;
             fullFilesTreeToDelete = null;
             wipePassNumber = GlobalSettings.WipePassNumber;

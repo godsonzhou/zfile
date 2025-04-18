@@ -55,17 +55,17 @@ namespace zfile
             // 实现重新加载逻辑
         }
 
-        public override FilePropertiesTypes GetSupportedFileProperties()
+        public FilePropertyType GetSupportedFileProperties()
         {
-            return _fileSource.GetSupportedFileProperties();
+            return _fileSource.SupportedFileProperties;
         }
 
-        public override FileSourceOperationType GetOperationsTypes()
+        public override FileSourceOperationType OperationsTypes
         {
             // 默认只支持fsoList
             // 其他操作只有在文件源支持时才支持
             // 但这只适用于单个文件源
-            return FileSourceOperationType.List |
+            get => FileSourceOperationType.List |
                    (_fileSource.OperationsTypes &
                     (FileSourceOperationType.CopyOut |
                      FileSourceOperationType.Delete |
@@ -77,10 +77,10 @@ namespace zfile
                      FileSourceOperationType.TestArchive));
         }
 
-        public override FileSourceProperties GetProperties()
+        public override FileSourceProperties Properties
         {
             // 标志取决于底层文件源
-            return _fileSource.GetProperties();
+            get => _fileSource.Properties;
         }
 
         public override bool CreateDirectory(string path)
@@ -93,17 +93,17 @@ namespace zfile
             return _fileSource.FileSystemEntryExists(path);
         }
 
-        public override FilePropertiesTypes GetRetrievableFileProperties()
+        public override FilePropertyType RetrievableFileProperties
         {
-            return _fileSource.GetRetrievableFileProperties();
+            get => _fileSource.RetrievableFileProperties;
         }
 
-        public override void RetrieveProperties(FileInfo file, FilePropertiesTypes propertiesToSet, string[] variantProperties)
+        public override void RetrieveProperties(FileEntry file, FilePropertyType propertiesToSet, string[] variantProperties)
         {
             _fileSource.RetrieveProperties(file, propertiesToSet, variantProperties);
         }
 
-        public override bool CanRetrieveProperties(FileInfo file, FilePropertiesTypes propertiesToSet)
+        public override bool CanRetrieveProperties(FileEntry file, FilePropertyType propertiesToSet)
         {
             return _fileSource.CanRetrieveProperties(file, propertiesToSet);
         }

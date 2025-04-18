@@ -459,10 +459,10 @@ namespace zfile
 		private TProcessFile _processFile;
 		private TProcessFileW _processFileW;
 		private TCloseArchive _closeArchive;
-		private TPackFiles _packFiles;
-		private TPackFilesW _packFilesW;
-		private TDeleteFiles _deleteFiles;
-		private TDeleteFilesW _deleteFilesW;
+		internal TPackFiles _packFiles;
+		internal TPackFilesW _packFilesW;
+		internal TDeleteFiles _deleteFiles;
+		internal TDeleteFilesW _deleteFilesW;
 		private TGetPackerCaps _getPackerCaps;
 		private TConfigurePacker _configurePacker;
 		private TSetChangeVolProc _setChangeVolProc;

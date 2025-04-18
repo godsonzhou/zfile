@@ -30,7 +30,7 @@ namespace zfile
         private bool _excludeRootDir;
         private SearchTemplate _fileTemplate;
         private bool _excludeEmptyTemplateDirectories;
-        private FileSourceOperationOptionSymLink _symlinkOption;
+        private FileSourceOperationSymLinkOption _symlinkOption;
         private bool _recursive;
         private string _rootDir;
 
@@ -47,7 +47,7 @@ namespace zfile
             _askQuestion = askQuestionFunction;
             _checkOperationState = checkOperationStateFunction;
             _recursive = true;
-            _symlinkOption = FileSourceOperationOptionSymLink.None;
+            _symlinkOption = FileSourceOperationSymLinkOption.None;
         }
 
         /// <summary>
@@ -192,13 +192,13 @@ namespace zfile
         {
             switch (_symlinkOption)
             {
-                case FileSourceOperationOptionSymLink.Follow:
+                case FileSourceOperationSymLinkOption.Follow:
                     AddLinkTarget(file, currentNode);
                     break;
-                case FileSourceOperationOptionSymLink.DontFollow:
+                case FileSourceOperationSymLinkOption.DontFollow:
                     AddLink(file, currentNode);
                     break;
-                case FileSourceOperationOptionSymLink.None:
+                case FileSourceOperationSymLinkOption.None:
                     FileSourceOperationUIResponse response = _askQuestion("", string.Format("Follow symbolic link '{0}'?", file.Name),
                         new[] { FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.All, FileSourceOperationUIResponse.No, FileSourceOperationUIResponse.SkipAll },
                         FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.No);
@@ -209,14 +209,14 @@ namespace zfile
                             AddLinkTarget(file, currentNode);
                             break;
                         case FileSourceOperationUIResponse.All:
-                            _symlinkOption = FileSourceOperationOptionSymLink.Follow;
+                            _symlinkOption = FileSourceOperationSymLinkOption.Follow;
                             AddLinkTarget(file, currentNode);
                             break;
                         case FileSourceOperationUIResponse.No:
                             AddLink(file, currentNode);
                             break;
                         case FileSourceOperationUIResponse.SkipAll:
-                            _symlinkOption = FileSourceOperationOptionSymLink.DontFollow;
+                            _symlinkOption = FileSourceOperationSymLinkOption.DontFollow;
                             AddLink(file, currentNode);
                             break;
                         default:
@@ -316,7 +316,7 @@ namespace zfile
         /// <summary>
         /// Gets or sets the symlink option.
         /// </summary>
-        public FileSourceOperationOptionSymLink SymLinkOption
+        public FileSourceOperationSymLinkOption SymLinkOption
         {
             get => _symlinkOption;
             set => _symlinkOption = value;

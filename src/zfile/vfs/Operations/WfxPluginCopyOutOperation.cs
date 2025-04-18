@@ -77,7 +77,7 @@ namespace zfile
             try
             {
                 treeBuilder.WfxModule = _wfxPluginFileSource.WfxModule;
-                treeBuilder.SymLinkOption = FileSourceOperationSymlinkOption.Follow;
+                treeBuilder.SymLinkOption = FileSourceOperationSymLinkOption.Follow;
                 treeBuilder.BuildFromFiles(SourceFiles);
                 _sourceFilesTree = treeBuilder.ReleaseTree();
                 _statistics.TotalFiles = treeBuilder.FilesCount;

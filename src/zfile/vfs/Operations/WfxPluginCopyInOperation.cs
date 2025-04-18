@@ -73,7 +73,7 @@ public class WfxPluginCopyInOperation : FileSourceCopyInOperation
 		try
 		{
 			treeBuilder.ElevateAction = DuplicateAction.Error;
-			treeBuilder.SymLinkOption = FileSourceOperationOptionSymLink.Follow;
+			treeBuilder.SymLinkOption = FileSourceOperationSymLinkOption.Follow;
 			treeBuilder.BuildFromFiles(SourceFiles);
 			_sourceFilesTree = treeBuilder.ReleaseTree();
 			_statistics.TotalFiles = treeBuilder.FilesCount;

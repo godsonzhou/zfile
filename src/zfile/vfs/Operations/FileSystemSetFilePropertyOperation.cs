@@ -14,7 +14,7 @@ namespace zfile
         private FileEntries fullFilesTree;
         private FileSourceSetFilePropertyOperationStatistics statistics;
         private Description description;
-        private FileSourceOperationOptionSymLink symLinkOption;
+        private FileSourceOperationSymLinkOption symLinkOption;
         private FileSourceOperationUIResponse fileExistsOption;
         private FileSourceOperationUIResponse dirExistsOption;
         private FileEntry currentFile;
@@ -23,7 +23,7 @@ namespace zfile
         public FileSystemSetFilePropertyOperation(IFileSource targetFileSource, FileEntries targetFiles, FileProperty[] newProperties)
             : base(targetFileSource, targetFiles, newProperties)
         {
-            symLinkOption = FileSourceOperationOptionSymLink.None;
+            symLinkOption = FileSourceOperationSymLinkOption.None;
             fullFilesTree = null;
 
             // 在调用基类构造函数后赋值

@@ -11,12 +11,12 @@ namespace zfile
         private readonly IWfxPluginFileSource _wfxPluginFileSource;
         private FileEntries _fullFilesTree;
         private FileSourceSetFilePropertyOperationStatistics _statistics;
-        private FileSourceOperationSymlinkOption _symLinkOption;
+        private FileSourceOperationSymLinkOption _symLinkOption;
 
         public WfxPluginSetFilePropertyOperation(IFileSource targetFileSource, FileEntries targetFiles, FileProperty[] newProperties)
             : base(targetFileSource, targetFiles, newProperties)
         {
-            _symLinkOption = FileSourceOperationSymlinkOption.None;
+            _symLinkOption = FileSourceOperationSymLinkOption.None;
             _fullFilesTree = null;
             _wfxPluginFileSource = targetFileSource as IWfxPluginFileSource;
 

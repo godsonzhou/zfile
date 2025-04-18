@@ -6,64 +6,64 @@ namespace zfile;
 [Flags]
 public enum FilePropertyType : uint
 {
-	None = 0,
-	Name = 1 << 0,
-	Size = 1 << 1,
-	Attributes = 1 << 2,
-	ModificationTime = 1 << 3,
-	CreationTime = 1 << 4,
-	LastAccessTime = 1 << 5,
-	Link = 1 << 6,
-	Owner = 1 << 7,
-	Group = 1 << 8,
-	Type = 1 << 9,
-	Comment = 1 << 10,
-	CompressedSize = 1 << 11,
-	Extension = 1 << 12,
-	ChangeTime = 1 << 13,
-	Variant = 1 << 14,
-	Standard = Name | Size | Attributes | ModificationTime | CreationTime | LastAccessTime | Link | Owner | Group | Type | Comment | CompressedSize | Extension | ChangeTime,
-	All = 0xffffffff
+    None = 0,
+    Name = 1 << 0,
+    Size = 1 << 1,
+    Attributes = 1 << 2,
+    ModificationTime = 1 << 3,
+    CreationTime = 1 << 4,
+    LastAccessTime = 1 << 5,
+    Link = 1 << 6,
+    Owner = 1 << 7,
+    Group = 1 << 8,
+    Type = 1 << 9,
+    Comment = 1 << 10,
+    CompressedSize = 1 << 11,
+    Extension = 1 << 12,
+    ChangeTime = 1 << 13,
+    Variant = 1 << 14,
+    Standard = Name | Size | Attributes | ModificationTime | CreationTime | LastAccessTime | Link | Owner | Group | Type | Comment | CompressedSize | Extension | ChangeTime,
+    All = 0xffffffff
 }
 public class UnixFileAttributesProperty : FileProperty
 {
-	public FileAttributes Value { get; set; }
-	public override FileProperty Clone()
-	{
-		return new UnixFileAttributesProperty { Value = this.Value };
-	}
-	public override bool Equals(FileProperty other)
-	{
-		return other is UnixFileAttributesProperty prop && Value == prop.Value;
-	}
-	public override FilePropertyType ID => FilePropertyType.Attributes;
+    public FileAttributes Value { get; set; }
+    public override FileProperty Clone()
+    {
+        return new UnixFileAttributesProperty { Value = this.Value };
+    }
+    public override bool Equals(FileProperty other)
+    {
+        return other is UnixFileAttributesProperty prop && Value == prop.Value;
+    }
+    public override FilePropertyType ID => FilePropertyType.Attributes;
 }
 public class NtfsFileAttributesProperty : FileProperty
 {
-	public FileAttributes Value { get; set; }
-	public override FileProperty Clone()
-	{
-		return new NtfsFileAttributesProperty { Value = this.Value };
-	}
-	public override bool Equals(FileProperty other)
-	{
-		return other is NtfsFileAttributesProperty prop && Value == prop.Value;
-	}
-	public override FilePropertyType ID => FilePropertyType.Attributes;
+    public FileAttributes Value { get; set; }
+    public override FileProperty Clone()
+    {
+        return new NtfsFileAttributesProperty { Value = this.Value };
+    }
+    public override bool Equals(FileProperty other)
+    {
+        return other is NtfsFileAttributesProperty prop && Value == prop.Value;
+    }
+    public override FilePropertyType ID => FilePropertyType.Attributes;
 }
 public abstract class FileProperty
 {
     public abstract FileProperty Clone();
     public abstract bool Equals(FileProperty other);
-	/// <summary>
-	/// Gets the property ID
-	/// </summary>
-	public abstract FilePropertyType ID { get; }
+    /// <summary>
+    /// Gets the property ID
+    /// </summary>
+    public abstract FilePropertyType ID { get; }
 }
 
 public class FileNameProperty(string filename) : FileProperty
 {
-	public string Value { get; set; } = filename;
+    public string Value { get; set; } = filename;
 
     public override FileProperty Clone()
     {
@@ -73,10 +73,10 @@ public class FileNameProperty(string filename) : FileProperty
     public override bool Equals(FileProperty other)
     {
         return other is FileNameProperty prop && Value == prop.Value;
-	}    /// <summary>
-		 /// Gets the property ID
-		 /// </summary>
-	public override FilePropertyType ID => FilePropertyType.Name;
+    }    /// <summary>
+         /// Gets the property ID
+         /// </summary>
+    public override FilePropertyType ID => FilePropertyType.Name;
 
 }
 
@@ -93,7 +93,7 @@ public class FileSizeProperty : FileProperty
     {
         return other is FileSizeProperty prop && Value == prop.Value;
     }
-	public override FilePropertyType ID => FilePropertyType.Size;
+    public override FilePropertyType ID => FilePropertyType.Size;
 }
 
 public class FileCompressedSizeProperty : FileProperty
@@ -109,7 +109,7 @@ public class FileCompressedSizeProperty : FileProperty
     {
         return other is FileCompressedSizeProperty prop && Value == prop.Value;
     }
-	public override FilePropertyType ID => FilePropertyType.CompressedSize;
+    public override FilePropertyType ID => FilePropertyType.CompressedSize;
 }
 
 public class FileAttributesProperty : FileProperty
@@ -125,7 +125,7 @@ public class FileAttributesProperty : FileProperty
     {
         return other is FileAttributesProperty prop && Value == prop.Value;
     }
-	public override FilePropertyType ID => FilePropertyType.Attributes;
+    public override FilePropertyType ID => FilePropertyType.Attributes;
 }
 
 public class FileModificationDateTimeProperty : FileProperty
@@ -141,7 +141,7 @@ public class FileModificationDateTimeProperty : FileProperty
     {
         return other is FileModificationDateTimeProperty prop && Value == prop.Value;
     }
-	public override FilePropertyType ID => FilePropertyType.ModificationTime;
+    public override FilePropertyType ID => FilePropertyType.ModificationTime;
 }
 
 public class FileCreationDateTimeProperty : FileProperty
@@ -157,7 +157,7 @@ public class FileCreationDateTimeProperty : FileProperty
     {
         return other is FileCreationDateTimeProperty prop && Value == prop.Value;
     }
-	public override FilePropertyType ID => FilePropertyType.CreationTime;
+    public override FilePropertyType ID => FilePropertyType.CreationTime;
 }
 
 public class FileLastAccessDateTimeProperty : FileProperty
@@ -173,7 +173,7 @@ public class FileLastAccessDateTimeProperty : FileProperty
     {
         return other is FileLastAccessDateTimeProperty prop && Value == prop.Value;
     }
-	public override FilePropertyType ID => FilePropertyType.LastAccessTime;
+    public override FilePropertyType ID => FilePropertyType.LastAccessTime;
 }
 
 public class FileChangeDateTimeProperty : FileProperty
@@ -189,27 +189,37 @@ public class FileChangeDateTimeProperty : FileProperty
     {
         return other is FileChangeDateTimeProperty prop && Value == prop.Value;
     }
-	public override FilePropertyType ID => FilePropertyType.ChangeTime;
+    public override FilePropertyType ID => FilePropertyType.ChangeTime;
 }
 
 public class FileLinkProperty : FileProperty
 {
     public string LinkTarget { get; set; }
     public bool IsLinkToDirectory { get; set; }
-	public bool IsValid;
+    public bool IsValid;
 
     public override FileProperty Clone()
     {
         return new FileLinkProperty { LinkTarget = this.LinkTarget, IsLinkToDirectory = this.IsLinkToDirectory };
     }
 
+    public virtual void CloneTo(FileProperty fileProperty)
+    {
+        if (fileProperty != null && fileProperty is FileLinkProperty linkProperty)
+        {
+            linkProperty.LinkTarget = this.LinkTarget;
+            linkProperty.IsLinkToDirectory = this.IsLinkToDirectory;
+            linkProperty.IsValid = this.IsValid;
+        }
+    }
+
     public override bool Equals(FileProperty other)
     {
-        return other is FileLinkProperty prop && 
-               LinkTarget == prop.LinkTarget && 
+        return other is FileLinkProperty prop &&
+               LinkTarget == prop.LinkTarget &&
                IsLinkToDirectory == prop.IsLinkToDirectory;
     }
-	public override FilePropertyType ID => FilePropertyType.Link;
+    public override FilePropertyType ID => FilePropertyType.Link;
 }
 
 public class FileOwnerProperty : FileProperty
@@ -225,7 +235,7 @@ public class FileOwnerProperty : FileProperty
     {
         return other is FileOwnerProperty prop && Value == prop.Value;
     }
-	public override FilePropertyType ID => FilePropertyType.Owner;
+    public override FilePropertyType ID => FilePropertyType.Owner;
 }
 
 public class FileTypeProperty : FileProperty
@@ -241,7 +251,7 @@ public class FileTypeProperty : FileProperty
     {
         return other is FileTypeProperty prop && Value == prop.Value;
     }
-	public override FilePropertyType ID => FilePropertyType.Type;
+    public override FilePropertyType ID => FilePropertyType.Type;
 }
 
 public class FileCommentProperty : FileProperty
@@ -257,7 +267,7 @@ public class FileCommentProperty : FileProperty
     {
         return other is FileCommentProperty prop && Value == prop.Value;
     }
-	public override FilePropertyType ID => FilePropertyType.Comment;
+    public override FilePropertyType ID => FilePropertyType.Comment;
 }
 
 public class FileVariantProperty : FileProperty
@@ -271,11 +281,11 @@ public class FileVariantProperty : FileProperty
 
     public override bool Equals(FileProperty other)
     {
-        return other is FileVariantProperty prop && 
-               (Value == null && prop.Value == null || 
+        return other is FileVariantProperty prop &&
+               (Value == null && prop.Value == null ||
                 Value != null && Value.Equals(prop.Value));
     }
-	public override FilePropertyType ID => FilePropertyType.Variant;
+    public override FilePropertyType ID => FilePropertyType.Variant;
 }
 
 public class FileEntry
@@ -287,10 +297,10 @@ public class FileEntry
     private List<FileVariantProperty> _variantProperties;
     private FilePropertyType _supportedProperties;
 
-	public string FullName => $"{Path}{System.IO.Path.DirectorySeparatorChar}{Name}";
-	public Dictionary<FilePropertyType, FileProperty> Properties => _properties;
-	
-	private void SplitIntoNameAndExtension(string fileName, out string fileNameOnly, out string extension)
+    public string FullName => $"{Path}{System.IO.Path.DirectorySeparatorChar}{Name}";
+    public Dictionary<FilePropertyType, FileProperty> Properties => _properties;
+
+    private void SplitIntoNameAndExtension(string fileName, out string fileNameOnly, out string extension)
     {
         int dotIndex = fileName.LastIndexOf('.');
         if (dotIndex > 0 && dotIndex < fileName.Length - 1)
@@ -309,29 +319,29 @@ public class FileEntry
     {
         SplitIntoNameAndExtension(fileName, out _nameNoExt, out _extension);
     }
-	public Stream OpenRead()
-	{
-		return OpenRead(0, Size);
-	}
-	public Stream OpenRead(long offset, long size)
-	{
-		if (size <= 0)
-			return null;
-		Stream stream = null;
-		try
-		{
-			stream = new FileStream(FullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-			stream.Seek(offset, SeekOrigin.Begin);
-			return stream;
-		}
-		catch (Exception ex)
-		{
-			stream?.Dispose();
-			throw new IOException($"Failed to open file {FullPath}: {ex.Message}", ex);
-		}
-	}
+    public Stream OpenRead()
+    {
+        return OpenRead(0, Size);
+    }
+    public Stream OpenRead(long offset, long size)
+    {
+        if (size <= 0)
+            return null;
+        Stream stream = null;
+        try
+        {
+            stream = new FileStream(FullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            stream.Seek(offset, SeekOrigin.Begin);
+            return stream;
+        }
+        catch (Exception ex)
+        {
+            stream?.Dispose();
+            throw new IOException($"Failed to open file {FullPath}: {ex.Message}", ex);
+        }
+    }
 
-	protected FileProperty GetProperty(FilePropertyType propType)
+    protected FileProperty GetProperty(FilePropertyType propType)
     {
         if (propType < FilePropertyType.Variant)
         {
@@ -665,7 +675,7 @@ public class FileEntry
             var prop1 = _variantProperties[i];
             var prop2 = file._variantProperties[i];
 
-            if ((prop1 == null && prop2 != null) || 
+            if ((prop1 == null && prop2 != null) ||
                 (prop1 != null && prop2 == null) ||
                 (prop1 != null && prop2 != null && !prop1.Equals(prop2)))
             {
@@ -729,25 +739,25 @@ public class FileEntry
 
     public bool IsDirectory
     {
-        get => _supportedProperties.HasFlag(FilePropertyType.Attributes) && 
+        get => _supportedProperties.HasFlag(FilePropertyType.Attributes) &&
                (Attributes & FileAttributes.Directory) == FileAttributes.Directory;
     }
 
     public bool IsSysFile
     {
-        get => _supportedProperties.HasFlag(FilePropertyType.Attributes) && 
+        get => _supportedProperties.HasFlag(FilePropertyType.Attributes) &&
                (Attributes & FileAttributes.System) == FileAttributes.System;
     }
 
     public bool IsHidden
     {
-        get => _supportedProperties.HasFlag(FilePropertyType.Attributes) && 
+        get => _supportedProperties.HasFlag(FilePropertyType.Attributes) &&
                (Attributes & FileAttributes.Hidden) == FileAttributes.Hidden;
     }
 
     public bool IsLink
     {
-        get => _supportedProperties.HasFlag(FilePropertyType.Link) && 
+        get => _supportedProperties.HasFlag(FilePropertyType.Link) &&
                !string.IsNullOrEmpty(((FileLinkProperty)_properties[FilePropertyType.Link]).LinkTarget);
     }
 
@@ -760,11 +770,11 @@ public class FileEntry
         return ext == "exe" || ext == "bat" || ext == "cmd" || ext == "com";
     }
 
-	public bool IsReadOnly
-	{
-		get => _supportedProperties.HasFlag(FilePropertyType.Attributes) && (Attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly;
-	}
-	public bool Exists { get; internal set; }
+    public bool IsReadOnly
+    {
+        get => _supportedProperties.HasFlag(FilePropertyType.Attributes) && (Attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly;
+    }
+    public bool Exists { get; internal set; }
 }
 
 public class FileEntries : IEnumerable<FileEntry>
@@ -908,27 +918,27 @@ public class FileEntries : IEnumerable<FileEntry>
         }
         _list.Clear();
     }
-	//public FileEntry GetEnumable()
-	//{
-	//	foreach (var file in _list)
-	//	{
-	//		if (file != null)
-	//		{
-	//			yield return file;
-	//		}
-	//	}
-	//	return null;
-	//}
+    //public FileEntry GetEnumable()
+    //{
+    //	foreach (var file in _list)
+    //	{
+    //		if (file != null)
+    //		{
+    //			yield return file;
+    //		}
+    //	}
+    //	return null;
+    //}
 
-	public IEnumerator<FileEntry> GetEnumerator()
-	{
-		return ((IEnumerable<FileEntry>)_list).GetEnumerator();
-	}
+    public IEnumerator<FileEntry> GetEnumerator()
+    {
+        return ((IEnumerable<FileEntry>)_list).GetEnumerator();
+    }
 
-	IEnumerator IEnumerable.GetEnumerator()
-	{
-		return ((IEnumerable)_list).GetEnumerator();
-	}
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return ((IEnumerable)_list).GetEnumerator();
+    }
 }
 
 
@@ -937,141 +947,141 @@ public class FileEntries : IEnumerable<FileEntry>
 /// </summary>
 public class FileTreeNode : IDisposable
 {
-	private readonly List<FileTreeNode> _subNodes;
-	private object _data;
+    private readonly List<FileTreeNode> _subNodes;
+    private object _data;
 
-	/// <summary>
-	/// Gets the file associated with this node.
-	/// </summary>
-	//public FileEntry TheFile { get; }
+    /// <summary>
+    /// Gets the file associated with this node.
+    /// </summary>
+    //public FileEntry TheFile { get; }
 
-	private FileEntry _file;
-	public FileEntry TheFile => _file;
+    private FileEntry _file;
+    public FileEntry TheFile => _file;
 
-	public object Data
-	{
-		get { return _data; }
-		set
-		{
-			if (_data != value)
-			{
-				_data = value;
-			}
-		}
-	}
-	//private List<FileTreeNode> _subNodes;
-	//private object _data;
-	public List<FileTreeNode> SubNodes => _subNodes;
-	//public int SubNodesCount
-	//{
-	//	get { return _subNodes.Count; }
-	//	set
-	//	{
-	//		if (value < _subNodes.Count)
-	//		{
-	//			_subNodes.RemoveRange(value, _subNodes.Count - value);
-	//		}
-	//		else if (value > _subNodes.Count)
-	//		{
-	//			for (int i = _subNodes.Count; i < value; i++)
-	//			{
-	//				_subNodes.Add(null);
-	//			}
-	//		}
-	//	}
-	//}
-	///// <summary>
-	///// Gets the subnodes of this node.
-	///// </summary>
-	//public IReadOnlyList<FileTreeNode> SubNodes => _subNodes;
+    public object Data
+    {
+        get { return _data; }
+        set
+        {
+            if (_data != value)
+            {
+                _data = value;
+            }
+        }
+    }
+    //private List<FileTreeNode> _subNodes;
+    //private object _data;
+    public List<FileTreeNode> SubNodes => _subNodes;
+    //public int SubNodesCount
+    //{
+    //	get { return _subNodes.Count; }
+    //	set
+    //	{
+    //		if (value < _subNodes.Count)
+    //		{
+    //			_subNodes.RemoveRange(value, _subNodes.Count - value);
+    //		}
+    //		else if (value > _subNodes.Count)
+    //		{
+    //			for (int i = _subNodes.Count; i < value; i++)
+    //			{
+    //				_subNodes.Add(null);
+    //			}
+    //		}
+    //	}
+    //}
+    ///// <summary>
+    ///// Gets the subnodes of this node.
+    ///// </summary>
+    //public IReadOnlyList<FileTreeNode> SubNodes => _subNodes;
 
-	/// <summary>
-	/// Gets the number of subnodes.
-	/// </summary>
-	public int SubNodesCount => _subNodes.Count;
+    /// <summary>
+    /// Gets the number of subnodes.
+    /// </summary>
+    public int SubNodesCount => _subNodes.Count;
 
-	/// <summary>
-	/// Creates a new instance of the FileTreeNode class.
-	/// </summary>
-	public FileTreeNode()
-	{
-		_subNodes = new List<FileTreeNode>();
-	}
+    /// <summary>
+    /// Creates a new instance of the FileTreeNode class.
+    /// </summary>
+    public FileTreeNode()
+    {
+        _subNodes = new List<FileTreeNode>();
+    }
 
-	/// <summary>
-	/// Creates a new instance of the FileTreeNode class with the specified file.
-	/// </summary>
-	/// <param name="file">The file associated with this node.</param>
-	//public FileTreeNode(FileEntry file) : this()
-	//{
-	//	TheFile = file;
-	//}
-	public FileTreeNode this[int index] => _subNodes[index];
+    /// <summary>
+    /// Creates a new instance of the FileTreeNode class with the specified file.
+    /// </summary>
+    /// <param name="file">The file associated with this node.</param>
+    //public FileTreeNode(FileEntry file) : this()
+    //{
+    //	TheFile = file;
+    //}
+    public FileTreeNode this[int index] => _subNodes[index];
 
-	public FileTreeNode(FileEntry file) : this()
-	{
-		_file = file;
-	}
+    public FileTreeNode(FileEntry file) : this()
+    {
+        _file = file;
+    }
 
-	//public FileTreeNode(FileEntry file, Type dataType) : this(file)
-	//{
-	//	if (dataType != null)
-	//	{
-	//		_data = Activator.CreateInstance(dataType);
-	//	}
-	//}
-	
-	/// <summary>
-	/// Adds a subnode with the specified file.
-	/// </summary>
-	/// <param name="file">The file to add.</param>
-	/// <returns>The index of the added node.</returns>
-	public int AddSubNode(FileEntry file)
-	{
-		var node = new FileTreeNode(file);
-		_subNodes.Add(node);
-		return _subNodes.Count - 1;
-	}
+    //public FileTreeNode(FileEntry file, Type dataType) : this(file)
+    //{
+    //	if (dataType != null)
+    //	{
+    //		_data = Activator.CreateInstance(dataType);
+    //	}
+    //}
 
-	/// <summary>
-	/// Removes a subnode at the specified index.
-	/// </summary>
-	/// <param name="index">The index of the subnode to remove.</param>
-	public void RemoveSubNode(int index)
-	{
-		if (index >= 0 && index < _subNodes.Count)
-		{
-			_subNodes.RemoveAt(index);
-		}
-	}
+    /// <summary>
+    /// Adds a subnode with the specified file.
+    /// </summary>
+    /// <param name="file">The file to add.</param>
+    /// <returns>The index of the added node.</returns>
+    public int AddSubNode(FileEntry file)
+    {
+        var node = new FileTreeNode(file);
+        _subNodes.Add(node);
+        return _subNodes.Count - 1;
+    }
 
-	/// <summary>
-	/// Disposes the object.
-	/// </summary>
-	public void Dispose()
-	{
-		foreach (var node in _subNodes)
-		{
-			node.Dispose();
-		}
-		_subNodes.Clear();
-		(_data as IDisposable)?.Dispose();
-	}
+    /// <summary>
+    /// Removes a subnode at the specified index.
+    /// </summary>
+    /// <param name="index">The index of the subnode to remove.</param>
+    public void RemoveSubNode(int index)
+    {
+        if (index >= 0 && index < _subNodes.Count)
+        {
+            _subNodes.RemoveAt(index);
+        }
+    }
 
-	/// <summary>
-	/// Whether to process subdirectories recursively.
-	/// </summary>
-	public bool Recursive { get; set; }
+    /// <summary>
+    /// Disposes the object.
+    /// </summary>
+    public void Dispose()
+    {
+        foreach (var node in _subNodes)
+        {
+            node.Dispose();
+        }
+        _subNodes.Clear();
+        (_data as IDisposable)?.Dispose();
+    }
 
-	/// <summary>
-	/// True if any of the subnodes (recursively) are links.
-	/// </summary>
-	public bool SubnodesHaveLinks { get; set; }
+    /// <summary>
+    /// Whether to process subdirectories recursively.
+    /// </summary>
+    public bool Recursive { get; set; }
 
-	/// <summary>
-	/// Whether directory or subdirectories have any elements that will not be copied/moved.
-	/// </summary>
-	public bool SubnodesHaveExclusions { get; set; }
+    /// <summary>
+    /// True if any of the subnodes (recursively) are links.
+    /// </summary>
+    public bool SubnodesHaveLinks { get; set; }
+
+    /// <summary>
+    /// Whether directory or subdirectories have any elements that will not be copied/moved.
+    /// </summary>
+    public bool SubnodesHaveExclusions { get; set; }
 
     ~FileTreeNode()
     {
@@ -1085,7 +1095,7 @@ public class FileTreeNode : IDisposable
 /// <param name="recursive">Whether to process subdirectories recursively.</param>
 public class FileTreeNodeData(bool recursive)
 {
-	public bool Recursive = recursive;
-	public bool SubnodesHaveLinks = false;
-	public bool SubnodesHaveExclusions = false;
+    public bool Recursive = recursive;
+    public bool SubnodesHaveLinks = false;
+    public bool SubnodesHaveExclusions = false;
 }

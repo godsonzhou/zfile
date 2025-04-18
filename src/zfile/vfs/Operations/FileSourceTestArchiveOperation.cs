@@ -3,7 +3,7 @@ namespace zfile
     /// <summary>
     /// Statistics for TestArchive operation
     /// </summary>
-    public class FileSourceTestArchiveOperationStatistics
+    public struct FileSourceTestArchiveOperationStatistics
     {
         public string ArchiveFile { get; set; }
         public string CurrentFile { get; set; }
@@ -13,7 +13,7 @@ namespace zfile
         public long DoneFiles { get; set; }
         public long TotalBytes { get; set; }
         public long DoneBytes { get; set; }
-        public long BytesPerSecond { get; set; }
+		public long BytesPerSecond;
         public DateTime RemainingTime { get; set; }
     }
 

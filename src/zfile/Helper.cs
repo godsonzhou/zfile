@@ -934,7 +934,7 @@ namespace zfile
 			return utf8.GetString(gb);
 		}
 
-		internal static DateTime EstimateRemainingTime(long doneBytes1, long doneBytes2, long totalBytes, DateTime startTime, DateTime now, long bytesPerSecond)
+		internal static DateTime EstimateRemainingTime(long doneBytes1, long doneBytes2, long totalBytes, DateTime startTime, DateTime now, out long bytesPerSecond)
 		{
 			throw new NotImplementedException();
 		}

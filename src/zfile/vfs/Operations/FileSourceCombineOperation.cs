@@ -138,7 +138,7 @@ namespace zfile
                         newStatistics.TotalBytes,
                         StartTime,
                         DateTime.Now,
-                        newStatistics.BytesPerSecond);
+                        out newStatistics.BytesPerSecond);
 
                     // Update overall progress
                     if (newStatistics.TotalBytes != 0)

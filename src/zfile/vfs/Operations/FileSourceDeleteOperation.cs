@@ -124,7 +124,7 @@ namespace zfile
                         newStatistics.TotalFiles,
                         StartTime,
                         DateTime.Now,
-                        newStatistics.FilesPerSecond);
+                        out newStatistics.FilesPerSecond);
 
                     // Update overall progress
                     if (newStatistics.TotalFiles != 0)

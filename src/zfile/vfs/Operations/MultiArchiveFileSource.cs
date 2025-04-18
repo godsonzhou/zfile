@@ -22,7 +22,7 @@ namespace zfile
     public class MultiArchiveFileSource : ArchiveFileSource, IMultiArchiveFileSource
     {
         private string _password;
-        private readonly OutputParser _outputParser;
+        private readonly MultiArchiveParser _outputParser;
         private readonly ThreadSafeList<FileEntry> _arcFileEntries;
         private readonly MultiArcItem _multiArcItem;
         private readonly StringHashListUtf8 _allDirsList;
@@ -38,7 +38,7 @@ namespace zfile
         {
             _multiArcItem = multiArcItem;
             _arcFileEntries = new ThreadSafeList<FileEntry>();
-            _outputParser = new OutputParser(multiArcItem, archiveFileName);
+            _outputParser = new MultiArchiveParser(multiArcItem, archiveFileName);
             _outputParser.OnGetArchiveItem += OnGetArchiveItem;
 
             OperationsClasses[FileSourceOperationType.CopyIn] = typeof(MultiArchiveCopyInOperation);

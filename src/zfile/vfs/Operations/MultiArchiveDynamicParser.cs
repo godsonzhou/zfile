@@ -1,3 +1,4 @@
+
 namespace zfile
 {
     public class MultiArchiveDynamicParser : MultiArchiveParser
@@ -29,7 +30,7 @@ namespace zfile
             _unparsedLines = new List<string>();
         }
 
-        public override void Prepare()
+        public void Prepare()
         {
             _lines.Clear();
             _unparsedLines.Clear();
@@ -349,7 +350,12 @@ namespace zfile
             }
         }
 
-        public override void ParseLines()
+		private FileAttributes GetFileAttr(string attributes)
+		{
+			throw new NotImplementedException();
+		}
+
+		public void ParseLines()
         {
             int n = 0;
             while (n < _lines.Count)
@@ -388,7 +394,12 @@ namespace zfile
             }
         }
 
-        public override void AddLine(string str)
+		private void UpdateFileName()
+		{
+			throw new NotImplementedException();
+		}
+
+		public void AddLine(string str)
         {
             _lines.Add(str);
         }

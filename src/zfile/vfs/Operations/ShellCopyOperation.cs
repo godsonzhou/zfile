@@ -5,10 +5,10 @@ namespace zfile
 {
     public class ShellCopyOperation : FileSourceCopyOperation
     {
-        private IFileOperation fileOp;
+        private IFileOperation? fileOp;
         protected IShellItem targetFolder;
         protected List<IntPtr> sourceFilesTree;
-        protected IShellFileSource shellFileSource;
+        protected IShellFileSource? shellFileSource;
         protected FileSourceCopyOperationStatistics statistics;
 
         public ShellCopyOperation(IFileSource sourceFileSource,
@@ -27,7 +27,7 @@ namespace zfile
                     shellFileSource = targetFileSource as IShellFileSource;
                     break;
             }
-            fileOp = (IFileOperation)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(CLSID_FileOperation)));
+            fileOp = (IFileOperation?)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(Constants.CLSID_FileOperation)));
         }
 
         protected override void Initialize()
@@ -53,7 +53,7 @@ namespace zfile
                         w32.OleCheck(API.SHGetIDListFromObject(folder, out objectPtr));
                         try
                         {
-                            w32.OleCheck(API.SHCreateItemFromIDList(objectPtr, typeof(IShellItem).GUID, out targetFolder));
+                            w32.OleCheck(API.SHCreateItemFromIDList(objectPtr, ref typeof(IShellItem).GUID, out targetFolder));
                         }
                         finally
                         {
@@ -61,7 +61,7 @@ namespace zfile
                         }
                         break;
                     case FileSourceOperationType.CopyOut:
-                        w32.OleCheck(API.SHCreateItemFromParsingName(TargetPath, IntPtr.Zero, typeof(IShellItem).GUID, out targetFolder));
+                        w32.OleCheck(API.SHCreateItemFromParsingName(TargetPath, IntPtr.Zero, ref typeof(IShellItem).GUID, out targetFolder));
                         break;
                 }
             }
@@ -83,12 +83,12 @@ namespace zfile
                 try
                 {
                     IShellItemArray itemArray;
-                    w32.OleCheck(API.SHCreateShellItemArrayFromIDLists(sourceFilesTree.Count, sourceFilesTree.ToArray(), out itemArray));
+                    w32.OleCheck(API.SHCreateShellItemArrayFromIDLists((uint)sourceFilesTree.Count, sourceFilesTree.ToArray(), out itemArray));
                     w32.OleCheck(fileOp.CopyItems(itemArray, targetFolder));
                     int result = fileOp.PerformOperations();
                     if (result != 0)
                     {
-                        if (result == COPYENGINE_E_USER_CANCELLED)
+                        if (result == Constants.COPYENGINE_E_USER_CANCELLED)
                             RaiseAbortOperation();
                         else
                             Marshal.ThrowExceptionForHR(result);
@@ -121,13 +121,13 @@ namespace zfile
 
 	internal interface IFileOperation
 	{
-		void CopyItems(IShellItemArray shellItemArray, IShellItem shellItem) { }
+		int CopyItems(IShellItemArray shellItemArray, IShellItem shellItem) { return -1; }
 		int PerformOperations();
 		void SetOperationFlags(int flags) { }
 		void Advise(FileOperationProgressSink sink, out uint cookie);
 		void Unadvise(uint cookie);
-		int DeleteItems(IShellItemArray shellItemArray) { return 0; }
-		void MoveItems(IShellItemArray shellItemArray, IShellItem shellItem) { }
+		int DeleteItems(IShellItemArray shellItemArray) { return -1; }
+		int MoveItems(IShellItemArray shellItemArray, IShellItem shellItem) { return -1; }
 		void RenameItem(IShellItem shellItem, string newName, object obj) { }
 	
 	}

@@ -373,7 +373,7 @@ namespace zfile
 					FileEntry linkedFile = FileSystemFileSource.CreateFileFromFile(linkedFilePath);
 
 					// Add link to current node
-					var addedNode = currentNode.AddSubNode(file);
+					var addedNode = currentNode.SubNodes[currentNode.AddSubNode(file)];
 					
 					// Then add linked file/directory as a subnode of the link
 					AddItem(linkedFile, addedNode);

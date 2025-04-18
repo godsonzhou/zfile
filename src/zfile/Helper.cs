@@ -7,7 +7,7 @@ using WinShell;
 
 namespace zfile
 {
-	public static class Constants
+	public static partial class Constants
 	{
 		public const string ZfilePath = "D:\\gitrepos\\Files\\";
 		public const string ZfileCfgPath = ZfilePath + "Config\\";

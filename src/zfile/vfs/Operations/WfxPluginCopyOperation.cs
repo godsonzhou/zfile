@@ -3,10 +3,9 @@ namespace zfile
 	public class CallbackDataClass
 	{
 		public CallbackDataClass() { }
-		public delegate UpdateProgressFunction;
-		
-
+		public object UpdateProgressFunction;
 	}
+
     public class WfxPluginCopyOperation : FileSourceCopyOperation
     {
         private readonly IWfxPluginFileSource? _wfxPluginFileSource;

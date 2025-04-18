@@ -73,7 +73,7 @@ namespace zfile
                     int result = fileOp.PerformOperations();
                     if (result != 0)
                     {
-                        if (result == COPYENGINE_E_USER_CANCELLED)
+                        if (result == Constants.COPYENGINE_E_USER_CANCELLED)
                         {
                             RaiseAbortOperation();
                         }

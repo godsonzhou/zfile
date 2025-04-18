@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 
 namespace zfile
 {
-    public class OutputParser
+    public class MultiArchiveParser
     {
         private readonly MultiArcItem _multiArcItem;
         private readonly string _archiveFileName;
@@ -10,7 +10,7 @@ namespace zfile
 
         public event Action<ArchiveItem> OnGetArchiveItem;
 
-        public OutputParser(MultiArcItem multiArcItem, string archiveFileName)
+        public MultiArchiveParser(MultiArcItem multiArcItem, string archiveFileName)
         {
             _multiArcItem = multiArcItem;
             _archiveFileName = archiveFileName;

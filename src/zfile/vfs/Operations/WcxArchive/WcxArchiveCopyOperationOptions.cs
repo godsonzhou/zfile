@@ -2,21 +2,21 @@ namespace zfile.Operations;
 
     public class WcxArchiveCopyOperationOptionsUI : FileSourceOperationOptionsUI
     {
-        private Button _btnConfig;
+        protected Button _btnConfig;
         private CheckBox _cbEncrypt;
         private ComboBox _cmbFileExists;
         private Label _lblFileExists;
-        private Panel _pnlCheckboxes;
+        protected Panel _pnlCheckboxes;
         private Panel _pnlComboBoxes;
         
-        private IWcxArchiveFileSource _fileSource;
+        protected IWcxArchiveFileSource _fileSource;
 
-        public WcxArchiveCopyOperationOptionsUI(Component owner, IInterface fileSource) : base(owner, fileSource)
+        public WcxArchiveCopyOperationOptionsUI(Control owner, IFileSource fileSource) : base(owner, fileSource)
         {
             _fileSource = (IWcxArchiveFileSource)fileSource;
             InitializeComponent();
             
-            ParseLineToList(ResourceStrings.FileOpCopyMoveFileExistsOptions, _cmbFileExists.Items);
+            ParseLineToList(Resources.FileOpCopyMoveFileExistsOptions, _cmbFileExists.Items);
 
             // Load default options.
             switch (GlobalSettings.OperationOptionFileExists)
@@ -33,7 +33,12 @@ namespace zfile.Operations;
             }
         }
 
-        private void InitializeComponent()
+	private void ParseLineToList(string? fileOpCopyMoveFileExistsOptions, ComboBox.ObjectCollection items)
+	{
+		throw new NotImplementedException();
+	}
+
+	private void InitializeComponent()
         {
             _btnConfig = new Button();
             _cbEncrypt = new CheckBox();
@@ -82,7 +87,7 @@ namespace zfile.Operations;
         private void SetOperationOptions(WcxArchiveCopyInOperation copyInOperation)
         {
             int flags = copyInOperation.PackingFlags;
-            if (_cbEncrypt.Checked) flags |= WcxModule.PK_PACK_ENCRYPT;
+            if (_cbEncrypt.Checked) flags |= (int)PackFilesFlags.PK_PACK_ENCRYPT;
             copyInOperation.PackingFlags = flags;
         }
 
@@ -117,7 +122,7 @@ namespace zfile.Operations;
 
     public class WcxArchiveCopyInOperationOptionsUI : WcxArchiveCopyOperationOptionsUI
     {
-        public WcxArchiveCopyInOperationOptionsUI(Component owner, IInterface fileSource) : base(owner, fileSource)
+        public WcxArchiveCopyInOperationOptionsUI(Control owner, IFileSource fileSource) : base(owner, fileSource)
         {
             _fileSource = (IWcxArchiveFileSource)fileSource;
             _pnlCheckboxes.Visible = true;

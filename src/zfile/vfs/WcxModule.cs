@@ -874,6 +874,11 @@ namespace zfile
 			throw new NotImplementedException();
 		}
 
+		internal void VFSConfigure(nint handle)
+		{
+			throw new NotImplementedException();
+		}
+
 		public bool IsUnicode => _isUnicode;
 
 		private static class NativeMethods

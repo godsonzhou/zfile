@@ -27,6 +27,9 @@ namespace zfile
     /// </summary>
     public delegate void FileSourceOperationUpdateStatisticsFunction(FileSourceCopyOperationStatistics statistics);
 
+    /// <summary>
+    /// Class for creating TAR archives
+    /// </summary>
     public class TarWriter : IDisposable
     {
         private readonly string _archiveFileName;
@@ -38,6 +41,9 @@ namespace zfile
         private TarArchive? _tarArchive;
         private SharpCompress.Writers.Tar.TarWriter? _writer;
 
+        /// <summary>
+        /// Creates a new TarWriter instance
+        /// </summary>
         public TarWriter(string archiveFileName,
                         FileSourceOperationAskQuestionFunction askQuestion,
                         FileSourceOperationAbortFunction abortOperation,
@@ -52,6 +58,9 @@ namespace zfile
             _wcxModule = null;
         }
 
+        /// <summary>
+        /// Creates a new TarWriter instance with a WCX module
+        /// </summary>
         public TarWriter(string archiveFileName,
                         FileSourceOperationAskQuestionFunction askQuestion,
                         FileSourceOperationAbortFunction abortOperation,
@@ -67,6 +76,9 @@ namespace zfile
             _wcxModule = wcxModule;
         }
 
+        /// <summary>
+        /// Processes a file tree and adds all files to the TAR archive
+        /// </summary>
         public bool ProcessTree(FileEntries files, FileSourceCopyOperationStatistics statistics)
         {
             try
@@ -102,7 +114,7 @@ namespace zfile
                                     using (var fileStream = File.OpenRead(file.FullPath))
                                     {
                                         writer.Write(relativePath, fileStream, file.ModificationTime, file.Size);
-
+                                        
                                         // Update statistics
                                         statistics.DoneFiles++;
                                         statistics.DoneBytes += file.Size;
@@ -138,7 +150,7 @@ namespace zfile
                 var response = _askQuestion(
                     $"Error creating TAR archive: {ex.Message}",
                     "",
-                    new[] { FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort },
+                    [FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort],
                     FileSourceOperationUIResponse.Skip,
                     FileSourceOperationUIResponse.Abort);
 
@@ -151,6 +163,9 @@ namespace zfile
             }
         }
 
+        /// <summary>
+        /// Gets the relative path of a file from a base path
+        /// </summary>
         private static string GetRelativePath(string basePath, string fullPath)
         {
             // Ensure paths end with directory separator
@@ -160,10 +175,13 @@ namespace zfile
             // Get relative path
             if (fullPath.StartsWith(basePath, StringComparison.OrdinalIgnoreCase))
                 return fullPath[basePath.Length..];
-
+            
             return Path.GetFileName(fullPath);
         }
 
+        /// <summary>
+        /// Disposes the TarWriter instance
+        /// </summary>
         public void Dispose()
         {
             _tarArchive?.Dispose();

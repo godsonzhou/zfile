@@ -732,6 +732,11 @@ namespace zfile
 		{
 			throw new NotImplementedException();
 		}
+
+		internal string FormatArchiverCommand(string archiver, string commandLine, string archiveFileName, object value, string fullPath, string destPath, string tempFile, string password, string empty1, string empty2)
+		{
+			throw new NotImplementedException();
+		}
     }
 
 	public interface IFileSourceOperationUIActionHandler

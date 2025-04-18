@@ -112,11 +112,6 @@ namespace zfile
             }
         }
 
-		private string FormatArchiverCommand(string archiver, string commandLine, string archiveFileName, object value, string fullPath, string destPath, string tempFile, string password, string empty1, string empty2)
-		{
-			throw new NotImplementedException();
-		}
-
 		private void ChangeFileEntriesRoot(string empty, FileEntry[] fullFilesTreeToDelete)
 		{
 			throw new NotImplementedException();

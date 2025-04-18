@@ -6,7 +6,7 @@ namespace zfile
     {
         private readonly IMultiArchiveFileSource _fileSource;
         private FileSourceCopyOperationStatistics _statistics;
-        private FileEntry[] _fullFilesTreeToExtract;
+        private FileEntries _fullFilesTreeToExtract;
         private string _password;
         private bool _extractWithoutPath;
         private FileEntry _currentFile;
@@ -15,7 +15,7 @@ namespace zfile
         private string _tempFile;
         private int _errorLevel;
 
-        public MultiArchiveCopyOutOperation(IFileSource sourceFileSource, IFileSource targetFileSource, FileEntry[] sourceFiles, string targetPath)
+        public MultiArchiveCopyOutOperation(IFileSource sourceFileSource, IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)
             : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
         {
             _fileSource = sourceFileSource as IMultiArchiveFileSource;
@@ -95,7 +95,7 @@ namespace zfile
 
             try
             {
-                for (int i = 0; i < _fullFilesTreeToExtract.Length; i++)
+                for (int i = 0; i < _fullFilesTreeToExtract.Count; i++)
                 {
                     var file = _fullFilesTreeToExtract[i];
                     _currentFile = file;

@@ -830,7 +830,7 @@ namespace zfile
 							if (result == DialogResult.Cancel) return;
 						}
 
-						var wcxModule = owner.wcxModuleList.GetModuleByExt(extension.TrimStart('.'));
+						var wcxModule = MainForm.wcxModuleList.GetModuleByExt(extension.TrimStart('.'));
 						if (wcxModule != null)
 						{
 							int flags = packOptionDialog.IncludePath ? 1 : 0;
@@ -848,7 +848,7 @@ namespace zfile
 						if (result == DialogResult.No) return;
 					}
 
-					var wcxModule = owner.wcxModuleList.GetModuleByExt(extension.TrimStart('.'));
+					var wcxModule = MainForm.wcxModuleList.GetModuleByExt(extension.TrimStart('.'));
 					if (wcxModule != null)
 					{
 						int flags = packOptionDialog.IncludePath ? 1 : 0;

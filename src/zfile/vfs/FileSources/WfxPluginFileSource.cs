@@ -252,7 +252,7 @@ public class WfxPluginFileSource : IWfxPluginFileSource, IFileSource
 		return true;
 	}
 
-	public FileSourceConnection GetConnection(IFileSourceOperation operation)
+	public FileSourceConnection GetConnection(FileSourceOperation operation)
 	{
 		lock (_connectionLock)
 		{

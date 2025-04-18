@@ -114,8 +114,8 @@ namespace zfile
 		private string[] draggedItems;
 		private TreeNode rightClickBegin;
 		private string oldname;
-		public WcxModuleList wcxModuleList;
-		public WlxModuleList wlxModuleList;
+		public static WcxModuleList wcxModuleList;
+		public static WlxModuleList wlxModuleList;
 		private Dictionary<string, IntPtr> openArchives = new Dictionary<string, IntPtr>();
 		private Dictionary<string, string> archivePaths = new Dictionary<string, string>();
 		// 添加目录历史导航相关的字段

@@ -1,13 +1,17 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Runtime.InteropServices;
+
 namespace zfile
 {
-	
-	public interface IWcxArchiveFileSource : IArchiveFileSource
-	{
-		ThreadSafeList<WcxHeader> ArchiveFileEntries { get; }
-		int PluginCapabilities { get; }
-		WcxModule WcxModule { get; }
-	}
-	public class WcxArchiveFileSource : ArchiveFileSource, IWcxArchiveFileSource
+    public interface IWcxArchiveFileSource : IArchiveFileSource
+    {
+        ThreadSafeList<WcxHeader> ArchiveFileEntries { get; }
+        int PluginCapabilities { get; }
+        WcxModule WcxModule { get; }
+    }
+    public class WcxArchiveFileSource : ArchiveFileSource, IWcxArchiveFileSource
     {
         private string _moduleFileName;
         private int _pluginCapabilities;
@@ -23,7 +27,7 @@ namespace zfile
         public int PluginCapabilities => _pluginCapabilities;
         public WcxModule WcxModule => _wcxModule;
 
-        public WcxArchiveFileSource(IFileSource archiveFileSource, string archiveFileName, string wcxPluginFileName, int wcxPluginCapabilities) 
+        public WcxArchiveFileSource(IFileSource archiveFileSource, string archiveFileName, string wcxPluginFileName, int wcxPluginCapabilities)
             : base(archiveFileSource, archiveFileName)
         {
             _moduleFileName = wcxPluginFileName;
@@ -47,7 +51,7 @@ namespace zfile
             CreateConnections();
         }
 
-        public WcxArchiveFileSource(IFileSource archiveFileSource, string archiveFileName, WcxModule wcxPluginModule, int wcxPluginCapabilities, IntPtr archiveHandle) 
+        public WcxArchiveFileSource(IFileSource archiveFileSource, string archiveFileName, WcxModule wcxPluginModule, int wcxPluginCapabilities, IntPtr archiveHandle)
             : base(archiveFileSource, archiveFileName)
         {
             _pluginCapabilities = wcxPluginCapabilities;
@@ -84,7 +88,7 @@ namespace zfile
 
             try
             {
-                file.ModificationTime = FileTimeToDateTime(header.FileTime);
+                file.ModificationTime = WcxModuleExtensions.FileTimeToDateTime(header.FileTime);
             }
             catch (Exception) { }
 
@@ -96,8 +100,8 @@ namespace zfile
 
         public FileSourceOperationType GetOperationTypes()
         {
-            var result = FileSourceOperationType.List | FileSourceOperationType.CopyOut | 
-                        FileSourceOperationType.TestArchive | FileSourceOperationType.Execute | 
+            var result = FileSourceOperationType.List | FileSourceOperationType.CopyOut |
+                        FileSourceOperationType.TestArchive | FileSourceOperationType.Execute |
                         FileSourceOperationType.CalcStatistics;
 
             if (((_pluginCapabilities & (int)PackerCaps.PK_CAPS_NEW) != 0 || (_pluginCapabilities & (int)PackerCaps.PK_CAPS_MODIFY) != 0) &&
@@ -134,7 +138,7 @@ namespace zfile
                 {
                     if (header.IsDirectory && header.FileName.Length > 0)
                     {
-                        if (string.Equals(newDir, Path.GetFullPath(Path.Combine(GetRootDir(), header.FileName) + Path.DirectorySeparatorChar), 
+                        if (string.Equals(newDir, Path.GetFullPath(Path.Combine(GetRootDir(), header.FileName) + Path.DirectorySeparatorChar),
                             StringComparison.OrdinalIgnoreCase))
                             return true;
                     }
@@ -151,6 +155,8 @@ namespace zfile
         private void SetCryptCallback()
         {
             var flags = PasswordStore.HasMasterKey ? (int)CryptOpt.PK_CRYPTOPT_MASTERPASS_SET : 0;
+
+            // Use the extension method to set the callback with the appropriate delegates
             _wcxModule.SetCryptCallback(0, flags, CryptProcA, CryptProcW);
         }
 
@@ -301,7 +307,7 @@ namespace zfile
             ReadArchive();
         }
 
-        public FileSourceConnection GetConnection(FileSourceOperation operation)
+        public new FileSourceConnection GetConnection(FileSourceOperation operation)
         {
             FileSourceConnection result = null;
 
@@ -403,7 +409,7 @@ namespace zfile
                 {
                     string moduleFileName = WcxPlugins.FileName[i];
                     wcxPlugin = WcxPlugins.LoadModule(moduleFileName);
-                    
+
                     if (wcxPlugin != null)
                     {
                         if ((WcxPlugins.Flags[i] & (int)PackerCaps.PK_CAPS_BY_CONTENT) == (int)PackerCaps.PK_CAPS_BY_CONTENT)
@@ -524,7 +530,7 @@ namespace zfile
             return CryptProc(cryptoNumber, mode, archiveName, ref password);
         }
 
-        private static int CryptProc(int cryptoNumber, int mode, string archiveName, ref string password)
+        private static int CryptProc(int _, int mode, string archiveName, ref string password)
         {
             const string prefix = "wcx";
             string group = Path.GetExtension(archiveName);
@@ -566,40 +572,84 @@ namespace zfile
         }
     }
 
-	public class PasswordStore
-	{
-		public string prefix;
-		public string group;
-		public string archiveName;
-		public int mode;
-		public string password;
-		public static bool DeletePassword(string prefix, string group, string archiveName)
-		{
-			// Implement password deletion logic
-			return true;
-		}
-		public static bool WritePassword(string prefix, string group, string archiveName, string password)
-		{
-			// Implement password writing logic
-			return true;
-		}
-		public static bool ReadPassword(string prefix, string group, string archiveName, out string password)
-		{
-			// Implement password reading logic
-			password = string.Empty;
-			return true;
-		}
-		public static bool HasMasterKey => true;
-
-	}
-
-    public class ModuleNotLoadedException : Exception
+    public class PasswordStore
     {
-        public ModuleNotLoadedException(string message) : base(message) { }
+        // Simple implementation of a password store
+        private static readonly Dictionary<string, string> _passwords = new Dictionary<string, string>();
+
+        /// <summary>
+        /// Deletes a password from the store
+        /// </summary>
+        /// <param name="prefix">The prefix</param>
+        /// <param name="group">The group</param>
+        /// <param name="archiveName">The archive name</param>
+        /// <returns>True if the password was deleted, false otherwise</returns>
+        public static bool DeletePassword(string prefix, string group, string archiveName)
+        {
+            string key = GetKey(prefix, group, archiveName);
+            return _passwords.Remove(key);
+        }
+
+        /// <summary>
+        /// Writes a password to the store
+        /// </summary>
+        /// <param name="prefix">The prefix</param>
+        /// <param name="group">The group</param>
+        /// <param name="archiveName">The archive name</param>
+        /// <param name="password">The password</param>
+        /// <returns>True if the password was written, false otherwise</returns>
+        public static bool WritePassword(string prefix, string group, string archiveName, string password)
+        {
+            string key = GetKey(prefix, group, archiveName);
+            _passwords[key] = password;
+            return true;
+        }
+
+        /// <summary>
+        /// Reads a password from the store
+        /// </summary>
+        /// <param name="prefix">The prefix</param>
+        /// <param name="group">The group</param>
+        /// <param name="archiveName">The archive name</param>
+        /// <param name="password">The password</param>
+        /// <returns>True if the password was read, false otherwise</returns>
+        public static bool ReadPassword(string prefix, string group, string archiveName, out string password)
+        {
+            string key = GetKey(prefix, group, archiveName);
+            if (_passwords.TryGetValue(key, out string? value))
+            {
+                password = value ?? string.Empty;
+                return true;
+            }
+
+            password = string.Empty;
+            return false;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether a master key is available
+        /// </summary>
+        public static bool HasMasterKey => true;
+
+        /// <summary>
+        /// Gets a key for the password store
+        /// </summary>
+        /// <param name="prefix">The prefix</param>
+        /// <param name="group">The group</param>
+        /// <param name="archiveName">The archive name</param>
+        /// <returns>The key</returns>
+        private static string GetKey(string prefix, string group, string archiveName)
+        {
+            return $"{prefix}:{group}:{archiveName}";
+        }
+
     }
 
-    public class WcxModuleException : Exception
+    public class ModuleNotLoadedException(string message) : Exception(message)
     {
-        public WcxModuleException(int errorCode) : base($"WCX module error: {errorCode}") { }
+    }
+
+    public class WcxModuleException(int errorCode) : Exception($"WCX module error: {errorCode}")
+    {
     }
 }

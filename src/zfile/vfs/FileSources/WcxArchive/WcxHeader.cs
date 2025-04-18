@@ -70,5 +70,7 @@ namespace zfile
 			HostOS = headerDataExW.HostOS;
 			UnpVer = headerDataExW.UnpVer;
 		}
+	
+	
 	}
 }

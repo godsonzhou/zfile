@@ -175,8 +175,8 @@ namespace zfile
     /// <summary>
     /// Thread-safe object list
     /// </summary>
-    public class ThreadSafeList<T> where T : class
-    {
+    public class ThreadSafeList<T> where T : class,  IDisposable, IEnumerable<T>
+	{
         private List<T> _list;
         private object _lock;
 
@@ -220,9 +220,9 @@ namespace zfile
                 _list.Add(item);
                 return _list.Count - 1;
             }
-        }
-
-        public T this[int index]
+        }		
+	
+		public T this[int index]
         {
             get
             {
@@ -239,8 +239,8 @@ namespace zfile
                 }
             }
         }
-
-        public int Count
+	
+		public int Count
         {
             get
             {
@@ -250,8 +250,8 @@ namespace zfile
                 }
             }
         }
-
-        public bool Contains(T item)
+	
+		public bool Contains(T item)
         {
             lock (_lock)
             {
@@ -282,22 +282,38 @@ namespace zfile
                 return new List<T>(_list);
             }
         }
-
+	
 		internal void Dispose()
 		{
-			throw new NotImplementedException();
+			lock (_lock)
+			{
+				_list.Clear();
+			}
 		}
-
+	
 		internal IEnumerable<T> Clone()
 		{
 			throw new NotImplementedException();
 		}
+		/// <summary>
+		/// Returns an enumerator that iterates through the list
+		/// </summary>
+		/// <returns>An enumerator for the list</returns>
+		public IEnumerator<T> GetEnumerator()
+		{
+			List<T> snapshot;
+			lock (_lock)
+			{
+				snapshot = new List<T>(_list);
+			}
+			return snapshot.GetEnumerator();
+		}
 	}
-
-    /// <summary>
-    /// Helper class for SynEdit control
-    /// </summary>
-    public static class SynEditHelper
+	
+	/// <summary>
+	/// Helper class for SynEdit control
+	/// </summary>
+	public static class SynEditHelper
     {
         public static void FixDefaultKeystrokes(this SynEdit synEdit)
         {

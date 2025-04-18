@@ -1,5 +1,8 @@
 using SharpCompress.Archives.Tar;
 using SharpCompress.Writers;
+using System;
+using System.IO;
+using System.Runtime.InteropServices;
 
 namespace zfile
 {
@@ -8,9 +11,11 @@ namespace zfile
 		private IWcxArchiveFileSource _wcxArchiveFileSource;
 		private StringHashListUtf8 _FileEntries;
 		private bool _tarBefore;
-		private string _tarFileName;
-		private FileEntry _currentFile;
-		private string _currentTargetFilePath;
+		private string? _tarFileName;
+		private FileEntry? _currentFile;
+		private string? _currentTargetFilePath;
+		private FileEntries _fullFilesTree;
+		private int _packingFlags;
 
 		// Static variables for WCX callbacks
 		private static WcxArchiveCopyInOperation _wcxCopyInOperationG = null;
@@ -23,8 +28,9 @@ namespace zfile
 										string targetPath) : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
 		{
 			_wcxArchiveFileSource = (IWcxArchiveFileSource)targetFileSource;
-			packingFlags = (int)PackFilesFlags.PK_PACK_SAVE_PATHS;
+			_packingFlags = (int)PackFilesFlags.PK_PACK_SAVE_PATHS;
 			_tarBefore = false;
+			_fullFilesTree = new FileEntries();
 
 			NeedsConnection = (_wcxArchiveFileSource.WcxModule.BackgroundFlags & WcxModule.BACKGROUND_PACK) == 0;
 
@@ -98,7 +104,7 @@ namespace zfile
 						   destPath, // no trailing path delimiter here
 						   Helper.IncludeTrailingPathDelimiter(_fullFilesTree.Path), // end with path delimiter here
 						   FileEntries,
-						   packingFlags);
+						   _packingFlags);
 
 			// Check for errors.
 			if (result != WcxModule.E_SUCCESS)
@@ -393,7 +399,7 @@ namespace zfile
 
 				if (tarWriter.ProcessTree(_fullFilesTree, _statistics))
 				{
-					if (result && (packingFlags & (int)PackFilesFlags.PK_PACK_MOVE_FILES) != 0)
+					if (result && (_packingFlags & (int)PackFilesFlags.PK_PACK_MOVE_FILES) != 0)
 						DeleteFiles(_fullFilesTree);
 					else
 					{
@@ -427,22 +433,22 @@ namespace zfile
 
 		private static int ProcessDataProcAG(IntPtr fileName, int size)
 		{
-			return ProcessDataProc(_wcxCopyInOperationG, System.Runtime.InteropServices.Marshal.PtrToStringAnsi(fileName), size);
+			return ProcessDataProc(_wcxCopyInOperationG, Marshal.PtrToStringAnsi(fileName), size);
 		}
 
 		private static int ProcessDataProcWG(IntPtr fileName, int size)
 		{
-			return ProcessDataProc(_wcxCopyInOperationG, System.Runtime.InteropServices.Marshal.PtrToStringUni(fileName), size);
+			return ProcessDataProc(_wcxCopyInOperationG, Marshal.PtrToStringUni(fileName), size);
 		}
 
 		private static int ProcessDataProcAT(IntPtr fileName, int size)
 		{
-			return ProcessDataProc(_wcxCopyInOperationT, System.Runtime.InteropServices.Marshal.PtrToStringAnsi(fileName), size);
+			return ProcessDataProc(_wcxCopyInOperationT, Marshal.PtrToStringAnsi(fileName), size);
 		}
 
 		private static int ProcessDataProcWT(IntPtr fileName, int size)
 		{
-			return ProcessDataProc(_wcxCopyInOperationT, System.Runtime.InteropServices.Marshal.PtrToStringUni(fileName), size);
+			return ProcessDataProc(_wcxCopyInOperationT, Marshal.PtrToStringUni(fileName), size);
 		}
 	}
 }

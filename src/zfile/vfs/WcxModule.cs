@@ -50,7 +50,7 @@ Unicode支持：
 */
 namespace zfile
 {
-	public enum WcxResult:int
+	public enum WcxResult : int
 	{
 		PK_OK = 0,
 		PK_END_ARCHIVE = 10,
@@ -248,64 +248,64 @@ namespace zfile
 		public int CmtSize;
 		public int CmtState;
 	}
-	
-    public class OpenArchiveData
-    {
-        private readonly IntPtr ptr;
-        private TOpenArchiveData data;
-        private TOpenArchiveDataW dataW;
-        private bool isUnicode;
 
-        #region Properties
+	public class OpenArchiveData
+	{
+		private readonly IntPtr ptr;
+		private TOpenArchiveData data;
+		private TOpenArchiveDataW dataW;
+		private bool isUnicode;
 
-        public string ArchiveName { get; private set; }
-        public int Mode { get; private set; }
-        public WcxResult Result { get; set; }
+		#region Properties
 
-        #endregion Properties
+		public string ArchiveName { get; private set; }
+		public int Mode { get; private set; }
+		public WcxResult Result { get; set; }
 
-        #region Constructors
+		#endregion Properties
 
-        public OpenArchiveData(IntPtr ptr, bool isUnicode)
-        {
-            this.ptr = ptr;
-            this.isUnicode = isUnicode;
-            if (ptr != IntPtr.Zero)
-            {
-                if (isUnicode)
-                {
-                    dataW = (TOpenArchiveDataW)Marshal.PtrToStructure(ptr, typeof(TOpenArchiveDataW));
+		#region Constructors
+
+		public OpenArchiveData(IntPtr ptr, bool isUnicode)
+		{
+			this.ptr = ptr;
+			this.isUnicode = isUnicode;
+			if (ptr != IntPtr.Zero)
+			{
+				if (isUnicode)
+				{
+					dataW = (TOpenArchiveDataW)Marshal.PtrToStructure(ptr, typeof(TOpenArchiveDataW));
 					ArchiveName = dataW.ArcName;// Marshal.PtrToStringUni(dataW.ArcName);
-                    Mode = dataW.OpenMode;
-                }
-                else
-                {
-                    data = (TOpenArchiveData)Marshal.PtrToStructure(ptr, typeof(TOpenArchiveData));
-                    ArchiveName = data.ArcName;
-                    Mode = data.OpenMode;
-                }
-            }
-        }
+					Mode = dataW.OpenMode;
+				}
+				else
+				{
+					data = (TOpenArchiveData)Marshal.PtrToStructure(ptr, typeof(TOpenArchiveData));
+					ArchiveName = data.ArcName;
+					Mode = data.OpenMode;
+				}
+			}
+		}
 
-        #endregion Constructors
+		#endregion Constructors
 
-        public void Update()
-        {
-            if (ptr != IntPtr.Zero)
-            {
-                if (isUnicode)
-                {
-                    dataW.OpenResult = (int)Result;
-                    Marshal.StructureToPtr(dataW, ptr, false);
-                }
-                else
-                {
-                    data.OpenResult = (int)Result;
-                    Marshal.StructureToPtr(data, ptr, false);
-                }
-            }
-        }
-    }
+		public void Update()
+		{
+			if (ptr != IntPtr.Zero)
+			{
+				if (isUnicode)
+				{
+					dataW.OpenResult = (int)Result;
+					Marshal.StructureToPtr(dataW, ptr, false);
+				}
+				else
+				{
+					data.OpenResult = (int)Result;
+					Marshal.StructureToPtr(data, ptr, false);
+				}
+			}
+		}
+	}
 
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
 	public struct THeaderData
@@ -338,12 +338,12 @@ namespace zfile
 		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1024)]
 		public string FileName;
 		public int Flags;
-		
+
 		public uint PackSizeLow;
-        public uint PackSizeHigh;
-        public uint UnpSizeLow;
-        public uint UnpSizeHigh;
-		 
+		public uint PackSizeHigh;
+		public uint UnpSizeLow;
+		public uint UnpSizeHigh;
+
 		//public ulong PackSize;
 		//public ulong UnpSize;
 		public int HostOS;
@@ -391,14 +391,14 @@ namespace zfile
 	}
 
 	// 委托定义
-	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet=CharSet.Ansi)]
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	public delegate IntPtr TOpenArchive(ref TOpenArchiveData archiveData);
-	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet=CharSet.Unicode)]
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
 	public delegate IntPtr TOpenArchiveW(ref TOpenArchiveDataW archiveData);
 	public delegate int TReadHeader(IntPtr handle, ref THeaderData headerData);
 	public delegate int TReadHeaderExW(IntPtr handle, ref THeaderDataExW headerData);
 	public delegate int TProcessFile(IntPtr handle, ProcessMode operation, string destPath, string destName);
-	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet=CharSet.Unicode)]
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
 	public delegate int TProcessFileW(IntPtr handle, ProcessMode operation, [MarshalAs(UnmanagedType.LPWStr)] string destPath, [MarshalAs(UnmanagedType.LPWStr)] string destName);
 	public delegate int TCloseArchive(IntPtr handle);
 	public delegate int TPackFiles(string packedFile, string subPath, string srcPath, string addList, int flags);
@@ -439,16 +439,21 @@ namespace zfile
 		public const int E_BAD_DATA = 12; //	Data is bad
 		public const int E_BAD_ARCHIVE = 13; //	CRC error in archive data
 		public const int E_UNKNOWN_FORMAT = 14; //	Archive format unknown
-		public const int E_EOPEN	= 15; //	Cannot open existing file
-		public const int E_ECREATE	= 16; //	Cannot create file
-		public const int E_ECLOSE	= 17; //	Error closing file
-		public const int E_EREAD	= 18; //	Error reading from file
-		public const int E_EWRITE	= 19; //	Error writing to file
-		public const int E_SMALL_BUF	= 20; //	Buffer too small
-		public const int E_EABORTED	= 21; //	Function aborted by user
-		public const int E_NO_FILES	= 22; //	No files found
-		public const int E_TOO_MANY_FILES	= 23; //	Too many files to pack
-		public const int E_NOT_SUPPORTED	= 24; //	Function not supported
+		public const int E_EOPEN = 15; //	Cannot open existing file
+		public const int E_ECREATE = 16; //	Cannot create file
+		public const int E_ECLOSE = 17; //	Error closing file
+		public const int E_EREAD = 18; //	Error reading from file
+		public const int E_EWRITE = 19; //	Error writing to file
+		public const int E_SMALL_BUF = 20; //	Buffer too small
+		public const int E_EABORTED = 21; //	Function aborted by user
+		public const int E_NO_FILES = 22; //	No files found
+		public const int E_TOO_MANY_FILES = 23; //	Too many files to pack
+		public const int E_NOT_SUPPORTED = 24; //	Function not supported
+
+		// Background flags
+		public const int BACKGROUND_PACK = 1;
+		public const int BACKGROUND_UNPACK = 2;
+		public const int BACKGROUND_MEMPACK = 4;
 
 		public static nint WcxInvalidHandle = 0;
 		// 函数指针
@@ -483,15 +488,16 @@ namespace zfile
 		private IntPtr _moduleHandle;
 		private bool _isUnicode;
 		private string _modulePath;
-		
-		public string Name { get;  set; }
+
+		public string Name { get; set; }
 		public string FilePath { get => _modulePath; set => _modulePath = value; }
 		public List<string> DetectStrings = new();
 		public int PluginCapabilities;
+		public int BackgroundFlags { get; private set; }
 
 		public WcxModule()
 		{
-			
+
 		}
 		public WcxModule(string name, string path)
 		{
@@ -520,7 +526,7 @@ namespace zfile
 		}
 		public void SetDefaultParam()
 		{
-			if(_packSetDefaultParams == null)
+			if (_packSetDefaultParams == null)
 				return;
 			// 在加载插件后初始化默认参数
 			var dps = new PackDefaultParamStruct
@@ -580,6 +586,10 @@ namespace zfile
 
 				//get packer caps
 				PluginCapabilities = _getPackerCaps?.Invoke() ?? 0;
+
+				// Get background flags
+				BackgroundFlags = _getBackgroundFlags?.Invoke() ?? 0;
+
 				return true;
 			}
 			catch
@@ -635,71 +645,71 @@ namespace zfile
 			return Marshal.GetDelegateForFunctionPointer(procAddress, typeof(T)) as T;
 		}
 
-        public IntPtr OpenArchive(string archiveName, int openMode, out int openResult)
-        {
-            IntPtr result = IntPtr.Zero;
-            openResult = (int)WcxResult.PK_UNKNOWN_FORMAT;
-            archiveName = archiveName.ToUpper();
-            if (_isUnicode && _openArchiveW != null)
-            {
-                var archiveDataW = new TOpenArchiveDataW
-                {
-                    ArcName = archiveName,
-                    OpenMode = openMode,
-                    CmtBuf = string.Empty,
-                    CmtBufSize = 0
-                };
+		public IntPtr OpenArchive(string archiveName, int openMode, out int openResult)
+		{
+			IntPtr result = IntPtr.Zero;
+			openResult = (int)WcxResult.PK_UNKNOWN_FORMAT;
+			archiveName = archiveName.ToUpper();
+			if (_isUnicode && _openArchiveW != null)
+			{
+				var archiveDataW = new TOpenArchiveDataW
+				{
+					ArcName = archiveName,
+					OpenMode = openMode,
+					CmtBuf = string.Empty,
+					CmtBufSize = 0
+				};
 
-                // 获取结构体的大小
-                int size = Marshal.SizeOf(typeof(TOpenArchiveDataW));
-                Debug.Print($"archiveDataW占用的内存大小: {size} 字节");
-                try
-                {
-                    result = _openArchiveW(ref archiveDataW);
+				// 获取结构体的大小
+				int size = Marshal.SizeOf(typeof(TOpenArchiveDataW));
+				Debug.Print($"archiveDataW占用的内存大小: {size} 字节");
+				try
+				{
+					result = _openArchiveW(ref archiveDataW);
 					if (result == IntPtr.Zero)
 						openResult = archiveDataW.OpenResult;
 					else
 						openResult = (int)WcxResult.PK_OK;  //success
 
 					//openResult = archiveDataW.OpenResult;
-                    return result;
-                }
-                catch (AccessViolationException ex)
-                {
-                    Debug.Print($"AccessViolationException: {ex.Message}");
-                    throw;
-                }
-            }
-            else if (_openArchive != null)
-            {
-                var archiveData = new TOpenArchiveData
-                {
-                    ArcName = archiveName,
-                    OpenMode = openMode,
-                    CmtBuf = string.Empty,
-                    CmtBufSize = 0
-                };
+					return result;
+				}
+				catch (AccessViolationException ex)
+				{
+					Debug.Print($"AccessViolationException: {ex.Message}");
+					throw;
+				}
+			}
+			else if (_openArchive != null)
+			{
+				var archiveData = new TOpenArchiveData
+				{
+					ArcName = archiveName,
+					OpenMode = openMode,
+					CmtBuf = string.Empty,
+					CmtBufSize = 0
+				};
 
-                try
-                {
-                    result = _openArchive(ref archiveData);
+				try
+				{
+					result = _openArchive(ref archiveData);
 					if (result == IntPtr.Zero)
 						openResult = archiveData.OpenResult;
 					else
 						openResult = (int)WcxResult.PK_OK;  //success
 
 					//openResult = archiveData.OpenResult;
-                    return result;
-                }
-                catch (AccessViolationException ex)
-                {
-                    Debug.Print($"AccessViolationException: {ex.Message}");
-                    throw;
-                }
-            }
+					return result;
+				}
+				catch (AccessViolationException ex)
+				{
+					Debug.Print($"AccessViolationException: {ex.Message}");
+					throw;
+				}
+			}
 
-            return IntPtr.Zero;
-        }
+			return IntPtr.Zero;
+		}
 
 		public bool ReadHeader(IntPtr arcHandle, out THeaderDataExW headerData)
 		{
@@ -893,7 +903,7 @@ namespace zfile
 			public static extern IntPtr GetProcAddress(IntPtr hModule, string lpProcName);
 		}
 	}
-	
+
 	public class WcxModuleList
 	{
 		public List<WcxModule> _modules = new List<WcxModule>();
@@ -1004,7 +1014,7 @@ namespace zfile
 								{
 									module.DetectStrings.Add(detectstring);
 								}
-								if(AddModule(module))
+								if (AddModule(module))
 									_exts[parts[0].Trim()] = module;
 							}
 						}

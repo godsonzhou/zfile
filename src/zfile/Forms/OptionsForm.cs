@@ -99,7 +99,7 @@ namespace zfile
 			Size = new Size(1024, 768);
             //this.commandHotkeys = commandHotkeys;
             this.mainForm = mainForm;
-			this.wcxModuleList = mainForm.wcxModuleList;
+			this.wcxModuleList = MainForm.wcxModuleList;
 			// 初始化ToolTip
 			toolTip = new ToolTip
 			{
@@ -188,7 +188,7 @@ namespace zfile
 			buttonPanel.Controls.AddRange(new Control[] { btnAdd, btnDelete, btnMoveUp, btnMoveDown });
 
 			// 加载现有配置
-			foreach (var config in mainForm.wlxModuleList._configDict)
+			foreach (var config in MainForm.wlxModuleList._configDict)
 			{
 				grid.Rows.Add(config.Value, config.Key);
 			}
@@ -205,7 +205,7 @@ namespace zfile
 
 		private void AddWlxMapping(DataGridView grid)
 		{
-			using var addForm = new AddWlxMappingForm(mainForm.wlxModuleList);
+			using var addForm = new AddWlxMappingForm(MainForm.wlxModuleList);
 			if (addForm.ShowDialog() == DialogResult.OK)
 			{
 				grid.Rows.Add(addForm.SelectedPlugin, addForm.Extension);
@@ -246,7 +246,7 @@ namespace zfile
 		private void UpdateWlxConfiguration(DataGridView grid)
 		{
 			// 清除现有配置
-			mainForm.wlxModuleList._configDict.Clear();
+			MainForm.wlxModuleList._configDict.Clear();
 
 			// 从grid重建配置
 			foreach (DataGridViewRow row in grid.Rows)
@@ -254,13 +254,13 @@ namespace zfile
 				string ext = row.Cells["Extension"].Value?.ToString() ?? "";
 				string pluginName = row.Cells["PluginName"].Value?.ToString() ?? "";
 
-				var module = mainForm.wlxModuleList.FindModuleByName(pluginName);
+				var module = MainForm.wlxModuleList.FindModuleByName(pluginName);
 				if (module != null)
 				{
-					mainForm.wlxModuleList._configDict[ext] = module.Name;
+					MainForm.wlxModuleList._configDict[ext] = module.Name;
 				}
 			}
-			mainForm.wlxModuleList.isConfigChanged = true;
+			MainForm.wlxModuleList.isConfigChanged = true;
 		}
 		private void InitializeWcxTab(TabPage tabPage)
 		{
@@ -372,7 +372,7 @@ namespace zfile
 		private void UpdateWcxConfiguration(DataGridView grid)
 		{
 			// 清除现有配置
-			mainForm.wcxModuleList._cfg.Clear();
+			MainForm.wcxModuleList._cfg.Clear();
 
 			// 从grid重建配置
 			foreach (DataGridViewRow row in grid.Rows)
@@ -380,14 +380,14 @@ namespace zfile
 				string ext = row.Cells["Extension"].Value?.ToString() ?? "";
 				string pluginName = row.Cells["PluginName"].Value?.ToString() ?? "";
 
-				var module = mainForm.wcxModuleList.FindModuleByName(pluginName);
+				var module = MainForm.wcxModuleList.FindModuleByName(pluginName);
 				if (module != null)
 				{
-					//mainForm.wcxModuleList._configDict[ext] = module.Name;
-					mainForm.wcxModuleList._cfg.Add($"{ext}=0,{module.FilePath}");
+					//MainForm.wcxModuleList._configDict[ext] = module.Name;
+					MainForm.wcxModuleList._cfg.Add($"{ext}=0,{module.FilePath}");
 				}
 			}
-			mainForm.wcxModuleList.isConfigChanged = true;
+			MainForm.wcxModuleList.isConfigChanged = true;
 		}
 		// 重写FormClosing事件，防止有冲突时关闭窗口
 		protected override void OnFormClosing(FormClosingEventArgs e)
@@ -808,8 +808,8 @@ namespace zfile
 			// 保存设置
 			mainForm.keyManager.SaveKeyMappingToConfigFile();
 			// 保存WLX配置
-			mainForm.wlxModuleList.SaveConfiguration();
-			mainForm.wcxModuleList.SaveConfiguration();
+			MainForm.wlxModuleList.SaveConfiguration();
+			MainForm.wcxModuleList.SaveConfiguration();
 			// save font
 			updateFont();
 			UpdateBasicSettings();

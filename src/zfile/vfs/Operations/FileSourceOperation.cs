@@ -722,6 +722,16 @@ namespace zfile
                 _userInterfaceAssignedEvent.Dispose();
             }
         }
+
+		internal DateTime? DateTimeToFileTimeEx(DateTime? value)
+		{
+			throw new NotImplementedException();
+		}
+
+		internal DateTime FileTimeToDateTime(long lastWriteTime)
+		{
+			throw new NotImplementedException();
+		}
     }
 
 	public interface IFileSourceOperationUIActionHandler

@@ -65,7 +65,12 @@ namespace zfile
             _errorLevel = ExtractErrorLevel(_commandLine);
         }
 
-        protected override void MainExecute()
+		private int ExtractErrorLevel(string commandLine)
+		{
+			throw new NotImplementedException();
+		}
+
+		protected override void MainExecute()
         {
             var multiArcItem = _fileSource.MultiArcItem;
             string destPath = string.Empty;
@@ -107,7 +112,17 @@ namespace zfile
             }
         }
 
-        private void OnReadLn(object sender, DataReceivedEventArgs e)
+		private string FormatArchiverCommand(string archiver, string commandLine, string archiveFileName, object value, string fullPath, string destPath, string tempFile, string password, string empty1, string empty2)
+		{
+			throw new NotImplementedException();
+		}
+
+		private void ChangeFileEntriesRoot(string empty, FileEntry[] fullFilesTreeToDelete)
+		{
+			throw new NotImplementedException();
+		}
+
+		private void OnReadLn(object sender, DataReceivedEventArgs e)
         {
             if (!string.IsNullOrEmpty(e.Data))
             {

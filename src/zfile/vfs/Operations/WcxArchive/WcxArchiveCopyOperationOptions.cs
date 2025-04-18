@@ -1,4 +1,4 @@
-namespace zfile.Operations;
+namespace zfile;
 
     public class WcxArchiveCopyOperationOptionsUI : FileSourceOperationOptionsUI
     {

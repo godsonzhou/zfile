@@ -104,7 +104,6 @@ namespace zfile
         protected override SetFilePropertyResult SetNewProperty(FileEntry file, FileProperty templateProperty)
         {
             var result = SetFilePropertyResult.Success;
-			Object? FileTimeExNull = null;
 
 			try
             {
@@ -152,8 +151,8 @@ namespace zfile
                             if (!FileSystemUtil.SetTimeExUAC(
                                 file.FullPath,
                                 DateTimeToFileTimeEx((templateProperty as FileModificationDateTimeProperty)?.Value),
-                                FileTimeExNull,
-                                FileTimeExNull))
+                                null,
+                                null))
                             {
                                 result = SetFilePropertyResult.Error;
                             }
@@ -170,9 +169,9 @@ namespace zfile
                         {
                             if (!FileSystemUtil.SetTimeExUAC(
                                 file.FullPath,
-                                FileTimeExNull,
+                                null,
                                 DateTimeToFileTimeEx((templateProperty as FileCreationDateTimeProperty)?.Value),
-                                FileTimeExNull))
+                                null))
                             {
                                 result = SetFilePropertyResult.Error;
                             }
@@ -189,8 +188,8 @@ namespace zfile
                         {
                             if (!FileSystemUtil.SetTimeExUAC(
                                 file.FullPath,
-                                FileTimeExNull,
-                                FileTimeExNull,
+                                null,
+                                null,
                                 DateTimeToFileTimeEx((templateProperty as FileLastAccessDateTimeProperty)?.Value)))
                             {
                                 result = SetFilePropertyResult.Error;
@@ -255,7 +254,7 @@ namespace zfile
             return result;
         }
 
-        private void QuestionActionHandler(FileSourceOperationUIResponse action)
+		private void QuestionActionHandler(FileSourceOperationUIResponse action)
         {
             if (action == FileSourceOperationUIResponse.CompareAction)
             {
@@ -448,7 +447,12 @@ namespace zfile
                 return SetFilePropertyResult.Error;
         }
 
-        protected void ShowCompareFilesUI(FileEntry sourceFile, string targetFilePath)
+		private string FileExistsMessage(string newName, string fullPath, long size, DateTime modificationTime)
+		{
+			throw new NotImplementedException();
+		}
+
+		protected void ShowCompareFilesUI(FileEntry sourceFile, string targetFilePath)
         {
             var targetFile = FileSource.CreateFile(Path.GetDirectoryName(targetFilePath));
             try
@@ -461,5 +465,10 @@ namespace zfile
                 targetFile.Dispose();
             }
         }
-    }
+
+		private void PrepareToolData(IFileSource fileSource1, FileEntry sourceFile, IFileSource fileSource2, FileEntry targetFile, object showDifferByGlobList, bool v)
+		{
+			throw new NotImplementedException();
+		}
+	}
 } 

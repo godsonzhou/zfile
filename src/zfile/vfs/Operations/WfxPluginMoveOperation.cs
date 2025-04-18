@@ -70,11 +70,11 @@ namespace zfile
 
         protected override void Initialize()
         {
-            _wfxPluginFileSource.WfxModule.setStatusInfo(SourceFiles.Path, FsStatus.Start, _infoOperation);
+            _wfxPluginFileSource.WfxModule.setStatusInfo(SourceFiles.Path, (int)FsStatus.Start, _infoOperation);
             _callbackDataClass.UpdateProgressFunction = UpdateProgress;
             UpdateProgressFunction = UpdateProgress;
 
-            _statistics = RetrieveStatistics;
+            _statistics = RetrieveStatistics();
 
             var treeBuilder = new WfxTreeBuilder(AskQuestion, CheckOperationState);
             try

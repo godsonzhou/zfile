@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Text;
-
+using System.Security.Cryptography;
 namespace zfile
 {
 	public struct FileSourceSplitOperationStatistics

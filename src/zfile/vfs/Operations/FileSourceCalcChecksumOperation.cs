@@ -40,7 +40,7 @@ namespace zfile
         private CalcCheckSumOperationMode _mode;
         private string _targetPath;
         private string _targetMask;
-        private HashAlgorithm _algorithm;
+        private HashAlgorithm1 _algorithm;
         private bool _oneFile;
         private bool _openFileAfterOperationCompleted;
 
@@ -86,7 +86,7 @@ namespace zfile
         /// <summary>
         /// Gets or sets the hash algorithm
         /// </summary>
-        public HashAlgorithm Algorithm
+        public HashAlgorithm1 Algorithm
         {
             get => _algorithm;
             set => _algorithm = value;
@@ -143,7 +143,7 @@ namespace zfile
             _targetPath = aTargetPath;
             _targetMask = aTargetMask;
             _mode = CalcCheckSumOperationMode.Calc;
-            _algorithm = HashAlgorithm.MD5;
+            _algorithm = HashAlgorithm1.MD5;
             _oneFile = false;
             _openFileAfterOperationCompleted = false;
 

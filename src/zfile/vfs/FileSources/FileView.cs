@@ -138,5 +138,10 @@ namespace zfile
 				_activeFileSource = null;
 			}
 		}
+
+		internal void ChangePathToChild(FileEntry file)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

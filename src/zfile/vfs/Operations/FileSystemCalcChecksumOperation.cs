@@ -228,17 +228,17 @@ namespace zfile
             }
         }
 
-        private HashAlgorithm GetHashAlgorithm(HashAlgorithm algorithm)
+        private HashAlgorithm GetHashAlgorithm(HashAlgorithm1 algorithm)
         {
             switch (algorithm)
             {
-                case HashAlgorithm.MD5:
+                case HashAlgorithm1.MD5:
                     return MD5.Create();
-                case HashAlgorithm.SHA1:
+                case HashAlgorithm1.SHA1:
                     return SHA1.Create();
-                case HashAlgorithm.SHA256:
+                case HashAlgorithm1.SHA256:
                     return SHA256.Create();
-                case HashAlgorithm.SHA512:
+                case HashAlgorithm1.SHA512:
                     return SHA512.Create();
                 default:
                     throw new NotSupportedException($"不支持的哈希算法: {algorithm}");
@@ -263,7 +263,7 @@ namespace zfile
     public class ChecksumEntry
     {
         public string Checksum { get; set; }
-        public HashAlgorithm Algorithm { get; set; }
+        public HashAlgorithm1 Algorithm { get; set; }
     }
 
  

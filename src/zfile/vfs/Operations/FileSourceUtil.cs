@@ -140,7 +140,7 @@ namespace zfile
             if (fileView.ActiveFileSource is VfsFileSource)
             {
                 // Check if there is a registered WFX plugin by file system root name
-                IFileSource newFileSource = FileSourceManager.Find(typeof(WfxPluginFileSource), "wfx://" + file.Name);
+                IFileSource newFileSource = FileSourceManager.Instance.Find(typeof(WfxPluginFileSource), "wfx://" + file.Name);
                 if (newFileSource == null)
                     newFileSource = WfxPluginFileSource.CreateByRootName(file.Name);
 
@@ -150,7 +150,7 @@ namespace zfile
                     VfsModule vfsModule = VfsModuleList.VfsModule[file.Name];
                     if (vfsModule != null)
                     {
-                        newFileSource = FileSourceManager.Find(vfsModule.FileSourceClass, file.Name);
+                        newFileSource = FileSourceManager.Instance.Find(vfsModule.FileSourceClass, file.Name);
                         if (newFileSource == null)
                             newFileSource = Activator.CreateInstance(vfsModule.FileSourceClass) as IFileSource;
                     }
@@ -185,7 +185,7 @@ namespace zfile
                     path = NormalizePath(uri.LocalPath);
                     path = Path.GetDirectoryName(path) + Path.DirectorySeparatorChar;
 
-                    IFileSource result = FileSourceManager.Find(
+                    IFileSource result = FileSourceManager.Instance.Find(
                         fileSourceClass,
                         uri.Scheme + "://" + uri.Host,
                         !string.Equals(uri.Scheme, "smb", StringComparison.OrdinalIgnoreCase));
@@ -246,7 +246,7 @@ namespace zfile
                     fileView.AddFileSource(fileSource, path);
             }
             // If current FileSource has address
-            else if (local && !string.IsNullOrEmpty(fileView.CurrentAddress))
+            else if (local && !string.IsNullOrEmpty(fileView.CurrentPath))
                 fileView.CurrentPath = path;
             // Else use FileSystemFileSource
             else

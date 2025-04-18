@@ -64,7 +64,7 @@ namespace zfile
                     SourceFiles[0].Path,
                     $"{Path.GetFileNameWithoutExtension(SourceFiles[0].Name)}.{maybeFileIndex:DextensionLengthRequired}")) && maybeFileIndex != 1);
 
-                SourceFiles.RemoveAt(0); // 现在可以删除第一个文件，它可能是系列中的任何一个
+                SourceFiles.Delete(0); // 现在可以删除第一个文件，它可能是系列中的任何一个
             }
 
             // 获取初始化的统计信息；然后我们只更改需要的内容
@@ -72,9 +72,9 @@ namespace zfile
             statistics.CurrentFileTo = TargetFile;
 
             FileSystemUtil.FillAndCount(SourceFiles, false, false,
-                fullFilesTreeToCombine,
-                ref statistics.TotalFiles,
-                ref statistics.TotalBytes); // 计算文件
+                out fullFilesTreeToCombine,
+                out statistics.TotalFiles,
+                out statistics.TotalBytes); // 计算文件
 
             // 如果处于"RequireDynamicMode"，检查是否有类似TC的摘要文件
             // 我们在标准统计之后执行此操作，以防需要根据摘要文件中的信息更正它们

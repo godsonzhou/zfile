@@ -737,6 +737,27 @@ namespace zfile
 		{
 			throw new NotImplementedException();
 		}
+
+        internal bool MatchesMaskList(string fileName, string maskList)
+        {
+            // 实现文件名匹配检查
+            return false; // 临时实现
+        }
+
+		internal void ChangeFileEntriesRoot(string empty, FileEntry[] fullFilesTreeToDelete)
+		{
+			throw new NotImplementedException();
+		}
+
+		internal int ExtractErrorLevel(string commandLine)
+		{
+			throw new NotImplementedException();
+		}
+
+	internal bool MatchesFileEntries(FileEntries files, string fileName)
+	{
+		throw new NotImplementedException();
+	}
     }
 
 	public interface IFileSourceOperationUIActionHandler

@@ -228,16 +228,19 @@ namespace zfile
 
     public class FileSystemCopyOperationOptionsUI : FileSystemCopyMoveOperationOptionsUI
     {
-        public FileSystemCopyOperationOptionsUI(Component owner, IFileSource fileSource)
+        public FileSystemCopyOperationOptionsUI(Control owner, IFileSource fileSource)
             : base(owner, fileSource)
         {
         }
     }
 
-    public class FileSystemMoveOperationOptionsUI : FileSystemCopyMoveOperationOptionsUI
-    {
-    }
+	public class FileSystemMoveOperationOptionsUI : FileSystemCopyMoveOperationOptionsUI
+	{
+		public FileSystemMoveOperationOptionsUI(Control owner, IFileSource fileSource) : base(owner, fileSource)
+		{
+		}
+	}
 
-    // 枚举定义
- 
+	// 枚举定义
+
 } 

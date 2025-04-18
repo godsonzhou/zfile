@@ -36,13 +36,7 @@ namespace zfile
             // 清理操作
         }
 
-        private bool MatchesMaskList(string fileName, string maskList)
-        {
-            // 实现文件名匹配检查
-            return false; // 临时实现
-        }
-
-        private FileSourceExecuteOperationResult ShowPackInfoDialog(IMultiArchiveFileSource fileSource, FileEntry file)
+		private FileSourceExecuteOperationResult ShowPackInfoDialog(IMultiArchiveFileSource fileSource, FileEntry file)
         {
             // 实现显示归档信息对话框
             return FileSourceExecuteOperationResult.Success; // 临时实现

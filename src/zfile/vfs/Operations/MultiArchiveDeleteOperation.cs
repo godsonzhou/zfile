@@ -65,11 +65,6 @@ namespace zfile
             _errorLevel = ExtractErrorLevel(_commandLine);
         }
 
-		private int ExtractErrorLevel(string commandLine)
-		{
-			throw new NotImplementedException();
-		}
-
 		protected override void MainExecute()
         {
             var multiArcItem = _fileSource.MultiArcItem;
@@ -111,11 +106,6 @@ namespace zfile
                 }
             }
         }
-
-		private void ChangeFileEntriesRoot(string empty, FileEntry[] fullFilesTreeToDelete)
-		{
-			throw new NotImplementedException();
-		}
 
 		private void OnReadLn(object sender, DataReceivedEventArgs e)
         {

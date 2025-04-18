@@ -41,7 +41,7 @@ namespace zfile
             {
                 if (file.AttributesProperty is NtfsFileAttributesProperty)
                 {
-                    file.Attributes |= FILE_ATTRIBUTE_DIRECTORY;
+                    file.Attributes |= FileAttributes.Directory;
                 }
                 else
                 {

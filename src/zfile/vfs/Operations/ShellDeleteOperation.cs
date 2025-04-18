@@ -14,7 +14,7 @@ namespace zfile
             : base(targetFileSource, filesToDelete)
         {
             shellFileSource = targetFileSource as IShellFileSource;
-            fileOp = (IFileOperation)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(CLSID_FileOperation)));
+            fileOp = (IFileOperation)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(Constants.CLSID_FileOperation)));
         }
 
         protected override void Initialize()
@@ -54,7 +54,7 @@ namespace zfile
                     int result = fileOp.PerformOperations();
                     if (result != 0)
                     {
-                        if (result == COPYENGINE_E_USER_CANCELLED)
+                        if (result == Constants.COPYENGINE_E_USER_CANCELLED)
                             RaiseAbortOperation();
                         else
                             Marshal.ThrowExceptionForHR(result);

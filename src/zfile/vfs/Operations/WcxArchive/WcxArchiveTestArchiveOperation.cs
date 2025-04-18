@@ -117,7 +117,7 @@ namespace zfile;
             }
         }
 
-        protected override void Finalize()
+	protected override void Finalize()
         {
             ClearCurrentOperation();
         }

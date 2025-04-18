@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 namespace zfile
 {
 	public class Description(bool flag) : IDisposable

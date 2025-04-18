@@ -17,6 +17,7 @@ namespace zfile
         void FillAndCount(string fileMask, FileEntries files, bool countDirs,
             out FileEntries newFiles, out long filesCount, out long filesSize);
 		bool ReadArchive();
+		string GetSfxExt();
 	}
 
     public class MultiArchiveFileSource : ArchiveFileSource, IMultiArchiveFileSource

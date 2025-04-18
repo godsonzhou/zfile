@@ -165,7 +165,7 @@ namespace zfile
 
                         file.ModificationTimeProperty.IsValid = false;
 
-                        object value = GetDetails(folder, pidl, SCID.Capacity);
+                        object value = w32.GetDetails(folder, pidl, SCID.Capacity);
                         if (value is long)
                         {
                             file.Size = (long)value;

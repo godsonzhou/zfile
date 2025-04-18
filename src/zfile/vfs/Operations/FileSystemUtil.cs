@@ -334,6 +334,11 @@ namespace zfile
 		{
 			throw new NotImplementedException();
 		}
+
+		internal static bool FileGetAttr(string linkTarget, out FileAttributeData attr)
+		{
+			throw new NotImplementedException();
+		}
 	}
 
 	public delegate void UpdateStatisticsFunction(ref FileSourceCopyOperationStatistics newStatistics);

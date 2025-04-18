@@ -15,7 +15,7 @@ namespace zfile
         {
             shellFileSource = targetFileSource as IShellFileSource;
             fileOp = (IFileOperation)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(Constants.CLSID_FileOperation)));
-            SupportedProperties = FilePropertyType.Name ;
+            SupportedProperties = FilePropertyType.Name;
         }
 
         ~ShellSetFilePropertyOperation()
@@ -77,7 +77,8 @@ namespace zfile
 
             var pidl = (IntPtr)sourceFilesTree[currentFileIndex];
             IShellItem item;
-            if (Failed(API.SHCreateItemFromIDList(pidl, ref typeof(IShellItem).GUID, out item)))
+            var guid = typeof(IShellItem).GUID;
+            if (Failed(API.SHCreateItemFromIDList(pidl, ref guid, out item)))
                 return SetFilePropertyResult.Error;
 
             switch (templateProperty.ID)
@@ -95,7 +96,7 @@ namespace zfile
                             var res = fileOp.PerformOperations();
                             if (Failed(res))
                             {
-                                if (res == COPYENGINE_E_USER_CANCELLED)
+                                if (res == Constants.COPYENGINE_E_USER_CANCELLED)
                                 {
                                     RaiseAbortOperation();
                                 }
@@ -143,5 +144,5 @@ namespace zfile
         }
     }
 
-  
-} 
+
+}

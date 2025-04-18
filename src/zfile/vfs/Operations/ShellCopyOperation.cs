@@ -53,7 +53,8 @@ namespace zfile
                         w32.OleCheck(API.SHGetIDListFromObject(folder, out objectPtr));
                         try
                         {
-                            w32.OleCheck(API.SHCreateItemFromIDList(objectPtr, ref typeof(IShellItem).GUID, out targetFolder));
+                            var guid = typeof(IShellItem).GUID;
+                            w32.OleCheck(API.SHCreateItemFromIDList(objectPtr, ref guid, out targetFolder));
                         }
                         finally
                         {
@@ -61,7 +62,8 @@ namespace zfile
                         }
                         break;
                     case FileSourceOperationType.CopyOut:
-                        w32.OleCheck(API.SHCreateItemFromParsingName(TargetPath, IntPtr.Zero, ref typeof(IShellItem).GUID, out targetFolder));
+                        var guid = typeof(IShellItem).GUID;
+                        w32.OleCheck(API.SHCreateItemFromParsingName(TargetPath, IntPtr.Zero, ref guid, out targetFolder));
                         break;
                 }
             }
@@ -119,20 +121,20 @@ namespace zfile
         }
     }
 
-	internal interface IFileOperation
-	{
-		int CopyItems(IShellItemArray shellItemArray, IShellItem shellItem) { return -1; }
-		int PerformOperations();
-		void SetOperationFlags(int flags) { }
-		void Advise(FileOperationProgressSink sink, out uint cookie);
-		void Unadvise(uint cookie);
-		int DeleteItems(IShellItemArray shellItemArray) { return -1; }
-		int MoveItems(IShellItemArray shellItemArray, IShellItem shellItem) { return -1; }
-		void RenameItem(IShellItem shellItem, string newName, object obj) { }
-	
-	}
+    internal interface IFileOperation
+    {
+        int CopyItems(IShellItemArray shellItemArray, IShellItem shellItem) { return -1; }
+        int PerformOperations();
+        void SetOperationFlags(int flags) { }
+        void Advise(FileOperationProgressSink sink, out uint cookie);
+        void Unadvise(uint cookie);
+        int DeleteItems(IShellItemArray shellItemArray) { return -1; }
+        int MoveItems(IShellItemArray shellItemArray, IShellItem shellItem) { return -1; }
+        void RenameItem(IShellItem shellItem, string newName, object obj) { }
 
-	public class ShellCopyInOperation : ShellCopyOperation
+    }
+
+    public class ShellCopyInOperation : ShellCopyOperation
     {
         public ShellCopyInOperation(IFileSource sourceFileSource,
                                   IFileSource targetFileSource,
@@ -189,5 +191,5 @@ namespace zfile
         }
     }
 
-  
-} 
+
+}

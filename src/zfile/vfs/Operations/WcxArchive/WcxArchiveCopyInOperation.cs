@@ -1,6 +1,8 @@
+using SharpCompress.Archives.Tar;
+using SharpCompress.Writers;
+
 namespace zfile
 {
-
 	public class WcxArchiveCopyInOperation : ArchiveCopyInOperation
 	{
 		private IWcxArchiveFileSource _wcxArchiveFileSource;

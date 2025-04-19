@@ -4,7 +4,7 @@ namespace zfile
 {
     public class ShellExecuteOperation : FileSourceExecuteOperation
     {
-        private IShellFileSource shellFileSource;
+        private readonly IShellFileSource? shellFileSource;
 
         public ShellExecuteOperation(IFileSource targetFileSource,
                                    FileEntry executableFile,
@@ -23,20 +23,29 @@ namespace zfile
                 {
                     IntPtr pidl = ((FileShellProperty)ExecutableFile.LinkProperty).Item;
                     IShellFolder2 folder;
-					var Guid = typeof(IShellFolder2).GUID;
-					w32.OleCheck(API.SHBindToParent(pidl, ref Guid, out folder, out pidl));
-                    IContextMenu menu;
-                    w32.OleCheck(folder.GetUIObjectOf(MainForm._Handle, 1, new[] { pidl }, typeof(IContextMenu).GUID, IntPtr.Zero, out menu));
+                    var Guid = typeof(IShellFolder2).GUID;
+                    object? folderObj = null;
+                    w32.OleCheck(API.SHBindToParent(pidl, ref Guid, out folderObj, out pidl));
+                    folder = (IShellFolder2)folderObj!;
+                    IntPtr menuPtr = IntPtr.Zero;
+                    var contextMenuGuid = typeof(IContextMenu).GUID;
+                    folder.GetUIObjectOf(MainForm._Handle, 1, new[] { pidl }, ref contextMenuGuid, IntPtr.Zero, out menuPtr);
+                    IContextMenu? menu = null;
+                    if (menuPtr != IntPtr.Zero)
+                    {
+                        menu = (IContextMenu)Marshal.GetObjectForIUnknown(menuPtr);
+                    }
                     if (menu != null)
                     {
                         var cmici = new CMINVOKECOMMANDINFOEX
                         {
                             cbSize = Marshal.SizeOf(typeof(CMINVOKECOMMANDINFO)),
                             hwnd = MainForm._Handle,
-                            lpVerb = Verb,
+                            lpVerb = Marshal.StringToHGlobalAnsi(Verb),
                             nShow = (int)SW.SHOWNORMAL
                         };
-                        w32.OleCheck(menu.InvokeCommand(ref cmici));
+                        menu.InvokeCommand(ref cmici);
+                        Marshal.FreeHGlobal(cmici.lpVerb);
                     }
                 }
                 catch
@@ -44,7 +53,7 @@ namespace zfile
                     ExecuteOperationResult = FileSourceExecuteOperationResult.Error;
                 }
             }
-            else if (shellFileSource.IsPathAtRoot(CurrentPath))
+            else if (shellFileSource != null && shellFileSource.IsPathAtRoot(CurrentPath))
             {
                 ResultString = ExecutableFile.LinkProperty.LinkTarget;
                 ExecuteOperationResult = FileSourceExecuteOperationResult.SymLink;
@@ -55,17 +64,18 @@ namespace zfile
                 {
                     cbSize = Marshal.SizeOf(typeof(SHELLEXECUTEINFO)),
                     lpIDList = ((FileShellProperty)ExecutableFile.LinkProperty).Item,
-                    fMask = SEE_MASK_IDLIST
+                    fMask = 0x00000100 // SEE_MASK_IDLIST
                 };
 
-                if (API.ShellExecuteEx(ref execInfo))
+                if (ShellExecuteEx(ref execInfo))
                     ExecuteOperationResult = FileSourceExecuteOperationResult.Success;
                 else
                     ExecuteOperationResult = FileSourceExecuteOperationResult.Error;
             }
         }
 
-      
+        [DllImport("shell32.dll", CharSet = CharSet.Auto)]
+        private static extern bool ShellExecuteEx(ref SHELLEXECUTEINFO lpExecInfo);
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -107,5 +117,5 @@ namespace zfile
         public IntPtr hProcess;
     }
 
-    
-} 
+
+}

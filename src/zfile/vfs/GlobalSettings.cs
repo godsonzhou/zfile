@@ -134,9 +134,11 @@ namespace zfile
 		Follow,
 		DontFollow,
 		None
-	}
+	}   /// <summary>
+		/// Global settings for the application
+		/// </summary>
 	public static class GlobalSettings
-    {
+	{
 		internal static bool ProcessComments;
 		internal static int HashBlockSize;
 		internal static int WipePassNumber;
@@ -152,19 +154,19 @@ namespace zfile
 		/// </summary>
 		public static FileOperationsProgressKind FileOperationsProgressKind { get; set; } = FileOperationsProgressKind.SeparateWindow;
 		public static FileSourceOperationSymLinkOption OperationOptionSymLinks { get; set; } = FileSourceOperationSymLinkOption.None;
-        public static FileSourceOperationOptionSetPropertyError OperationOptionSetPropertyError { get; set; } = FileSourceOperationOptionSetPropertyError.Skip;
-        public static bool OperationOptionReserveSpace { get; set; } = true;
-        public static bool OperationOptionCheckFreeSpace { get; set; } = true;
-        public static bool OperationOptionCorrectLinks { get; set; } = true;
-        public static FileSourceOperationOptionGeneral OperationOptionCopyOnWrite { get; set; } = FileSourceOperationOptionGeneral.No;
-        public static FileSourceOperationOptionFileExists OperationOptionFileExists { get; set; } = FileSourceOperationOptionFileExists.None;
-        public static FileSourceOperationOptionDirectoryExists OperationOptionDirectoryExists { get; set; } = FileSourceOperationOptionDirectoryExists.None;
-        public static bool OperationOptionCopyAttributes { get; set; } = true;
-        public static bool OperationOptionCopyXattributes { get; set; } = true;
-        public static bool OperationOptionCopyTime { get; set; } = true;
-        public static bool OperationOptionCopyOwnership { get; set; } = true;
-        public static bool OperationOptionCopyPermissions { get; set; } = true;
-        public static bool DropReadOnlyFlag { get; set; } = true;
+		public static FileSourceOperationOptionSetPropertyError OperationOptionSetPropertyError { get; set; } = FileSourceOperationOptionSetPropertyError.Skip;
+		public static bool OperationOptionReserveSpace { get; set; } = true;
+		public static bool OperationOptionCheckFreeSpace { get; set; } = true;
+		public static bool OperationOptionCorrectLinks { get; set; } = true;
+		public static FileSourceOperationOptionGeneral OperationOptionCopyOnWrite { get; set; } = FileSourceOperationOptionGeneral.No;
+		public static FileSourceOperationOptionFileExists OperationOptionFileExists { get; set; } = FileSourceOperationOptionFileExists.None;
+		public static FileSourceOperationOptionDirectoryExists OperationOptionDirectoryExists { get; set; } = FileSourceOperationOptionDirectoryExists.None;
+		public static bool OperationOptionCopyAttributes { get; set; } = true;
+		public static bool OperationOptionCopyXattributes { get; set; } = true;
+		public static bool OperationOptionCopyTime { get; set; } = true;
+		public static bool OperationOptionCopyOwnership { get; set; } = true;
+		public static bool OperationOptionCopyPermissions { get; set; } = true;
+		public static bool DropReadOnlyFlag { get; set; } = true;
 		public static bool OperationOptionVerify { get; set; }
 		public static bool OperationOptionExcludeEmptyDirectories { get; set; } = true;
 		public static bool LogErrors { get; set; }
@@ -179,26 +181,7 @@ namespace zfile
 		public static VfsModuleList VfsModuleList { get; private set; } = new VfsModuleList();
 		public static WfxModuleList WfxPlugins { get; internal set; }
 
-		// File operation options
-		//public static FileExistsOption OperationOptionFileExists { get; set; } = FileExistsOption.Ask;
-		//public static DirectoryExistsOption OperationOptionDirectoryExists { get; set; } = DirectoryExistsOption.Ask;
-		//public static SetPropertyErrorOption OperationOptionSetPropertyError { get; set; } = SetPropertyErrorOption.Ask;
-		//public static CopyOnWriteOption OperationOptionCopyOnWrite { get; set; } = CopyOnWriteOption.No;
-		//public static bool OperationOptionVerify { get; set; } = false;
-		//public static bool OperationOptionCopyAttributes { get; set; } = true;
-		//public static bool OperationOptionCopyTime { get; set; } = true;
-		//public static bool OperationOptionCopyOwnership { get; set; } = false;
-		//public static bool OperationOptionCopyPermissions { get; set; } = false;
-		//public static bool DropReadOnlyFlag { get; set; } = false;
-		//public static SymLinksOption OperationOptionSymLinks { get; set; } = SymLinksOption.Ask;
-		//public static bool OperationOptionCorrectLinks { get; set; } = true;
-		//public static bool OperationOptionReserveSpace { get; set; } = true;
-		//public static bool OperationOptionCheckFreeSpace { get; set; } = true;
-		//public static bool OperationOptionExcludeEmptyDirectories { get; set; } = false;
-		//public static bool OperationOptionCopyXattributes { get; set; } = false;
-		//public static bool SkipFileOpError { get; set; } = false;
-		//public static bool ProcessComments { get; set; } = false;
-		//public static int WipePassNumber { get; set; } = 1;
+		
 
 		// Initialize global settings
 		static GlobalSettings()
@@ -210,5 +193,121 @@ namespace zfile
 			// VfsModuleList.AddObject("FTP", new VfsModule(true, typeof(FtpFileSource)));
 			// VfsModuleList.AddObject("ZIP", new VfsModule(true, typeof(ZipFileSource)));
 		}
+		// VFS module list
+		private static VfsModuleList _vfsModuleList;
+
+		// Extensions manager
+		private static ExtensionsManager _extensions;
+
+		// Archive options
+		public static List<string> ArchiveExtensions { get; } = new List<string>();
+
+		/// <summary>
+		/// Gets the extensions manager
+		/// </summary>
+		public static ExtensionsManager Extensions
+		{
+			get
+			{
+				if (_extensions == null)
+				{
+					_extensions = new ExtensionsManager();
+				}
+				return _extensions;
+			}
+		}
+
+		/// <summary>
+		/// Initializes the global settings
+		/// </summary>
+		public static void Initialize()
+		{
+			// Initialize VFS module list
+			_vfsModuleList = new VfsModuleList();
+
+			// Initialize extensions manager
+			_extensions = new ExtensionsManager();
+
+			// Load settings from configuration file
+			LoadSettings();
+		}
+
+		/// <summary>
+		/// Loads settings from configuration file
+		/// </summary>
+		private static void LoadSettings()
+		{
+			// TODO: Load settings from configuration file
+		}
+
+		/// <summary>
+		/// Saves settings to configuration file
+		/// </summary>
+		public static void SaveSettings()
+		{
+			// TODO: Save settings to configuration file
+		}
 	}
+
+	/// <summary>
+	/// Extensions manager
+	/// </summary>
+	public class ExtensionsManager
+	{
+		/// <summary>
+		/// Gets the command for the specified action on the specified file
+		/// </summary>
+		/// <param name="file">The file</param>
+		/// <param name="action">The action</param>
+		/// <param name="cmd">The command</param>
+		/// <param name="parameters">The parameters</param>
+		/// <param name="startPath">The start path</param>
+		/// <returns>True if the command was found, false otherwise</returns>
+		public bool GetExtActionCmd(FileEntry file, string action, out string cmd, out string parameters, out string startPath)
+		{
+			// Default values
+			cmd = string.Empty;
+			parameters = string.Empty;
+			startPath = string.Empty;
+
+			// TODO: Implement extension action lookup
+			if (action == "open" && !string.IsNullOrEmpty(file.Extension))
+			{
+				// For now, just return a simple command based on the file extension
+				switch (file.Extension.ToLower())
+				{
+					case ".txt":
+					case ".log":
+					case ".ini":
+					case ".xml":
+					case ".json":
+						cmd = "notepad.exe";
+						parameters = $"\"{file.FullPath}\"";
+						return true;
+					case ".jpg":
+					case ".jpeg":
+					case ".png":
+					case ".gif":
+					case ".bmp":
+						cmd = "mspaint.exe";
+						parameters = $"\"{file.FullPath}\"";
+						return true;
+					case ".pdf":
+						cmd = "explorer.exe";
+						parameters = $"\"{file.FullPath}\"";
+						return true;
+					case ".exe":
+					case ".bat":
+					case ".cmd":
+						cmd = file.FullPath;
+						return true;
+				}
+			}
+
+			return false;
+		}
+	}
+
+
+
 } 

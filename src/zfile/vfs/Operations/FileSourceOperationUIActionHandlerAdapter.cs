@@ -9,6 +9,11 @@ namespace zfile
         private readonly FileSourceOperationUIActionHandler _handler;
 
         /// <summary>
+        /// Gets the wrapped handler
+        /// </summary>
+        public FileSourceOperationUIActionHandler Handler => _handler;
+
+        /// <summary>
         /// Creates a new instance of the FileSourceOperationUIActionHandlerAdapter class
         /// </summary>
         /// <param name="handler">The delegate to wrap</param>

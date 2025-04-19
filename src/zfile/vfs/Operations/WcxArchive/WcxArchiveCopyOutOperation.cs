@@ -1,21 +1,89 @@
 namespace zfile;
-public class StringHashListUtf8(bool flag)
+public class StringHashListUtf8
 {
-	private bool _flag = flag;
-	
+    private Dictionary<string, object> _dictionary;
+    private List<KeyValuePair<string, object>> _list;
+    private bool _ownsObjects;
+
+    public StringHashListUtf8(bool ownsObjects)
+    {
+        _dictionary = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        _list = new List<KeyValuePair<string, object>>();
+        _ownsObjects = ownsObjects;
+    }
+
+    public void Add(string key, object data)
+    {
+        _dictionary[key] = data;
+        _list.Add(new KeyValuePair<string, object>(key, data));
+    }
+
+    public void Clear()
+    {
+        if (_ownsObjects)
+        {
+            foreach (var item in _list)
+            {
+                if (item.Value is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+            }
+        }
+        _dictionary.Clear();
+        _list.Clear();
+    }
+
+    public int Count => _list.Count;
+
+    public List<KeyValuePair<string, object>> List => _list;
+
+    public bool Contains(string key)
+    {
+        return _dictionary.ContainsKey(key);
+    }
+
+    public object this[string key]
+    {
+        get => _dictionary[key];
+        set
+        {
+            if (_dictionary.ContainsKey(key))
+            {
+                // Update existing item
+                var index = _list.FindIndex(x => x.Key.Equals(key, StringComparison.OrdinalIgnoreCase));
+                if (index >= 0)
+                {
+                    if (_ownsObjects && _list[index].Value is IDisposable disposable)
+                    {
+                        disposable.Dispose();
+                    }
+                    _list[index] = new KeyValuePair<string, object>(key, value);
+                }
+            }
+            _dictionary[key] = value;
+        }
+    }
+
+    public void Free()
+    {
+        Clear();
+        _dictionary = null;
+        _list = null;
+    }
 }
 public class MaskList
 {
-	private string _mask;
-	public MaskList(string mask)
-	{
-		_mask = mask;
-	}
-	public bool Matches(string fileName)
-	{
-		// Implementation of matching logic
-		return true;
-	}
+    private string _mask;
+    public MaskList(string mask)
+    {
+        _mask = mask;
+    }
+    public bool Matches(string fileName)
+    {
+        // Implementation of matching logic
+        return true;
+    }
 }
 public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
 {
@@ -26,16 +94,16 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
     private bool _extractWithoutPath;
     private string _currentFilePath;
     private string _currentTargetFilePath;
-	private string _extractMask;
+    private string _extractMask;
 
     // Static variables for WCX callbacks
     private static WcxArchiveCopyOutOperation _wcxCopyOutOperationG = null;
     [ThreadStatic]
     private static WcxArchiveCopyOutOperation _wcxCopyOutOperationT;
 
-    public WcxArchiveCopyOutOperation(IFileSource sourceFileSource, 
-                                        IFileSource targetFileSource, 
-                                        FileEntries sourceFiles, 
+    public WcxArchiveCopyOutOperation(IFileSource sourceFileSource,
+                                        IFileSource targetFileSource,
+                                        FileEntries sourceFiles,
                                         string targetPath) : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
     {
         _wcxArchiveFileSource = (IWcxArchiveFileSource)sourceFileSource;
@@ -62,7 +130,7 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
         if ((ExtractFlags & ExtractFlag.SmartExtract) != 0)
         {
             int count = 0;
-            var arcFileEntries = _wcxArchiveFileSource.ArchiveFileEntries.Clone();
+            var arcFileEntries = _wcxArchiveFileSource.ArchiveFileEntries;
             try
             {
                 foreach (var item in arcFileEntries)
@@ -90,17 +158,17 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
         // Check rename mask
         _renamingFiles = (RenameMask != "*.*") && (RenameMask != "");
         if (_renamingFiles) SplitFileMask(RenameMask, out _renameNameMask, out _renameExtMask);
-            
+
         // Get initialized statistics; then we change only what is needed.
         _statistics = RetrieveStatistics();
     }
 
-	private void SplitFileMask(string renameMask, out string renameNameMask, out string renameExtMask)
-	{
-		throw new NotImplementedException();
-	}
+    private void SplitFileMask(string renameMask, out string renameNameMask, out string renameExtMask)
+    {
+        throw new NotImplementedException();
+    }
 
-	protected override void MainExecute()
+    protected override void MainExecute()
     {
         var wcxModule = _wcxArchiveFileSource.WcxModule;
 
@@ -108,7 +176,7 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
                                                     (int)OpenMode.PK_OM_EXTRACT, out int openResult);
         if (arcHandle == 0)
         {
-            AskQuestion(WcxModule.GetErrorMsg(openResult), "", new[] { FileSourceOperationUIResponse.Ok }, 
+            AskQuestion(WcxModule.GetErrorMsg(openResult), "", new[] { FileSourceOperationUIResponse.Ok },
                         FileSourceOperationUIResponse.Ok, FileSourceOperationUIResponse.Ok);
             RaiseAbortOperation();
         }
@@ -226,12 +294,12 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
         }
     }
 
-	private string ReplaceInvalidChars(string? targetFileName)
-	{
-		throw new NotImplementedException();
-	}
+    private string ReplaceInvalidChars(string? targetFileName)
+    {
+        throw new NotImplementedException();
+    }
 
-	protected override void Finalize()
+    protected override void Finalize()
     {
         ClearCurrentOperation();
     }
@@ -290,12 +358,12 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
         return result;
     }
 
-	private DateTime WcxFileTimeToFileTime(int fileTime)
-	{
-		throw new NotImplementedException();
-	}
+    private DateTime WcxFileTimeToFileTime(int fileTime)
+    {
+        throw new NotImplementedException();
+    }
 
-	private void QuestionActionHandler(FileSourceOperationUIResponse action)
+    private void QuestionActionHandler(FileSourceOperationUIResponse action)
     {
         if (action == FileSourceOperationUIResponse.CompareAction)
         {

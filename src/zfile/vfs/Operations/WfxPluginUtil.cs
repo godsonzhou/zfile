@@ -1,7 +1,16 @@
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace zfile
 {
+    // Unix file attribute constants
+    public static class UnixFileAttributes
+    {
+        public const int S_IFMT = 0xF000;   // File type mask
+        public const int S_IFLNK = 0xA000;  // Symbolic link
+        public const int S_IFDIR = 0x4000;  // Directory
+    }
+
     public enum WfxPluginOperationHelperMode
     {
         Copy,
@@ -28,11 +37,11 @@ namespace zfile
         {
             if (file.AttributesProperty is NtfsFileAttributesProperty)
             {
-                file.Attributes &= ~FILE_ATTRIBUTE_REPARSE_POINT;
+                file.Attributes &= ~FileAttributes.ReparsePoint;
             }
             else
             {
-                file.Attributes &= ~S_IFLNK;
+                file.Attributes &= ~(FileAttributes)UnixFileAttributes.S_IFLNK;
             }
 
             if (!file.IsLinkToDirectory)
@@ -47,7 +56,7 @@ namespace zfile
                 }
                 else
                 {
-                    file.Attributes |= S_IFDIR;
+                    file.Attributes |= (FileAttributes)UnixFileAttributes.S_IFDIR;
                 }
                 AddDirectory(file, currentNode);
             }

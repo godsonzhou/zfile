@@ -10,6 +10,8 @@ public interface IWfxPluginFileSource : IFileSource
 		bool isInternal, bool isCopyMoveIn);
 	int PluginNumber { get; }
 	WfxModule WfxModule { get; }
+	string PluginName { get; }
+	string RootDirectory { get; set; }
 }
 
 public class RemoteInfo
@@ -68,8 +70,8 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 	public int RefCount { get; private set; } = 1;
 	public string FileSystem => _pluginName;
 	public string CurrentWorkingDirectory => _currentAddress;
-	public FilePropertyType SupportedFileProperties => FilePropertyType.Name | FilePropertyType.Size | 
-		FilePropertyType.Attributes | FilePropertyType.ModificationTime | 
+	public FilePropertyType SupportedFileProperties => FilePropertyType.Name | FilePropertyType.Size |
+		FilePropertyType.Attributes | FilePropertyType.ModificationTime |
 		FilePropertyType.CreationTime | FilePropertyType.LastAccessTime;
 	public FilePropertyType RetrievableFileProperties => SupportedFileProperties;
 	public FileSourceOperationType[] OperationsTypes => new[] {
@@ -83,9 +85,9 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 		FileSourceOperationType.Execute,
 		FileSourceOperationType.SetFileProperty
 	};
-	public FileSourceProperty Properties => FileSourceProperty.IsVirtual | 
-		FileSourceProperty.IsRemote | 
-		FileSourceProperty.CanCreateDirectory | 
+	public FileSourceProperty Properties => FileSourceProperty.IsVirtual |
+		FileSourceProperty.IsRemote |
+		FileSourceProperty.CanCreateDirectory |
 		FileSourceProperty.HasAttributesSupport;
 	public IFileSource ParentFileSource { get; set; }
 
@@ -93,7 +95,7 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 	{
 		if (fileSource is IWfxPluginFileSource wfxFileSource)
 		{
-			return wfxFileSource.PluginName == _pluginName && 
+			return wfxFileSource.PluginName == _pluginName &&
 				wfxFileSource.CurrentAddress == _currentAddress;
 		}
 		return false;
@@ -404,7 +406,7 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 		}
 		return false;
 	}
-	
+
 	public FsFileResult WfxCopyMove(string sourceFile, string targetFile, FsCopyFlags flags, FileEntry remoteInfo,
 		bool isInternal, bool isCopyMoveIn)
 	{

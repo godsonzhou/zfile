@@ -79,7 +79,7 @@ namespace zfile
 
         protected override void MainExecute()
         {
-            var sink = new FileOperationProgressSink(statistics, UpdateStatistics, CheckOperationStateSafe);
+            var sink = new FileOperationProgressSink(ref statistics, UpdateStatistics, CheckOperationStateSafe);
             fileOp.SetOperationFlags(Constants.FOF_SILENT | Constants.FOF_NOCONFIRMMKDIR);
 
             try

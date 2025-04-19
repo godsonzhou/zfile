@@ -69,15 +69,16 @@ namespace zfile
         private void ProcessSubDirs(string srcPath)
         {
             var wfxModule = _wfxPluginFileSource?.WfxModule;
-            var handle = wfxModule?.FindFiles(srcPath);
-			WfxFindData findData = handle.First();
-			//if (handle == WfxModule.WfxInvalidHandle)
-			//{
-			//	return;
-			//}
+			WfxFindData findData = new();
+            var handle = wfxModule?.WfxFindFirst(srcPath, out findData);
+			//WfxFindData findData = handle.First();
+			if (handle == WfxModule.WfxInvalidHandle)
+			{
+				return;
+			}
 
 			try
-            {
+			{
                 do
                 {
                     if (findData.FileName == "." || findData.FileName == "..")
@@ -94,7 +95,7 @@ namespace zfile
                     {
                         //file.Dispose();
                     }
-                } while (handle.Next(handle, out findData));
+                } while (wfxModule?.WfxFindNext(handle, out findData));
             }
             finally
             {

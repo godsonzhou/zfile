@@ -166,7 +166,9 @@ namespace zfile
                 w32.OleCheck(shellFileSource.FindFolder(TargetPath, out folder));
                 IntPtr objectPtr;
                 w32.OleCheck(API.SHGetIDListFromObject(folder, out objectPtr));
-                w32.OleCheck(API.SHCreateItemFromIDList(objectPtr, ref typeof(IShellItem).GUID, out targetFolder));
+				var guid = typeof(IShellItem).GUID;
+
+				w32.OleCheck(API.SHCreateItemFromIDList(objectPtr, ref guid, out targetFolder));
             }
             catch (Exception ex)
             {

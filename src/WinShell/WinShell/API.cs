@@ -287,10 +287,10 @@ namespace WinShell
 		public const uint SHGFI_ICON = 0x000000100;
 		public const uint SHGFI_SMALLICON = 0x000000001;
 		// 添加COM初始化相关常量
-        public const int COINIT_APARTMENTTHREADED = 0x2;
-        public const int COINIT_MULTITHREADED = 0x0;
-        public const int COINIT_DISABLE_OLE1DDE = 0x4;
-        public const int COINIT_SPEED_OVER_MEMORY = 0x8;
+		public const int COINIT_APARTMENTTHREADED = 0x2;
+		public const int COINIT_MULTITHREADED = 0x0;
+		public const int COINIT_DISABLE_OLE1DDE = 0x4;
+		public const int COINIT_SPEED_OVER_MEMORY = 0x8;
 
 		public static string GetDisplayName2(IShellFolder2 folder, IntPtr pidl, SHGDN flags)
 		{
@@ -333,15 +333,15 @@ namespace WinShell
 
 		// 添加COM初始化方法
 		public static bool InitializeCOM(int coinit = COINIT_APARTMENTTHREADED)
-        {
-            int hr = API.CoInitializeEx(IntPtr.Zero, coinit);
-            return hr == S_OK || hr == S_FALSE;
-        }
+		{
+			int hr = API.CoInitializeEx(IntPtr.Zero, coinit);
+			return hr == S_OK || hr == S_FALSE;
+		}
 
-        public static void UninitializeCOM()
-        {
-            API.CoUninitialize();
-        }
+		public static void UninitializeCOM()
+		{
+			API.CoUninitialize();
+		}
 		public static IShellFolder GetControlPanelFolder()
 		{
 			// 获取控制面板文件夹的IShellFolder接口
@@ -439,17 +439,17 @@ namespace WinShell
 		// 引入 SHGetImageList 函数
 		[DllImport("shell32.dll", CharSet = CharSet.Auto)]
 		public static extern int SHGetImageList(SHIL iImageList, ref Guid riid, ref IImageList ppv);
-		
-		[DllImport("ole32.dll")]
-        public static extern int CoInitializeEx(IntPtr pvReserved, int dwCoInit);
 
-        [DllImport("ole32.dll")]
-        public static extern void CoUninitialize();
+		[DllImport("ole32.dll")]
+		public static extern int CoInitializeEx(IntPtr pvReserved, int dwCoInit);
+
+		[DllImport("ole32.dll")]
+		public static extern void CoUninitialize();
 
 		[DllImport("shell32.dll")]
 		public static extern int SHGetAllUserShellContextMenus(out IntPtr hwnd, ref Guid riid);
 
-	
+
 		[DllImport("shell32.dll")]
 		public static extern IntPtr ShellExecute(IntPtr hwnd, //窗口句柄
 			string lpOperation, //指定要进行的操作
@@ -489,7 +489,10 @@ namespace WinShell
 		public static extern IntPtr ILFindLastID(IntPtr pidl);
 
 		[DllImport("shell32.dll", SetLastError = true)]
-		public static extern int SHGetDesktopFolder(out IShellFolder ppshf);
+		public static extern IntPtr ILCombine(IntPtr pidl1, IntPtr pidl2);
+
+		[DllImport("shell32.dll", SetLastError = true)]
+		public static extern int SHGetDesktopFolder(out IntPtr ppshf);
 
 		[DllImport("shell32.dll")]
 		public static extern int SHGetFolderLocation(IntPtr hwndOwner, CSIDL nFolder,
@@ -505,9 +508,6 @@ namespace WinShell
 		//public static extern uint ExtractIconEx(string lpszFile, int nIconIndex, IntPtr[] phiconLarge, IntPtr[] phiconSmall, uint nIcons);
 		#region API
 
-		[DllImport("shell32.dll")]
-		public static extern Int32 SHGetDesktopFolder(out IntPtr ppshf);
-
 		[DllImport("Shlwapi.Dll", CharSet = CharSet.Auto)]
 		public static extern Int32 StrRetToBuf(IntPtr pstr, IntPtr pidl, StringBuilder pszBuf, int cchBuf);
 
@@ -516,10 +516,10 @@ namespace WinShell
 
 		[DllImport("shell32.dll", CharSet = CharSet.Auto)]
 		public static extern bool SHGetPathFromIDList(IntPtr pidl, StringBuilder pszPath);
-		
+
 		[DllImport("shell32.dll", CharSet = CharSet.Auto)]
 		public static extern IntPtr SHGetFileInfo(string pszPath, uint dwFileAttributes, ref SHFILEINFO psfi, int cbFileInfo, SHGFI uFlags);
-		
+
 		[DllImport("shell32", EntryPoint = "SHGetFileInfo", ExactSpelling = false, CharSet = CharSet.Auto, SetLastError = true)]
 		public static extern IntPtr SHGetFileInfoPIDL(
 			IntPtr ppidl,

@@ -1,4 +1,7 @@
+using System;
 using System.Collections;
+using System.IO;
+using System.Linq;
 using System.Net;
 
 namespace zfile;
@@ -59,7 +62,7 @@ public abstract class FileProperty
     /// Gets the property ID
     /// </summary>
     public abstract FilePropertyType ID { get; }
-	public bool IsValid { get; internal set; }
+    public bool IsValid { get; internal set; }
 
 }
 
@@ -291,7 +294,7 @@ public class FileVariantProperty : FileProperty
     public override FilePropertyType ID => FilePropertyType.Variant;
 }
 
-public class FileEntry
+public class FileEntry : IDisposable
 {
     private string _extension;
     private string _nameNoExt;
@@ -299,6 +302,7 @@ public class FileEntry
     private Dictionary<FilePropertyType, FileProperty> _properties;
     private List<FileVariantProperty> _variantProperties;
     private FilePropertyType _supportedProperties;
+    private bool _disposed = false;
 
     public string FullName => $"{Path}{System.IO.Path.DirectorySeparatorChar}{Name}";
     public Dictionary<FilePropertyType, FileProperty> Properties => _properties;
@@ -744,8 +748,8 @@ public class FileEntry
     {
         get => _supportedProperties.HasFlag(FilePropertyType.Attributes) &&
                (Attributes & FileAttributes.Directory) == FileAttributes.Directory;
-		set => Attributes = value ? Attributes | FileAttributes.Directory : Attributes & ~FileAttributes.Directory;
-	}
+        set => Attributes = value ? Attributes | FileAttributes.Directory : Attributes & ~FileAttributes.Directory;
+    }
 
     public bool IsSysFile
     {
@@ -779,6 +783,45 @@ public class FileEntry
         get => _supportedProperties.HasFlag(FilePropertyType.Attributes) && (Attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly;
     }
     public bool Exists { get; internal set; }
+
+    /// <summary>
+    /// Disposes resources used by the FileEntry.
+    /// </summary>
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Disposes resources used by the FileEntry.
+    /// </summary>
+    /// <param name="disposing">True if called from Dispose(), false if called from finalizer.</param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed)
+        {
+            if (disposing)
+            {
+                // Dispose managed resources
+                // No managed resources to dispose in this class currently
+                // If streams or other disposable objects are added as members, dispose them here
+            }
+
+            // Clean up unmanaged resources
+            // No unmanaged resources to clean up in this class currently
+
+            _disposed = true;
+        }
+    }
+
+    /// <summary>
+    /// Finalizer to ensure resources are cleaned up if Dispose is not called.
+    /// </summary>
+    ~FileEntry()
+    {
+        Dispose(false);
+    }
 }
 
 public class FileEntries : IEnumerable<FileEntry>
@@ -788,34 +831,34 @@ public class FileEntries : IEnumerable<FileEntry>
     private bool _ownsObjects;
     private string _path;
 
-	public static FileEntries Empty => new FileEntries();
-	public static FileEntries EmptyFlat => new FileEntries { _flat = true };
-	public bool IsEmpty => _list.Count == 0;
-	public bool IsFlat => _flat;
-	public string Name => _list.Count > 0 ? _list[0].Name : string.Empty;
-	public string PathName => _path;
-	public static FileEntries FromArray(FileEntry[] files)
-	{
-		var fileEntries = new FileEntries();
-		foreach (var file in files)
-		{
-			fileEntries.Add(file);
-		}
-		return fileEntries;
-	}
-	public FileEntry this[string name]
-	{
-		get
-		{
-			foreach (var file in _list)
-			{
-				if (file.Name == name)
-					return file;
-			}
-			return null;
-		}
-	}
-	public int Count
+    public static FileEntries Empty => new FileEntries();
+    public static FileEntries EmptyFlat => new FileEntries { _flat = true };
+    public bool IsEmpty => _list.Count == 0;
+    public bool IsFlat => _flat;
+    public string Name => _list.Count > 0 ? _list[0].Name : string.Empty;
+    public string PathName => _path;
+    public static FileEntries FromArray(FileEntry[] files)
+    {
+        var fileEntries = new FileEntries();
+        foreach (var file in files)
+        {
+            fileEntries.Add(file);
+        }
+        return fileEntries;
+    }
+    public FileEntry this[string name]
+    {
+        get
+        {
+            foreach (var file in _list)
+            {
+                if (file.Name == name)
+                    return file;
+            }
+            return null;
+        }
+    }
+    public int Count
     {
         get { return _list.Count; }
         set
@@ -1086,17 +1129,44 @@ public class FileTreeNode : IDisposable
         }
     }
 
+    private bool _disposed = false;
+
     /// <summary>
-    /// Disposes the object.
+    /// Disposes resources used by the FileTreeNode.
     /// </summary>
     public void Dispose()
     {
-        foreach (var node in _subNodes)
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Disposes resources used by the FileTreeNode.
+    /// </summary>
+    /// <param name="disposing">True if called from Dispose(), false if called from finalizer.</param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed)
         {
-            node.Dispose();
+            if (disposing)
+            {
+                // Dispose managed resources
+                foreach (var node in _subNodes)
+                {
+                    node.Dispose();
+                }
+                _subNodes.Clear();
+                (_data as IDisposable)?.Dispose();
+
+                // Dispose FileEntry if it implements IDisposable
+                (_file as IDisposable)?.Dispose();
+            }
+
+            // Clean up unmanaged resources
+            // No unmanaged resources to clean up in this class currently
+
+            _disposed = true;
         }
-        _subNodes.Clear();
-        (_data as IDisposable)?.Dispose();
     }
 
     /// <summary>
@@ -1114,9 +1184,12 @@ public class FileTreeNode : IDisposable
     /// </summary>
     public bool SubnodesHaveExclusions { get; set; }
 
+    /// <summary>
+    /// Finalizer to ensure resources are cleaned up if Dispose is not called.
+    /// </summary>
     ~FileTreeNode()
     {
-        // In C# we don't need to manually free objects
+        Dispose(false);
     }
 }
 

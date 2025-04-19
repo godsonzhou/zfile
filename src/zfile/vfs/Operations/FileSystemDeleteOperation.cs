@@ -115,7 +115,7 @@ namespace zfile
             statistics.TotalBytes += bytesCount;
 
             // 现在插入根目录
-            subFiles.Insert(0, file);
+            subFiles.Insert(file, 0);
 
             // 只有在删除到回收站失败时才会调用此函数
             // 所以我们可以假设Recycle为True。暂时关闭，因为我们删除这个子目录
@@ -396,7 +396,22 @@ namespace zfile
             } while (retry);
         }
 
-        private void ProcessList(FileEntries files)
+		private string WrapTextSimple(string fileName)
+		{
+			throw new NotImplementedException();
+		}
+
+		private bool FileTrashUtf8(string fileName)
+		{
+			throw new NotImplementedException();
+		}
+
+		private string GetLastErrorMessage(int lastError)
+		{
+			throw new NotImplementedException();
+		}
+
+		private void ProcessList(FileEntries files)
         {
             for (int i = files.Count - 1; i >= 0; i--)
             {
@@ -416,7 +431,12 @@ namespace zfile
             }
         }
 
-        private FileSourceOperationUIResponse ShowError(string message)
+		private void AppProcessMessages()
+		{
+			throw new NotImplementedException();
+		}
+
+		private FileSourceOperationUIResponse ShowError(string message)
         {
             if (skipErrors)
             {

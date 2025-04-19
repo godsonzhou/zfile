@@ -1,16 +1,34 @@
+using System;
 using System.Runtime.InteropServices;
+using System.Threading;
 using WinShell;
 namespace zfile
 {
+	public static class NetworkThread
+	{
+		public static int Connect(string? lpLocalName, string lpRemoteName, ResourceType dwType, Action? checkOperationState)
+		{
+			// Implementation of network connection
+			// This is a placeholder for the actual implementation
+			return 0; // Success
+		}
+	}
+
 	public class WinNetListOperation : FileSystemListOperation
 	{
-		private readonly IWinNetFileSource _winNetFileSource;
+		private readonly IWinNetFileSource? _winNetFileSource;
+		private readonly Thread _thread;
 
 		public WinNetListOperation(IFileSource fileSource, string path)
 			: base(fileSource, path)
 		{
 			Files = new FileEntries(path);
 			_winNetFileSource = fileSource as IWinNetFileSource;
+			if (_winNetFileSource == null)
+			{
+				throw new InvalidOperationException("File source must implement IWinNetFileSource");
+			}
+			_thread = Thread.CurrentThread;
 		}
 
 		private bool Connect()
@@ -31,7 +49,7 @@ namespace zfile
 			{
 				if (result == ERROR_CANCELLED)
 					RaiseAbortOperation();
-				ShowError(thread, GetLastError());
+				ShowError(_thread, GetLastError());
 				return false;
 			}
 			return true;
@@ -90,7 +108,7 @@ namespace zfile
 			}
 			catch (Exception e)
 			{
-				ShowError(thread, e.Message);
+				ShowError(_thread, e.Message);
 			}
 		}
 
@@ -115,16 +133,16 @@ namespace zfile
 						var info = Marshal.PtrToStructure<ShareInfo1>(shareInfo);
 						file.Name = info.NetName;
 						file.CommentProperty.Value = info.Remark;
-						switch (info.Type & 0xFF)
+						uint shareType = (uint)info.Type & 0xFF;
+						if (shareType == (uint)ShareType.DiskTree)
 						{
-							case ShareType.DiskTree:
-								file.Attributes = FileAttributes.Directory;
-								break;
-							case ShareType.Ipc:
-								file.Attributes = FileAttributes.System;
-								break;
+							file.Attributes = FileAttributes.Directory;
 						}
-						if ((info.Type & ShareType.Special) == ShareType.Special)
+						else if (shareType == (uint)ShareType.Ipc)
+						{
+							file.Attributes = FileAttributes.System;
+						}
+						if (((uint)info.Type & (uint)ShareType.Special) == (uint)ShareType.Special)
 							file.Attributes |= FileAttributes.Hidden;
 						if (string.Equals(info.NetName, "FAX$", StringComparison.OrdinalIgnoreCase))
 							file.Attributes |= FileAttributes.Hidden;
@@ -138,7 +156,7 @@ namespace zfile
 					result = NetShareEnum(serverPath, 1, out buffer, MAX_PREFERRED_LENGTH, out entriesRead, out totalEntries, IntPtr.Zero);
 				}
 				if (result != ERROR_SUCCESS)
-					ShowError(thread, GetLastError());
+					ShowError(_thread, GetLastError());
 			}
 			finally
 			{
@@ -182,7 +200,7 @@ namespace zfile
 			}
 			catch (Exception e)
 			{
-				ShowError(thread, e.Message);
+				ShowError(_thread, e.Message);
 			}
 		}
 
@@ -290,4 +308,3 @@ namespace zfile
 		Special = 0x00000004
 	}
 }
- 

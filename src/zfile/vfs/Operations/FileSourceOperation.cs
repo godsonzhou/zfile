@@ -742,8 +742,7 @@ namespace zfile
 
         internal bool MatchesMaskList(string fileName, string maskList)
         {
-            // ʵ���ļ���ƥ����
-            return false; // ��ʱʵ��
+			throw new NotImplementedException();
         }
 
         internal void ChangeFileEntriesRoot(string empty, FileEntries fullFilesTreeToDelete)

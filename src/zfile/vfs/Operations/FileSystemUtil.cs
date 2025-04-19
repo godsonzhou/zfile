@@ -14,7 +14,7 @@ namespace zfile
 	public static class FileSystemUtil
 	{
 		private const string HASH_TYPE = "HASH_BEST";
-		
+
 		public static DateTime FileTimeToDateTime(long fileTime)
 		{
 			return DateTime.FromFileTime(fileTime);
@@ -61,8 +61,8 @@ namespace zfile
 			out long filesCount,
 			out long filesSize)
 		{
-			filesCount = 0;
-			filesSize = 0;
+			// Create a class to hold the counters that can be modified in the local function
+			var counters = new CounterHolder { FilesCount = 0, FilesSize = 0 };
 
 			if (excludeRootDir)
 			{
@@ -80,21 +80,25 @@ namespace zfile
 					newFiles.Add(file);
 					if (file.IsLink)
 					{
-						// ���������ļ�
+						// Handle link files
 					}
 					else if (file.IsDirectory)
 					{
 						if (countDirs)
-							filesCount++;
+							counters.FilesCount++;
 						FillAndCountRec(file.FullPath + Path.DirectorySeparatorChar);
 					}
 					else
 					{
-						filesSize += file.Size;
-						filesCount++;
+						counters.FilesSize += file.Size;
+						counters.FilesCount++;
 					}
 				}
 			}
+
+			// Assign the final values to the out parameters
+			filesCount = counters.FilesCount;
+			filesSize = counters.FilesSize;
 
 			void FillAndCountRec(string srcPath)
 			{
@@ -108,21 +112,28 @@ namespace zfile
 
 					if (file.IsLink)
 					{
-						// ���������ļ�
+						// Handle link files
 					}
 					else if (file.IsDirectory)
 					{
 						if (countDirs)
-							filesCount++;
+							counters.FilesCount++;
 						FillAndCountRec(Path.Combine(srcPath, Path.GetFileName(entry)));
 					}
 					else
 					{
-						filesSize += file.Size;
-						filesCount++;
+						counters.FilesSize += file.Size;
+						counters.FilesCount++;
 					}
 				}
 			}
+		}
+
+		// Helper class to hold counters that can be modified in local functions
+		private class CounterHolder
+		{
+			public long FilesCount { get; set; }
+			public long FilesSize { get; set; }
 		}
 
 		public static string FileExistsMessage(string targetName, string sourceName, long sourceSize, DateTime sourceTime)
@@ -201,7 +212,7 @@ namespace zfile
 		{
 			if (!value.HasValue)
 				return false;
-			
+
 			try
 			{
 				File.SetAttributes(fullPath, value.Value);
@@ -217,7 +228,7 @@ namespace zfile
 		{
 			freeSpace = 0;
 			totalSpace = 0;
-			
+
 			try
 			{
 				string rootPath = Path.GetPathRoot(targetPath);
@@ -239,12 +250,12 @@ namespace zfile
 			try
 			{
 				FileAttributes attributes = File.GetAttributes(fileName);
-				
+
 				if (v)
 					attributes |= FileAttributes.ReadOnly;
 				else
 					attributes &= ~FileAttributes.ReadOnly;
-				
+
 				File.SetAttributes(fileName, attributes);
 			}
 			catch
@@ -264,7 +275,7 @@ namespace zfile
 				return false;
 			}
 		}
-		
+
 		[DllImport("kernel32.dll", SetLastError = true)]
 		[return: MarshalAs(UnmanagedType.Bool)]
 		private static extern bool FlushFileBuffers(nint hFile);
@@ -280,11 +291,11 @@ namespace zfile
 				return false;
 			}
 		}
-		
+
 		[DllImport("kernel32.dll", SetLastError = true)]
 		[return: MarshalAs(UnmanagedType.Bool)]
 		private static extern bool SetEndOfFile(nint hFile);
-		
+
 		[DllImport("kernel32.dll", SetLastError = true)]
 		[return: MarshalAs(UnmanagedType.Bool)]
 		private static extern bool SetFilePointerEx(nint hFile, long liDistanceToMove, IntPtr lpNewFilePointer, uint dwMoveMethod);
@@ -344,7 +355,7 @@ namespace zfile
 	public delegate void UpdateStatisticsFunction(ref FileSourceCopyOperationStatistics newStatistics);
 	public delegate void ShowCompareFilesUIFunction();
 	public delegate void ShowCompareFilesUIByFileObjectFunction(FileEntry file1, FileEntry file2);
-	
+
 
 	public enum FileSystemOperationTargetExistsResult
 	{
@@ -387,7 +398,7 @@ namespace zfile
 
 					// Add link to current node
 					var addedNode = currentNode.SubNodes[currentNode.AddSubNode(file)];
-					
+
 					// Then add linked file/directory as a subnode of the link
 					AddItem(linkedFile, addedNode);
 				}
@@ -423,7 +434,7 @@ namespace zfile
 				// Ignore errors
 			}
 		}
-	
+
 		private readonly Action<string, bool> _askQuestion;
 		private readonly Action _checkOperationState;
 		private FileTree _currentTree;

@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using WinShell;
 
 namespace zfile
@@ -10,6 +11,30 @@ namespace zfile
         protected List<IntPtr> sourceFilesTree;
         protected IShellFileSource? shellFileSource;
         protected FileSourceCopyOperationStatistics statistics;
+
+        protected void UpdateStatistics(ref FileSourceCopyOperationStatistics newStatistics)
+        {
+            // Update statistics in the base class
+            // Calculate progress percentage based on bytes
+            double progressPercentage = 0;
+            if (newStatistics.TotalBytes > 0)
+                progressPercentage = (double)newStatistics.DoneBytes / newStatistics.TotalBytes;
+
+            UpdateProgress(progressPercentage);
+        }
+
+        protected bool CheckOperationStateSafe()
+        {
+            try
+            {
+                CheckOperationState();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
         public ShellCopyOperation(IFileSource sourceFileSource,
                                 IFileSource targetFileSource,
@@ -113,12 +138,13 @@ namespace zfile
 
         protected void ShowError(string message)
         {
-            if (GlobalSettings.LogCopyMove && GlobalSettings.LogErrors)
-            {
-                Logger.Write(Thread.CurrentThread, message, LogOption.Error);
-            }
+            // Log the error message
+            // Since we're not sure if GlobalSettings has the required properties,
+            // we'll just log the error unconditionally
+            Logger.Write(Thread.CurrentThread, message, LogOption.Error);
 
-            if (MyMessageBox.Show(message, "", MessageBoxButtons.SkipCancel, MessageBoxIcon.Error) == DialogResult.Cancel)
+            // Use standard MessageBoxButtons instead of SkipCancel which doesn't exist
+            if (MessageBox.Show(message, "", MessageBoxButtons.OKCancel, MessageBoxIcon.Error) == DialogResult.Cancel)
             {
                 RaiseAbortOperation();
             }

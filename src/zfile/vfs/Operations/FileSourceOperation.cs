@@ -94,7 +94,7 @@ namespace zfile
         private IFileSourceOperationUIActionHandler _uiActionHandler;
         private FileSourceOperationUIResponse _uiResponse;
         private bool _tryAskQuestionResult;
-		protected Thread _thread;
+        protected Thread _thread;
         public virtual bool NeedsConnection { get => _needsConnection; set => _needsConnection = value; }
         /// <summary>
         /// Gets the operation type
@@ -764,6 +764,7 @@ namespace zfile
 
     public interface IFileSourceOperationUIActionHandler
     {
+        void HandleAction(FileSourceOperationUIResponse action);
     }
 
     public interface IFileSourceOperationUI

@@ -381,7 +381,8 @@ namespace zfile
             {
                 try
                 {
-                    FileEntry file = new FileEntry(Path.GetDirectoryName(fileName), new FileEntry(fileName));
+                    FileEntry file = new FileEntry(Path.GetDirectoryName(fileName));
+                    file.Name = Path.GetFileName(fileName);
                     // Check if there is a ArchiveFileSource for possible archive
                     IArchiveFileSource fileSource = GetArchiveFileSource(new FileSystemFileSource(), file, string.Empty, false, false);
 

@@ -1,15 +1,18 @@
+using System;
+using System.IO;
+
 namespace zfile
 {
-	public class DateOutOfRangeException : Exception
-	{
-		public DateTime DateTime { get; }
-		public DateOutOfRangeException(DateTime dateTime) : base($"日期超出范围: {dateTime}")
-		{
-			DateTime = dateTime;
-		}
-	}
+    public class DateOutOfRangeException : Exception
+    {
+        public DateTime DateTime { get; }
+        public DateOutOfRangeException(DateTime dateTime) : base($"日期超出范围: {dateTime}")
+        {
+            DateTime = dateTime;
+        }
+    }
 
-	public class FileSystemSetFilePropertyOperation : FileSourceSetFilePropertyOperation
+    public class FileSystemSetFilePropertyOperation : FileSourceSetFilePropertyOperation
     {
         private FileEntries fullFilesTree;
         private FileSourceSetFilePropertyOperationStatistics statistics;
@@ -105,7 +108,7 @@ namespace zfile
         {
             var result = SetFilePropertyResult.Success;
 
-			try
+            try
             {
                 switch (templateProperty.ID)
                 {
@@ -203,7 +206,7 @@ namespace zfile
 
 #if UNIX
                     case FilePropertyType.Owner:
-                        if (FileSystemUtil.SetOwner(file.FullPath, 
+                        if (FileSystemUtil.SetOwner(file.FullPath,
                             (templateProperty as FileOwnerProperty).Owner,
                             (templateProperty as FileOwnerProperty).Group) != 0)
                         {
@@ -237,7 +240,7 @@ namespace zfile
             {
                 if (!GlobalSettings.SkipFileOpError)
                 {
-                    switch (AskQuestion(Resources.MsgLogError + ex.Message, "", 
+                    switch (AskQuestion(Resources.MsgLogError + ex.Message, "",
                         new[] { FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort },
                         FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort))
                     {
@@ -254,7 +257,7 @@ namespace zfile
             return result;
         }
 
-		private void QuestionActionHandler(FileSourceOperationUIResponse action)
+        private void QuestionActionHandler(FileSourceOperationUIResponse action)
         {
             if (action == FileSourceOperationUIResponse.CompareAction)
             {
@@ -329,7 +332,7 @@ namespace zfile
                                 },
                                 FileSourceOperationUIResponse.Overwrite,
                                 FileSourceOperationUIResponse.Abort,
-                                QuestionActionHandler);
+                                new FileSourceOperationUIActionHandlerAdapter(QuestionActionHandler));
 
                             switch (result)
                             {
@@ -447,12 +450,12 @@ namespace zfile
                 return SetFilePropertyResult.Error;
         }
 
-		private string FileExistsMessage(string newName, string fullPath, long size, DateTime modificationTime)
-		{
-			throw new NotImplementedException();
-		}
+        private string FileExistsMessage(string newName, string fullPath, long size, DateTime modificationTime)
+        {
+            throw new NotImplementedException();
+        }
 
-		protected void ShowCompareFilesUI(FileEntry sourceFile, string targetFilePath)
+        protected void ShowCompareFilesUI(FileEntry sourceFile, string targetFilePath)
         {
             var targetFile = FileSource.CreateFile(Path.GetDirectoryName(targetFilePath));
             try
@@ -466,9 +469,9 @@ namespace zfile
             }
         }
 
-		private void PrepareToolData(IFileSource fileSource1, FileEntry sourceFile, IFileSource fileSource2, FileEntry targetFile, object showDifferByGlobList, bool v)
-		{
-			throw new NotImplementedException();
-		}
-	}
-} 
+        private void PrepareToolData(IFileSource fileSource1, FileEntry sourceFile, IFileSource fileSource2, FileEntry targetFile, object showDifferByGlobList, bool v)
+        {
+            throw new NotImplementedException();
+        }
+    }
+}

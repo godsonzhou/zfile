@@ -777,11 +777,46 @@ namespace zfile
 		/// <summary>
 		/// Process application messages
 		/// </summary>
-		private static bool AppProcessMessages(bool checkState = false)
+		protected static bool AppProcessMessages(bool checkState = false)
 		{
 			// Process any pending application messages
 			Application.DoEvents();
 			return true;
+		}
+
+		protected void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
+		{
+			switch (logMsgType)
+			{
+				case LogOption.Error:
+					if (!GlobalSettings.LogOptions.HasFlag(LogOption.Error)) return;
+					break;
+				case LogOption.Info:
+					if (!GlobalSettings.LogOptions.HasFlag(LogOption.Info)) return;
+					break;
+				case LogOption.Success:
+					if (!GlobalSettings.LogOptions.HasFlag(LogOption.Success)) return;
+					break;
+			}
+
+			if (logOptions <= GlobalSettings.LogOptions)
+			{
+				Logger.Write(_thread, message, logMsgType);
+			}
+		}
+
+		protected void ShowError(string message, int error, LogOption logOptions = LogOption.None)
+		{
+			LogMessage(message, logOptions, LogOption.Error);
+
+			if (!GlobalSettings.SkipFileOpError && error > WcxModule.E_SUCCESS)
+			{
+				if (AskQuestion(message, "", new[] { FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort },
+							   FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort) == FileSourceOperationUIResponse.Abort)
+				{
+					RaiseAbortOperation();
+				}
+			}
 		}
     }
 

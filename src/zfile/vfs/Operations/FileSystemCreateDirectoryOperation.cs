@@ -1,8 +1,14 @@
+using System;
+using System.IO;
+using System.Threading;
+using zfile.Utils;
+
 namespace zfile
 {
     public class FileSystemCreateDirectoryOperation : FileSourceCreateDirectoryOperation
     {
         private IFileSystemFileSource? fileSystemFileSource;
+        private readonly Thread _thread;
 
         public FileSystemCreateDirectoryOperation(
             IFileSource targetFileSource,
@@ -11,6 +17,7 @@ namespace zfile
             : base(targetFileSource, currentPath, directoryPath)
         {
             fileSystemFileSource = targetFileSource as IFileSystemFileSource;
+            _thread = Thread.CurrentThread;
         }
 
         protected override void Initialize()
@@ -25,10 +32,10 @@ namespace zfile
                 // 检查目录是否已存在
                 if (Directory.Exists(AbsolutePath))
                 {
-                    AskQuestion(string.Format(Resources.MsgErrDirExists, AbsolutePath), 
-                        string.Empty, 
-                        new[] { FileSourceOperationUIResponse.Ok }, 
-                        FileSourceOperationUIResponse.Ok, 
+                    AskQuestion(string.Format(Resources.MsgErrDirExists, AbsolutePath),
+                        string.Empty,
+                        new[] { FileSourceOperationUIResponse.Ok },
+                        FileSourceOperationUIResponse.Ok,
                         FileSourceOperationUIResponse.Ok);
                     return;
                 }
@@ -37,26 +44,26 @@ namespace zfile
                 if (!ForceDirectoriesUAC(AbsolutePath))
                 {
                     // 记录错误日志
-                    if (GlobalSettings.LogOptions.HasFlag(LogOption.DirectoryOperation) && 
+                    if (GlobalSettings.LogOptions.HasFlag(LogOption.DirectoryOperation) &&
                         GlobalSettings.LogOptions.HasFlag(LogOption.Error))
                     {
-                        Logger.Write(Thread, string.Format(Resources.MsgLogError + Resources.MsgLogMkDir, AbsolutePath), 
+                        Logger.Write(_thread, string.Format(Resources.MsgLogError + Resources.MsgLogMkDir, AbsolutePath),
                             LogOption.Error);
                     }
 
-                    AskQuestion(string.Format(Resources.MsgErrForceDir, AbsolutePath), 
-                        string.Empty, 
-                        new[] { FileSourceOperationUIResponse.Ok }, 
-                        FileSourceOperationUIResponse.Ok, 
+                    AskQuestion(string.Format(Resources.MsgErrForceDir, AbsolutePath),
+                        string.Empty,
+                        new[] { FileSourceOperationUIResponse.Ok },
+                        FileSourceOperationUIResponse.Ok,
                         FileSourceOperationUIResponse.Ok);
                 }
                 else
                 {
                     // 记录成功日志
-                    if (GlobalSettings.LogOptions.HasFlag(LogOption.DirectoryOperation) && 
+                    if (GlobalSettings.LogOptions.HasFlag(LogOption.DirectoryOperation) &&
                         GlobalSettings.LogOptions.HasFlag(LogOption.Success))
                     {
-                        Logger.Write(Thread, string.Format(Resources.MsgLogSuccess + Resources.MsgLogMkDir, AbsolutePath), 
+                        Logger.Write(_thread, string.Format(Resources.MsgLogSuccess + Resources.MsgLogMkDir, AbsolutePath),
                             LogOption.Success);
                     }
                 }
@@ -64,7 +71,7 @@ namespace zfile
             catch (Exception ex)
             {
                 // 处理异常
-                Logger.Write(Thread, string.Format(Resources.MsgLogError + Resources.MsgLogMkDir + ": {0}", 
+                Logger.Write(_thread, string.Format(Resources.MsgLogError + Resources.MsgLogMkDir + ": {0}",
                     AbsolutePath, ex.Message), LogOption.Error);
                 throw;
             }
@@ -99,4 +106,4 @@ namespace zfile
             }
         }
     }
-} 
+}

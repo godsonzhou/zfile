@@ -15,7 +15,7 @@ public class WfxPluginExecuteOperation : FileSourceExecuteOperation
 
 	protected override void Initialize()
 	{
-		_wfxPluginFileSource?.WfxModule.setStatusInfo(CurrentPath, WfxConstants.FS_STATUS_START, FS_STATUS_OP_EXEC);
+		_wfxPluginFileSource?.WfxModule.setStatusInfo(CurrentPath, WfxConstants.FS_STATUS_START, WfxConstants.FS_STATUS_OP_EXEC);
 	}
 
 	protected override void MainExecute()
@@ -37,16 +37,16 @@ public class WfxPluginExecuteOperation : FileSourceExecuteOperation
 
 		switch (result)
 		{
-			case FS_EXEC_OK:
+			case WfxConstants.FS_EXEC_OK:
 				ExecuteOperationResult = FileSourceExecuteOperationResult.Success;
 				break;
-			case FS_EXEC_ERROR:
+			case WfxConstants.FS_EXEC_ERROR:
 				ExecuteOperationResult = FileSourceExecuteOperationResult.Error;
 				break;
-			case FS_EXEC_YOURSELF:
+			case WfxConstants.FS_EXEC_YOURSELF:
 				ExecuteOperationResult = FileSourceExecuteOperationResult.YourSelf;
 				break;
-			case FS_EXEC_SYMLINK:
+			case WfxConstants.FS_EXEC_SYMLINK:
 				ResultString = remoteName;
 				ExecuteOperationResult = FileSourceExecuteOperationResult.SymLink;
 				break;
@@ -55,6 +55,6 @@ public class WfxPluginExecuteOperation : FileSourceExecuteOperation
 
 	protected override void Finalize()
 	{
-		_wfxPluginFileSource.WfxModule.setStatusInfo(CurrentPath, WfxConstants.FS_STATUS_END, WfxConstants.FS_STATUS_OP_EXEC);
+		_wfxPluginFileSource?.WfxModule.setStatusInfo(CurrentPath, WfxConstants.FS_STATUS_END, WfxConstants.FS_STATUS_OP_EXEC);
 	}
 }

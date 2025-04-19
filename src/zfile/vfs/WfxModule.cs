@@ -72,6 +72,15 @@ namespace zfile
         public const int FS_NM_ACTION_ADD = 1;
         public const int FS_NM_ACTION_EDIT = 2;
         public const int FS_NM_ACTION_DELETE = 3;
+
+        // 执行文件操作返回值
+        public const int FS_EXEC_OK = 0;
+        public const int FS_EXEC_ERROR = 1;
+        public const int FS_EXEC_YOURSELF = -1;
+        public const int FS_EXEC_SYMLINK = -2;
+
+        // 文件操作状态
+        public const int FS_STATUS_OP_EXEC = 1;
     }
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct WfxFindData
@@ -520,50 +529,50 @@ namespace zfile
     {
         public List<WfxModule> _modules = new List<WfxModule>();
         private string _configPath;
-		private readonly List<string> _names = new List<string>();
-		private readonly List<bool> _enabled = new List<bool>();
-		private readonly List<string> _fileNames = new List<string>();
+        private readonly List<string> _names = new List<string>();
+        private readonly List<bool> _enabled = new List<bool>();
+        private readonly List<string> _fileNames = new List<string>();
 
-		/// <summary>
-		/// Gets the number of modules in the list
-		/// </summary>
-		public int Count => _names.Count;
+        /// <summary>
+        /// Gets the number of modules in the list
+        /// </summary>
+        public int Count => _names.Count;
 
-		/// <summary>
-		/// Gets the enabled status for each module
-		/// </summary>
-		public IReadOnlyList<bool> Enabled => _enabled;
+        /// <summary>
+        /// Gets the enabled status for each module
+        /// </summary>
+        public IReadOnlyList<bool> Enabled => _enabled;
 
-		/// <summary>
-		/// Gets the name for each module
-		/// </summary>
-		public IReadOnlyList<string> Name => _names;
+        /// <summary>
+        /// Gets the name for each module
+        /// </summary>
+        public IReadOnlyList<string> Name => _names;
 
-		/// <summary>
-		/// Gets the file name for each module
-		/// </summary>
-		public IReadOnlyList<string> FileName => _fileNames;
+        /// <summary>
+        /// Gets the file name for each module
+        /// </summary>
+        public IReadOnlyList<string> FileName => _fileNames;
 
-		/// <summary>
-		/// Adds a new module to the list
-		/// </summary>
-		public void Add(string name, string fileName, bool enabled = true)
-		{
-			_names.Add(name);
-			_fileNames.Add(fileName);
-			_enabled.Add(enabled);
-		}
+        /// <summary>
+        /// Adds a new module to the list
+        /// </summary>
+        public void Add(string name, string fileName, bool enabled = true)
+        {
+            _names.Add(name);
+            _fileNames.Add(fileName);
+            _enabled.Add(enabled);
+        }
 
-		/// <summary>
-		/// Clears the list
-		/// </summary>
-		public void Clear()
-		{
-			_names.Clear();
-			_fileNames.Clear();
-			_enabled.Clear();
-		}
-		public WfxModuleList(string configPath)
+        /// <summary>
+        /// Clears the list
+        /// </summary>
+        public void Clear()
+        {
+            _names.Clear();
+            _fileNames.Clear();
+            _enabled.Clear();
+        }
+        public WfxModuleList(string configPath)
         {
             _configPath = configPath;
             LoadConfiguration();
@@ -667,9 +676,9 @@ namespace zfile
             _modules.Clear();
         }
 
-		internal int FindFirstEnabledByName(string relativePath)
-		{
-			throw new NotImplementedException();
-		}
-	}
+        internal int FindFirstEnabledByName(string relativePath)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

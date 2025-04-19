@@ -158,7 +158,20 @@ namespace zfile
             var flags = PasswordStore.HasMasterKey ? (int)CryptOpt.PK_CRYPTOPT_MASTERPASS_SET : 0;
 
             // Use the extension method to set the callback with the appropriate delegates
-            _wcxModule.SetCryptCallback(0, flags, CryptProcA, CryptProcW);
+            // The extension method expects cryptoNr, flags, and delegate functions with non-ref parameters
+            _wcxModule.SetCryptCallback(0, flags,
+                (cryptoNumber, mode, archiveName, password) =>
+                {
+                    string pwd = password;
+                    int result = CryptProcA(cryptoNumber, mode, archiveName, ref pwd);
+                    return result;
+                },
+                (cryptoNumber, mode, archiveName, password) =>
+                {
+                    string pwd = password;
+                    int result = CryptProcW(cryptoNumber, mode, archiveName, ref pwd);
+                    return result;
+                });
         }
 
         private bool ReadArchive(IntPtr archiveHandle = default)
@@ -652,10 +665,10 @@ namespace zfile
 
     public class WcxModuleException(int errorCode) : Exception($"WCX module error: {errorCode}")
     {
-		public WcxModuleErrorCode ErrorCode { get; } = (WcxModuleErrorCode)errorCode;
-	}
-	public enum WcxModuleErrorCode
-	{
-		Handled
-	}
+        public WcxModuleErrorCode ErrorCode { get; } = (WcxModuleErrorCode)errorCode;
+    }
+    public enum WcxModuleErrorCode
+    {
+        Handled
+    }
 }

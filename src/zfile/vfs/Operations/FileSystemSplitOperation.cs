@@ -1,24 +1,25 @@
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Security.Cryptography;
+using System.Runtime.CompilerServices;
 namespace zfile
 {
-	public struct FileSourceSplitOperationStatistics
-	{
-		public string CurrentFileFrom;
-		public string CurrentFileTo;
-		public long TotalBytes;
-		public long DoneBytes;
-		public long CurrentFileTotalBytes;
-		public long CurrentFileDoneBytes;
-		public int TotalFiles;
-		public int DoneFiles;
-		public DateTime RemainingTime;
-		public long BytesPerSecond;
-	}
-	
+    unsafe public struct FileSourceSplitOperationStatistics
+    {
+        public string CurrentFileFrom;
+        public string CurrentFileTo;
+        public long TotalBytes;
+        public long DoneBytes;
+        public long CurrentFileTotalBytes;
+        public long CurrentFileDoneBytes;
+        public int TotalFiles;
+        public int DoneFiles;
+        public DateTime RemainingTime;
+        public long BytesPerSecond;
+    }
 
-	public class FileSystemSplitOperation : FileSourceSplitOperation
+
+    unsafe public class FileSystemSplitOperation : FileSourceSplitOperation
     {
         private FileSourceSplitOperationStatistics statistics;
         private string targetPath;
@@ -73,9 +74,9 @@ namespace zfile
                         FileSystemUtil.GetDiskFreeSpace(TargetPath, out freeSpace, out totalSpace);
                         if (statistics.TotalBytes > freeSpace)
                         {
-                            AskQuestion("", Resources.MsgNoFreeSpaceCont, 
-                                new[] { FileSourceOperationUIResponse.Abort }, 
-                                FileSourceOperationUIResponse.Abort, 
+                            AskQuestion("", Resources.MsgNoFreeSpaceCont,
+                                new[] { FileSourceOperationUIResponse.Abort },
+                                FileSourceOperationUIResponse.Abort,
                                 FileSourceOperationUIResponse.Abort);
                             RaiseAbortOperation();
                         }
@@ -89,29 +90,29 @@ namespace zfile
                     int extLength = 3; // 最小长度3个字符
                     if (!AutomaticSplitMode)
                     {
-                        int currentFileIndex = statistics.TotalFiles / 1000;
-                        while (currentFileIndex >= 1)
+                        int fileIndexForExt = statistics.TotalFiles / 1000;
+                        while (fileIndexForExt >= 1)
                         {
-                            currentFileIndex /= 10;
+                            fileIndexForExt /= 10;
                             extLength++;
                         }
                     }
 
                     // 使用while循环而不是for循环，以防文件数量计算错误
                     int currentFileIndex = 1;
-                    while ((currentFileIndex <= statistics.TotalFiles || AutomaticSplitMode) && 
+                    while ((currentFileIndex <= statistics.TotalFiles || AutomaticSplitMode) &&
                            statistics.TotalBytes > statistics.DoneBytes)
                     {
                         // 确定下一个输出文件的文件名
                         string targetFilename;
                         if (RequireACRC32VerificationFile)
                         {
-                            targetFilename = Path.Combine(targetPath, 
+                            targetFilename = Path.Combine(targetPath,
                                 SourceFile.NameNoExt + "." + currentFileIndex.ToString($"D{extLength}"));
                         }
                         else
                         {
-                            targetFilename = Path.Combine(targetPath, 
+                            targetFilename = Path.Combine(targetPath,
                                 SourceFile.Name + "." + currentFileIndex.ToString($"D{extLength}"));
                         }
 
@@ -125,11 +126,11 @@ namespace zfile
                                 VolumeSize = freeSpace - (64 * 1024); // 在复制后保留64KB的可用空间
                                 if (VolumeSize < (64 * 1024))
                                 {
-                                    respAutomaticSwapDisk = AskQuestion("", 
-                                        string.Format(Resources.MsgInsertNextDisk, targetFilename, 
+                                    respAutomaticSwapDisk = AskQuestion("",
+                                        string.Format(Resources.MsgInsertNextDisk, targetFilename,
                                             statistics.TotalBytes - statistics.DoneBytes),
                                         new[] { FileSourceOperationUIResponse.Ok, FileSourceOperationUIResponse.Abort },
-                                        FileSourceOperationUIResponse.Ok, 
+                                        FileSourceOperationUIResponse.Ok,
                                         FileSourceOperationUIResponse.Abort);
                                     if (respAutomaticSwapDisk == FileSourceOperationUIResponse.Abort)
                                         RaiseAbortOperation();
@@ -166,7 +167,7 @@ namespace zfile
                         // 删除未完成的目标文件
                         for (int i = 1; i <= statistics.TotalFiles; i++)
                         {
-                            File.Delete(Path.Combine(targetPath, 
+                            File.Delete(Path.Combine(targetPath,
                                 SourceFile.NameNoExt + "." + i.ToString($"D{extLength}")));
                         }
                     }
@@ -200,6 +201,7 @@ namespace zfile
             bool result = false;
             long totalBytesToRead = VolumeSize;
             int bytesToRead = (int)bufferSize;
+            byte[] tempBuffer = new byte[bytesToRead]; // 临时缓冲区用于读写操作
 
             try
             {
@@ -214,10 +216,14 @@ namespace zfile
                         do
                         {
                             retryRead = false;
-                            int bytesRead = sourceFileStream.Read(buffer, 0, bytesToRead);
+                            // 使用临时缓冲区读取数据
+                            int bytesRead = sourceFileStream.Read(tempBuffer, 0, bytesToRead);
 
                             if (bytesRead == 0)
                                 throw new IOException(Marshal.GetLastWin32Error().ToString());
+
+                            // 将数据复制到非托管内存
+                            Marshal.Copy(tempBuffer, 0, buffer, bytesRead);
 
                             if (RequireACRC32VerificationFile)
                                 currentCRC32 = CRC32.Calculate(buffer, bytesRead, currentCRC32);
@@ -229,7 +235,9 @@ namespace zfile
                             do
                             {
                                 retryWrite = false;
-                                int bytesWrittenTry = targetFileStream.Write(buffer, bytesWritten, bytesRead);
+                                // 使用临时缓冲区写入数据
+                                targetFileStream.Write(tempBuffer, bytesWritten, bytesRead - bytesWritten);
+                                int bytesWrittenTry = bytesRead - bytesWritten; // 假设写入成功
                                 bytesWritten += bytesWrittenTry;
                                 if (bytesWrittenTry == 0)
                                 {
@@ -252,7 +260,7 @@ namespace zfile
 
                 result = true;
             }
-            catch (IOException ex)
+            catch (IOException)
             {
                 ShowError(Resources.MsgLogError + Resources.MsgErrEWrite + ": " + targetFile);
             }
@@ -268,9 +276,9 @@ namespace zfile
             }
             else
             {
-                AskQuestion(message, "", 
-                    new[] { FileSourceOperationUIResponse.Abort }, 
-                    FileSourceOperationUIResponse.Abort, 
+                AskQuestion(message, "",
+                    new[] { FileSourceOperationUIResponse.Abort },
+                    FileSourceOperationUIResponse.Abort,
                     FileSourceOperationUIResponse.Abort);
                 RaiseAbortOperation();
             }
@@ -287,4 +295,4 @@ namespace zfile
             }
         }
     }
-} 
+}

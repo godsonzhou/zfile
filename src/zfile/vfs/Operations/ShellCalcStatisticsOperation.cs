@@ -94,7 +94,7 @@ namespace zfile
                         }
                         else
                         {
-                            long size = GetDetails(folder, pidl, SCID_FileSize);
+                            long size = GetDetails(folder, pidl, SCIDHelper.SCID_FileSize);
                             statistics.Size += size;
                             statistics.Files++;
                         }

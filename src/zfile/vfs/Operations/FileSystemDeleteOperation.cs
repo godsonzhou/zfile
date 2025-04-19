@@ -440,7 +440,7 @@ namespace zfile
         {
             if (skipErrors)
             {
-                Logger.Write(Thread, message, LogOption.Error, true);
+                Logger.Write(_thread, message, LogOption.Error, true);
                 return FileSourceOperationUIResponse.Skip;
             }
             else

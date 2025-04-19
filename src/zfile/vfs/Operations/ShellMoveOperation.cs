@@ -99,7 +99,7 @@ namespace zfile
         {
             if ((GlobalSettings.LogOptions & LogOption.Error) != 0)
             {
-                Logger.Write(Thread, message, LogOption.Error);
+                Logger.Write(_thread, message, LogOption.Error);
             }
 
             if (AskQuestion(message, "", new[] { FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort },

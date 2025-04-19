@@ -1,3 +1,4 @@
+using System.Threading;
 namespace zfile
 {
     /// <summary>
@@ -105,11 +106,12 @@ namespace zfile
         private FileProperty[] _newProperties;
         private bool _recursive;
         private bool _skipErrors;
+		private Thread _thread = Thread.CurrentThread;
 
-        /// <summary>
-        /// Supported properties
-        /// </summary>
-        protected FilePropertyType _supportedProperties;
+		/// <summary>
+		/// Supported properties
+		/// </summary>
+		protected FilePropertyType _supportedProperties;
 
         /// <summary>
         /// Function to call when a property is set
@@ -362,7 +364,7 @@ namespace zfile
 
                         if (_skipErrors)
                         {
-                            Logger.Write(Thread, message, LogOption.Error);
+                            Logger.Write(_thread, message, LogOption.Error);
                         }
                         else
                         {

@@ -153,7 +153,7 @@ namespace zfile
 				CheckOperationState,
 				UpdateStatistics,
 				ShowCompareFilesUI,
-				Thread,
+				_thread,
 				FileSourceOperationHelperMode.Copy,
 				TargetPath,
 				_statistics)

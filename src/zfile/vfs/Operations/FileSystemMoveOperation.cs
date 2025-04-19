@@ -80,7 +80,7 @@ namespace zfile
                 CheckOperationState,
                 UpdateStatistics,
                 ShowCompareFilesUI,
-                Thread,
+                _thread,
                 FileSystemOperationHelperMode.Move,
                 TargetPath,
                 statistics);

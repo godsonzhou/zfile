@@ -418,7 +418,7 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
 
         if (logOptions <= GlobalSettings.LogOptions)
         {
-            Logger.Write(Thread, message, logMsgType);
+            Logger.Write(_thread, message, logMsgType);
         }
     }
 

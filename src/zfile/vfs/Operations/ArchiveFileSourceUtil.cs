@@ -54,8 +54,8 @@ namespace zfile
             {
                 // If checking by extension we don't have to unpack files yet
                 // First check if there is a registered plugin for the archive extension
-                if (!archiveSign && 
-                    !(WcxArchiveFileSource.CheckPluginByName(archiveFile.Name) || 
+                if (!archiveSign &&
+                    !(WcxArchiveFileSource.CheckPluginByName(archiveFile.Name) ||
                       MultiArchiveFileSource.CheckAddonByName(archiveFile.Name)))
                 {
                     // No registered handlers for the archive extension
@@ -168,7 +168,8 @@ namespace zfile
                         if (operation != null)
                         {
                             // Start operation
-                            OperationsManager.AddOperation(operation as IFileSourceOperation, queueIdentifier, false, true);
+                            var operationsManager = new OperationsManager();
+                            operationsManager.AddOperation(operation as IFileSourceOperation, queueIdentifier, false, true);
                         }
                         else
                         {
@@ -216,7 +217,8 @@ namespace zfile
                                             if (operation != null)
                                             {
                                                 // Start operation
-                                                OperationsManager.AddOperation((IFileSourceOperation)operation, queueId, false, true);
+                                                var operationsManager = new OperationsManager();
+                                                operationsManager.AddOperation((IFileSourceOperation)operation, queueId, false, true);
                                             }
                                             else
                                             {

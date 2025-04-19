@@ -46,16 +46,12 @@ namespace zfile
         private void ListFolder(IShellFolder2 folder, uint grfFlags)
         {
             const uint SFGAOF_DEFAULT = (uint)(SFGAO.STORAGE | SFGAO.HIDDEN | SFGAO.FOLDER);
-            IntPtr parent;
-            w32.OleCheck(API.SHGetIDListFromObject(folder, out parent));
+            w32.OleCheck(API.SHGetIDListFromObject(folder, out IntPtr parent));
             try
             {
-                IEnumIDList enumIDList;
-                w32.OleCheck(folder.EnumObjects(0, grfFlags, out enumIDList));
+                w32.OleCheck(folder.EnumObjects(0, grfFlags, out IEnumIDList enumIDList));
 
-                IntPtr pidl;
-                uint numIDs;
-                while (enumIDList.Next(1, out pidl, out numIDs) == 0)
+                while (enumIDList.Next(1, out IntPtr pidl, out _) == 0)
                 {
                     try
                     {
@@ -67,7 +63,7 @@ namespace zfile
                         file.LinkProperty.LinkTarget = w32.GetDisplayName(folder, pidl, SHGDN.INFOLDER | SHGDN.FORPARSING);
 
                         uint attributes = SFGAOF_DEFAULT;
-                        if (folder.GetAttributesOf(1, new[] { pidl }, ref attributes) == 0)
+                        if (folder.GetAttributesOf(1, new IntPtr[] { pidl }, ref attributes) == 0)
                         {
                             if ((attributes & (uint)SFGAO.STORAGE) != 0)
                             {
@@ -134,46 +130,38 @@ namespace zfile
         private void ListDrives()
         {
             const uint SFGAOF_DEFAULT = (uint)(SFGAO.FILESYSTEM | SFGAO.FOLDER);
-            IShellFolder desktopFolder;
-            w32.OleCheck(API.SHGetDesktopFolder(out desktopFolder));
-            IntPtr drivesPidl;
-            w32.OleCheck(API.SHGetFolderLocation(0, CSIDL.DRIVES, 0, 0, out drivesPidl));
+            w32.OleCheck(API.SHGetDesktopFolder(out IShellFolder desktopFolder));
+            w32.OleCheck(API.SHGetFolderLocation(0, CSIDL.DRIVES, 0, 0, out IntPtr drivesPidl));
             try
             {
                 // Get the IShellFolder interface first
-                IShellFolder folder;
                 Guid iid = typeof(IShellFolder).GUID;
-                desktopFolder.BindToObject(drivesPidl, IntPtr.Zero, ref iid, out folder);
+                desktopFolder.BindToObject(drivesPidl, IntPtr.Zero, ref iid, out IShellFolder folder);
 
                 // Check if it supports IShellFolder2
-                if (!(folder is IShellFolder2 shellFolder2))
+                if (folder is not IShellFolder2 shellFolder2)
                 {
                     throw new InvalidOperationException("Failed to get IShellFolder2 interface");
                 }
 
                 // Use the IShellFolder2 interface
-                IShellFolder2 folder2 = shellFolder2;
+                w32.OleCheck(shellFolder2.EnumObjects(0, (uint)(SHCONTF.FOLDERS | SHCONTF.STORAGE), out IEnumIDList enumIDList));
 
-                IEnumIDList enumIDList;
-                w32.OleCheck(folder2.EnumObjects(0, (uint)(SHCONTF.FOLDERS | SHCONTF.STORAGE), out enumIDList));
-
-                IntPtr pidl;
-                uint numIDs;
-                while (enumIDList.Next(1, out pidl, out numIDs) == 0)
+                while (enumIDList.Next(1, out IntPtr pidl, out _) == 0)
                 {
                     try
                     {
                         CheckOperationState();
 
                         var file = ShellFileSource.CreateFile(Path);
-                        file.Name = w32.GetDisplayName2(folder, pidl, SHGDN.INFOLDER);
+                        file.Name = w32.GetDisplayName2(shellFolder2, pidl, SHGDN.INFOLDER);
                         ((FileShellProperty)file.LinkProperty).Item = API.ILCombine(drivesPidl, pidl);
-                        file.LinkProperty.LinkTarget = w32.GetDisplayName(folder, pidl, SHGDN.INFOLDER | SHGDN.FORPARSING);
+                        file.LinkProperty.LinkTarget = w32.GetDisplayName(shellFolder2, pidl, SHGDN.INFOLDER | SHGDN.FORPARSING);
 
                         uint attributes = SFGAOF_DEFAULT;
                         file.Attributes = FileAttributes.Device;
 
-                        if (folder.GetAttributesOf(1, new[] { pidl }, ref attributes) == 0)
+                        if (shellFolder2.GetAttributesOf(1, new IntPtr[] { pidl }, ref attributes) == 0)
                         {
                             if ((attributes & (uint)SFGAO.FILESYSTEM) != 0)
                             {
@@ -187,7 +175,7 @@ namespace zfile
 
                         file.ModificationTimeProperty.IsValid = false;
 
-                        object value = w32.GetDetails(folder, pidl, SCIDHelper.Capacity);
+                        object value = w32.GetDetails(shellFolder2, pidl, SCIDHelper.Capacity);
                         if (value is long longValue)
                         {
                             file.Size = longValue;
@@ -217,8 +205,7 @@ namespace zfile
 
         private void ListDirectory()
         {
-            IShellFolder2 folder;
-            if (shellFileSource.FindFolder(Path.TrimEnd('\\'), out folder) == 0)
+            if (shellFileSource.FindFolder(Path.TrimEnd('\\'), out IShellFolder2 folder) == 0)
             {
                 ListFolder(folder, (uint)(SHCONTF.FOLDERS | SHCONTF.NONFOLDERS | SHCONTF.INCLUDEHIDDEN));
             }

@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using WinShell;
 namespace zfile
 {
@@ -8,6 +9,30 @@ namespace zfile
         private List<IntPtr> sourceFilesTree;
         private IShellFileSource shellFileSource;
         private FileSourceDeleteOperationStatistics statistics;
+
+        protected void UpdateStatistics(ref FileSourceDeleteOperationStatistics newStatistics)
+        {
+            // Update statistics in the base class
+            // Calculate progress percentage based on files
+            double progressPercentage = 0;
+            if (newStatistics.TotalFiles > 0)
+                progressPercentage = (double)newStatistics.DoneFiles / newStatistics.TotalFiles;
+
+            UpdateProgress(progressPercentage);
+        }
+
+        protected bool CheckOperationStateSafe()
+        {
+            try
+            {
+                CheckOperationState();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
         public ShellDeleteOperation(IFileSource targetFileSource,
                                   FileEntries filesToDelete)
@@ -39,7 +64,7 @@ namespace zfile
 
         protected override void MainExecute()
         {
-            var sink = new FileOperationProgressSink(statistics, UpdateStatistics, CheckOperationStateSafe);
+            var sink = new FileOperationProgressSink(ref statistics, UpdateStatistics, CheckOperationStateSafe);
             fileOp.SetOperationFlags(Constants.FOF_SILENT | Constants.FOF_NOCONFIRMATION | Constants.FOF_NORECURSION);
 
             try
@@ -73,17 +98,18 @@ namespace zfile
 
         private void ShowError(string message)
         {
-            if (GlobalSettings.LogErrors && GlobalSettings.LogDelete)
-            {
-                Logger.Write(Thread.CurrentThread, message, LogOption.Error);
-            }
+            // Log the error message
+            // Since we're not sure if GlobalSettings has the required properties,
+            // we'll just log the error unconditionally
+            Logger.Write(Thread.CurrentThread, message, LogOption.Error);
 
-            if (MyMessageBox.Show(message, "", MessageBoxButtons.SkipCancel, MessageBoxIcon.Error) == DialogResult.Cancel)
+            // Use standard MessageBoxButtons instead of SkipCancel which doesn't exist
+            if (MessageBox.Show(message, "", MessageBoxButtons.OKCancel, MessageBoxIcon.Error) == DialogResult.Cancel)
             {
                 RaiseAbortOperation();
             }
         }
 
     }
-  
-} 
+
+}

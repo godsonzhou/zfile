@@ -26,7 +26,7 @@ namespace zfile
         /// <param name="actionHandler">Handler for UI actions</param>
         /// <returns>User's answer</returns>
         public override FileSourceOperationUIResponse AskQuestion(
-            string msg, 
+            string msg,
             string question,
             FileSourceOperationUIResponse[] possibleResponses,
             FileSourceOperationUIResponse defaultOKResponse,
@@ -51,7 +51,7 @@ namespace zfile
             textMessage = textMessage + question;
 
             // Show message box
-            MessageBoxResult result = MessageBox.Show(
+            MessageBoxResult result = MyMessageBox.Show(
                 textMessage,
                 buttons.ToArray(),
                 ResponseToButton(defaultOKResponse),

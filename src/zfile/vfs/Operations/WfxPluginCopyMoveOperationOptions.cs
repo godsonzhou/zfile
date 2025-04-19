@@ -1,20 +1,48 @@
+using System;
 using System.ComponentModel;
+using System.Windows.Forms;
 
-namespace zfile
+namespace zfile.vfs.Operations
 {
+	// Queue identifiers for operations
+	public static class QueueIdentifiers
+	{
+		public const int FreeOperationsQueueId = 0;
+		public const int ModalQueueId = -1;
+		public const int SingleQueueId = 1;
+	}
+
+	/// <summary>
+	/// Copy dialog interface for WFX plugin operations
+	/// </summary>
+	public interface ICopyDialog
+	{
+		int QueueIdentifier { get; set; }
+		Button BtnAddToQueue { get; }
+		Button BtnCreateSpecialQueue { get; }
+	}
+
 	public class WfxPluginCopyMoveOperationOptionsUI : FileSourceOperationOptionsUI
 	{
-		private CheckBox cbCopyTime;
-		protected CheckBox cbWorkInBackground;
-		private ComboBox cmbFileExists;
-		private GroupBox grpOptions;
-		private Label lblFileExists;
-		private Panel pnlCheckboxes;
-		private Panel pnlComboBoxes;
+		private readonly CheckBox cbCopyTime = new();
+		protected readonly CheckBox cbWorkInBackground = new();
+		private readonly ComboBox cmbFileExists = new();
+		private readonly GroupBox grpOptions = new();
+		private readonly Label lblFileExists = new();
+		private readonly Panel pnlCheckboxes = new();
+		private readonly Panel pnlComboBoxes = new();
+
+		// Reference to the parent control that owns this UI
+		protected Control? ParentControl { get; private set; }
+
+		// Store the file source for later use
+		protected IFileSource? FileSourceInstance { get; private set; }
 
 		public WfxPluginCopyMoveOperationOptionsUI(Control owner, IFileSource fileSource)
 			: base(owner, fileSource)
 		{
+			ParentControl = owner;
+			FileSourceInstance = fileSource;
 			InitializeComponent();
 			LoadDefaultOptions();
 		}
@@ -23,11 +51,28 @@ namespace zfile
 		{
 			// Initialize UI components
 			// This would be auto-generated in a Windows Forms designer
+
+			// Set up the controls
+			grpOptions.Text = "Options";
+			lblFileExists.Text = "File exists:";
+
+			// Set up the copy time checkbox
+			cbCopyTime.Text = "Copy time";
+			cbCopyTime.AutoSize = true;
+
+			// Set up the work in background checkbox
+			cbWorkInBackground.Text = "Work in background";
+			cbWorkInBackground.AutoSize = true;
+			cbWorkInBackground.CheckedChanged += CbWorkInBackground_CheckedChanged;
 		}
 
 		private void LoadDefaultOptions()
 		{
-			cmbFileExists.Items.AddRange(Resources.FileOpCopyMoveFileExistsOptions.Split('\n'));
+			// Ensure the ComboBox is initialized
+			if (cmbFileExists.Items.Count == 0 && Resources.FileOpCopyMoveFileExistsOptions != null)
+			{
+				cmbFileExists.Items.AddRange(Resources.FileOpCopyMoveFileExistsOptions.Split('\n'));
+			}
 
 			switch (GlobalSettings.OperationOptionFileExists)
 			{
@@ -42,9 +87,13 @@ namespace zfile
 					break;
 			}
 
-			var wfxModule = ((IWfxPluginFileSource)FileSource).WfxModule;
-			cbCopyTime.Visible = wfxModule._fsSetTime != null || wfxModule._fsSetTimeW != null;
-			cbCopyTime.Checked = cbCopyTime.Visible && GlobalSettings.OperationOptionCopyTime;
+			// Get the file source and check if it's a WFX plugin file source
+			if (FileSourceInstance is IWfxPluginFileSource wfxFileSource)
+			{
+				var wfxModule = wfxFileSource.WfxModule;
+				cbCopyTime.Visible = wfxModule._fsSetTime != null || wfxModule._fsSetTimeW != null;
+				cbCopyTime.Checked = cbCopyTime.Visible && GlobalSettings.OperationOptionCopyTime;
+			}
 		}
 
 		public override void SaveOptions()
@@ -109,19 +158,22 @@ namespace zfile
 			SetCopyOptions(copyOutOperation);
 		}
 
-		protected void CbWorkInBackground_CheckedChanged(object sender, EventArgs e)
+		protected void CbWorkInBackground_CheckedChanged(object? sender, EventArgs e)
 		{
-			var copyDialog = (CopyDialog)Owner;
-			if (!cbWorkInBackground.Checked)
+			// Check if the parent control implements ICopyDialog
+			if (ParentControl is ICopyDialog copyDialog)
 			{
-				copyDialog.QueueIdentifier = ModalQueueId;
+				if (!cbWorkInBackground.Checked)
+				{
+					copyDialog.QueueIdentifier = QueueIdentifiers.ModalQueueId;
+				}
+				else
+				{
+					copyDialog.QueueIdentifier = QueueIdentifiers.SingleQueueId;
+				}
+				copyDialog.BtnAddToQueue.Visible = cbWorkInBackground.Checked;
+				copyDialog.BtnCreateSpecialQueue.Visible = copyDialog.BtnAddToQueue.Visible;
 			}
-			else
-			{
-				copyDialog.QueueIdentifier = SingleQueueId;
-			}
-			copyDialog.btnAddToQueue.Visible = cbWorkInBackground.Checked;
-			copyDialog.btnCreateSpecialQueue.Visible = copyDialog.btnAddToQueue.Visible;
 		}
 	}
 

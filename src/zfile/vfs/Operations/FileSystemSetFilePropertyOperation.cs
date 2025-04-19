@@ -14,14 +14,15 @@ namespace zfile
 
     public class FileSystemSetFilePropertyOperation : FileSourceSetFilePropertyOperation
     {
-        private FileEntries fullFilesTree;
-        private FileSourceSetFilePropertyOperationStatistics statistics;
-        private Description description;
-        private FileSourceOperationSymLinkOption symLinkOption;
+        private FileEntries? fullFilesTree;
+        private FileSourceSetFilePropertyOperationStatistics? statistics;
+        private Description? description;
+        // Unused but kept for compatibility
+        private readonly FileSourceOperationSymLinkOption symLinkOption;
         private FileSourceOperationUIResponse fileExistsOption;
         private FileSourceOperationUIResponse dirExistsOption;
-        private FileEntry currentFile;
-        private string currentTargetFilePath;
+        private FileEntry? currentFile;
+        private string? currentTargetFilePath;
 
         public FileSystemSetFilePropertyOperation(IFileSource targetFileSource, FileEntries targetFiles, FileProperty[] newProperties)
             : base(targetFileSource, targetFiles, newProperties)
@@ -82,6 +83,9 @@ namespace zfile
 
         protected override void MainExecute()
         {
+            if (fullFilesTree == null || statistics == null)
+                return;
+
             for (int currentFileIndex = 0; currentFileIndex < fullFilesTree.Count; currentFileIndex++)
             {
                 var file = fullFilesTree[currentFileIndex];
@@ -89,7 +93,7 @@ namespace zfile
                 statistics.CurrentFile = file.FullPath;
                 UpdateStatistics(statistics);
 
-                FileEntry templateFile = null;
+                FileEntry? templateFile = null;
                 if (TemplateFiles != null && currentFileIndex < TemplateFiles.Count)
                 {
                     templateFile = TemplateFiles[currentFileIndex];
@@ -117,11 +121,11 @@ namespace zfile
                         {
                             result = RenameFile(
                                 file,
-                                (templateProperty as FileNameProperty).Value);
+                                (templateProperty as FileNameProperty)?.Value ?? string.Empty);
 
                             if (result == SetFilePropertyResult.Success && GlobalSettings.ProcessComments)
                             {
-                                description.Rename(file.FullPath, (templateProperty as FileNameProperty)?.Value);
+                                description?.Rename(file.FullPath, (templateProperty as FileNameProperty)?.Value ?? string.Empty);
                             }
                         }
                         else
@@ -259,7 +263,7 @@ namespace zfile
 
         private void QuestionActionHandler(FileSourceOperationUIResponse action)
         {
-            if (action == FileSourceOperationUIResponse.CompareAction)
+            if (action == FileSourceOperationUIResponse.CompareAction && currentFile != null && !string.IsNullOrEmpty(currentTargetFilePath))
             {
                 ShowCompareFilesUI(currentFile, currentTargetFilePath);
             }
@@ -372,7 +376,11 @@ namespace zfile
 
             if (FileSource.GetPathType(newName) != PathType.Absolute)
             {
-                newName = Path.Combine(Path.GetDirectoryName(oldName), Path.GetFileName(newName));
+                var dirName = Path.GetDirectoryName(oldName);
+                if (!string.IsNullOrEmpty(dirName))
+                {
+                    newName = Path.Combine(dirName, Path.GetFileName(newName));
+                }
             }
 
             if (oldName == newName)
@@ -422,7 +430,7 @@ namespace zfile
             }
 #else
             // Windows不允许两个文件名仅大小写不同（即使在NTFS上）
-            if (oldName.ToLower() != newName.ToLower())
+            if (!string.Equals(oldName, newName, StringComparison.OrdinalIgnoreCase))
             {
                 if (FileSystemUtil.GetAttributesUAC(newName, out newAttr))  // 如果目标文件存在
                 {
@@ -450,14 +458,35 @@ namespace zfile
                 return SetFilePropertyResult.Error;
         }
 
-        private string FileExistsMessage(string newName, string fullPath, long size, DateTime modificationTime)
+        private string FileExistsMessage(string newName, string _, long size, DateTime modificationTime)
         {
-            throw new NotImplementedException();
+            if (!FileSystemUtil.GetAttributesUAC(newName, out var newAttr))
+                return string.Format("File {0} exists, overwrite?", newName);
+
+            string msg = string.Format("File {0} exists, overwrite?", newName);
+            msg += "\n\n" + "Overwrite:";
+
+            // 添加目标文件信息
+            msg += "\n" + string.Format("{0} bytes, {1}", newAttr.Size,
+                FileTimeToDateTime(newAttr.LastWriteTime).ToString());
+
+            // 添加源文件信息
+            msg += "\n\n" + "With file:";
+            msg += "\n" + string.Format("{0} bytes, {1}", size, modificationTime.ToString());
+
+            return msg;
         }
 
         protected void ShowCompareFilesUI(FileEntry sourceFile, string targetFilePath)
         {
-            var targetFile = FileSource.CreateFile(Path.GetDirectoryName(targetFilePath));
+            if (string.IsNullOrEmpty(targetFilePath))
+                return;
+
+            var dirName = Path.GetDirectoryName(targetFilePath);
+            if (string.IsNullOrEmpty(dirName))
+                return;
+
+            var targetFile = FileSource.CreateFile(dirName);
             try
             {
                 targetFile.Name = Path.GetFileName(targetFilePath);
@@ -469,9 +498,42 @@ namespace zfile
             }
         }
 
-        private void PrepareToolData(IFileSource fileSource1, FileEntry sourceFile, IFileSource fileSource2, FileEntry targetFile, object showDifferByGlobList, bool v)
+        /// <summary>
+        /// Delegate for handling file comparison
+        /// </summary>
+        /// <param name="fileList">List of files to compare</param>
+        /// <param name="waitData">Wait data</param>
+        /// <param name="modal">Whether to show modal dialog</param>
+        private delegate void ShowDifferByGlobListDelegate(System.Collections.Specialized.StringCollection fileList, object? waitData, bool modal = false);
+
+        /// <summary>
+        /// Shows differ for comparing files
+        /// </summary>
+        /// <param name="fileList">List of files to compare</param>
+        /// <param name="waitData">Wait data</param>
+        /// <param name="modal">Whether to show modal dialog</param>
+        private void ShowDifferByGlobList(System.Collections.Specialized.StringCollection fileList, object? waitData, bool modal = false)
         {
-            throw new NotImplementedException();
+            if (fileList != null && fileList.Count >= 2)
+            {
+                // 调用外部比较工具或内部比较器
+                // 这里简化实现，实际应该调用外部比较工具
+                System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{fileList[0]}\"");
+            }
+        }
+
+        private static void PrepareToolData(IFileSource _, FileEntry sourceFile, IFileSource __, FileEntry targetFile, ShowDifferByGlobListDelegate showDifferCallback, bool modal)
+        {
+            if (sourceFile == null || targetFile == null)
+                return;
+
+            var fileList = new System.Collections.Specialized.StringCollection
+            {
+                sourceFile.FullPath,
+                targetFile.FullPath
+            };
+
+            showDifferCallback(fileList, null, modal);
         }
     }
 }

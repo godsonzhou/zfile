@@ -348,7 +348,7 @@ namespace zfile
 
 		internal static bool FileGetAttr(string linkTarget, out FileAttributeData attr)
 		{
-			throw new NotImplementedException();
+			return GetAttributesUAC(linkTarget, out attr);
 		}
 	}
 

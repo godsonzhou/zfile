@@ -123,7 +123,8 @@ namespace zfile
 			_statistics = RetrieveStatistics();
 
 			var treeBuilder = new FileSystemTreeBuilder(
-				AskQuestion,
+				(caption, msg, possibleResponses, defaultResponse, skipResponse) =>
+					AskQuestion(caption, msg, possibleResponses, defaultResponse, skipResponse),
 				CheckOperationState)
 			{
 				SymLinkOption = SymLinkOption,
@@ -147,9 +148,10 @@ namespace zfile
 
 			_operationHelper?.Dispose();
 			_operationHelper = new FileSystemOperationHelper(
-				AskQuestion,
+				(msg, question, possibleResponses, defaultOKResponse, defaultCancelResponse, actionHandler) =>
+					AskQuestion(msg, question, possibleResponses, defaultOKResponse, defaultCancelResponse, actionHandler),
 				RaiseAbortOperation,
-				new Action(AppProcessMessages),
+				(checkState) => { AppProcessMessages(); return true; },
 				CheckOperationState,
 				UpdateStatistics,
 				null, //showcomparefilesui not implemented
@@ -183,7 +185,7 @@ namespace zfile
 		/// <summary>
 		/// Process application messages
 		/// </summary>
-		private void AppProcessMessages()
+		private static void AppProcessMessages()
 		{
 			// Process any pending application messages
 			Application.DoEvents();
@@ -191,6 +193,7 @@ namespace zfile
 
 
 
+		// This method is called when the operation is complete
 		protected override void Finalize()
 		{
 			// Get file exists option from the operation helper

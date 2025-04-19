@@ -1,3 +1,4 @@
+using Mono.Nat;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -651,5 +652,10 @@ namespace zfile
 
     public class WcxModuleException(int errorCode) : Exception($"WCX module error: {errorCode}")
     {
-    }
+		public WcxModuleErrorCode ErrorCode { get; } = (WcxModuleErrorCode)errorCode;
+	}
+	public enum WcxModuleErrorCode
+	{
+		Handled
+	}
 }

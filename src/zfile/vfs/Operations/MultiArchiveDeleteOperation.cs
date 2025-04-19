@@ -48,7 +48,7 @@ namespace zfile
                 _exProcess.StartInfo.RedirectStandardInput = true;
             }
 
-            AddStateChangedListener(new[] { FileSourceOperationState.Starting, FileSourceOperationState.Pausing, FileSourceOperationState.Stopping }, FileSourceOperationStateChangedNotify);
+            AddStateChangedListener(new[] { FileSourceOperationState.Starting, FileSourceOperationState.Pausing, FileSourceOperationState.Stopping }, (operation, state) => { if (operation != null) FileSourceOperationStateChangedNotify((IFileSourceOperation)operation, state); });
 
             if (SourceFiles.Count == 1)
             {

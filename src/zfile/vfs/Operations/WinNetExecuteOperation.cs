@@ -4,7 +4,7 @@ namespace zfile
 {
     public class WinNetExecuteOperation : FileSourceExecuteOperation
     {
-        private readonly IWinNetFileSource _winNetFileSource;
+        private readonly IWinNetFileSource? _winNetFileSource;
 
         public WinNetExecuteOperation(
             IFileSource targetFileSource,
@@ -26,6 +26,8 @@ namespace zfile
                 var fileName = ResultString;
                 try
                 {
+                    if (_winNetFileSource == null) return;
+
                     var bufferSize = 4096;
                     var buffer = new byte[bufferSize];
                     var netResource = new NetResource
@@ -36,18 +38,29 @@ namespace zfile
                         Provider = _winNetFileSource.ProviderName
                     };
 
-                    var result = WNetAddConnection2(netResource, null, null, ConnectFlags.Interactive);
+                    var result = WNetAddConnection2(netResource, string.Empty, string.Empty, ConnectFlags.Interactive);
                     if (result != 0) return;
 
                     result = WNetGetResourceInformation(netResource, buffer, ref bufferSize, out var system);
                     if (result != 0) return;
 
-                    var resourceInfo = Marshal.PtrToStructure<NetResource>(buffer);
-                    if (resourceInfo.Type == ResourceType.Print)
+                    // Pin the byte array in memory so we can get a pointer to it
+                    GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+                    try
                     {
-                        if (ShellExecute(IntPtr.Zero, "open", resourceInfo.RemoteName, null, null, ShowWindowCommands.Show) > 32)
-                            ExecuteOperationResult = FileSourceExecuteOperationResult.Success;
-                        return;
+                        // Get a pointer to the pinned array and use it with PtrToStructure
+                        var resourceInfo = Marshal.PtrToStructure<NetResource>(handle.AddrOfPinnedObject());
+                        if (resourceInfo.Type == ResourceType.Print)
+                        {
+                            if (ShellExecute(IntPtr.Zero, "open", resourceInfo.RemoteName, string.Empty, string.Empty, ShowWindowCommands.Show) > 32)
+                                ExecuteOperationResult = FileSourceExecuteOperationResult.Success;
+                            return;
+                        }
+                    }
+                    finally
+                    {
+                        // Make sure to free the handle
+                        handle.Free();
                     }
                 }
                 finally
@@ -160,4 +173,4 @@ namespace zfile
         ShowDefault = 10,
         ForceMinimize = 11
     }
-} 
+}

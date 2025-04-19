@@ -473,8 +473,8 @@ namespace zfile
                                         else if (pluginType == "wdx")
                                         {
                                             result = WdxPlugins.Add(plugin);
-											WdxPlugins.GetWdxModule(result).FileName = GetPluginFilenameToSave(plugin);
-										}
+                                            WdxPlugins.GetWdxModule(result).FileName = GetPluginFilenameToSave(plugin);
+                                        }
                                         else if (pluginType == "wfx")
                                         {
                                             WfxModule wfxModule = WfxPlugins.LoadModule(plugin);
@@ -486,7 +486,7 @@ namespace zfile
                                                     rootName = Path.GetFileNameWithoutExtension(pluginFileName);
                                                 }
                                                 result = WfxPlugins.Add(rootName, plugin);
-                                                WfxPlugins.FileName[result] = GetPluginFilenameToSave(plugin);
+                                                WfxPlugins.SetFileName(result, GetPluginFilenameToSave(plugin));
                                             }
                                         }
                                         else if (pluginType == "wlx")

@@ -31,11 +31,11 @@ namespace zfile
 	{
 		public const int LISTPLUGIN_OK = 0;
 		public const int LISTPLUGIN_ERROR = 1;
-		
+
 		// 显示标志
 		public const int LISTPLUGIN_SHOW = 1;
 		public const int LISTPLUGIN_HIDE = 0;
-		
+
 		// 搜索标志
 		public const int LISTPLUGIN_SEARCH_FORWARD = 0;
 		public const int LISTPLUGIN_SEARCH_BACKWARD = 1;
@@ -63,7 +63,7 @@ namespace zfile
 	public delegate int ListSendCommand(IntPtr pluginWin, int command, int parameter);
 	public delegate int ListSetDefaultParams(ref ListDefaultParamStruct dps);
 	public delegate int ListPrint(IntPtr pluginWin, string fileToPrint, string defPrinter, int printFlags, ref IntPtr margins);
-	
+
 	// 可选的函数委托定义
 	public delegate int ListSearchTextW(IntPtr pluginWin, [MarshalAs(UnmanagedType.LPWStr)] string searchString, int searchParameter);
 	public delegate int ListPrintW(IntPtr pluginWin, [MarshalAs(UnmanagedType.LPWStr)] string fileToPrint, [MarshalAs(UnmanagedType.LPWStr)] string defPrinter, int printFlags, ref IntPtr margins);
@@ -75,7 +75,7 @@ namespace zfile
 	public class WlxModule : IDisposable
 	{
 		private IntPtr _moduleHandle;
-		
+
 		// 必需的函数指针
 		private ListLoad _listLoad;
 		private ListLoadW _listLoadW;
@@ -88,7 +88,7 @@ namespace zfile
 		private ListSendCommand _listSendCommand;
 		private ListSetDefaultParams _listSetDefaultParams;
 		private ListPrint _listPrint;
-		
+
 		// 可选的函数指针
 		private ListSearchTextW _listSearchTextW;
 		private ListPrintW _listPrintW;
@@ -102,6 +102,7 @@ namespace zfile
 		public string DetectString { get; set; }
 		public bool IsMultimedia { get; set; }
 		public bool IsLoaded => _moduleHandle != IntPtr.Zero;
+		public string FileName { get => FilePath; set => FilePath = value; }
 
 		public WlxModule()
 		{
@@ -121,9 +122,9 @@ namespace zfile
 
 				// 加载必需的函数
 				int flg = 0;
-				try { _listLoad = GetFunction<ListLoad>("ListLoad"); } catch (Exception ex) { flg++;  }
+				try { _listLoad = GetFunction<ListLoad>("ListLoad"); } catch (Exception ex) { flg++; }
 				try { _listLoadW = GetFunction<ListLoadW>("ListLoadW"); } catch (Exception ex) { flg++; }
-				if ( flg == 2)
+				if (flg == 2)
 					throw new Exception("required listload can not be found!");
 
 				// 加载可选函数 // 可选函数加载失败不影响插件使用
@@ -153,7 +154,7 @@ namespace zfile
 				catch (Exception ex) { }
 				try { _listSendCommand = GetFunction<ListSendCommand>("ListSendCommand"); }
 				catch (Exception ex) { }
-				try { _listNotificationReceived = GetFunction<ListNotificationReceived>("ListNotificationReceived");}
+				try { _listNotificationReceived = GetFunction<ListNotificationReceived>("ListNotificationReceived"); }
 				catch (Exception ex) { }
 				try { _listSetDefaultParams = GetFunction<ListSetDefaultParams>("ListSetDefaultParams"); }
 				catch (Exception ex) { }
@@ -217,7 +218,7 @@ namespace zfile
 				Console.WriteLine($"ListLoad error: {ex.Message}");
 				return IntPtr.Zero;
 			}
-			
+
 			//if (_listLoadW != null)
 			//	return _listLoadW(parentWin, fileToLoad, showFlags);
 			//return _listLoad != null ? _listLoad(parentWin, fileToLoad, showFlags) : IntPtr.Zero;
@@ -332,9 +333,10 @@ namespace zfile
 		{
 			LoadConfiguration();
 		}
-		public void LoadConfiguration(){
+		public void LoadConfiguration()
+		{
 			_modules.Clear();
-			_config = Helper.ReadSectionContent(Constants.ZfileCfgPath+"wincmd.ini", "ListerPlugins");
+			_config = Helper.ReadSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ListerPlugins");
 			_configDict = Helper.ParseConfig(_config);
 		}
 		public void SaveConfiguration()
@@ -343,7 +345,7 @@ namespace zfile
 			List<string> configContent = new();
 			foreach (var pair in _configDict)
 			{
-				if(!configContent.Contains(pair.Key))
+				if (!configContent.Contains(pair.Key))
 					configContent.Append(pair.Key + "=" + pair.Value + Environment.NewLine);
 				else
 				{
@@ -375,7 +377,7 @@ namespace zfile
 		public WlxModule FindModuleForFile(string fileName, ref int tryModuleIdx)
 		{
 			var i = 0;
-			foreach(var module in _modules)
+			foreach (var module in _modules)
 			{
 				if (i > tryModuleIdx) //已经尝试过的模块不再尝试
 				{
@@ -398,7 +400,7 @@ namespace zfile
 			if (string.IsNullOrEmpty(module.DetectString))
 			{
 				//return false;
-				if(_configDict.TryGetValue(module.Name.ToUpper(), out string val))
+				if (_configDict.TryGetValue(module.Name.ToUpper(), out string val))
 					return isModuleSupport(val, fileName);
 				else
 					return true;
@@ -421,7 +423,7 @@ namespace zfile
 		private bool isModuleSupportBak(string DetectString, string fileName)
 		{
 			DetectString = DetectString.ToLower();
-			var isMultimedia = (DetectString.Contains("multimedia",StringComparison.OrdinalIgnoreCase));
+			var isMultimedia = (DetectString.Contains("multimedia", StringComparison.OrdinalIgnoreCase));
 			// 删除MULTIMEDIA FORCE ( ) & 空格
 			DetectString = DetectString.Replace("multimedia", "").Replace("force", "").Replace("(", "").Replace(")", "").Replace("&", "").Replace(" ", "");
 			// 解析检测字符串
@@ -429,7 +431,7 @@ namespace zfile
 			var fileExt = Path.GetExtension(fileName).ToLower().Trim('.');
 			foreach (var part in detectParts)
 			{
-				if (part.StartsWith("ext="))    
+				if (part.StartsWith("ext="))
 				{
 					var extensions = part.Substring(4).Split(',');
 					//if necessary, remove the leading " and trailing " for each extensions item

@@ -44,14 +44,14 @@ using System.Xml.Linq;
 
 namespace zfile
 {
-	public enum BackgroundFlags
-	{
-		Pack,
-		Unpack,
-		Upload,
-		Downloaded,
-		AskUser
-	}
+    public enum BackgroundFlags
+    {
+        Pack,
+        Unpack,
+        Upload,
+        Downloaded,
+        AskUser
+    }
     #region WFX常量和结构体
     public static class WfxConstants
     {
@@ -67,13 +67,13 @@ namespace zfile
         public const int FS_STATUS_START = 0;
         public const int FS_STATUS_END = 1;
         public const int FS_STATUS_PROGRESS = 2;
-    
-		// 网络管理操作常量
-		public const int FS_NM_ACTION_ADD = 1;
-		public const int FS_NM_ACTION_EDIT = 2;
-		public const int FS_NM_ACTION_DELETE = 3;
-	}
-	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+
+        // 网络管理操作常量
+        public const int FS_NM_ACTION_ADD = 1;
+        public const int FS_NM_ACTION_EDIT = 2;
+        public const int FS_NM_ACTION_DELETE = 3;
+    }
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct WfxFindData
     {
         public int FileAttributes;
@@ -105,7 +105,7 @@ namespace zfile
     public delegate IntPtr FsFindFirst(string Path, out WfxFindData FindData);
     public delegate bool FsFindNext(IntPtr Handle, out WfxFindData FindData);
     public delegate int FsFindClose(IntPtr Handle);
-    
+
     // 可选的函数
     public delegate void FsSetCryptCallback(IntPtr CryptProc, int CryptoNr, int Flags);
     public delegate int FsGetFile(string RemoteName, string LocalName, int CopyFlags, RemoteFileInfo RemoteInfo);
@@ -127,7 +127,7 @@ namespace zfile
     public delegate bool FsGetLocalName(string RemoteName, int MaxLen);
     public delegate int FsGetBackgroundFlags();
     public delegate void FsContentPluginUnloading();
-    
+
     // Unicode版本
     public delegate int FsInitW(int PluginNr, IntPtr ProgressProcW, IntPtr LogProcW, IntPtr RequestProcW);
     public delegate IntPtr FsFindFirstW(string Path, out WfxFindData FindData);
@@ -202,17 +202,18 @@ namespace zfile
         private FsMkDir _fsMkDir;
         private FsExecuteFile _fsExecuteFile;
         private FsRenMovFile _fsRenMovFile;
-		internal static IntPtr WfxInvalidHandle = IntPtr.Zero;
-		internal BackgroundFlags BackgroundFlags;
-		internal string VFSRootName;
-		internal bool ContentPlugin;
-		#endregion
+        internal static IntPtr WfxInvalidHandle = IntPtr.Zero;
+        internal BackgroundFlags BackgroundFlags;
+        internal string VFSRootName;
+        internal bool ContentPlugin;
+        #endregion
 
-		#region 属性
-		public string ModulePath => _modulePath;
+        #region 属性
+        public string ModulePath => _modulePath;
         public string PluginName => _pluginName;
         public bool IsLoaded => _moduleHandle != IntPtr.Zero;
         public bool IsUnicode => _isUnicode;
+        public string FileName { get => _modulePath; set => _modulePath = value; }
         #endregion
 
         #region 构造函数和初始化
@@ -233,15 +234,15 @@ namespace zfile
 
                 // 加载必需的函数
                 _fsInit = GetFunction<FsInit>("FsInit");
-				_fsInitW = GetFunction<FsInitW>("FsInitW");
-				if (_fsInit == null && _fsInitW == null)
+                _fsInitW = GetFunction<FsInitW>("FsInitW");
+                if (_fsInit == null && _fsInitW == null)
                 {
                     UnloadModule();
                     return false;
                 }
-				_isUnicode = _fsInit == null;
-				// 尝试加载Unicode版本函数
-				try
+                _isUnicode = _fsInit == null;
+                // 尝试加载Unicode版本函数
+                try
                 {
                     _fsFindFirstW = GetFunction<FsFindFirstW>("FsFindFirstW");
                     _fsFindNextW = GetFunction<FsFindNextW>("FsFindNextW");
@@ -252,18 +253,18 @@ namespace zfile
                     _fsMkDirW = GetFunction<FsMkDirW>("FsMkDirW");
                     _fsExecuteFileW = GetFunction<FsExecuteFileW>("FsExecuteFileW");
                     _fsRenMovFileW = GetFunction<FsRenMovFileW>("FsRenMovFileW");
-					_fsStatusInfoW = GetFunction<FsStatusInfoW>("FsStatusInfoW");
-					_fsSetDefaultParams = GetFunction<FsSetDefaultParams>("FsSetDefaultParams");
-					_fsGetDefRootName = GetFunction<FsGetDefRootName>("FsGetDefRootName");
-					_fsSetAttrW = GetFunction<FsSetAttrW>("FsSetAttrW");
-					_fsSetTimeW = GetFunction<FsSetTimeW>("FsSetTimeW");
-					_fsExtractCustomIconW = GetFunction<FsExtractCustomIconW>("FsExtractCustomIconW");
-					_fsDisconnectW = GetFunction<FsDisconnectW>("FsDisconnectW");
-					_fsLinksToLocalFiles = GetFunction<FsLinksToLocalFiles>("FsLinksToLocalFiles");
-					_fsGetLocalNameW = GetFunction<FsGetLocalNameW>("FsGetLocalNameW");
+                    _fsStatusInfoW = GetFunction<FsStatusInfoW>("FsStatusInfoW");
+                    _fsSetDefaultParams = GetFunction<FsSetDefaultParams>("FsSetDefaultParams");
+                    _fsGetDefRootName = GetFunction<FsGetDefRootName>("FsGetDefRootName");
+                    _fsSetAttrW = GetFunction<FsSetAttrW>("FsSetAttrW");
+                    _fsSetTimeW = GetFunction<FsSetTimeW>("FsSetTimeW");
+                    _fsExtractCustomIconW = GetFunction<FsExtractCustomIconW>("FsExtractCustomIconW");
+                    _fsDisconnectW = GetFunction<FsDisconnectW>("FsDisconnectW");
+                    _fsLinksToLocalFiles = GetFunction<FsLinksToLocalFiles>("FsLinksToLocalFiles");
+                    _fsGetLocalNameW = GetFunction<FsGetLocalNameW>("FsGetLocalNameW");
 
 
-				}
+                }
                 catch
                 {
                     // Unicode函数加载失败，尝试加载ANSI版本
@@ -276,16 +277,16 @@ namespace zfile
                     _fsMkDir = GetFunction<FsMkDir>("FsMkDir");
                     _fsExecuteFile = GetFunction<FsExecuteFile>("FsExecuteFile");
                     _fsRenMovFile = GetFunction<FsRenMovFile>("FsRenMovFile");
-					_fsStatusInfo = GetFunction<FsStatusInfo>("FsStatusInfo");
-					_fsSetDefaultParams = GetFunction<FsSetDefaultParams>("FsSetDefaultParams");
-					_fsGetDefRootName = GetFunction<FsGetDefRootName>("FsGetDefRootName");
-					_fsSetAttr = GetFunction<FsSetAttr>("FsSetAttr");
-					_fsSetTime = GetFunction<FsSetTime>("FsSetTime");
-					_fsExtractCustomIcon = GetFunction<FsExtractCustomIcon>("FsExtractCustomIcon");
-					_fsDisconnect = GetFunction<FsDisconnect>("FsDisconnect");
-					_fsLinksToLocalFiles = GetFunction<FsLinksToLocalFiles>("FsLinksToLocalFiles");
-					_fsGetLocalName = GetFunction<FsGetLocalName>("FsGetLocalName");
-				}
+                    _fsStatusInfo = GetFunction<FsStatusInfo>("FsStatusInfo");
+                    _fsSetDefaultParams = GetFunction<FsSetDefaultParams>("FsSetDefaultParams");
+                    _fsGetDefRootName = GetFunction<FsGetDefRootName>("FsGetDefRootName");
+                    _fsSetAttr = GetFunction<FsSetAttr>("FsSetAttr");
+                    _fsSetTime = GetFunction<FsSetTime>("FsSetTime");
+                    _fsExtractCustomIcon = GetFunction<FsExtractCustomIcon>("FsExtractCustomIcon");
+                    _fsDisconnect = GetFunction<FsDisconnect>("FsDisconnect");
+                    _fsLinksToLocalFiles = GetFunction<FsLinksToLocalFiles>("FsLinksToLocalFiles");
+                    _fsGetLocalName = GetFunction<FsGetLocalName>("FsGetLocalName");
+                }
 
                 _fsFindClose = GetFunction<FsFindClose>("FsFindClose");
 
@@ -342,68 +343,68 @@ namespace zfile
                 _fsFindClose(handle);
             }
         }
-		public bool SetAttr(string remoteName, int newAttr)
-		{
-			return _isUnicode ? _fsSetAttrW(remoteName, newAttr) : _fsSetAttr(remoteName, newAttr);
-		}
-		public bool SetTime(string remoteName, IntPtr creationTime, IntPtr lastAccessTime, IntPtr lastWriteTime)
-		{
-			return _isUnicode ? _fsSetTimeW(remoteName, creationTime, lastAccessTime, lastWriteTime) : _fsSetTime(remoteName, creationTime, lastAccessTime, lastWriteTime);
-		}
-		public int ExtractCustomIcon(string remoteName, int extractFlags, out IntPtr theIcon)
-		{
-			return _isUnicode ? _fsExtractCustomIconW(remoteName, extractFlags, out theIcon) : _fsExtractCustomIcon(remoteName, extractFlags, out theIcon);
-		}
-		public bool Disconnect(string disconnectRoot)
-		{
-			return _isUnicode ? _fsDisconnectW(disconnectRoot) : _fsDisconnect(disconnectRoot);
-		}
-		public bool LinksToLocalFiles()
-		{
-			return _isUnicode ? _fsLinksToLocalFiles() : false;
-		}
-		public bool GetLocalName(string remoteName, int maxLen)
-		{
-			return _isUnicode ? _fsGetLocalNameW(remoteName, maxLen) : false;
-		}
-		public void setStatusInfo(string remoteDir, int infoStartEnd, int infoOperation)
-		{
-			if (_isUnicode)
-				_fsStatusInfoW(remoteDir, infoStartEnd, infoOperation);
-			else
-				_fsStatusInfo(remoteDir, infoStartEnd, infoOperation);
-		}
-		public void setCrypCallback(IntPtr cryptProc, int cryptoNr, int flags)
-		{
-			if (_isUnicode)
-				_fsSetCryptCallbackW(cryptProc, cryptoNr, flags);
-			else
-				_fsSetCryptCallback(cryptProc, cryptoNr, flags);
-		}
-		public void setDefaultParams(IntPtr defaultParamStruct)
-		{
-			_fsSetDefaultParams(defaultParamStruct);
-		}
-		public void getDefRootName(StringBuilder defRootName, int maxLen)
-		{
-			_fsGetDefRootName(defRootName, maxLen);
-		}
-		public string getlocalname(string remoteName)
-		{
-			StringBuilder sb = new StringBuilder(260);
-			if (_isUnicode)
-			{
-				_fsGetLocalNameW(remoteName, 260);
-			}
-			else
-			{
-				_fsGetLocalName(remoteName, 260);
-			}
-			return sb.ToString();
-		}
+        public bool SetAttr(string remoteName, int newAttr)
+        {
+            return _isUnicode ? _fsSetAttrW(remoteName, newAttr) : _fsSetAttr(remoteName, newAttr);
+        }
+        public bool SetTime(string remoteName, IntPtr creationTime, IntPtr lastAccessTime, IntPtr lastWriteTime)
+        {
+            return _isUnicode ? _fsSetTimeW(remoteName, creationTime, lastAccessTime, lastWriteTime) : _fsSetTime(remoteName, creationTime, lastAccessTime, lastWriteTime);
+        }
+        public int ExtractCustomIcon(string remoteName, int extractFlags, out IntPtr theIcon)
+        {
+            return _isUnicode ? _fsExtractCustomIconW(remoteName, extractFlags, out theIcon) : _fsExtractCustomIcon(remoteName, extractFlags, out theIcon);
+        }
+        public bool Disconnect(string disconnectRoot)
+        {
+            return _isUnicode ? _fsDisconnectW(disconnectRoot) : _fsDisconnect(disconnectRoot);
+        }
+        public bool LinksToLocalFiles()
+        {
+            return _isUnicode ? _fsLinksToLocalFiles() : false;
+        }
+        public bool GetLocalName(string remoteName, int maxLen)
+        {
+            return _isUnicode ? _fsGetLocalNameW(remoteName, maxLen) : false;
+        }
+        public void setStatusInfo(string remoteDir, int infoStartEnd, int infoOperation)
+        {
+            if (_isUnicode)
+                _fsStatusInfoW(remoteDir, infoStartEnd, infoOperation);
+            else
+                _fsStatusInfo(remoteDir, infoStartEnd, infoOperation);
+        }
+        public void setCrypCallback(IntPtr cryptProc, int cryptoNr, int flags)
+        {
+            if (_isUnicode)
+                _fsSetCryptCallbackW(cryptProc, cryptoNr, flags);
+            else
+                _fsSetCryptCallback(cryptProc, cryptoNr, flags);
+        }
+        public void setDefaultParams(IntPtr defaultParamStruct)
+        {
+            _fsSetDefaultParams(defaultParamStruct);
+        }
+        public void getDefRootName(StringBuilder defRootName, int maxLen)
+        {
+            _fsGetDefRootName(defRootName, maxLen);
+        }
+        public string getlocalname(string remoteName)
+        {
+            StringBuilder sb = new StringBuilder(260);
+            if (_isUnicode)
+            {
+                _fsGetLocalNameW(remoteName, 260);
+            }
+            else
+            {
+                _fsGetLocalName(remoteName, 260);
+            }
+            return sb.ToString();
+        }
 
 
-		public bool DeleteFile(string remoteName)
+        public bool DeleteFile(string remoteName)
         {
             return _isUnicode ? _fsDeleteFileW(remoteName) : _fsDeleteFile(remoteName);
         }
@@ -420,7 +421,7 @@ namespace zfile
 
         public int CopyFile(string remoteName, string localName, int copyFlags, RemoteFileInfo remoteInfo)
         {
-            return _isUnicode ? 
+            return _isUnicode ?
                 _fsGetFileW(remoteName, localName, copyFlags, remoteInfo) :
                 _fsGetFile(remoteName, localName, copyFlags, remoteInfo);
         }
@@ -503,12 +504,12 @@ namespace zfile
             GC.SuppressFinalize(this);
         }
 
-		internal bool FileExists(string path)
-		{
-			throw new NotImplementedException();
-		}
+        internal bool FileExists(string path)
+        {
+            throw new NotImplementedException();
+        }
 
-		~WfxModule()
+        ~WfxModule()
         {
             Dispose();
         }
@@ -517,7 +518,7 @@ namespace zfile
 
     public class WfxModuleList : IDisposable
     {
-        private List<WfxModule> _modules = new List<WfxModule>();
+        public List<WfxModule> _modules = new List<WfxModule>();
         private string _configPath;
 
         public WfxModuleList(string configPath)
@@ -599,7 +600,7 @@ namespace zfile
 
         public void RemoveModule(string modulePath)
         {
-            var module = _modules.FirstOrDefault(m => 
+            var module = _modules.FirstOrDefault(m =>
                 m.ModulePath.Equals(modulePath, StringComparison.OrdinalIgnoreCase));
             if (module != null)
             {
@@ -611,7 +612,7 @@ namespace zfile
 
         public WfxModule FindModule(string pluginName)
         {
-            return _modules.FirstOrDefault(m => 
+            return _modules.FirstOrDefault(m =>
                 m.PluginName.Equals(pluginName, StringComparison.OrdinalIgnoreCase));
         }
 

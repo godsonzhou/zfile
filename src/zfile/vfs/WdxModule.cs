@@ -114,6 +114,7 @@ namespace zfile
         public bool IsLoaded => _moduleHandle != IntPtr.Zero;
         public bool IsUnicode => _isUnicode;
         public IReadOnlyList<WdxField> Fields => _fields.AsReadOnly();
+        public string FileName { get => _modulePath; set => _modulePath = value; }
         #endregion
 
         #region 构造函数和初始化

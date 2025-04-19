@@ -725,39 +725,203 @@ namespace zfile
             }
         }
 
-        internal DateTime? DateTimeToFileTimeEx(DateTime? value)
+        /// <summary>
+        /// Converts a nullable DateTime to a nullable DateTime representing a file time
+        /// </summary>
+        /// <param name="value">The DateTime value to convert</param>
+        /// <returns>The converted DateTime value or null if input is null</returns>
+        internal static DateTime? DateTimeToFileTimeEx(DateTime? value)
         {
-            throw new NotImplementedException();
+            if (!value.HasValue)
+                return null;
+
+            // Check if the value is beyond the maximum allowed DateTime
+            if (value > DateTime.MaxValue)
+                return DateTime.MaxValue;
+
+            return value;
         }
 
-        internal DateTime FileTimeToDateTime(long lastWriteTime)
+        /// <summary>
+        /// Converts a file time (long) to a DateTime
+        /// </summary>
+        /// <param name="lastWriteTime">The file time to convert</param>
+        /// <returns>The converted DateTime</returns>
+        internal static DateTime FileTimeToDateTime(long lastWriteTime)
         {
-            throw new NotImplementedException();
+            try
+            {
+                // If the file time is 0, return a default value
+                if (lastWriteTime == 0)
+                    return DateTime.MinValue;
+
+                // Convert Windows file time to DateTime
+                return DateTime.FromFileTime(lastWriteTime);
+            }
+            catch
+            {
+                return DateTime.MinValue;
+            }
         }
 
-        internal string FormatArchiverCommand(string archiver, string commandLine, string archiveFileName, object value, string fullPath, string destPath, string tempFile, string password, string empty1, string empty2)
+        /// <summary>
+        /// Formats an archiver command with the given parameters
+        /// </summary>
+        /// <param name="archiver">The archiver executable</param>
+        /// <param name="commandLine">The command line template</param>
+        /// <param name="archiveFileName">The archive file name</param>
+        /// <param name="value">Additional value (can be a file list)</param>
+        /// <param name="fullPath">The full path</param>
+        /// <param name="destPath">The destination path</param>
+        /// <param name="tempFile">Temporary file path</param>
+        /// <param name="password">Password for the archive</param>
+        /// <param name="empty1">Reserved parameter</param>
+        /// <param name="empty2">Reserved parameter</param>
+        /// <returns>The formatted command</returns>
+        internal static string FormatArchiverCommand(string archiver, string commandLine, string archiveFileName, object value, string fullPath, string destPath, string tempFile, string password, string _, string __)
         {
-            throw new NotImplementedException();
+            string result = commandLine;
+
+            // Replace placeholders with actual values
+            if (!string.IsNullOrEmpty(archiver))
+                result = result.Replace("%A", archiver);
+
+            if (!string.IsNullOrEmpty(archiveFileName))
+                result = result.Replace("%P", archiveFileName);
+
+            if (!string.IsNullOrEmpty(fullPath))
+                result = result.Replace("%F", fullPath);
+
+            if (!string.IsNullOrEmpty(destPath))
+                result = result.Replace("%D", destPath);
+
+            if (!string.IsNullOrEmpty(tempFile))
+                result = result.Replace("%T", tempFile);
+
+            if (!string.IsNullOrEmpty(password))
+                result = result.Replace("%W", password);
+
+            // Handle file list if value is a FileEntries object
+            if (value is FileEntries files)
+            {
+                string fileList = string.Empty;
+                foreach (var file in files)
+                {
+                    fileList += $"\"{file.FullPath}\" ";
+                }
+                result = result.Replace("%L", fileList.TrimEnd());
+            }
+
+            return result;
         }
 
-        internal bool MatchesMaskList(string fileName, string maskList)
+        /// <summary>
+        /// Checks if a file name matches a mask list
+        /// </summary>
+        /// <param name="fileName">The file name to check</param>
+        /// <param name="maskList">The mask list (semicolon-separated)</param>
+        /// <returns>True if the file name matches any mask in the list</returns>
+        internal static bool MatchesMaskList(string fileName, string maskList)
         {
-			throw new NotImplementedException();
+            if (string.IsNullOrEmpty(maskList))
+                return false;
+
+            // Split the mask list by semicolons
+            string[] masks = maskList.Split(';');
+
+            // Check each mask
+            foreach (string mask in masks)
+            {
+                if (string.IsNullOrEmpty(mask))
+                    continue;
+
+                // Use wildcard matching from our extension method
+                if (System.IO.Path.GetFileName(fileName).MatchesWildcard(mask))
+                    return true;
+            }
+
+            return false;
         }
 
-        internal void ChangeFileEntriesRoot(string empty, FileEntries fullFilesTreeToDelete)
+        /// <summary>
+        /// Changes the root path of file entries
+        /// </summary>
+        /// <param name="empty">Reserved parameter</param>
+        /// <param name="fullFilesTreeToDelete">The file entries to modify</param>
+        internal static void ChangeFileEntriesRoot(string _, FileEntries fullFilesTreeToDelete)
         {
-            throw new NotImplementedException();
+            if (fullFilesTreeToDelete == null || fullFilesTreeToDelete.IsEmpty)
+                return;
+
+            // In the original Pascal code, this changes the root path of all entries
+            // We'll implement a basic version that removes the current path
+            string currentPath = fullFilesTreeToDelete.PathName;
+
+            foreach (var entry in fullFilesTreeToDelete)
+            {
+                if (entry.FullPath.StartsWith(currentPath))
+                {
+                    // Remove the current path prefix
+                    entry.Path = entry.Path[currentPath.Length..].TrimStart('\\', '/');
+                }
+            }
         }
 
-        internal int ExtractErrorLevel(string commandLine)
+        /// <summary>
+        /// Extracts the error level from a command line
+        /// </summary>
+        /// <param name="commandLine">The command line to parse</param>
+        /// <returns>The extracted error level or 0 if not found</returns>
+        internal static int ExtractErrorLevel(string commandLine)
         {
-            throw new NotImplementedException();
+            int result = 0;
+
+            // Look for %E followed by digits in the command line
+            int index = commandLine.IndexOf("%E");
+            if (index >= 0)
+            {
+                int startIndex = index + 2;
+                int endIndex = startIndex;
+
+                // Find the end of the digits
+                while (endIndex < commandLine.Length && char.IsDigit(commandLine[endIndex]))
+                {
+                    endIndex++;
+                }
+
+                // Extract and parse the error level
+                if (endIndex > startIndex)
+                {
+                    string errorLevelStr = commandLine[startIndex..endIndex];
+                    if (!int.TryParse(errorLevelStr, out result))
+                    {
+                        result = 0; // Default to 0 if parsing fails
+                    }
+                }
+            }
+
+            return result;
         }
 
-        internal bool MatchesFileEntries(FileEntries files, string fileName)
+        /// <summary>
+        /// Checks if a file name matches any file in a file entries collection
+        /// </summary>
+        /// <param name="files">The file entries to check against</param>
+        /// <param name="fileName">The file name to check</param>
+        /// <returns>True if the file name matches any file in the collection</returns>
+        internal static bool MatchesFileEntries(FileEntries files, string fileName)
         {
-            throw new NotImplementedException();
+            if (files == null || files.IsEmpty)
+                return false;
+
+            // Check if the file name matches any file in the collection
+            foreach (var file in files)
+            {
+                if (string.Equals(file.Name, fileName, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+
+            return false;
         }
 
         protected bool CheckOperationStateSafe()
@@ -773,50 +937,51 @@ namespace zfile
             }
         }
 
-		/// <summary>
-		/// Process application messages
-		/// </summary>
-		protected static bool AppProcessMessages(bool checkState = false)
-		{
-			// Process any pending application messages
-			Application.DoEvents();
-			return true;
-		}
+        /// <summary>
+        /// Process application messages
+        /// </summary>
+        protected static bool AppProcessMessages()
+        {
+            // Process any pending application messages
+            Application.DoEvents();
+            return true;
+        }
 
-		protected void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
-		{
-			switch (logMsgType)
-			{
-				case LogOption.Error:
-					if (!GlobalSettings.LogOptions.HasFlag(LogOption.Error)) return;
-					break;
-				case LogOption.Info:
-					if (!GlobalSettings.LogOptions.HasFlag(LogOption.Info)) return;
-					break;
-				case LogOption.Success:
-					if (!GlobalSettings.LogOptions.HasFlag(LogOption.Success)) return;
-					break;
-			}
+        protected void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
+        {
+            switch (logMsgType)
+            {
+                case LogOption.Error:
+                    if (!GlobalSettings.LogOptions.HasFlag(LogOption.Error)) return;
+                    break;
+                case LogOption.Info:
+                    if (!GlobalSettings.LogOptions.HasFlag(LogOption.Info)) return;
+                    break;
+                case LogOption.Success:
+                    if (!GlobalSettings.LogOptions.HasFlag(LogOption.Success)) return;
+                    break;
+            }
 
-			if (logOptions <= GlobalSettings.LogOptions)
-			{
-				Logger.Write(_thread, message, logMsgType);
-			}
-		}
+            if (logOptions <= GlobalSettings.LogOptions)
+            {
+                Logger.Write(_thread, message, logMsgType);
+            }
+        }
 
-		protected void ShowError(string message, int error, LogOption logOptions = LogOption.None)
-		{
-			LogMessage(message, logOptions, LogOption.Error);
+        protected void ShowError(string message, int error, LogOption logOptions = LogOption.None)
+        {
+            LogMessage(message, logOptions, LogOption.Error);
 
-			if (!GlobalSettings.SkipFileOpError && error > WcxModule.E_SUCCESS)
-			{
-				if (AskQuestion(message, "", new[] { FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort },
-							   FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort) == FileSourceOperationUIResponse.Abort)
-				{
-					RaiseAbortOperation();
-				}
-			}
-		}
+            if (!GlobalSettings.SkipFileOpError && error > WcxModule.E_SUCCESS)
+            {
+                if (AskQuestion(message, "",
+                               [FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort],
+                               FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort) == FileSourceOperationUIResponse.Abort)
+                {
+                    RaiseAbortOperation();
+                }
+            }
+        }
     }
 
     public interface IFileSourceOperationUIActionHandler

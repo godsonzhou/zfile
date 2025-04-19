@@ -26,15 +26,15 @@ public class WfxPluginCopyInOperation : FileSourceCopyInOperation
 		_needsConnection = value;
 		if (!_needsConnection)
 		{
-			_infoOperation = FS_STATUS_OP_PUT_MULTI_THREAD;
+			_infoOperation = (int)FsStatusOperation.PutMultiThread;
 		}
 		else if (SourceFiles.Count > 1)
 		{
-			_infoOperation = FS_STATUS_OP_PUT_MULTI;
+			_infoOperation = (int)FsStatusOperation.PutMulti;
 		}
 		else
 		{
-			_infoOperation = FS_STATUS_OP_PUT_SINGLE;
+			_infoOperation = (int)FsStatusOperation.PutSingle;
 		}
 	}
 

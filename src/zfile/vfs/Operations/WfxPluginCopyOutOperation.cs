@@ -143,6 +143,9 @@ namespace zfile
 		RenMovSingle,
 		Delete,
 		CalcSize,
-		Attrib
+		Attrib,
+		PutMultiThread,
+		PutMulti,
+		PutSingle
 	}
 }

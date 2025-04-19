@@ -138,6 +138,21 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 		};
 	}
 
+	public static FileEntry CreateFile(string path, WfxFindData findData)
+	{
+		return new FileEntry
+		{
+			Name = findData.FileName,
+			Size = findData.FileSize,
+			Attributes = (FileAttributes)findData.FileAttributes,
+			CreationTime = DateTime.FromFileTime(findData.CreationTime),
+			LastAccessTime = DateTime.FromFileTime(findData.LastAccessTime),
+			ModificationTime = DateTime.FromFileTime(findData.LastWriteTime),
+			IsDirectory = (findData.FileAttributes & WfxConstants.FILE_ATTRIBUTE_DIRECTORY) != 0,
+			Path = path
+		};
+	}
+
 	public bool CanRetrieveProperties(FileEntry file, FilePropertyType properties)
 	{
 		return (_wfxModule.ContentPlugin && (properties & FilePropertyType.Variant) != 0) ||

@@ -352,6 +352,78 @@ namespace zfile
                 _fsFindClose(handle);
             }
         }
+
+        /// <summary>
+        /// Finds the first file or directory in the specified path using the WFX plugin.
+        /// </summary>
+        /// <param name="path">The path to search in.</param>
+        /// <param name="findData">When this method returns, contains the find data for the found file or directory.</param>
+        /// <returns>A handle that can be used in subsequent calls to WfxFindNext and FsFindClose, or WfxInvalidHandle if no files or directories are found.</returns>
+        public IntPtr WfxFindFirst(string path, out WfxFindData findData)
+        {
+            try
+            {
+                if (_isUnicode)
+                {
+                    return _fsFindFirstW(path, out findData);
+                }
+                else
+                {
+                    return _fsFindFirst(path, out findData);
+                }
+            }
+            catch
+            {
+                // Log the exception if needed
+                findData = new WfxFindData(); // Initialize with default values
+                return WfxInvalidHandle;
+            }
+        }
+
+        /// <summary>
+        /// Continues a file search from a previous call to WfxFindFirst.
+        /// </summary>
+        /// <param name="handle">The search handle returned by WfxFindFirst.</param>
+        /// <param name="findData">When this method returns, contains the find data for the found file or directory.</param>
+        /// <returns>true if a file or directory was found; otherwise, false.</returns>
+        public bool WfxFindNext(IntPtr handle, out WfxFindData findData)
+        {
+            try
+            {
+                if (_isUnicode)
+                {
+                    return _fsFindNextW(handle, out findData);
+                }
+                else
+                {
+                    return _fsFindNext(handle, out findData);
+                }
+            }
+            catch
+            {
+                // Log the exception if needed
+                findData = new WfxFindData(); // Initialize with default values
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Closes a find handle opened by WfxFindFirst.
+        /// </summary>
+        /// <param name="handle">The search handle to close.</param>
+        /// <returns>The result of the close operation.</returns>
+        public int FsFindClose(IntPtr handle)
+        {
+            try
+            {
+                return _fsFindClose(handle);
+            }
+            catch
+            {
+                // Log the exception if needed
+                return WfxConstants.WFX_ERROR;
+            }
+        }
         public bool SetAttr(string remoteName, int newAttr)
         {
             return _isUnicode ? _fsSetAttrW(remoteName, newAttr) : _fsSetAttr(remoteName, newAttr);

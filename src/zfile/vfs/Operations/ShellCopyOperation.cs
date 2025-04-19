@@ -54,7 +54,9 @@ namespace zfile
                         try
                         {
                             var guid = typeof(IShellItem).GUID;
-                            w32.OleCheck(API.SHCreateItemFromIDList(objectPtr, ref guid, out targetFolder));
+                            object shellItem;
+                            w32.OleCheck(API.SHCreateItemFromIDList(objectPtr, ref guid, out shellItem));
+                            targetFolder = (IShellItem)shellItem;
                         }
                         finally
                         {
@@ -63,7 +65,9 @@ namespace zfile
                         break;
                     case FileSourceOperationType.CopyOut:
                         var guid = typeof(IShellItem).GUID;
-                        w32.OleCheck(API.SHCreateItemFromParsingName(TargetPath, IntPtr.Zero, ref guid, out targetFolder));
+                        object shellItem;
+                        w32.OleCheck(API.SHCreateItemFromParsingName(TargetPath, IntPtr.Zero, ref guid, out shellItem));
+                        targetFolder = (IShellItem)shellItem;
                         break;
                 }
             }
@@ -166,9 +170,11 @@ namespace zfile
                 w32.OleCheck(shellFileSource.FindFolder(TargetPath, out folder));
                 IntPtr objectPtr;
                 w32.OleCheck(API.SHGetIDListFromObject(folder, out objectPtr));
-				var guid = typeof(IShellItem).GUID;
+                var guid = typeof(IShellItem).GUID;
 
-				w32.OleCheck(API.SHCreateItemFromIDList(objectPtr, ref guid, out targetFolder));
+                object shellItem;
+                w32.OleCheck(API.SHCreateItemFromIDList(objectPtr, ref guid, out shellItem));
+                targetFolder = (IShellItem)shellItem;
             }
             catch (Exception ex)
             {

@@ -53,10 +53,10 @@ namespace zfile
                         w32.OleCheck(API.SHGetIDListFromObject(folder, out objectPtr));
                         try
                         {
-                            var guid = typeof(IShellItem).GUID;
-                            object shellItem;
-                            w32.OleCheck(API.SHCreateItemFromIDList(objectPtr, ref guid, out shellItem));
-                            targetFolder = (IShellItem)shellItem;
+                            var copyItemGuid = typeof(IShellItem).GUID;
+                            object copyShellItem;
+                            w32.OleCheck(API.SHCreateItemFromIDList(objectPtr, ref copyItemGuid, out copyShellItem));
+                            targetFolder = (IShellItem)copyShellItem;
                         }
                         finally
                         {
@@ -64,9 +64,9 @@ namespace zfile
                         }
                         break;
                     case FileSourceOperationType.CopyOut:
-                        var guid = typeof(IShellItem).GUID;
+                        var shellItemGuid = typeof(IShellItem).GUID;
                         object shellItem;
-                        w32.OleCheck(API.SHCreateItemFromParsingName(TargetPath, IntPtr.Zero, ref guid, out shellItem));
+                        w32.OleCheck(API.SHCreateItemFromParsingName(TargetPath, IntPtr.Zero, ref shellItemGuid, out shellItem));
                         targetFolder = (IShellItem)shellItem;
                         break;
                 }
@@ -162,19 +162,19 @@ namespace zfile
             {
                 foreach (var file in SourceFiles)
                 {
-                    var objectPtr = API.ILCreateFromPath(file.FullPath);
-                    sourceFilesTree.Add(objectPtr);
+                    var fileObjectPtr = API.ILCreateFromPath(file.FullPath);
+                    sourceFilesTree.Add(fileObjectPtr);
                 }
 
                 IShellFolder2 folder;
                 w32.OleCheck(shellFileSource.FindFolder(TargetPath, out folder));
-                IntPtr objectPtr;
-                w32.OleCheck(API.SHGetIDListFromObject(folder, out objectPtr));
-                var guid = typeof(IShellItem).GUID;
+                IntPtr folderObjectPtr;
+                w32.OleCheck(API.SHGetIDListFromObject(folder, out folderObjectPtr));
+                var copyInGuid = typeof(IShellItem).GUID;
 
-                object shellItem;
-                w32.OleCheck(API.SHCreateItemFromIDList(objectPtr, ref guid, out shellItem));
-                targetFolder = (IShellItem)shellItem;
+                object copyInShellItem;
+                w32.OleCheck(API.SHCreateItemFromIDList(folderObjectPtr, ref copyInGuid, out copyInShellItem));
+                targetFolder = (IShellItem)copyInShellItem;
             }
             catch (Exception ex)
             {

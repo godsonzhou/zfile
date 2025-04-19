@@ -59,7 +59,7 @@ namespace zfile
                 {
                     for (int i = 0; i < arcFileEntries.ToList().Count; i++)
                     {
-                        string fileName = Path.DirectorySeparatorChar + arcFileEntries[i].FileName;
+                        string fileName = Path.DirectorySeparatorChar + arcFileEntries[i].Name;
                         if (FileSystemUtil.IsInPath(Path.DirectorySeparatorChar.ToString(), fileName, false, false))
                         {
                             count++;
@@ -295,4 +295,4 @@ namespace zfile
         public string Password { get; set; }
         public bool ExtractWithoutPath { get; set; }
     }
-} 
+}

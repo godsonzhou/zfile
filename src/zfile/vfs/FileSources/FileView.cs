@@ -101,8 +101,9 @@ namespace zfile
 
 			_listView.Items.Clear();
 
-			var files = new FileEntries();
-			if (_activeFileSource.GetFiles(_currentPath, files))
+			//var files = new FileEntries();
+			var files = _activeFileSource.GetFiles(_currentPath);
+			if (files.Count != 0)
 			{
 				foreach (var file in files)
 				{

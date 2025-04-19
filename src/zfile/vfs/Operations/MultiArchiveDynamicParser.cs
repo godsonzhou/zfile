@@ -22,8 +22,8 @@ namespace zfile
         private string _packSize;
         private string _attributes;
 
-        public MultiArchiveDynamicParser(MultiArcItem multiArcItem)
-            : base(multiArcItem)
+        public MultiArchiveDynamicParser(MultiArcItem multiArcItem, string archiveFileName)
+            : base(multiArcItem, archiveFileName)
         {
             _lines = new List<string>();
             _masks = multiArcItem.Format;

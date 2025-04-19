@@ -1,14 +1,14 @@
 namespace zfile
 {
-	public enum MultiArcFormMode
-	{
-		UnixAttr = 1
-	}
+    public enum MultiArcFormMode
+    {
+        UnixAttr = 1
+    }
 
-	public interface IMultiArchiveFileSource : IArchiveFileSource
+    public interface IMultiArchiveFileSource : IArchiveFileSource
     {
         string Password { get; }
-        List<FileEntry> ArchiveFileEntries { get; }
+        FileEntries ArchiveFileEntries { get; }
         MultiArcItem MultiArcItem { get; }
 
         bool FileIsLink(ArchiveItem archiveItem);
@@ -16,15 +16,15 @@ namespace zfile
 
         void FillAndCount(string fileMask, FileEntries files, bool countDirs,
             out FileEntries newFiles, out long filesCount, out long filesSize);
-		bool ReadArchive();
-		string GetSfxExt();
-	}
+        bool ReadArchive();
+        string GetSfxExt();
+    }
 
     public class MultiArchiveFileSource : ArchiveFileSource, IMultiArchiveFileSource
     {
         private string _password;
         private readonly MultiArchiveParser _outputParser;
-        private readonly List<FileEntry> _arcFileEntries;
+        private readonly FileEntries _arcFileEntries;
         private readonly MultiArcItem _multiArcItem;
         private readonly StringHashListUtf8 _allDirsList;
         private readonly StringHashListUtf8 _existsDirList;
@@ -38,7 +38,7 @@ namespace zfile
             : base(archiveFileSource, archiveFileName)
         {
             _multiArcItem = multiArcItem;
-            _arcFileEntries = new List<FileEntry>();
+            _arcFileEntries = new FileEntries();
             _outputParser = new MultiArchiveParser(multiArcItem, archiveFileName);
             _outputParser.OnGetArchiveItem += OnGetArchiveItem;
 
@@ -52,7 +52,7 @@ namespace zfile
         }
 
         public string Password => _password;
-        public List<FileEntry> ArchiveFileEntries => _arcFileEntries;
+        public FileEntries ArchiveFileEntries => _arcFileEntries;
         public MultiArcItem MultiArcItem => _multiArcItem;
 
         public bool FileIsLink(ArchiveItem archiveItem)
@@ -138,14 +138,14 @@ namespace zfile
             return false;
         }
 
-		public bool ReadArchive()
-		{
-			throw new NotImplementedException();
-		}
+        public bool ReadArchive()
+        {
+            throw new NotImplementedException();
+        }
 
-		public string GetSfxExt()
-		{
-			throw new NotImplementedException();
-		}
-	}
-} 
+        public string GetSfxExt()
+        {
+            throw new NotImplementedException();
+        }
+    }
+}

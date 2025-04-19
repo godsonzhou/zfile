@@ -7,7 +7,7 @@ namespace zfile
 {
     public interface IWcxArchiveFileSource : IArchiveFileSource
     {
-        ThreadSafeList<WcxHeader> ArchiveFileEntries { get; }
+        List<WcxHeader> ArchiveFileEntries { get; }
         int PluginCapabilities { get; }
         WcxModule WcxModule { get; }
     }
@@ -15,7 +15,7 @@ namespace zfile
     {
         private string _moduleFileName;
         private int _pluginCapabilities;
-        private ThreadSafeList<WcxHeader> _arcFileEntries;
+        private List<WcxHeader> _arcFileEntries;
         private WcxModule _wcxModule;
         private int _openResult;
         private List<FileSourceConnection> _connections;
@@ -23,7 +23,7 @@ namespace zfile
         private object _operationsQueueLock = new object();
         private object _connectionsLock = new object();
 
-        public ThreadSafeList<WcxHeader> ArchiveFileEntries => _arcFileEntries;
+        public List<WcxHeader> ArchiveFileEntries => _arcFileEntries;
         public int PluginCapabilities => _pluginCapabilities;
         public WcxModule WcxModule => _wcxModule;
 
@@ -32,7 +32,7 @@ namespace zfile
         {
             _moduleFileName = wcxPluginFileName;
             _pluginCapabilities = wcxPluginCapabilities;
-            _arcFileEntries = new ThreadSafeList<WcxHeader>();
+            _arcFileEntries = new List<WcxHeader>();
             _wcxModule = WcxPlugins.LoadModule(_moduleFileName);
             _connections = new List<FileSourceConnection>();
             _operationsQueue = new List<FileSourceOperation>();
@@ -55,7 +55,7 @@ namespace zfile
             : base(archiveFileSource, archiveFileName)
         {
             _pluginCapabilities = wcxPluginCapabilities;
-            _arcFileEntries = new ThreadSafeList<WcxHeader>();
+            _arcFileEntries = new List<WcxHeader>();
             _wcxModule = wcxPluginModule;
             _connections = new List<FileSourceConnection>();
             _operationsQueue = new List<FileSourceOperation>();
@@ -73,7 +73,7 @@ namespace zfile
 
         protected override void Dispose(bool disposing)
         {
-            _arcFileEntries?.Dispose();
+            //_arcFileEntries?.Dispose();
             base.Dispose();
         }
 

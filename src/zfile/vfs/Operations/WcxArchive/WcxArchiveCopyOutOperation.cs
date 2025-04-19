@@ -95,7 +95,12 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
         _statistics = RetrieveStatistics();
     }
 
-    protected override void MainExecute()
+	private void SplitFileMask(string renameMask, out string renameNameMask, out string renameExtMask)
+	{
+		throw new NotImplementedException();
+	}
+
+	protected override void MainExecute()
     {
         var wcxModule = _wcxArchiveFileSource.WcxModule;
 
@@ -285,7 +290,12 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
         return result;
     }
 
-    private void QuestionActionHandler(FileSourceOperationUIResponse action)
+	private DateTime WcxFileTimeToFileTime(int fileTime)
+	{
+		throw new NotImplementedException();
+	}
+
+	private void QuestionActionHandler(FileSourceOperationUIResponse action)
     {
         if (action == FileSourceOperationUIResponse.CompareAction)
         {

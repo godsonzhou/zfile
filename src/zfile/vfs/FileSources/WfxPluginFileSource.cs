@@ -30,7 +30,7 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 	private string _rootDirectory;
 	private readonly List<FileSourceConnection> _connections = new List<FileSourceConnection>();
 	private readonly object _connectionLock = new object();
-	private readonly ThreadSafeList<IFileSourceOperation> _operationsQueue = new ThreadSafeList<IFileSourceOperation>();
+	private readonly List<IFileSourceOperation> _operationsQueue = new();
 	private readonly object _operationsQueueLock = new object();
 
 	public WfxModule WfxModule => _wfxModule;
@@ -207,7 +207,7 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 	public bool CreateDirectory(string path)
 	{
 		var result = _wfxModule.CreateDirectory(path);
-		if (result == WfxConstants.WFX_SUCCESS)
+		if (result)
 		{
 			// Log success
 			return true;
@@ -428,6 +428,11 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 			else
 				return _wfxModule.GetFile(sourceFile, targetFile, flags, remoteInfo);
 		}
+	}
+
+	private long DateTimeToWfxFileTime(DateTime modificationTime)
+	{
+		throw new NotImplementedException();
 	}
 
 	public void AddToConnectionQueue(IFileSourceOperation operation)

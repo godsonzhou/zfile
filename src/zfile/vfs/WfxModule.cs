@@ -205,6 +205,7 @@ namespace zfile
 		internal static IntPtr WfxInvalidHandle = IntPtr.Zero;
 		internal BackgroundFlags BackgroundFlags;
 		internal string VFSRootName;
+		internal bool ContentPlugin;
 		#endregion
 
 		#region 属性
@@ -502,7 +503,12 @@ namespace zfile
             GC.SuppressFinalize(this);
         }
 
-        ~WfxModule()
+		internal bool FileExists(string path)
+		{
+			throw new NotImplementedException();
+		}
+
+		~WfxModule()
         {
             Dispose();
         }

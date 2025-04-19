@@ -744,7 +744,8 @@ public class FileEntry
     {
         get => _supportedProperties.HasFlag(FilePropertyType.Attributes) &&
                (Attributes & FileAttributes.Directory) == FileAttributes.Directory;
-    }
+		set => Attributes = value ? Attributes | FileAttributes.Directory : Attributes & ~FileAttributes.Directory;
+	}
 
     public bool IsSysFile
     {

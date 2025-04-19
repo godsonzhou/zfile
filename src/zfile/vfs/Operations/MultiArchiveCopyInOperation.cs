@@ -2,7 +2,13 @@ using System.Diagnostics;
 
 namespace zfile
 {
-    public class MultiArchiveCopyInOperation : ArchiveCopyInOperation
+	public enum DuplicateAction
+	{
+		None = 0,
+		Error = 1
+	}
+
+	public class MultiArchiveCopyInOperation : ArchiveCopyInOperation
     {
         private readonly IMultiArchiveFileSource _fileSource;
         private FileEntries _removeFilesTree;
@@ -20,6 +26,7 @@ namespace zfile
 		public string CustomParams { get; set; }
 		public bool TarBefore { get; set; }
 		public FileSourceCopyOperationStatistics Statistics;
+		private DuplicateAction ElevateAction;
 
 		public MultiArchiveCopyInOperation(IFileSource sourceFileSource, IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)
             : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)

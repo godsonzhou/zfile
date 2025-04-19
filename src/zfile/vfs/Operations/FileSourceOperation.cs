@@ -744,7 +744,7 @@ namespace zfile
             return false; // ¡Ÿ ± µœ÷
         }
 
-		internal void ChangeFileEntriesRoot(string empty, FileEntry[] fullFilesTreeToDelete)
+		internal void ChangeFileEntriesRoot(string empty, FileEntries fullFilesTreeToDelete)
 		{
 			throw new NotImplementedException();
 		}

@@ -787,7 +787,34 @@ public class FileEntries : IEnumerable<FileEntry>
     private bool _ownsObjects;
     private string _path;
 
-    public int Count
+	public static FileEntries Empty => new FileEntries();
+	public static FileEntries EmptyFlat => new FileEntries { _flat = true };
+	public bool IsEmpty => _list.Count == 0;
+	public bool IsFlat => _flat;
+	public string Name => _list.Count > 0 ? _list[0].Name : string.Empty;
+	public string PathName => _path;
+	public static FileEntries FromArray(FileEntry[] files)
+	{
+		var fileEntries = new FileEntries();
+		foreach (var file in files)
+		{
+			fileEntries.Add(file);
+		}
+		return fileEntries;
+	}
+	public FileEntry this[string name]
+	{
+		get
+		{
+			foreach (var file in _list)
+			{
+				if (file.Name == name)
+					return file;
+			}
+			return null;
+		}
+	}
+	public int Count
     {
         get { return _list.Count; }
         set

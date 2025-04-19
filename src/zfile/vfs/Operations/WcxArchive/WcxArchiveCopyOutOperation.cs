@@ -221,7 +221,12 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
         }
     }
 
-    protected override void Finalize()
+	private string ReplaceInvalidChars(string? targetFileName)
+	{
+		throw new NotImplementedException();
+	}
+
+	protected override void Finalize()
     {
         ClearCurrentOperation();
     }

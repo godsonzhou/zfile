@@ -6,14 +6,15 @@ namespace zfile
     {
         private readonly IMultiArchiveFileSource _fileSource;
         private FileSourceDeleteOperationStatistics _statistics;
-        private FileEntry[] _fullFilesTreeToDelete;
+        private FileEntries _fullFilesTreeToDelete;
         private string _password;
         private Process _exProcess;
         private string _tempFile;
         private int _errorLevel;
         private string _commandLine;
+		private FileEntries SourceFiles;
 
-        public MultiArchiveDeleteOperation(IFileSource fileSource, FileEntries filesToDelete)
+		public MultiArchiveDeleteOperation(IFileSource fileSource, FileEntries filesToDelete)
             : base(fileSource, filesToDelete)
         {
             _fileSource = fileSource as IMultiArchiveFileSource;
@@ -49,15 +50,15 @@ namespace zfile
 
             AddStateChangedListener(new[] { FileSourceOperationState.Starting, FileSourceOperationState.Pausing, FileSourceOperationState.Stopping }, FileSourceOperationStateChangedNotify);
 
-            if (SourceFiles.Length == 1)
+            if (SourceFiles.Count == 1)
             {
-                _statistics.CurrentFileFrom = SourceFiles[0].FullPath;
+                _statistics.CurrentFile = SourceFiles[0].FullPath;
             }
             else
             {
-                _statistics.CurrentFileFrom = SourceFiles[0].Path + "*.*";
+                _statistics.CurrentFile = SourceFiles[0].Path + "*.*";
             }
-            _statistics.CurrentFileTo = _fileSource.ArchiveFileName;
+            _statistics.CurrentFile = _fileSource.ArchiveFileName;
 
             _fileSource.FillAndCount("*", SourceFiles, true, out _fullFilesTreeToDelete, out _statistics.TotalFiles, out _statistics.TotalBytes);
 
@@ -75,7 +76,7 @@ namespace zfile
             if (_commandLine.Contains("%F"))
             {
                 // 逐个文件删除
-                for (int i = _fullFilesTreeToDelete.Length - 1; i >= 0; i--)
+                for (int i = _fullFilesTreeToDelete.Count - 1; i >= 0; i--)
                 {
                     var file = _fullFilesTreeToDelete[i];
                     UpdateProgress(rootPath + file.FullPath, destPath, 0);

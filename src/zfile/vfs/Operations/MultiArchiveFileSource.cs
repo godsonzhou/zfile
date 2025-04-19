@@ -8,7 +8,7 @@ namespace zfile
 	public interface IMultiArchiveFileSource : IArchiveFileSource
     {
         string Password { get; }
-        ThreadSafeList<FileEntry> ArchiveFileEntries { get; }
+        List<FileEntry> ArchiveFileEntries { get; }
         MultiArcItem MultiArcItem { get; }
 
         bool FileIsLink(ArchiveItem archiveItem);
@@ -24,7 +24,7 @@ namespace zfile
     {
         private string _password;
         private readonly MultiArchiveParser _outputParser;
-        private readonly ThreadSafeList<FileEntry> _arcFileEntries;
+        private readonly List<FileEntry> _arcFileEntries;
         private readonly MultiArcItem _multiArcItem;
         private readonly StringHashListUtf8 _allDirsList;
         private readonly StringHashListUtf8 _existsDirList;
@@ -38,7 +38,7 @@ namespace zfile
             : base(archiveFileSource, archiveFileName)
         {
             _multiArcItem = multiArcItem;
-            _arcFileEntries = new ThreadSafeList<FileEntry>();
+            _arcFileEntries = new List<FileEntry>();
             _outputParser = new MultiArchiveParser(multiArcItem, archiveFileName);
             _outputParser.OnGetArchiveItem += OnGetArchiveItem;
 
@@ -52,7 +52,7 @@ namespace zfile
         }
 
         public string Password => _password;
-        public ThreadSafeList<FileEntry> ArchiveFileEntries => _arcFileEntries;
+        public List<FileEntry> ArchiveFileEntries => _arcFileEntries;
         public MultiArcItem MultiArcItem => _multiArcItem;
 
         public bool FileIsLink(ArchiveItem archiveItem)
@@ -139,6 +139,11 @@ namespace zfile
         }
 
 		public bool ReadArchive()
+		{
+			throw new NotImplementedException();
+		}
+
+		public string GetSfxExt()
 		{
 			throw new NotImplementedException();
 		}

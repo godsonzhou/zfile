@@ -139,9 +139,10 @@ namespace zfile
                         _tempFile,
                         _password,
                         string.Empty,
+                        string.Empty,
                         string.Empty);
 
-                    OnReadLn(readyCommand);
+                    LogCommand(readyCommand);
 
                     _exProcess.StartInfo.WorkingDirectory = TargetPath;
                     _exProcess.StartInfo.FileName = readyCommand;
@@ -189,7 +190,7 @@ namespace zfile
             {
                 try
                 {
-                    Directory.SetAttributes(path.Key, path.Value);
+                    File.SetAttributes(path.Key, path.Value);
                 }
                 catch (Exception)
                 {
@@ -245,6 +246,11 @@ namespace zfile
         private void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
         {
             // 实现日志记录
+        }
+
+        private void LogCommand(string command)
+        {
+            LogMessage(command, LogOption.None, LogOption.Info);
         }
 
         private void CheckForErrors(string sourceName, string targetName, int exitStatus)

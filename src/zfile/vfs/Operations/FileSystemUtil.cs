@@ -53,6 +53,14 @@ namespace zfile
 				return name + "." + ext;
 		}
 
+		// Helper class to hold data for the FillAndCount method
+		private class FillAndCountData
+		{
+			public FileEntries NewFiles { get; set; }
+			public long FilesCount { get; set; }
+			public long FilesSize { get; set; }
+		}
+
 		public static void FillAndCount(
 			FileEntries files,
 			bool countDirs,
@@ -61,23 +69,23 @@ namespace zfile
 			out long filesCount,
 			out long filesSize)
 		{
-			// Create a class to hold the counters that can be modified in the local function
-			var counters = new CounterHolder { FilesCount = 0, FilesSize = 0 };
+			// Create a data holder that can be accessed from the local function
+			var data = new FillAndCountData { FilesCount = 0, FilesSize = 0 };
 
 			if (excludeRootDir)
 			{
 				if (files.Count != 1)
 					throw new Exception("Only a single directory can be set with ExcludeRootDir=True");
 
-				newFiles = new FileEntries(files[0].FullPath);
+				data.NewFiles = new FileEntries(files[0].FullPath);
 				FillAndCountRec(files[0].FullPath + Path.DirectorySeparatorChar);
 			}
 			else
 			{
-				newFiles = new FileEntries(files.Path);
+				data.NewFiles = new FileEntries(files.Path);
 				foreach (var file in files)
 				{
-					newFiles.Add(file);
+					data.NewFiles.Add(file);
 					if (file.IsLink)
 					{
 						// Handle link files
@@ -85,20 +93,21 @@ namespace zfile
 					else if (file.IsDirectory)
 					{
 						if (countDirs)
-							counters.FilesCount++;
+							data.FilesCount++;
 						FillAndCountRec(file.FullPath + Path.DirectorySeparatorChar);
 					}
 					else
 					{
-						counters.FilesSize += file.Size;
-						counters.FilesCount++;
+						data.FilesSize += file.Size;
+						data.FilesCount++;
 					}
 				}
 			}
 
 			// Assign the final values to the out parameters
-			filesCount = counters.FilesCount;
-			filesSize = counters.FilesSize;
+			newFiles = data.NewFiles;
+			filesCount = data.FilesCount;
+			filesSize = data.FilesSize;
 
 			void FillAndCountRec(string srcPath)
 			{
@@ -107,8 +116,19 @@ namespace zfile
 				{
 					if (entry == "." || entry == "..") continue;
 
-					var file = FileSystemFileSource.CreateFile(srcPath, entry);
-					newFiles.Add(file);
+					// Create a SearchRec object with the necessary information
+					var fileInfo = new FileInfo(entry);
+					var searchRec = new SearchRec
+					{
+						Name = Path.GetFileName(entry),
+						Attributes = File.GetAttributes(entry),
+						Size = fileInfo.Length,
+						Time = fileInfo.LastWriteTime,
+						PlatformTime = fileInfo.CreationTime,
+						LastAccessTime = fileInfo.LastAccessTime
+					};
+					var file = FileSystemFileSource.CreateFile(srcPath, searchRec);
+					data.NewFiles.Add(file);
 
 					if (file.IsLink)
 					{
@@ -117,13 +137,13 @@ namespace zfile
 					else if (file.IsDirectory)
 					{
 						if (countDirs)
-							counters.FilesCount++;
+							data.FilesCount++;
 						FillAndCountRec(Path.Combine(srcPath, Path.GetFileName(entry)));
 					}
 					else
 					{
-						counters.FilesSize += file.Size;
-						counters.FilesCount++;
+						data.FilesSize += file.Size;
+						data.FilesCount++;
 					}
 				}
 			}
@@ -435,9 +455,10 @@ namespace zfile
 			}
 		}
 
-		private readonly Action<string, bool> _askQuestion;
+		// These fields are used for compatibility with existing code
+		private readonly Func<string, bool, bool> _askQuestion;
 		private readonly Action _checkOperationState;
-		private FileTree _currentTree;
+		private FileTree? _currentTree;
 		private long _filesCount;
 		private long _filesSize;
 
@@ -449,13 +470,26 @@ namespace zfile
 		public long FilesSize => _filesSize;
 		public bool Recursive { get; set; }
 
-		public FileSystemTreeBuilder(Action<string, bool> askQuestion, Action checkOperationState)
+		public FileSystemTreeBuilder(AskQuestionFunction askQuestionFunction, CheckOperationStateFunction checkOperationStateFunction)
+			: base(askQuestionFunction, checkOperationStateFunction)
 		{
-			_askQuestion = askQuestion;
-			_checkOperationState = checkOperationState;
+			// Convert the delegates to the expected types
+			_askQuestion = (caption, isConfirmation) =>
+			{
+				var response = askQuestionFunction(caption, isConfirmation.ToString(),
+					new[] { FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.No },
+					FileSourceOperationUIResponse.Yes,
+					FileSourceOperationUIResponse.No);
+				return response == FileSourceOperationUIResponse.Yes;
+			};
+			_checkOperationState = () => checkOperationStateFunction();
+
+			// Initialize required fields
+			_currentTree = new FileTree(string.Empty);
+			SearchTemplate = new SearchTemplate("*");
 		}
 
-		public void BuildFromFiles(FileEntries files)
+		public new void BuildFromFiles(FileEntries files)
 		{
 			_currentTree = new FileTree(string.Empty);
 			_filesCount = 0;
@@ -475,19 +509,20 @@ namespace zfile
 
 			_filesCount++;
 			_filesSize += file.Size;
-			_currentTree.AddFile(file);
+			_currentTree?.AddFile(file);
 		}
 
-		public FileTree ReleaseTree()
+		public new FileTree ReleaseTree()
 		{
-			var tree = _currentTree;
+			var tree = _currentTree ?? new FileTree(string.Empty);
 			_currentTree = null;
 			return tree;
 		}
 
-		public void Dispose()
+		public new void Dispose()
 		{
 			_currentTree?.Dispose();
+			GC.SuppressFinalize(this);
 		}
 	}
 

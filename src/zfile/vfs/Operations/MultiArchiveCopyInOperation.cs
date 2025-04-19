@@ -2,13 +2,13 @@ using System.Diagnostics;
 
 namespace zfile
 {
-	public enum DuplicateAction
-	{
-		None = 0,
-		Error = 1
-	}
+    public enum DuplicateAction
+    {
+        None = 0,
+        Error = 1
+    }
 
-	public class MultiArchiveCopyInOperation : ArchiveCopyInOperation
+    public class MultiArchiveCopyInOperation : ArchiveCopyInOperation
     {
         private readonly IMultiArchiveFileSource _fileSource;
         private FileEntries _removeFilesTree;
@@ -20,15 +20,15 @@ namespace zfile
         private string _tempFile;
         private int _errorLevel;
         private string _commandLine;
-		public int PackingFlags { get; set; }
-		public string Password { get; set; }
-		public string VolumeSize { get; set; }
-		public string CustomParams { get; set; }
-		public bool TarBefore { get; set; }
-		public FileSourceCopyOperationStatistics Statistics;
-		private DuplicateAction ElevateAction;
+        public int PackingFlags { get; set; }
+        public string Password { get; set; }
+        public string VolumeSize { get; set; }
+        public string CustomParams { get; set; }
+        public bool TarBefore { get; set; }
+        public FileSourceCopyOperationStatistics Statistics;
+        private DuplicateAction ElevateAction;
 
-		public MultiArchiveCopyInOperation(IFileSource sourceFileSource, IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)
+        public MultiArchiveCopyInOperation(IFileSource sourceFileSource, IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)
             : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
         {
             _fileSource = targetFileSource as IMultiArchiveFileSource;
@@ -52,7 +52,7 @@ namespace zfile
 
         protected override void Initialize()
         {
-            if (Path.GetExtension(_fileSource.ArchiveFileName) == _fileSource.GetSfxExt() && 
+            if (Path.GetExtension(_fileSource.ArchiveFileName) == _fileSource.GetSfxExt() &&
                 !string.IsNullOrEmpty(_fileSource.MultiArcItem.AddSelfExtract))
             {
                 _commandLine = _fileSource.MultiArcItem.AddSelfExtract;
@@ -81,7 +81,7 @@ namespace zfile
                 _exProcess.StartInfo.RedirectStandardInput = true;
             }
 
-            AddStateChangedListener(new[] { FileSourceOperationState.Starting, FileSourceOperationState.Pausing, FileSourceOperationState.Stopping }, FileSourceOperationStateChangedNotify);
+            AddStateChangedListener(new[] { FileSourceOperationState.Starting, FileSourceOperationState.Pausing, FileSourceOperationState.Stopping }, (sender, state) => FileSourceOperationStateChangedNotify((IFileSourceOperation)sender, state));
 
             if (SourceFiles.Count == 1)
             {
@@ -131,7 +131,7 @@ namespace zfile
                         _volumeSize,
                         _customParams);
 
-                    OnReadLn(readyCommand);
+                    LogCommand(readyCommand);
 
                     // 设置归档器当前路径为文件列表根目录
                     _exProcess.StartInfo.WorkingDirectory = rootPath;
@@ -199,6 +199,11 @@ namespace zfile
             // 实现日志记录
         }
 
+        private void LogCommand(string command)
+        {
+            LogMessage(command, LogOption.None, LogOption.Info);
+        }
+
         private bool CheckForErrors(string fileName, int exitStatus)
         {
             if (exitStatus > _errorLevel)
@@ -219,6 +224,6 @@ namespace zfile
             // 实现文件批量删除
         }
 
-   
-	}
-} 
+
+    }
+}

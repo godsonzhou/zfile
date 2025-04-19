@@ -106,7 +106,7 @@ namespace zfile
         private string _currentTargetFilePath;
 
         private AskQuestionFunction _askQuestion;
-        private Action _abortOperation;
+        private AbortOperationFunction _abortOperation;
         private CheckOperationStateFunction _checkOperationState;
         private UpdateStatisticsFunction _updateStatistics;
         private ShowCompareFilesUIFunction _showCompareFilesUI;

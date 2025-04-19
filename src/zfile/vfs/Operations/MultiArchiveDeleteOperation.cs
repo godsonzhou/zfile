@@ -12,9 +12,9 @@ namespace zfile
         private string _tempFile;
         private int _errorLevel;
         private string _commandLine;
-		private FileEntries SourceFiles;
+        private FileEntries SourceFiles;
 
-		public MultiArchiveDeleteOperation(IFileSource fileSource, FileEntries filesToDelete)
+        public MultiArchiveDeleteOperation(IFileSource fileSource, FileEntries filesToDelete)
             : base(fileSource, filesToDelete)
         {
             _fileSource = fileSource as IMultiArchiveFileSource;
@@ -66,7 +66,7 @@ namespace zfile
             _errorLevel = ExtractErrorLevel(_commandLine);
         }
 
-		protected override void MainExecute()
+        protected override void MainExecute()
         {
             var multiArcItem = _fileSource.MultiArcItem;
             string destPath = string.Empty;
@@ -93,7 +93,7 @@ namespace zfile
                         string.Empty,
                         string.Empty);
 
-                    OnReadLn(readyCommand);
+                    LogCommand(readyCommand);
 
                     // 设置归档器当前路径为文件列表根目录
                     _exProcess.StartInfo.WorkingDirectory = rootPath;
@@ -108,7 +108,7 @@ namespace zfile
             }
         }
 
-		private void OnReadLn(object sender, DataReceivedEventArgs e)
+        private void OnReadLn(object sender, DataReceivedEventArgs e)
         {
             if (!string.IsNullOrEmpty(e.Data))
             {
@@ -149,6 +149,11 @@ namespace zfile
             // 实现日志记录
         }
 
+        private void LogCommand(string command)
+        {
+            LogMessage(command, LogOption.None, LogOption.Info);
+        }
+
         private bool CheckForErrors(string fileName, int exitStatus)
         {
             if (exitStatus > _errorLevel)
@@ -161,4 +166,4 @@ namespace zfile
 
         public string Password { get; set; }
     }
-} 
+}

@@ -215,6 +215,7 @@ namespace zfile
         internal BackgroundFlags BackgroundFlags;
         internal string VFSRootName;
         internal bool ContentPlugin;
+        private int _pluginNumber;
         #endregion
 
         #region 属性
@@ -223,6 +224,7 @@ namespace zfile
         public bool IsLoaded => _moduleHandle != IntPtr.Zero;
         public bool IsUnicode => _isUnicode;
         public string FileName { get => _modulePath; set => _modulePath = value; }
+        public int PluginNumber { get => _pluginNumber; set => _pluginNumber = value; }
         #endregion
 
         #region 构造函数和初始化
@@ -526,6 +528,30 @@ namespace zfile
             return _isUnicode ?
                 _fsRenMovFileW(oldName, newName, isMove, overWrite, remoteInfo) :
                 _fsRenMovFile(oldName, newName, isMove, overWrite, remoteInfo);
+        }
+
+        public FsFileResult PutFile(string localName, string remoteName, FsCopyFlags copyFlags)
+        {
+            int result = _isUnicode ?
+                _fsPutFileW(localName, remoteName, (int)copyFlags) :
+                _fsPutFile(localName, remoteName, (int)copyFlags);
+            return (FsFileResult)result;
+        }
+
+        public FsFileResult GetFile(string remoteName, string localName, FsCopyFlags copyFlags, FileEntry remoteInfo)
+        {
+            var _remoteInfo = new RemoteFileInfo
+            {
+                SizeLow = (int)(remoteInfo.Size & 0xFFFFFFFF),
+                SizeHigh = (int)(remoteInfo.Size >> 32),
+                Attr = (int)remoteInfo.Attributes,
+                LastWriteTime = remoteInfo.ModificationTime.ToFileTime()
+            };
+
+            int result = _isUnicode ?
+                _fsGetFileW(remoteName, localName, (int)copyFlags, _remoteInfo) :
+                _fsGetFile(remoteName, localName, (int)copyFlags, _remoteInfo);
+            return (FsFileResult)result;
         }
         #endregion
 

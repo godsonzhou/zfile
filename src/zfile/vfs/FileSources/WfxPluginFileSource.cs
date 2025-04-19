@@ -134,7 +134,7 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 		{
 			Name = fileName,
 			IsDirectory = isDirectory,
-			Attributes = isDirectory ? WfxConstants.FILE_ATTRIBUTE_DIRECTORY : WfxConstants.FILE_ATTRIBUTE_NORMAL
+			Attributes = isDirectory ? (FileAttributes)WfxConstants.FILE_ATTRIBUTE_DIRECTORY : (FileAttributes)WfxConstants.FILE_ATTRIBUTE_NORMAL
 		};
 	}
 
@@ -398,8 +398,8 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 
 	public bool FillSingleFile(string fullPath, out FileEntry file)
 	{
-		file = null;
-		var filePath = Path.GetDirectoryName(fullPath);
+		file = new FileEntry();
+		var filePath = Path.GetDirectoryName(fullPath) ?? string.Empty;
 		var expectedFileName = Path.GetFileName(fullPath);
 
 		foreach (var findData in _wfxModule.FindFiles(filePath))

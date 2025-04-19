@@ -149,10 +149,10 @@ namespace zfile
 			_operationHelper = new FileSystemOperationHelper(
 				AskQuestion,
 				RaiseAbortOperation,
-				AppProcessMessages,
+				new Action(AppProcessMessages),
 				CheckOperationState,
 				UpdateStatistics,
-				ShowCompareFilesUI,
+				null, //showcomparefilesui not implemented
 				_thread,
 				FileSourceOperationHelperMode.Copy,
 				TargetPath,
@@ -180,8 +180,20 @@ namespace zfile
 			_operationHelper.ProcessTree(_sourceFilesTree);
 		}
 
+		/// <summary>
+		/// Process application messages
+		/// </summary>
+		private void AppProcessMessages()
+		{
+			// Process any pending application messages
+			Application.DoEvents();
+		}
+
+
+
 		protected override void Finalize()
 		{
+			// Get file exists option from the operation helper
 			FileExistsOption = _operationHelper.FileExistsOption;
 			_operationHelper.Dispose();
 		}

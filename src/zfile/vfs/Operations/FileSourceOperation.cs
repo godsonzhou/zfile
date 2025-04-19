@@ -760,6 +760,29 @@ namespace zfile
         {
             throw new NotImplementedException();
         }
+
+        protected bool CheckOperationStateSafe()
+        {
+            try
+            {
+                CheckOperationState();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+		/// <summary>
+		/// Process application messages
+		/// </summary>
+		private static bool AppProcessMessages(bool checkState = false)
+		{
+			// Process any pending application messages
+			Application.DoEvents();
+			return true;
+		}
     }
 
     public interface IFileSourceOperationUIActionHandler

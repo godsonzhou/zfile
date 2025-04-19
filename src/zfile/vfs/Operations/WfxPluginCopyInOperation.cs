@@ -97,7 +97,7 @@ public class WfxPluginCopyInOperation : FileSourceCopyInOperation
 			UpdateStatistics,
 			ShowCompareFilesUI,
 			ShowCompareFilesUIByFileObject,
-			Thread,
+			_thread,
 			WfxPluginOperationHelperMode.CopyIn,
 			TargetPath);
 

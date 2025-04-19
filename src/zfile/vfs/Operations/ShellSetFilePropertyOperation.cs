@@ -52,20 +52,7 @@ namespace zfile
             UpdateProgress(progressPercentage);
         }
 
-        protected bool CheckOperationStateSafe()
-        {
-            try
-            {
-                CheckOperationState();
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        protected override void MainExecute()
+		protected override void MainExecute()
         {
             var sink = new FileOperationProgressSink(ref statistics!, UpdateStatistics, CheckOperationStateSafe);
 

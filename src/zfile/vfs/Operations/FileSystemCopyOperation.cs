@@ -150,9 +150,9 @@ namespace zfile
 			_operationHelper = new FileSystemOperationHelper(
 				(msg, question, possibleResponses, defaultOKResponse, defaultCancelResponse, actionHandler) =>
 					AskQuestion(msg, question, possibleResponses, defaultOKResponse, defaultCancelResponse, actionHandler),
-				RaiseAbortOperation,
-				(checkState) => { AppProcessMessages(); return true; },
-				CheckOperationState,
+				() => RaiseAbortOperation(),
+				(checkState) => AppProcessMessages(checkState),
+				() => CheckOperationState(),
 				UpdateStatistics,
 				null, //showcomparefilesui not implemented
 				_thread,
@@ -180,15 +180,6 @@ namespace zfile
 		protected override void MainExecute()
 		{
 			_operationHelper.ProcessTree(_sourceFilesTree);
-		}
-
-		/// <summary>
-		/// Process application messages
-		/// </summary>
-		private static void AppProcessMessages()
-		{
-			// Process any pending application messages
-			Application.DoEvents();
 		}
 
 

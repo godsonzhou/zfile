@@ -471,7 +471,7 @@ namespace zfile
 
             if ((logOptions & GlobalSettings.LogOptions) == logOptions)
             {
-                Logger.Write(Thread, message, logMsgType);
+                Logger.Write(_thread, message, logMsgType);
             }
         }
 

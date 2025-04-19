@@ -97,7 +97,7 @@ namespace zfile
                 UpdateStatistics,
                 ShowCompareFilesUI,
                 ShowCompareFilesUIByFileObject,
-                Thread,
+                _thread,
                 WfxPluginOperationHelperMode.CopyOut,
                 TargetPath);
 

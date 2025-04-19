@@ -5,7 +5,7 @@ namespace zfile
 	public interface IShellFileSource : IVirtualFileSource
 	{
 		bool SetCurrentWorkingDirectory(string newDir);
-		int CreateFolder(IShellFolder2 parent,  string newDir);
+		int CreateFolder(IShellFolder2 parent, string newDir);
 		int FindFolder(string path, out IShellFolder2 folder);
 		int FindObject(string obj, out IntPtr pidl);
 		int FindObject(IShellFolder2 parent, string name, out IntPtr pidl);
@@ -21,7 +21,11 @@ namespace zfile
 		{
 			w32.OleCheck(API.SHGetDesktopFolder(out _desktopFolder));
 			w32.OleCheck(API.SHGetFolderLocation(IntPtr.Zero, CSIDL.DRIVES, IntPtr.Zero, 0, out _drives));
-			w32.OleCheck(_desktopFolder.BindToObject(_drives, IntPtr.Zero, ref Guids.IID_IShellFolder2, out _rootFolder));
+
+			// Use IShellFolder interface for BindToObject, then cast to IShellFolder2
+			IShellFolder tempFolder;
+			_desktopFolder.BindToObject(_drives, IntPtr.Zero, ref Guids.IID_IShellFolder, out tempFolder);
+			_rootFolder = (IShellFolder2)tempFolder;
 			_rootPath = w32.GetDisplayName(_desktopFolder, _drives, SHGDN.INFOLDER);
 
 			OperationsClasses[FileSourceOperationType.Move] = typeof(ShellMoveOperation);
@@ -40,13 +44,13 @@ namespace zfile
 			return true;
 		}
 
-		public static bool IsSupportedPath(string path)
+		public static new bool IsSupportedPath(string path)
 		{
 			return path.StartsWith(Path.DirectorySeparatorChar + Path.DirectorySeparatorChar +
 								 Path.DirectorySeparatorChar + RootName);
 		}
 
-		public static FileEntry CreateFile(string path)
+		public static new FileEntry CreateFile(string path)
 		{
 			var file = new FileEntry(path);
 			file.AttributesProperty = new FileAttributesProperty();
@@ -58,7 +62,7 @@ namespace zfile
 			return file;
 		}
 
-		public static bool GetMainIcon(out string path)
+		public static new bool GetMainIcon(out string path)
 		{
 			path = "%SystemRoot%\\System32\\shell32.dll,15";
 			return true;
@@ -95,25 +99,28 @@ namespace zfile
 			w32.OleCheck(API.SHGetFolderLocation(IntPtr.Zero, CSIDL.DRIVES, IntPtr.Zero, 0, out drivesPidl));
 			try
 			{
-				IShellFolder2 folder;
-				w32.OleCheck(desktopFolder.BindToObject(drivesPidl, IntPtr.Zero, ref Guids.IID_IShellFolder2, out folder));
+				// Use IShellFolder interface for BindToObject, then cast to IShellFolder2
+				IShellFolder tempFolder;
+				desktopFolder.BindToObject(drivesPidl, IntPtr.Zero, ref Guids.IID_IShellFolder, out tempFolder);
+				IShellFolder2 folder = (IShellFolder2)tempFolder;
 				IEnumIDList enumIdList;
 				w32.OleCheck(folder.EnumObjects(IntPtr.Zero, (uint)(SHCONTF.FOLDERS | SHCONTF.STORAGE), out enumIdList));
 				string rootPath = "\\\\\\" + w32.GetDisplayName(desktopFolder, drivesPidl, SHGDN.INFOLDER);
 
-				IntPtr[] pidl;
-				uint numIds;
 				int index = 0;
+				IntPtr pidl = IntPtr.Zero;
+				uint numIds;
 				while (enumIdList.Next(1, out pidl, out numIds) == 0)
 				{
 					try
 					{
 						uint rgfInOut = SFGAOF_DEFAULT;
-						if (folder.GetAttributesOf(1, pidl, ref rgfInOut) == 0)
+						IntPtr[] pidlArray = new IntPtr[] { pidl };
+						if (folder.GetAttributesOf(1, pidlArray, ref rgfInOut) == 0)
 						{
 							if ((SFGAOF_DEFAULT & rgfInOut) == (uint)SFGAO.FOLDER)
 							{
-								string deviceId = w32.GetDisplayName2(folder, pidl[0], SHGDN.FORPARSING);
+								string deviceId = w32.GetDisplayName2(folder, pidl, SHGDN.FORPARSING);
 								if (deviceId.Contains("\\\\?\\usb"))
 								{
 									var drive = new Drive();
@@ -129,7 +136,7 @@ namespace zfile
 									drive.DeviceId = deviceId;
 									drive.DriveType = DriveType.Special;
 									drive.IsMediaAvailable = true;
-									drive.DriveLabel = w32.GetDisplayName2(folder, pidl[0], SHGDN.INFOLDER);
+									drive.DriveLabel = w32.GetDisplayName2(folder, pidl, SHGDN.INFOLDER);
 									drive.Path = rootPath + Path.DirectorySeparatorChar + drive.DriveLabel;
 									drivesList.Add(drive);
 									index++;

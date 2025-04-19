@@ -1,65 +1,65 @@
 namespace zfile
 {
-	public struct StateChangedEventEntry
-	{
-		public EventHandler<FileSourceOperationState> FunctionToCall;
-		public List<FileSourceOperationState> States;
-	}
+    public struct StateChangedEventEntry
+    {
+        public EventHandler<FileSourceOperationState> FunctionToCall;
+        public List<FileSourceOperationState> States;
+    }
 
-	public struct DuplicateOption
-	{
+    public struct DuplicateOption
+    {
 
-	}
-	public class FileSourceOperationAbortingException : Exception;
+    }
+    public class FileSourceOperationAbortingException : Exception;
 
-	public interface IFileSourceOperation
-	{   /// <summary>
-		/// Gets the operation type
-		/// </summary>
-		FileSourceOperationType OperationType { get; }
+    public interface IFileSourceOperation
+    {   /// <summary>
+        /// Gets the operation type
+        /// </summary>
+        FileSourceOperationType OperationType { get; }
 
-		/// <summary>
-		/// Gets the file source associated with this operation
-		/// </summary>
-		IFileSource FileSource { get; }
+        /// <summary>
+        /// Gets the file source associated with this operation
+        /// </summary>
+        IFileSource FileSource { get; }
 
-		/// <summary>
-		/// Gets the target path for this operation
-		/// </summary>
-		string TargetPath { get; }
+        /// <summary>
+        /// Gets the target path for this operation
+        /// </summary>
+        string TargetPath { get; }
 
-		/// <summary>
-		/// Gets the description of this operation
-		/// </summary>
-		string Description { get; }
+        /// <summary>
+        /// Gets the description of this operation
+        /// </summary>
+        string Description { get; }
 
 
-		int OperationHandle { get; }
-		FileSourceOperationState State { get; }
-		bool IsFree { get; }
-		bool IsModal { get; }
-		string ResultString { get; }
+        int OperationHandle { get; }
+        FileSourceOperationState State { get; }
+        bool IsFree { get; }
+        bool IsModal { get; }
+        string ResultString { get; }
 
-		void Start();
-		void Pause();
-		void Stop();
-		void Resume();
-		string OperationName { get; }
-		bool IsAborted { get; }
-		void Abort();
-		void ConnectionAvailableNotify();
+        void Start();
+        void Pause();
+        void Stop();
+        void Resume();
+        string OperationName { get; }
+        bool IsAborted { get; }
+        void Abort();
+        void ConnectionAvailableNotify();
 
-		/// <summary>
-		/// Event raised when the operation state changes
-		/// </summary>
-		event EventHandler<FileSourceOperationState> StateChanged;
-		//event EventHandler<EventArgs> StateChanged;
-		event EventHandler<EventArgs> ProgressChanged;
-	}
-	/// <summary>
-	/// Base class for all file source operations
-	/// </summary>
-	public abstract class FileSourceOperation : IDisposable
+        /// <summary>
+        /// Event raised when the operation state changes
+        /// </summary>
+        event EventHandler<FileSourceOperationState> StateChanged;
+        //event EventHandler<EventArgs> StateChanged;
+        event EventHandler<EventArgs> ProgressChanged;
+    }
+    /// <summary>
+    /// Base class for all file source operations
+    /// </summary>
+    public abstract class FileSourceOperation : IDisposable
     {
         private IFileSource _fileSource;
         private double _progress;
@@ -94,12 +94,12 @@ namespace zfile
         private FileSourceOperationUIResponse _uiResponse;
         private bool _tryAskQuestionResult;
 
-		public virtual bool NeedsConnection { get => _needsConnection; set => _needsConnection = value; }
+        public virtual bool NeedsConnection { get => _needsConnection; set => _needsConnection = value; }
         /// <summary>
         /// Gets the operation type
         /// </summary>
         public abstract FileSourceOperationType OperationType { get; }
-		
+
         /// <summary>
         /// Gets the file source
         /// </summary>
@@ -108,28 +108,28 @@ namespace zfile
         /// <summary>
         /// Gets the target path
         /// </summary>
-        public virtual string TargetPath { get; set; } 
+        public virtual string TargetPath { get; set; }
 
-        
-		/// <summary>
-		/// Gets the operation state
-		/// </summary>
-		public FileSourceOperationState State
-		{
-			get => _state;
-			protected set
-			{
-				if (_state != value)
-				{
-					_state = value;
-					StateChanged?.Invoke(this, _state);
-				}
-			}
-		}
-		/// <summary>
-		/// Gets the start time of the operation
-		/// </summary>
-		public DateTime StartTime => _startTime;
+
+        /// <summary>
+        /// Gets the operation state
+        /// </summary>
+        public FileSourceOperationState State
+        {
+            get => _state;
+            protected set
+            {
+                if (_state != value)
+                {
+                    _state = value;
+                    StateChanged?.Invoke(this, _state);
+                }
+            }
+        }
+        /// <summary>
+        /// Gets the start time of the operation
+        /// </summary>
+        public DateTime StartTime => _startTime;
 
         /// <summary>
         /// Gets the progress of the operation (0.0 to 1.0)
@@ -180,7 +180,7 @@ namespace zfile
             _desiredState = FileSourceOperationState.Running; // Set for auto-start unless prevented
             _operationResult = FileSourceOperationResult.Aborted;
             _progress = 0.0;
-            
+
             // Check if file source uses connections
             _needsConnection = _fileSource != null && _fileSource.Properties.HasFlag(FileSourceProperties.UsersConnections);
         }
@@ -302,7 +302,7 @@ namespace zfile
                 _pauseEvent.Set(); // Wake up if paused
             }
         }
-        
+
         /// <summary>
         /// Prevents auto start of the operation on Execute
         /// </summary>
@@ -313,7 +313,7 @@ namespace zfile
                 _desiredState = FileSourceOperationState.NotStarted;
             }
         }
-        
+
         /// <summary>
         /// If the operation can be paused it pauses otherwise starts the operation
         /// </summary>
@@ -333,7 +333,7 @@ namespace zfile
                 Start();
             }
         }
-        
+
         /// <summary>
         /// Notifies the operation that possibly a connection is available from the file source
         /// </summary>
@@ -368,8 +368,8 @@ namespace zfile
             {
                 OnStateChanged();
 
-                if (_state == FileSourceOperationState.Finished || 
-                    _state == FileSourceOperationState.Stopped || 
+                if (_state == FileSourceOperationState.Finished ||
+                    _state == FileSourceOperationState.Stopped ||
                     _state == FileSourceOperationState.Failed)
                 {
                     DoReloadFileSources();
@@ -401,7 +401,7 @@ namespace zfile
                 // For example: _fileSource.Reload();
             }
         }
-        
+
         /// <summary>
         /// Initializes the operation
         /// </summary>
@@ -409,12 +409,12 @@ namespace zfile
         {
             // Override in descendant classes
         }
-        
+
         /// <summary>
         /// Executes the main operation
         /// </summary>
         protected abstract void MainExecute();
-        
+
         /// <summary>
         /// Finalizes the operation
         /// </summary>
@@ -431,10 +431,10 @@ namespace zfile
         {
             // First notify through the event
             StateChanged?.Invoke(this, newState);
-            
+
             // Then notify all registered listeners
             List<EventHandler<FileSourceOperationState>> functionsToCall = new List<EventHandler<FileSourceOperationState>>();
-            
+
             lock (_eventsLock)
             {
                 foreach (var entry in _stateChangedEventListeners)
@@ -445,14 +445,14 @@ namespace zfile
                     }
                 }
             }
-            
+
             // Call all listeners outside the lock
             foreach (var func in functionsToCall)
             {
                 func(this, newState);
             }
         }
-        
+
         /// <summary>
         /// Gets a connection from the file source
         /// </summary>
@@ -466,16 +466,17 @@ namespace zfile
             }
             return null;
         }
-        
+
         /// <summary>
         /// Waits for a connection to become available
         /// </summary>
         /// <returns>The wait result</returns>
         protected int WaitForConnection()
         {
-            return _connectionAvailableEvent.WaitOne(_connectionTimeout);
+            // Convert boolean result to WaitHandle result
+            return _connectionAvailableEvent.WaitOne(_connectionTimeout) ? 0 : WaitHandle.WaitTimeout;
         }
-        
+
         /// <summary>
         /// Updates the start time of the operation
         /// </summary>
@@ -485,9 +486,9 @@ namespace zfile
             _startTime = newStartTime;
         }
         protected virtual FileSourceOperationType GetID()
-		{
-			return OperationType;
-		}
+        {
+            return OperationType;
+        }
         /// <summary>
         /// Gets the current state of the operation
         /// </summary>
@@ -499,7 +500,7 @@ namespace zfile
                 return _state;
             }
         }
-        
+
         /// <summary>
         /// Gets the desired state of the operation
         /// </summary>
@@ -508,7 +509,7 @@ namespace zfile
         {
             return _desiredState;
         }
-        
+
         /// <summary>
         /// Updates the state of the operation
         /// </summary>
@@ -531,7 +532,7 @@ namespace zfile
                 return false;
             }
         }
-        
+
         /// <summary>
         /// Must be called from the operation thread
         /// </summary>
@@ -545,7 +546,7 @@ namespace zfile
                 _pauseEvent.WaitOne();
             }
         }
-        
+
         /// <summary>
         /// This function does some checks on the current and desired state of the operation
         /// </summary>
@@ -560,7 +561,7 @@ namespace zfile
                 throw new FileSourceOperationAbortingException();
             }
         }
-        
+
         /// <summary>
         /// Adds a function to call when the operation's state changes
         /// </summary>
@@ -590,8 +591,8 @@ namespace zfile
                 for (int i = _stateChangedEventListeners.Count - 1; i >= 0; i--)
                 {
                     var entry = _stateChangedEventListeners[i];
-                    if (entry.FunctionToCall == functionToCall && 
-                        states.All(s => entry.States.Contains(s)) && 
+                    if (entry.FunctionToCall == functionToCall &&
+                        states.All(s => entry.States.Contains(s)) &&
                         entry.States.Count == states.Length)
                     {
                         _stateChangedEventListeners.RemoveAt(i);
@@ -627,12 +628,12 @@ namespace zfile
                 _userInterfaces.Remove(userInterface);
             }
         }
-        
+
         /// <summary>
         /// General function to ask questions from operations
         /// </summary>
         protected FileSourceOperationUIResponse AskQuestion(
-            string message, 
+            string message,
             string question,
             FileSourceOperationUIResponse[] possibleResponses,
             FileSourceOperationUIResponse defaultOKResponse,
@@ -646,10 +647,10 @@ namespace zfile
             _uiDefaultOKResponse = defaultOKResponse;
             _uiDefaultCancelResponse = defaultCancelResponse;
             _uiActionHandler = actionHandler;
-            
+
             // Change state to waiting for feedback
             UpdateState(FileSourceOperationState.WaitingForFeedback);
-            
+
             // Wait for UI to be assigned if needed
             while (true)
             {
@@ -660,21 +661,21 @@ namespace zfile
                         break;
                     }
                 }
-                
+
                 // Wait for UI to be assigned
                 _userInterfaceAssignedEvent.WaitOne();
-                
+
                 // Check if operation was aborted while waiting
                 CheckOperationState();
             }
-            
+
             // Get the most recently assigned UI
             IFileSourceOperationUI ui;
             lock (_eventsLock)
             {
                 ui = _userInterfaces[_userInterfaces.Count - 1];
             }
-            
+
             // Ask the question
             _uiResponse = ui.AskQuestion(
                 _uiMessage,
@@ -683,23 +684,23 @@ namespace zfile
                 _uiDefaultOKResponse,
                 _uiDefaultCancelResponse,
                 _uiActionHandler);
-            
+
             // Check if operation should be aborted
             if (_uiResponse == FileSourceOperationUIResponse.Abort)
             {
                 throw new FileSourceOperationAbortingException();
             }
-            
+
             // Return to running state
             UpdateState(FileSourceOperationState.Running);
-            
+
             return _uiResponse;
         }
-        
-		internal void RaiseAbortOperation()
-		{
-			throw new FileSourceOperationAbortingException();
-		}
+
+        internal void RaiseAbortOperation()
+        {
+            throw new FileSourceOperationAbortingException();
+        }
         /// <summary>
         /// Disposes resources
         /// </summary>
@@ -723,49 +724,49 @@ namespace zfile
             }
         }
 
-		internal DateTime? DateTimeToFileTimeEx(DateTime? value)
-		{
-			throw new NotImplementedException();
-		}
+        internal DateTime? DateTimeToFileTimeEx(DateTime? value)
+        {
+            throw new NotImplementedException();
+        }
 
-		internal DateTime FileTimeToDateTime(long lastWriteTime)
-		{
-			throw new NotImplementedException();
-		}
+        internal DateTime FileTimeToDateTime(long lastWriteTime)
+        {
+            throw new NotImplementedException();
+        }
 
-		internal string FormatArchiverCommand(string archiver, string commandLine, string archiveFileName, object value, string fullPath, string destPath, string tempFile, string password, string empty1, string empty2)
-		{
-			throw new NotImplementedException();
-		}
+        internal string FormatArchiverCommand(string archiver, string commandLine, string archiveFileName, object value, string fullPath, string destPath, string tempFile, string password, string empty1, string empty2)
+        {
+            throw new NotImplementedException();
+        }
 
         internal bool MatchesMaskList(string fileName, string maskList)
         {
-            // ÊµÏÖÎÄ¼þÃûÆ¥Åä¼ì²é
-            return false; // ÁÙÊ±ÊµÏÖ
+            // Êµï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½Æ¥ï¿½ï¿½ï¿½ï¿½
+            return false; // ï¿½ï¿½Ê±Êµï¿½ï¿½
         }
 
-		internal void ChangeFileEntriesRoot(string empty, FileEntries fullFilesTreeToDelete)
-		{
-			throw new NotImplementedException();
-		}
+        internal void ChangeFileEntriesRoot(string empty, FileEntries fullFilesTreeToDelete)
+        {
+            throw new NotImplementedException();
+        }
 
-		internal int ExtractErrorLevel(string commandLine)
-		{
-			throw new NotImplementedException();
-		}
+        internal int ExtractErrorLevel(string commandLine)
+        {
+            throw new NotImplementedException();
+        }
 
-	internal bool MatchesFileEntries(FileEntries files, string fileName)
-	{
-		throw new NotImplementedException();
-	}
+        internal bool MatchesFileEntries(FileEntries files, string fileName)
+        {
+            throw new NotImplementedException();
+        }
     }
 
-	public interface IFileSourceOperationUIActionHandler
-	{
-	}
+    public interface IFileSourceOperationUIActionHandler
+    {
+    }
 
-	public interface IFileSourceOperationUI
-	{
-		FileSourceOperationUIResponse AskQuestion(string uiMessage, string uiQuestion, FileSourceOperationUIResponse[] uiPossibleResponses, FileSourceOperationUIResponse uiDefaultOKResponse, FileSourceOperationUIResponse uiDefaultCancelResponse, IFileSourceOperationUIActionHandler uiActionHandler);
-	}
+    public interface IFileSourceOperationUI
+    {
+        FileSourceOperationUIResponse AskQuestion(string uiMessage, string uiQuestion, FileSourceOperationUIResponse[] uiPossibleResponses, FileSourceOperationUIResponse uiDefaultOKResponse, FileSourceOperationUIResponse uiDefaultCancelResponse, IFileSourceOperationUIActionHandler uiActionHandler);
+    }
 }

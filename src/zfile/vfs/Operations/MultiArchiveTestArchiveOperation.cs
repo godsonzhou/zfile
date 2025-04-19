@@ -4,7 +4,6 @@ namespace zfile
     {
         private readonly IMultiArchiveFileSource _multiArchiveFileSource;
         private readonly FileEntries _sourceFiles;
-        private bool _testResult;
 
         public override FileSourceOperationType OperationType => FileSourceOperationType.TestArchive;
 
@@ -27,7 +26,8 @@ namespace zfile
             try
             {
                 // 执行归档测试
-                _testResult = TestArchive();
+                bool testResult = TestArchive();
+                // Use the test result as needed
             }
             catch
             {

@@ -473,8 +473,8 @@ namespace zfile
                                         else if (pluginType == "wdx")
                                         {
                                             result = WdxPlugins.Add(plugin);
-                                            WdxPlugins.GetWdxModule(result).FileName = GetPluginFilenameToSave(plugin);
-                                        }
+											WdxPlugins.GetWdxModule(result).FileName = GetPluginFilenameToSave(plugin);
+										}
                                         else if (pluginType == "wfx")
                                         {
                                             WfxModule wfxModule = WfxPlugins.LoadModule(plugin);

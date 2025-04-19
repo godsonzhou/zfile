@@ -51,11 +51,11 @@ namespace zfile
     // 必需的函数
     public delegate int ContentGetSupportedField(int FieldIndex, out IntPtr FieldName, out int Units, out IntPtr UnitName);
     public delegate int ContentGetValue(string FileName, int FieldIndex, int UnitIndex, int MaxLen, out IntPtr FieldValue, int Flags);
-    
+
     // Unicode版本
     public delegate int ContentGetValueW(string FileName, int FieldIndex, int UnitIndex, int MaxLen, out IntPtr FieldValue, int Flags);
     public delegate int ContentSetDefaultParams(ref ContentDefaultParamStruct dps);
-    
+
     // 可选函数
     public delegate void ContentPluginUnloading();
     public delegate void ContentStopGetValue(string FileName);
@@ -67,7 +67,7 @@ namespace zfile
     public delegate int ContentGetSupportedFieldFlags(int FieldIndex);
     public delegate int ContentEditValue(IntPtr Handle, int FieldIndex, int UnitIndex, int FieldType, StringBuilder FieldValue, int MaxLen, int Flags, string LangIdentifier);
     public delegate void ContentSendStateInformation(int State, string Path);
-    
+
     // 新增Unicode版本的可选函数
     public delegate void ContentStopGetValueW(string FileName);
     public delegate int ContentSetValueW(string FileName, int FieldIndex, int UnitIndex, int FieldType, IntPtr FieldValue, int Flags);
@@ -254,41 +254,41 @@ namespace zfile
         #endregion
 
         #region 公共方法
-		public string GetDetectString()
-		{
-			if (_contentGetDetectString == null) return string.Empty;
-			try
-			{
-				var sb = new StringBuilder(2048);
-				_contentGetDetectString(sb, sb.Capacity);
-				return sb.ToString();
-			}
-			catch
-			{
-				return string.Empty;
-			}
-		}
-		public int GetSupportedFieldFlags(int fieldIndex)
-		{
-			return _contentGetSupportedFieldFlags?.Invoke(fieldIndex) ?? 0;
-		}
-		public int EditValue(IntPtr handle, int fieldIndex, int unitIndex, int fieldType, StringBuilder fieldValue, int maxLen, int flags, string langIdentifier)
-		{
-			return _contentEditValue?.Invoke(handle, fieldIndex, unitIndex, fieldType, fieldValue, maxLen, flags, langIdentifier) ?? WdxConstants.WDX_ERROR;
-		}
-		public void SendStateInformation(int state, string path)
-		{
-			if (_isUnicode)
-			{
-				_contentSendStateInformationW?.Invoke(state, path);
-			}
-			else
-			{
-				_contentSendStateInformation?.Invoke(state, path);
-			}
-		}
+        public string GetDetectString()
+        {
+            if (_contentGetDetectString == null) return string.Empty;
+            try
+            {
+                var sb = new StringBuilder(2048);
+                _contentGetDetectString(sb, sb.Capacity);
+                return sb.ToString();
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+        public int GetSupportedFieldFlags(int fieldIndex)
+        {
+            return _contentGetSupportedFieldFlags?.Invoke(fieldIndex) ?? 0;
+        }
+        public int EditValue(IntPtr handle, int fieldIndex, int unitIndex, int fieldType, StringBuilder fieldValue, int maxLen, int flags, string langIdentifier)
+        {
+            return _contentEditValue?.Invoke(handle, fieldIndex, unitIndex, fieldType, fieldValue, maxLen, flags, langIdentifier) ?? WdxConstants.WDX_ERROR;
+        }
+        public void SendStateInformation(int state, string path)
+        {
+            if (_isUnicode)
+            {
+                _contentSendStateInformationW?.Invoke(state, path);
+            }
+            else
+            {
+                _contentSendStateInformation?.Invoke(state, path);
+            }
+        }
 
-		public string GetValue(string fileName, int fieldIndex, int unitIndex = 0)
+        public string GetValue(string fileName, int fieldIndex, int unitIndex = 0)
         {
             if (!IsLoaded || fieldIndex < 0 || fieldIndex >= _fields.Count)
                 return string.Empty;
@@ -309,8 +309,8 @@ namespace zfile
 
                 if (result == WdxConstants.WDX_SUCCESS)
                 {
-                    return _isUnicode ? 
-                        Marshal.PtrToStringUni(valuePtr) : 
+                    return _isUnicode ?
+                        Marshal.PtrToStringUni(valuePtr) :
                         Marshal.PtrToStringAnsi(valuePtr);
                 }
             }
@@ -324,15 +324,15 @@ namespace zfile
 
         public void StopGetValue(string fileName)
         {
-			if(_isUnicode)
-			{
-				_contentStopGetValueW?.Invoke(fileName);
-			}
-			else
-			{
-				_contentStopGetValue?.Invoke(fileName);
-			}
-			
+            if (_isUnicode)
+            {
+                _contentStopGetValueW?.Invoke(fileName);
+            }
+            else
+            {
+                _contentStopGetValue?.Invoke(fileName);
+            }
+
         }
 
         public int GetDefaultSortOrder(int fieldIndex)
@@ -342,25 +342,25 @@ namespace zfile
 
         public bool SetValue(string fileName, int fieldIndex, int unitIndex, string value, IntPtr vptr, int vallen)
         {
-			if (_contentSetValue == null) return false;
+            if (_contentSetValue == null) return false;
 
-			try
-			{
-				if (_isUnicode)
-				{
-					return _contentSetValueW(fileName, fieldIndex, unitIndex, vallen, vptr, 0) == WdxConstants.WDX_SUCCESS;
-				}
-				else
-				{
-					return _contentSetValue(fileName, fieldIndex, unitIndex, value, 0) == WdxConstants.WDX_SUCCESS;
-				}
-			}
-			catch
-			{
-				return false;
-			}
+            try
+            {
+                if (_isUnicode)
+                {
+                    return _contentSetValueW(fileName, fieldIndex, unitIndex, vallen, vptr, 0) == WdxConstants.WDX_SUCCESS;
+                }
+                else
+                {
+                    return _contentSetValue(fileName, fieldIndex, unitIndex, value, 0) == WdxConstants.WDX_SUCCESS;
+                }
+            }
+            catch
+            {
+                return false;
+            }
 
-		}
+        }
 
         public void LoadTranslations(string languageFile)
         {
@@ -447,7 +447,7 @@ namespace zfile
 
     public class WdxModuleList : IDisposable
     {
-        private List<WdxModule> _modules = new List<WdxModule>();
+        public List<WdxModule> _modules = new List<WdxModule>();
         private string _configPath;
 
         public WdxModuleList(string configPath)
@@ -455,9 +455,9 @@ namespace zfile
             _configPath = configPath;
             LoadConfiguration();
         }
-		
 
-		public void LoadConfiguration()
+
+        public void LoadConfiguration()
         {
             if (!File.Exists(_configPath)) return;
 
@@ -530,7 +530,7 @@ namespace zfile
 
         public void RemoveModule(string modulePath)
         {
-            var module = _modules.FirstOrDefault(m => 
+            var module = _modules.FirstOrDefault(m =>
                 m.ModulePath.Equals(modulePath, StringComparison.OrdinalIgnoreCase));
             if (module != null)
             {
@@ -542,7 +542,7 @@ namespace zfile
 
         public WdxModule FindModule(string pluginName)
         {
-            return _modules.FirstOrDefault(m => 
+            return _modules.FirstOrDefault(m =>
                 m.PluginName.Equals(pluginName, StringComparison.OrdinalIgnoreCase));
         }
 
@@ -555,4 +555,4 @@ namespace zfile
             _modules.Clear();
         }
     }
-} 
+}

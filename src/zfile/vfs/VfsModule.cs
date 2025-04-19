@@ -68,31 +68,58 @@ namespace zfile
     /// </summary>
     public class VfsModule
     {
-        public string Name { get; set; }
-        public bool Visible { get; set; }
-        public Type FileSourceClass { get; set; }
-        public FileSourceCreator Creator { get; set; }
+		private bool _visible;
+		private Type _fileSourceClass;
+		public string Name { get; set; }
+		public FileSourceCreator Creator { get; set; }
 
-        public VfsModule(string name, Type fileSourceClass, bool visible, FileSourceCreator creator)
-        {
-            Name = name;
-            FileSourceClass = fileSourceClass;
-            Visible = visible;
-            Creator = creator;
-        }
-    }
+		public VfsModule(string name, Type fileSourceClass, bool visible, FileSourceCreator creator)
+		{
+			Name = name;
+			FileSourceClass = fileSourceClass;
+			Visible = visible;
+			Creator = creator;
+		}
+		/// <summary>
+		/// Whether the module is visible in the UI
+		/// </summary>
+		public bool Visible
+		{
+			get { return _visible; }
+			set { _visible = value; }
+		}
+
+		/// <summary>
+		/// The file source class for this module
+		/// </summary>
+		public Type FileSourceClass
+		{
+			get { return _fileSourceClass; }
+			set { _fileSourceClass = value; }
+		}
+
+		/// <summary>
+		/// Creates a new VfsModule
+		/// </summary>
+		public VfsModule(bool visible, Type fileSourceClass)
+		{
+			_visible = visible;
+			_fileSourceClass = fileSourceClass;
+		}
+	}
 
     /// <summary>
     /// 虚拟文件系统模块列表，管理所有已注册的模块
     /// </summary>
-    public class VfsModuleList
+    public partial class VfsModuleList
     {
-        private readonly Dictionary<string, VfsModule> modules;
+        //private readonly Dictionary<string, VfsModule> modules;
 
         public VfsModuleList()
         {
             modules = new Dictionary<string, VfsModule>(StringComparer.OrdinalIgnoreCase);
-        }
+			Objects = new VfsModuleObjectCollection(this);
+		}
 
         /// <summary>
         /// 通过名称获取模块
@@ -117,11 +144,26 @@ namespace zfile
             }
             return null;
         }
-
-        /// <summary>
-        /// 通过类名查找文件源
-        /// </summary>
-        public Type FindFileSource(string className)
+		/// <summary>
+		/// Gets a file source class that supports the specified path
+		/// </summary>
+		//public Type GetFileSource(string path)
+		//{
+		//	foreach (var name in _names)
+		//	{
+		//		var module = modules[name];
+		//		var fileSourceInstance = Activator.CreateInstance(module.FileSourceClass) as FileSourceBase;
+		//		if (fileSourceInstance != null && fileSourceInstance.IsSupportedPath(path))
+		//		{
+		//			return module.FileSourceClass;
+		//		}
+		//	}
+		//	return null;
+		//}
+		/// <summary>
+		/// 通过类名查找文件源
+		/// </summary>
+		public Type? FindFileSource(string className)
         {
             return modules.Values
                 .FirstOrDefault(m => m.FileSourceClass.Name.Equals(className, StringComparison.OrdinalIgnoreCase))

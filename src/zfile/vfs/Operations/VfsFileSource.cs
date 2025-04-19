@@ -5,28 +5,66 @@ namespace zfile
         WfxModuleList VfsFileEntries { get; }
     }
 
-    public class VfsFileSource : VirtualFileSource, IVfsFileSource
-    {
+	public partial class VfsFileSource : VirtualFileSource, IVfsFileSource
+	{
         private readonly WfxModuleList _wfxModuleList;
 
         public WfxModuleList VfsFileEntries => _wfxModuleList;
 
         public VfsFileSource(WfxModuleList wfxModuleList)
         {
-            _wfxModuleList = new WfxModuleList();
-            _wfxModuleList.Assign(wfxModuleList);
+            _wfxModuleList = new WfxModuleList("");
         }
 
         ~VfsFileSource()
         {
             _wfxModuleList?.Dispose();
         }
+		/// <summary>
+		/// Creates a new VfsFileSource
+		/// </summary>
+		public VfsFileSource()
+		{
+			// Initialize with default values
+		}
 
-        public static FileEntry CreateFile(string path)
+		/// <summary>
+		/// Checks if the path is supported by this file source
+		/// </summary>
+		public override bool IsSupportedPath(string path)
+		{
+			return path.StartsWith("vfs:", StringComparison.OrdinalIgnoreCase);
+		}
+
+		/// <summary>
+		/// Initializes the file source
+		/// </summary>
+		public void Initialize()
+		{
+			// Load VFS modules
+		}
+
+		/// <summary>
+		/// Creates a file object for the specified path
+		/// </summary>
+		//public static FileEntry CreateFile(string path)
+		//{
+		//    return new FileEntry(path);
+		//}
+
+		/// <summary>
+		/// Gets the main icon for this file source
+		/// </summary>
+		public static bool GetMainIcon(out string path)
+		{
+			path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "icons", "vfs.ico");
+			return File.Exists(path);
+		}
+		public static FileEntry CreateFile(string path)
         {
             var result = new FileEntry(path);
             result.LinkProperty = new FileLinkProperty();
-            result.AttributesProperty = new NtfsFileAttributesProperty();
+            //result.AttributesProperty = new NtfsFileAttributesProperty();
             return result;
         }
 

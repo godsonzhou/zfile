@@ -175,5 +175,40 @@ namespace zfile
 		public static bool LogDelete { get; set; }
 		public static uint CopyBlockSize { get; set; } = 65536;
 		public static string AutoExtractOpenMask { get; set; } = "*.zip;*.rar;*.7z;*.tar;*.gz;*.bz2;*.xz";
+		// VFS Module List
+		public static VfsModuleList VfsModuleList { get; private set; } = new VfsModuleList();
+		public static WfxModuleList WfxPlugins { get; internal set; }
+
+		// File operation options
+		//public static FileExistsOption OperationOptionFileExists { get; set; } = FileExistsOption.Ask;
+		//public static DirectoryExistsOption OperationOptionDirectoryExists { get; set; } = DirectoryExistsOption.Ask;
+		//public static SetPropertyErrorOption OperationOptionSetPropertyError { get; set; } = SetPropertyErrorOption.Ask;
+		//public static CopyOnWriteOption OperationOptionCopyOnWrite { get; set; } = CopyOnWriteOption.No;
+		//public static bool OperationOptionVerify { get; set; } = false;
+		//public static bool OperationOptionCopyAttributes { get; set; } = true;
+		//public static bool OperationOptionCopyTime { get; set; } = true;
+		//public static bool OperationOptionCopyOwnership { get; set; } = false;
+		//public static bool OperationOptionCopyPermissions { get; set; } = false;
+		//public static bool DropReadOnlyFlag { get; set; } = false;
+		//public static SymLinksOption OperationOptionSymLinks { get; set; } = SymLinksOption.Ask;
+		//public static bool OperationOptionCorrectLinks { get; set; } = true;
+		//public static bool OperationOptionReserveSpace { get; set; } = true;
+		//public static bool OperationOptionCheckFreeSpace { get; set; } = true;
+		//public static bool OperationOptionExcludeEmptyDirectories { get; set; } = false;
+		//public static bool OperationOptionCopyXattributes { get; set; } = false;
+		//public static bool SkipFileOpError { get; set; } = false;
+		//public static bool ProcessComments { get; set; } = false;
+		//public static int WipePassNumber { get; set; } = 1;
+
+		// Initialize global settings
+		static GlobalSettings()
+		{
+			// Register the VFS file source
+			VfsModuleList.AddObject("VFS", new VfsModule(true, typeof(VfsFileSource)));
+
+			// Add more VFS modules as needed
+			// VfsModuleList.AddObject("FTP", new VfsModule(true, typeof(FtpFileSource)));
+			// VfsModuleList.AddObject("ZIP", new VfsModule(true, typeof(ZipFileSource)));
+		}
 	}
 } 

@@ -520,8 +520,50 @@ namespace zfile
     {
         public List<WfxModule> _modules = new List<WfxModule>();
         private string _configPath;
+		private readonly List<string> _names = new List<string>();
+		private readonly List<bool> _enabled = new List<bool>();
+		private readonly List<string> _fileNames = new List<string>();
 
-        public WfxModuleList(string configPath)
+		/// <summary>
+		/// Gets the number of modules in the list
+		/// </summary>
+		public int Count => _names.Count;
+
+		/// <summary>
+		/// Gets the enabled status for each module
+		/// </summary>
+		public IReadOnlyList<bool> Enabled => _enabled;
+
+		/// <summary>
+		/// Gets the name for each module
+		/// </summary>
+		public IReadOnlyList<string> Name => _names;
+
+		/// <summary>
+		/// Gets the file name for each module
+		/// </summary>
+		public IReadOnlyList<string> FileName => _fileNames;
+
+		/// <summary>
+		/// Adds a new module to the list
+		/// </summary>
+		public void Add(string name, string fileName, bool enabled = true)
+		{
+			_names.Add(name);
+			_fileNames.Add(fileName);
+			_enabled.Add(enabled);
+		}
+
+		/// <summary>
+		/// Clears the list
+		/// </summary>
+		public void Clear()
+		{
+			_names.Clear();
+			_fileNames.Clear();
+			_enabled.Clear();
+		}
+		public WfxModuleList(string configPath)
         {
             _configPath = configPath;
             LoadConfiguration();
@@ -624,5 +666,10 @@ namespace zfile
             }
             _modules.Clear();
         }
-    }
+
+		internal int FindFirstEnabledByName(string relativePath)
+		{
+			throw new NotImplementedException();
+		}
+	}
 }

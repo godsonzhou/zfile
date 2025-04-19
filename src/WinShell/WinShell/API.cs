@@ -492,8 +492,9 @@ namespace WinShell
 		public static extern IntPtr ILCombine(IntPtr pidl1, IntPtr pidl2);
 
 		[DllImport("shell32.dll", SetLastError = true)]
+		public static extern int SHGetDesktopFolder(out IShellFolder ppshf);
+		[DllImport("shell32.dll", SetLastError = true)]
 		public static extern int SHGetDesktopFolder(out IntPtr ppshf);
-
 		[DllImport("shell32.dll")]
 		public static extern int SHGetFolderLocation(IntPtr hwndOwner, CSIDL nFolder,
 			IntPtr hToken, uint dwReserved, out IntPtr ppidl);

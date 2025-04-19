@@ -1,15 +1,15 @@
 using System.Runtime.InteropServices;
 namespace zfile
 {
-	public struct SearchRec
-	{
-		public string Name;
-		public FileAttributes Attributes;
-		public long Size;
-		public DateTime Time;
-		public DateTime PlatformTime;
-		public DateTime LastAccessTime;
-	}
+    public struct SearchRec
+    {
+        public string Name;
+        public FileAttributes Attributes;
+        public long Size;
+        public DateTime Time;
+        public DateTime PlatformTime;
+        public DateTime LastAccessTime;
+    }
     public interface IFileSystemFileSource : ILocalFileSource
     {
         // 接口定义
@@ -140,7 +140,7 @@ namespace zfile
         public override void RetrieveProperties(FileEntry file, FilePropertyType propertiesToSet, string[] variantProperties)
         {
             var assignedProperties = file.AssignedProperties;
-            propertiesToSet = propertiesToSet - assignedProperties;
+            propertiesToSet = propertiesToSet & ~assignedProperties;
 
             if (propertiesToSet == FilePropertyType.None)
                 return;
@@ -515,4 +515,4 @@ namespace zfile
             base.SetCurrentPath(newPath);
         }
     }
-} 
+}

@@ -5,9 +5,9 @@ namespace zfile
         private readonly IMultiArchiveFileSource? _fileSource;
         private FileSourceCalcStatisticsOperationStatistics _statistics;
 
-		public override FileSourceOperationType OperationType => FileSourceOperationType.CalcStatistics;
+        public override FileSourceOperationType OperationType => FileSourceOperationType.CalcStatistics;
 
-		public MultiArchiveCalcStatisticsOperation(IFileSource targetFileSource, FileEntries files)
+        public MultiArchiveCalcStatisticsOperation(IFileSource targetFileSource, FileEntries files)
             : base(targetFileSource, files)
         {
             _fileSource = targetFileSource as IMultiArchiveFileSource;
@@ -60,46 +60,40 @@ namespace zfile
 
         private void ProcessSubDirs(string srcPath)
         {
-            var FileEntries = _fileSource.ArchiveFileEntries.LockList();
-            try
+            if (_fileSource == null)
+                return;
+
+            var archiveEntries = _fileSource.ArchiveFileEntries;
+            for (int i = 0; i < archiveEntries.Count; i++)
             {
-                for (int i = 0; i < FileEntries.Count; i++)
+                var fileEntry = archiveEntries[i];
+                string currFileName = Path.DirectorySeparatorChar + fileEntry.Name;
+
+                if (!FileSystemUtil.IsInPath(srcPath, currFileName, true, false))
+                    continue;
+
+                if (fileEntry.IsDirectory)
+                    _statistics.Directories++;
+                else if (fileEntry.IsLink)
+                    _statistics.Links++;
+                else
                 {
-                    var archiveItem = FileEntries[i];
-                    string currFileName = Path.DirectorySeparatorChar + archiveItem.Name;
-
-                    if (!FileSystemUtil.IsInPath(srcPath, currFileName, true, false))
-                        continue;
-
-                    if (_fileSource.FileIsDirectory(archiveItem))
-                        _statistics.Directories++;
-                    else if (_fileSource.FileIsLink(archiveItem))
-                        _statistics.Links++;
-                    else
+                    _statistics.Files++;
+                    _statistics.Size += fileEntry.Size;
+                    try
                     {
-                        _statistics.Files++;
-                        _statistics.Size += archiveItem.UnpSize;
-                        try
-                        {
-                            DateTime modificationTime = new DateTime(
-                                archiveItem.Year, archiveItem.Month, archiveItem.Day,
-                                archiveItem.Hour, archiveItem.Minute, archiveItem.Second);
-                            if (modificationTime < _statistics.OldestFile)
-                                _statistics.OldestFile = modificationTime;
-                            if (modificationTime > _statistics.NewestFile)
-                                _statistics.NewestFile = modificationTime;
-                        }
-                        catch (ArgumentOutOfRangeException)
-                        {
-                            // 忽略日期转换错误
-                        }
+                        DateTime modificationTime = fileEntry.ModificationTime;
+                        if (modificationTime < _statistics.OldestFile)
+                            _statistics.OldestFile = modificationTime;
+                        if (modificationTime > _statistics.NewestFile)
+                            _statistics.NewestFile = modificationTime;
+                    }
+                    catch (ArgumentOutOfRangeException)
+                    {
+                        // 忽略日期转换错误
                     }
                 }
             }
-            finally
-            {
-                _fileSource.ArchiveFileEntries.UnlockList();
-            }
         }
     }
-} 
+}

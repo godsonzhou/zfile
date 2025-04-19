@@ -77,7 +77,7 @@ namespace zfile
                 }
             }
 
-            AddStateChangedListener(new[] { FileSourceOperationState.Starting, FileSourceOperationState.Pausing, FileSourceOperationState.Stopping }, FileSourceOperationStateChangedNotify);
+            AddStateChangedListener(new[] { FileSourceOperationState.Starting, FileSourceOperationState.Pausing, FileSourceOperationState.Stopping }, (operation, state) => { if (operation != null) FileSourceOperationStateChangedNotify((IFileSourceOperation)operation, state); });
 
             if (string.IsNullOrEmpty(ExtractMask))
                 ExtractMask = "*";

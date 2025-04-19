@@ -350,12 +350,12 @@ namespace zfile
             }
         }
 
-		private FileAttributes GetFileAttr(string attributes)
-		{
-			throw new NotImplementedException();
-		}
+        private FileAttributes GetFileAttr(string attributes)
+        {
+            throw new NotImplementedException();
+        }
 
-		public void ParseLines()
+        public void ParseLines()
         {
             int n = 0;
             while (n < _lines.Count)
@@ -369,13 +369,10 @@ namespace zfile
                     x = ParseByMask(_lines[n], s, mask);
                     if (x > 0 && CheckValues())
                     {
-                        if (OnGetArchiveItem != null)
-                        {
-                            var archiveItem = new ArchiveItem();
-                            FillRecord(archiveItem);
-                            UpdateFileName();
-                            OnGetArchiveItem(archiveItem);
-                        }
+                        var archiveItem = new ArchiveItem();
+                        FillRecord(archiveItem);
+                        UpdateFileName();
+                        RaiseOnGetArchiveItem(archiveItem);
                         b = true;
                         break;
                     }
@@ -394,12 +391,12 @@ namespace zfile
             }
         }
 
-		private void UpdateFileName()
-		{
-			throw new NotImplementedException();
-		}
+        private void UpdateFileName()
+        {
+            throw new NotImplementedException();
+        }
 
-		public void AddLine(string str)
+        public void AddLine(string str)
         {
             _lines.Add(str);
         }
@@ -444,4 +441,4 @@ namespace zfile
             return hour;
         }
     }
-} 
+}

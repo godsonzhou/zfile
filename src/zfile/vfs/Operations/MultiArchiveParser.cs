@@ -52,7 +52,7 @@ namespace zfile
                 if (match.Success)
                 {
                     var archiveItem = CreateArchiveItem(match);
-                    OnGetArchiveItem?.Invoke(archiveItem);
+                    RaiseOnGetArchiveItem(archiveItem);
                     break;
                 }
             }
@@ -87,5 +87,11 @@ namespace zfile
 
             return result;
         }
+
+        // Protected method to raise the OnGetArchiveItem event
+        protected virtual void RaiseOnGetArchiveItem(ArchiveItem item)
+        {
+            OnGetArchiveItem?.Invoke(item);
+        }
     }
-} 
+}

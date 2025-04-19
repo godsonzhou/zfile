@@ -52,14 +52,21 @@ namespace zfile
                 };
 
                 var bufferSize = 4096;
-                var buffer = new byte[bufferSize];
-                var resultCode = WNetGetResourceParent(netResource, buffer, ref bufferSize);
-                if (resultCode != 0)
-                    ShowError(GetLastError());
-                else
+                var buffer = Marshal.AllocHGlobal(bufferSize);
+                try
                 {
-                    var parentPath = Marshal.PtrToStructure<NetResource>(buffer);
-                    result = Path.Combine("", parentPath.RemoteName.TrimEnd('\\'));
+                    var resultCode = WNetGetResourceParent(netResource, buffer, ref bufferSize);
+                    if (resultCode != 0)
+                        ShowError(GetLastError());
+                    else
+                    {
+                        var parentPath = Marshal.PtrToStructure<NetResource>(buffer);
+                        result = Path.Combine("", parentPath.RemoteName.TrimEnd('\\'));
+                    }
+                }
+                finally
+                {
+                    Marshal.FreeHGlobal(buffer);
                 }
             }
             return result;
@@ -106,7 +113,7 @@ namespace zfile
             if (IsNetworkPath(newDir))
                 return false;
             Directory.SetCurrentDirectory(newDir);
-			return true;
+            return true;
         }
 
         public static bool IsSupportedPath(string path)
@@ -218,7 +225,7 @@ namespace zfile
         private static extern int WNetGetProviderName(int netType, char[] providerName, ref int bufferSize);
 
         [DllImport("mpr.dll", CharSet = CharSet.Unicode)]
-        private static extern int WNetGetResourceParent(NetResource netResource, byte[] buffer, ref int bufferSize);
+        private static extern int WNetGetResourceParent(NetResource netResource, IntPtr buffer, ref int bufferSize);
 
         private static string GetLastError()
         {
@@ -250,4 +257,4 @@ namespace zfile
         PausePending = 6,
         Paused = 7
     }
-} 
+}

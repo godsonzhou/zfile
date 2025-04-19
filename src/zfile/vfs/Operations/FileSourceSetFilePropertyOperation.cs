@@ -65,15 +65,15 @@ namespace zfile
     /// <summary>
     /// Operation that can set any of the file properties supported by a file source.
     /// It doesn't have to support all the file properties supported by the file source, it can be a subset.
-    /// 
+    ///
     /// There are two methods of setting properties available:
-    /// 
+    ///
     /// - NewProperties
     ///   Set via constructor, this is a list of properties that should be set for
     ///   each file. If a property in this list is not assigned it is not set.
     ///   If a property in this list is not supported by the file source or by
     ///   this operation it is also not set.
-    /// 
+    ///
     /// - TemplateFiles
     ///   Set by calling SetTemplateFiles.
     ///   Template files describe 1 to 1 correspondence between files and their
@@ -86,7 +86,7 @@ namespace zfile
     ///   the correct correspondence between target and template files.
     ///   In other words number of target files must be the same as number of
     ///   template files.
-    /// 
+    ///
     /// The two above methods can be used together.
     /// Template files, if present, always take precedence over NewProperties.
     /// If a template file is not present (= null), then the NewProperties are used as a template.
@@ -106,12 +106,12 @@ namespace zfile
         private FileProperty[] _newProperties;
         private bool _recursive;
         private bool _skipErrors;
-		private Thread _thread = Thread.CurrentThread;
+        private Thread _thread = Thread.CurrentThread;
 
-		/// <summary>
-		/// Supported properties
-		/// </summary>
-		protected FilePropertyType _supportedProperties;
+        /// <summary>
+        /// Supported properties
+        /// </summary>
+        protected FilePropertyType _supportedProperties;
 
         /// <summary>
         /// Function to call when a property is set
@@ -254,8 +254,7 @@ namespace zfile
                         newStatistics.DoneFiles,
                         newStatistics.TotalFiles,
                         StartTime,
-                        DateTime.Now,
-                        newStatistics.FilesPerSecond);
+                        DateTime.Now);
 
                     // Update overall progress
                     if (newStatistics.TotalFiles != 0)
@@ -320,13 +319,14 @@ namespace zfile
                 {
                     retry = false;
                     SetFilePropertyResult setResult = SetFilePropertyResult.Success;
+                    // Declare templateProperty at the do-while loop level
+                    FileProperty? templateProperty = null;
 
                     // Double-check that the property really is supported by the file
                     if (((uint)aFile.SupportedProperties & (uint)prop) != 0 ||
-                        ((uint)_fileSource.RetrievableFilePropertieses & (uint)prop) != 0)
+                        ((uint)_fileSource.RetrievableFileProperties & (uint)prop) != 0)
                     {
                         // Get template property from template file (if exists) or NewProperties
-                        FileProperty templateProperty = null;
                         if (aTemplateFile != null)
                             templateProperty = aTemplateFile.Properties[prop];
                         else if (_newProperties != null && (int)prop < _newProperties.Length)
@@ -358,7 +358,9 @@ namespace zfile
 
                     if (setResult == SetFilePropertyResult.Error)
                     {
-                        string errorString = GetErrorString(aFile, templateProperty);
+                        string errorString = templateProperty != null
+                            ? GetErrorString(aFile, templateProperty)
+                            : Strings.MsgLogError;
                         string message = Strings.MsgLogError + errorString;
                         string question = errorString;
 
@@ -370,7 +372,7 @@ namespace zfile
                         {
                             FileSourceOperationUIResponse answer = AskQuestion(
                                 question, "",
-                                new[] { FileSourceOperationUIResponse.Retry, FileSourceOperationUIResponse.Skip, 
+                                new[] { FileSourceOperationUIResponse.Retry, FileSourceOperationUIResponse.Skip,
                                        FileSourceOperationUIResponse.SkipAll, FileSourceOperationUIResponse.Abort },
                                 FileSourceOperationUIResponse.Retry,
                                 FileSourceOperationUIResponse.Abort);
@@ -407,27 +409,21 @@ namespace zfile
         /// <param name="aFile">The file</param>
         /// <param name="aProperty">The property</param>
         /// <returns>The error string</returns>
-        protected string GetErrorString(FileEntry aFile, FileProperty aProperty)
+        protected static string GetErrorString(FileEntry aFile, FileProperty aProperty)
         {
-            switch (aProperty.ID)
+            if (aProperty == null)
+                return Strings.MsgLogError;
+
+            return aProperty.ID switch
             {
-                case FilePropertyType.Name:
-                    return string.Format(Strings.MsgErrRename, aFile.FullPath, ((FileNameProperty)aProperty).Value);
-
-                case FilePropertyType.Attributes:
-                    return string.Format(Strings.MsgErrSetAttribute, aFile.FullPath);
-
-                case FilePropertyType.ModificationTime:
-                case FilePropertyType.CreationTime:
-                case FilePropertyType.LastAccessTime:
-                    return string.Format(Strings.MsgErrSetDateTime, aFile.FullPath);
-
-                case FilePropertyType.Owner:
-                    return string.Format(Strings.MsgErrSetOwnership, aFile.FullPath);
-
-                default:
-                    return Strings.MsgLogError;
-            }
+                FilePropertyType.Name => string.Format(Strings.MsgErrRename, aFile.FullPath, ((FileNameProperty)aProperty).Value),
+                FilePropertyType.Attributes => string.Format(Strings.MsgErrSetAttribute, aFile.FullPath),
+                FilePropertyType.ModificationTime => string.Format(Strings.MsgErrSetDateTime, aFile.FullPath),
+                FilePropertyType.CreationTime => string.Format(Strings.MsgErrSetDateTime, aFile.FullPath),
+                FilePropertyType.LastAccessTime => string.Format(Strings.MsgErrSetDateTime, aFile.FullPath),
+                FilePropertyType.Owner => string.Format(Strings.MsgErrSetOwnership, aFile.FullPath),
+                _ => Strings.MsgLogError
+            };
         }
 
         /// <summary>
@@ -438,10 +434,9 @@ namespace zfile
         /// <param name="totalItems">Total items</param>
         /// <param name="startTime">Start time</param>
         /// <param name="currentTime">Current time</param>
-        /// <param name="itemsPerSecond">Items per second</param>
         /// <returns>Estimated remaining time</returns>
-        private static DateTime EstimateRemainingTime(long doneAtStart, long doneNow, long totalItems, 
-                                                    DateTime startTime, DateTime currentTime, long itemsPerSecond)
+        private static DateTime EstimateRemainingTime(long doneAtStart, long doneNow, long totalItems,
+                                                    DateTime startTime, DateTime currentTime)
         {
             if (doneNow <= doneAtStart || totalItems <= doneNow)
                 return DateTime.MinValue;
@@ -496,7 +491,7 @@ namespace zfile
         public static readonly string OperSettingPropertyIn = "Setting property in {0}";
 
         /// <summary>
-        /// Error: 
+        /// Error:
         /// </summary>
         public static readonly string MsgLogError = "Error: ";
 
@@ -521,5 +516,5 @@ namespace zfile
         public static readonly string MsgErrSetOwnership = "Cannot set ownership of {0}";
     }
 
-    
+
 }

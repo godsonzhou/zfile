@@ -4,30 +4,30 @@ namespace zfile
 {
     public class ShellSetFilePropertyOperation : FileSourceSetFilePropertyOperation
     {
-        private IFileOperation fileOp;
+        private readonly IFileOperation fileOp;
         private int currentFileIndex;
-        private ItemList sourceFilesTree;
-        private readonly IShellFileSource shellFileSource;
-        private FileSourceSetFilePropertyOperationStatistics statistics;
+        private ItemList? sourceFilesTree;
+
+        private FileSourceSetFilePropertyOperationStatistics? statistics;
 
         public ShellSetFilePropertyOperation(IFileSource targetFileSource, FileEntries targetFiles, FileProperty[] newProperties)
             : base(targetFileSource, targetFiles, newProperties)
         {
-            shellFileSource = targetFileSource as IShellFileSource;
-            fileOp = (IFileOperation)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(Constants.CLSID_FileOperation)));
+
+            fileOp = (IFileOperation)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(Constants.CLSID_FileOperation)))!;
             SupportedProperties = FilePropertyType.Name;
         }
 
         ~ShellSetFilePropertyOperation()
         {
-            sourceFilesTree = null;
+            sourceFilesTree = null!;
         }
 
         protected override void Initialize()
         {
             statistics = RetrieveStatistics();
+            sourceFilesTree = [];
 
-            sourceFilesTree = new ItemList();
             try
             {
                 foreach (var file in TargetFiles)
@@ -42,25 +42,47 @@ namespace zfile
             }
         }
 
+        protected void UpdateStatistics(ref FileSourceSetFilePropertyOperationStatistics newStatistics)
+        {
+            // Update progress percentage based on files
+            double progressPercentage = 0;
+            if (newStatistics.TotalFiles > 0)
+                progressPercentage = (double)newStatistics.DoneFiles / newStatistics.TotalFiles;
+
+            UpdateProgress(progressPercentage);
+        }
+
+        protected bool CheckOperationStateSafe()
+        {
+            try
+            {
+                CheckOperationState();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         protected override void MainExecute()
         {
-            var sink = new FileOperationProgressSink(ref statistics, UpdateStatistics, CheckOperationStateSafe);
+            var sink = new FileOperationProgressSink(ref statistics!, UpdateStatistics, CheckOperationStateSafe);
 
             fileOp.SetOperationFlags(Constants.FOF_SILENT | Constants.FOF_NOCONFIRMMKDIR);
 
-            uint cookie;
-            fileOp.Advise(sink, out cookie);
+            fileOp.Advise(sink, out uint cookie);
             try
             {
-                for (currentFileIndex = 0; currentFileIndex < sourceFilesTree.Count; currentFileIndex++)
+                for (currentFileIndex = 0; currentFileIndex < sourceFilesTree!.Count; currentFileIndex++)
                 {
                     var file = TargetFiles[currentFileIndex];
                     var templateFile = TemplateFiles != null && currentFileIndex < TemplateFiles.Count ? TemplateFiles[currentFileIndex] : null;
 
                     SetProperties(currentFileIndex, file, templateFile);
 
-                    statistics.DoneFiles++;
-                    UpdateStatistics(statistics);
+                    statistics!.DoneFiles++;
+                    UpdateStatistics(ref statistics!);
 
                     CheckOperationState();
                 }
@@ -75,10 +97,9 @@ namespace zfile
         {
             var result = SetFilePropertyResult.Success;
 
-            var pidl = (IntPtr)sourceFilesTree[currentFileIndex];
-            IShellItem item;
+            var pidl = sourceFilesTree![currentFileIndex];
             var guid = typeof(IShellItem).GUID;
-            if (Failed(API.SHCreateItemFromIDList(pidl, ref guid, out item)))
+            if (Failed(API.SHCreateItemFromIDList(pidl, ref guid, out IShellItem item)))
                 return SetFilePropertyResult.Error;
 
             switch (templateProperty.ID)
@@ -87,23 +108,20 @@ namespace zfile
                     var fileNameProperty = (FileNameProperty)templateProperty;
                     if (fileNameProperty.Value != file.Name)
                     {
-                        if (!Succeeded(fileOp.RenameItem(item, fileNameProperty.Value, null)))
+                        // Pass null as the third parameter (IFileOperationProgressSink)
+                        fileOp.RenameItem(item, fileNameProperty.Value, null!);
+
+                        // Perform the operations and check the result
+                        var res = fileOp.PerformOperations();
+                        if (Failed(res))
                         {
-                            result = SetFilePropertyResult.Error;
-                        }
-                        else
-                        {
-                            var res = fileOp.PerformOperations();
-                            if (Failed(res))
+                            if (res == Constants.COPYENGINE_E_USER_CANCELLED)
                             {
-                                if (res == Constants.COPYENGINE_E_USER_CANCELLED)
-                                {
-                                    RaiseAbortOperation();
-                                }
-                                else
-                                {
-                                    result = SetFilePropertyResult.Error;
-                                }
+                                RaiseAbortOperation();
+                            }
+                            else
+                            {
+                                result = SetFilePropertyResult.Error;
                             }
                         }
                     }
@@ -126,22 +144,19 @@ namespace zfile
                 Logger.Write(message, LogOption.Error);
             }
 
-            if (AskQuestion(message, "", new[] { FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort },
+            if (AskQuestion(message, "", [FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort],
                            FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort) == FileSourceOperationUIResponse.Abort)
             {
                 RaiseAbortOperation();
             }
         }
 
-        private bool Failed(int hr)
+        private static bool Failed(int hr)
         {
             return hr != 0;
         }
 
-        private bool Succeeded(int hr)
-        {
-            return hr == 0;
-        }
+
     }
 
 

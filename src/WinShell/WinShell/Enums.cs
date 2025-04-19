@@ -8,12 +8,6 @@ namespace WinShell
 		SICHINT_DISPLAY = 0x00000000,
 		// 其他比较提示...
 	}
-	[StructLayout(LayoutKind.Sequential)]
-	public struct SHCOLUMNID
-	{
-		public Guid fmtid;
-		public uint pid;
-	}
 
 	public enum PID_DISPLACED
 	{

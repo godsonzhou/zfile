@@ -2,20 +2,23 @@ using System.Runtime.InteropServices;
 using WinShell;
 namespace zfile
 {
-	public enum SCID
-	{
-		Capacity = 0x0000000C,
-		FileSize = 0x0000000B,
-		DateCreated = 0x0000000D,
-		DateModified = 0x0000000E
-	}
+    public static class SCIDHelper
+    {
+        private const string SID_SYSTEM = "{B725F130-47EF-101A-A5F1-02608C9EEBAC}";
+        private const string SID_COMPUTER = "{9B174B35-40FF-11D2-A27E-00C04FC30871}";
+
+        public static readonly SHCOLUMNID Capacity = new WinShell.SHCOLUMNID { fmtid = new Guid(SID_COMPUTER), pid = 3 };
+        public static readonly SHCOLUMNID FileSize = new WinShell.SHCOLUMNID { fmtid = new Guid(SID_SYSTEM), pid = 0x0000000B };
+        public static readonly SHCOLUMNID DateCreated = new WinShell.SHCOLUMNID { fmtid = new Guid(SID_SYSTEM), pid = 0x0000000D };
+        public static readonly SHCOLUMNID DateModified = new WinShell.SHCOLUMNID { fmtid = new Guid(SID_SYSTEM), pid = 0x0000000E };
+    }
     public class ShellListOperation : FileSourceListOperation
     {
         private readonly IShellFileSource shellFileSource;
 
         public ShellListOperation(IFileSource fileSource, string path) : base(fileSource, path)
         {
-            shellFileSource = fileSource as IShellFileSource;
+            shellFileSource = fileSource as IShellFileSource ?? throw new ArgumentException("fileSource must be an IShellFileSource");
             Files = new FileEntries();
         }
 
@@ -33,9 +36,10 @@ namespace zfile
                     ListDirectory();
                 }
             }
-            catch (Exception e)
+            catch
             {
-                ShowError(e.Message);
+                // Log the error
+                throw;
             }
         }
 
@@ -67,7 +71,7 @@ namespace zfile
                         {
                             if ((attributes & (uint)SFGAO.STORAGE) != 0)
                             {
-                                file.Attributes = FileAttributes.Device | FileAttributes.Virtual;
+                                file.Attributes = FileAttributes.Device;
                             }
                             if ((attributes & (uint)SFGAO.FOLDER) != 0)
                             {
@@ -79,10 +83,10 @@ namespace zfile
                             }
                         }
 
-                        object value = w32.GetDetails(folder, pidl, SCID.FileSize);
-                        if (value is long)
+                        object value = w32.GetDetails(folder, pidl, SCIDHelper.FileSize);
+                        if (value is long longValue)
                         {
-                            file.Size = (long)value;
+                            file.Size = longValue;
                         }
                         else if (file.IsDirectory)
                         {
@@ -93,7 +97,7 @@ namespace zfile
                             file.SizeProperty.IsValid = false;
                         }
 
-                        value = w32.GetDetails(folder, pidl, SCID.DateModified);
+                        value = w32.GetDetails(folder, pidl, SCIDHelper.DateModified);
                         if (value != null)
                         {
                             file.ModificationTime = (DateTime)value;
@@ -103,7 +107,7 @@ namespace zfile
                             file.ModificationTimeProperty.IsValid = false;
                         }
 
-                        value = w32.GetDetails(folder, pidl, SCID.DateCreated);
+                        value = w32.GetDetails(folder, pidl, SCIDHelper.DateCreated);
                         if (value != null)
                         {
                             file.CreationTime = (DateTime)value;
@@ -136,11 +140,22 @@ namespace zfile
             w32.OleCheck(API.SHGetFolderLocation(0, CSIDL.DRIVES, 0, 0, out drivesPidl));
             try
             {
-                IShellFolder2 folder;
-                w32.OleCheck(desktopFolder.BindToObject(drivesPidl, IntPtr.Zero, typeof(IShellFolder2).GUID, out folder));
+                // Get the IShellFolder interface first
+                IShellFolder folder;
+                Guid iid = typeof(IShellFolder).GUID;
+                desktopFolder.BindToObject(drivesPidl, IntPtr.Zero, ref iid, out folder);
+
+                // Check if it supports IShellFolder2
+                if (!(folder is IShellFolder2 shellFolder2))
+                {
+                    throw new InvalidOperationException("Failed to get IShellFolder2 interface");
+                }
+
+                // Use the IShellFolder2 interface
+                IShellFolder2 folder2 = shellFolder2;
 
                 IEnumIDList enumIDList;
-                w32.OleCheck(folder.EnumObjects(0, (uint)(SHCONTF.FOLDERS | SHCONTF.STORAGE), out enumIDList));
+                w32.OleCheck(folder2.EnumObjects(0, (uint)(SHCONTF.FOLDERS | SHCONTF.STORAGE), out enumIDList));
 
                 IntPtr pidl;
                 uint numIDs;
@@ -156,7 +171,7 @@ namespace zfile
                         file.LinkProperty.LinkTarget = w32.GetDisplayName(folder, pidl, SHGDN.INFOLDER | SHGDN.FORPARSING);
 
                         uint attributes = SFGAOF_DEFAULT;
-                        file.Attributes = FileAttributes.Device | FileAttributes.Virtual;
+                        file.Attributes = FileAttributes.Device;
 
                         if (folder.GetAttributesOf(1, new[] { pidl }, ref attributes) == 0)
                         {
@@ -172,10 +187,10 @@ namespace zfile
 
                         file.ModificationTimeProperty.IsValid = false;
 
-                        object value = w32.GetDetails(folder, pidl, SCID.Capacity);
-                        if (value is long)
+                        object value = w32.GetDetails(folder, pidl, SCIDHelper.Capacity);
+                        if (value is long longValue)
                         {
-                            file.Size = (long)value;
+                            file.Size = longValue;
                         }
                         else if (file.IsDirectory)
                         {

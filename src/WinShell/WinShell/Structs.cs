@@ -4,14 +4,21 @@ using System.IO;
 using System.Runtime.InteropServices;
 namespace WinShell
 {
-	[StructLayout(LayoutKind.Sequential)]
-	public struct PropertyKey
-	{
-		public Guid fmtid;
-		public uint pid;
-	}
+    [StructLayout(LayoutKind.Sequential)]
+    public struct PropertyKey
+    {
+        public Guid fmtid;
+        public uint pid;
+    }
 
-	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+    [StructLayout(LayoutKind.Sequential)]
+    public struct SHCOLUMNID
+    {
+        public Guid fmtid;
+        public uint pid;
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
     public struct WIN32_FIND_DATA
     {
         public FileAttributes dwFileAttributes;
@@ -27,15 +34,15 @@ namespace WinShell
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 14)]
         public string cAlternateFileName;
     }
-	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-	public struct SHQUERYRBINFO
-	{
-		public int cbSize;
-		public long i64Size;
-		public long i64NumItems;
-	}
-	// 定义 IMAGELISTDRAWPARAMS 结构体
-	[StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+    public struct SHQUERYRBINFO
+    {
+        public int cbSize;
+        public long i64Size;
+        public long i64NumItems;
+    }
+    // 定义 IMAGELISTDRAWPARAMS 结构体
+    [StructLayout(LayoutKind.Sequential)]
     public struct IMAGELISTDRAWPARAMS
     {
         public int cbSize;
@@ -67,30 +74,30 @@ namespace WinShell
         public Rectangle rcImage;
     }
 
-	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-	public struct STRRET
-	{
-		public uint uType;
-		public IntPtr pOleStr;
-	}
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+    public struct STRRET
+    {
+        public uint uType;
+        public IntPtr pOleStr;
+    }
 
-	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-	public struct MENUITEMINFO
-	{
-		public uint cbSize;
-		public MIIM fMask;
-		public uint fType;
-		public uint fState;
-		public uint wID;
-		public IntPtr hSubMenu;
-		public IntPtr hbmpChecked;
-		public IntPtr hbmpUnchecked;
-		public IntPtr dwItemData;
-		public string dwTypeData;
-		public uint cch;
-		public IntPtr hbmpItem;
-	}
-	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+    public struct MENUITEMINFO
+    {
+        public uint cbSize;
+        public MIIM fMask;
+        public uint fType;
+        public uint fState;
+        public uint wID;
+        public IntPtr hSubMenu;
+        public IntPtr hbmpChecked;
+        public IntPtr hbmpUnchecked;
+        public IntPtr dwItemData;
+        public string dwTypeData;
+        public uint cch;
+        public IntPtr hbmpItem;
+    }
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
     public struct SHFILEINFO
     {
         public IntPtr hIcon;

@@ -6,11 +6,12 @@ namespace zfile
         private readonly FileEntries _sourceFiles;
         private bool _testResult;
 
-		public override FileSourceOperationType OperationType => FileSourceOperationType.TestArchive;
+        public override FileSourceOperationType OperationType => FileSourceOperationType.TestArchive;
 
-		public MultiArchiveTestArchiveOperation(
+        public MultiArchiveTestArchiveOperation(
             IMultiArchiveFileSource fileSource,
             ref FileEntries sourceFiles)
+        : base(fileSource)
         {
             _multiArchiveFileSource = fileSource;
             _sourceFiles = sourceFiles;
@@ -28,16 +29,17 @@ namespace zfile
                 // 执行归档测试
                 _testResult = TestArchive();
             }
-            catch (Exception ex)
+            catch
             {
                 // 处理异常
                 throw;
             }
         }
 
-        protected override void Finalize()
+        protected new void Finalize()
         {
             // 清理操作
+            base.Finalize();
         }
 
         private bool TestArchive()
@@ -77,14 +79,14 @@ namespace zfile
             return args;
         }
 
-		public override string GetDescription(FileSourceOperationDescriptionDetails details)
-		{
-			throw new NotImplementedException();
-		}
+        public override string GetDescription(FileSourceOperationDescriptionDetails details)
+        {
+            throw new NotImplementedException();
+        }
 
-		protected override void UpdateStatisticsAtStartTime()
-		{
-			throw new NotImplementedException();
-		}
-	}
-} 
+        protected override void UpdateStatisticsAtStartTime()
+        {
+            throw new NotImplementedException();
+        }
+    }
+}

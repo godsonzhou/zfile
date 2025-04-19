@@ -1,3 +1,9 @@
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Threading;
+using System.Windows.Forms;
+using zfile.Extensions;
 
 namespace zfile
 {
@@ -49,7 +55,7 @@ namespace zfile
             SaveFormProperties();
 
             // Save screen DPI
-            _iniFile.WriteInteger(_iniSection, "Screen_PixelsPerInch", Screen.PrimaryScreen.LogicalDpi);
+            _iniFile.WriteInteger(_iniSection, "Screen_PixelsPerInch", Screen.PrimaryScreen.LogicalDpi());
         }
 
         public void Restore()
@@ -57,7 +63,7 @@ namespace zfile
             try
             {
                 // Read screen DPI
-                _pixelsPerInch = _iniFile.ReadInteger(_iniSection, "Screen_PixelsPerInch", Screen.PrimaryScreen.LogicalDpi);
+                _pixelsPerInch = _iniFile.ReadInteger(_iniSection, "Screen_PixelsPerInch", Screen.PrimaryScreen.LogicalDpi());
 
                 // Restore form properties
                 RestoreFormProperties();

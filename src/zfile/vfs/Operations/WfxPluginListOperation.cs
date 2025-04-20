@@ -2,8 +2,12 @@ namespace zfile
 {
     public class WfxPluginListOperation : FileSourceListOperation
     {
+        // 主操作进度回调函数，与Pascal版本中的threadvar对应
+        // 使用ThreadStatic特性模拟Pascal中的threadvar
+        [ThreadStatic]
+        private static CallbackDataClass.UpdateProgressDelegate? UpdateProgressFunction;
         private readonly IWfxPluginFileSource? _wfxPluginFileSource;
-        private readonly CallbackDataClass _callbackDataClass;
+        private readonly CallbackDataClass? _callbackDataClass;
         private readonly string _currentPath;
 
         public WfxPluginListOperation(IFileSource fileSource, string path)
@@ -11,8 +15,15 @@ namespace zfile
         {
             Files = new FileEntries(path);
             _wfxPluginFileSource = fileSource as IWfxPluginFileSource;
-            _callbackDataClass = (CallbackDataClass)_wfxPluginFileSource.WfxOperationList.Objects[_wfxPluginFileSource.PluginNumber];
-            _currentPath = Helper.ExcludeTrailingPathDelimiter(path);
+            if (_wfxPluginFileSource != null)
+            {
+                _callbackDataClass = (CallbackDataClass)_wfxPluginFileSource.WfxOperationList.Objects[_wfxPluginFileSource.PluginNumber];
+                _currentPath = Helper.ExcludeTrailingPathDelimiter(path);
+            }
+            else
+            {
+                _currentPath = path;
+            }
         }
 
         private int UpdateProgress(string sourceName, string targetName, int percentDone)
@@ -29,9 +40,15 @@ namespace zfile
 
         protected override void Initialize()
         {
-            _wfxPluginFileSource.WfxModule.setStatusInfo(_currentPath, (int)FsStatus.Start, (int)FsStatusOperation.List);
-            _callbackDataClass.UpdateProgressFunction = UpdateProgress;
-            UpdateProgressFunction = UpdateProgress;
+            if (_wfxPluginFileSource != null)
+            {
+                _wfxPluginFileSource.WfxModule.setStatusInfo(_currentPath, (int)FsStatus.Start, (int)FsStatusOperation.List);
+                if (_callbackDataClass != null)
+                {
+                    _callbackDataClass.UpdateProgressFunction = UpdateProgress;
+                }
+                UpdateProgressFunction = UpdateProgress;
+            }
         }
 
         protected override void MainExecute()
@@ -79,9 +96,13 @@ namespace zfile
 
         protected override void Finalize()
         {
-            _wfxPluginFileSource.WfxModule.setStatusInfo(_currentPath, (int)FsStatus.End, (int)FsStatusOperation.List);
-            _callbackDataClass.UpdateProgressFunction = null;
+            _wfxPluginFileSource?.WfxModule.setStatusInfo(_currentPath, (int)FsStatus.End, (int)FsStatusOperation.List);
+            if (_callbackDataClass != null)
+            {
+                _callbackDataClass.UpdateProgressFunction = null;
+            }
+            // 重置线程静态变量
             UpdateProgressFunction = null;
         }
     }
-} 
+}

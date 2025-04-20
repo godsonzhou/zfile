@@ -91,7 +91,7 @@ namespace zfile
                 () => RaiseAbortOperation(),
                 () => CheckOperationState(),
                 (ref FileSourceCopyOperationStatistics stats) => UpdateStatistics(stats),
-                (sourceFile, targetFilePath) => { /* 暂未实现 */ },
+                () => { /* 暂未实现 */ },
                 ShowCompareFilesUIByFileObject,
                 _thread,
                 WfxPluginOperationHelperMode.Copy,
@@ -112,7 +112,7 @@ namespace zfile
             }
         }
 
-        protected override void DoFinalize()
+        protected override void Finalize()
         {
             _wfxPluginFileSource.WfxModule.setStatusInfo(SourceFiles.Path, (int)FsStatus.End, _infoOperation);
             _callbackDataClass.UpdateProgressFunction = null;

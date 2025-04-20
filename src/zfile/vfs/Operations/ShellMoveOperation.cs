@@ -10,6 +10,30 @@ namespace zfile
         private readonly IShellFileSource? shellFileSource;
         private FileSourceCopyOperationStatistics statistics;
 
+        protected void UpdateStatistics(ref FileSourceCopyOperationStatistics newStatistics)
+        {
+            // Update statistics in the base class
+            // Calculate progress percentage based on bytes
+            double progressPercentage = 0;
+            if (newStatistics.TotalBytes > 0)
+                progressPercentage = (double)newStatistics.DoneBytes / newStatistics.TotalBytes;
+
+            UpdateProgress(progressPercentage);
+        }
+
+        protected bool CheckOperationStateSafe()
+        {
+            try
+            {
+                CheckOperationState();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public ShellMoveOperation(IFileSource fileSource, FileEntries sourceFiles, string targetPath)
             : base(fileSource, sourceFiles, targetPath)
         {

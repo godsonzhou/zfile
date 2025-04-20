@@ -52,7 +52,7 @@ namespace zfile
             statistics = RetrieveStatistics();
 
             var treeBuilder = new FileSystemTreeBuilder(
-                AskQuestion,
+                this.CreateAskQuestionDelegate(),
                 CheckOperationState);
             try
             {
@@ -74,14 +74,14 @@ namespace zfile
 
             operationHelper?.Dispose();
             operationHelper = new FileSystemOperationHelper(
-                AskQuestion,
-                RaiseAbortOperation,
-                AppProcessMessages,
-                CheckOperationState,
+                this.CreateAskQuestionDelegate(),
+                () => RaiseAbortOperation(),
+                () => AppProcessMessages(),
+                () => CheckOperationState(),
                 UpdateStatistics,
-                ShowCompareFilesUI,
+                (sourceFile, targetFilePath) => { /* 暂未实现 */ },
                 _thread,
-                FileSystemOperationHelperMode.Move,
+                FileSourceOperationHelperMode.Move,
                 TargetPath,
                 statistics);
 
@@ -128,13 +128,13 @@ namespace zfile
             return false;
         }
 
-		//protected override void Finalize()
-		//{
-		//	FileExistsOption = operationHelper.FileExistsOption;
-		//	operationHelper?.Dispose();
-		//}
+        //protected override void Finalize()
+        //{
+        //	FileExistsOption = operationHelper.FileExistsOption;
+        //	operationHelper?.Dispose();
+        //}
 
-		public Type GetOptionsUIClass()
+        public Type GetOptionsUIClass()
         {
             return typeof(FileSystemMoveOperationOptionsUI);
         }
@@ -194,4 +194,4 @@ namespace zfile
             set => SetSearchTemplate(value);
         }
     }
-} 
+}

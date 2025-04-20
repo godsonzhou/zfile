@@ -1,3 +1,5 @@
+using zfile.Dialogs;
+
 namespace zfile
 {
 	public class WcxArchiveExecuteOperation : FileSourceExecuteOperation

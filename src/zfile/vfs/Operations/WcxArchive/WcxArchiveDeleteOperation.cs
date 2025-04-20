@@ -61,40 +61,40 @@ namespace zfile
 			ClearCurrentOperation();
 		}
 
-		private void ShowError(string message, int error, LogOption logOptions = LogOption.None)
-		{
-			LogMessage(message, logOptions, LogOption.Error);
+		//private void ShowError(string message, int error, LogOption logOptions = LogOption.None)
+		//{
+		//	LogMessage(message, logOptions, LogOption.Error);
 
-			if (!GlobalSettings.SkipFileOpError && error > WcxModule.E_SUCCESS)
-			{
-				if (AskQuestion(message, "", new[] { FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort },
-							   FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort) == FileSourceOperationUIResponse.Abort)
-				{
-					RaiseAbortOperation();
-				}
-			}
-		}
+		//	if (!GlobalSettings.SkipFileOpError && error > WcxModule.E_SUCCESS)
+		//	{
+		//		if (AskQuestion(message, "", new[] { FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort },
+		//					   FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort) == FileSourceOperationUIResponse.Abort)
+		//		{
+		//			RaiseAbortOperation();
+		//		}
+		//	}
+		//}
 
-		private void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
-		{
-			switch (logMsgType)
-			{
-				case LogOption.Error:
-					if (!GlobalSettings.LogOptions.HasFlag(LogOption.Error)) return;
-					break;
-				case LogOption.Info:
-					if (!GlobalSettings.LogOptions.HasFlag(LogOption.Info)) return;
-					break;
-				case LogOption.Success:
-					if (!GlobalSettings.LogOptions.HasFlag(LogOption.Success)) return;
-					break;
-			}
+		//private void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
+		//{
+		//	switch (logMsgType)
+		//	{
+		//		case LogOption.Error:
+		//			if (!GlobalSettings.LogOptions.HasFlag(LogOption.Error)) return;
+		//			break;
+		//		case LogOption.Info:
+		//			if (!GlobalSettings.LogOptions.HasFlag(LogOption.Info)) return;
+		//			break;
+		//		case LogOption.Success:
+		//			if (!GlobalSettings.LogOptions.HasFlag(LogOption.Success)) return;
+		//			break;
+		//	}
 
-			if (logOptions <= GlobalSettings.LogOptions)
-			{
-				Logger.Write(_thread, message, logMsgType);
-			}
-		}
+		//	if (logOptions <= GlobalSettings.LogOptions)
+		//	{
+		//		Logger.Write(_thread, message, logMsgType);
+		//	}
+		//}
 
 		private void CountFiles(FileEntries files, string fileMask)
 		{

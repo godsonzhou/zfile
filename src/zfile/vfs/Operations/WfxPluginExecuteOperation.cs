@@ -30,8 +30,29 @@ public class WfxPluginExecuteOperation : FileSourceExecuteOperation
 			remoteName = AbsolutePath;
 		}
 
+		IntPtr mainWin;
+		var mainForm = Application.OpenForms[0];
+		if (mainForm?.Tag is IntPtr intPtrTag)
+		{
+			mainWin = intPtrTag;
+		}
+		else if (mainForm != null)
+		{
+			mainWin = mainForm.Handle;
+		}
+		else
+		{
+			mainWin = IntPtr.Zero;
+		}
+
+		if (_wfxPluginFileSource?.WfxModule == null)
+		{
+			ExecuteOperationResult = FileSourceExecuteOperationResult.Error;
+			return;
+		}
+
 		var result = _wfxPluginFileSource.WfxModule.ExecuteFile(
-			Application.OpenForms[0].Tag,
+			mainWin,
 			remoteName,
 			Verb);
 
@@ -53,8 +74,9 @@ public class WfxPluginExecuteOperation : FileSourceExecuteOperation
 		}
 	}
 
-	protected override void Finalize()
+	protected new void Finalize()
 	{
-		_wfxPluginFileSource?.WfxModule.setStatusInfo(CurrentPath, WfxConstants.FS_STATUS_END, WfxConstants.FS_STATUS_OP_EXEC);
+		_wfxPluginFileSource?.WfxModule?.setStatusInfo(CurrentPath, WfxConstants.FS_STATUS_END, WfxConstants.FS_STATUS_OP_EXEC);
+		base.Finalize();
 	}
 }

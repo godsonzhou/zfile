@@ -4,7 +4,7 @@ namespace zfile
 {
 	public class FileSystemOperationHelper : IDisposable
 	{
-		private readonly Action<string, bool> _askQuestion;
+		private readonly AskQuestionFunction _askQuestion;
 		private readonly Action _raiseAbortOperation;
 		private readonly Action _appProcessMessages;
 		private readonly Action _checkOperationState;
@@ -250,7 +250,7 @@ namespace zfile
 			}
 		}
 		public FileSystemOperationHelper(
-			Action<string, bool> askQuestion,
+			AskQuestionFunction askQuestion,
 			Action raiseAbortOperation,
 			Action appProcessMessages,
 			Action checkOperationState,

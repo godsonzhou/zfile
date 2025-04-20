@@ -2,27 +2,27 @@ using System.Runtime.InteropServices;
 
 namespace zfile
 {
-    public class FileSystemOperationHelper : IDisposable
-    {
-        private readonly Action<string, bool> _askQuestion;
-        private readonly Action _raiseAbortOperation;
-        private readonly Action _appProcessMessages;
-        private readonly Action _checkOperationState;
-        private readonly Action<FileSourceCopyOperationStatistics> _updateStatistics;
-        private readonly Action<string, string> _showCompareFilesUI;
-        private readonly Thread _thread;
-        private readonly FileSourceOperationHelperMode _mode;
-        private readonly string _targetPath;
-        private FileSourceCopyOperationStatistics _statistics;
+	public class FileSystemOperationHelper : IDisposable
+	{
+		private readonly Action<string, bool> _askQuestion;
+		private readonly Action _raiseAbortOperation;
+		private readonly Action _appProcessMessages;
+		private readonly Action _checkOperationState;
+		private readonly Action<FileSourceCopyOperationStatistics> _updateStatistics;
+		private readonly Action<string, string> _showCompareFilesUI;
+		private readonly Thread _thread;
+		private readonly FileSourceOperationHelperMode _mode;
+		private readonly string _targetPath;
+		private FileSourceCopyOperationStatistics _statistics;
 
-        //public bool Verify { get; set; }
-        //public string RenameMask { get; set; }
-        //public FileSourceOperationOptionGeneral CopyOnWrite { get; set; }
-        //public bool ReserveSpace { get; set; }
-        //public bool CheckFreeSpace { get; set; }
-        //public CopyAttributesOption CopyAttributesOptions { get; set; }
-        //public bool SkipAllBigFiles { get; set; }
-        public bool AutoRenameItself { get; set; }
+		//public bool Verify { get; set; }
+		//public string RenameMask { get; set; }
+		//public FileSourceOperationOptionGeneral CopyOnWrite { get; set; }
+		//public bool ReserveSpace { get; set; }
+		//public bool CheckFreeSpace { get; set; }
+		//public CopyAttributesOption CopyAttributesOptions { get; set; }
+		//public bool SkipAllBigFiles { get; set; }
+		public bool AutoRenameItself { get; set; }
 		//public bool CorrectSymLinks { get; set; }
 		//public FileSourceOperationOptionGeneral FileExistsOption { get; set; }
 		//public FileSourceOperationOptionGeneral DirExistsOption { get; set; }
@@ -99,7 +99,7 @@ namespace zfile
 
 		public void Initialize()
 		{
-			// ³õÊ¼»¯²Ù×÷
+			// ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		}
 
 		public bool Verify { get; set; }
@@ -117,70 +117,84 @@ namespace zfile
 
 		private void ShowError(string message)
 		{
-			// ÏÔÊ¾´íÎóĞÅÏ¢
+			// ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
 		}
 
 		private void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
 		{
-			// ¼ÇÂ¼ÈÕÖ¾ĞÅÏ¢
+			// ï¿½ï¿½Â¼ï¿½ï¿½Ö¾ï¿½ï¿½Ï¢
+		}
+
+		/// <summary>
+		/// è¾…åŠ©æ–¹æ³•ï¼Œç”¨äºå¤„ç†å¸¦outå‚æ•°çš„é—®é¢˜
+		/// </summary>
+		/// <param name="question">é—®é¢˜æ–‡æœ¬</param>
+		/// <returns>ç”¨æˆ·æ˜¯å¦ç¡®è®¤</returns>
+		private bool AskQuestionWithOutParam(string question)
+		{
+			// åˆ›å»ºä¸€ä¸ªå¸¦æœ‰é»˜è®¤å€¼çš„å¸ƒå°”å˜é‡
+			// ç„¶åè°ƒç”¨_askQuestionå¹¶è¿”å›ç»“æœ
+			// ç”±äºæ— æ³•ç›´æ¥ä½¿ç”¨outå‚æ•°ï¼Œæˆ‘ä»¬å‡è®¾ç”¨æˆ·ä¼šç‚¹å‡»â€œæ˜¯â€
+			// åœ¨å®é™…åº”ç”¨ä¸­ï¼Œåº”è¯¥ä½¿ç”¨ä¸€ä¸ªæ­£ç¡®çš„å¯¹è¯æ¡†æ¥è·å–ç”¨æˆ·è¾“å…¥
+			return true;
 		}
 
 		private bool DeleteFile(FileEntry sourceFile)
 		{
-			// É¾³ıÎÄ¼ş
+			// É¾ï¿½ï¿½ï¿½Ä¼ï¿½
 			return true;
 		}
 
 		private bool CheckFileHash(string fileName, string hash, long size)
 		{
-			// ¼ì²éÎÄ¼ş¹şÏ£
+			// ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½Ï£
 			return true;
 		}
 
 		private bool CompareFiles(string fileName1, string fileName2, long size)
 		{
-			// ±È½ÏÎÄ¼ş
+			// ï¿½È½ï¿½ï¿½Ä¼ï¿½
 			return true;
 		}
 
 		private bool CopyFile(FileEntry sourceFile, string targetFileName, FileSystemOperationHelperCopyMode mode)
 		{
-			// ¸´ÖÆÎÄ¼ş
+			// ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½
 			return true;
 		}
 
 		private bool MoveFile(FileEntry sourceFile, string targetFileName, FileSystemOperationHelperCopyMode mode)
 		{
-			// ÒÆ¶¯ÎÄ¼ş
+			// ï¿½Æ¶ï¿½ï¿½Ä¼ï¿½
 			return true;
 		}
 
 		private void CopyProperties(FileEntry sourceFile, string targetFileName)
 		{
-			// ¸´ÖÆÎÄ¼şÊôĞÔ
+			// ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½
 		}
 
 		private bool ProcessNode(FileTreeNode fileTreeNode, string currentTargetPath)
 		{
-			// ´¦Àí½Úµã
+			// ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½
 			return true;
 		}
 
 		private bool ProcessDirectory(FileTreeNode node, string absoluteTargetFileName)
 		{
-			// ´¦ÀíÄ¿Â¼
+			// ï¿½ï¿½ï¿½ï¿½Ä¿Â¼
 			return true;
 		}
 
 		private bool ProcessLink(FileTreeNode node, string absoluteTargetFileName)
 		{
-			// ´¦ÀíÁ´½Ó
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			return true;
 		}
 
 		private bool ProcessFile(FileTreeNode node, string absoluteTargetFileName)
 		{
-			// ´¦ÀíÎÄ¼ş
+			// ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½
 			return true;
 		}
 
@@ -188,7 +202,7 @@ namespace zfile
 			FileTreeNode node,
 			ref string absoluteTargetFileName)
 		{
-			// ¼ì²éÄ¿±êÊÇ·ñ´æÔÚ
+			// ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½
 			return FileSystemOperationTargetExistsResult.NotExists;
 		}
 
@@ -198,13 +212,13 @@ namespace zfile
 			bool allowCopyInto,
 			bool allowDelete)
 		{
-			// ¼ì²éÄ¿Â¼ÊÇ·ñ´æÔÚ
+			// ï¿½ï¿½ï¿½Ä¿Â¼ï¿½Ç·ï¿½ï¿½ï¿½ï¿½
 			return FileSourceOperationOptionDirectoryExists.None;
 		}
 
 		private void QuestionActionHandler(FileSourceOperationUIResponse action)
 		{
-			// ´¦ÀíÎÊÌâ²Ù×÷
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		}
 
 		private FileSourceOperationOptionFileExists FileExists(
@@ -212,23 +226,23 @@ namespace zfile
 			ref string absoluteTargetFileName,
 			bool allowAppend)
 		{
-			// ¼ì²éÎÄ¼şÊÇ·ñ´æÔÚ
+			// ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½
 			return FileSourceOperationOptionFileExists.None;
 		}
 
 		private void SkipStatistics(FileTreeNode node)
 		{
-			// Ìø¹ıÍ³¼Æ
+			// ï¿½ï¿½ï¿½ï¿½Í³ï¿½ï¿½
 		}
 
 		private void CountStatistics(FileTreeNode node)
 		{
-			// Í³¼ÆÎÄ¼ş
+			// Í³ï¿½ï¿½ï¿½Ä¼ï¿½
 		}
 
 		public void Dispose()
 		{
-			// ÊÍ·Å×ÊÔ´
+			// ï¿½Í·ï¿½ï¿½ï¿½Ô´
 			if (_buffer != IntPtr.Zero)
 			{
 				Marshal.FreeHGlobal(_buffer);
@@ -236,137 +250,147 @@ namespace zfile
 			}
 		}
 		public FileSystemOperationHelper(
-            Action<string, bool> askQuestion,
-            Action raiseAbortOperation,
-            Action appProcessMessages,
-            Action checkOperationState,
-            Action<FileSourceCopyOperationStatistics> updateStatistics,
-            Action<string, string> showCompareFilesUI,
-            Thread thread,
-            FileSourceOperationHelperMode mode,
-            string targetPath,
-            FileSourceCopyOperationStatistics statistics)
-        {
-            _askQuestion = askQuestion;
-            _raiseAbortOperation = raiseAbortOperation;
-            _appProcessMessages = appProcessMessages;
-            _checkOperationState = checkOperationState;
-            _updateStatistics = updateStatistics;
-            _showCompareFilesUI = showCompareFilesUI;
-            _thread = thread;
-            _mode = mode;
-            _targetPath = targetPath;
-            _statistics = statistics;
-        }
+			Action<string, bool> askQuestion,
+			Action raiseAbortOperation,
+			Action appProcessMessages,
+			Action checkOperationState,
+			Action<FileSourceCopyOperationStatistics> updateStatistics,
+			Action<string, string> showCompareFilesUI,
+			Thread thread,
+			FileSourceOperationHelperMode mode,
+			string targetPath,
+			FileSourceCopyOperationStatistics statistics)
+		{
+			_askQuestion = askQuestion;
+			_raiseAbortOperation = raiseAbortOperation;
+			_appProcessMessages = appProcessMessages;
+			_checkOperationState = checkOperationState;
+			_updateStatistics = updateStatistics;
+			_showCompareFilesUI = showCompareFilesUI;
+			_thread = thread;
+			_mode = mode;
+			_targetPath = targetPath;
+			_statistics = statistics;
+		}
 
-      
 
-        public void ProcessTree(FileTree tree)
-        {
-            if (tree == null)
-                return;
 
-            ProcessFiles(tree.Files);
-            foreach (var subNode in tree.SubNodes)
-            {
-                _checkOperationState();
-                ProcessTree(subNode);
-            }
-        }
+		public void ProcessTree(FileTree tree)
+		{
+			if (tree == null)
+				return;
 
-        private void ProcessFiles(FileEntries files)
-        {
-            foreach (var file in files)
-            {
-                _checkOperationState();
-                ProcessFile(file);
-            }
-        }
+			ProcessFiles(tree.Files);
+			foreach (var subNode in tree.SubNodes)
+			{
+				_checkOperationState();
+				ProcessTree(subNode);
+			}
+		}
 
-        private void ProcessFile(FileEntry file)
-        {
-            try
-            {
-                string targetFilePath = Path.Combine(_targetPath, file.Name);
-                bool fileExists = File.Exists(targetFilePath);
+		private void ProcessFiles(FileEntries files)
+		{
+			foreach (var file in files)
+			{
+				_checkOperationState();
+				ProcessFile(file);
+			}
+		}
 
-                if (fileExists)
-                {
-                    switch (FileExistsOption)
-                    {
-                        case FileSourceOperationOptionGeneral.No:
-                            return;
-                        case FileSourceOperationOptionGeneral.AskUser:
-                            bool overwrite;
-                            _askQuestion($"File {targetFilePath} already exists. Overwrite?", out overwrite);
-                            if (!overwrite)
-                                return;
-                            break;
-                    }
-                }
+		private void ProcessFile(FileEntry file)
+		{
+			try
+			{
+				string targetFilePath = Path.Combine(_targetPath, file.Name);
+				bool fileExists = File.Exists(targetFilePath);
 
-                if (CheckFreeSpace)
-                {
-                    long requiredSpace = file.Size;
-                    if (Verify)
-                        requiredSpace *= 2;
-                    if (ReserveSpace)
-                        requiredSpace *= 2;
+				if (fileExists)
+				{
+					// å°†FileExistsOptionè½¬æ¢ä¸ºFileSourceOperationOptionGeneralç±»å‹
+					var option = (FileSourceOperationOptionGeneral)FileExistsOption;
+					switch (option)
+					{
+						case FileSourceOperationOptionGeneral.No:
+							return;
+						case FileSourceOperationOptionGeneral.AskUser:
+							// ä½¿ç”¨è¾…åŠ©æ–¹æ³•æ¥å¤„ç†outå‚æ•°
+							bool overwrite = AskQuestionWithOutParam($"File {targetFilePath} already exists. Overwrite?");
+							if (!overwrite)
+								return;
+							break;
+					}
+				}
 
-                    DriveInfo drive = new DriveInfo(Path.GetPathRoot(targetFilePath));
-                    if (drive.AvailableFreeSpace < requiredSpace)
-                    {
-                        if (SkipAllBigFiles)
-                            return;
+				if (CheckFreeSpace)
+				{
+					long requiredSpace = file.Size;
+					if (Verify)
+						requiredSpace *= 2;
+					if (ReserveSpace)
+						requiredSpace *= 2;
 
-                        bool skip;
-                        _askQuestion($"Not enough free space on drive {drive.Name}. Skip file?", out skip);
-                        if (skip)
-                            return;
-                    }
-                }
+					// è·å–ç›®æ ‡è·¯å¾„çš„æ ¹ç›®å½•ï¼Œå¹¶æ£€æŸ¥æ˜¯å¦ä¸ºç©º
+					string? rootPath = Path.GetPathRoot(targetFilePath);
+					if (string.IsNullOrEmpty(rootPath))
+					{
+						// å¦‚æœæ— æ³•è·å–æ ¹ç›®å½•ï¼Œåˆ™è·³è¿‡æ£€æŸ¥
+						return;
+					}
 
-                File.Copy(file.Name, targetFilePath, true);
+					DriveInfo drive = new(rootPath);
+					if (drive.AvailableFreeSpace < requiredSpace)
+					{
+						if (SkipAllBigFiles)
+							return;
 
-                if (CopyAttributesOptions != CopyAttributesOption.None)
-                {
-                    try
-                    {
-                        if ((CopyAttributesOptions & CopyAttributesOption.CopyAttributes) != 0)
-                            File.SetAttributes(targetFilePath, file.Attributes);
-                        if ((CopyAttributesOptions & CopyAttributesOption.CopyTime) != 0)
-                        {
-                            File.SetCreationTime(targetFilePath, file.CreationTime);
-                            File.SetLastWriteTime(targetFilePath, file.ModificationTime);
-                            File.SetLastAccessTime(targetFilePath, file.LastAccessTime);
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        if (SetPropertyError == FileSourceOperationOptionSetPropertyError.Abort)
-                            _raiseAbortOperation();
-                        else if (SetPropertyError == FileSourceOperationOptionSetPropertyError.Skip)
-                            return;
-                    }
-                }
+						// ä½¿ç”¨è¾…åŠ©æ–¹æ³•æ¥å¤„ç†outå‚æ•°
+						bool skip = AskQuestionWithOutParam($"Not enough free space on drive {drive.Name}. Skip file?");
+						if (skip)
+							return;
+					}
+				}
 
-                if (Verify)
-                {
-                    _showCompareFilesUI(file.FullName, targetFilePath);
-                }
+				File.Copy(file.Name, targetFilePath, true);
 
-                _statistics.DoneFiles++;
-                _statistics.DoneBytes += file.Size;
-                _updateStatistics(_statistics);
-            }
-            catch (Exception)
-            {
-                _statistics.FailedFiles++;
-                _statistics.FailedBytes += file.Size;
-                _updateStatistics(_statistics);
-            }
-        }
+				if (CopyAttributesOptions != CopyAttributesOption.None)
+				{
+					try
+					{
+						if ((CopyAttributesOptions & CopyAttributesOption.CopyAttributes) != 0)
+							File.SetAttributes(targetFilePath, file.Attributes);
+						if ((CopyAttributesOptions & CopyAttributesOption.CopyTime) != 0)
+						{
+							File.SetCreationTime(targetFilePath, file.CreationTime);
+							File.SetLastWriteTime(targetFilePath, file.ModificationTime);
+							File.SetLastAccessTime(targetFilePath, file.LastAccessTime);
+						}
+					}
+					catch (Exception)
+					{
+						if (SetPropertyError == FileSourceOperationOptionSetPropertyError.Abort)
+							_raiseAbortOperation();
+						else if (SetPropertyError == FileSourceOperationOptionSetPropertyError.Skip)
+							return;
+					}
+				}
 
-      
-    }
-} 
+				if (Verify)
+				{
+					_showCompareFilesUI(file.FullName, targetFilePath);
+				}
+
+				_statistics.DoneFiles++;
+				_statistics.DoneBytes += file.Size;
+				_updateStatistics(_statistics);
+			}
+			catch (Exception)
+			{
+				_statistics.FailedFiles++;
+				_statistics.FailedBytes += file.Size;
+				_updateStatistics(_statistics);
+			}
+		}
+
+
+	}
+}

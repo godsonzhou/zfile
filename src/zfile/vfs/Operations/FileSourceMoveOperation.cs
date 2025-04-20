@@ -6,8 +6,8 @@ namespace zfile
     /// </summary>
     public abstract class FileSourceMoveOperation : FileSourceOperation
     {
-        private FileSourceMoveOperationStatistics _statistics;
-        private FileSourceMoveOperationStatistics _statisticsAtStartTime;
+        private FileSourceCopyOperationStatistics _statistics;
+        private FileSourceCopyOperationStatistics _statisticsAtStartTime;
         private readonly object _statisticsLock = new object();
         private IFileSource _fileSource;
         private FileEntries _sourceFiles;
@@ -80,7 +80,7 @@ namespace zfile
         public FileSourceMoveOperation(IFileSource aFileSource, FileEntries theSourceFiles, string aTargetPath)
             : base(aFileSource)
         {
-            _statistics = new FileSourceMoveOperationStatistics
+            _statistics = new FileSourceCopyOperationStatistics
             {
                 CurrentFileFrom = "",
                 CurrentFileTo = "",
@@ -120,7 +120,7 @@ namespace zfile
         /// Updates the statistics for this operation
         /// </summary>
         /// <param name="newStatistics">The new statistics to update with</param>
-        protected void UpdateStatistics(FileSourceMoveOperationStatistics newStatistics)
+        protected void UpdateStatistics(FileSourceCopyOperationStatistics newStatistics)
         {
             lock (_statisticsLock)
             {
@@ -211,7 +211,7 @@ namespace zfile
         /// Retrieves the current statistics for this operation
         /// </summary>
         /// <returns>The current statistics</returns>
-        public FileSourceMoveOperationStatistics RetrieveStatistics()
+        public FileSourceCopyOperationStatistics RetrieveStatistics()
         {
             lock (_statisticsLock)
             {

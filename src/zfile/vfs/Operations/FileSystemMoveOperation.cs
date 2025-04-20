@@ -8,7 +8,7 @@ namespace zfile
         private SearchTemplate searchTemplate;
         private FileSourceOperationOptionSetPropertyError setPropertyError;
         private FileTree sourceFilesTree;
-        private FileSourceMoveOperationStatistics statistics;
+        private FileSourceCopyOperationStatistics statistics;
 
         // 选项
         private bool verify;

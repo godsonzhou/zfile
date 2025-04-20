@@ -20,9 +20,14 @@ namespace zfile
         private readonly FileAttributes _attributes;
         private readonly bool _attributesUnset;
         private readonly FileAttributes _attributesUnsetMask;
-		internal int SearchDepth;
+        internal int SearchDepth;
 
-		public SearchTemplate(
+        /// <summary>
+        /// 获取或设置搜索模板的名称
+        /// </summary>
+        public string TemplateName { get; set; } = string.Empty;
+
+        public SearchTemplate(
             string searchTemplate,
             bool caseSensitive = false,
             bool regExp = false,
@@ -147,14 +152,14 @@ namespace zfile
             // Nothing to dispose in this implementation
         }
 
-		internal bool CheckDirectoryName(string name)
-		{
-			throw new NotImplementedException();
-		}
+        internal bool CheckDirectoryName(string name)
+        {
+            throw new NotImplementedException();
+        }
 
-		internal bool CheckDirectoryNameEx(string fullPath, string rootDir)
-		{
-			throw new NotImplementedException();
-		}
-	}
-} 
+        internal bool CheckDirectoryNameEx(string fullPath, string rootDir)
+        {
+            throw new NotImplementedException();
+        }
+    }
+}

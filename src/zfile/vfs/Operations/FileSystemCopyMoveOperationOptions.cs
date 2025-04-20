@@ -1,7 +1,9 @@
 using System.ComponentModel;
+using zfile.Dialogs;
 
 namespace zfile
 {
+
     public class FileSystemCopyMoveOperationOptionsUI : FileSourceOperationOptionsUI
     {
         private Button btnSearchTemplate;
@@ -128,10 +130,13 @@ namespace zfile
         private void BtnSearchTemplate_Click(object sender, EventArgs e)
         {
             // 实现搜索模板功能
-            if (ShowUseTemplateDialog(template) && template != null)
+            if (template == null)
+                template = new SearchTemplate("*");
+
+            if (TemplateDialogs.ShowUseTemplateDialog(template) && template != null)
             {
-                lblTemplateName.Text = string.IsNullOrEmpty(template.TemplateName) 
-                    ? "未命名模板" 
+                lblTemplateName.Text = string.IsNullOrEmpty(template.TemplateName)
+                    ? "未命名模板"
                     : template.TemplateName;
             }
         }
@@ -234,13 +239,13 @@ namespace zfile
         }
     }
 
-	public class FileSystemMoveOperationOptionsUI : FileSystemCopyMoveOperationOptionsUI
-	{
-		public FileSystemMoveOperationOptionsUI(Control owner, IFileSource fileSource) : base(owner, fileSource)
-		{
-		}
-	}
+    public class FileSystemMoveOperationOptionsUI : FileSystemCopyMoveOperationOptionsUI
+    {
+        public FileSystemMoveOperationOptionsUI(Control owner, IFileSource fileSource) : base(owner, fileSource)
+        {
+        }
+    }
 
-	// 枚举定义
+    // 枚举定义
 
-} 
+}

@@ -641,7 +641,7 @@ namespace zfile
         /// <summary>
         /// General function to ask questions from operations
         /// </summary>
-        protected FileSourceOperationUIResponse AskQuestion(
+        public FileSourceOperationUIResponse AskQuestion(
             string message,
             string question,
             FileSourceOperationUIResponse[] possibleResponses,

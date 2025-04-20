@@ -148,13 +148,12 @@ namespace zfile
 
 			_operationHelper?.Dispose();
 			_operationHelper = new FileSystemOperationHelper(
-				(msg, question, possibleResponses, defaultOKResponse, defaultCancelResponse, actionHandler) =>
-					AskQuestion(msg, question, possibleResponses, defaultOKResponse, defaultCancelResponse, actionHandler),
+				this.CreateAskQuestionDelegate(),
 				() => RaiseAbortOperation(),
-				(checkState) => AppProcessMessages(checkState),
+				() => AppProcessMessages(),
 				() => CheckOperationState(),
 				UpdateStatistics,
-				null, //showcomparefilesui not implemented
+				(sourceFile, targetFilePath) => { /* 暂未实现 */ },
 				_thread,
 				FileSourceOperationHelperMode.Copy,
 				TargetPath,

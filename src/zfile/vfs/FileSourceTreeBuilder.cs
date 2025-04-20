@@ -35,8 +35,8 @@ namespace zfile
         private bool _recursive;
         private string _rootDir;
 
-        private readonly AskQuestionFunction _askQuestion;
-        private readonly CheckOperationStateFunction _checkOperationState;
+        protected readonly AskQuestionFunction _askQuestion;
+        protected readonly CheckOperationStateFunction _checkOperationState;
 
         /// <summary>
         /// Creates a new instance of the FileSourceTreeBuilder class.

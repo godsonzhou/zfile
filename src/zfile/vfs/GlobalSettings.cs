@@ -99,44 +99,6 @@ namespace zfile
 		SFV
 	}
 
-	
-	public enum FileExistsOption
-	{
-		None,
-		Overwrite,
-		OverwriteOlder,
-		Skip
-	}
-
-	public enum DirectoryExistsOption
-	{
-		None,
-		CopyInto,
-		Skip
-	}
-
-	public enum SetPropertyErrorOption
-	{
-		None,
-		DontSet,
-		IgnoreErrors
-	}
-
-	public enum CopyOnWriteOption
-	{
-		None,
-		Yes,
-		No
-	}
-
-	public enum SymLinksOption
-	{
-		Follow,
-		DontFollow,
-		None
-	}   /// <summary>
-		/// Global settings for the application
-		/// </summary>
 	public static partial class GlobalSettings
 	{
 		internal static bool ProcessComments;

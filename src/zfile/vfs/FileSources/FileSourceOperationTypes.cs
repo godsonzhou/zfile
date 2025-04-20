@@ -62,7 +62,10 @@ namespace zfile
 
     public enum FileSourceOperationOptionSetPropertyError
     {
-        Ignore,
+		None,
+		DontSet,
+		IgnoreErrors,
+		Ignore,
         Skip,
         Abort
     }

@@ -163,17 +163,17 @@ namespace zfile
         public override void SaveOptions()
         {
             // 保存选项到全局设置
-            GlobalSettings.OperationOptionFileExists = (FileExistsOption)cmbFileExists.SelectedIndex;
-            GlobalSettings.OperationOptionDirectoryExists = (DirectoryExistsOption)cmbDirectoryExists.SelectedIndex;
-            GlobalSettings.OperationOptionSetPropertyError = (SetPropertyErrorOption)cmbSetPropertyError.SelectedIndex;
-            GlobalSettings.OperationOptionCopyOnWrite = (CopyOnWriteOption)chkCopyOnWrite.CheckState;
+            GlobalSettings.OperationOptionFileExists = (FileSourceOperationOptionFileExists)cmbFileExists.SelectedIndex;
+            GlobalSettings.OperationOptionDirectoryExists = (FileSourceOperationOptionDirectoryExists)cmbDirectoryExists.SelectedIndex;
+            GlobalSettings.OperationOptionSetPropertyError = (FileSourceOperationOptionSetPropertyError)cmbSetPropertyError.SelectedIndex;
+            GlobalSettings.OperationOptionCopyOnWrite = (FileSourceOperationOptionGeneral)chkCopyOnWrite.CheckState;
             GlobalSettings.OperationOptionVerify = chkVerify.Checked;
             GlobalSettings.OperationOptionCopyAttributes = cbCopyAttributes.Checked;
             GlobalSettings.OperationOptionCopyTime = cbCopyTime.Checked;
             GlobalSettings.OperationOptionCopyOwnership = cbCopyOwnership.Checked;
             GlobalSettings.OperationOptionCopyPermissions = cbCopyPermissions.Checked;
             GlobalSettings.DropReadOnlyFlag = cbDropReadOnlyFlag.Checked;
-            GlobalSettings.OperationOptionSymLinks = (SymLinksOption)cbFollowLinks.CheckState;
+            GlobalSettings.OperationOptionSymLinks = (FileSourceOperationSymLinkOption)cbFollowLinks.CheckState;
             GlobalSettings.OperationOptionCorrectLinks = cbCorrectLinks.Checked;
             GlobalSettings.OperationOptionReserveSpace = cbReserveSpace.Checked;
             GlobalSettings.OperationOptionCheckFreeSpace = cbCheckFreeSpace.Checked;
@@ -194,9 +194,9 @@ namespace zfile
 
         private void SetOperationOptions(FileSystemCopyOperation operation)
         {
-            operation.FileExistsOption = (FileExistsOption)cmbFileExists.SelectedIndex;
-            operation.DirectoryExistsOption = (DirectoryExistsOption)cmbDirectoryExists.SelectedIndex;
-            operation.SetPropertyErrorOption = (SetPropertyErrorOption)cmbSetPropertyError.SelectedIndex;
+            operation.FileExistsOption = (FileSourceOperationOptionFileExists)cmbFileExists.SelectedIndex;
+            operation.DirectoryExistsOption = (FileSourceOperationOptionDirectoryExists)cmbDirectoryExists.SelectedIndex;
+            operation.SetPropertyErrorOption = (FileSourceOperationOptionSetPropertyError)cmbSetPropertyError.SelectedIndex;
             operation.CopyAttributes = cbCopyAttributes.Checked;
             operation.CopyTime = cbCopyTime.Checked;
             operation.CopyOwnership = cbCopyOwnership.Checked;
@@ -214,9 +214,9 @@ namespace zfile
         private void SetOperationOptions(FileSystemMoveOperation operation)
         {
             // 设置移动操作选项
-            operation.FileExistsOption = (FileExistsOption)cmbFileExists.SelectedIndex;
-            operation.DirectoryExistsOption = (DirectoryExistsOption)cmbDirectoryExists.SelectedIndex;
-            operation.SetPropertyErrorOption = (SetPropertyErrorOption)cmbSetPropertyError.SelectedIndex;
+            operation.FileExistsOption = (FileSourceOperationOptionFileExists)cmbFileExists.SelectedIndex;
+            operation.DirectoryExistsOption = (FileSourceOperationOptionDirectoryExists)cmbDirectoryExists.SelectedIndex;
+            operation.SetPropertyErrorOption = (FileSourceOperationOptionSetPropertyError)cmbSetPropertyError.SelectedIndex;
             operation.CopyAttributes = cbCopyAttributes.Checked;
             operation.CopyTime = cbCopyTime.Checked;
             operation.CopyOwnership = cbCopyOwnership.Checked;

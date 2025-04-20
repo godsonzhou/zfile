@@ -50,7 +50,8 @@ namespace zfile
         Merge,
         Skip,
         SkipAll,
-        Abort
+        Abort,
+		CopyInto
     }
    
 }

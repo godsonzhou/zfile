@@ -53,9 +53,11 @@ namespace zfile
 
 			// Gets full list of files (recursive)
 			FileSystemUtil.FillAndCount(SourceFiles,
-						 ref _fullFilesTree,
-						 ref _statistics.TotalFiles,
-						 ref _statistics.TotalBytes);
+						 false,
+						 false,
+						 out _fullFilesTree,
+						 out _statistics.TotalFiles,
+						 out _statistics.TotalBytes);
 
 			// Need to check file existence
 			if (_fileExistsOption != FileSourceOperationOptionFileExists.Overwrite)
@@ -92,7 +94,7 @@ namespace zfile
 			UpdateStatistics(_statistics);
 
 			SetProcessDataProc(WcxModule.WcxInvalidHandle);
-			wcxModule.SetChangeVolProc(WcxModule.WcxInvalidHandle);
+			wcxModule.SetChangeVolProc(WcxModule.WcxInvalidHandle, WcxModule.WcxInvalidHandle);
 
 			// Convert TFiles into String
 			string FileEntries = GetFileEntries(_fullFilesTree);
@@ -132,6 +134,7 @@ namespace zfile
 		protected override void Finalize()
 		{
 			ClearCurrentOperation();
+			base.Finalize();
 		}
 
 		public override string GetDescription(FileSourceOperationDescriptionDetails details)
@@ -211,16 +214,41 @@ namespace zfile
 
 		private void SetProcessDataProc(IntPtr arcData)
 		{
+			// 创建符合TProcessDataProc签名的委托
+			var procAG = new TProcessDataProc((string fileName, int size) =>
+				ProcessDataProc(_wcxCopyInOperationG, fileName != null ? Marshal.PtrToStringAnsi(new IntPtr(fileName.GetHashCode())) : string.Empty, size));
+
+			var procWG = new TProcessDataProc((string fileName, int size) =>
+				ProcessDataProc(_wcxCopyInOperationG, fileName != null ? Marshal.PtrToStringUni(new IntPtr(fileName.GetHashCode())) : string.Empty, size));
+
+			var procAT = new TProcessDataProc((string fileName, int size) =>
+				ProcessDataProc(_wcxCopyInOperationT, fileName != null ? Marshal.PtrToStringAnsi(new IntPtr(fileName.GetHashCode())) : string.Empty, size));
+
+			var procWT = new TProcessDataProc((string fileName, int size) =>
+				ProcessDataProc(_wcxCopyInOperationT, fileName != null ? Marshal.PtrToStringUni(new IntPtr(fileName.GetHashCode())) : string.Empty, size));
+
+			// 获取函数指针
+			IntPtr pProcAG = Marshal.GetFunctionPointerForDelegate(procAG);
+			IntPtr pProcWG = Marshal.GetFunctionPointerForDelegate(procWG);
+			IntPtr pProcAT = Marshal.GetFunctionPointerForDelegate(procAT);
+			IntPtr pProcWT = Marshal.GetFunctionPointerForDelegate(procWT);
+
 			if (NeedsConnection)
-				_wcxArchiveFileSource.WcxModule.SetProcessDataProc(arcData, ProcessDataProcAG, ProcessDataProcWG);
+				_wcxArchiveFileSource.WcxModule.SetProcessDataProc(arcData, pProcAG, pProcWG);
 			else
-				_wcxArchiveFileSource.WcxModule.SetProcessDataProc(arcData, ProcessDataProcAT, ProcessDataProcWT);
+				_wcxArchiveFileSource.WcxModule.SetProcessDataProc(arcData, pProcAT, pProcWT);
+
+			// 保持委托引用防止被GC回收
+			GC.KeepAlive(procAG);
+			GC.KeepAlive(procWG);
+			GC.KeepAlive(procAT);
+			GC.KeepAlive(procWT);
 		}
 
 		private void QuestionActionHandler(FileSourceOperationUIResponse action)
 		{
-			if (action == FileSourceOperationUIResponse.CompareAction)
-				ShowCompareFilesUI(_currentFile, Helper.IncludeFrontPathDelimiter(_currentTargetFilePath));
+			if (action == FileSourceOperationUIResponse.CompareAction && _currentFile != null)
+				ShowCompareFilesUI(_currentFile, Helper.IncludeFrontPathDelimiter(_currentTargetFilePath ?? string.Empty));
 		}
 
 		private string FileExistsMessage(FileEntry sourceFile, WcxHeader targetHeader)
@@ -246,6 +274,9 @@ namespace zfile
 				case FileSourceOperationOptionFileExists.None:
 					_currentFile = sourceFile;
 					_currentTargetFilePath = targetHeader.FileName;
+					// 创建处理UI操作的适配器
+					var actionHandler = new FileSourceOperationUIActionHandlerAdapter(QuestionActionHandler);
+
 					var response = AskQuestion(FileExistsMessage(sourceFile, targetHeader), "",
 											 new[] { FileSourceOperationUIResponse.Overwrite,
 													FileSourceOperationUIResponse.Skip,
@@ -258,7 +289,7 @@ namespace zfile
 													FileSourceOperationUIResponse.CompareAction },
 											 FileSourceOperationUIResponse.Overwrite,
 											 FileSourceOperationUIResponse.Skip,
-											 QuestionActionHandler);
+											 actionHandler);
 					switch (response)
 					{
 						case FileSourceOperationUIResponse.Overwrite:
@@ -324,7 +355,7 @@ namespace zfile
 
 		public static void ClearCurrentOperation()
 		{
-			_wcxCopyInOperationG = null;
+			_wcxCopyInOperationG = null!;
 		}
 
 		public static Type GetOptionsUIClass()
@@ -334,7 +365,7 @@ namespace zfile
 
 		private bool Tar()
 		{
-			TarWriter tarWriter = null;
+			TarWriter? tarWriter = null;
 			bool result;
 
 			try
@@ -343,8 +374,12 @@ namespace zfile
 					(_wcxArchiveFileSource.WcxModule.PluginCapabilities & (int)PackerCaps.PK_CAPS_MEMPACK) != 0)
 				{
 					_tarFileName = _wcxArchiveFileSource.ArchiveFileName;
+					// 创建一个包装委托，用于处理AskQuestion
+					FileSourceOperationAskQuestionFunction askQuestionFunc = (message, question, possibleResponses, defaultOKResponse, defaultCancelResponse) =>
+							AskQuestion(message, question, possibleResponses, defaultOKResponse, defaultCancelResponse, null);
+
 					tarWriter = new TarWriter(_tarFileName,
-											 AskQuestion,
+											 askQuestionFunc,
 											 RaiseAbortOperation,
 											 CheckOperationState,
 											 UpdateStatistics,
@@ -354,8 +389,12 @@ namespace zfile
 				else
 				{
 					_tarFileName = Path.ChangeExtension(_wcxArchiveFileSource.ArchiveFileName, null);
+					// 创建一个包装委托，用于处理AskQuestion
+					FileSourceOperationAskQuestionFunction askQuestionFunc = (message, question, possibleResponses, defaultOKResponse, defaultCancelResponse) =>
+							AskQuestion(message, question, possibleResponses, defaultOKResponse, defaultCancelResponse, null);
+
 					tarWriter = new TarWriter(_tarFileName,
-											 AskQuestion,
+											 askQuestionFunc,
 											 RaiseAbortOperation,
 											 CheckOperationState,
 											 UpdateStatistics);
@@ -370,7 +409,7 @@ namespace zfile
 					{
 						// Fill file list with tar archive file
 						_fullFilesTree.Clear();
-						_fullFilesTree.Path = Path.GetDirectoryName(_tarFileName);
+						_fullFilesTree.Path = Path.GetDirectoryName(_tarFileName) ?? string.Empty;
 						_fullFilesTree.Add(FileSystemFileSource.CreateFileFromFile(_tarFileName));
 					}
 				}
@@ -379,7 +418,7 @@ namespace zfile
 			}
 			finally
 			{
-				if (tarWriter != null) tarWriter.Dispose();
+				tarWriter?.Dispose();
 			}
 		}
 
@@ -392,28 +431,65 @@ namespace zfile
 		// WCX callback methods
 		private static int ProcessDataProc(WcxArchiveCopyInOperation operation, string fileName, int size)
 		{
-			// Implementation of process data callback
+			// 实现进程数据回调
+			if (operation == null || operation.State == FileSourceOperationState.Stopping)
+				return 0; // 取消操作
+
+			var statistics = operation._statistics;
+			if (statistics != null)
+			{
+				statistics.CurrentFileFrom = fileName ?? string.Empty;
+
+				// 获取自上次调用以来处理的字节数
+				if (size > 0)
+				{
+					statistics.DoneBytes += size;
+					if (statistics.TotalFiles == 1)
+					{
+						statistics.CurrentFileDoneBytes = statistics.DoneBytes;
+						statistics.CurrentFileTotalBytes = statistics.TotalBytes;
+					}
+				}
+				// 获取进度百分比值以直接设置进度条
+				else if (size < 0)
+				{
+					// 总操作百分比
+					if (size >= -100 && size <= -1)
+					{
+						statistics.DoneBytes = statistics.TotalBytes * (-size) / 100;
+					}
+					// 当前文件百分比
+					else if (size >= -1100 && size <= -1000)
+					{
+						statistics.CurrentFileTotalBytes = 100;
+						statistics.CurrentFileDoneBytes = (-size) - 1000;
+					}
+				}
+
+				operation.UpdateStatistics(statistics);
+			}
+
 			return 1;
 		}
 
 		private static int ProcessDataProcAG(IntPtr fileName, int size)
 		{
-			return ProcessDataProc(_wcxCopyInOperationG, Marshal.PtrToStringAnsi(fileName), size);
+			return ProcessDataProc(_wcxCopyInOperationG, fileName != IntPtr.Zero ? Marshal.PtrToStringAnsi(fileName) : string.Empty, size);
 		}
 
 		private static int ProcessDataProcWG(IntPtr fileName, int size)
 		{
-			return ProcessDataProc(_wcxCopyInOperationG, Marshal.PtrToStringUni(fileName), size);
+			return ProcessDataProc(_wcxCopyInOperationG, fileName != IntPtr.Zero ? Marshal.PtrToStringUni(fileName) : string.Empty, size);
 		}
 
 		private static int ProcessDataProcAT(IntPtr fileName, int size)
 		{
-			return ProcessDataProc(_wcxCopyInOperationT, Marshal.PtrToStringAnsi(fileName), size);
+			return ProcessDataProc(_wcxCopyInOperationT, fileName != IntPtr.Zero ? Marshal.PtrToStringAnsi(fileName) : string.Empty, size);
 		}
 
 		private static int ProcessDataProcWT(IntPtr fileName, int size)
 		{
-			return ProcessDataProc(_wcxCopyInOperationT, Marshal.PtrToStringUni(fileName), size);
+			return ProcessDataProc(_wcxCopyInOperationT, fileName != IntPtr.Zero ? Marshal.PtrToStringUni(fileName) : string.Empty, size);
 		}
 	}
 }

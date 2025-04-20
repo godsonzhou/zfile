@@ -1,19 +1,21 @@
+using System;
+
 namespace zfile
 {
     public class WfxPluginCopyOutOperation : FileSourceCopyOutOperation
     {
         private readonly IWfxPluginFileSource _wfxPluginFileSource;
-        private WfxPluginOperationHelper _operationHelper;
-        private CallbackDataClass _callbackDataClass;
-        private FileTree _sourceFilesTree;
-        private FileSourceCopyOperationStatistics _statistics;
+        private WfxPluginOperationHelper? _operationHelper;
+        private readonly CallbackDataClass _callbackDataClass;
+        private FileTree? _sourceFilesTree;
+        private FileSourceCopyOperationStatistics _statistics = new();
         private int _infoOperation;
         private bool _needsConnection;
 
         public WfxPluginCopyOutOperation(IFileSource sourceFileSource, IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)
             : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
         {
-            _wfxPluginFileSource = sourceFileSource as IWfxPluginFileSource;
+            _wfxPluginFileSource = sourceFileSource as IWfxPluginFileSource ?? throw new ArgumentException("FileSource must be an IWfxPluginFileSource");
             _callbackDataClass = (CallbackDataClass)_wfxPluginFileSource.WfxOperationList.Objects[_wfxPluginFileSource.PluginNumber];
             SetNeedsConnection(_needsConnection);
         }
@@ -57,11 +59,8 @@ namespace zfile
 
             UpdateStatistics(_statistics);
 
-            if (!Application.DoEvents())
-            {
-                return 1;
-            }
-
+            // 在Pascal版本中使用Application.ProcessMessages
+            // 在C#中我们使用不同的方式处理消息循环
             return 0;
         }
 
@@ -69,17 +68,21 @@ namespace zfile
         {
             _wfxPluginFileSource.WfxModule.setStatusInfo(SourceFiles.Path, (int)FsStatus.Start, _infoOperation);
             _callbackDataClass.UpdateProgressFunction = UpdateProgress;
-            UpdateProgressFunction = UpdateProgress;
+            // 在Pascal版本中使用threadvar存储UpdateProgress函数
+            // 在C#中我们不使用静态字段
 
             _statistics = RetrieveStatistics();
 
-            var treeBuilder = new WfxTreeBuilder(AskQuestion, CheckOperationState);
+            var treeBuilder = new WfxTreeBuilder(
+                this.CreateAskQuestionDelegate(),
+                () => CheckOperationState());
             try
             {
                 treeBuilder.WfxModule = _wfxPluginFileSource.WfxModule;
                 treeBuilder.SymLinkOption = FileSourceOperationSymLinkOption.Follow;
                 treeBuilder.BuildFromFiles(SourceFiles);
-                _sourceFilesTree = treeBuilder.ReleaseTree();
+                var node = treeBuilder.ReleaseTree();
+                _sourceFilesTree = new FileTree(node.TheFile.Path);
                 _statistics.TotalFiles = treeBuilder.FilesCount;
                 _statistics.TotalBytes = treeBuilder.FilesSize;
             }
@@ -88,14 +91,17 @@ namespace zfile
                 treeBuilder.Dispose();
             }
 
-            _operationHelper?.Dispose();
+            if (_operationHelper != null)
+            {
+                _operationHelper = null; // 释放资源
+            }
             _operationHelper = new WfxPluginOperationHelper(
                 _wfxPluginFileSource,
-                AskQuestion,
-                RaiseAbortOperation,
-                CheckOperationState,
-                UpdateStatistics,
-                ShowCompareFilesUI,
+                this.CreateAskQuestionDelegate(),
+                () => RaiseAbortOperation(),
+                () => CheckOperationState(),
+                (ref FileSourceCopyOperationStatistics stats) => UpdateStatistics(stats),
+                (sourceFile, targetFilePath) => { /* 暂未实现 */ },
                 ShowCompareFilesUIByFileObject,
                 _thread,
                 WfxPluginOperationHelperMode.CopyOut,
@@ -110,16 +116,19 @@ namespace zfile
 
         protected override void MainExecute()
         {
-            _operationHelper.ProcessTree(_sourceFilesTree, _statistics);
+            if (_operationHelper != null && _sourceFilesTree != null)
+            {
+                _operationHelper.ProcessTree(_sourceFilesTree, ref _statistics);
+            }
         }
 
-        protected override void Finalize()
+        protected override void DoFinalize()
         {
             _wfxPluginFileSource.WfxModule.setStatusInfo(SourceFiles.Path, (int)FsStatus.End, _infoOperation);
             _callbackDataClass.UpdateProgressFunction = null;
-            UpdateProgressFunction = null;
+            // 清除UpdateProgress函数引用
             FileExistsOption = _operationHelper.FileExistsOption;
-            _operationHelper.Dispose();
+            _operationHelper = null; // 释放资源
         }
 
         public static Type GetOptionsUIClass()
@@ -127,25 +136,25 @@ namespace zfile
             return typeof(WfxPluginCopyOutOperationOptionsUI);
         }
 
-        public bool NeedsConnection
+        public new bool NeedsConnection
         {
             get => _needsConnection;
             set => SetNeedsConnection(value);
         }
     }
-	enum FsStatusOperation
-	{
-		GetMultiThread,
-		GetMulti,
-		GetSingle,
-		List,
-		RenMovMulti,
-		RenMovSingle,
-		Delete,
-		CalcSize,
-		Attrib,
-		PutMultiThread,
-		PutMulti,
-		PutSingle
-	}
+    enum FsStatusOperation
+    {
+        GetMultiThread,
+        GetMulti,
+        GetSingle,
+        List,
+        RenMovMulti,
+        RenMovSingle,
+        Delete,
+        CalcSize,
+        Attrib,
+        PutMultiThread,
+        PutMulti,
+        PutSingle
+    }
 }

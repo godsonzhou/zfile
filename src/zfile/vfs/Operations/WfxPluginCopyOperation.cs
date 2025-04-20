@@ -1,10 +1,11 @@
 namespace zfile
 {
-	public class CallbackDataClass
-	{
-		public CallbackDataClass() { }
-		public delegate int UpdateProgressFunction(string sourceName, string targetName, int percentDone);
-	}
+    public class CallbackDataClass
+    {
+        public delegate int UpdateProgressDelegate(string sourceName, string targetName, int percentDone);
+        public UpdateProgressDelegate UpdateProgressFunction { get; set; }
+        public CallbackDataClass() { }
+    }
 
     public class WfxPluginCopyOperation : FileSourceCopyOperation
     {
@@ -116,4 +117,4 @@ namespace zfile
             return typeof(WfxPluginCopyOperationOptionsUI);
         }
     }
-} 
+}

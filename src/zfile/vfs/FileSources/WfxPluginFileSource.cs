@@ -12,6 +12,7 @@ public interface IWfxPluginFileSource : IFileSource
 	WfxModule WfxModule { get; }
 	string PluginName { get; }
 	string RootDirectory { get; set; }
+	StringList WfxOperationList { get; }
 }
 
 public class RemoteInfo
@@ -34,10 +35,12 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 	private readonly object _connectionLock = new object();
 	private readonly List<IFileSourceOperation> _operationsQueue = new();
 	private readonly object _operationsQueueLock = new object();
+	private static readonly StringList _wfxOperationList = new StringList();
 
 	public WfxModule WfxModule => _wfxModule;
 	public string PluginName => _pluginName;
 	public int PluginNumber => _wfxModule.PluginNumber;
+	public StringList WfxOperationList => _wfxOperationList;
 	public string CurrentAddress
 	{
 		get => _currentAddress;

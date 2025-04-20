@@ -137,7 +137,7 @@ namespace zfile
 	}   /// <summary>
 		/// Global settings for the application
 		/// </summary>
-	public static class GlobalSettings
+	public static partial class GlobalSettings
 	{
 		internal static bool ProcessComments;
 		internal static int HashBlockSize;
@@ -181,7 +181,7 @@ namespace zfile
 		public static VfsModuleList VfsModuleList { get; private set; } = new VfsModuleList();
 		public static WfxModuleList WfxPlugins { get; internal set; }
 
-		
+		public static VfsModuleList GetVfsModuleList() { return _vfsModuleList; }
 
 		// Initialize global settings
 		static GlobalSettings()

@@ -17,7 +17,11 @@ public class WfxPluginCopyInOperation : FileSourceCopyInOperation
 		string targetPath) : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
 	{
 		_wfxPluginFileSource = targetFileSource as IWfxPluginFileSource;
-		_callbackDataClass = (CallbackDataClass)_wfxPluginFileSource.WfxOperationList.Objects[PluginNumber];
+		if (_wfxPluginFileSource != null)
+		{
+			var pluginNumber = _wfxPluginFileSource.PluginNumber;
+			_callbackDataClass = (CallbackDataClass)_wfxPluginFileSource.WfxOperationList.Objects[pluginNumber];
+		}
 		SetNeedsConnection(_needsConnection);
 	}
 

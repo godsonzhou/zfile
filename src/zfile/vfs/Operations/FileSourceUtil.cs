@@ -22,7 +22,7 @@ namespace zfile
                 return;
 
             // For now work only for local files
-            if (fileSource.Properties.HasFlag(FileSourceProperties.DirectAccess) || 
+            if (fileSource.Properties.HasFlag(FileSourceProperties.DirectAccess) ||
                 fileSource.Properties.HasFlag(FileSourceProperties.LinkToLocalFiles))
             {
                 // Now test if exists Open command in "extassoc.xml"
@@ -52,7 +52,7 @@ namespace zfile
                     }
                 }
 
-                if (fileSource.OperationsTypes.HasFlag(FileSourceOperationType.CalcChecksum) && 
+                if (fileSource.OperationsTypes.HasFlag(FileSourceOperationType.CalcChecksum) &&
                     FileExtIsHash(file.Extension))
                 {
                     ProcessExtCommandFork("cm_CheckSumVerify");
@@ -174,7 +174,7 @@ namespace zfile
         /// <returns>File source for the path</returns>
         public static IFileSource ParseFileSource(ref string path, IFileSource currentFileSource = null)
         {
-            Type fileSourceClass = VfsModuleList.GetFileSource(path);
+            Type fileSourceClass = GlobalSettings.GetVfsModuleList().GetFileSourceType(path);
             // If found special FileSource for path
             if (fileSourceClass != null)
             {

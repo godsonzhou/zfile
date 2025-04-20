@@ -2,30 +2,30 @@ using System.Collections;
 
 namespace zfile
 {
- 
 
-    /// <summary>
-    /// A list of virtual file system modules
-    /// </summary>
-    public class VfsModuleList : IEnumerable<string>
-    {
-        private readonly Dictionary<string, VfsModule> modules = new Dictionary<string, VfsModule>(StringComparer.OrdinalIgnoreCase);
-        private readonly List<string> _names = new List<string>();
+
+	/// <summary>
+	/// A list of virtual file system modules
+	/// </summary>
+	public class VfsModuleList : IEnumerable<string>
+	{
+		private readonly Dictionary<string, VfsModule> modules = new Dictionary<string, VfsModule>(StringComparer.OrdinalIgnoreCase);
+		private readonly List<string> _names = new List<string>();
 		public static Dictionary<string, VfsModule> VfsModule = new();
-        /// <summary>
-        /// Gets the number of modules in the list
-        /// </summary>
-        public int Count => _names.Count;
+		/// <summary>
+		/// Gets the number of modules in the list
+		/// </summary>
+		public int Count => _names.Count;
 
-        /// <summary>
-        /// Gets the module name at the specified index
-        /// </summary>
-        public string this[int index] => _names[index];
+		/// <summary>
+		/// Gets the module name at the specified index
+		/// </summary>
+		public string this[int index] => _names[index];
 
-        /// <summary>
-        /// Gets the Objects collection which contains the VfsModule instances
-        /// </summary>
-        public VfsModuleObjectCollection Objects { get; }
+		/// <summary>
+		/// Gets the Objects collection which contains the VfsModule instances
+		/// </summary>
+		public VfsModuleObjectCollection Objects { get; }
 		//private readonly Dictionary<string, VfsModule> modules;
 
 		public VfsModuleList()
@@ -35,7 +35,7 @@ namespace zfile
 		}
 
 		/// <summary>
-		/// Í¨¹ýÃû³Æ»ñÈ¡Ä£¿é
+		/// Í¨ï¿½ï¿½ï¿½ï¿½ï¿½Æ»ï¿½È¡Ä£ï¿½ï¿½
 		/// </summary>
 		public VfsModule GetVfsModule(string name)
 		{
@@ -43,9 +43,9 @@ namespace zfile
 		}
 
 		/// <summary>
-		/// ¸ù¾ÝÂ·¾¶»ñÈ¡Ö§³ÖµÄÎÄ¼þÔ´
+		/// ï¿½ï¿½ï¿½ï¿½Â·ï¿½ï¿½ï¿½ï¿½È¡Ö§ï¿½Öµï¿½ï¿½Ä¼ï¿½Ô´
 		/// </summary>
-		public FileSourceBase GetFileSource(string path)
+		public FileSourceBase GetFileSourceInstance(string path)
 		{
 			foreach (var module in modules.Values)
 			{
@@ -57,25 +57,25 @@ namespace zfile
 			}
 			return null;
 		}
-		
+
 		/// <summary>
 		/// Gets a file source class that supports the specified path
 		/// </summary>
-		//public Type GetFileSource(string path)
-		//{
-		//	foreach (var name in _names)
-		//	{
-		//		var module = modules[name];
-		//		var fileSourceInstance = Activator.CreateInstance(module.FileSourceClass) as FileSourceBase;
-		//		if (fileSourceInstance != null && fileSourceInstance.IsSupportedPath(path))
-		//		{
-		//			return module.FileSourceClass;
-		//		}
-		//	}
-		//	return null;
-		//}
+		public Type GetFileSourceType(string path)
+		{
+			foreach (var name in _names)
+			{
+				var module = modules[name];
+				var fileSourceInstance = Activator.CreateInstance(module.FileSourceClass) as FileSourceBase;
+				if (fileSourceInstance != null && fileSourceInstance.IsSupportedPath(path))
+				{
+					return module.FileSourceClass;
+				}
+			}
+			return null;
+		}
 		/// <summary>
-		/// Í¨¹ýÀàÃû²éÕÒÎÄ¼þÔ´
+		/// Í¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½Ô´
 		/// </summary>
 		public Type? FindFileSource(string className)
 		{
@@ -85,7 +85,7 @@ namespace zfile
 		}
 
 		/// <summary>
-		/// ×¢²áÐÂµÄÐéÄâÎÄ¼þÏµÍ³Ä£¿é
+		/// ×¢ï¿½ï¿½ï¿½Âµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ÏµÍ³Ä£ï¿½ï¿½
 		/// </summary>
 		public void RegisterModule(string name, Type fileSourceClass, bool visible, FileSourceCreator creator)
 		{
@@ -105,7 +105,7 @@ namespace zfile
 		}
 
 		/// <summary>
-		/// »ñÈ¡ËùÓÐ¿É¼ûµÄÄ£¿éÃû³Æ
+		/// ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ð¿É¼ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		/// </summary>
 		public IEnumerable<string> GetVisibleModuleNames()
 		{
@@ -115,7 +115,7 @@ namespace zfile
 		}
 
 		/// <summary>
-		/// ×¢ÏúÄ£¿é
+		/// ×¢ï¿½ï¿½Ä£ï¿½ï¿½
 		/// </summary>
 		public bool UnregisterModule(string name)
 		{
@@ -123,7 +123,7 @@ namespace zfile
 		}
 
 		/// <summary>
-		/// Çå³ýËùÓÐÒÑ×¢²áµÄÄ£¿é
+		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×¢ï¿½ï¿½ï¿½Ä£ï¿½ï¿½
 		/// </summary>
 		public void Clear()
 		{
@@ -133,62 +133,62 @@ namespace zfile
 		/// Adds a new module to the list
 		/// </summary>
 		public void AddObject(string name, VfsModule module)
-        {
-            if (!modules.ContainsKey(name))
-            {
-                _names.Add(name);
-                modules[name] = module;
-            }
-        }
+		{
+			if (!modules.ContainsKey(name))
+			{
+				_names.Add(name);
+				modules[name] = module;
+			}
+		}
 
-        ///// <summary>
-        ///// Finds a file source class by its class name
-        ///// </summary>
-        //public Type FindFileSource(string className)
-        //{
-        //    foreach (var name in _names)
-        //    {
-        //        var module = modules[name];
-        //        if (module.FileSourceClass.Name == className)
-        //        {
-        //            return module.FileSourceClass;
-        //        }
-        //    }
-        //    return null;
-        //}
+		///// <summary>
+		///// Finds a file source class by its class name
+		///// </summary>
+		//public Type FindFileSource(string className)
+		//{
+		//    foreach (var name in _names)
+		//    {
+		//        var module = modules[name];
+		//        if (module.FileSourceClass.Name == className)
+		//        {
+		//            return module.FileSourceClass;
+		//        }
+		//    }
+		//    return null;
+		//}
 
-        /// <summary>
-        /// Returns an enumerator that iterates through the module names
-        /// </summary>
-        public IEnumerator<string> GetEnumerator()
-        {
-            return _names.GetEnumerator();
-        }
+		/// <summary>
+		/// Returns an enumerator that iterates through the module names
+		/// </summary>
+		public IEnumerator<string> GetEnumerator()
+		{
+			return _names.GetEnumerator();
+		}
 
-        /// <summary>
-        /// Returns an enumerator that iterates through the module names
-        /// </summary>
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+		/// <summary>
+		/// Returns an enumerator that iterates through the module names
+		/// </summary>
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return GetEnumerator();
+		}
 
-        /// <summary>
-        /// Collection of VfsModule objects
-        /// </summary>
-        public class VfsModuleObjectCollection
-        {
-            private readonly VfsModuleList _owner;
+		/// <summary>
+		/// Collection of VfsModule objects
+		/// </summary>
+		public class VfsModuleObjectCollection
+		{
+			private readonly VfsModuleList _owner;
 
-            internal VfsModuleObjectCollection(VfsModuleList owner)
-            {
-                _owner = owner;
-            }
+			internal VfsModuleObjectCollection(VfsModuleList owner)
+			{
+				_owner = owner;
+			}
 
-            /// <summary>
-            /// Gets the VfsModule at the specified index
-            /// </summary>
-            public VfsModule this[int index] => _owner.modules[_owner._names[index]];
-        }
-    }
+			/// <summary>
+			/// Gets the VfsModule at the specified index
+			/// </summary>
+			public VfsModule this[int index] => _owner.modules[_owner._names[index]];
+		}
+	}
 }

@@ -197,7 +197,10 @@ namespace zfile
             operation.FileExistsOption = (FileSourceOperationOptionFileExists)cmbFileExists.SelectedIndex;
             operation.DirExistsOption = (FileSourceOperationOptionDirectoryExists)cmbDirectoryExists.SelectedIndex;
             operation.SetPropertyErrorOption = (FileSourceOperationOptionSetPropertyError)cmbSetPropertyError.SelectedIndex;
-            operation.CopyAttributesOptions = cbCopyAttributes.Checked;
+            if (cbCopyAttributes.Checked)
+                operation.CopyAttributesOptions |= CopyAttributesOption.CopyAttributes;
+            else
+                operation.CopyAttributesOptions &= ~CopyAttributesOption.CopyAttributes;
             operation.CopyTime = cbCopyTime.Checked;
             operation.CopyOwnership = cbCopyOwnership.Checked;
             operation.CopyPermissions = cbCopyPermissions.Checked;
@@ -208,7 +211,7 @@ namespace zfile
             operation.CheckFreeSpace = cbCheckFreeSpace.Checked;
             operation.ExcludeEmptyDirectories = cbExcludeEmptyDirectories.Checked;
             operation.Verify = chkVerify.Checked;
-            operation.CopyOnWrite = chkCopyOnWrite.Checked;
+            operation.CopyOnWrite = chkCopyOnWrite.Checked ? FileSourceOperationOptionGeneral.Yes : FileSourceOperationOptionGeneral.No;
         }
 
         private void SetOperationOptions(FileSystemMoveOperation operation)
@@ -217,7 +220,10 @@ namespace zfile
             operation.FileExistsOption = (FileSourceOperationOptionFileExists)cmbFileExists.SelectedIndex;
             operation.DirExistsOption = (FileSourceOperationOptionDirectoryExists)cmbDirectoryExists.SelectedIndex;
             operation.SetPropertyErrorOption = (FileSourceOperationOptionSetPropertyError)cmbSetPropertyError.SelectedIndex;
-            operation.CopyAttributesOptions = cbCopyAttributes.Checked;
+            if (cbCopyAttributes.Checked)
+                operation.CopyAttributesOptions |= CopyAttributesOption.CopyAttributes;
+            else
+                operation.CopyAttributesOptions &= ~CopyAttributesOption.CopyAttributes;
             operation.CopyTime = cbCopyTime.Checked;
             operation.CopyOwnership = cbCopyOwnership.Checked;
             operation.CopyPermissions = cbCopyPermissions.Checked;

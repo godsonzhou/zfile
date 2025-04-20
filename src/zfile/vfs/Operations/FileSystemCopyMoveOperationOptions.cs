@@ -195,9 +195,9 @@ namespace zfile
         private void SetOperationOptions(FileSystemCopyOperation operation)
         {
             operation.FileExistsOption = (FileSourceOperationOptionFileExists)cmbFileExists.SelectedIndex;
-            operation.DirectoryExistsOption = (FileSourceOperationOptionDirectoryExists)cmbDirectoryExists.SelectedIndex;
+            operation.DirExistsOption = (FileSourceOperationOptionDirectoryExists)cmbDirectoryExists.SelectedIndex;
             operation.SetPropertyErrorOption = (FileSourceOperationOptionSetPropertyError)cmbSetPropertyError.SelectedIndex;
-            operation.CopyAttributes = cbCopyAttributes.Checked;
+            operation.CopyAttributesOptions = cbCopyAttributes.Checked;
             operation.CopyTime = cbCopyTime.Checked;
             operation.CopyOwnership = cbCopyOwnership.Checked;
             operation.CopyPermissions = cbCopyPermissions.Checked;
@@ -215,9 +215,9 @@ namespace zfile
         {
             // 设置移动操作选项
             operation.FileExistsOption = (FileSourceOperationOptionFileExists)cmbFileExists.SelectedIndex;
-            operation.DirectoryExistsOption = (FileSourceOperationOptionDirectoryExists)cmbDirectoryExists.SelectedIndex;
+            operation.DirExistsOption = (FileSourceOperationOptionDirectoryExists)cmbDirectoryExists.SelectedIndex;
             operation.SetPropertyErrorOption = (FileSourceOperationOptionSetPropertyError)cmbSetPropertyError.SelectedIndex;
-            operation.CopyAttributes = cbCopyAttributes.Checked;
+            operation.CopyAttributesOptions = cbCopyAttributes.Checked;
             operation.CopyTime = cbCopyTime.Checked;
             operation.CopyOwnership = cbCopyOwnership.Checked;
             operation.CopyPermissions = cbCopyPermissions.Checked;

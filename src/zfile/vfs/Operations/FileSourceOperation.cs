@@ -95,6 +95,14 @@ namespace zfile
         private FileSourceOperationUIResponse _uiResponse;
         private bool _tryAskQuestionResult;
         protected Thread _thread;
+		internal FileSourceOperationOptionSetPropertyError SetPropertyErrorOption;
+		internal bool CopyTime;
+		internal bool CopyOwnership;
+		internal bool CopyPermissions;
+		internal bool DropReadOnlyFlag;
+		internal bool FollowLinks;
+		internal bool CorrectLinks;
+		internal bool ExcludeEmptyDirectories;
         public virtual bool NeedsConnection { get => _needsConnection; set => _needsConnection = value; }
         /// <summary>
         /// Gets the operation type

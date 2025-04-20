@@ -605,6 +605,62 @@ namespace zfile
             _fsGetLocalNameW = null;
         }
 
+        /// <summary>
+        /// Initializes the VFS functionality of the module
+        /// </summary>
+        public void VfsInit()
+        {
+            if (_fsSetDefaultParams != null)
+            {
+                // 创建默认参数结构体
+                // 在实际实现中，这里应该创建一个适当的结构体并传递给 _fsSetDefaultParams
+                // 例如：
+                // var dps = new FsDefaultParamStruct
+                // {
+                //     DefaultIniName = Path.Combine(Constants.ZfileCfgPath, "wfx.ini"),
+                //     PluginInterfaceVersionHi = 2,
+                //     PluginInterfaceVersionLow = 0,
+                //     Size = Marshal.SizeOf(typeof(FsDefaultParamStruct))
+                // };
+                // IntPtr dpsPtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(FsDefaultParamStruct)));
+                // Marshal.StructureToPtr(dps, dpsPtr, false);
+                // _fsSetDefaultParams(dpsPtr);
+                // Marshal.FreeHGlobal(dpsPtr);
+            }
+        }
+
+        /// <summary>
+        /// Configures the VFS functionality of the module
+        /// </summary>
+        /// <param name="parent">The parent window handle</param>
+        /// <returns>True if configuration was successful, false otherwise</returns>
+        public bool VfsConfigure(object parent)
+        {
+            try
+            {
+                string remoteName = Path.DirectorySeparatorChar.ToString();
+                setStatusInfo(remoteName, WfxConstants.FS_STATUS_START, WfxConstants.FS_STATUS_OP_EXEC);
+
+                IntPtr parentHandle = IntPtr.Zero;
+                if (parent != null)
+                {
+                    parentHandle = (IntPtr)parent;
+                }
+
+                int result = _isUnicode ?
+                    (_fsExecuteFileW != null ? _fsExecuteFileW(parentHandle, remoteName, "properties") : WfxConstants.FS_EXEC_ERROR) :
+                    (_fsExecuteFile != null ? _fsExecuteFile(parentHandle, remoteName, "properties") : WfxConstants.FS_EXEC_ERROR);
+
+                setStatusInfo(remoteName, WfxConstants.FS_STATUS_END, WfxConstants.FS_STATUS_OP_EXEC);
+
+                return result == WfxConstants.FS_EXEC_OK;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public void Dispose()
         {
             UnloadModule();

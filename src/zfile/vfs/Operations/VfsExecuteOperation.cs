@@ -23,18 +23,29 @@ namespace zfile
                 var index = _vfsFileSource.VfsFileEntries.FindFirstEnabledByName(RelativePath);
                 if (index >= 0)
                 {
-                    var wfxModule = GlobalSettings.WfxPlugins.LoadModule(_vfsFileSource.VfsFileEntries.FileName[index]);
+                    var wfxModule = WfxPlugins.LoadModule(_vfsFileSource.VfsFileEntries.FileName[index]);
                     if (wfxModule != null)
                     {
                         wfxModule.VfsInit();
-                        wfxModule.VfsConfigure(Application.OpenForms[0].Tag);
+                        // 获取主窗体的句柄作为父窗口
+                        var mainForm = Application.OpenForms[0];
+                        if (mainForm != null && mainForm.Tag != null)
+                        {
+                            wfxModule.VfsConfigure(mainForm.Tag);
+                        }
+                        else if (mainForm != null)
+                        {
+                            wfxModule.VfsConfigure(mainForm.Handle);
+                        }
                     }
                 }
             }
         }
 
-        protected override void Finalize()
+        protected new void Finalize()
         {
+            // 清理资源
+            base.Finalize();
         }
     }
-} 
+}

@@ -1,3 +1,8 @@
+using System;
+using System.IO;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+
 namespace zfile;
 public class StringHashListUtf8
 {
@@ -202,17 +207,17 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
                                     ref createdPaths);
 
             SetProcessDataProc(arcHandle);
-            wcxModule.SetChangeVolProc(arcHandle);
+            wcxModule.SetChangeVolProc(arcHandle, WcxModule.WcxInvalidHandle);
 
-            WcxHeader header;
-            while ((header = wcxModule.ReadWCXHeader(arcHandle)) != null)
+            WcxHeader header = new WcxHeader();
+            while (wcxModule.ReadWCXHeader(arcHandle, ref header) == 0)
             {
                 try
                 {
                     CheckOperationState();
 
                     // Now check if the file is to be extracted.
-                    if (!FileAttributes.IsDirectory(header.FileAttr) &&           // Omit directories (we handle them ourselves).
+                    if (!header.IsDirectory &&           // Omit directories (we handle them ourselves).
                         MatchesFileEntries(files, header.FileName) &&    // Check if it's included in the FileEntries
                         (maskList == null || maskList.Matches(Path.GetFileName(header.FileName)))) // And name matches file mask
                     {
@@ -299,9 +304,14 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
         throw new NotImplementedException();
     }
 
-    protected override void Finalize()
+    // 注意：不要使用Finalize方法，因为它会干扰析构函数的调用
+    public override void Dispose(bool disposing)
     {
-        ClearCurrentOperation();
+        if (disposing)
+        {
+            ClearCurrentOperation();
+        }
+        base.Dispose(disposing);
     }
 
     public override string GetDescription(FileSourceOperationDescriptionDetails details)
@@ -330,7 +340,7 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
         for (int pathIndex = 0; pathIndex < paths.Count; pathIndex++)
         {
             // Get attributes
-            var header = (WcxHeader)paths.List[pathIndex].Data;
+            var header = (WcxHeader)paths.List[pathIndex].Value;
 
             if (header != null)
             {
@@ -389,10 +399,40 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
 
     private void SetProcessDataProc(IntPtr arcData)
     {
+        // 创建符合TProcessDataProc签名的委托
+        TProcessDataProc procAG = (string arcName, int mode) =>
+        {
+            return ProcessDataProcAG(IntPtr.Zero, mode);
+        };
+        TProcessDataProc procWG = (string arcName, int mode) =>
+        {
+            return ProcessDataProcWG(IntPtr.Zero, mode);
+        };
+        TProcessDataProc procAT = (string arcName, int mode) =>
+        {
+            return ProcessDataProcAT(IntPtr.Zero, mode);
+        };
+        TProcessDataProc procWT = (string arcName, int mode) =>
+        {
+            return ProcessDataProcWT(IntPtr.Zero, mode);
+        };
+
+        // 获取委托的函数指针
+        IntPtr procAGPtr = Marshal.GetFunctionPointerForDelegate(procAG);
+        IntPtr procWGPtr = Marshal.GetFunctionPointerForDelegate(procWG);
+        IntPtr procATPtr = Marshal.GetFunctionPointerForDelegate(procAT);
+        IntPtr procWTPtr = Marshal.GetFunctionPointerForDelegate(procWT);
+
+        // 保持委托引用防止被GC回收
+        GC.KeepAlive(procAG);
+        GC.KeepAlive(procWG);
+        GC.KeepAlive(procAT);
+        GC.KeepAlive(procWT);
+
         if (NeedsConnection)
-            _wcxArchiveFileSource.WcxModule.SetProcessDataProc(arcData, ProcessDataProcAG, ProcessDataProcWG);
+            _wcxArchiveFileSource.WcxModule.SetProcessDataProc(arcData, procAGPtr, procWGPtr);
         else
-            _wcxArchiveFileSource.WcxModule.SetProcessDataProc(arcData, ProcessDataProcAT, ProcessDataProcWT);
+            _wcxArchiveFileSource.WcxModule.SetProcessDataProc(arcData, procATPtr, procWTPtr);
     }
 
     public static void ClearCurrentOperation()

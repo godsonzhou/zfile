@@ -104,7 +104,7 @@ public class WfxPluginCopyInOperation : FileSourceCopyInOperation
 			this.CreateAskQuestionDelegate(),
 			() => RaiseAbortOperation(),
 			() => CheckOperationState(),
-			(stats) => UpdateStatistics(stats),
+			(ref FileSourceCopyOperationStatistics stats) => UpdateStatistics(stats),
 			() => { /* 暂未实现 */ },
 			ShowCompareFilesUIByFileObject,
 			_thread,

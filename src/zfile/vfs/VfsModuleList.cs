@@ -43,7 +43,7 @@ namespace zfile
 		}
 
 		/// <summary>
-		/// ����·����ȡ֧�ֵ��ļ�Դ
+		/// 根据路径获取支持的文件源实例
 		/// </summary>
 		public FileSourceBase GetFileSourceInstance(string path)
 		{
@@ -52,6 +52,23 @@ namespace zfile
 				var fileSource = module.Creator();
 				if (fileSource.IsSupportedPath(path))
 				{
+					return fileSource;
+				}
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// 根据路径获取支持的文件源
+		/// </summary>
+		public FileSourceBase GetFileSource(string path)
+		{
+			foreach (var module in modules.Values)
+			{
+				var fileSource = module.Creator();
+				if (fileSource.IsSupportedPath(path))
+				{
+					fileSource.Initialize();
 					return fileSource;
 				}
 			}

@@ -98,7 +98,7 @@ namespace zfile
                 () => RaiseAbortOperation(),
                 () => CheckOperationState(),
                 (ref FileSourceCopyOperationStatistics stats) => UpdateStatistics(stats),
-                (sourceFile, targetFilePath) => { /* 暂未实现 */ },
+                () => { /* 暂未实现 */ },
                 ShowCompareFilesUIByFileObject,
                 _thread,
                 WfxPluginOperationHelperMode.Move,

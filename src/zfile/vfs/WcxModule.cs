@@ -834,6 +834,24 @@ namespace zfile
 			}
 		}
 
+		/// <summary>
+		/// 设置进程数据回调，同时设置ANSI和Unicode版本的回调
+		/// </summary>
+		/// <param name="arcHandle">归档文件句柄</param>
+		/// <param name="processDataProcA">ANSI版本的回调函数指针</param>
+		/// <param name="processDataProcW">Unicode版本的回调函数指针</param>
+		public void SetProcessDataProc(IntPtr arcHandle, IntPtr processDataProcA, IntPtr processDataProcW)
+		{
+			if (_isUnicode && _setProcessDataProcW != null)
+			{
+				_setProcessDataProcW(arcHandle, processDataProcW);
+			}
+			if (_setProcessDataProc != null)
+			{
+				_setProcessDataProc(arcHandle, processDataProcA);
+			}
+		}
+
 		public bool CanYouHandleThisFile(string fileName)
 		{
 			fileName = fileName.ToUpper();

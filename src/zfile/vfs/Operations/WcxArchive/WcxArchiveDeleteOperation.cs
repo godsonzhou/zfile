@@ -1,6 +1,10 @@
+using System;
+using System.IO;
+using System.Runtime.InteropServices;
+
 namespace zfile
 {
-	
+
 	public class WcxArchiveDeleteOperation : FileSourceDeleteOperation
 	{
 		private IWcxArchiveFileSource _wcxArchiveFileSource;
@@ -33,8 +37,29 @@ namespace zfile
 		{
 			var wcxModule = _wcxArchiveFileSource.WcxModule;
 
-			wcxModule.SetChangeVolProc(WcxModule.WcxInvalidHandle);
-			wcxModule.SetProcessDataProc(WcxModule.WcxInvalidHandle, ProcessDataProcA, ProcessDataProcW);
+			wcxModule.SetChangeVolProc(WcxModule.WcxInvalidHandle, WcxModule.WcxInvalidHandle);
+
+			// 设置进程数据回调
+			// 创建符合TProcessDataProc签名的委托
+			TProcessDataProc procA = (string arcName, int mode) =>
+			{
+				// 在这里我们只关心size参数，因为实际的文件名在统计信息中已经有了
+				return ProcessDataProc(arcName ?? string.Empty, mode);
+			};
+			TProcessDataProc procW = (string arcName, int mode) =>
+			{
+				return ProcessDataProc(arcName ?? string.Empty, mode);
+			};
+
+			// 获取委托的函数指针
+			IntPtr procAPtr = Marshal.GetFunctionPointerForDelegate(procA);
+			IntPtr procWPtr = Marshal.GetFunctionPointerForDelegate(procW);
+
+			// 保持委托引用防止被GC回收
+			GC.KeepAlive(procA);
+			GC.KeepAlive(procW);
+
+			wcxModule.SetProcessDataProc(WcxModule.WcxInvalidHandle, procAPtr, procWPtr);
 
 			int result = wcxModule.DeleteFiles(_wcxArchiveFileSource.ArchiveFileName,
 											   GetFileEntries(FilesToDelete));
@@ -56,9 +81,14 @@ namespace zfile
 			}
 		}
 
-		protected override void Finalize()
+		// 注意：不要使用Finalize方法，因为它会干扰析构函数的调用
+		public override void Dispose(bool disposing)
 		{
-			ClearCurrentOperation();
+			if (disposing)
+			{
+				ClearCurrentOperation();
+			}
+			base.Dispose(disposing);
 		}
 
 		//private void ShowError(string message, int error, LogOption logOptions = LogOption.None)
@@ -190,14 +220,16 @@ namespace zfile
 			return result;
 		}
 
-		private static int ProcessDataProcA(IntPtr fileName, int size)
-		{
-			return ProcessDataProc(System.Runtime.InteropServices.Marshal.PtrToStringAnsi(fileName), size);
-		}
+		// 这些方法不再直接使用，而是通过委托适配器调用ProcessDataProc
+		// 保留这些方法仅作参考
+		//private static int ProcessDataProcA(IntPtr fileName, int size)
+		//{
+		//	return ProcessDataProc(Marshal.PtrToStringAnsi(fileName) ?? string.Empty, size);
+		//}
 
-		private static int ProcessDataProcW(IntPtr fileName, int size)
-		{
-			return ProcessDataProc(System.Runtime.InteropServices.Marshal.PtrToStringUni(fileName), size);
-		}
+		//private static int ProcessDataProcW(IntPtr fileName, int size)
+		//{
+		//	return ProcessDataProc(Marshal.PtrToStringUni(fileName) ?? string.Empty, size);
+		//}
 	}
 }

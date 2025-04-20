@@ -6,7 +6,7 @@ namespace zfile
     /// </summary>
     public class FileSourceOperationMessageBoxesUI : FileSourceOperationUI
     {
-        private FileSourceOperationUIActionHandler _uiActionHandler;
+        private IFileSourceOperationUIActionHandler _uiActionHandler;
 
         /// <summary>
         /// Creates a new instance of the FileSourceOperationMessageBoxesUI class
@@ -31,7 +31,7 @@ namespace zfile
             FileSourceOperationUIResponse[] possibleResponses,
             FileSourceOperationUIResponse defaultOKResponse,
             FileSourceOperationUIResponse defaultCancelResponse,
-            FileSourceOperationUIActionHandler actionHandler = null)
+            IFileSourceOperationUIActionHandler actionHandler = null)
         {
             _uiActionHandler = actionHandler;
 
@@ -69,7 +69,7 @@ namespace zfile
         {
             if (_uiActionHandler != null)
             {
-                _uiActionHandler(ButtonToUIAction(button));
+                _uiActionHandler.HandleAction(ButtonToUIAction(button));
             }
         }
 

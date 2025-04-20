@@ -87,6 +87,6 @@ namespace zfile
             FileSourceOperationUIResponse[] possibleResponses,
             FileSourceOperationUIResponse defaultOKResponse,
             FileSourceOperationUIResponse defaultCancelResponse,
-            FileSourceOperationUIActionHandler actionHandler = null);
+            IFileSourceOperationUIActionHandler actionHandler = null);
     }
 }

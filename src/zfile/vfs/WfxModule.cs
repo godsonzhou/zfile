@@ -815,7 +815,7 @@ namespace zfile
             }
         }
 
-        public WfxModule FindModule(string pluginName)
+        public WfxModule? FindModule(string pluginName)
         {
             return _modules.FirstOrDefault(m =>
                 m.PluginName.Equals(pluginName, StringComparison.OrdinalIgnoreCase));

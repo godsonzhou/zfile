@@ -1,147 +1,371 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Reflection.Metadata;
 
 namespace zfile
 {
-    /// <summary>
-    /// Global settings for the application
-    /// </summary>
-    public static partial class GlobalSettings
-    {
-        //private static readonly VfsModuleList _vfsModuleList = new VfsModuleList();
+	[Flags]
+	public enum FileSourceOperationType : uint
+	{
+		None = 0,
+		Copy,
+		CopyIn,
+		CopyOut,
+		Move,
+		Delete,
+		CreateDirectory,
+		Execute,
+		TestArchive,
+		CalcChecksum,
+		SetFileProperty,
+		Split,
+		Combine,
+		CreateHardLink,
+		CreateSymLink,
+		Wipe,
+		CalcStatistics,
+		List,
+		Compare,
+		CompareFiles,
+		CompareFilesByFileObject,
+		CreateArchive,
+		ExtractArchive,
+		ExtractArchiveToTemp,
+		ExtractArchiveToTempAndDelete,
+		ExtractArchiveToTempAndDeleteAll,
+		ExtractArchiveToTempAndDeleteAllAndMove,
+		ExtractArchiveToTempAndDeleteAllAndMoveAndDelete
+	}
 
-        /// <summary>
-        /// Gets the VFS module list
-        /// </summary>
-        //public static VfsModuleList GetVfsModuleList() { return _vfsModuleList; }
+	[Flags]
+	public enum CopyAttributesOption : uint
+	{
+		None = 0,
+		CopyAttributes = 1,
+		CopyXattributes = 2,
+		CopyTime = 4,
+		CopyOwnership = 8,
+		CopyPermissions = 16,
+		RemoveReadOnlyAttr = 32,
+		/// <summary>Copy mode (Unix)</summary>
+		CopyMode = 64,
+		/// <summary>Copy owner (Unix)</summary>
+		CopyOwner = 128,
+		/// <summary>Copy security attributes (Windows)</summary>
+		CopySecurity = 256,
+		All = CopyAttributes | CopyXattributes | CopyTime | CopyOwnership | CopyPermissions | RemoveReadOnlyAttr | CopyMode | CopyOwner | CopySecurity
+	}
 
-        //#region Operation Options
+	public enum FileSourceOperationOptionGeneral
+	{
+		None,
+		No,
+		Yes,
+		AskUser
+	}
 
-        ///// <summary>
-        ///// Gets or sets the file exists option
-        ///// </summary>
-        //public static FileSourceOperationOptionFileExists OperationOptionFileExists { get; set; }
+	public enum FileSourceOperationOptionSetPropertyError
+	{
+		None,
+		DontSet,
+		IgnoreErrors,
+		Ignore,
+		Skip,
+		Abort
+	}
 
-        ///// <summary>
-        ///// Gets or sets the directory exists option
-        ///// </summary>
-        //public static DirectoryExistsOption OperationOptionDirectoryExists { get; set; }
+	public enum FileSourceOperationHelperMode
+	{
+		Copy,
+		Move,
+		Delete
+	}
+	public enum WfxResult
+	{
+		Success,
+		NotSupported
+	}
+	public static partial class Constants
+	{
+		public const int CSIDL_DRIVES = 0x0011;
+		public const int SHGDN_INFOLDER = 0x0001;
+		public const int SHGDN_FORPARSING = 0x8000;
+		public const int COPYENGINE_E_USER_CANCELLED = unchecked((int)0x80270000);
 
-        ///// <summary>
-        ///// Gets or sets the set property error option
-        ///// </summary>
-        //public static SetPropertyErrorOption OperationOptionSetPropertyError { get; set; }
+		public const int SW_SHOWNORMAL = 1;
+		public const int SEE_MASK_IDLIST = 0x00000004;
 
-        ///// <summary>
-        ///// Gets or sets the copy on write option
-        ///// </summary>
-        //public static CopyOnWriteOption OperationOptionCopyOnWrite { get; set; }
+		public const string CLSID_FileOperation = "3AD05575-8857-4850-9277-11B85BDB8E09";
 
-        ///// <summary>
-        ///// Gets or sets whether to verify copies
-        ///// </summary>
-        //public static bool OperationOptionVerify { get; set; }
+		public const int FOF_SILENT = 0x0004;
+		public const int FOF_NOCONFIRMMKDIR = 0x0200;
+		public const int FOF_NOCONFIRMATION = 0x0010;
+		public const int FOF_NORECURSION = 0x1000;
+	}
+	public static class Resources
+	{
+		internal static string MsgLogError;
+		internal static string MsgLogWipe;
+		internal static string MsgLogWipeDir;
+		internal static IFormatProvider? MsgErrDateNotSupported;
+		internal static IFormatProvider? MsgFileReadOnly;
+		internal static IFormatProvider? FileExistsMessage;
+		internal static IFormatProvider? MsgErrRename;
+		internal static string MsgLogMove;
+		internal static string MsgLogCopy;
+		internal static string MsgLogDelete;
+		internal static string MsgLogRmDir;
+		internal static IFormatProvider? MsgErrDirExists;
+		internal static IFormatProvider? MsgErrForceDir;
+		internal static IFormatProvider? MsgNotDelete;
+		internal static string MsgErrEWrite;
+		internal static string MsgErrNotSupported;
+		internal static string MsgNoFreeSpaceCont;
+		internal static IFormatProvider? MsgInsertNextDisk;
+		internal static string MsgErrEOpen;
+		internal static IFormatProvider? MsgCannotDeleteDirectory;
+		internal static int MsgLoadingFileEntries;
+		internal static string? FileOpCopyMoveFileExistsOptions;
+		internal static IFormatProvider? MsgDelToTrashForce;
+		internal static string? VfsRecycleBin;
 
-        ///// <summary>
-        ///// Gets or sets whether to copy attributes
-        ///// </summary>
-        //public static bool OperationOptionCopyAttributes { get; set; }
+		public static string MsgLogSuccess { get; internal set; }
+		public static string MsgLogMkDir { get; internal set; }
+	}
+	public static class Logger
+	{
+		public static void Write(System.Threading.Thread thread, string message, LogOption type, bool Reservedflag = true )
+		{
+			// 实现日志记录逻辑
+		}
+		public static void Write(string message, LogOption type, bool Reservedflag = true)
+		{
+			// 实现日志记录逻辑
+		}
+	}
+	public enum LogOption
+	{
+		None,
+		Info,
+		Warning,
+		Error,
+		Success,
+		ArcOp,
+		VfsOp,
+		Delete,
+		DirectoryOperation,
+		CopyMoveLink
+	}
+	
+	/// <summary>
+	/// Checksum operation mode
+	/// </summary>
+	public enum CalcCheckSumOperationMode
+	{
+		/// <summary>Calculate checksum</summary>
+		Calc,
 
-        ///// <summary>
-        ///// Gets or sets whether to copy extended attributes
-        ///// </summary>
-        //public static bool OperationOptionCopyXattributes { get; set; }
+		/// <summary>Verify checksum</summary>
+		Verify
+	}
+	public enum HashAlgorithm1
+	{
+		MD5,
+		SHA1,
+		SHA256,
+		SHA512,
+		SFV
+	}
 
-        ///// <summary>
-        ///// Gets or sets whether to copy time
-        ///// </summary>
-        //public static bool OperationOptionCopyTime { get; set; }
+	public static partial class GlobalSettings
+	{
+		internal static bool ProcessComments;
+		internal static int HashBlockSize;
+		internal static int WipePassNumber = 1;
+		internal static bool UseConfigInProgramDir;
 
-        ///// <summary>
-        ///// Gets or sets whether to copy ownership
-        ///// </summary>
-        //public static bool OperationOptionCopyOwnership { get; set; }
+		/// <summary>
+		/// Whether to skip file operation errors
+		/// </summary>
+		public static bool SkipFileOpError { get; set; } = false;
 
-        ///// <summary>
-        ///// Gets or sets whether to copy permissions
-        ///// </summary>
-        //public static bool OperationOptionCopyPermissions { get; set; }
+		/// <summary>
+		/// File operations progress kind
+		/// </summary>
+		public static FileOperationsProgressKind FileOperationsProgressKind { get; set; } = FileOperationsProgressKind.SeparateWindow;
+		public static FileSourceOperationSymLinkOption OperationOptionSymLinks { get; set; } = FileSourceOperationSymLinkOption.None;
+		public static FileSourceOperationOptionSetPropertyError OperationOptionSetPropertyError { get; set; } = FileSourceOperationOptionSetPropertyError.Skip;
+		public static bool OperationOptionReserveSpace { get; set; } = true;
+		public static bool OperationOptionCheckFreeSpace { get; set; } = true;
+		public static bool OperationOptionCorrectLinks { get; set; } = true;
+		public static FileSourceOperationOptionGeneral OperationOptionCopyOnWrite { get; set; } = FileSourceOperationOptionGeneral.No;
+		public static FileSourceOperationOptionFileExists OperationOptionFileExists { get; set; } = FileSourceOperationOptionFileExists.None;
+		public static FileSourceOperationOptionDirectoryExists OperationOptionDirectoryExists { get; set; } = FileSourceOperationOptionDirectoryExists.None;
+		public static bool OperationOptionCopyAttributes { get; set; } = true;
+		public static bool OperationOptionCopyXattributes { get; set; } = true;
+		public static bool OperationOptionCopyTime { get; set; } = true;
+		public static bool OperationOptionCopyOwnership { get; set; } = true;
+		public static bool OperationOptionCopyPermissions { get; set; } = true;
+		public static bool DropReadOnlyFlag { get; set; } = true;
+		public static bool OperationOptionVerify { get; set; }
+		public static bool OperationOptionExcludeEmptyDirectories { get; set; } = true;
+		public static bool LogErrors { get; set; }
+		public static bool LogInfo { get; set; }
+		public static bool LogSuccess { get; set; }
+		public static bool LogDirectoryOperations { get; set; }
+		public static LogOption LogOptions { get; set; }
+		public static bool LogDelete { get; set; }
+		public static uint CopyBlockSize { get; set; } = 65536;
+		public static string AutoExtractOpenMask { get; set; } = "*.zip;*.rar;*.7z;*.tar;*.gz;*.bz2;*.xz";
+		// VFS Module List
+		public static VfsModuleList VfsModuleList { get; private set; } = new VfsModuleList();
+		public static WfxModuleList WfxPlugins { get; internal set; }
 
-        ///// <summary>
-        ///// Gets or sets whether to drop read-only flag
-        ///// </summary>
-        //public static bool DropReadOnlyFlag { get; set; }
+		public static VfsModuleList GetVfsModuleList() { return _vfsModuleList; }
 
-        ///// <summary>
-        ///// Gets or sets the symlinks option
-        ///// </summary>
-        //public static SymLinksOption OperationOptionSymLinks { get; set; }
+		// Initialize global settings
+		static GlobalSettings()
+		{
+			// Register the VFS file source
+			VfsModuleList.AddObject("VFS", new VfsModule(true, typeof(VfsFileSource)));
 
-        ///// <summary>
-        ///// Gets or sets whether to correct links
-        ///// </summary>
-        //public static bool OperationOptionCorrectLinks { get; set; }
+			// Add more VFS modules as needed
+			// VfsModuleList.AddObject("FTP", new VfsModule(true, typeof(FtpFileSource)));
+			// VfsModuleList.AddObject("ZIP", new VfsModule(true, typeof(ZipFileSource)));
+			//    // Initialize default values
+			//    OperationOptionFileExists = FileSourceOperationOptionFileExists.Ask;
+			//    OperationOptionDirectoryExists = DirectoryExistsOption.Ask;
+			//    OperationOptionSetPropertyError = SetPropertyErrorOption.Ask;
+			//    OperationOptionCopyOnWrite = CopyOnWriteOption.No;
+			//    OperationOptionVerify = false;
+			//    OperationOptionCopyAttributes = true;
+			//    OperationOptionCopyXattributes = false;
+			//    OperationOptionCopyTime = true;
+			//    OperationOptionCopyOwnership = false;
+			//    OperationOptionCopyPermissions = false;
+			//    DropReadOnlyFlag = false;
+			//    OperationOptionSymLinks = SymLinksOption.Follow;
+			//    OperationOptionCorrectLinks = true;
+			//    OperationOptionReserveSpace = true;
+			//    OperationOptionCheckFreeSpace = true;
+			//    OperationOptionExcludeEmptyDirectories = true;
+			//    SkipFileOpError = false;
+			//    WipePassNumber = 1;
+			//    ProcessComments = false;
+		}
+		// VFS module list
+		private static VfsModuleList _vfsModuleList;
 
-        ///// <summary>
-        ///// Gets or sets whether to reserve space
-        ///// </summary>
-        //public static bool OperationOptionReserveSpace { get; set; }
+		// Extensions manager
+		private static ExtensionsManager _extensions;
 
-        ///// <summary>
-        ///// Gets or sets whether to check free space
-        ///// </summary>
-        //public static bool OperationOptionCheckFreeSpace { get; set; }
+		// Archive options
+		public static List<string> ArchiveExtensions { get; } = new List<string>();
 
-        ///// <summary>
-        ///// Gets or sets whether to exclude empty directories
-        ///// </summary>
-        //public static bool OperationOptionExcludeEmptyDirectories { get; set; }
+		/// <summary>
+		/// Gets the extensions manager
+		/// </summary>
+		public static ExtensionsManager Extensions
+		{
+			get
+			{
+				if (_extensions == null)
+				{
+					_extensions = new ExtensionsManager();
+				}
+				return _extensions;
+			}
+		}
 
-        ///// <summary>
-        ///// Gets or sets whether to skip file operation errors
-        ///// </summary>
-        //public static bool SkipFileOpError { get; set; }
+		/// <summary>
+		/// Initializes the global settings
+		/// </summary>
+		public static void Initialize()
+		{
+			// Initialize VFS module list
+			_vfsModuleList = new VfsModuleList();
 
-        ///// <summary>
-        ///// Gets or sets the wipe pass number
-        ///// </summary>
-        //public static int WipePassNumber { get; set; } = 1;
+			// Initialize extensions manager
+			_extensions = new ExtensionsManager();
 
-        ///// <summary>
-        ///// Gets or sets whether to process comments
-        ///// </summary>
-        //public static bool ProcessComments { get; set; }
+			// Load settings from configuration file
+			LoadSettings();
+		}
 
-        //#endregion
+		/// <summary>
+		/// Loads settings from configuration file
+		/// </summary>
+		private static void LoadSettings()
+		{
+			// TODO: Load settings from configuration file
+		}
 
-        /// <summary>
-        /// Static constructor
-        /// </summary>
-        //static GlobalSettings()
-        //{
-        //    // Initialize default values
-        //    OperationOptionFileExists = FileSourceOperationOptionFileExists.Ask;
-        //    OperationOptionDirectoryExists = DirectoryExistsOption.Ask;
-        //    OperationOptionSetPropertyError = SetPropertyErrorOption.Ask;
-        //    OperationOptionCopyOnWrite = CopyOnWriteOption.No;
-        //    OperationOptionVerify = false;
-        //    OperationOptionCopyAttributes = true;
-        //    OperationOptionCopyXattributes = false;
-        //    OperationOptionCopyTime = true;
-        //    OperationOptionCopyOwnership = false;
-        //    OperationOptionCopyPermissions = false;
-        //    DropReadOnlyFlag = false;
-        //    OperationOptionSymLinks = SymLinksOption.Follow;
-        //    OperationOptionCorrectLinks = true;
-        //    OperationOptionReserveSpace = true;
-        //    OperationOptionCheckFreeSpace = true;
-        //    OperationOptionExcludeEmptyDirectories = true;
-        //    SkipFileOpError = false;
-        //    WipePassNumber = 1;
-        //    ProcessComments = false;
-        //}
-    }
-}
+		/// <summary>
+		/// Saves settings to configuration file
+		/// </summary>
+		public static void SaveSettings()
+		{
+			// TODO: Save settings to configuration file
+		}
+	}
+
+	/// <summary>
+	/// Extensions manager
+	/// </summary>
+	public class ExtensionsManager
+	{
+		/// <summary>
+		/// Gets the command for the specified action on the specified file
+		/// </summary>
+		/// <param name="file">The file</param>
+		/// <param name="action">The action</param>
+		/// <param name="cmd">The command</param>
+		/// <param name="parameters">The parameters</param>
+		/// <param name="startPath">The start path</param>
+		/// <returns>True if the command was found, false otherwise</returns>
+		public bool GetExtActionCmd(FileEntry file, string action, out string cmd, out string parameters, out string startPath)
+		{
+			// Default values
+			cmd = string.Empty;
+			parameters = string.Empty;
+			startPath = string.Empty;
+
+			// TODO: Implement extension action lookup
+			if (action == "open" && !string.IsNullOrEmpty(file.Extension))
+			{
+				// For now, just return a simple command based on the file extension
+				switch (file.Extension.ToLower())
+				{
+					case ".txt":
+					case ".log":
+					case ".ini":
+					case ".xml":
+					case ".json":
+						cmd = "notepad.exe";
+						parameters = $"\"{file.FullPath}\"";
+						return true;
+					case ".jpg":
+					case ".jpeg":
+					case ".png":
+					case ".gif":
+					case ".bmp":
+						cmd = "mspaint.exe";
+						parameters = $"\"{file.FullPath}\"";
+						return true;
+					case ".pdf":
+						cmd = "explorer.exe";
+						parameters = $"\"{file.FullPath}\"";
+						return true;
+					case ".exe":
+					case ".bat":
+					case ".cmd":
+						cmd = file.FullPath;
+						return true;
+				}
+			}
+
+			return false;
+		}
+	}
+
+
+
+} 

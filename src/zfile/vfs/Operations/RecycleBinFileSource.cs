@@ -1,6 +1,11 @@
+using System.Runtime.InteropServices;
+
 namespace zfile
 {
-    public interface IRecycleBinFileSource : IVirtualFileSource
+	[ComImport]
+	[Guid("1E598290-5E66-423C-BB55-333E293106E8")]
+	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+	public interface IRecycleBinFileSource : IVirtualFileSource
     {
     }
 

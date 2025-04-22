@@ -379,6 +379,8 @@ namespace zfile
 	public delegate int TChangeVolProc(string arcName, int mode);
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	public delegate int TProcessDataProc(string arcName, int mode);
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+	public delegate int CryptProcDelegate(int cryptoNumber, int mode, string archiveName, string password);
 
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
 	public struct PackDefaultParamStruct
@@ -1131,7 +1133,7 @@ namespace zfile
 		/// <param name="cryptProcA">The ANSI crypt callback</param>
 		/// <param name="cryptProcW">The Unicode crypt callback</param>
 		public static void SetCryptCallback(this WcxModule module, int cryptoNr, int flags,
-			Func<int, int, string, string, int> cryptProcA, Func<int, int, string, string, int> cryptProcW)
+			CryptProcDelegate cryptProcA, CryptProcDelegate cryptProcW)
 		{
 			if (module.IsUnicode && cryptProcW != null)
 			{

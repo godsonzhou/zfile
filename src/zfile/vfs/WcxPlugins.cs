@@ -49,8 +49,9 @@ namespace zfile
         {
             get
             {
-                string[] result = new string[Count];
-                for (int i = 0; i < Count; i++)
+				var moduleCount = _moduleList._modules.Count;
+				string[] result = new string[moduleCount];
+                for (int i = 0; i < moduleCount; i++)
                 {
                     result[i] = _moduleList._modules[i].FilePath;
                 }

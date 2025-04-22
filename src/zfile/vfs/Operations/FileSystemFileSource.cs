@@ -1,4 +1,6 @@
+using System.ComponentModel;
 using System.Runtime.InteropServices;
+using WinShell;
 namespace zfile
 {
     public struct SearchRec
@@ -86,37 +88,78 @@ namespace zfile
             return file;
         }
 
-        public static FileEntry CreateFileFromFile(string filePath)
-        {
-            if (!File.Exists(filePath))
-                throw new FileNotFoundException(filePath);
+		//public static FileEntry CreateFileFromFile(string filePath)
+		//{
+		//    if (!File.Exists(filePath))
+		//        throw new FileNotFoundException(filePath);
 
-            var file = new FileEntry(Path.GetDirectoryName(filePath));
-            var FileEntry = new FileEntry(filePath);
+		//    var file = new FileEntry(Path.GetDirectoryName(filePath));
+		//    var FileEntry = new FileEntry(filePath);
 
-            file.Attributes = FileEntry.Attributes;
-            file.Size = FileEntry.Size;
-            file.ModificationTime = FileEntry.ModificationTime;
-            file.CreationTime = FileEntry.CreationTime;
-            file.LastAccessTime = FileEntry.LastAccessTime;
-            file.LinkProperty = new FileLinkProperty();
+		//    file.Attributes = FileEntry.Attributes;
+		//    file.Size = FileEntry.Size;
+		//    file.ModificationTime = FileEntry.ModificationTime;
+		//    file.CreationTime = FileEntry.CreationTime;
+		//    file.LastAccessTime = FileEntry.LastAccessTime;
+		//    file.LinkProperty = new FileLinkProperty();
 
-            if ((file.Attributes & FileAttributes.ReparsePoint) != 0)
-            {
-                var linkAttrs = File.GetAttributes(filePath);
-                file.LinkProperty.LinkTarget = File.ResolveLinkTarget(filePath, true)?.FullName;
-                file.LinkProperty.IsValid = linkAttrs != (FileAttributes)(-1);
-                if (file.LinkProperty.IsValid)
-                {
-                    file.LinkProperty.IsLinkToDirectory = (linkAttrs & FileAttributes.Directory) != 0;
-                }
-            }
+		//    if ((file.Attributes & FileAttributes.ReparsePoint) != 0)
+		//    {
+		//        var linkAttrs = File.GetAttributes(filePath);
+		//        file.LinkProperty.LinkTarget = File.ResolveLinkTarget(filePath, true)?.FullName;
+		//        file.LinkProperty.IsValid = linkAttrs != (FileAttributes)(-1);
+		//        if (file.LinkProperty.IsValid)
+		//        {
+		//            file.LinkProperty.IsLinkToDirectory = (linkAttrs & FileAttributes.Directory) != 0;
+		//        }
+		//    }
 
-            file.FullPath = filePath;
-            return file;
-        }
+		//    file.FullPath = filePath;
+		//    return file;
+		//}
 
-        public static FileEntries CreateFilesFromFileEntries(string path, List<string> fileNamesList, bool omitNotExisting = false)
+		public static FileEntry CreateFileFromFile(string filePath)
+		{
+			//if (!File.Exists(filePath))
+			//	throw new FileNotFoundException(filePath);
+
+			WIN32_FIND_DATA findData;
+			using (var findHandle = API.FindFirstFileW(filePath, out findData))
+			{
+				if (findHandle.IsInvalid)
+					throw new Win32Exception(Marshal.GetLastWin32Error());
+				//API.FindClose(findHandle);
+				var file = new FileEntry(Path.GetDirectoryName(filePath));
+
+				// 设置基本属性
+				file.Attributes = findData.dwFileAttributes;
+				file.Size = ((long)findData.nFileSizeHigh << 32) | findData.nFileSizeLow;
+				file.ModificationTime = DateTime.FromFileTime(((long)findData.ftLastWriteTime.dwHighDateTime << 32) |
+															(uint)findData.ftLastWriteTime.dwLowDateTime);
+				file.CreationTime = DateTime.FromFileTime(((long)findData.ftCreationTime.dwHighDateTime << 32) |
+														(uint)findData.ftCreationTime.dwLowDateTime);
+				file.LastAccessTime = DateTime.FromFileTime(((long)findData.ftLastAccessTime.dwHighDateTime << 32) |
+														  (uint)findData.ftLastAccessTime.dwLowDateTime);
+				file.LinkProperty = new FileLinkProperty();
+
+				// 处理符号链接
+				if ((file.Attributes & FileAttributes.ReparsePoint) != 0)
+				{
+					var linkAttrs = File.GetAttributes(filePath);
+					file.LinkProperty.LinkTarget = File.ResolveLinkTarget(filePath, true)?.FullName;
+					file.LinkProperty.IsValid = linkAttrs != (FileAttributes)(-1);
+					if (file.LinkProperty.IsValid)
+					{
+						file.LinkProperty.IsLinkToDirectory = (linkAttrs & FileAttributes.Directory) != 0;
+					}
+				}
+
+				file.FullPath = filePath;
+				return file;
+			}
+		}
+
+		public static FileEntries CreateFilesFromFileEntries(string path, List<string> fileNamesList, bool omitNotExisting = false)
         {
             var result = new FileEntries();
             if (fileNamesList != null && fileNamesList.Count > 0)

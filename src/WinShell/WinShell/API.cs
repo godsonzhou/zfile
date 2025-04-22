@@ -5,6 +5,8 @@ using System.Runtime.InteropServices;
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.Windows.Forms;
+using Microsoft.Win32.SafeHandles;
+using System.IO;
 namespace WinShell
 {
 
@@ -584,8 +586,24 @@ namespace WinShell
 
 		//[DllImport("shell32.dll")]
 		//public static extern IntPtr ILClone(IntPtr pidl);
-	}
+	
 
+		[DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+		public static extern SafeFindHandle FindFirstFileW(string lpFileName, out WIN32_FIND_DATA lpFindFileData);
+
+		//[DllImport("kernel32.dll")]
+		//private static extern bool FindClose(IntPtr hFindFile);
+		public class SafeFindHandle : SafeHandleZeroOrMinusOneIsInvalid
+		{
+			private SafeFindHandle() : base(true) { }
+
+			protected override bool ReleaseHandle()
+			{
+				return FindClose(handle);
+			}
+		}
+	}
+	
 	// [Flags]
 	// public enum SHGFI : uint
 	// {

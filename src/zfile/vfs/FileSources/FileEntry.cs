@@ -455,63 +455,131 @@ public class FileEntry : IDisposable
         get { return _nameNoExt; }
     }
 
-    public FileAttributes Attributes
+
+	private void EnsurePropertyExists(FilePropertyType propertyType)
+	{
+		if (!_properties.ContainsKey(propertyType))
+		{
+			switch (propertyType)
+			{
+				case FilePropertyType.Attributes:
+					_properties[propertyType] = new FileAttributesProperty();
+					break;
+				// 可以添加其他属性类型的处理...
+				
+
+			}
+			_supportedProperties |= propertyType;
+		}
+	}
+	public FileAttributes Attributes
     {
-        get { return ((FileAttributesProperty)_properties[FilePropertyType.Attributes]).Value; }
-        set { ((FileAttributesProperty)_properties[FilePropertyType.Attributes]).Value = value; }
-    }
+		//get { return ((FileAttributesProperty)_properties[FilePropertyType.Attributes]).Value; }
+		//set { ((FileAttributesProperty)_properties[FilePropertyType.Attributes]).Value = value; }
+		get
+		{
+			//if (!_properties.ContainsKey(FilePropertyType.Attributes))
+			//{
+			//	_properties[FilePropertyType.Attributes] = new FileAttributesProperty();
+			//	_supportedProperties |= FilePropertyType.Attributes;
+			//}
+			EnsurePropertyExists(FilePropertyType.Attributes);
+			return ((FileAttributesProperty)_properties[FilePropertyType.Attributes]).Value;
+		}
+		set
+		{
+			//if (!_properties.ContainsKey(FilePropertyType.Attributes))
+			//{
+			//	_properties[FilePropertyType.Attributes] = new FileAttributesProperty();
+			//	_supportedProperties |= FilePropertyType.Attributes;
+			//}
+			EnsurePropertyExists(FilePropertyType.Attributes);
+			((FileAttributesProperty)_properties[FilePropertyType.Attributes]).Value = value;
+		}
+	}
 
     public long Size
     {
-        get { return ((FileSizeProperty)_properties[FilePropertyType.Size]).Value; }
-        set { ((FileSizeProperty)_properties[FilePropertyType.Size]).Value = value; }
+        get { 
+			EnsurePropertyExists(FilePropertyType.Size);
+			return ((FileSizeProperty)_properties[FilePropertyType.Size]).Value; }
+        set { 
+			EnsurePropertyExists(FilePropertyType.Size);
+			((FileSizeProperty)_properties[FilePropertyType.Size]).Value = value; }
     }
 
     public long CompressedSize
     {
-        get { return ((FileCompressedSizeProperty)_properties[FilePropertyType.CompressedSize]).Value; }
-        set { ((FileCompressedSizeProperty)_properties[FilePropertyType.CompressedSize]).Value = value; }
+        get {
+			EnsurePropertyExists(FilePropertyType.CompressedSize);
+			return ((FileCompressedSizeProperty)_properties[FilePropertyType.CompressedSize]).Value; }
+        set {
+			EnsurePropertyExists(FilePropertyType.CompressedSize);
+			((FileCompressedSizeProperty)_properties[FilePropertyType.CompressedSize]).Value = value; }
     }
 
     public DateTime ModificationTime
     {
-        get { return ((FileModificationDateTimeProperty)_properties[FilePropertyType.ModificationTime]).Value; }
-        set { ((FileModificationDateTimeProperty)_properties[FilePropertyType.ModificationTime]).Value = value; }
+        get {
+			EnsurePropertyExists(FilePropertyType.ModificationTime);
+			return ((FileModificationDateTimeProperty)_properties[FilePropertyType.ModificationTime]).Value; }
+        set {
+			EnsurePropertyExists(FilePropertyType.ModificationTime);
+			((FileModificationDateTimeProperty)_properties[FilePropertyType.ModificationTime]).Value = value; }
     }
 
     public DateTime CreationTime
     {
-        get { return ((FileCreationDateTimeProperty)_properties[FilePropertyType.CreationTime]).Value; }
-        set { ((FileCreationDateTimeProperty)_properties[FilePropertyType.CreationTime]).Value = value; }
+        get { 
+			EnsurePropertyExists(FilePropertyType.CreationTime);
+			return ((FileCreationDateTimeProperty)_properties[FilePropertyType.CreationTime]).Value; }
+        set {
+			EnsurePropertyExists(FilePropertyType.CreationTime);
+			((FileCreationDateTimeProperty)_properties[FilePropertyType.CreationTime]).Value = value; }
     }
 
     public DateTime LastAccessTime
     {
-        get { return ((FileLastAccessDateTimeProperty)_properties[FilePropertyType.LastAccessTime]).Value; }
-        set { ((FileLastAccessDateTimeProperty)_properties[FilePropertyType.LastAccessTime]).Value = value; }
+        get {
+			EnsurePropertyExists(FilePropertyType.LastAccessTime);
+			return ((FileLastAccessDateTimeProperty)_properties[FilePropertyType.LastAccessTime]).Value; }
+        set {
+			EnsurePropertyExists(FilePropertyType.LastAccessTime);
+			((FileLastAccessDateTimeProperty)_properties[FilePropertyType.LastAccessTime]).Value = value; }
     }
 
     public DateTime ChangeTime
     {
-        get { return ((FileChangeDateTimeProperty)_properties[FilePropertyType.ChangeTime]).Value; }
-        set { ((FileChangeDateTimeProperty)_properties[FilePropertyType.ChangeTime]).Value = value; }
+        get {
+			EnsurePropertyExists(FilePropertyType.ChangeTime);
+			return ((FileChangeDateTimeProperty)_properties[FilePropertyType.ChangeTime]).Value; }
+        set {
+			EnsurePropertyExists(FilePropertyType.ChangeTime);
+			((FileChangeDateTimeProperty)_properties[FilePropertyType.ChangeTime]).Value = value; }
     }
 
     public bool IsLinkToDirectory
     {
         get
         {
-            if (_supportedProperties.HasFlag(FilePropertyType.Link))
+			EnsurePropertyExists(FilePropertyType.Link);
+			if (_supportedProperties.HasFlag(FilePropertyType.Link))
                 return ((FileLinkProperty)_properties[FilePropertyType.Link]).IsLinkToDirectory;
             return false;
         }
-        set { ((FileLinkProperty)_properties[FilePropertyType.Link]).IsLinkToDirectory = value; }
+        set {
+			EnsurePropertyExists(FilePropertyType.Link);
+			((FileLinkProperty)_properties[FilePropertyType.Link]).IsLinkToDirectory = value; }
     }
 
     public string FileType
     {
-        get { return ((FileTypeProperty)_properties[FilePropertyType.Type]).Value; }
-        set { ((FileTypeProperty)_properties[FilePropertyType.Type]).Value = value; }
+        get {
+			EnsurePropertyExists(FilePropertyType.Type);
+			return ((FileTypeProperty)_properties[FilePropertyType.Type]).Value; }
+        set {
+			EnsurePropertyExists(FilePropertyType.Type);
+			((FileTypeProperty)_properties[FilePropertyType.Type]).Value = value; }
     }
 
     public FileNameProperty NameProperty

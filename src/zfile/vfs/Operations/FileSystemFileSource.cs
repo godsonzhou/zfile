@@ -279,7 +279,9 @@ namespace zfile
         public override bool IsPathAtRoot(string path)
         {
             var sPath = Path.GetDirectoryName(path);
-            if (sPath.StartsWith(@"\\") && sPath.Count(c => c == Path.DirectorySeparatorChar) == 3)
+			if (sPath == null)
+				return true;
+			if (sPath.StartsWith(@"\\") && sPath.Count(c => c == Path.DirectorySeparatorChar) == 3)
                 return true;
             return string.IsNullOrEmpty(Path.GetDirectoryName(path));
         }

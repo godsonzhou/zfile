@@ -99,12 +99,12 @@ namespace zfile
             //
             this.imageListTree.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageListTree.ImageStream")));
             this.imageListTree.TransparentColor = System.Drawing.Color.Transparent;
-            this.imageListTree.Images.SetKeyName(0, "folder.png");
-            this.imageListTree.Images.SetKeyName(1, "recycle_bin.png");
-            this.imageListTree.Images.SetKeyName(2, "archive.png");
-            this.imageListTree.Images.SetKeyName(3, "drive.png");
-            this.imageListTree.Images.SetKeyName(4, "folder_open.png");
-            this.imageListTree.Images.SetKeyName(5, "file.png");
+            //this.imageListTree.Images.SetKeyName(0, "folder.png");
+            //this.imageListTree.Images.SetKeyName(1, "recycle_bin.png");
+            //this.imageListTree.Images.SetKeyName(2, "archive.png");
+            ////this.imageListTree.Images.SetKeyName(3, "drive.png");
+            //this.imageListTree.Images.SetKeyName(4, "folder_open.png");
+            //this.imageListTree.Images.SetKeyName(5, "file.png");
             //
             // listViewFiles
             //
@@ -249,12 +249,12 @@ namespace zfile
             //
             this.imageListFiles.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageListFiles.ImageStream")));
             this.imageListFiles.TransparentColor = System.Drawing.Color.Transparent;
-            this.imageListFiles.Images.SetKeyName(0, "folder.png");
-            this.imageListFiles.Images.SetKeyName(1, "recycle_bin.png");
-            this.imageListFiles.Images.SetKeyName(2, "archive.png");
-            this.imageListFiles.Images.SetKeyName(3, "drive.png");
-            this.imageListFiles.Images.SetKeyName(4, "folder_open.png");
-            this.imageListFiles.Images.SetKeyName(5, "file.png");
+            //this.imageListFiles.Images.SetKeyName(0, "folder.png");
+            //this.imageListFiles.Images.SetKeyName(1, "recycle_bin.png");
+            //this.imageListFiles.Images.SetKeyName(2, "archive.png");
+            //this.imageListFiles.Images.SetKeyName(3, "drive.png");
+            //this.imageListFiles.Images.SetKeyName(4, "folder_open.png");
+            //this.imageListFiles.Images.SetKeyName(5, "file.png");
             //
             // statusStrip
             //

@@ -722,7 +722,7 @@ namespace zfile
 		/// <summary>
 		/// Disposes the file source
 		/// </summary>
-		public void Dispose()
+		public virtual void Dispose()
 		{
 			Dispose(true);
 			GC.SuppressFinalize(this);
@@ -771,7 +771,7 @@ namespace zfile
 		/// </summary>
 		/// <param name="interfaceType">The interface type to check</param>
 		/// <returns>True if the file source implements the interface, false otherwise</returns>
-		public bool IsInterface(Type interfaceType)
+		public virtual bool IsInterface(Type interfaceType)
 		{
 			if (interfaceType == null)
 				return false;
@@ -784,7 +784,7 @@ namespace zfile
 		/// </summary>
 		/// <param name="classType">The class type to check</param>
 		/// <returns>True if the file source is of the specified class type, false otherwise</returns>
-		public bool IsClass(Type classType)
+		public virtual bool IsClass(Type classType)
 		{
 			if (classType == null)
 				return false;

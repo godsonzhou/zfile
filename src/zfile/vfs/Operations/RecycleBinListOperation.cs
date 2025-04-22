@@ -57,8 +57,8 @@ namespace zfile
                             CheckOperationState();
 
                             var file = RecycleBinFileSource.CreateFile(Path);
-                            file.FullPath = w32.GetDisplayName(folder, pidl, SHGDN.NORMAL);
-                            file.LinkProperty.LinkTarget = w32.GetDisplayName(folder, pidl, SHGDN.FORPARSING);
+                            file.FullPath = w32.GetDisplayName2(folder, pidl, SHGDN.NORMAL);
+                            file.LinkProperty.LinkTarget = w32.GetDisplayName2(folder, pidl, SHGDN.FORPARSING);
 
                             FileAttributeData attr;
                             if (FileSystemUtil.FileGetAttr(file.LinkProperty.LinkTarget, out attr))

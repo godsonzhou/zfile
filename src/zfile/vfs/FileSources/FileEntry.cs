@@ -202,7 +202,7 @@ public class FileLinkProperty : FileProperty
 {
     public string LinkTarget { get; set; }
     public bool IsLinkToDirectory { get; set; }
-    public bool IsValid;
+    //public bool IsValid;
 
     public override FileProperty Clone()
     {

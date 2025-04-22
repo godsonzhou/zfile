@@ -69,10 +69,10 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 	#region IFileSource Implementation
 	// File source properties
 	public Uri Uri { get; private set; }
-	public string ClassName => GetType().Name;
+	//public string ClassName => GetType().Name;
 	public int RefCount { get; private set; } = 1;
-	public string FileSystem => _pluginName;
-	public string CurrentWorkingDirectory => _currentAddress;
+	public override string FileSystem => _pluginName;
+	public override string CurrentWorkingDirectory => _currentAddress;
 	public FilePropertyType SupportedFileProperties => FilePropertyType.Name | FilePropertyType.Size |
 		FilePropertyType.Attributes | FilePropertyType.ModificationTime |
 		FilePropertyType.CreationTime | FilePropertyType.LastAccessTime;
@@ -92,9 +92,9 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 		FileSourceProperty.IsRemote |
 		FileSourceProperty.CanCreateDirectory |
 		FileSourceProperty.HasAttributesSupport;
-	public IFileSource ParentFileSource { get; set; }
+	//public IFileSource ParentFileSource { get; set; }
 
-	public bool Equals(IFileSource fileSource)
+	public override bool Equals(IFileSource fileSource)
 	{
 		if (fileSource is IWfxPluginFileSource wfxFileSource)
 		{
@@ -104,30 +104,30 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 		return false;
 	}
 
-	public bool IsInterface(Type interfaceType)
+	public override bool IsInterface(Type interfaceType)
 	{
 		return interfaceType.IsAssignableFrom(GetType());
 	}
 
-	public bool IsClass(Type classType)
+	public override bool IsClass(Type classType)
 	{
 		return GetType() == classType || GetType().IsSubclassOf(classType);
 	}
 
-	public bool SetCurrentWorkingDirectory(string newDir)
+	public override bool SetCurrentWorkingDirectory(string newDir)
 	{
 		_currentAddress = newDir;
 		return true;
 	}
 
-	public FileEntries GetFiles(string targetPath)
+	public override FileEntries GetFiles(string targetPath)
 	{
 		var files = new FileEntries();
 		GetFiles(targetPath, files);
 		return files;
 	}
 
-	public FileEntry CreateFile(string path)
+	public override FileEntry CreateFile(string path)
 	{
 		// Create a file object for the specified path
 		var fileName = Path.GetFileName(path);
@@ -156,7 +156,7 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 		};
 	}
 
-	public bool CanRetrieveProperties(FileEntry file, FilePropertyType properties)
+	public override bool CanRetrieveProperties(FileEntry file, FilePropertyType properties)
 	{
 		return (_wfxModule.ContentPlugin && (properties & FilePropertyType.Variant) != 0) ||
 			   ((properties & SupportedFileProperties) == properties);
@@ -224,7 +224,7 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 		}
 	}
 
-	public bool CreateDirectory(string path)
+	public override bool CreateDirectory(string path)
 	{
 		var result = _wfxModule.CreateDirectory(path);
 		if (result)
@@ -249,12 +249,12 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 		return _wfxModule.RemoveDirectory(path);
 	}
 
-	public bool FileSystemEntryExists(string path)
+	public override bool FileSystemEntryExists(string path)
 	{
 		return _wfxModule.FileExists(path);
 	}
 
-	public bool GetDefaultView(out FileSourceField[] defaultView)
+	public override bool GetDefaultView(out FileSourceField[] defaultView)
 	{
 		defaultView = new FileSourceField[]
 		{
@@ -266,13 +266,13 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 		return true;
 	}
 
-	public bool QueryContextMenu(FileEntries files, ref ContextMenuStrip menu)
+	public override bool QueryContextMenu(FileEntries files, ref ContextMenuStrip menu)
 	{
 		// Add WFX specific context menu items
 		return true;
 	}
 
-	public FileSourceConnection GetConnection(FileSourceOperation operation)
+	public override FileSourceConnection GetConnection(FileSourceOperation operation)
 	{
 		lock (_connectionLock)
 		{
@@ -300,7 +300,7 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 		}
 	}
 
-	public void RemoveOperationFromQueue(IFileSourceOperation operation)
+	public override void RemoveOperationFromQueue(IFileSourceOperation operation)
 	{
 		lock (_operationsQueueLock)
 		{
@@ -308,7 +308,7 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 		}
 	}
 
-	public void Dispose()
+	public override void Dispose()
 	{
 		// Disconnect all connections
 		if (_wfxModule.IsLoaded)
@@ -547,52 +547,52 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 		}
 	}
 
-	public FileSourceOperation CreateListOperation(string targetPath)
+	public override FileSourceOperation CreateListOperation(string targetPath)
 	{
 		return new WfxPluginListOperation(this, targetPath);
 	}
 
-	public FileSourceOperation CreateCopyOperation(FileEntries sourceFiles, string targetPath)
+	public override FileSourceOperation CreateCopyOperation(FileEntries sourceFiles, string targetPath)
 	{
 		return new WfxPluginCopyOperation(this, this, sourceFiles, targetPath);
 	}
 
-	public FileSourceOperation CreateCopyInOperation(IFileSource sourceFileSource, FileEntries sourceFiles, string targetPath)
+	public override FileSourceOperation CreateCopyInOperation(IFileSource sourceFileSource, FileEntries sourceFiles, string targetPath)
 	{
 		return new WfxPluginCopyInOperation(sourceFileSource, this, sourceFiles, targetPath);
 	}
 
-	public FileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)
+	public override FileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)
 	{
 		return new WfxPluginCopyOutOperation(this, targetFileSource, sourceFiles, targetPath);
 	}
 
-	public FileSourceOperation CreateMoveOperation(FileEntries sourceFiles, string targetPath)
+	public override FileSourceOperation CreateMoveOperation(FileEntries sourceFiles, string targetPath)
 	{
 		return new WfxPluginMoveOperation(this, sourceFiles, targetPath);
 	}
 
-	public FileSourceOperation CreateDeleteOperation(FileEntries filesToDelete)
+	public override FileSourceOperation CreateDeleteOperation(FileEntries filesToDelete)
 	{
 		return new WfxPluginDeleteOperation(this, filesToDelete);
 	}
 
-	public FileSourceOperation CreateCreateDirectoryOperation(string basePath, string directoryPath)
+	public override FileSourceOperation CreateCreateDirectoryOperation(string basePath, string directoryPath)
 	{
 		return new WfxPluginCreateDirectoryOperation(this, basePath, directoryPath);
 	}
 
-	public FileSourceOperation CreateExecuteOperation(FileEntry executableFile, string basePath, string verb)
+	public override FileSourceOperation CreateExecuteOperation(FileEntry executableFile, string basePath, string verb)
 	{
 		return new WfxPluginExecuteOperation(this, executableFile, basePath, verb);
 	}
 
-	public FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, FileProperty[] newProperties)
+	public override FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, FileProperty[] newProperties)
 	{
 		return new WfxPluginSetFilePropertyOperation(this, targetFiles, newProperties);
 	}
 
-	public FileSourceOperation CreateCalcStatisticsOperation(FileEntries files)
+	public override FileSourceOperation CreateCalcStatisticsOperation(FileEntries files)
 	{
 		return new WfxPluginCalcStatisticsOperation(this, files);
 	}

@@ -3,15 +3,15 @@ namespace zfile
     public class OperationsManagerItem
     {
         private int handle;
-        private IFileSourceOperation operation;
+        private FileSourceOperation operation;
         private Thread operationThread;
         private OperationsManagerQueue queue;
 
         public int Handle => handle;
-        public IFileSourceOperation Operation => operation;
+        public FileSourceOperation Operation => operation;
         public OperationsManagerQueue Queue => queue;
 
-        public OperationsManagerItem(int handle, IFileSourceOperation operation)
+        public OperationsManagerItem(int handle, FileSourceOperation operation)
         {
             this.handle = handle;
             this.operation = operation;
@@ -26,7 +26,7 @@ namespace zfile
             }
             else
             {
-                operation.Resume();
+                //operation.Resume();
             }
         }
 
@@ -131,15 +131,15 @@ namespace zfile
         private List<OperationsManagerQueue> queues = new List<OperationsManagerQueue>();
         private List<EventHandler<OperationEventArgs>> eventListeners = new List<EventHandler<OperationEventArgs>>();
 
-        public int AddOperation(IFileSourceOperation operation, bool showProgress = true)
+        public int AddOperation(FileSourceOperation operation, bool showProgress = true)
         {
-            if (operation.IsModal)
+            if (operation.FileSource.Properties.HasFlag(FileSourceProperties.ListOnMainThread))
                 return AddOperation(operation, ModalQueueId, false, showProgress);
             else
                 return AddOperation(operation, FreeOperationsQueueId, false, showProgress);
         }
 
-        public int AddOperation(IFileSourceOperation operation, int queueIdentifier, bool insertAtFrontOfQueue, bool showProgress = true)
+        public int AddOperation(FileSourceOperation operation, int queueIdentifier, bool insertAtFrontOfQueue, bool showProgress = true)
         {
             if (operation == null) return 0;
 

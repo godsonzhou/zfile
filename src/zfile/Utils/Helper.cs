@@ -941,7 +941,7 @@ namespace zfile
 
 		internal static string? IncludeTrailingPathDelimiter(string aTargetPath)
 		{
-			throw new NotImplementedException();
+			return aTargetPath.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
 		}
 
 		internal static string? ExtractDirLevel(string aCurrentPath, string directoryPath)
@@ -949,9 +949,9 @@ namespace zfile
 			throw new NotImplementedException();
 		}
 
-		internal static string ExcludeFrontPathDelimiter(object fullPath)
+		internal static string ExcludeFrontPathDelimiter(string fullPath)
 		{
-			throw new NotImplementedException();
+			return fullPath.TrimStart('\\');
 		}
 
 		internal static string IncludeFrontPathDelimiter(string currentFilePath)
@@ -960,7 +960,8 @@ namespace zfile
 		}
 		internal static string ExcludeTrailingPathDelimiter(string fullPath)
 		{
-			throw new NotImplementedException();
+			//去掉路径末尾的\符号
+			return fullPath.TrimEnd(Path.DirectorySeparatorChar);
 		}
 	}
 }

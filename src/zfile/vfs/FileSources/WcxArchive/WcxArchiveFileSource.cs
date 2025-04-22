@@ -194,6 +194,7 @@ namespace zfile
                 while (_wcxModule.ReadWCXHeader(arcHandle, ref header) == 0)
                 {
                     _arcFileEntries.Add(header.Clone());
+					_wcxModule.ProcessFile(arcHandle, ProcessMode.PK_SKIP, "", "");
                     header = new WcxHeader();
                 }
 

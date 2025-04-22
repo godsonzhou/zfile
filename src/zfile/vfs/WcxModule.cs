@@ -457,7 +457,7 @@ namespace zfile
 		public const int BACKGROUND_UNPACK = 2;
 		public const int BACKGROUND_MEMPACK = 4;
 
-		public static nint WcxInvalidHandle = 0;
+		public static IntPtr WcxInvalidHandle = -1;
 		// 函数指针
 		private TOpenArchive _openArchive;
 		private TOpenArchiveW _openArchiveW;

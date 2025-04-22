@@ -169,7 +169,7 @@ namespace zfile
                         {
                             // Start operation
                             var operationsManager = new OperationsManager();
-                            operationsManager.AddOperation(operation as IFileSourceOperation, queueIdentifier, false, true);
+                            operationsManager.AddOperation(operation, queueIdentifier, false, true);
                         }
                         else
                         {
@@ -218,7 +218,7 @@ namespace zfile
                                             {
                                                 // Start operation
                                                 var operationsManager = new OperationsManager();
-                                                operationsManager.AddOperation((IFileSourceOperation)operation, queueId, false, true);
+                                                operationsManager.AddOperation(operation, queueId, false, true);
                                             }
                                             else
                                             {

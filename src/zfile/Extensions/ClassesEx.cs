@@ -299,8 +299,12 @@ namespace zfile
 
         internal IEnumerable<T> Clone()
         {
-            throw new NotImplementedException();
-        }
+			lock (_lock)
+			{
+				// 创建一个新的列表并复制所有元素
+				return new List<T>(_list);
+			}
+		}
         /// <summary>
         /// Returns an enumerator that iterates through the list
         /// </summary>

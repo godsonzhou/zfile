@@ -439,7 +439,7 @@ namespace zfile
 
                         if (operation != null)
                         {
-                            _operationsManager.AddOperation((IFileSourceOperation)operation);
+                            _operationsManager.AddOperation(operation);
                             operation.Execute();
                         }
 
@@ -483,7 +483,7 @@ namespace zfile
                             if (operation != null)
                             {
                                 // Execute operation
-                                _operationsManager.AddOperation((IFileSourceOperation)operation);
+                                _operationsManager.AddOperation(operation);
                                 operation.Execute();
                             }
                         }
@@ -583,7 +583,7 @@ namespace zfile
                         var operation = _currentFileSource.CreateCopyOutOperation(targetFileSource, selectedFiles, dialog.SelectedPath);
 
                         // Execute operation
-                        _operationsManager.AddOperation((IFileSourceOperation)operation);
+                        _operationsManager.AddOperation(operation);
                         operation.Execute();
 
                         MessageBox.Show("解压操作完成", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -629,7 +629,7 @@ namespace zfile
                             if (operation != null)
                             {
                                 // Execute operation
-                                _operationsManager.AddOperation((IFileSourceOperation)operation);
+                                _operationsManager.AddOperation(operation);
                                 operation.Execute();
                             }
                         }
@@ -658,7 +658,7 @@ namespace zfile
                         if (operation != null)
                         {
                             // Execute operation
-                            _operationsManager.AddOperation((IFileSourceOperation)operation);
+                            _operationsManager.AddOperation(operation);
                             operation.Execute();
                         }
                     }
@@ -690,7 +690,7 @@ namespace zfile
                             if (operation != null)
                             {
                                 // Execute operation
-                                _operationsManager.AddOperation((IFileSourceOperation)operation);
+                                _operationsManager.AddOperation(operation);
                                 operation.Execute();
                             }
                         }

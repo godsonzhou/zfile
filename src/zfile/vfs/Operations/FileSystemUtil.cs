@@ -21,7 +21,7 @@ namespace zfile
 		}
 		public static bool IsInPath(string path1, string path2, bool allowPartial, bool caseSensitive)
 		{
-			return path1.StartsWith(path2, caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
+			return path2.StartsWith(path1, caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
 		}
 		public static string ApplyRenameMask(FileEntry file, string nameMask, string extMask)
 		{

@@ -14,8 +14,6 @@ namespace zfile
 	//	public HorizontalAlignment Align { get; set; }
 	//}
 
-	
-
 	/// <summary>
 	/// Represents file source properties
 	/// </summary>

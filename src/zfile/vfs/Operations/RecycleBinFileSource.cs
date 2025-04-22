@@ -18,11 +18,23 @@ namespace zfile
 
         public static bool IsSupportedPath(string path)
         {
-            return string.Equals(Path.GetDirectoryName(path), 
-                Path.DirectorySeparatorChar + Path.DirectorySeparatorChar + 
-                Path.DirectorySeparatorChar + Resources.VfsRecycleBin, 
-                StringComparison.OrdinalIgnoreCase);
-        }
+			//return string.Equals(Path.GetDirectoryName(path), 
+			//    Path.DirectorySeparatorChar + Path.DirectorySeparatorChar + 
+			//    Path.DirectorySeparatorChar + Resources.VfsRecycleBin, 
+			//    StringComparison.OrdinalIgnoreCase);
+			// 去除所有尾部路径分隔符
+			string trimmedPath = path.TrimEnd(Path.DirectorySeparatorChar);
+
+			// 构造期望路径格式（三个分隔符+资源标识）
+			string expectedPath = new string(Path.DirectorySeparatorChar, 3)
+								+ Resources.VfsRecycleBin;
+
+			// 不区分大小写比较
+			return string.Equals(
+				trimmedPath,
+				expectedPath,
+				StringComparison.OrdinalIgnoreCase);
+		}
 
         public static FileEntry CreateFile(string path)
         {

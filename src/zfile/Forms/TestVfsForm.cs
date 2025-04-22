@@ -119,8 +119,7 @@ namespace zfile
             try
             {
                 _currentFileSource = new RecycleBinFileSource();
-                _currentPath = Path.DirectorySeparatorChar + Path.DirectorySeparatorChar +
-                               Path.DirectorySeparatorChar + Resources.VfsRecycleBin + Path.DirectorySeparatorChar;
+                _currentPath = new string(Path.DirectorySeparatorChar, 3) + Resources.VfsRecycleBin + Path.DirectorySeparatorChar;
 
                 if (_currentFileSource == null || _currentPath == null) return;
                 var listOperation = _currentFileSource.CreateListOperation(_currentPath);

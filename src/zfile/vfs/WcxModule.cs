@@ -955,6 +955,24 @@ namespace zfile
 			}
 			return false;
 		}
+		public void LoadModule(string file)
+		{
+			var name = Path.GetFileNameWithoutExtension(file);
+			var module = FindModuleByName(name);
+			if (module == null)
+			{
+				module = new WcxModule
+				{
+					FilePath = file,
+					Name = name
+				};
+				if (module.LoadModule())
+				{
+					if (AddModule(module))
+						_exts[module.Name.ToLower()] = module;//TODO BUGFIX: HOW TO GET THE DETECTSTRING FOR WCX MODULE FILE
+				}
+			}
+		}
 		public void LoadModulesFromDirectory(string directory)
 		{
 			if (!Directory.Exists(directory)) return;
@@ -966,21 +984,7 @@ namespace zfile
 				{
 					try
 					{
-						var name = Path.GetFileNameWithoutExtension(file);
-						var module = FindModuleByName(name);
-						if (module == null)
-						{
-							module = new WcxModule
-							{
-								FilePath = file,
-								Name = name
-							};
-							if (module.LoadModule())
-							{
-								if (AddModule(module))
-									_exts[module.Name.ToLower()] = module;//TODO BUGFIX: HOW TO GET THE DETECTSTRING FOR WCX MODULE FILE
-							}
-						}
+						LoadModule(file);
 					}
 					catch
 					{

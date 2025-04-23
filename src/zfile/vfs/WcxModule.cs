@@ -454,28 +454,6 @@ namespace zfile
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	public delegate int CryptProcDelegate(int cryptoNumber, int mode, string archiveName, string password);
 
-	// 扩展API回调函数委托定义
-	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-	public delegate int TDlgProc(IntPtr pDlg, string dlgItemName, int msg, int wParam, int lParam);
-	
-	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-	public delegate bool TInputBoxProc(string caption, string prompt, bool maskInput, string value, int valueMaxLen);
-	
-	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-	public delegate int TMessageBoxProc(string text, string caption, int flags);
-	
-	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-	public delegate bool TDialogBoxLFMProc(IntPtr lfmData, uint dataSize, TDlgProc dlgProc);
-	
-	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-	public delegate bool TDialogBoxLRSProc(IntPtr lrsData, uint dataSize, TDlgProc dlgProc);
-	
-	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-	public delegate bool TDialogBoxLFMFileProc(string lfmFileName, TDlgProc dlgProc);
-	
-	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-	public delegate int TTranslateStringProc(IntPtr translation, string identifier, string original, string output, int outLen);
-
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
 	public struct PackDefaultParamStruct
 	{

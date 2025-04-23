@@ -183,7 +183,75 @@ namespace zfile
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
 	public struct TExtensionStartupInfo
 	{
+		/// <summary>
+		/// 结构体大小（字节）
+		/// </summary>
+		public uint StructSize;
 
+		/// <summary>
+		/// 插件所在目录（UTF-8编码）
+		/// </summary>
+		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 16384)]
+		public byte[] PluginDir;
+
+		/// <summary>
+		/// 插件配置文件所在目录（UTF-8编码）
+		/// </summary>
+		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 16384)]
+		public byte[] PluginConfDir;
+
+		/// <summary>
+		/// 输入框回调函数
+		/// </summary>
+		[MarshalAs(UnmanagedType.FunctionPtr)]
+		public TInputBoxProc InputBox;
+
+		/// <summary>
+		/// 消息框回调函数
+		/// </summary>
+		[MarshalAs(UnmanagedType.FunctionPtr)]
+		public TMessageBoxProc MessageBox;
+
+		/// <summary>
+		/// LFM对话框回调函数
+		/// </summary>
+		[MarshalAs(UnmanagedType.FunctionPtr)]
+		public TDialogBoxLFMProc DialogBoxLFM;
+
+		/// <summary>
+		/// LRS对话框回调函数
+		/// </summary>
+		[MarshalAs(UnmanagedType.FunctionPtr)]
+		public TDialogBoxLRSProc DialogBoxLRS;
+
+		/// <summary>
+		/// LFM文件对话框回调函数
+		/// </summary>
+		[MarshalAs(UnmanagedType.FunctionPtr)]
+		public TDialogBoxLFMFileProc DialogBoxLFMFile;
+
+		/// <summary>
+		/// 对话框消息发送回调函数
+		/// </summary>
+		[MarshalAs(UnmanagedType.FunctionPtr)]
+		public TDlgProc SendDlgMsg;
+
+		/// <summary>
+		/// 翻译指针
+		/// </summary>
+		public IntPtr Translation;
+
+		/// <summary>
+		/// 字符串翻译回调函数
+		/// </summary>
+		[MarshalAs(UnmanagedType.FunctionPtr)]
+		public TTranslateStringProc TranslateString;
+
+		/// <summary>
+		/// 为未来API扩展预留的空间
+		/// </summary>
+		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 4094 * 8)] //sizeof(typeof(IntPtr)), 4 in 32bit process, 8 for 64bit process
+		public byte[] Reserved;
 	}
 	// 基础结构体定义
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
@@ -386,6 +454,28 @@ namespace zfile
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	public delegate int CryptProcDelegate(int cryptoNumber, int mode, string archiveName, string password);
 
+	// 扩展API回调函数委托定义
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+	public delegate int TDlgProc(IntPtr pDlg, string dlgItemName, int msg, int wParam, int lParam);
+	
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+	public delegate bool TInputBoxProc(string caption, string prompt, bool maskInput, string value, int valueMaxLen);
+	
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+	public delegate int TMessageBoxProc(string text, string caption, int flags);
+	
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+	public delegate bool TDialogBoxLFMProc(IntPtr lfmData, uint dataSize, TDlgProc dlgProc);
+	
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+	public delegate bool TDialogBoxLRSProc(IntPtr lrsData, uint dataSize, TDlgProc dlgProc);
+	
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+	public delegate bool TDialogBoxLFMFileProc(string lfmFileName, TDlgProc dlgProc);
+	
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+	public delegate int TTranslateStringProc(IntPtr translation, string identifier, string original, string output, int outLen);
+
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
 	public struct PackDefaultParamStruct
 	{
@@ -428,7 +518,9 @@ namespace zfile
 	public delegate void TPkSetCryptCallback(IntPtr cryptProc, int cryptoNr, int flags);
 	public delegate void TPkSetCryptCallbackW(IntPtr cryptProc, int cryptoNr, int flags);
 	public delegate int TGetBackgroundFlags();
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	public delegate void TExtensionInitialize(IntPtr startupInfo);
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	public delegate void TExtensionFinalize(IntPtr reserved);
 
 	public class WcxModule

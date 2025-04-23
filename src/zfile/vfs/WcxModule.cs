@@ -564,7 +564,7 @@ namespace zfile
 		/// 初始化扩展启动信息结构
 		/// </summary>
 		/// <returns>初始化后的启动信息结构指针</returns>
-		private static IntPtr InitializeExtensionStartupInfo()
+		private static IntPtr InitializeExtensionStartupInfo(string modulepath)
 		{
 			// 创建结构体
 			TExtensionStartupInfo startupInfo = new();
@@ -574,7 +574,7 @@ namespace zfile
 
 			// 设置插件目录
 			const int MAX_PATH = 16384;
-			string pluginDir = Constants.ZfileBinPath;
+			string? pluginDir = Path.GetDirectoryName(modulepath);
 			startupInfo.PluginDir = Encoding.UTF8.GetBytes(pluginDir + new string('\0', MAX_PATH - pluginDir.Length));
 
 			// 设置配置目录
@@ -717,19 +717,20 @@ namespace zfile
 				_setChangeVolProcW = GetDelegate<TSetChangeVolProcW>("SetChangeVolProcW");
 				_setProcessDataProcW = GetDelegate<TSetProcessDataProcW>("SetProcessDataProcW");
 
-				var ansi_mode_available = _openArchive != null && _readHeader != null && _processFile != null;
-				if (!ansi_mode_available)
+				var isavailable = _openArchive != null && _readHeader != null && _processFile != null;
+				if (!isavailable)
 				{
 					_openArchive = null;
 					_readHeader = null;
 					_processFile = null;
-					_isUnicode = _openArchiveW != null && _readHeaderExW != null && _processFileW != null;
+					isavailable = _openArchiveW != null && _readHeaderExW != null && _processFileW != null;
 				}
-				if (!IsUnicode || _closeArchive == null)
+				if (!isavailable || _closeArchive == null)
 				{
 					_openArchiveW = null;
 					_readHeaderExW = null;
 					_processFileW = null;
+					_closeArchive = null;
 					return false;
 				}
 
@@ -776,7 +777,7 @@ namespace zfile
 				if (_extensionInitialize != null)
 				{
 					// 创建并初始化 StartupInfo 结构
-					var startupInfo = InitializeExtensionStartupInfo();
+					var startupInfo = InitializeExtensionStartupInfo(_modulePath);
 					_extensionInitialize.Invoke(startupInfo);
 				}
 
@@ -840,7 +841,7 @@ namespace zfile
 			IntPtr result = IntPtr.Zero;
 			openResult = (int)WcxResult.PK_UNKNOWN_FORMAT;
 			//archiveName = archiveName.ToUpper();
-			if (_isUnicode && _openArchiveW != null)
+			if (_openArchiveW != null)
 			{
 				var archiveDataW = new TOpenArchiveDataW
 				{
@@ -901,43 +902,48 @@ namespace zfile
 			return IntPtr.Zero;
 		}
 
-		public bool ReadHeader(IntPtr arcHandle, out THeaderDataExW headerData)
+		public bool ReadHeader(IntPtr arcHandle, out WcxHeader headerData)
 		{
-			headerData = new THeaderDataExW();
-
-			if (_isUnicode && _readHeaderExW != null)
+			if (_readHeaderExW != null)
 			{
-				return _readHeaderExW(arcHandle, ref headerData) == 0;
+				var header = new THeaderDataExW();
+				if (_readHeaderExW(arcHandle, ref header) == 0)
+				{
+					headerData = new WcxHeader(header);
+					return true;
+				}
 			}
 			else if (_readHeader != null)
 			{
 				var ansiHeader = new THeaderData();
 				if (_readHeader(arcHandle, ref ansiHeader) == 0)
 				{
-					// 转换ANSI到Unicode
-					headerData.ArcName = ansiHeader.ArcName;// Encoding.Default.GetString(ansiHeader.ArcName).TrimEnd('\0');
-					headerData.FileName = ansiHeader.FileName;// Encoding.Default.GetString(ansiHeader.FileName).TrimEnd('\0');
-					headerData.Flags = ansiHeader.Flags;
-					headerData.PackSizeHigh = 0;
-					headerData.PackSizeLow = (uint)ansiHeader.PackSize;
-					headerData.UnpSizeHigh = 0;
-					headerData.UnpSizeLow = (uint)ansiHeader.UnpSize;
-					headerData.HostOS = ansiHeader.HostOS;
-					headerData.FileCRC = ansiHeader.FileCRC;
-					headerData.FileTime = ansiHeader.FileTime;
-					headerData.UnpVer = ansiHeader.UnpVer;
-					headerData.Method = ansiHeader.Method;
-					headerData.FileAttr = ansiHeader.FileAttr;
+					//// 转换ANSI到Unicode
+					//headerData.ArcName = ansiHeader.ArcName;// Encoding.Default.GetString(ansiHeader.ArcName).TrimEnd('\0');
+					//headerData.FileName = ansiHeader.FileName;// Encoding.Default.GetString(ansiHeader.FileName).TrimEnd('\0');
+					//headerData.Flags = ansiHeader.Flags;
+					//headerData.PackSizeHigh = 0;
+					//headerData.PackSizeLow = (uint)ansiHeader.PackSize;
+					//headerData.UnpSizeHigh = 0;
+					//headerData.UnpSizeLow = (uint)ansiHeader.UnpSize;
+					//headerData.HostOS = ansiHeader.HostOS;
+					//headerData.FileCRC = ansiHeader.FileCRC;
+					//headerData.FileTime = ansiHeader.FileTime;
+					//headerData.UnpVer = ansiHeader.UnpVer;
+					//headerData.Method = ansiHeader.Method;
+					//headerData.FileAttr = ansiHeader.FileAttr;
+					//return true;
+					headerData = new WcxHeader(ansiHeader);
 					return true;
 				}
 			}
-
+			headerData = null;
 			return false;
 		}
 
 		public int ProcessFile(IntPtr arcHandle, ProcessMode operation, string destPath, string destName)
 		{
-			if (_isUnicode && _processFileW != null)
+			if (_processFileW != null)
 			{
 				return _processFileW(arcHandle, operation, destPath, destName);
 			}
@@ -974,7 +980,7 @@ namespace zfile
 		 */
 		public int PackFiles(string packedFile, string subPath, string srcPath, string addList, int flags)
 		{
-			if (_isUnicode && _packFilesW != null)
+			if (_packFilesW != null)
 			{
 				return _packFilesW(packedFile, subPath, srcPath, addList, flags);
 			}
@@ -988,7 +994,7 @@ namespace zfile
 
 		public int DeleteFiles(string packedFile, string deleteList)
 		{
-			if (_isUnicode && _deleteFilesW != null)
+			if (_deleteFilesW != null)
 			{
 				return _deleteFilesW(packedFile, deleteList);
 			}
@@ -1002,7 +1008,7 @@ namespace zfile
 
 		public void SetChangeVolProc(IntPtr arcHandle, IntPtr changeVolProc)
 		{
-			if (_isUnicode && _setChangeVolProcW != null)
+			if (_setChangeVolProcW != null)
 			{
 				_setChangeVolProcW(arcHandle, changeVolProc);
 			}
@@ -1014,7 +1020,7 @@ namespace zfile
 
 		public void SetProcessDataProc(IntPtr arcHandle, IntPtr processDataProc)
 		{
-			if (_isUnicode && _setProcessDataProcW != null)
+			if (_setProcessDataProcW != null)
 			{
 				_setProcessDataProcW(arcHandle, processDataProc);
 			}
@@ -1032,7 +1038,7 @@ namespace zfile
 		/// <param name="processDataProcW">Unicode版本的回调函数指针</param>
 		public void SetProcessDataProc(IntPtr arcHandle, IntPtr processDataProcA, IntPtr processDataProcW)
 		{
-			if (_isUnicode && _setProcessDataProcW != null)
+			if (_setProcessDataProcW != null)
 			{
 				_setProcessDataProcW(arcHandle, processDataProcW);
 			}
@@ -1045,7 +1051,7 @@ namespace zfile
 		public bool CanYouHandleThisFile(string fileName)
 		{
 			fileName = fileName.ToUpper();
-			if (_isUnicode && _canYouHandleThisFileW != null)
+			if (_canYouHandleThisFileW != null)
 			{
 				return _canYouHandleThisFileW(fileName);
 			}
@@ -1059,7 +1065,7 @@ namespace zfile
 		public IntPtr StartMemPack(int options, string fileName)
 		{
 			fileName = fileName.ToUpper();
-			if (_isUnicode && _startMemPackW != null)
+			if (_startMemPackW != null)
 			{
 				return _startMemPackW(options, fileName);
 			}
@@ -1072,7 +1078,7 @@ namespace zfile
 		}
 		public void SetCryptCallback(IntPtr cryptProc, int cryptoNr, int flags)
 		{
-			if (_isUnicode && _pkSetCryptCallbackW != null)
+			if (_pkSetCryptCallbackW != null)
 			{
 				_pkSetCryptCallbackW(cryptProc, cryptoNr, flags);
 			}
@@ -1275,17 +1281,18 @@ namespace zfile
 		public static int ReadWCXHeader(this WcxModule module, IntPtr arcHandle, ref WcxHeader header)
 		{
 			// No need to initialize headerData as it will be filled by ReadHeader
-			if (module.ReadHeader(arcHandle, out THeaderDataExW headerData))
+			if (module.ReadHeader(arcHandle, out var headerData))
 			{
 				// Convert THeaderDataExW to WcxHeader
-				header.FileName = headerData.FileName;
-				header.FileAttr = (FileAttributes)headerData.FileAttr;
-				header.PackSize = (long)((ulong)headerData.PackSizeHigh << 32 | headerData.PackSizeLow);
-				header.UnpSize = (long)((ulong)headerData.UnpSizeHigh << 32 | headerData.UnpSizeLow);
-				header.FileTime = headerData.FileTime;
-				header.CRC = headerData.FileCRC;
-				header.Method = headerData.Method;
-				header.Flags = headerData.Flags;
+				//header.FileName = headerData.FileName;
+				//header.FileAttr = (FileAttributes)headerData.FileAttr;
+				//header.PackSize = (long)((ulong)headerData.PackSizeHigh << 32 | headerData.PackSizeLow);
+				//header.UnpSize = (long)((ulong)headerData.UnpSizeHigh << 32 | headerData.UnpSizeLow);
+				//header.FileTime = headerData.FileTime;
+				//header.CRC = headerData.FileCRC;
+				//header.Method = headerData.Method;
+				//header.Flags = headerData.Flags;
+				header = headerData;
 				return 0; // Success
 			}
 			return -1; // Error

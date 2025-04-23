@@ -2532,18 +2532,18 @@ namespace zfile
 			if (wcxModule == null || !openArchives.ContainsKey(archivePath)) return items;
 
 			IntPtr handle = openArchives[archivePath];
-			THeaderDataExW headerData = new THeaderDataExW();
-
+			//THeaderDataExW headerData = new THeaderDataExW();
+			var headerData = new WcxHeader();
 			while (wcxModule.ReadHeader(handle, out headerData))
 			{
 				var item = new ListViewItem(headerData.FileName);
 				item.Tag = new ArchNodeTag() { Path = "", Handler = handle };
 				item.SubItems.Add(archivePath + "\\" + headerData.FileName); // file name with full path
 				// 将 vhigh 左移32位，然后与 vlow 进行按位或运算
-				var isdir = headerData.FileAttr == 16;
+				var isdir = (int)headerData.FileAttr == 16;
 				var ext1 = Path.GetExtension(headerData.FileName);
-				ulong UnpSize = ((ulong)headerData.UnpSizeHigh << 32) | headerData.UnpSizeLow;
-				item.SubItems.Add(FileSystemManager.FormatFileSize((long)UnpSize, true));
+				var UnpSize = headerData.UnpSize; // ((ulong)headerData.UnpSizeHigh << 32) | headerData.UnpSizeLow;
+				item.SubItems.Add(FileSystemManager.FormatFileSize(UnpSize, true));
 				item.SubItems.Add(isdir ? "<DIR>" : ext1.TrimStart('.')); // <dir> / <ext>
 				item.SubItems.Add(DateTime.FromFileTime(headerData.FileTime).ToString());
 				//item.SubItems.Add(headerData.Method.ToString());
@@ -2566,9 +2566,9 @@ namespace zfile
 			if (wcxModule == null || !openArchives.ContainsKey(archivePath)) return false;
 
 			IntPtr handle = openArchives[archivePath];
-			THeaderDataExW headerData = new THeaderDataExW();
-
-			while (wcxModule.ReadHeader(handle, out headerData))
+			//THeaderDataExW headerData = new THeaderDataExW();
+			//WcxHeader headerData;
+			while (wcxModule.ReadHeader(handle, out var headerData))
 			{
 				if (headerData.FileName == fileName)
 					return wcxModule.ProcessFile(handle, ProcessMode.PK_EXTRACT, destPath, fileName) == 0;// 0 SKIP, 1 TEST, 2 EXTRACT

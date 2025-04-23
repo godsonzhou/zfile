@@ -461,44 +461,44 @@ namespace zfile
 		public const int BACKGROUND_UNPACK = 2;
 		public const int BACKGROUND_MEMPACK = 4;
 
-		public static IntPtr WcxInvalidHandle = -1;
+		public static readonly IntPtr WcxInvalidHandle = new(-1);
 		// 函数指针
-		private TOpenArchive _openArchive;
-		private TOpenArchiveW _openArchiveW;
-		private TReadHeader _readHeader;
-		private TReadHeaderExW _readHeaderExW;
-		private TProcessFile _processFile;
-		private TProcessFileW _processFileW;
-		private TCloseArchive _closeArchive;
-		internal TPackFiles _packFiles;
-		internal TPackFilesW _packFilesW;
-		internal TDeleteFiles _deleteFiles;
-		internal TDeleteFilesW _deleteFilesW;
-		private TGetPackerCaps _getPackerCaps;
-		private TConfigurePacker _configurePacker;
-		private TSetChangeVolProc _setChangeVolProc;
-		private TSetChangeVolProcW _setChangeVolProcW;
-		private TSetProcessDataProc _setProcessDataProc;
-		private TSetProcessDataProcW _setProcessDataProcW;
-		private TStartMemPack _startMemPack;
-		private TStartMemPackW _startMemPackW;
-		internal TPackToMem _packToMem;
-		private TDoneMemPack _doneMemPack;
-		private TCanYouHandleThisFile _canYouHandleThisFile;
-		private TCanYouHandleThisFileW _canYouHandleThisFileW;
-		private TPackSetDefaultParams _packSetDefaultParams;
-		private TPkSetCryptCallback _pkSetCryptCallback;
-		private TPkSetCryptCallbackW _pkSetCryptCallbackW;
-		private TGetBackgroundFlags _getBackgroundFlags;
-		private TExtensionInitialize _extensionInitialize;
-		private TExtensionFinalize _extensionFinalize;
+		private TOpenArchive? _openArchive;
+		private TOpenArchiveW? _openArchiveW;
+		private TReadHeader? _readHeader;
+		private TReadHeaderExW? _readHeaderExW;
+		private TProcessFile? _processFile;
+		private TProcessFileW? _processFileW;
+		private TCloseArchive? _closeArchive;
+		internal TPackFiles? _packFiles;
+		internal TPackFilesW? _packFilesW;
+		internal TDeleteFiles? _deleteFiles;
+		internal TDeleteFilesW? _deleteFilesW;
+		private TGetPackerCaps? _getPackerCaps;
+		private TConfigurePacker? _configurePacker;
+		private TSetChangeVolProc? _setChangeVolProc;
+		private TSetChangeVolProcW? _setChangeVolProcW;
+		private TSetProcessDataProc? _setProcessDataProc;
+		private TSetProcessDataProcW? _setProcessDataProcW;
+		private TStartMemPack? _startMemPack;
+		private TStartMemPackW? _startMemPackW;
+		internal TPackToMem? _packToMem;
+		private TDoneMemPack? _doneMemPack;
+		private TCanYouHandleThisFile? _canYouHandleThisFile;
+		private TCanYouHandleThisFileW? _canYouHandleThisFileW;
+		private TPackSetDefaultParams? _packSetDefaultParams;
+		private TPkSetCryptCallback? _pkSetCryptCallback;
+		private TPkSetCryptCallbackW? _pkSetCryptCallbackW;
+		private TGetBackgroundFlags? _getBackgroundFlags;
+		private TExtensionInitialize? _extensionInitialize;
+		private TExtensionFinalize? _extensionFinalize;
 
 		private IntPtr _moduleHandle;
 		private bool _isUnicode;
-		private string _modulePath;
+		private string? _modulePath;
 
-		public string Name { get; set; }
-		public string FilePath { get => _modulePath; set => _modulePath = value; }
+		public string? Name { get; set; }
+		public string? FilePath { get => _modulePath; set => _modulePath = value; }
 		public List<string> DetectStrings = new();
 		public int PluginCapabilities;
 		public int BackgroundFlags { get; private set; }
@@ -540,7 +540,9 @@ namespace zfile
 			var dps = new PackDefaultParamStruct
 			{
 				size = Marshal.SizeOf(typeof(PackDefaultParamStruct)),
-				DefaultIniName = Path.Combine(Path.GetDirectoryName(_modulePath), "wcx.ini")
+				PluginInterfaceVersionLow = 22,
+				PluginInterfaceVersionHi = 2,
+				DefaultIniName = Path.Combine(Constants.ZfileCfgPath, "wcx.ini")
 			};
 
 			IntPtr pDps = Marshal.AllocHGlobal(dps.size);
@@ -548,10 +550,24 @@ namespace zfile
 			_packSetDefaultParams?.Invoke(pDps);
 			Marshal.FreeHGlobal(pDps);
 		}
+		/// <summary>
+		/// 初始化扩展启动信息结构
+		/// </summary>
+		/// <returns>初始化后的启动信息结构指针</returns>
+		private static IntPtr InitializeExtensionStartupInfo()
+		{
+			// 在实际实现中，这里需要实现完整的 TExtensionStartupInfo 结构初始化
+			// 简化实现，返回一个空指针
+			return IntPtr.Zero;
+		}
+
 		public bool LoadModule()
 		{
 			try
 			{
+				if (string.IsNullOrEmpty(_modulePath))
+					return false;
+
 				_moduleHandle = NativeMethods.LoadLibrary(_modulePath);
 				if (_moduleHandle == IntPtr.Zero)
 					return false;
@@ -572,14 +588,14 @@ namespace zfile
 				_setProcessDataProcW = GetDelegate<TSetProcessDataProcW>("SetProcessDataProcW");
 
 				var ansi_mode_available = _openArchive != null && _readHeader != null && _processFile != null;
-				if(!ansi_mode_available)
+				if (!ansi_mode_available)
 				{
 					_openArchive = null;
 					_readHeader = null;
 					_processFile = null;
 					_isUnicode = _openArchiveW != null && _readHeaderExW != null && _processFileW != null;
 				}
-				if(!IsUnicode || _closeArchive == null)
+				if (!IsUnicode || _closeArchive == null)
 				{
 					_openArchiveW = null;
 					_readHeaderExW = null;
@@ -601,7 +617,6 @@ namespace zfile
 				_canYouHandleThisFile = GetDelegate<TCanYouHandleThisFile>("CanYouHandleThisFile");
 				_canYouHandleThisFileW = GetDelegate<TCanYouHandleThisFileW>("CanYouHandleThisFileW");
 				_packSetDefaultParams = GetDelegate<TPackSetDefaultParams>("PackSetDefaultParams");
-				SetDefaultParam();
 				_pkSetCryptCallback = GetDelegate<TPkSetCryptCallback>("PkSetCryptCallback");
 				_pkSetCryptCallbackW = GetDelegate<TPkSetCryptCallbackW>("PkSetCryptCallbackW");
 				_getBackgroundFlags = GetDelegate<TGetBackgroundFlags>("GetBackgroundFlags");
@@ -611,8 +626,29 @@ namespace zfile
 				//get packer caps
 				PluginCapabilities = _getPackerCaps?.Invoke() ?? 0;
 
-				// Get background flags
-				BackgroundFlags = _getBackgroundFlags?.Invoke() ?? 0;
+				// 设置默认参数
+				if (_packSetDefaultParams != null)
+				{
+					SetDefaultParam();
+				}
+
+				// 获取后台标志
+				if (_getBackgroundFlags != null)
+				{
+					BackgroundFlags = _getBackgroundFlags.Invoke();
+				}
+				else
+				{
+					BackgroundFlags = 0;
+				}
+
+				// Extension API 初始化
+				if (_extensionInitialize != null)
+				{
+					// 创建并初始化 StartupInfo 结构
+					var startupInfo = InitializeExtensionStartupInfo();
+					_extensionInitialize.Invoke(startupInfo);
+				}
 
 				return true;
 			}
@@ -661,7 +697,7 @@ namespace zfile
 			_getBackgroundFlags = null;
 		}
 
-		private T GetDelegate<T>(string procName) where T : class
+		private T? GetDelegate<T>(string procName) where T : class
 		{
 			IntPtr procAddress = NativeMethods.GetProcAddress(_moduleHandle, procName);
 			if (procAddress == IntPtr.Zero)
@@ -948,9 +984,9 @@ namespace zfile
 
 	public class WcxModuleList
 	{
-		public List<WcxModule> _modules = new List<WcxModule>();
-		public List<string> _cfg = new List<string>();
-		public Dictionary<string, WcxModule> _exts = new Dictionary<string, WcxModule>();
+		public List<WcxModule> _modules = new();
+		public List<string> _cfg = new();
+		public Dictionary<string, WcxModule> _exts = new();
 		public bool isConfigChanged = false;
 		public List<string> Ext { get => _exts.Keys.ToList(); }
 		public WcxModuleList()
@@ -966,11 +1002,11 @@ namespace zfile
 		}
 		public WcxModule? FindModuleByName(string name)
 		{
-			return _modules.FirstOrDefault(m => m.Name.Equals(name));
+			return _modules.FirstOrDefault(m => m.Name != null && m.Name.Equals(name));
 		}
 		public bool AddModule(WcxModule module)
 		{
-			if (!_modules.Any(m => m.Name.Equals(module.Name, StringComparison.OrdinalIgnoreCase)))
+			if (module.Name != null && !_modules.Any(m => m.Name != null && m.Name.Equals(module.Name, StringComparison.OrdinalIgnoreCase)))
 			{
 				_modules.Add(module);
 				return true;
@@ -1108,8 +1144,8 @@ namespace zfile
 		/// <returns>0 on success, non-zero on failure</returns>
 		public static int ReadWCXHeader(this WcxModule module, IntPtr arcHandle, ref WcxHeader header)
 		{
-			THeaderDataExW headerData = new THeaderDataExW();
-			if (module.ReadHeader(arcHandle, out headerData))
+			// No need to initialize headerData as it will be filled by ReadHeader
+			if (module.ReadHeader(arcHandle, out THeaderDataExW headerData))
 			{
 				// Convert THeaderDataExW to WcxHeader
 				header.FileName = headerData.FileName;
@@ -1135,12 +1171,12 @@ namespace zfile
 			try
 			{
 				// Convert DOS time format to DateTime
-				int year = (int)(((fileTime >> 25) & 0x7F) + 1980);
-				int month = (int)((fileTime >> 21) & 0x0F);
-				int day = (int)((fileTime >> 16) & 0x1F);
-				int hour = (int)((fileTime >> 11) & 0x1F);
-				int minute = (int)((fileTime >> 5) & 0x3F);
-				int second = (int)((fileTime & 0x1F) * 2);
+				int year = ((fileTime >> 25) & 0x7F) + 1980;
+				int month = (fileTime >> 21) & 0x0F;
+				int day = (fileTime >> 16) & 0x1F;
+				int hour = (fileTime >> 11) & 0x1F;
+				int minute = (fileTime >> 5) & 0x3F;
+				int second = (fileTime & 0x1F) * 2;
 
 				return new DateTime(year, month, day, hour, minute, second);
 			}

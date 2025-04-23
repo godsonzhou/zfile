@@ -48,76 +48,148 @@ namespace zfile
 
 	//[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	//public delegate int TTranslateStringProc(IntPtr translation, string identifier, string original, IntPtr output, int outLen);
-
-	///// <summary>
-	///// 扩展启动信息结构体，对应Pascal的TExtensionStartupInfo
-	///// </summary>
 	//[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
 	//public struct TExtensionStartupInfo
 	//{
-	//    /// <summary>
-	//    /// 结构体大小（字节）
-	//    /// </summary>
-	//    public uint StructSize;
+	//	/// <summary>
+	//	/// 结构体大小（字节）
+	//	/// </summary>
+	//	public uint StructSize;
 
-	//    /// <summary>
-	//    /// 插件所在目录（UTF-8编码）
-	//    /// </summary>
-	//    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16384)]
-	//    public byte[] PluginDir;
+	//	/// <summary>
+	//	/// 插件所在目录（UTF-8编码）
+	//	/// </summary>
+	//	[MarshalAs(UnmanagedType.ByValArray, SizeConst = 16384)]
+	//	public byte[] PluginDir;
 
-	//    /// <summary>
-	//    /// 插件配置文件所在目录（UTF-8编码）
-	//    /// </summary>
-	//    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16384)]
-	//    public byte[] PluginConfDir;
+	//	/// <summary>
+	//	/// 插件配置文件所在目录（UTF-8编码）
+	//	/// </summary>
+	//	[MarshalAs(UnmanagedType.ByValArray, SizeConst = 16384)]
+	//	public byte[] PluginConfDir;
 
-	//    /// <summary>
-	//    /// 输入框回调函数
-	//    /// </summary>
-	//    public IntPtr InputBox;
+	//	/// <summary>
+	//	/// 输入框回调函数
+	//	/// </summary>
+	//	[MarshalAs(UnmanagedType.FunctionPtr)]
+	//	public TInputBoxProc InputBox;
 
-	//    /// <summary>
-	//    /// 消息框回调函数
-	//    /// </summary>
-	//    public IntPtr MessageBox;
+	//	/// <summary>
+	//	/// 消息框回调函数
+	//	/// </summary>
+	//	[MarshalAs(UnmanagedType.FunctionPtr)]
+	//	public TMessageBoxProc MessageBox;
 
-	//    /// <summary>
-	//    /// LFM对话框回调函数
-	//    /// </summary>
-	//    public IntPtr DialogBoxLFM;
+	//	/// <summary>
+	//	/// LFM对话框回调函数
+	//	/// </summary>
+	//	[MarshalAs(UnmanagedType.FunctionPtr)]
+	//	public TDialogBoxLFMProc DialogBoxLFM;
 
-	//    /// <summary>
-	//    /// LRS对话框回调函数
-	//    /// </summary>
-	//    public IntPtr DialogBoxLRS;
+	//	/// <summary>
+	//	/// LRS对话框回调函数
+	//	/// </summary>
+	//	[MarshalAs(UnmanagedType.FunctionPtr)]
+	//	public TDialogBoxLRSProc DialogBoxLRS;
 
-	//    /// <summary>
-	//    /// LFM文件对话框回调函数
-	//    /// </summary>
-	//    public IntPtr DialogBoxLFMFile;
+	//	/// <summary>
+	//	/// LFM文件对话框回调函数
+	//	/// </summary>
+	//	[MarshalAs(UnmanagedType.FunctionPtr)]
+	//	public TDialogBoxLFMFileProc DialogBoxLFMFile;
 
-	//    /// <summary>
-	//    /// 对话框消息发送回调函数
-	//    /// </summary>
-	//    public IntPtr SendDlgMsg;
+	//	/// <summary>
+	//	/// 对话框消息发送回调函数
+	//	/// </summary>
+	//	[MarshalAs(UnmanagedType.FunctionPtr)]
+	//	public TDlgProc SendDlgMsg;
 
-	//    /// <summary>
-	//    /// 翻译指针
-	//    /// </summary>
-	//    public IntPtr Translation;
+	//	/// <summary>
+	//	/// 翻译指针
+	//	/// </summary>
+	//	public IntPtr Translation;
 
-	//    /// <summary>
-	//    /// 字符串翻译回调函数
-	//    /// </summary>
-	//    public IntPtr TranslateString;
+	//	/// <summary>
+	//	/// 字符串翻译回调函数
+	//	/// </summary>
+	//	[MarshalAs(UnmanagedType.FunctionPtr)]
+	//	public TTranslateStringProc TranslateString;
 
-	//    /// <summary>
-	//    /// 为未来API扩展预留的空间
-	//    /// </summary>
-	//    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4094 * 8)]
-	//    public byte[] Reserved;
+	//	/// <summary>
+	//	/// 为未来API扩展预留的空间
+	//	/// </summary>
+	//	[MarshalAs(UnmanagedType.ByValArray, SizeConst = 4094 * 8)] //sizeof(typeof(IntPtr)), 4 in 32bit process, 8 for 64bit process
+	//	public byte[] Reserved;
 	//}
+	/// <summary>
+	/// 扩展启动信息结构体，对应Pascal的TExtensionStartupInfo
+	/// </summary>
+	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+	public struct TExtensionStartupInfo
+	{
+		/// <summary>
+		/// 结构体大小（字节）
+		/// </summary>
+		public uint StructSize;
+
+		/// <summary>
+		/// 插件所在目录（UTF-8编码）
+		/// </summary>
+		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 16384)]
+		public byte[] PluginDir;
+
+		/// <summary>
+		/// 插件配置文件所在目录（UTF-8编码）
+		/// </summary>
+		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 16384)]
+		public byte[] PluginConfDir;
+
+		/// <summary>
+		/// 输入框回调函数
+		/// </summary>
+		public IntPtr InputBox;
+
+		/// <summary>
+		/// 消息框回调函数
+		/// </summary>
+		public IntPtr MessageBox;
+
+		/// <summary>
+		/// LFM对话框回调函数
+		/// </summary>
+		public IntPtr DialogBoxLFM;
+
+		/// <summary>
+		/// LRS对话框回调函数
+		/// </summary>
+		public IntPtr DialogBoxLRS;
+
+		/// <summary>
+		/// LFM文件对话框回调函数
+		/// </summary>
+		public IntPtr DialogBoxLFMFile;
+
+		/// <summary>
+		/// 对话框消息发送回调函数
+		/// </summary>
+		public IntPtr SendDlgMsg;
+
+		/// <summary>
+		/// 翻译指针
+		/// </summary>
+		public IntPtr Translation;
+
+		/// <summary>
+		/// 字符串翻译回调函数
+		/// </summary>
+		public IntPtr TranslateString;
+
+		/// <summary>
+		/// 为未来API扩展预留的空间
+		/// </summary>
+		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 4094 * 8)]
+		public byte[] Reserved;
+	}
 	/// <summary>
 	/// C# 实现的 DcxModule 类，对应 Pascal 的 TDcxModule
 	/// </summary>

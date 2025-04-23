@@ -180,7 +180,11 @@ namespace zfile
 		/// </summary>
 		PK_CAPS_ENCRYPT = 512
 	}
+	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+	public struct TExtensionStartupInfo
+	{
 
+	}
 	// 基础结构体定义
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
 	public struct TOpenArchiveData
@@ -424,6 +428,8 @@ namespace zfile
 	public delegate void TPkSetCryptCallback(IntPtr cryptProc, int cryptoNr, int flags);
 	public delegate void TPkSetCryptCallbackW(IntPtr cryptProc, int cryptoNr, int flags);
 	public delegate int TGetBackgroundFlags();
+	public delegate void TExtensionInitialize(IntPtr startupInfo);
+	public delegate void TExtensionFinalize(IntPtr reserved);
 
 	public class WcxModule
 	{
@@ -486,6 +492,8 @@ namespace zfile
 		private TPkSetCryptCallback _pkSetCryptCallback;
 		private TPkSetCryptCallbackW _pkSetCryptCallbackW;
 		private TGetBackgroundFlags _getBackgroundFlags;
+		private TExtensionInitialize _extensionInitialize;
+		private TExtensionFinalize _extensionFinalize;
 
 		private IntPtr _moduleHandle;
 		private bool _isUnicode;
@@ -565,7 +573,21 @@ namespace zfile
 				_setChangeVolProcW = GetDelegate<TSetChangeVolProcW>("SetChangeVolProcW");
 				_setProcessDataProcW = GetDelegate<TSetProcessDataProcW>("SetProcessDataProcW");
 
-				_isUnicode = _openArchiveW != null && _readHeaderExW != null && _processFileW != null;
+				var ansi_mode_available = _openArchive != null && _readHeader != null && _processFile != null;
+				if(!ansi_mode_available)
+				{
+					_openArchive = null;
+					_readHeader = null;
+					_processFile = null;
+					_isUnicode = _openArchiveW != null && _readHeaderExW != null && _processFileW != null;
+				}
+				if(!IsUnicode || _closeArchive == null)
+				{
+					_openArchiveW = null;
+					_readHeaderExW = null;
+					_processFileW = null;
+					return false;
+				}
 
 				// 加载其他可选函数
 				_packFiles = GetDelegate<TPackFiles>("PackFiles");
@@ -585,6 +607,8 @@ namespace zfile
 				_pkSetCryptCallback = GetDelegate<TPkSetCryptCallback>("PkSetCryptCallback");
 				_pkSetCryptCallbackW = GetDelegate<TPkSetCryptCallbackW>("PkSetCryptCallbackW");
 				_getBackgroundFlags = GetDelegate<TGetBackgroundFlags>("GetBackgroundFlags");
+				_extensionInitialize = GetDelegate<TExtensionInitialize>("ExtensionInitialize");
+				_extensionFinalize = GetDelegate<TExtensionFinalize>("ExtensionFinalize");
 
 				//get packer caps
 				PluginCapabilities = _getPackerCaps?.Invoke() ?? 0;
@@ -651,7 +675,7 @@ namespace zfile
 		{
 			IntPtr result = IntPtr.Zero;
 			openResult = (int)WcxResult.PK_UNKNOWN_FORMAT;
-			archiveName = archiveName.ToUpper();
+			//archiveName = archiveName.ToUpper();
 			if (_isUnicode && _openArchiveW != null)
 			{
 				var archiveDataW = new TOpenArchiveDataW

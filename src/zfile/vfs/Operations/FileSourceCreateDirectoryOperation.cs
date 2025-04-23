@@ -58,7 +58,7 @@ namespace zfile
             }
             else
             {
-                _absolutePath = aCurrentPath + _directoryPath;
+                _absolutePath = aCurrentPath + Path.DirectorySeparatorChar + _directoryPath;
                 _relativePath = _directoryPath;
             }
         }

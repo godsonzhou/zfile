@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text;
 /*
 主要功能：
 基础结构定义：
@@ -550,16 +551,145 @@ namespace zfile
 			_packSetDefaultParams?.Invoke(pDps);
 			Marshal.FreeHGlobal(pDps);
 		}
+		// 保存委托的引用，防止被GC回收
+		private static TInputBoxProc? _inputBoxDelegate;
+		private static TMessageBoxProc? _messageBoxDelegate;
+		private static TDialogBoxLFMProc? _dialogBoxLFMDelegate;
+		private static TDialogBoxLRSProc? _dialogBoxLRSDelegate;
+		private static TDialogBoxLFMFileProc? _dialogBoxLFMFileDelegate;
+		private static TDlgProc? _sendDlgMsgDelegate;
+		private static TTranslateStringProc? _translateStringDelegate;
+
 		/// <summary>
 		/// 初始化扩展启动信息结构
 		/// </summary>
 		/// <returns>初始化后的启动信息结构指针</returns>
 		private static IntPtr InitializeExtensionStartupInfo()
 		{
-			// 在实际实现中，这里需要实现完整的 TExtensionStartupInfo 结构初始化
-			// 简化实现，返回一个空指针
-			return IntPtr.Zero;
+			// 创建结构体
+			TExtensionStartupInfo startupInfo = new();
+
+			// 设置结构体大小
+			startupInfo.StructSize = (uint)Marshal.SizeOf(typeof(TExtensionStartupInfo));
+
+			// 设置插件目录
+			const int MAX_PATH = 16384;
+			string pluginDir = Constants.ZfileBinPath;
+			startupInfo.PluginDir = Encoding.UTF8.GetBytes(pluginDir + new string('\0', MAX_PATH - pluginDir.Length));
+
+			// 设置配置目录
+			string configDir = Constants.ZfileCfgPath;
+			startupInfo.PluginConfDir = Encoding.UTF8.GetBytes(configDir + new string('\0', MAX_PATH - configDir.Length));
+
+			// 创建委托并保存引用
+			_inputBoxDelegate = new TInputBoxProc(InputBox);
+			_messageBoxDelegate = new TMessageBoxProc(MessageBox);
+			_dialogBoxLFMDelegate = new TDialogBoxLFMProc(DialogBoxLFM);
+			_dialogBoxLRSDelegate = new TDialogBoxLRSProc(DialogBoxLRS);
+			_dialogBoxLFMFileDelegate = new TDialogBoxLFMFileProc(DialogBoxLFMFile);
+			_sendDlgMsgDelegate = new TDlgProc(SendDlgMsg);
+			_translateStringDelegate = new TTranslateStringProc(Translate);
+
+			// 设置回调函数
+			startupInfo.InputBox = Marshal.GetFunctionPointerForDelegate(_inputBoxDelegate);
+			startupInfo.MessageBox = Marshal.GetFunctionPointerForDelegate(_messageBoxDelegate);
+			startupInfo.DialogBoxLFM = Marshal.GetFunctionPointerForDelegate(_dialogBoxLFMDelegate);
+			startupInfo.DialogBoxLRS = Marshal.GetFunctionPointerForDelegate(_dialogBoxLRSDelegate);
+			startupInfo.DialogBoxLFMFile = Marshal.GetFunctionPointerForDelegate(_dialogBoxLFMFileDelegate);
+			startupInfo.SendDlgMsg = Marshal.GetFunctionPointerForDelegate(_sendDlgMsgDelegate);
+
+			// 设置翻译相关
+			startupInfo.Translation = IntPtr.Zero; // 暂时不实现翻译功能
+			startupInfo.TranslateString = Marshal.GetFunctionPointerForDelegate(_translateStringDelegate);
+
+			// 分配非托管内存并复制结构体
+			IntPtr pStartupInfo = Marshal.AllocHGlobal(Marshal.SizeOf(startupInfo));
+			Marshal.StructureToPtr(startupInfo, pStartupInfo, false);
+
+			return pStartupInfo;
 		}
+
+		#region 回调函数实现
+
+		/// <summary>
+		/// 翻译字符串
+		/// </summary>
+		private static int Translate(IntPtr translation, string identifier, string original, IntPtr output, int outLen)
+		{
+			// 如果没有翻译对象，将输出设为空字符串
+			if (output != IntPtr.Zero && outLen > 0)
+			{
+				// 返回原始文本
+				int copyLen = Math.Min(original.Length, outLen - 1);
+				if (copyLen > 0)
+				{
+					byte[] bytes = Encoding.UTF8.GetBytes(original[..copyLen]);
+					Marshal.Copy(bytes, 0, output, bytes.Length);
+					Marshal.WriteByte(output, bytes.Length, 0); // 添加结束符
+				}
+				else
+				{
+					Marshal.WriteByte(output, 0, 0); // 写入空字符
+				}
+			}
+			return original.Length;
+		}
+
+		/// <summary>
+		/// 输入框回调
+		/// </summary>
+		private static bool InputBox(string caption, string prompt, bool maskInput, IntPtr value, int valueMaxLen)
+		{
+			// 简化实现，返回失败
+			return false;
+		}
+
+		/// <summary>
+		/// 消息框回调
+		/// </summary>
+		private static int MessageBox(string text, string caption, int flags)
+		{
+			// 简化实现，返回确认
+			return 1;
+		}
+
+		/// <summary>
+		/// LFM 对话框回调
+		/// </summary>
+		private static bool DialogBoxLFM(IntPtr lfmData, uint dataSize, TDlgProc dlgProc)
+		{
+			// 简化实现，返回失败
+			return false;
+		}
+
+		/// <summary>
+		/// LRS 对话框回调
+		/// </summary>
+		private static bool DialogBoxLRS(IntPtr lrsData, uint dataSize, TDlgProc dlgProc)
+		{
+			// 简化实现，返回失败
+			return false;
+		}
+
+		/// <summary>
+		/// LFM 文件对话框回调
+		/// </summary>
+		private static bool DialogBoxLFMFile(string lfmFileName, TDlgProc dlgProc)
+		{
+			// 简化实现，返回失败
+			return false;
+		}
+
+		/// <summary>
+		/// 对话框消息发送回调
+		/// </summary>
+		private static int SendDlgMsg(IntPtr pDlg, string dlgItemName, int msg, int wParam, int lParam)
+		{
+			// 简化实现，返回0
+			return 0;
+		}
+
+		#endregion
 
 		public bool LoadModule()
 		{

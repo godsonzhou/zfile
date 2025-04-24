@@ -116,10 +116,10 @@ namespace zfile
                     {
                         try
                         {
-							IntPtr pszname = Marshal.AllocHGlobal(260);
+							//IntPtr pszname = Marshal.AllocHGlobal(260);
 							// 获取项目名称
-							controlPanelFolder.GetDisplayNameOf(pidl, SHGDN.INFOLDER, pszname);
-							string? name = Marshal.PtrToStringAuto(pszname);
+							//controlPanelFolder.GetDisplayNameOf(pidl, SHGDN.INFOLDER, pszname);
+							string? name = w32.GetDisplayName(controlPanelFolder, pidl, SHGDN.INFOLDER); //Marshal.PtrToStringAuto(pszname);
 							// 获取项目属性
 							SFGAO attributes = 0;
                             controlPanelFolder.GetAttributesOf(1, new IntPtr[] { pidl }, ref attributes);

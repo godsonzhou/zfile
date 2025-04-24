@@ -578,7 +578,7 @@ namespace zfile
 			startupInfo.PluginDir = Encoding.UTF8.GetBytes(pluginDir + new string('\0', MAX_PATH - pluginDir.Length));
 
 			// 设置配置目录
-			string configDir = Constants.ZfileCfgPath;
+			string configDir = pluginDir; // Constants.ZfileCfgPath;
 			startupInfo.PluginConfDir = Encoding.UTF8.GetBytes(configDir + new string('\0', MAX_PATH - configDir.Length));
 
 			// 创建委托并保存引用

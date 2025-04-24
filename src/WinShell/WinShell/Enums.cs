@@ -387,5 +387,11 @@ namespace WinShell
         FLAG_PER_USER_INIT = 0x0800,        // combine with  value to indicate per-user init (eg. upgrade)
         FLAG_MASK = 0xFF00,        // mask for all possible flag values
     }
-
+	[Flags]
+	public enum SHERB : uint
+	{
+		NOCONFIRMATION = 0x00000001,
+		NOPROGRESSUI = 0x00000002,
+		NOSOUND = 0x00000004
+	}
 }

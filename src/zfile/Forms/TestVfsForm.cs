@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 using Microsoft.VisualBasic;
+using WinShell;
 namespace zfile
 {
     public partial class TestVfsForm : Form
@@ -507,12 +508,35 @@ namespace zfile
                 {
                     try
                     {
-                        // Empty recycle bin using Shell API
-                        // This is a placeholder - actual implementation would require Shell32 API
-                        MessageBox.Show("清空回收站功能尚未实现", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        // Initialize COM
+                        w32.InitializeCOM();
+
+                        try
+                        {
+                            // Empty recycle bin using Shell API
+                            // Pass null for pszRootPath to empty all recycle bins
+                            // Use SHERB.NOCONFIRMATION to suppress the confirmation dialog
+                            int result = API.SHEmptyRecycleBin(
+                                Handle,
+                                null,
+                                (uint)SHERB.NOCONFIRMATION
+                            );
+
+                            if (result != 0)
+                            {
+                                Marshal.ThrowExceptionForHR(result);
+                            }
+                        }
+                        finally
+                        {
+                            // Uninitialize COM
+                            w32.UninitializeCOM();
+                        }
 
                         // Refresh view
                         RefreshCurrentView();
+
+                        MessageBox.Show("回收站已清空", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                     catch (Exception ex)
                     {
@@ -528,22 +552,92 @@ namespace zfile
             {
                 try
                 {
-                    foreach (ListViewItem item in listViewFiles.SelectedItems)
-                    {
-                        if (item.Tag is FileEntry file)
-                        {
-                            // Get original path from link property
-                            string originalPath = file.LinkProperty.LinkTarget;
+                    // Initialize COM
+                    w32.InitializeCOM();
 
-                            // Restore file using Shell API
-                            // Restore file from recycle bin
-                            // This is a placeholder - actual implementation would require Shell32 API
-                            MessageBox.Show($"Restoring {file.Name} is not implemented yet", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    try
+                    {
+                        bool anyRestored = false;
+
+                        foreach (ListViewItem item in listViewFiles.SelectedItems)
+                        {
+                            if (item.Tag is FileEntry file)
+                            {
+                                // Get original path from link property
+                                string originalPath = file.LinkProperty.LinkTarget;
+
+                                if (string.IsNullOrEmpty(originalPath))
+                                {
+                                    MessageBox.Show($"无法还原 {file.Name}，找不到原始路径", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                    continue;
+                                }
+
+                                // Create directory for the file if it doesn't exist
+                                string? directory = Path.GetDirectoryName(originalPath);
+                                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                                {
+                                    Directory.CreateDirectory(directory);
+                                }
+
+                                // Get the full path to the file in the recycle bin
+                                string recycleBinPath = file.FullPath ?? string.Empty;
+
+                                // Create a shell item for the file in the recycle bin
+                                IShellItem? shellItem = null;
+                                IntPtr pidl = API.ILCreateFromPath(recycleBinPath);
+
+                                try
+                                {
+                                    Guid iidShellItem = Guids.IID_IShellItem;
+                                    int hr = API.SHCreateItemFromIDList(pidl, ref iidShellItem, out shellItem);
+
+                                    if (hr != 0)
+                                    {
+                                        Marshal.ThrowExceptionForHR(hr);
+                                    }
+
+                                    // Get the parent folder of the file
+                                    w32.OleCheck(API.SHGetDesktopFolder(out IShellFolder desktopFolder));
+
+                                    // Get the context menu for the file
+                                    Guid iidContextMenu = Guids.IID_IContextMenu;
+                                    IntPtr[] pidls = [pidl];
+                                    desktopFolder.GetUIObjectOf(IntPtr.Zero, 1, pidls, ref iidContextMenu, out IntPtr contextMenuPtr);
+
+                                    IContextMenu contextMenu = (IContextMenu)Marshal.GetObjectForIUnknown(contextMenuPtr);
+
+                                    // Execute the "Restore" verb
+                                    ContextMenuHandler.ExecuteVerb(this, "restore", string.Empty, contextMenu);
+
+                                    anyRestored = true;
+                                }
+                                finally
+                                {
+                                    if (pidl != IntPtr.Zero)
+                                    {
+                                        API.ILFree(pidl);
+                                    }
+
+                                    if (shellItem != null)
+                                    {
+                                        Marshal.ReleaseComObject(shellItem);
+                                    }
+                                }
+                            }
+                        }
+
+                        if (anyRestored)
+                        {
+                            // Refresh view
+                            RefreshCurrentView();
+                            MessageBox.Show("文件已成功还原", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         }
                     }
-
-                    // Refresh view
-                    RefreshCurrentView();
+                    finally
+                    {
+                        // Uninitialize COM
+                        w32.UninitializeCOM();
+                    }
                 }
                 catch (Exception ex)
                 {

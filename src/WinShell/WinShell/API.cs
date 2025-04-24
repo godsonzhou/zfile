@@ -560,6 +560,9 @@ namespace WinShell
 
 		[DllImport("shell32.dll", CharSet = CharSet.Auto)]
 		public static extern int SHEnumRecycleBin(string pszRootPath, uint dwFlags, ref uint pdwFlags, [Out] StringBuilder pszDisplayName, int cchDisplayName, [Out] StringBuilder pszOriginalPath, int cchOriginalPath);
+
+		[DllImport("shell32.dll", CharSet = CharSet.Auto)]
+		public static extern int SHEmptyRecycleBin(IntPtr hwnd, string pszRootPath, uint dwFlags);
 		[DllImport("shell32.dll")]
 		public static extern int SHCreateItemFromIDList(IntPtr pidl, ref Guid riid, out IShellItem ppv);
 		[DllImport("kernel32.dll", CharSet = CharSet.Auto)]
@@ -586,7 +589,7 @@ namespace WinShell
 
 		//[DllImport("shell32.dll")]
 		//public static extern IntPtr ILClone(IntPtr pidl);
-	
+
 
 		[DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
 		public static extern SafeFindHandle FindFirstFileW(string lpFileName, out WIN32_FIND_DATA lpFindFileData);
@@ -603,7 +606,7 @@ namespace WinShell
 			}
 		}
 	}
-	
+
 	// [Flags]
 	// public enum SHGFI : uint
 	// {

@@ -39,6 +39,7 @@ namespace zfile
             var fileSystemNode = treeViewNavigation.Nodes.Add("文件系统", "文件系统", 0, 0);
             var recycleBinNode = treeViewNavigation.Nodes.Add("回收站", "回收站", 1, 1);
             treeViewNavigation.Nodes.Add("压缩文件", "压缩文件", 2, 2);
+            var controlPanelNode = treeViewNavigation.Nodes.Add("控制面板", "控制面板", 6, 6);
 
             // Add drives to file system node
             foreach (DriveInfo drive in DriveInfo.GetDrives())
@@ -55,6 +56,15 @@ namespace zfile
 
             // Set tag for recycle bin node
             recycleBinNode.Tag = new NodeTag { Path = string.Empty, FileSourceType = FileSourceType.RecycleBin };
+
+            // Set tag for control panel node
+            controlPanelNode.Tag = new NodeTag { Path = string.Empty, FileSourceType = FileSourceType.ControlPanel };
+
+            // 为控制面板节点添加一个占位子节点，以便显示展开图标
+            controlPanelNode.Nodes.Add("...");
+
+            // 注册TreeView的BeforeExpand事件
+            treeViewNavigation.BeforeExpand += TreeViewNavigation_BeforeExpand;
 
             // Expand file system node
             fileSystemNode.Expand();
@@ -83,6 +93,9 @@ namespace zfile
                         break;
                     case FileSourceType.WcxArchive:
                         NavigateToArchive(tag.Path);
+                        break;
+                    case FileSourceType.ControlPanel:
+                        NavigateToControlPanel(tag.Path);
                         break;
                 }
             }
@@ -142,6 +155,255 @@ namespace zfile
             }
         }
 
+        private void NavigateToControlPanel(string path)
+        {
+            try
+            {
+                _currentFileSource = new ControlPanelFileSource();
+                _currentPath = path;
+
+                if (_currentFileSource == null) return;
+                var listOperation = _currentFileSource.CreateListOperation(_currentPath);
+                if (listOperation != null)
+                {
+                    listOperation.Execute();
+                    _currentFiles = ((FileSourceListOperation)listOperation).Files;
+                    DisplayFiles(_currentFiles);
+                }
+
+                // Update status bar
+                toolStripStatusLabel.Text = "控制面板";
+
+                // 如果是首次点击控制面板节点，展开所有子节点
+                if (string.IsNullOrEmpty(path) && treeViewNavigation.SelectedNode != null && !treeViewNavigation.SelectedNode.IsExpanded)
+                {
+                    ExpandControlPanelNode(treeViewNavigation.SelectedNode);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"导航到控制面板出错: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void TreeViewNavigation_BeforeExpand(object? sender, TreeViewCancelEventArgs e)
+        {
+            if (e.Node?.Tag is NodeTag tag)
+            {
+                // 如果是控制面板节点或其子节点
+                if (tag.FileSourceType == FileSourceType.ControlPanel)
+                {
+                    // 如果是根控制面板节点
+                    if (e.Node.Text == "控制面板")
+                    {
+                        ExpandControlPanelNode(e.Node);
+                    }
+                    // 如果是控制面板的子节点
+                    else if (e.Node.Nodes.Count == 1 && e.Node.Nodes[0].Text == "...")
+                    {
+                        ExpandControlPanelSubNode(e.Node);
+                    }
+                }
+            }
+        }
+
+        private void ExpandControlPanelSubNode(TreeNode node)
+        {
+            try
+            {
+                if (node.Tag is NodeTag tag && !string.IsNullOrEmpty(tag.Path))
+                {
+                    // 清除占位节点
+                    node.Nodes.Clear();
+
+                    // 获取控制面板文件夹
+                    IShellFolder controlPanelFolder = w32.GetControlPanelFolder();
+
+                    // 解析PIDL
+                    uint attributes = 0;
+                    controlPanelFolder.ParseDisplayName(IntPtr.Zero, IntPtr.Zero, node.Text, out _, out IntPtr pidl, ref attributes);
+
+                    if (pidl != IntPtr.Zero)
+                    {
+                        try
+                        {
+                            // 绑定到子文件夹
+                            var shellFolderGuid = typeof(IShellFolder).GUID;
+                            w32.OleCheck(API.SHBindToParent(pidl, ref shellFolderGuid, out object? folderObj, out _));
+                            IShellFolder subFolder = (IShellFolder)folderObj!;
+
+                            // 枚举子项目
+                            var flags = SHCONTF.FOLDERS | SHCONTF.NONFOLDERS;
+                            subFolder.EnumObjects(IntPtr.Zero, flags, out IntPtr enumPtr);
+
+                            if (enumPtr != IntPtr.Zero)
+                            {
+                                IEnumIDList enumIdList = (IEnumIDList)Marshal.GetObjectForIUnknown(enumPtr);
+
+                                while (enumIdList.Next(1, out IntPtr childPidl, out uint fetched) == 0 && fetched == 1)
+                                {
+                                    try
+                                    {
+                                        // 获取项目名称
+                                        string name = w32.GetDisplayName(subFolder, childPidl, SHGDN.INFOLDER);
+
+                                        // 获取项目属性
+                                        SFGAO childAttributes = 0;
+                                        subFolder.GetAttributesOf(1, [childPidl], ref childAttributes);
+
+                                        // 创建子节点
+                                        var childNode = new TreeNode(name)
+                                        {
+                                            Tag = new NodeTag
+                                            {
+                                                Path = childPidl.ToString(), // 使用PIDL作为路径标识
+                                                FileSourceType = FileSourceType.ControlPanel
+                                            }
+                                        };
+
+                                        // 设置图标
+                                        Icon? icon = IconManager.ExtractIconFromPIDL(subFolder, childPidl);
+                                        if (icon != null)
+                                        {
+                                            // 添加图标到ImageList
+                                            string iconKey = $"cp_{node.Text}_{name}";
+                                            if (!treeViewNavigation.ImageList.Images.ContainsKey(iconKey))
+                                            {
+                                                treeViewNavigation.ImageList.Images.Add(iconKey, icon);
+                                            }
+                                            childNode.ImageKey = iconKey;
+                                            childNode.SelectedImageKey = iconKey;
+                                        }
+                                        else
+                                        {
+                                            // 使用默认图标
+                                            childNode.ImageIndex = 6;
+                                            childNode.SelectedImageIndex = 6;
+                                        }
+
+                                        // 如果是文件夹，添加占位子节点
+                                        if ((childAttributes & SFGAO.FOLDER) != 0)
+                                        {
+                                            childNode.Nodes.Add("...");
+                                        }
+
+                                        node.Nodes.Add(childNode);
+                                    }
+                                    finally
+                                    {
+                                        if (childPidl != IntPtr.Zero)
+                                        {
+                                            API.ILFree(childPidl);
+                                        }
+                                    }
+                                }
+
+                                Marshal.ReleaseComObject(enumIdList);
+                            }
+
+                            Marshal.ReleaseComObject(subFolder);
+                        }
+                        finally
+                        {
+                            API.ILFree(pidl);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"展开控制面板子节点时出错: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void ExpandControlPanelNode(TreeNode node)
+        {
+            try
+            {
+                // 清除现有子节点
+                node.Nodes.Clear();
+
+                // 获取控制面板文件夹
+                IShellFolder controlPanelFolder = w32.GetControlPanelFolder();
+
+                // 枚举控制面板项目
+                var flags = SHCONTF.FOLDERS | SHCONTF.NONFOLDERS;
+                controlPanelFolder.EnumObjects(IntPtr.Zero, flags, out IntPtr enumPtr);
+
+                if (enumPtr != IntPtr.Zero)
+                {
+                    IEnumIDList enumIdList = (IEnumIDList)Marshal.GetObjectForIUnknown(enumPtr);
+
+                    while (enumIdList.Next(1, out IntPtr pidl, out uint fetched) == 0 && fetched == 1)
+                    {
+                        try
+                        {
+                            // 获取项目名称
+                            string name = w32.GetDisplayName(controlPanelFolder, pidl, SHGDN.INFOLDER);
+
+                            // 获取项目属性
+                            SFGAO attributes = 0;
+                            controlPanelFolder.GetAttributesOf(1, [pidl], ref attributes);
+
+                            // 创建子节点
+                            var childNode = new TreeNode(name)
+                            {
+                                Tag = new NodeTag
+                                {
+                                    Path = pidl.ToString(), // 使用PIDL作为路径标识
+                                    FileSourceType = FileSourceType.ControlPanel
+                                }
+                            };
+
+                            // 设置图标
+                            Icon? icon = IconManager.ExtractIconFromPIDL(controlPanelFolder, pidl);
+                            if (icon != null)
+                            {
+                                // 添加图标到ImageList
+                                string iconKey = $"cp_{name}";
+                                if (!treeViewNavigation.ImageList.Images.ContainsKey(iconKey))
+                                {
+                                    treeViewNavigation.ImageList.Images.Add(iconKey, icon);
+                                }
+                                childNode.ImageKey = iconKey;
+                                childNode.SelectedImageKey = iconKey;
+                            }
+                            else
+                            {
+                                // 使用默认图标
+                                childNode.ImageIndex = 6;
+                                childNode.SelectedImageIndex = 6;
+                            }
+
+                            // 如果是文件夹，添加占位子节点
+                            if ((attributes & SFGAO.FOLDER) != 0)
+                            {
+                                childNode.Nodes.Add("...");
+                            }
+
+                            node.Nodes.Add(childNode);
+                        }
+                        finally
+                        {
+                            if (pidl != IntPtr.Zero)
+                            {
+                                API.ILFree(pidl);
+                            }
+                        }
+                    }
+
+                    Marshal.ReleaseComObject(enumIdList);
+                }
+
+                // 展开节点
+                node.Expand();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"展开控制面板节点时出错: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private void NavigateToArchive(string archivePath)
         {
             try
@@ -162,7 +424,7 @@ namespace zfile
                     }
                 }
 
-                if (wcxModule != null)
+                if (wcxModule != null && !string.IsNullOrEmpty(wcxModule.FilePath))
                 {
                     // Create archive file source
                     var fileSystemFileSource = new FileSystemFileSource();
@@ -276,7 +538,7 @@ namespace zfile
                             }
                         }
 
-                        if (wcxModule != null)
+                        if (wcxModule != null && !string.IsNullOrEmpty(wcxModule.FilePath))
                         {
                             // Navigate to archive
                             string archivePath = _currentPath != null ? Path.Combine(_currentPath, file.Name) : file.Name;
@@ -847,7 +1109,8 @@ namespace zfile
     {
         FileSystem,
         RecycleBin,
-        WcxArchive
+        WcxArchive,
+        ControlPanel
     }
 
     public class NodeTag

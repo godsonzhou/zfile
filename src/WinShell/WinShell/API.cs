@@ -296,29 +296,28 @@ namespace WinShell
 
 		public static string GetDisplayName2(IShellFolder2 folder, IntPtr pidl, SHGDN flags)
 		{
-			IntPtr pszName;
-			folder.GetDisplayNameOf(pidl, (uint)flags, out pszName);
-			try
-			{
-				return Marshal.PtrToStringAuto(pszName);
-			}
-			finally
-			{
-				Marshal.FreeCoTaskMem(pszName);
-			}
+			//IntPtr pszName;
+			//folder.GetDisplayNameOf(pidl, (uint)flags, out pszName);
+			//try
+			//{
+			//	return Marshal.PtrToStringAuto(pszName);
+			//}
+			//finally
+			//{
+			//	Marshal.FreeCoTaskMem(pszName);
+			//}
+			return GetDisplayName(folder, pidl, flags);
 		}
 		public static string GetDisplayName(IShellFolder folder, IntPtr pidl, SHGDN flags)
 		{
-			IntPtr pszName = IntPtr.Zero;
-			folder.GetDisplayNameOf(pidl, flags, pszName);
-			try
-			{
-				return Marshal.PtrToStringAuto(pszName);
-			}
-			finally
-			{
-				Marshal.FreeCoTaskMem(pszName);
-			}
+			//return Marshal.PtrToStringAuto(pszName);
+			IntPtr pszName = Marshal.AllocCoTaskMem(MAX_PATH * 2 + 4);
+			Marshal.WriteInt32(pszName, 0, 0);
+			StringBuilder buf = new StringBuilder(MAX_PATH);
+			if (folder.GetDisplayNameOf(pidl, flags, pszName) == S_OK)
+				API.StrRetToBuf(pszName, pidl, buf, MAX_PATH);
+			Marshal.FreeCoTaskMem(pszName);
+			return buf.ToString();
 		}
 		public static string GetDetails(IShellFolder2 folder, IntPtr pidl, SHCOLUMNID columnID)
 		{

@@ -825,9 +825,9 @@ namespace zfile
                         {
                             if (item.Tag is FileEntry file)
                             {
-                                // Get original path from link property
-                                string originalPath = file.LinkProperty.LinkTarget;
-
+								// Get original path from link property
+								//string originalPath = file.LinkProperty.LinkTarget;
+								string originalPath = file.FullPath;
                                 if (string.IsNullOrEmpty(originalPath))
                                 {
                                     MessageBox.Show($"无法还原 {file.Name}，找不到原始路径", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -841,8 +841,8 @@ namespace zfile
                                     Directory.CreateDirectory(directory);
                                 }
 
-                                // Get the full path to the file in the recycle bin
-                                string recycleBinPath = file.FullPath ?? string.Empty;
+								// Get the full path to the file in the recycle bin
+								string recycleBinPath = file.LinkProperty.LinkTarget; //file.FullPath ?? string.Empty;
 
                                 // Create a shell item for the file in the recycle bin
                                 IShellItem? shellItem = null;

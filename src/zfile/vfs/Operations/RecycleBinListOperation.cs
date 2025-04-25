@@ -61,10 +61,10 @@ namespace zfile
 							API.SHGetPathFromIDList(pidl, pszPath);
 							var file = RecycleBinFileSource.CreateFile(Path+ pszPath.ToString());
 							file.Name = w32.GetNameByIShell(folder, pidl);//删除前的名称
-							//file.FullPath = w32.GetDisplayName2(folder, pidl, SHGDN.NORMAL); //删除前的路径
+							file.FullPath = w32.GetDisplayName2(folder, pidl, SHGDN.NORMAL); //删除前的路径
 							//file.FullPath = w32.GetPathByIShell(folder, pidl); //删除前的路径
-							file.FullPath = w32.GetNameByIShell(folder, pidl); //删除前的名称
-							file.LinkProperty.LinkTarget = w32.GetPathByIShell(folder, pidl);// w32.GetDisplayName2(folder, pidl, SHGDN.FORPARSING);
+							//file.FullPath = w32.GetNameByIShell(folder, pidl); //删除前的名称
+							file.LinkProperty.LinkTarget = w32.GetDisplayName2(folder, pidl, SHGDN.FORPARSING);
 
                             FileAttributeData attr;
                             if (FileSystemUtil.FileGetAttr(file.LinkProperty.LinkTarget, out attr))

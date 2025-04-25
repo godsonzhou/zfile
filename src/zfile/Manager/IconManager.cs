@@ -1,4 +1,5 @@
 using Microsoft.Win32;
+using OpenQA.Selenium;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -509,6 +510,98 @@ namespace zfile
 			catch { }
 			return null;
 		}
+		//调用.NET内部提供的ExtractAssociatedIcon方法，只能从文件获取一种规格的ICON图标，一般是Size(32,32)
+		public static System.Drawing.Icon GetIconFromFile(string fileName)
+		{
+			if (System.IO.File.Exists(fileName) == false)
+				return null;
+			return System.Drawing.Icon.ExtractAssociatedIcon(fileName);
+		}
+		//调用Win32 API提供的ExtractIconEx方法，可以从文件获取多种规格的ICON图标
+		[DllImport("shell32.dll")]
+		public static extern int ExtractIconEx(string lpszFile, int nIconIndex, IntPtr[] phiconLarge, IntPtr[] phiconSmall, int nIcons);
+
+		/// <summary>
+		/// 从应用程序文件中获取Icon图标
+		/// </summary>
+		/// <param name="appPath">应用程序文件名</param>
+		/// <returns>返回获取到的Icon图标集，顺序为图标A Size(32,32)、图标A Size(16,16)、图标B Size(32,32)、图标B Size(16,16)....</returns>
+		public static System.Drawing.Icon[] GetIconFromAPP(string appPath)
+		{
+			int count = ExtractIconEx(appPath, -1, null, null, 0);
+			IntPtr[] largeIcons = new IntPtr[count];
+			IntPtr[] smallIcons = new IntPtr[count];
+			ExtractIconEx(appPath, 0, largeIcons, smallIcons, count);
+			System.Drawing.Icon[] icons = new System.Drawing.Icon[count * 2];
+			for (int i = 0; i < count; i++)
+			{
+				icons[i * 2] = System.Drawing.Icon.FromHandle(largeIcons[i]);
+				icons[i * 2 + 1] = System.Drawing.Icon.FromHandle(smallIcons[i]);
+			}
+			return icons;
+		}
 		
+		/// <summary>
+		 /// 获取文件的图标索引号
+		 /// </summary>
+		 /// <param name="fileName">文件名</param>
+		 /// <returns>图标索引号</returns>
+		public static int GetIconIndex(string fileName)
+		{
+			//从API调用SHGetFileInfo获取图标索引号，调用SHGetImageList获取图标列表，再从图标列表中取指定索引号的图标。可获取文件或文件夹的图标，有6种不同参数，目前可提取4种规格图标【Size(16,16)、Size(32,32)、Size(48,48)、Size(256,256)】，最全面的方式，推荐
+			SHFILEINFO info = new SHFILEINFO();
+			IntPtr iconIntPtr = API.SHGetFileInfo(fileName, 0, ref info, Marshal.SizeOf(info), (SHGFI.SYSICONINDEX | SHGFI.OPENICON));
+			if (iconIntPtr == IntPtr.Zero)
+				return -1;
+			return info.iIcon;
+		}
+
+		/// <summary>
+		/// 根据图标索引号获取图标
+		/// </summary>
+		/// <param name="iIcon">图标索引号</param>
+		/// <param name="flag">图标尺寸标识</param>
+		/// <returns></returns>
+		public static System.Drawing.Icon GetIcon(int iIcon, IMAGELIST_SIZE_FLAG flag)
+		{
+
+			IImageList list = null;
+			Guid theGuid = new Guid(IID_IImageList);//目前所知用IID_IImageList2也是一样的
+			API.SHGetImageList(flag, ref theGuid, ref list);//获取系统图标列表
+			IntPtr hIcon = IntPtr.Zero;
+			int r = list.GetIcon(iIcon, ILD_TRANSPARENT | ILD_IMAGE, ref hIcon);//获取指定索引号的图标句柄
+			return System.Drawing.Icon.FromHandle(hIcon);
+		}
+
+		/// <summary>
+		///  方法3：从文件获取Icon图标
+		/// </summary>
+		/// <param name="fileName">文件名称</param>
+		/// <param name="flag">图标尺寸标识</param>
+		/// <returns></returns>
+		public static System.Drawing.Icon GetIconFromFile(string fileName, IMAGELIST_SIZE_FLAG flag)
+		{
+			return GetIcon(GetIconIndex(fileName), flag);
+		}/// <summary>
+		 /// 根据文件名得到系统图标（经修改参数后文件夹也可以）
+		 /// </summary>
+		 /// <param name="fileName">文件名</param>
+		 /// <param name="largeIcon">图标的大小</param>
+		 /// <returns></returns>
+		public static System.Drawing.Icon GetFileIcon(string fileName, bool largeIcon)
+		{
+			//直接从API调用SHGetFileInfo获取文件或文件夹的图标，只能获取2种规格【Size(16,16)、Size(32,32)】
+			SHFILEINFO info = new SHFILEINFO();
+			int size = Marshal.SizeOf(info);
+			SHGFI flags;
+			if (largeIcon)
+				flags = SHGFI.ICON | SHGFI.LARGEICON;//| SHGFI.UseFileAttributes;网上都有加这项导致只对文件有效，去掉后文件夹也可以。
+			else
+				flags = SHGFI.ICON | SHGFI.SMALLICON;//| SHGFI.UseFileAttributes;网上都有加这项导致只对文件有效，去掉后文件夹也可以。
+			IntPtr iconIntPtr = API.SHGetFileInfo(fileName, 0, ref info, size, flags);
+			if (iconIntPtr.Equals(IntPtr.Zero))
+				return null;
+			return System.Drawing.Icon.FromHandle(info.hIcon);
+		}
 	}
 }

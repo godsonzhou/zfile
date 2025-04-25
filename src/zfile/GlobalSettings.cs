@@ -85,12 +85,12 @@ namespace zfile
 	}
 	public static partial class Constants
 	{
-		public const int CSIDL_DRIVES = 0x0011;
-		public const int SHGDN_INFOLDER = 0x0001;
-		public const int SHGDN_FORPARSING = 0x8000;
+		//public const int CSIDL_DRIVES = 0x0011;
+		//public const int SHGDN_INFOLDER = 0x0001;
+		//public const int SHGDN_FORPARSING = 0x8000;
 		public const int COPYENGINE_E_USER_CANCELLED = unchecked((int)0x80270000);
 
-		public const int SW_SHOWNORMAL = 1;
+		//public const int SW_SHOWNORMAL = 1;
 		public const int SEE_MASK_IDLIST = 0x00000004;
 
 		public const string CLSID_FileOperation = "3AD05575-8857-4850-9277-11B85BDB8E09";
@@ -99,6 +99,9 @@ namespace zfile
 		public const int FOF_NOCONFIRMMKDIR = 0x0200;
 		public const int FOF_NOCONFIRMATION = 0x0010;
 		public const int FOF_NORECURSION = 0x1000;
+
+		public const int ILD_TRANSPARENT = 0x00000001;
+		public const int ILD_IMAGE = 0x00000020;
 	}
 	public static class Resources
 	{

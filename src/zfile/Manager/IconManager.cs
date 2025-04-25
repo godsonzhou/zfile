@@ -562,14 +562,13 @@ namespace zfile
 		/// <param name="iIcon">图标索引号</param>
 		/// <param name="flag">图标尺寸标识</param>
 		/// <returns></returns>
-		public static System.Drawing.Icon GetIcon(int iIcon, IMAGELIST_SIZE_FLAG flag)
+		public static System.Drawing.Icon GetIcon(int iIcon, SHIL flag)
 		{
-
 			IImageList list = null;
-			Guid theGuid = new Guid(IID_IImageList);//目前所知用IID_IImageList2也是一样的
+			Guid theGuid = Guids.IID_IIMAGELIST; //new Guid(IID_IImageList);//目前所知用IID_IImageList2也是一样的
 			API.SHGetImageList(flag, ref theGuid, ref list);//获取系统图标列表
 			IntPtr hIcon = IntPtr.Zero;
-			int r = list.GetIcon(iIcon, ILD_TRANSPARENT | ILD_IMAGE, ref hIcon);//获取指定索引号的图标句柄
+			int r = list.GetIcon(iIcon, Constants.ILD_TRANSPARENT | Constants.ILD_IMAGE, ref hIcon);//获取指定索引号的图标句柄
 			return System.Drawing.Icon.FromHandle(hIcon);
 		}
 
@@ -579,7 +578,7 @@ namespace zfile
 		/// <param name="fileName">文件名称</param>
 		/// <param name="flag">图标尺寸标识</param>
 		/// <returns></returns>
-		public static System.Drawing.Icon GetIconFromFile(string fileName, IMAGELIST_SIZE_FLAG flag)
+		public static System.Drawing.Icon GetIconFromFile(string fileName, SHIL flag)
 		{
 			return GetIcon(GetIconIndex(fileName), flag);
 		}/// <summary>

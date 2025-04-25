@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 using Microsoft.VisualBasic;
+using Shell32;
 using WinShell;
 namespace zfile
 {
@@ -807,8 +808,46 @@ namespace zfile
                 }
             }
         }
+		private static void Restore(string filepath)
+		{
+			//object[] args = (object[])param;
+			//string filename = (string)args[0];
+			//string filepath = (string)args[1];
 
-        private void MenuItemRestore_Click(object sender, EventArgs e)
+			var Shl = new Shell();
+			Folder Recycler = Shl.NameSpace(10);
+			var c = Recycler.Items().Count;
+
+			var _recycler = Recycler.Items();
+			for (int i = 0; i < _recycler.Count; i++)
+			{
+				FolderItem FI = _recycler.Item(i);
+				string FileName = Recycler.GetDetailsOf(FI, 0);
+				if (Path.GetExtension(FileName) == "") FileName += Path.GetExtension(FI.Path);
+				//Necessary for systems with hidden file extensions.
+
+				string FilePath = Recycler.GetDetailsOf(FI, 1);
+				if (filepath == Path.Combine(FilePath, FileName))
+				{
+					DoVerb(FI, "还原");
+					break;
+				}
+			}
+		}
+
+		private static bool DoVerb(FolderItem Item, string Verb)
+		{
+			foreach (FolderItemVerb FIVerb in Item.Verbs())
+			{
+				if (FIVerb.Name.Contains(Verb, StringComparison.OrdinalIgnoreCase))
+				{
+					FIVerb.DoIt();
+					return true;
+				}
+			}
+			return false;
+		}
+		private void MenuItemRestore_Click(object sender, EventArgs e)
         {
             if (_currentFileSource is RecycleBinFileSource && listViewFiles.SelectedItems.Count > 0)
             {
@@ -840,51 +879,51 @@ namespace zfile
                                 {
                                     Directory.CreateDirectory(directory);
                                 }
+								Restore(originalPath);
+								//// Get the full path to the file in the recycle bin
+								//string recycleBinPath = file.LinkProperty.LinkTarget; //file.FullPath ?? string.Empty;
 
-								// Get the full path to the file in the recycle bin
-								string recycleBinPath = file.LinkProperty.LinkTarget; //file.FullPath ?? string.Empty;
+        //                        // Create a shell item for the file in the recycle bin
+        //                        IShellItem? shellItem = null;
+        //                        IntPtr pidl = API.ILCreateFromPath(recycleBinPath);
 
-                                // Create a shell item for the file in the recycle bin
-                                IShellItem? shellItem = null;
-                                IntPtr pidl = API.ILCreateFromPath(recycleBinPath);
+        //                        try
+        //                        {
+        //                            Guid iidShellItem = Guids.IID_IShellItem;
+        //                            int hr = API.SHCreateItemFromIDList(pidl, ref iidShellItem, out shellItem);
 
-                                try
-                                {
-                                    Guid iidShellItem = Guids.IID_IShellItem;
-                                    int hr = API.SHCreateItemFromIDList(pidl, ref iidShellItem, out shellItem);
+        //                            if (hr != 0)
+        //                            {
+        //                                Marshal.ThrowExceptionForHR(hr);
+        //                            }
 
-                                    if (hr != 0)
-                                    {
-                                        Marshal.ThrowExceptionForHR(hr);
-                                    }
+        //                            // Get the parent folder of the file
+        //                            w32.OleCheck(API.SHGetDesktopFolder(out IShellFolder desktopFolder));
 
-                                    // Get the parent folder of the file
-                                    w32.OleCheck(API.SHGetDesktopFolder(out IShellFolder desktopFolder));
+        //                            // Get the context menu for the file
+        //                            Guid iidContextMenu = Guids.IID_IContextMenu;
+        //                            IntPtr[] pidls = [pidl];
+        //                            desktopFolder.GetUIObjectOf(IntPtr.Zero, 1, pidls, ref iidContextMenu, out IntPtr contextMenuPtr);
 
-                                    // Get the context menu for the file
-                                    Guid iidContextMenu = Guids.IID_IContextMenu;
-                                    IntPtr[] pidls = [pidl];
-                                    desktopFolder.GetUIObjectOf(IntPtr.Zero, 1, pidls, ref iidContextMenu, out IntPtr contextMenuPtr);
+        //                            IContextMenu contextMenu = (IContextMenu)Marshal.GetObjectForIUnknown(contextMenuPtr);
 
-                                    IContextMenu contextMenu = (IContextMenu)Marshal.GetObjectForIUnknown(contextMenuPtr);
+        //                            // Execute the "Restore" verb
+        //                            ContextMenuHandler.ExecuteVerb(this, "restore", string.Empty, contextMenu);
 
-                                    // Execute the "Restore" verb
-                                    ContextMenuHandler.ExecuteVerb(this, "restore", string.Empty, contextMenu);
+        //                            anyRestored = true;
+        //                        }
+        //                        finally
+        //                        {
+        //                            if (pidl != IntPtr.Zero)
+        //                            {
+        //                                API.ILFree(pidl);
+        //                            }
 
-                                    anyRestored = true;
-                                }
-                                finally
-                                {
-                                    if (pidl != IntPtr.Zero)
-                                    {
-                                        API.ILFree(pidl);
-                                    }
-
-                                    if (shellItem != null)
-                                    {
-                                        Marshal.ReleaseComObject(shellItem);
-                                    }
-                                }
+        //                            if (shellItem != null)
+        //                            {
+        //                                Marshal.ReleaseComObject(shellItem);
+        //                            }
+        //                        }
                             }
                         }
 
@@ -907,8 +946,27 @@ namespace zfile
                 }
             }
         }
+		public static Shell32.Folder GetShell32Folder(object folder, Object shell, Type shellAppType)
+		{
+			return (Shell32.Folder)shellAppType.InvokeMember("NameSpace",
+			System.Reflection.BindingFlags.InvokeMethod, null, shell, new object[] { folder });
+		}
+		public static void GetRecycleBinFilenames()
+		{
+			Console.WriteLine("\n[+]系统回收站里的文件列表如下：");
+			Type? shellAppType = Type.GetTypeFromProgID("Shell.Application");
+			Object? shell = Activator.CreateInstance(shellAppType);
+			Folder recycleBin = GetShell32Folder(10, shell, shellAppType);
+			foreach (FolderItem2 recfile in recycleBin.Items())
+			{
+				Console.WriteLine($"\t【文件名]:" + recfile.Name + "，[文件路径]:" + recfile.Path);
+				Console.WriteLine($"\t[文件恢复］:move" + recfile.Path + "D:\\" + recfile.Name);
+				Console.WriteLine($"\n");
+			}
+			Marshal.FinalReleaseComObject(shell); 
+		}
 
-        private void MenuItemExtract_Click(object sender, EventArgs e)
+		private void MenuItemExtract_Click(object sender, EventArgs e)
         {
             if (_currentFileSource is WcxArchiveFileSource && listViewFiles.SelectedItems.Count > 0)
             {

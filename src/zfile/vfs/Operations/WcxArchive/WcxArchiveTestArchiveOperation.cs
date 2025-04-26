@@ -56,7 +56,7 @@ public class WcxArchiveTestArchiveOperation : FileSourceTestArchiveOperation
         try
         {
             SetProcessDataProc(arcHandle);
-            wcxModule.SetChangeVolProc(arcHandle, WcxModule.WcxInvalidHandle);
+            wcxModule.SetChangeVolProc(arcHandle);
 
             WcxHeader header = new WcxHeader();
             while (wcxModule.ReadWCXHeader(arcHandle, ref header) == 0)

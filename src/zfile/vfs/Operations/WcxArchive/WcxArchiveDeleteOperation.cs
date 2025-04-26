@@ -37,7 +37,7 @@ namespace zfile
 		{
 			var wcxModule = _wcxArchiveFileSource.WcxModule;
 
-			wcxModule.SetChangeVolProc(WcxModule.WcxInvalidHandle, WcxModule.WcxInvalidHandle);
+			wcxModule.SetChangeVolProc(WcxModule.WcxInvalidHandle);
 
 			// 设置进程数据回调
 			// 创建符合TProcessDataProc签名的委托

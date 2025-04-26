@@ -50,11 +50,9 @@ namespace zfile
 				_wcxCopyInOperationG = this;
 			else
 				_wcxCopyInOperationT = this;
-
+			
 			// Gets full list of files (recursive)
-			FileSystemUtil.FillAndCount(SourceFiles,
-						 false,
-						 false,
+			ArchiveFileSourceUtil.FillAndCount(SourceFiles,
 						 out _fullFilesTree,
 						 out _statistics.TotalFiles,
 						 out _statistics.TotalBytes);
@@ -94,7 +92,7 @@ namespace zfile
 			UpdateStatistics(_statistics);
 
 			SetProcessDataProc(WcxModule.WcxInvalidHandle);
-			wcxModule.SetChangeVolProc(WcxModule.WcxInvalidHandle, WcxModule.WcxInvalidHandle);
+			wcxModule.SetChangeVolProc(WcxModule.WcxInvalidHandle);
 
 			// Convert TFiles into String
 			string FileEntries = GetFileEntries(_fullFilesTree);

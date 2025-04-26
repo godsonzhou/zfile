@@ -517,6 +517,33 @@ namespace zfile
 		{
 			UnloadModule();
 		}
+		public int ChangeVolProc(ref string arcName, int mode)
+		{
+			switch ((ChangeVolProcFlags)mode)
+			{
+				case ChangeVolProcFlags.PK_VOL_ASK:
+					return 0;
+				case ChangeVolProcFlags.PK_VOL_NOTIFY:
+					return 1;
+				default:
+					break;
+			}
+			return -1;
+		}
+		public int ChangeVolProcW(string arcName, int mode)
+		{
+			var result = ChangeVolProc(ref arcName, mode);
+			if (mode == (int)ChangeVolProcFlags.PK_VOL_ASK && result != 0)
+				return 0;
+			return result;
+		}
+		public int ChangeVolProcA(string arcName, int mode)
+		{
+			var result = ChangeVolProc(ref arcName, mode);
+			if (mode == (int)ChangeVolProcFlags.PK_VOL_ASK && result != 0)
+				return 0;
+			return result;
+		}
 		// 设置进度回调示例
 		private static int ProcessDataCallback(string fileName, int size)
 		{
@@ -1005,18 +1032,34 @@ namespace zfile
 
 			return -1;
 		}
-
-		public void SetChangeVolProc(IntPtr arcHandle, IntPtr changeVolProc)
+		public void SetChangeVolProc(IntPtr arcHandle)
+		{
+			var changeVolProcAdelegate = new TChangeVolProc(ChangeVolProcA);
+			var changeVolProcWdelegate = new TChangeVolProc(ChangeVolProcW);
+			SetChangeVolProc(arcHandle, Marshal.GetFunctionPointerForDelegate(changeVolProcAdelegate), Marshal.GetFunctionPointerForDelegate(changeVolProcWdelegate));
+		}
+		public void SetChangeVolProc(IntPtr arcHandle, IntPtr changeVolProc, IntPtr changeVolProcW)
 		{
 			if (_setChangeVolProcW != null)
 			{
-				_setChangeVolProcW(arcHandle, changeVolProc);
+				_setChangeVolProcW(arcHandle, changeVolProcW);
 			}
 			else if (_setChangeVolProc != null)
 			{
 				_setChangeVolProc(arcHandle, changeVolProc);
 			}
 		}
+		//public void SetChangeVolProc(IntPtr arcHandle, IntPtr changeVolProc)
+		//{
+		//	if (_setChangeVolProcW != null)
+		//	{
+		//		_setChangeVolProcW(arcHandle, changeVolProc);
+		//	}
+		//	else if (_setChangeVolProc != null)
+		//	{
+		//		_setChangeVolProc(arcHandle, changeVolProc);
+		//	}
+		//}
 
 		public void SetProcessDataProc(IntPtr arcHandle, IntPtr processDataProc)
 		{

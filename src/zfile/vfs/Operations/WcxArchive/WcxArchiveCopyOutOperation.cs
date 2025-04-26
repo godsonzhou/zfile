@@ -48,9 +48,9 @@ public class StringHashListUtf8
         return _dictionary.ContainsKey(key);
     }
 
-    public object this[string key]
+    public object? this[string key]
     {
-        get => _dictionary[key];
+        get => _dictionary.ContainsKey(key) ? _dictionary[key] : null;
         set
         {
             if (_dictionary.ContainsKey(key))

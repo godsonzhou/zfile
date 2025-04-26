@@ -343,10 +343,10 @@ namespace WinShell
 		{
 			API.CoUninitialize();
 		}
-		public static IShellFolder GetControlPanelFolder()
+		public static IShellFolder GetControlPanelFolder(out IntPtr pidl)
 		{
 			// 获取控制面板文件夹的IShellFolder接口
-			IntPtr pidl;
+			//IntPtr pidl;
 			API.SHGetSpecialFolderLocation(IntPtr.Zero, CSIDL.CONTROLS, out pidl); // 0x0003 表示控制面板文件夹
 
 			Guid iid = typeof(IShellFolder).GUID;

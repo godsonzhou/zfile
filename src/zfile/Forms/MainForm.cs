@@ -8,6 +8,9 @@ using System.Text.RegularExpressions;
 using WinShell;
 using Keys = System.Windows.Forms.Keys;
 using zfile.Forms;
+using ICSharpCode.TextEditor.Actions;
+using MessagePack;
+using System.Security.Claims;
 
 namespace zfile
 {
@@ -132,6 +135,7 @@ namespace zfile
 		private const int MAX_HISTORY_COUNT = 100; // 限制历史记录数量
 		public Font myfont;
 		private bool showFolderSize;
+		private IntPtr CtrlPanel_PIDL;
 
 		public enum TreeSearchScope
 		{
@@ -287,7 +291,7 @@ namespace zfile
 			iDeskTop = w32.GetDesktopFolder(out deskTopPtr);
 			if (iDeskTop == null)
 				throw new Exception("无法初始化桌面Shell接口");
-			iCtrlPanel = w32.GetControlPanelFolder();
+			iCtrlPanel = w32.GetControlPanelFolder(out CtrlPanel_PIDL);
 		}
 
 		protected override void Dispose(bool disposing)
@@ -1381,6 +1385,53 @@ namespace zfile
 				// 使用系统图标索引作为键值
 				iconKey = $"{subItem.PIDL}_{shellInfo.iIcon}".ToLower();
 				subItem.IconKey = iconKey;
+				using (Icon? icon = (Icon.FromHandle(shellInfo.hIcon).Clone() as Icon))
+				{
+					iconManager.AddIcon(iconKey, icon, islarge);
+				}
+				API.DestroyIcon(shellInfo.hIcon);
+				return true;
+			}
+			return false;
+		}
+		private bool getIconByShellItem1(string clsid, ref ShellItem subItem, out string iconKey, bool islarge = false)
+		{
+			var shellInfo = new SHFILEINFO();
+			// 首先获取系统图标索引
+			var result = API.SHGetFileInfo(clsid, 0, ref shellInfo, Marshal.SizeOf(typeof(SHFILEINFO)),
+				((islarge ? SHGFI.LARGEICON : SHGFI.SMALLICON) | SHGFI.ICON));
+			//Debug.Print($"Virtual 1folder：result={result} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}");
+			// 使用系统图标索引作为键值
+			iconKey = string.Empty;
+			if (shellInfo.hIcon != IntPtr.Zero && shellInfo.iIcon != 0)
+			{
+				// 使用系统图标索引作为键值
+				iconKey = $"{clsid}_{shellInfo.iIcon}".ToLower();
+				subItem.IconKey = iconKey;
+				using (Icon icon = Icon.FromHandle(shellInfo.hIcon))
+				{
+					iconManager.AddIcon(iconKey, icon, islarge);
+				}
+				API.DestroyIcon(shellInfo.hIcon);
+				return true;
+			}
+			return false;
+		}
+		public bool getIconByShellItemPIDL1(ref ShellItem subItem, out string iconKey, bool islarge = false)
+		{
+			iconKey = string.Empty;
+			//iCtrlPanel.EnumObjects(0, SHCONTF.NONFOLDERS | SHCONTF.INCLUDEHIDDEN | SHCONTF.FOLDERS, out pEnumList);
+			//while (pEnumList.Next(1, pidChild, celtFetched) = 0) {
+			var pidAbsolute = API.ILCombine(CtrlPanel_PIDL, subItem.PIDL);
+			var shellInfo = new SHFILEINFO();
+			API.SHGetFileInfoPIDL(pidAbsolute, 0, ref shellInfo, Marshal.SizeOf(typeof(SHFILEINFO)), SHGFI.PIDL | SHGFI.DISPLAYNAME | SHGFI.ICON | SHGFI.SMALLICON);
+			// SHGetFileInfo can get name and icon 
+			//Do something to save item name and icon
+			if (shellInfo.hIcon != IntPtr.Zero)
+			{
+				// 使用系统图标索引作为键值
+				iconKey = $"{shellInfo.hIcon}_{shellInfo.iIcon}".ToLower();
+				subItem.IconKey = iconKey;
 				using (Icon icon = Icon.FromHandle(shellInfo.hIcon))
 				{
 					iconManager.AddIcon(iconKey, icon, islarge);
@@ -1403,7 +1454,7 @@ namespace zfile
 				var r = API.SHGetFileInfo(subItem.parsepath, 0, ref shellInfo, Marshal.SizeOf(shellInfo),
 				SHGFI.SYSICONINDEX | (islarge ? SHGFI.LARGEICON : SHGFI.SMALLICON));
 				Debug.Print($"Virtual 2folder：result={r} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}");
-				if (shellInfo.iIcon > 0)
+				if (shellInfo.iIcon > 0 || shellInfo.hIcon != 0)
 				{
 					// 使用系统图标索引作为键值
 					iconKey = $"{subItem.PIDL}_{shellInfo.iIcon}".ToLower();
@@ -1455,6 +1506,8 @@ namespace zfile
 		}
 		public void LoadSubDirectories(TreeNode node, MyListView? lv = null)
 		{
+			//bool isCtrlPanel = false;
+			//bool isTrash = false;
 			if (lv != null)
 			{
 				lv.SmallImageList ??= new ImageList();
@@ -1516,8 +1569,10 @@ namespace zfile
 						var pathPart = path.Split('\\');
 						name = !pathPart[^1].Equals(string.Empty) ? pathPart[^1] : pathPart[^2];
 						var subItem = new ShellItem(pidlSub, iSub, root); //子节点的tag存放pidl和ishellfolder接口
-						//if (subItem.parsepath.Equals("::{645FF040-5081-101B-9F08-00AA002F954E}") || subItem.parsepath.Equals("::{26EE0668-A00A-44D7-9371-BEB064C98683}"))//回收站||控制面板，还有些问题, 忽略不做处理
-						//	continue;
+						//if (subItem.parsepath.Equals("::{26EE0668-A00A-44D7-9371-BEB064C98683}"))//控制面板
+						//	isCtrlPanel = true;
+						//if (subItem.parsepath.Equals("::{645FF040-5081-101B-9F08-00AA002F954E}") )//回收站
+						//	isTrash = true;
 						// 使用路径作为唯一标识符，而不是PIDL的内存地址
 						string nodeKey = path;
 						newPidls.Add(nodeKey);
@@ -1541,15 +1596,16 @@ namespace zfile
 						{
 							if (!getIconByShellItem(ref subItem, out iconkey))
 								if (!getIconBySysImageList(ref subItem, out iconkey))
-								{
-									var icon = IconManager.ExtractIconFromPIDL(iCtrlPanel, pidlSub);
-									if (icon != null)
-										iconManager.AddIcon(pidlSub.ToString(), icon, false);
-									else
-										getIconByIconLocation(ref subItem, out iconkey);
-								}
-
-							iconManager.LoadIconFromCacheByKey(iconkey, node.TreeView.ImageList);
+									if(!getIconByShellItemPIDL1(ref subItem, out iconkey))
+									{ 
+										var icon = IconManager.ExtractIconFromPIDL(iCtrlPanel, pidlSub);
+										if (icon != null)
+											iconManager.AddIcon(pidlSub.ToString(), icon, false);
+										else
+											getIconByIconLocation(ref subItem, out iconkey);
+									}
+							if (!string.IsNullOrEmpty(iconkey))
+								iconManager.LoadIconFromCacheByKey(iconkey, node.TreeView.ImageList);
 
 							SFGAO subattr = subItem.GetAttributes();    // 如果是文件夹且不是虚拟文件夹，则添加"..."节点
 							if (subattr.HasFlag(SFGAO.FOLDER) && nodeSub.Nodes.Count == 0)

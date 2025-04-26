@@ -18,7 +18,7 @@ namespace zfile
             w32.InitializeCOM();
 
             // 获取控制面板文件夹
-            _controlPanelFolder = w32.GetControlPanelFolder();
+            _controlPanelFolder = w32.GetControlPanelFolder(out _);
 
             if (_controlPanelFolder == null)
             {

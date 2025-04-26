@@ -947,7 +947,11 @@ namespace zfile
 
 		internal static string? ExtractDirLevel(string aCurrentPath, string directoryPath)
 		{
-			throw new NotImplementedException();
+			if (FileSystemUtil.IsInPath(aCurrentPath, directoryPath, true, true))
+			{
+				return directoryPath.Substring(aCurrentPath.Length, directoryPath.Length - aCurrentPath.Length);
+			}
+			return directoryPath;
 		}
 
 		internal static string ExcludeFrontPathDelimiter(string fullPath)
@@ -957,7 +961,11 @@ namespace zfile
 
 		internal static string IncludeFrontPathDelimiter(string currentFilePath)
 		{
-			throw new NotImplementedException();
+			if(currentFilePath.Length > 0 && currentFilePath[1] == Path.DirectorySeparatorChar)
+			{
+				return currentFilePath;
+			}
+			return Path.DirectorySeparatorChar + currentFilePath;
 		}
 		internal static string ExcludeTrailingPathDelimiter(string fullPath)
 		{

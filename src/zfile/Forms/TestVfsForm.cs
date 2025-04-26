@@ -218,7 +218,7 @@ namespace zfile
                     node.Nodes.Clear();
 
                     // 获取控制面板文件夹
-                    IShellFolder controlPanelFolder = w32.GetControlPanelFolder();
+                    IShellFolder controlPanelFolder = w32.GetControlPanelFolder(out _);
 
                     // 解析PIDL
                     uint attributes = 0;
@@ -325,7 +325,7 @@ namespace zfile
                 node.Nodes.Clear();
 
                 // 获取控制面板文件夹
-                IShellFolder controlPanelFolder = w32.GetControlPanelFolder();
+                IShellFolder controlPanelFolder = w32.GetControlPanelFolder(out _);
 
                 // 枚举控制面板项目
                 var flags = SHCONTF.FOLDERS | SHCONTF.NONFOLDERS;

@@ -199,10 +199,18 @@ namespace zfile
         private const int MAX_PATH = 16384;
 
         // 字段定义，对应 Pascal 的 FPOFile, FModulePath, FModuleHandle
-        protected object FPOFile; // 在C#中使用适当的翻译类对象
-        protected string FModulePath;
-        protected IntPtr FModuleHandle;
-
+        protected object? FPOFile; // 在C#中使用适当的翻译类对象
+        public string ModulePath;
+        protected IntPtr ModuleHandle;
+		// 保存委托的引用，防止被GC回收
+		private TInputBoxProc? _inputBoxDelegate;
+		private TMessageBoxProc? _messageBoxDelegate;
+		private TDialogBoxLFMProc? _dialogBoxLFMDelegate;
+		private TDialogBoxLRSProc? _dialogBoxLRSDelegate;
+		private TDialogBoxLFMFileProc? _dialogBoxLFMFileDelegate;
+		private TDlgProc? _sendDlgMsgDelegate;
+		private TTranslateStringProc? _translateStringDelegate;
+		private GCHandle _poFileHandle;
 		public DcxModule() { }
 
 		/// <summary>
@@ -210,7 +218,7 @@ namespace zfile
 		/// </summary>
 		public DcxModule(string modulePath)
         {
-            FModulePath = modulePath;
+            ModulePath = modulePath;
         }
 
         /// <summary>
@@ -259,8 +267,8 @@ namespace zfile
         {
             try
             {
-                FModuleHandle = NativeMethods.LoadLibrary(FModulePath);
-                return FModuleHandle != IntPtr.Zero;
+                ModuleHandle = NativeMethods.LoadLibrary(ModulePath);
+                return ModuleHandle != IntPtr.Zero;
             }
             catch
             {
@@ -273,22 +281,12 @@ namespace zfile
         /// </summary>
         public void UnloadModule()
         {
-            if (FModuleHandle != IntPtr.Zero)
+            if (ModuleHandle != IntPtr.Zero)
             {
-                NativeMethods.FreeLibrary(FModuleHandle);
-                FModuleHandle = IntPtr.Zero;
+                NativeMethods.FreeLibrary(ModuleHandle);
+                ModuleHandle = IntPtr.Zero;
             }
         }
-
-        // 保存委托的引用，防止被GC回收
-        private TInputBoxProc _inputBoxDelegate;
-        private TMessageBoxProc _messageBoxDelegate;
-        private TDialogBoxLFMProc _dialogBoxLFMDelegate;
-        private TDialogBoxLRSProc _dialogBoxLRSDelegate;
-        private TDialogBoxLFMFileProc _dialogBoxLFMFileDelegate;
-        private TDlgProc _sendDlgMsgDelegate;
-        private TTranslateStringProc _translateStringDelegate;
-        private GCHandle _poFileHandle;
 
         /// <summary>
         /// 初始化扩展，对应 Pascal 的 InitializeExtension
@@ -299,7 +297,7 @@ namespace zfile
             TExtensionStartupInfo startupInfo = new TExtensionStartupInfo();
 
             // 加载语言文件
-            string fileName = FModulePath;
+            string fileName = ModulePath;
             string path = Path.Combine(Path.GetDirectoryName(fileName), "language");
             string language = Path.GetExtension(Path.GetFileNameWithoutExtension(GetPOFileName()));
             fileName = Path.Combine(path, Path.GetFileNameWithoutExtension(fileName) + language + ".po");
@@ -314,7 +312,7 @@ namespace zfile
             startupInfo.StructSize = (uint)Marshal.SizeOf(typeof(TExtensionStartupInfo));
             
             // 设置插件目录
-            string pluginDir = Path.GetDirectoryName(FModulePath);
+            string pluginDir = Path.GetDirectoryName(ModulePath);
             startupInfo.PluginDir = Encoding.UTF8.GetBytes(pluginDir + new string('\0', MAX_PATH - pluginDir.Length));
             
             // 设置配置目录
@@ -483,7 +481,7 @@ namespace zfile
         /// </summary>
         protected T? GetDelegate<T>(string procName) where T : class
         {
-            IntPtr procAddress = NativeMethods.GetProcAddress(FModuleHandle, procName);
+            IntPtr procAddress = NativeMethods.GetProcAddress(ModuleHandle, procName);
             if (procAddress == IntPtr.Zero)
                 return null;
             return Marshal.GetDelegateForFunctionPointer(procAddress, typeof(T)) as T;

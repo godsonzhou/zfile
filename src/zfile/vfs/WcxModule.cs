@@ -496,12 +496,10 @@ namespace zfile
 		private TExtensionInitialize? _extensionInitialize;
 		private TExtensionFinalize? _extensionFinalize;
 
-		private IntPtr _moduleHandle;
 		private bool _isUnicode;
-		private string? _modulePath;
 
 		public string? Name { get; set; }
-		public string? FilePath { get => _modulePath; set => _modulePath = value; }
+		public string? FilePath { get => ModulePath; set => ModulePath = value; }
 		public List<string> DetectStrings = new();
 		public int PluginCapabilities;
 		public int BackgroundFlags { get; private set; }
@@ -510,10 +508,10 @@ namespace zfile
 		{
 
 		}
-		public WcxModule(string name, string path)
+		public WcxModule(string name, string path) : base(path)
 		{
 			Name = name;
-			_modulePath = path;
+			//ModulePath = path;
 		}
 		~WcxModule()
 		{
@@ -728,11 +726,11 @@ namespace zfile
 		{
 			try
 			{
-				if (string.IsNullOrEmpty(_modulePath))
+				if (string.IsNullOrEmpty(ModulePath))
 					return false;
 
-				_moduleHandle = NativeMethods.LoadLibrary(_modulePath);
-				if (_moduleHandle == IntPtr.Zero)
+				ModuleHandle = NativeMethods.LoadLibrary(ModulePath);
+				if (ModuleHandle == IntPtr.Zero)
 					return false;
 
 				// 加载必需函数
@@ -810,7 +808,7 @@ namespace zfile
 				if (_extensionInitialize != null)
 				{
 					// 创建并初始化 StartupInfo 结构
-					var startupInfo = InitializeExtensionStartupInfo(_modulePath);
+					var startupInfo = InitializeExtensionStartupInfo(ModulePath);
 					_extensionInitialize.Invoke(startupInfo);
 				}
 
@@ -825,10 +823,10 @@ namespace zfile
 
 		public void UnloadModule()
 		{
-			if (_moduleHandle != IntPtr.Zero)
+			if (ModuleHandle != IntPtr.Zero)
 			{
-				NativeMethods.FreeLibrary(_moduleHandle);
-				_moduleHandle = IntPtr.Zero;
+				NativeMethods.FreeLibrary(ModuleHandle);
+				ModuleHandle = IntPtr.Zero;
 			}
 
 			// 清除所有函数指针
@@ -1201,7 +1199,7 @@ namespace zfile
 		{
 			if (_configurePacker != null)
 			{
-				_configurePacker(handle, _moduleHandle);
+				_configurePacker(handle, ModuleHandle);
 			}
 		}
 
@@ -1257,11 +1255,11 @@ namespace zfile
 			var module = FindModuleByName(name);
 			if (module == null)
 			{
-				module = new WcxModule
-				{
-					FilePath = file,
-					Name = name
-				};
+				module = new WcxModule(name, file);
+				//{
+				//	FilePath = file,
+				//	Name = name
+				//};
 				if (module.LoadModule())
 				{
 					if (AddModule(module))

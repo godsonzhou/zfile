@@ -379,7 +379,9 @@ namespace zfile
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	public delegate int TChangeVolProc(string arcName, int mode);
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-	public delegate int TProcessDataProc(string arcName, int mode);
+	public delegate int TProcessDataProc([MarshalAs(UnmanagedType.LPStr)]string arcName, int mode);
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+	public delegate int TProcessDataProcW([MarshalAs(UnmanagedType.LPWStr)]string arcName, int mode);
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	public delegate int CryptProcDelegate(int cryptoNumber, int mode, string archiveName, string password);
 
@@ -430,7 +432,7 @@ namespace zfile
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	public delegate void TExtensionFinalize(IntPtr reserved);
 
-	public class WcxModule
+	public class WcxModule : DcxModule
 	{
 		// 常量定义
 		public const int PK_OK = 0;
@@ -515,6 +517,10 @@ namespace zfile
 		}
 		~WcxModule()
 		{
+			if(_extensionFinalize  != null)
+			{
+				_extensionFinalize(IntPtr.Zero);
+			}
 			UnloadModule();
 		}
 		public int ChangeVolProc(ref string arcName, int mode)
@@ -545,21 +551,21 @@ namespace zfile
 			return result;
 		}
 		// 设置进度回调示例
-		private static int ProcessDataCallback(string fileName, int size)
-		{
-			// 更新进度显示
-			return 0; // 返回0继续操作
-		}
+		//private static int ProcessDataCallback(string fileName, int size)
+		//{
+		//	// 更新进度显示
+		//	return 0; // 返回0继续操作
+		//}
 
-		public void SetCallbacks(IntPtr handle)
-		{
-			var procDelegate = new TProcessDataProc(ProcessDataCallback);
-			IntPtr pProc = Marshal.GetFunctionPointerForDelegate(procDelegate);
-			SetProcessDataProc(handle, pProc);
+		//public void SetCallbacks(IntPtr handle)
+		//{
+		//	var procDelegate = new TProcessDataProc(ProcessDataCallback);
+		//	IntPtr pProc = Marshal.GetFunctionPointerForDelegate(procDelegate);
+		//	SetProcessDataProc(handle, pProc);
 
-			// 需要保持委托引用防止被GC回收
-			GC.KeepAlive(procDelegate);
-		}
+		//	// 需要保持委托引用防止被GC回收
+		//	GC.KeepAlive(procDelegate);
+		//}
 		public void SetDefaultParam()
 		{
 			if (_packSetDefaultParams == null)
@@ -863,8 +869,12 @@ namespace zfile
 			return Marshal.GetDelegateForFunctionPointer(procAddress, typeof(T)) as T;
 		}
 
-		public IntPtr OpenArchive(string archiveName, int openMode, out int openResult)
+		public IntPtr OpenArchiveHandle(string archiveName, int openMode, out int openResult)
 		{
+			if(openMode < (int)OpenMode.PK_OM_LIST || openMode > (int)OpenMode.PK_OM_EXTRACT)
+			{
+				throw new ArgumentException("invalid wcx open mode");
+			}
 			IntPtr result = IntPtr.Zero;
 			openResult = (int)WcxResult.PK_UNKNOWN_FORMAT;
 			//archiveName = archiveName.ToUpper();
@@ -972,6 +982,8 @@ namespace zfile
 		{
 			if (_processFileW != null)
 			{
+				if(string.IsNullOrEmpty(destPath))
+					return _processFileW(arcHandle, operation, null, destName);
 				return _processFileW(arcHandle, operation, destPath, destName);
 			}
 			else if (_processFile != null)
@@ -1009,6 +1021,7 @@ namespace zfile
 		{
 			if (_packFilesW != null)
 			{
+				if (string.IsNullOrEmpty(subPath)) return _packFilesW(packedFile, null, srcPath, addList, flags);
 				return _packFilesW(packedFile, subPath, srcPath, addList, flags);
 			}
 			else if (_packFiles != null)
@@ -1032,13 +1045,13 @@ namespace zfile
 
 			return -1;
 		}
-		public void SetChangeVolProc(IntPtr arcHandle)
+		public void WcxSetChangeVolProc(IntPtr arcHandle)
 		{
 			var changeVolProcAdelegate = new TChangeVolProc(ChangeVolProcA);
 			var changeVolProcWdelegate = new TChangeVolProc(ChangeVolProcW);
-			SetChangeVolProc(arcHandle, Marshal.GetFunctionPointerForDelegate(changeVolProcAdelegate), Marshal.GetFunctionPointerForDelegate(changeVolProcWdelegate));
+			WcxSetChangeVolProc(arcHandle, Marshal.GetFunctionPointerForDelegate(changeVolProcAdelegate), Marshal.GetFunctionPointerForDelegate(changeVolProcWdelegate));
 		}
-		public void SetChangeVolProc(IntPtr arcHandle, IntPtr changeVolProc, IntPtr changeVolProcW)
+		public void WcxSetChangeVolProc(IntPtr arcHandle, IntPtr changeVolProc, IntPtr changeVolProcW)
 		{
 			if (_setChangeVolProcW != null)
 			{
@@ -1061,17 +1074,17 @@ namespace zfile
 		//	}
 		//}
 
-		public void SetProcessDataProc(IntPtr arcHandle, IntPtr processDataProc)
-		{
-			if (_setProcessDataProcW != null)
-			{
-				_setProcessDataProcW(arcHandle, processDataProc);
-			}
-			else if (_setProcessDataProc != null)
-			{
-				_setProcessDataProc(arcHandle, processDataProc);
-			}
-		}
+		//public void SetProcessDataProc(IntPtr arcHandle, IntPtr processDataProc)
+		//{
+		//	if (_setProcessDataProcW != null)
+		//	{
+		//		_setProcessDataProcW(arcHandle, processDataProc);
+		//	}
+		//	else if (_setProcessDataProc != null)
+		//	{
+		//		_setProcessDataProc(arcHandle, processDataProc);
+		//	}
+		//}
 
 		/// <summary>
 		/// 设置进程数据回调，同时设置ANSI和Unicode版本的回调
@@ -1079,7 +1092,7 @@ namespace zfile
 		/// <param name="arcHandle">归档文件句柄</param>
 		/// <param name="processDataProcA">ANSI版本的回调函数指针</param>
 		/// <param name="processDataProcW">Unicode版本的回调函数指针</param>
-		public void SetProcessDataProc(IntPtr arcHandle, IntPtr processDataProcA, IntPtr processDataProcW)
+		public void WcxSetProcessDataProc(IntPtr arcHandle, IntPtr processDataProcA, IntPtr processDataProcW)
 		{
 			if (_setProcessDataProcW != null)
 			{

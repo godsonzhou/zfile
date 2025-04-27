@@ -177,7 +177,7 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
     {
         var wcxModule = _wcxArchiveFileSource.WcxModule;
 
-        var arcHandle = wcxModule.OpenArchive(_wcxArchiveFileSource.ArchiveFileName,
+        var arcHandle = wcxModule.OpenArchiveHandle(_wcxArchiveFileSource.ArchiveFileName,
                                                     (int)OpenMode.PK_OM_EXTRACT, out int openResult);
         if (arcHandle == 0)
         {
@@ -207,7 +207,7 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
                                     ref createdPaths);
 
             SetProcessDataProc(arcHandle);
-            wcxModule.SetChangeVolProc(arcHandle);
+            wcxModule.WcxSetChangeVolProc(arcHandle);
 
             WcxHeader header = new WcxHeader();
             while (wcxModule.ReadWCXHeader(arcHandle, ref header) == 0)
@@ -430,9 +430,9 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
         GC.KeepAlive(procWT);
 
         if (NeedsConnection)
-            _wcxArchiveFileSource.WcxModule.SetProcessDataProc(arcData, procAGPtr, procWGPtr);
+            _wcxArchiveFileSource.WcxModule.WcxSetProcessDataProc(arcData, procAGPtr, procWGPtr);
         else
-            _wcxArchiveFileSource.WcxModule.SetProcessDataProc(arcData, procATPtr, procWTPtr);
+            _wcxArchiveFileSource.WcxModule.WcxSetProcessDataProc(arcData, procATPtr, procWTPtr);
     }
 
     public static void ClearCurrentOperation()

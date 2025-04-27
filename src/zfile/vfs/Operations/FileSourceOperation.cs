@@ -948,11 +948,18 @@ namespace zfile
         /// <summary>
         /// Process application messages
         /// </summary>
-        protected static bool AppProcessMessages()
+        protected bool AppProcessMessages(bool checkstate = false)
         {
-            // Process any pending application messages
-            Application.DoEvents();
-            return true;
+			try
+			{
+				if (checkstate)
+					CheckOperationState();
+				return true;
+			}
+			catch (FileSourceOperationAbortingException e) 
+			{
+				return false;
+			}
         }
 
         protected void LogMessage(string message, LogOption logOptions, LogOption logMsgType)

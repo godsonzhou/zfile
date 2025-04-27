@@ -92,7 +92,7 @@ namespace zfile
 			UpdateStatistics(_statistics);
 
 			SetProcessDataProc(WcxModule.WcxInvalidHandle);
-			wcxModule.SetChangeVolProc(WcxModule.WcxInvalidHandle);
+			wcxModule.WcxSetChangeVolProc(WcxModule.WcxInvalidHandle);
 
 			// Convert TFiles into String
 			string FileEntries = GetFileEntries(_fullFilesTree);
@@ -213,17 +213,13 @@ namespace zfile
 		private void SetProcessDataProc(IntPtr arcData)
 		{
 			// 创建符合TProcessDataProc签名的委托
-			var procAG = new TProcessDataProc((string fileName, int size) =>
-				ProcessDataProc(_wcxCopyInOperationG, fileName != null ? Marshal.PtrToStringAnsi(new IntPtr(fileName.GetHashCode())) : string.Empty, size));
+			var procAG = new TProcessDataProc(ProcessDataProcAG);
 
-			var procWG = new TProcessDataProc((string fileName, int size) =>
-				ProcessDataProc(_wcxCopyInOperationG, fileName != null ? Marshal.PtrToStringUni(new IntPtr(fileName.GetHashCode())) : string.Empty, size));
+			var procWG = new TProcessDataProcW(ProcessDataProcWG);
 
-			var procAT = new TProcessDataProc((string fileName, int size) =>
-				ProcessDataProc(_wcxCopyInOperationT, fileName != null ? Marshal.PtrToStringAnsi(new IntPtr(fileName.GetHashCode())) : string.Empty, size));
+			var procAT = new TProcessDataProc(ProcessDataProcAT);
 
-			var procWT = new TProcessDataProc((string fileName, int size) =>
-				ProcessDataProc(_wcxCopyInOperationT, fileName != null ? Marshal.PtrToStringUni(new IntPtr(fileName.GetHashCode())) : string.Empty, size));
+			var procWT = new TProcessDataProcW(ProcessDataProcWT);
 
 			// 获取函数指针
 			IntPtr pProcAG = Marshal.GetFunctionPointerForDelegate(procAG);
@@ -232,9 +228,9 @@ namespace zfile
 			IntPtr pProcWT = Marshal.GetFunctionPointerForDelegate(procWT);
 
 			if (NeedsConnection)
-				_wcxArchiveFileSource.WcxModule.SetProcessDataProc(arcData, pProcAG, pProcWG);
+				_wcxArchiveFileSource.WcxModule.WcxSetProcessDataProc(arcData, pProcAG, pProcWG);
 			else
-				_wcxArchiveFileSource.WcxModule.SetProcessDataProc(arcData, pProcAT, pProcWT);
+				_wcxArchiveFileSource.WcxModule.WcxSetProcessDataProc(arcData, pProcAT, pProcWT);
 
 			// 保持委托引用防止被GC回收
 			GC.KeepAlive(procAG);
@@ -427,7 +423,7 @@ namespace zfile
 		}
 
 		// WCX callback methods
-		private static int ProcessDataProc(WcxArchiveCopyInOperation operation, string fileName, int size)
+		private int ProcessDataProc(WcxArchiveCopyInOperation operation, string fileName, int size)
 		{
 			// 实现进程数据回调
 			if (operation == null || operation.State == FileSourceOperationState.Stopping)
@@ -465,29 +461,31 @@ namespace zfile
 				}
 
 				operation.UpdateStatistics(statistics);
+				if(!AppProcessMessages(true))
+					return 0; // 继续操作
 			}
 
 			return 1;
 		}
 
-		private static int ProcessDataProcAG(IntPtr fileName, int size)
+		private int ProcessDataProcAG(string fileName, int size)
 		{
-			return ProcessDataProc(_wcxCopyInOperationG, fileName != IntPtr.Zero ? Marshal.PtrToStringAnsi(fileName) : string.Empty, size);
+			return ProcessDataProc(_wcxCopyInOperationG, fileName, size);
 		}
 
-		private static int ProcessDataProcWG(IntPtr fileName, int size)
+		private int ProcessDataProcWG(string fileName, int size)
 		{
-			return ProcessDataProc(_wcxCopyInOperationG, fileName != IntPtr.Zero ? Marshal.PtrToStringUni(fileName) : string.Empty, size);
+			return ProcessDataProc(_wcxCopyInOperationG, fileName, size);
 		}
 
-		private static int ProcessDataProcAT(IntPtr fileName, int size)
+		private int ProcessDataProcAT(string fileName, int size)
 		{
-			return ProcessDataProc(_wcxCopyInOperationT, fileName != IntPtr.Zero ? Marshal.PtrToStringAnsi(fileName) : string.Empty, size);
+			return ProcessDataProc(_wcxCopyInOperationT, fileName, size);
 		}
 
-		private static int ProcessDataProcWT(IntPtr fileName, int size)
+		private int ProcessDataProcWT(string fileName, int size)
 		{
-			return ProcessDataProc(_wcxCopyInOperationT, fileName != IntPtr.Zero ? Marshal.PtrToStringUni(fileName) : string.Empty, size);
+			return ProcessDataProc(_wcxCopyInOperationT, fileName, size);
 		}
 	}
 }

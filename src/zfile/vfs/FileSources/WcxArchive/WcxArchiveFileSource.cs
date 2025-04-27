@@ -183,7 +183,7 @@ namespace zfile
             {
                 if (arcHandle == IntPtr.Zero)
                 {
-                    arcHandle = _wcxModule.OpenArchive(ArchiveFileName, (int)OpenMode.PK_OM_LIST, out _openResult);
+                    arcHandle = _wcxModule.OpenArchiveHandle(ArchiveFileName, (int)OpenMode.PK_OM_LIST, out _openResult);
                     if (arcHandle == IntPtr.Zero || _openResult != 0)
                         return false;
                 }
@@ -434,7 +434,7 @@ namespace zfile
                                 wcxPrevious = wcxPlugin;
                                 if (wcxPlugin.CanYouHandleThisFile(archiveFileName))
                                 {
-                                    archiveHandle = wcxPlugin.OpenArchive(archiveFileName, (int)OpenMode.PK_OM_LIST, out openResult);
+                                    archiveHandle = wcxPlugin.OpenArchiveHandle(archiveFileName, (int)OpenMode.PK_OM_LIST, out openResult);
                                     if (archiveHandle != IntPtr.Zero && openResult == 0)
                                     {
                                         found = true;

@@ -203,10 +203,12 @@ namespace zfile
         protected string FModulePath;
         protected IntPtr FModuleHandle;
 
-        /// <summary>
-        /// 构造函数
-        /// </summary>
-        public DcxModule(string modulePath)
+		public DcxModule() { }
+
+		/// <summary>
+		/// 构造函数
+		/// </summary>
+		public DcxModule(string modulePath)
         {
             FModulePath = modulePath;
         }

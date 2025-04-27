@@ -37,7 +37,7 @@ namespace zfile
 		{
 			var wcxModule = _wcxArchiveFileSource.WcxModule;
 
-			wcxModule.SetChangeVolProc(WcxModule.WcxInvalidHandle);
+			wcxModule.WcxSetChangeVolProc(WcxModule.WcxInvalidHandle);
 
 			// 设置进程数据回调
 			// 创建符合TProcessDataProc签名的委托
@@ -59,7 +59,7 @@ namespace zfile
 			GC.KeepAlive(procA);
 			GC.KeepAlive(procW);
 
-			wcxModule.SetProcessDataProc(WcxModule.WcxInvalidHandle, procAPtr, procWPtr);
+			wcxModule.WcxSetProcessDataProc(WcxModule.WcxInvalidHandle, procAPtr, procWPtr);
 
 			int result = wcxModule.DeleteFiles(_wcxArchiveFileSource.ArchiveFileName,
 											   GetFileEntries(FilesToDelete));

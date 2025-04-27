@@ -2553,7 +2553,7 @@ namespace zfile
 			{
 				if (!wcxModule.CanYouHandleThisFile(archivePath)) continue; // 如果插件不能处理该文件，尝试下一个插件
 				
-				IntPtr handle = wcxModule.OpenArchive(archivePath, (int)openMode, out var openResult);
+				IntPtr handle = wcxModule.OpenArchiveHandle(archivePath, (int)openMode, out var openResult);
 				if (handle == IntPtr.Zero) continue; // 如果打开失败，尝试下一个插件
 				
 				openArchives[archivePath] = handle;

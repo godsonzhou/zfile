@@ -19,9 +19,51 @@ namespace zfile
 		{
 			return DateTime.FromFileTime(fileTime);
 		}
-		public static bool IsInPath(string path1, string path2, bool allowPartial, bool caseSensitive)
+		/*
+		 *   IsInPath('/home', '/home/somedir/somefile', True, False) = True
+			IsInPath('/home', '/home/somedir/somefile', False, False) = False
+			IsInPath('/home', '/home/somedir/', False, False) = True
+			IsInPath('/home', '/home', False, False) = False
+			IsInPath('/home', '/home', False, True) = True
+		 */
+		public static bool IsInPath(string path1, string path2, bool caseSensitive)
 		{
 			return path2.StartsWith(path1, caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
+		}
+		public static bool IsInPath(string sBasePath, string sPathToCheck, bool AllowSubDirs, bool AllowSame)
+		{
+			if (string.IsNullOrEmpty(sBasePath))
+				return false;
+
+			sBasePath = Path.GetFullPath(sBasePath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+
+			int basePathLength = sBasePath.Length;
+			int pathToCheckLength = sPathToCheck.Length;
+
+			if (pathToCheckLength > basePathLength)
+			{
+				string pathToCheckStart = sPathToCheck.Substring(0, basePathLength);
+				if (string.Equals(pathToCheckStart, sBasePath, StringComparison.OrdinalIgnoreCase))
+				{
+					if (AllowSubDirs)
+						return true;
+					else
+					{
+						string remainingPath = sPathToCheck.Substring(basePathLength);
+						int delimiterPos = remainingPath.IndexOfAny(new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar });
+						return delimiterPos == -1 || delimiterPos == remainingPath.Length - 1;
+					}
+				}
+				else
+				{
+					return false;
+				}
+			}
+			else
+			{
+				return AllowSame && ((pathToCheckLength == basePathLength && string.Equals(sPathToCheck, sBasePath, StringComparison.OrdinalIgnoreCase)) ||
+									 (pathToCheckLength == basePathLength - 1 && string.Equals(sPathToCheck, sBasePath.Substring(0, pathToCheckLength), StringComparison.OrdinalIgnoreCase)));
+			}
 		}
 		public static string ApplyRenameMask(FileEntry file, string nameMask, string extMask)
 		{

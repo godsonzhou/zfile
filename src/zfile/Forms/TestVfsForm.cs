@@ -603,8 +603,6 @@ namespace zfile
                     DisplayFiles(_currentFiles);
                 }
 
-
-
                 // Update status bar
                 if (_currentFileSource is RecycleBinFileSource)
                 {

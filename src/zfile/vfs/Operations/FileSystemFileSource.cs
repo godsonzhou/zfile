@@ -55,8 +55,8 @@ namespace zfile
             file.CreationTime = DateTime.Now;
             file.LastAccessTime = DateTime.Now;
             file.LinkProperty = new FileLinkProperty();
-            file.Owner = new FileOwnerProperty();
-            file.Type = new FileTypeProperty();
+            file.OwnerProperty = new FileOwnerProperty();
+            file.TypeProperty = new FileTypeProperty();
             file.CommentProperty = new FileCommentProperty();
             return file;
         }
@@ -234,8 +234,8 @@ namespace zfile
 
                 if (propertiesToSet.HasFlag(FilePropertyType.Type))
                 {
-                    file.Type = new FileTypeProperty();
-                    file.Type.Value = GetFileDescription(fullPath);
+                    file.TypeProperty = new FileTypeProperty();
+                    file.TypeProperty.Value = GetFileDescription(fullPath);
                 }
 
                 if (propertiesToSet.HasFlag(FilePropertyType.CompressedSize))
@@ -522,7 +522,7 @@ namespace zfile
 
         private void SetOwner(FileEntry file)
         {
-            file.Owner = new FileOwnerProperty();
+            file.OwnerProperty = new FileOwnerProperty();
             // 这里需要根据操作系统实现获取文件所有者的功能
         }
 

@@ -35,7 +35,7 @@ namespace zfile
 			if (string.IsNullOrEmpty(sBasePath))
 				return false;
 
-			sBasePath = Path.GetFullPath(sBasePath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+			sBasePath = Helper.IncludeTrailingPathDelimiter(sBasePath);
 
 			int basePathLength = sBasePath.Length;
 			int pathToCheckLength = sPathToCheck.Length;

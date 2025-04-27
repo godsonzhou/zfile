@@ -437,10 +437,13 @@ public class FileEntry : IDisposable
 
     public string Name
     {
-        get { return ((FileNameProperty)_properties[FilePropertyType.Name]).Value; }
+        get { 
+			EnsurePropertyExists(FilePropertyType.Name);
+			return ((FileNameProperty)_properties[FilePropertyType.Name]).Value; }
         set
         {
-            ((FileNameProperty)_properties[FilePropertyType.Name]).Value = value;
+			EnsurePropertyExists(FilePropertyType.Name);
+			((FileNameProperty)_properties[FilePropertyType.Name]).Value = value;
             UpdateNameAndExtension(value);
         }
     }
@@ -462,6 +465,9 @@ public class FileEntry : IDisposable
         {
             switch (propertyType)
             {
+				case FilePropertyType.Name:
+					_properties[propertyType] = new FileNameProperty(string.Empty);
+					break;
                 case FilePropertyType.Attributes:
                     _properties[propertyType] = new FileAttributesProperty();
                     break;
@@ -707,13 +713,15 @@ public class FileEntry : IDisposable
         set { SetProperty(FilePropertyType.Link, value); }
     }
 
-    public FileOwnerProperty Owner
+    public FileOwnerProperty OwnerProperty
     {
-        get { return (FileOwnerProperty)_properties[FilePropertyType.Owner]; }
+        get {
+			EnsurePropertyExists(FilePropertyType.Owner);
+			return (FileOwnerProperty)_properties[FilePropertyType.Owner]; }
         set { SetProperty(FilePropertyType.Owner, value); }
     }
 
-    public FileTypeProperty Type
+    public FileTypeProperty TypeProperty
     {
         get { return (FileTypeProperty)_properties[FilePropertyType.Type]; }
         set { SetProperty(FilePropertyType.Type, value); }
@@ -721,7 +729,9 @@ public class FileEntry : IDisposable
 
     public FileCommentProperty CommentProperty
     {
-        get { return (FileCommentProperty)_properties[FilePropertyType.Comment]; }
+        get {
+			EnsurePropertyExists(FilePropertyType.Comment);
+			return (FileCommentProperty)_properties[FilePropertyType.Comment]; }
         set { SetProperty(FilePropertyType.Comment, value); }
     }
 

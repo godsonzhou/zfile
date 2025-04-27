@@ -481,7 +481,7 @@ namespace zfile
         /// <summary>
         /// 通过函数名获取函数指针并转换为委托
         /// </summary>
-        protected T GetDelegate<T>(string procName) where T : class
+        protected T? GetDelegate<T>(string procName) where T : class
         {
             IntPtr procAddress = NativeMethods.GetProcAddress(FModuleHandle, procName);
             if (procAddress == IntPtr.Zero)
@@ -492,7 +492,7 @@ namespace zfile
         /// <summary>
         /// 本地方法调用
         /// </summary>
-        private static class NativeMethods
+        protected static class NativeMethods
         {
             [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
             public static extern IntPtr LoadLibrary(string lpFileName);

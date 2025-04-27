@@ -379,9 +379,9 @@ namespace zfile
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	public delegate int TChangeVolProc(string arcName, int mode);
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-	public delegate int TProcessDataProc([MarshalAs(UnmanagedType.LPStr)]string arcName, int mode);
+	public delegate int TProcessDataProc([MarshalAs(UnmanagedType.LPStr)] string arcName, int mode);
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-	public delegate int TProcessDataProcW([MarshalAs(UnmanagedType.LPWStr)]string arcName, int mode);
+	public delegate int TProcessDataProcW([MarshalAs(UnmanagedType.LPWStr)] string arcName, int mode);
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	public delegate int CryptProcDelegate(int cryptoNumber, int mode, string archiveName, string password);
 
@@ -517,7 +517,7 @@ namespace zfile
 		}
 		~WcxModule()
 		{
-			if(_extensionFinalize  != null)
+			if (_extensionFinalize != null)
 			{
 				_extensionFinalize(IntPtr.Zero);
 			}
@@ -861,17 +861,17 @@ namespace zfile
 			_getBackgroundFlags = null;
 		}
 
-		private T? GetDelegate<T>(string procName) where T : class
-		{
-			IntPtr procAddress = NativeMethods.GetProcAddress(_moduleHandle, procName);
-			if (procAddress == IntPtr.Zero)
-				return null;
-			return Marshal.GetDelegateForFunctionPointer(procAddress, typeof(T)) as T;
-		}
+		//private T? GetDelegate<T>(string procName) where T : class
+		//{
+		//	IntPtr procAddress = NativeMethods.GetProcAddress(_moduleHandle, procName);
+		//	if (procAddress == IntPtr.Zero)
+		//		return null;
+		//	return Marshal.GetDelegateForFunctionPointer(procAddress, typeof(T)) as T;
+		//}
 
 		public IntPtr OpenArchiveHandle(string archiveName, int openMode, out int openResult)
 		{
-			if(openMode < (int)OpenMode.PK_OM_LIST || openMode > (int)OpenMode.PK_OM_EXTRACT)
+			if (openMode < (int)OpenMode.PK_OM_LIST || openMode > (int)OpenMode.PK_OM_EXTRACT)
 			{
 				throw new ArgumentException("invalid wcx open mode");
 			}
@@ -982,7 +982,7 @@ namespace zfile
 		{
 			if (_processFileW != null)
 			{
-				if(string.IsNullOrEmpty(destPath))
+				if (string.IsNullOrEmpty(destPath))
 					return _processFileW(arcHandle, operation, null, destName);
 				return _processFileW(arcHandle, operation, destPath, destName);
 			}
@@ -1149,29 +1149,75 @@ namespace zfile
 			return _getPackerCaps?.Invoke() ?? 0;
 		}
 
-		internal static string? GetErrorMsg(int result)
+		/// <summary>
+		/// 将WCX错误码转换为可读的错误消息
+		/// </summary>
+		/// <param name="result">WCX错误码</param>
+		/// <returns>对应的错误消息</returns>
+		internal static string GetErrorMsg(int result)
 		{
-			throw new NotImplementedException();
+			switch (result)
+			{
+				case E_END_ARCHIVE:
+					return "End of archive reached";
+				case E_NO_MEMORY:
+					return "Not enough memory";
+				case E_BAD_DATA:
+					return "Data is bad";
+				case E_BAD_ARCHIVE:
+					return "CRC error in archive data";
+				case E_UNKNOWN_FORMAT:
+					return "Archive format unknown";
+				case E_EOPEN:
+					return "Cannot open existing file";
+				case E_ECREATE:
+					return "Cannot create file";
+				case E_ECLOSE:
+					return "Error closing file";
+				case E_EREAD:
+					return "Error reading from file";
+				case E_EWRITE:
+					return "Error writing to file";
+				case E_SMALL_BUF:
+					return "Buffer too small";
+				case E_EABORTED:
+					return "Operation aborted by user";
+				case E_NO_FILES:
+					return "No files found";
+				case E_TOO_MANY_FILES:
+					return "Too many files to pack";
+				case E_NOT_SUPPORTED:
+					return "Function not supported";
+				default:
+					return $"Unknown error code: {result}";
+			}
 		}
 
+		/// <summary>
+		/// 配置WCX插件
+		/// </summary>
+		/// <param name="handle">父窗口句柄</param>
 		internal void VFSConfigure(nint handle)
 		{
-			throw new NotImplementedException();
+			if (_configurePacker != null)
+			{
+				_configurePacker(handle, _moduleHandle);
+			}
 		}
 
 		public bool IsUnicode => _isUnicode;
 
-		private static class NativeMethods
-		{
-			[DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-			public static extern IntPtr LoadLibrary(string lpFileName);
+		//private static class NativeMethods
+		//{
+		//	[DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+		//	public static extern IntPtr LoadLibrary(string lpFileName);
 
-			[DllImport("kernel32.dll", SetLastError = true)]
-			public static extern bool FreeLibrary(IntPtr hModule);
+		//	[DllImport("kernel32.dll", SetLastError = true)]
+		//	public static extern bool FreeLibrary(IntPtr hModule);
 
-			[DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
-			public static extern IntPtr GetProcAddress(IntPtr hModule, string lpProcName);
-		}
+		//	[DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
+		//	public static extern IntPtr GetProcAddress(IntPtr hModule, string lpProcName);
+		//}
 	}
 
 	public class WcxModuleList

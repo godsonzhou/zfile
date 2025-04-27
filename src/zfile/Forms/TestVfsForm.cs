@@ -1029,7 +1029,7 @@ namespace zfile
                         IFileSource sourceFileSource = new FileSystemFileSource();
 
                         // Create file entries for selected files
-                        var sourceFiles = new FileEntries();
+                        var sourceFiles = new FileEntries(Path.GetDirectoryName(dialog.FileNames[0]));
                         foreach (string fileName in dialog.FileNames)
                         {
                             FileEntry file = FileSystemFileSource.CreateFileFromFile(fileName);

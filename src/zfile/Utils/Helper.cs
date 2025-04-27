@@ -944,14 +944,15 @@ namespace zfile
 		{
 			return aTargetPath.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
 		}
-
-		internal static string? ExtractDirLevel(string aCurrentPath, string directoryPath)
+		//Examples:
+		//ExtractDirLevel('/home', '/home/somedir/somefile') = '/somedir/somefile'
+		internal static string? ExtractDirLevel(string prefixdir, string fullPath)
 		{
-			if (FileSystemUtil.IsInPath(aCurrentPath, directoryPath, true, true))
+			if (FileSystemUtil.IsInPath(prefixdir, fullPath, true, true))
 			{
-				return directoryPath.Substring(aCurrentPath.Length, directoryPath.Length - aCurrentPath.Length);
+				return fullPath.Substring(prefixdir.Length, fullPath.Length - prefixdir.Length);
 			}
-			return directoryPath;
+			return fullPath;
 		}
 
 		internal static string ExcludeFrontPathDelimiter(string fullPath)

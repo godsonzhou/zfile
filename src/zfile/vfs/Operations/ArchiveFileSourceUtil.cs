@@ -278,7 +278,7 @@ namespace zfile
             filesCount = 0;
             List<string> folderList = new List<string>();
             FileEntries folderFiles = new FileEntries();
-            newFiles = new FileEntries();
+            newFiles = new FileEntries(files.Path);
 
             // Process first level files
             foreach (FileEntry file in files)

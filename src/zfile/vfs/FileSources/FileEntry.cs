@@ -1037,7 +1037,14 @@ public class FileEntries : IEnumerable<FileEntry>
         get { return _path; }
         set
         {
-            _path = value;
+			if (string.IsNullOrWhiteSpace(value))
+				_path = string.Empty;
+			else
+			{
+				_path = value;
+				if (value[^1] != System.IO.Path.DirectorySeparatorChar) //Path.DirectorySeparatorChar)
+					_path += System.IO.Path.DirectorySeparatorChar;
+			}
             if (_flat)
             {
                 foreach (var file in _list)
@@ -1057,11 +1064,11 @@ public class FileEntries : IEnumerable<FileEntry>
         set { _flat = value; }
     }
 
-    public FileEntries(string path = "")
+    public FileEntries(string? path = "")
     {
         _list = new List<FileEntry>();
         _ownsObjects = true;
-        _path = path;
+        Path = path;
     }
 
     ~FileEntries()

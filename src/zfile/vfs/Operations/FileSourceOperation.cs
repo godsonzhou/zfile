@@ -962,7 +962,7 @@ namespace zfile
 			}
         }
 
-        protected void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
+        protected virtual void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
         {
             switch (logMsgType)
             {
@@ -983,7 +983,7 @@ namespace zfile
             }
         }
 
-        protected void ShowError(string message, int error, LogOption logOptions = LogOption.None)
+        protected virtual void ShowError(string message, int error, LogOption logOptions = LogOption.None)
         {
             LogMessage(message, logOptions, LogOption.Error);
 

@@ -431,10 +431,10 @@ namespace zfile
             }
         }
 
-		private void AppProcessMessages()
-		{
-			throw new NotImplementedException();
-		}
+		//private void AppProcessMessages()
+		//{
+		//	//throw new NotImplementedException();
+		//}
 
 		private FileSourceOperationUIResponse ShowError(string message)
         {
@@ -454,26 +454,26 @@ namespace zfile
             }
         }
 
-        private void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
-        {
-            switch (logMsgType)
-            {
-                case LogOption.Error:
-                    if (!GlobalSettings.LogOptions.HasFlag(LogOption.Error)) return;
-                    break;
-                case LogOption.Info:
-                    if (!GlobalSettings.LogOptions.HasFlag(LogOption.Info)) return;
-                    break;
-                case LogOption.Success:
-                    if (!GlobalSettings.LogOptions.HasFlag(LogOption.Success)) return;
-                    break;
-            }
+        //private void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
+        //{
+        //    switch (logMsgType)
+        //    {
+        //        case LogOption.Error:
+        //            if (!GlobalSettings.LogOptions.HasFlag(LogOption.Error)) return;
+        //            break;
+        //        case LogOption.Info:
+        //            if (!GlobalSettings.LogOptions.HasFlag(LogOption.Info)) return;
+        //            break;
+        //        case LogOption.Success:
+        //            if (!GlobalSettings.LogOptions.HasFlag(LogOption.Success)) return;
+        //            break;
+        //    }
 
-            if ((logOptions & GlobalSettings.LogOptions) == logOptions)
-            {
-                Logger.Write(_thread, message, logMsgType);
-            }
-        }
+        //    if ((logOptions & GlobalSettings.LogOptions) == logOptions)
+        //    {
+        //        Logger.Write(_thread, message, logMsgType);
+        //    }
+        //}
 
         // 属性
         public bool Recycle

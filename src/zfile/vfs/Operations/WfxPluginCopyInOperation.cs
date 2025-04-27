@@ -5,10 +5,10 @@ namespace zfile;
 public class WfxPluginCopyInOperation : FileSourceCopyInOperation
 {
 	private readonly IWfxPluginFileSource? _wfxPluginFileSource;
-	private WfxPluginOperationHelper _operationHelper;
+	private WfxPluginOperationHelper? _operationHelper;
 	private CallbackDataClass _callbackDataClass;
 	private FileTree _sourceFilesTree;
-	private FileSourceCopyOperationStatistics _statistics;
+	//private FileSourceCopyOperationStatistics _statistics;
 	private int _infoOperation;
 	private bool _needsConnection;
 
@@ -69,7 +69,7 @@ public class WfxPluginCopyInOperation : FileSourceCopyInOperation
 
 	protected override void Initialize()
 	{
-		_wfxPluginFileSource.WfxModule.setStatusInfo(TargetPath, (int)FsStatus.Start, _infoOperation);
+		_wfxPluginFileSource?.WfxModule.setStatusInfo(TargetPath, (int)FsStatus.Start, _infoOperation);
 		_callbackDataClass.UpdateProgressFunction = UpdateProgress;
 		// 在Pascal版本中使用threadvar存储UpdateProgress函数
 		// 在C#中我们不使用静态字段
@@ -128,7 +128,7 @@ public class WfxPluginCopyInOperation : FileSourceCopyInOperation
 
 	protected override void Finalize()
 	{
-		_wfxPluginFileSource.WfxModule.setStatusInfo(TargetPath, (int)FsStatus.End, _infoOperation);
+		_wfxPluginFileSource?.WfxModule.setStatusInfo(TargetPath, (int)FsStatus.End, _infoOperation);
 		_callbackDataClass.UpdateProgressFunction = null;
 		// 清除UpdateProgress函数引用
 		FileExistsOption = _operationHelper.FileExistsOption;

@@ -1220,24 +1220,214 @@ namespace zfile
 
 	public class WcxModuleList : StringList
 	{
-		public List<WcxModule> _modules = new();
-		public List<string> _cfg = new();
-		public Dictionary<string, WcxModule> _exts = new();
+		public List<WcxModule> _modules = new List<WcxModule>();
+		public List<string> _cfg = new List<string>();
+		public Dictionary<string, WcxModule> _exts = new Dictionary<string, WcxModule>();
 		public bool isConfigChanged = false;
-		public List<string> Ext { get => _exts.Keys.ToList(); set { throw new NotImplementedException(); } }
-		public string[] FileName { get { throw new NotImplementedException(); } set { throw new NotImplementedException(); } }
-		public int[] Flags { get { throw new NotImplementedException(); } set { throw new NotImplementedException(); } }
-		public bool[] Enabled { get { throw new NotImplementedException(); } set { throw new NotImplementedException(); } }
+
+		/// <summary>
+		/// Gets the extension at the specified index
+		/// </summary>
+		/// <param name="index">The index</param>
+		/// <returns>The extension</returns>
+		public string GetAExt(int index)
+		{
+			return Names(index);
+		}
+
+		/// <summary>
+		/// Sets the extension at the specified index
+		/// </summary>
+		/// <param name="index">The index</param>
+		/// <param name="value">The new extension</param>
+		public void SetExt(int index, string value)
+		{
+			string currentValue = ValueFromIndex(index);
+			this[index] = value + "=" + currentValue;
+		}
+
+		/// <summary>
+		/// Gets the file name at the specified index
+		/// </summary>
+		/// <param name="index">The index</param>
+		/// <returns>The file name</returns>
+		public string GetAFileName(int index)
+		{
+			string currentPlugin = ValueFromIndex(index);
+			int commaPos = currentPlugin.IndexOf(',');
+			if (commaPos >= 0)
+			{
+				return currentPlugin[(commaPos + 1)..];
+			}
+			return string.Empty;
+		}
+
+		/// <summary>
+		/// Sets the file name at the specified index
+		/// </summary>
+		/// <param name="index">The index</param>
+		/// <param name="value">The new file name</param>
+		public void SetAFileName(int index, string value)
+		{
+			SetValueFromIndex(index, GetAFlags(index) + "," + value);
+		}
+
+		/// <summary>
+		/// Gets the flags at the specified index
+		/// </summary>
+		/// <param name="index">The index</param>
+		/// <returns>The flags</returns>
+		public int GetAFlags(int index)
+		{
+			string currentPlugin = ValueFromIndex(index);
+			int commaPos = currentPlugin.IndexOf(',');
+			if (commaPos >= 0)
+			{
+				return int.Parse(currentPlugin[..commaPos]);
+			}
+			return 0;
+		}
+
+		/// <summary>
+		/// Sets the flags at the specified index
+		/// </summary>
+		/// <param name="index">The index</param>
+		/// <param name="value">The new flags</param>
+		public void SetAFlags(int index, int value)
+		{
+			SetValueFromIndex(index, value + "," + GetAFileName(index));
+		}
+
+		/// <summary>
+		/// Gets whether the plugin at the specified index is enabled
+		/// </summary>
+		/// <param name="index">The index</param>
+		/// <returns>True if the plugin is enabled</returns>
+		public bool GetAEnabled(int index)
+		{
+			return Objects[index] != null && (bool)Objects[index];
+		}
+
+		/// <summary>
+		/// Sets whether the plugin at the specified index is enabled
+		/// </summary>
+		/// <param name="index">The index</param>
+		/// <param name="value">The new enabled state</param>
+		public void SetAEnabled(int index, bool value)
+		{
+			Objects[index] = value;
+		}
+
+		/// <summary>
+		/// Gets or sets the extensions of all plugins
+		/// </summary>
+		public List<string> Ext
+		{
+			get
+			{
+				var result = new List<string>();
+				for (int i = 0; i < Count; i++)
+				{
+					result.Add(GetAExt(i));
+				}
+				return result;
+			}
+			set
+			{
+				if (value != null && value.Count == Count)
+				{
+					for (int i = 0; i < Count; i++)
+					{
+						SetExt(i, value[i]);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets the file names of all plugins
+		/// </summary>
+		public string[] FileName
+		{
+			get
+			{
+				string[] result = new string[Count];
+				for (int i = 0; i < Count; i++)
+				{
+					result[i] = GetAFileName(i);
+				}
+				return result;
+			}
+			set
+			{
+				if (value != null && value.Length == Count)
+				{
+					for (int i = 0; i < Count; i++)
+					{
+						SetAFileName(i, value[i]);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets the flags of all plugins
+		/// </summary>
+		public int[] Flags
+		{
+			get
+			{
+				int[] result = new int[Count];
+				for (int i = 0; i < Count; i++)
+				{
+					result[i] = GetAFlags(i);
+				}
+				return result;
+			}
+			set
+			{
+				if (value != null && value.Length == Count)
+				{
+					for (int i = 0; i < Count; i++)
+					{
+						SetAFlags(i, value[i]);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets the enabled state of all plugins
+		/// </summary>
+		public bool[] Enabled
+		{
+			get
+			{
+				bool[] result = new bool[Count];
+				for (int i = 0; i < Count; i++)
+				{
+					result[i] = GetAEnabled(i);
+				}
+				return result;
+			}
+			set
+			{
+				if (value != null && value.Length == Count)
+				{
+					for (int i = 0; i < Count; i++)
+					{
+						SetAEnabled(i, value[i]);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
 		public WcxModuleList()
 		{
 			LoadConfiguration();
-			//string pluginPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins\\wcx");
-			//读取pluginpath目录下所有子目录的plugins
-			//var subdirs = Directory.GetDirectories(pluginPath, "*", SearchOption.AllDirectories);
-			//foreach (var subdir in subdirs)
-			//{
-			//	LoadModulesFromDirectory(subdir);
-			//}
 		}
 		public WcxModule? FindModuleByName(string name)
 		{
@@ -1252,24 +1442,44 @@ namespace zfile
 			}
 			return false;
 		}
-		public void LoadModule(string file)
+
+		/// <summary>
+		/// Adds a new plugin to the list
+		/// </summary>
+		/// <param name="ext">The extension handled by the plugin</param>
+		/// <param name="flags">The plugin capabilities</param>
+		/// <param name="fileName">The file name of the plugin</param>
+		/// <returns>The index of the added plugin</returns>
+		public int Add(string ext, int flags, string fileName)
+		{
+			return AddObject(ext + "=" + flags + "," + fileName, true);
+		}
+		/// <summary>
+		/// Loads a WCX module from a file
+		/// </summary>
+		/// <param name="file">The file to load</param>
+		/// <returns>The loaded module, or null if loading failed</returns>
+		public WcxModule? LoadModule(string file)
 		{
 			var name = Path.GetFileNameWithoutExtension(file);
 			var module = FindModuleByName(name);
 			if (module == null)
 			{
 				module = new WcxModule(name, file);
-				//{
-				//	FilePath = file,
-				//	Name = name
-				//};
-				if (module.LoadModule())
+				if (module.LoadModule() && module.Name != null)
 				{
 					if (AddModule(module))
-						_exts[module.Name.ToLower()] = module;//TODO BUGFIX: HOW TO GET THE DETECTSTRING FOR WCX MODULE FILE
+					{
+						_exts[module.Name.ToLower()] = module;
+					}
 				}
 			}
+			return module;
 		}
+		/// <summary>
+		/// Loads all WCX modules from a directory and its subdirectories
+		/// </summary>
+		/// <param name="directory">The directory to load modules from</param>
 		public void LoadModulesFromDirectory(string directory)
 		{
 			if (!Directory.Exists(directory)) return;
@@ -1366,6 +1576,42 @@ namespace zfile
 				return module;
 
 			return null;
+		}
+
+		/// <summary>
+		/// Finds the first enabled plugin with the specified name
+		/// </summary>
+		/// <param name="name">The name to find</param>
+		/// <returns>The index of the plugin, or -1 if not found</returns>
+		public int FindFirstEnabledByName(string name)
+		{
+			for (int i = 0; i < Count; i++)
+			{
+				if (GetAEnabled(i) && string.Equals(GetAExt(i), name, StringComparison.OrdinalIgnoreCase))
+				{
+					return i;
+				}
+			}
+			return -1;
+		}
+
+		/// <summary>
+		/// Finds a plugin with the specified file name and extension
+		/// </summary>
+		/// <param name="fileName">The file name to find</param>
+		/// <param name="ext">The extension to find</param>
+		/// <returns>The index of the plugin, or -1 if not found</returns>
+		public int Find(string fileName, string ext)
+		{
+			for (int i = 0; i < Count; i++)
+			{
+				if (string.Equals(GetAFileName(i), fileName, StringComparison.OrdinalIgnoreCase) &&
+					string.Equals(GetAExt(i), ext, StringComparison.OrdinalIgnoreCase))
+				{
+					return i;
+				}
+			}
+			return -1;
 		}
 	}
 

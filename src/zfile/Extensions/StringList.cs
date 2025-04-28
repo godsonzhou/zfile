@@ -126,5 +126,60 @@ namespace zfile
             _strings.Clear();
             _objects.Clear();
         }
+
+        /// <summary>
+        /// Gets the name part of a string at the specified index (part before '=')
+        /// </summary>
+        /// <param name="index">The index of the string</param>
+        /// <returns>The name part of the string</returns>
+        public virtual string GetName(int index)
+        {
+            string s = _strings[index];
+            int pos = s.IndexOf('=');
+            return pos >= 0 ? s.Substring(0, pos) : s;
+        }
+
+        /// <summary>
+        /// Gets the value part of a string at the specified index (part after '=')
+        /// </summary>
+        /// <param name="index">The index of the string</param>
+        /// <returns>The value part of the string</returns>
+        public virtual string GetValue(int index)
+        {
+            string s = _strings[index];
+            int pos = s.IndexOf('=');
+            return pos >= 0 ? s.Substring(pos + 1) : string.Empty;
+        }
+
+        /// <summary>
+        /// Gets the name part of a string at the specified index (part before '=')
+        /// </summary>
+        /// <param name="index">The index of the string</param>
+        /// <returns>The name part of the string</returns>
+        public string Names(int index)
+        {
+            return GetName(index);
+        }
+
+        /// <summary>
+        /// Gets the value part of a string at the specified index (part after '=')
+        /// </summary>
+        /// <param name="index">The index of the string</param>
+        /// <returns>The value part of the string</returns>
+        public string ValueFromIndex(int index)
+        {
+            return GetValue(index);
+        }
+
+        /// <summary>
+        /// Sets the value part of a string at the specified index
+        /// </summary>
+        /// <param name="index">The index of the string</param>
+        /// <param name="value">The new value</param>
+        public void SetValueFromIndex(int index, string value)
+        {
+            string name = GetName(index);
+            _strings[index] = name + "=" + value;
+        }
     }
 }

@@ -344,9 +344,10 @@ namespace zfile
 					RemoveFromDriveComboBox(driveId);
 
 					// 断开FTP连接
-					if (_ftpSources.TryGetValue(connectionName, out FtpFileSource source))
+					if (_ftpSources.TryGetValue(connectionName, out FtpFileSource? source))
 					{
-						source.Finalize();
+						//source.Finalize();
+						source.Dispose();
 						_ftpSources.Remove(connectionName);
 					}
 

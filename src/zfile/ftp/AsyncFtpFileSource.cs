@@ -7,7 +7,7 @@ namespace zfile
     /// <summary>
     /// FTP文件源异步实现，用于处理FTP虚拟文件系统的异步操作
     /// </summary>
-    public class AsyncFtpFileSource : FileSourceBase
+    public class AsyncFtpFileSource : FileSource
     {
 		private AsyncFtpClient _client;
 		private string _currentPath = "/";
@@ -88,16 +88,22 @@ namespace zfile
             // 初始化FTP连接已在构造函数中完成
         }
 
-        public override void Finalize()
-        {
-            // 断开FTP连接
-            _client?.Disconnect();
-        }
+        //protected override void Finalize()
+        //{
+        //    // 断开FTP连接
+        //    _client?.Disconnect();
+        //}
+		protected override void Dispose(bool disposing)
+		{
+			// 断开FTP连接
+			_client?.Disconnect();
+			base.Dispose(disposing);
+		}
 
-        /// <summary>
-        /// 异步断开FTP连接
-        /// </summary>
-        public async Task FinalizeAsync()
+		/// <summary>
+		/// 异步断开FTP连接
+		/// </summary>
+		public async Task FinalizeAsync()
         {
             // 异步断开FTP连接
             if (_client != null)

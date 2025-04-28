@@ -636,7 +636,7 @@ namespace zfile
 	/// <summary>
 	/// Base class for file sources
 	/// </summary>
-	public abstract class FileSource : IFileSource
+	public abstract partial class FileSource : IFileSource
 	{
 		private int _refCount;
 		private readonly List<IFileSource> _children = new List<IFileSource>();
@@ -749,6 +749,8 @@ namespace zfile
 				FileSourceManager.Instance.Remove(this);
 			}
 		}
+
+		public virtual void Initialize() { }
 
 		/// <summary>
 		/// Checks if this file source equals another file source

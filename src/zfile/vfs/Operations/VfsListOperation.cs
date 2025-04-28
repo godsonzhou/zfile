@@ -87,7 +87,7 @@ namespace zfile
                             if (fileSourceClass != null)
                             {
                                 // Create an instance of the file source class
-                                if (System.Activator.CreateInstance(fileSourceClass) is FileSourceBase fileSourceInstance)
+                                if (System.Activator.CreateInstance(fileSourceClass) is FileSource fileSourceInstance)
                                 {
                                     // Try to call GetMainIcon method if it exists
                                     var method = fileSourceClass.GetMethod("GetMainIcon",

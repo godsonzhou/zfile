@@ -51,17 +51,17 @@ namespace zfile
 	/// <summary>
 	/// 文件源基类，所有具体文件源实现都应继承此类
 	/// </summary>
-	public abstract class FileSourceBase
-    {
-        public abstract bool IsSupportedPath(string path);
-        public abstract void Initialize();
-        public abstract void Finalize();
-    }
+	//public abstract partial class FileSource
+ //   {
+ //       //public abstract bool IsSupportedPath(string path);
+ //       //public abstract void Initialize();
+ //       //public abstract void Finalize();
+ //   }
 
     /// <summary>
     /// 文件源类型的委托
     /// </summary>
-    public delegate FileSourceBase FileSourceCreator();
+    public delegate FileSource FileSourceCreator();
 
     /// <summary>
     /// 虚拟文件系统模块类，封装单个模块的元数据
@@ -120,7 +120,7 @@ namespace zfile
         /// <summary>
         /// 注册虚拟文件系统
         /// </summary>
-        public void RegisterVirtualFileSource<T>(string name, bool visible) where T : FileSourceBase, new()
+        public void RegisterVirtualFileSource<T>(string name, bool visible) where T : FileSource, new()
         {
             moduleList.RegisterModule(name, typeof(T), visible, () => new T());
         }
@@ -128,7 +128,7 @@ namespace zfile
         /// <summary>
         /// 根据路径获取合适的文件源
         /// </summary>
-        public FileSourceBase GetFileSource(string path)
+        public FileSource GetFileSource(string path)
         {
             return moduleList.GetFileSource(path);
         }

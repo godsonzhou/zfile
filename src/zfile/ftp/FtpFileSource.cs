@@ -7,7 +7,7 @@ namespace zfile
 	/// <summary>
 	/// FTP文件源实现，用于处理FTP虚拟文件系统
 	/// </summary>
-	public class FtpFileSource : FileSourceBase
+	public class FtpFileSource : FileSource
 	{
 		private FtpClient _client;
 		private AsyncFtpClient _clientAsync;
@@ -111,10 +111,21 @@ namespace zfile
 			// 初始化FTP连接已在构造函数中完成
 		}
 
-		public override void Finalize()
+		//protected override void Finalize()
+		//{
+		//	// 断开FTP连接
+		//	_client?.Disconnect();
+		//}
+		protected override void Dispose(bool disposing)
 		{
-			// 断开FTP连接
-			_client?.Disconnect();
+			if (disposing)
+			{
+				_client?.Disconnect();
+				// 释放托管资源
+				_client?.Dispose();
+				_client = null;
+			}
+			// 释放非托管资源
 		}
 
 		/// <summary>

@@ -45,7 +45,7 @@ namespace zfile
 		/// <summary>
 		/// 根据路径获取支持的文件源实例
 		/// </summary>
-		public FileSourceBase GetFileSourceInstance(string path)
+		public FileSource GetFileSourceInstance(string path)
 		{
 			foreach (var module in modules.Values)
 			{
@@ -61,7 +61,7 @@ namespace zfile
 		/// <summary>
 		/// 根据路径获取支持的文件源
 		/// </summary>
-		public FileSourceBase GetFileSource(string path)
+		public FileSource GetFileSource(string path)
 		{
 			foreach (var module in modules.Values)
 			{
@@ -83,7 +83,7 @@ namespace zfile
 			foreach (var name in _names)
 			{
 				var module = modules[name];
-				var fileSourceInstance = Activator.CreateInstance(module.FileSourceClass) as FileSourceBase;
+				var fileSourceInstance = Activator.CreateInstance(module.FileSourceClass) as FileSource;
 				if (fileSourceInstance != null && fileSourceInstance.IsSupportedPath(path))
 				{
 					return module.FileSourceClass;

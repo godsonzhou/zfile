@@ -446,7 +446,7 @@ namespace zfile
                         }
                         else if ((WcxPlugins.Flags[i] & (int)PackerCaps.PK_CAPS_HIDE) == (int)PackerCaps.PK_CAPS_HIDE)
                         {
-                            if (MatchesMask(archiveFileName, "*" + Path.DirectorySeparatorChar + WcxPlugins.Ext[i]))
+                            if (MatchesMask(archiveFileName, "*." + WcxPlugins.Ext[i]))
                             {
                                 found = true;
                                 pluginIndex = i;
@@ -486,7 +486,7 @@ namespace zfile
             // Check if there is a registered plugin for the archive file name
             for (int i = 0; i < WcxPlugins.Count; i++)
             {
-                string mask = "*" + Path.DirectorySeparatorChar + WcxPlugins.Ext[i];
+                string mask = "*." + WcxPlugins.Ext[i];
                 if (WcxPlugins.Enabled[i] && MatchesMask(archiveFileName, mask) &&
                     (includeHidden || (WcxPlugins.Flags[i] & (int)PackerCaps.PK_CAPS_HIDE) != (int)PackerCaps.PK_CAPS_HIDE))
                 {
@@ -502,7 +502,7 @@ namespace zfile
         {
             for (int i = 0; i < WcxPlugins.Count; i++)
             {
-                string mask = "*" + Path.DirectorySeparatorChar + WcxPlugins.Ext[i];
+                string mask = "*." + WcxPlugins.Ext[i];
                 if (WcxPlugins.Enabled[i] && MatchesMask(archiveFileName, mask))
                     return true;
             }

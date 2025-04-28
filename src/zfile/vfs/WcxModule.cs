@@ -1218,13 +1218,16 @@ namespace zfile
 		//}
 	}
 
-	public class WcxModuleList
+	public class WcxModuleList : StringList
 	{
 		public List<WcxModule> _modules = new();
 		public List<string> _cfg = new();
 		public Dictionary<string, WcxModule> _exts = new();
 		public bool isConfigChanged = false;
-		public List<string> Ext { get => _exts.Keys.ToList(); }
+		public List<string> Ext { get => _exts.Keys.ToList(); set { throw new NotImplementedException(); } }
+		public string[] FileName { get { throw new NotImplementedException(); } set { throw new NotImplementedException(); } }
+		public int[] Flags { get { throw new NotImplementedException(); } set { throw new NotImplementedException(); } }
+		public bool[] Enabled { get { throw new NotImplementedException(); } set { throw new NotImplementedException(); } }
 		public WcxModuleList()
 		{
 			LoadConfiguration();

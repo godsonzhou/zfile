@@ -62,7 +62,7 @@ namespace zfile
 		{
 			FileName = headerDataExW.FileName;
 			PackSize = headerDataExW.PackSizeHigh << 32 | headerDataExW.PackSizeLow;
-			UnpSize = headerDataExW.PackSizeHigh << 32 | headerDataExW.PackSizeLow;
+			UnpSize = headerDataExW.UnpSizeHigh << 32 | headerDataExW.UnpSizeLow;
 			FileAttr = (FileAttributes)headerDataExW.FileAttr;
 			FileTime = headerDataExW.FileTime;
 			CRC = headerDataExW.FileCRC;

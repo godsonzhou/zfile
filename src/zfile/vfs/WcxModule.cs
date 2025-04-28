@@ -1547,6 +1547,16 @@ namespace zfile
 								}
 								if (AddModule(module))
 									_exts[parts[0].Trim()] = module;
+							//}
+							//WcxModule wcxModule = WcxPlugins.LoadModule(plugin);
+							//if (wcxModule != null)
+							//{
+								int flags = module.PluginCapabilities;
+								foreach (string ext in detectstring.Split(','))
+								{
+									var result = Add(ext, flags, path);
+									FileName[result] = name; // GetPluginFilenameToSave(plugin);
+								}
 							}
 						}
 						else
@@ -1555,6 +1565,8 @@ namespace zfile
 							{
 								module.DetectStrings.Add(detectstring);
 								_exts[parts[0].Trim()] = module;
+								var result = Add(detectstring, module.PluginCapabilities, path);
+								FileName[result] = name;
 							}
 						}
 					}

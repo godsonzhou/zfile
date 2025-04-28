@@ -103,7 +103,8 @@ namespace zfile
         /// <returns>The index of the added string</returns>
         public int AddObject(string value, object obj)
         {
-            _strings.Add(value);
+			//if (_strings.Contains(value)) return -1;
+			_strings.Add(value);
             _objects.Add(obj);
             return _strings.Count - 1;
         }

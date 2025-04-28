@@ -656,25 +656,33 @@ public class FileEntry : IDisposable
 
     public FileNameProperty NameProperty
     {
-        get { return (FileNameProperty)_properties[FilePropertyType.Name]; }
+        get {
+			EnsurePropertyExists(FilePropertyType.Name);
+			return (FileNameProperty)_properties[FilePropertyType.Name]; }
         set { SetProperty(FilePropertyType.Name, value); }
     }
 
     public FileSizeProperty SizeProperty
     {
-        get { return (FileSizeProperty)_properties[FilePropertyType.Size]; }
+        get { 
+			EnsurePropertyExists(FilePropertyType.Size);
+			return (FileSizeProperty)_properties[FilePropertyType.Size]; }
         set { SetProperty(FilePropertyType.Size, value); }
     }
 
     public FileCompressedSizeProperty CompressedSizeProperty
     {
-        get { return (FileCompressedSizeProperty)_properties[FilePropertyType.CompressedSize]; }
+        get { 
+			EnsurePropertyExists(FilePropertyType.CompressedSize);
+			return (FileCompressedSizeProperty)_properties[FilePropertyType.CompressedSize]; }
         set { SetProperty(FilePropertyType.CompressedSize, value); }
     }
 
     public FileAttributesProperty AttributesProperty
     {
-        get { return (FileAttributesProperty)_properties[FilePropertyType.Attributes]; }
+        get {
+			EnsurePropertyExists(FilePropertyType.Attributes);
+			return (FileAttributesProperty)_properties[FilePropertyType.Attributes]; }
         set
         {
             SetProperty(FilePropertyType.Attributes, value);
@@ -685,31 +693,41 @@ public class FileEntry : IDisposable
 
     public FileModificationDateTimeProperty ModificationTimeProperty
     {
-        get { return (FileModificationDateTimeProperty)_properties[FilePropertyType.ModificationTime]; }
+        get { 
+			EnsurePropertyExists(FilePropertyType.ModificationTime);
+			return (FileModificationDateTimeProperty)_properties[FilePropertyType.ModificationTime]; }
         set { SetProperty(FilePropertyType.ModificationTime, value); }
     }
 
     public FileCreationDateTimeProperty CreationTimeProperty
     {
-        get { return (FileCreationDateTimeProperty)_properties[FilePropertyType.CreationTime]; }
+        get {
+			EnsurePropertyExists(FilePropertyType.CreationTime);
+			return (FileCreationDateTimeProperty)_properties[FilePropertyType.CreationTime]; }
         set { SetProperty(FilePropertyType.CreationTime, value); }
     }
 
     public FileLastAccessDateTimeProperty LastAccessTimeProperty
     {
-        get { return (FileLastAccessDateTimeProperty)_properties[FilePropertyType.LastAccessTime]; }
+        get {
+			EnsurePropertyExists(FilePropertyType.LastAccessTime);
+			return (FileLastAccessDateTimeProperty)_properties[FilePropertyType.LastAccessTime]; }
         set { SetProperty(FilePropertyType.LastAccessTime, value); }
     }
 
     public FileChangeDateTimeProperty ChangeTimeProperty
     {
-        get { return (FileChangeDateTimeProperty)_properties[FilePropertyType.ChangeTime]; }
+        get {
+			EnsurePropertyExists(FilePropertyType.ChangeTime);
+			return (FileChangeDateTimeProperty)_properties[FilePropertyType.ChangeTime]; }
         set { SetProperty(FilePropertyType.ChangeTime, value); }
     }
 
     public FileLinkProperty LinkProperty
     {
-        get { return (FileLinkProperty)_properties[FilePropertyType.Link]; }
+        get { 
+			EnsurePropertyExists(FilePropertyType.Link);
+			return (FileLinkProperty)_properties[FilePropertyType.Link]; }
         set { SetProperty(FilePropertyType.Link, value); }
     }
 
@@ -723,7 +741,9 @@ public class FileEntry : IDisposable
 
     public FileTypeProperty TypeProperty
     {
-        get { return (FileTypeProperty)_properties[FilePropertyType.Type]; }
+        get { 
+			EnsurePropertyExists(FilePropertyType.Type);
+			return (FileTypeProperty)_properties[FilePropertyType.Type]; }
         set { SetProperty(FilePropertyType.Type, value); }
     }
 

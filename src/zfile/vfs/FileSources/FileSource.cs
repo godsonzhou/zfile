@@ -378,7 +378,7 @@ namespace zfile
 		/// <param name="path">The path</param>
 		/// <returns>True if the path is at the root, false otherwise</returns>
 		bool IsPathAtRoot(string path);
-		string CurrentPath { get; }
+		string CurrentPath { get; set; }
 	
 	
 		/// <summary>
@@ -698,7 +698,7 @@ namespace zfile
 		/// Gets or sets the parent file source of this file source
 		/// </summary>
 		public virtual IFileSource ParentFileSource { get; set; }
-		public virtual string CurrentPath { get; }
+		public virtual string CurrentPath { get; set; }
 
 		/// <summary>
 		/// Creates a new instance of the FileSource class

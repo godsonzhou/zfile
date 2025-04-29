@@ -18,8 +18,54 @@ using zfile.vfs;
 
 namespace zfile
 {
+	// 自定义类来封装字典并实现映射
+
+
 	public partial class MainForm : Form
 	{
+		public class FileSourceMapper
+		{
+			private Dictionary<string, IFileSource?> FileSourceDict = new();
+			private MainForm _mainForm;
+			public FileSourceMapper(MainForm mainForm)
+			{
+				FileSourceDict.Add("L", mainForm._leftFileSource);
+				FileSourceDict.Add("R", _mainForm._rightFileSource);
+				FileSourceDict.Add("A", _mainForm.ActiveFileSource);
+				FileSourceDict.Add("I", _mainForm.InactiveFileSource);
+				_mainForm = mainForm;
+			}
+			// 重写索引器
+			public string this[string key]
+			{
+				get
+				{
+					if (FileSourceDict.ContainsKey(key))
+					{
+						return FileSourceDict[key].CurrentPath;
+					}
+					throw new KeyNotFoundException($"Key {key} not found in FileSourceDict.");
+				}
+				set
+				{
+					if (FileSourceDict.ContainsKey(key))
+					{
+						FileSourceDict[key].CurrentPath = value;
+					}
+					throw new KeyNotFoundException($"Key {key} not found in FileSourceDict.");
+				}
+			}
+			public bool TryGetValue(string key, out string? value)
+			{
+				if (FileSourceDict.ContainsKey(key))
+				{
+					value = FileSourceDict[key]?.CurrentPath;
+					return true;
+				}
+				value = null;
+				return false;
+			}
+		}
 		const int ILD_TRANSPARENT = 0x00000001;
 		public static IntPtr _Handle { get; set; }
 		public readonly FTPMGR fTPMGR;
@@ -28,7 +74,7 @@ namespace zfile
 		// FileSource 相关成员变量
 		private IFileSource? _leftFileSource;
 		private IFileSource? _rightFileSource;
-
+		
 		private IFileSource? ActiveFileSource => uiManager.isleft ? _leftFileSource : _rightFileSource;
 		private IFileSource? InactiveFileSource => uiManager.isleft ? _rightFileSource : _leftFileSource;
 		private readonly OperationsManager _operationsManager = new OperationsManager();
@@ -107,9 +153,10 @@ namespace zfile
 		public TreeNode activeThispc { get { return isleft ? thispcL : thispcR; } }
 		public TreeNode unactiveThispc { get { return !isleft ? thispcL : thispcR; } }
 		public TreeView? FocusedTree { get => uiManager.FocusedTree; }
-
 		private readonly FileSystemWatcher watcher = new();
-		public Dictionary<string, string> CurrentDir = new();
+		
+		public FileSourceMapper CurrentDir;
+
 		private TreeNode? selectedNode = null;
 		public TreeNode? SelectedNode
 		{
@@ -231,6 +278,7 @@ namespace zfile
 		}
 		public MainForm()
 		{
+			CurrentDir = new(this);
 			env = Helper.getEnv();
 			specialpaths = Helper.GetSpecFolderPaths();
 			specFolderPaths = Helper.GetSpecPathFromReg(); //favarite
@@ -1973,7 +2021,8 @@ namespace zfile
 
 				// 执行列表操作
 				_operationsManager.AddOperation(listOperation);
-				await Task.Run(() => listOperation.Execute());
+				//await Task.Run(() => listOperation.Execute());
+				listOperation.Execute();
 
 				// 获取文件列表结果
 				var fileListOperation = listOperation as FileSourceListOperation;

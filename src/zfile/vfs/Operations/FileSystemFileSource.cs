@@ -34,6 +34,7 @@ namespace zfile
             OperationsClasses[FileSourceOperationType.Delete] = typeof(FileSystemDeleteOperation);
             OperationsClasses[FileSourceOperationType.Wipe] = typeof(FileSystemWipeOperation);
             OperationsClasses[FileSourceOperationType.Combine] = typeof(FileSystemCombineOperation);
+			OperationsClasses[FileSourceOperationType.Split] = typeof(FileSystemSplitOperation);
             OperationsClasses[FileSourceOperationType.CreateDirectory] = typeof(FileSystemCreateDirectoryOperation);
             OperationsClasses[FileSourceOperationType.CalcChecksum] = typeof(FileSystemCalcChecksumOperation);
             OperationsClasses[FileSourceOperationType.CalcStatistics] = typeof(FileSystemCalcStatisticsOperation);

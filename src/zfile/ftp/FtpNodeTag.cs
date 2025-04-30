@@ -2,8 +2,17 @@ using System.Net;
 using FluentFTP;
 namespace zfile
 {
-	public class ArchNodeTag
+	public class LvItemTag(FileEntry file, TreeNode node)
 	{
+		public FileEntry File = file;
+		public TreeNode Node = node;
+	}
+	public class ArchNodeTag : LvItemTag
+	{
+		public ArchNodeTag(FileEntry file, TreeNode node) : base(file, node)
+		{
+		
+		}
 		public IntPtr Handler;
 		public string Path;
 	}

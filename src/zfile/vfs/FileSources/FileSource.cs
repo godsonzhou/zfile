@@ -380,7 +380,6 @@ namespace zfile
 		bool IsPathAtRoot(string path);
 		string CurrentPath { get; set; }
 	
-	
 		/// <summary>
 		/// Gets the parent directory of the specified path
 		/// </summary>

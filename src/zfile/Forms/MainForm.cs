@@ -12,12 +12,14 @@ using ICSharpCode.TextEditor.Actions;
 using MessagePack;
 using System.Security.Claims;
 using zfile.vfs;
+using System.Diagnostics.Eventing.Reader;
 // using zfile.vfs.FileSources;
 // using zfile.vfs.Operations;
 // using zfile.vfs.Operations.FileSystem;
 
 namespace zfile
 {
+
 	public partial class MainForm : Form
 	{
 		// 自定义类来封装字典并实现映射
@@ -1293,20 +1295,30 @@ namespace zfile
 
 			//string path = Path.Combine(CurrentDir[LRflag], selectedItem.Text);//bugfix:平铺模式下此方法获取完整路径不行，改为直接从subitem[1]读取
 			var path = selectedItem.SubItems[1].Text;
-			if (IsArchiveFile(path))
+			var fileSource = CurrentDir.GetFileSource(LRflag);
+			var isarchive = false;
+			if ((fileSource is WcxArchiveFileSource))
+			{
+				isarchive = true;
+			}
+			else if (IsArchiveFile(path))
 			{
 				// 使用 FileSourceManager 获取 WcxArchiveFileSource
-				IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path);
-
-				// 更新当前面板的 FileSource
-				if (listView == uiManager.LeftList)
-					LeftFileSource = fileSource;
+				//fileSource = _fileSourceManager.GetFileSourceForPath(path);
+				isarchive = true;
+			}
+			if (isarchive) {
+				var lvItemTag = selectedItem.Tag as LvItemTag;
+				var lvItemFile = lvItemTag.File;
+				if (lvItemFile.IsDirectory)
+					// 使用 FileSource 架构加载文件列表
+					_ = LoadListViewByFileSourceAsync(path, listView, selectedItem.Tag as TreeNode);
 				else
-					RightFileSource = fileSource;
-
-				// 使用 FileSource 架构加载文件列表
-				_ = LoadListViewByFileSourceAsync(path, listView, selectedItem.Tag as TreeNode);
-
+				{
+					// 调用wcxfilesourceexecuteoperation
+					var op = fileSource.CreateExecuteOperation(lvItemFile, fileSource.CurrentPath, "open");
+					op?.Execute();
+				}
 				// 更新当前路径
 				CurrentDir[LRflag] = path;
 				return;
@@ -1793,7 +1805,7 @@ namespace zfile
 							iconManager.LoadIconFromCacheByKey(ico, lv.SmallImageList);
 							i.ImageKey = ico;
 							i.Text = name;
-							i.Tag = node;   //tag存放父节点
+							i.Tag = new LvItemTag() { File = null, Node = node };   //tag存放父节点
 							lv.Items.Add(i);
 						}
 					}
@@ -2037,8 +2049,11 @@ namespace zfile
 			bool isLeftPanel = listView == uiManager.LeftList;
 
 			// 使用 FileSourceManager 获取合适的 FileSource
-			IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path);
-
+			IFileSource? fileSource;
+			if (Path.IsPathFullyQualified(path))
+				fileSource = _fileSourceManager.GetFileSourceForPath(path);
+			else
+				fileSource = CurrentDir.GetFileSource(listView.Name);
 			// 更新当前面板的 FileSource
 			if (isLeftPanel)
 				LeftFileSource = fileSource;
@@ -2054,7 +2069,7 @@ namespace zfile
 				string operationPath = path;
 
 				// 如果是WcxArchiveFileSource，需要处理路径
-				if (fileSource is WcxArchiveFileSource wcxArchiveFileSource)
+				if (fileSource is WcxArchiveFileSource wcxArchiveFileSource && Path.IsPathFullyQualified(path))
 				{
 					// 获取压缩文件的路径
 					string archivePath = wcxArchiveFileSource.ArchivePath;
@@ -2107,11 +2122,11 @@ namespace zfile
 				// 添加所有项目到 ListView
 				foreach (var file in files)
 				{
-					var lvItem = CreateListViewItemFromFileEntry(file, showFolderSize);
+					var lvItem = CreateListViewItemFromFileEntry(file, showFolderSize, parentnode);
 					if (lvItem != null)
 					{
 						var f = SetIconForListViewItem(lvItem, listView, subkey);
-						lvItem.Tag = parentnode;
+						//lvItem.Tag = parentnode;
 						listView.Items.Add(lvItem);
 					}
 				}
@@ -2145,7 +2160,7 @@ namespace zfile
 		}
 
 		// 创建 ListViewItem (从 FileEntry)
-		private ListViewItem? CreateListViewItemFromFileEntry(FileEntry file, bool showFolderSize)
+		private ListViewItem? CreateListViewItemFromFileEntry(FileEntry file, bool showFolderSize, TreeNode node)
 		{
 			try
 			{
@@ -2184,7 +2199,9 @@ namespace zfile
 					};
 				}
 
-				return new ListViewItem(itemData);
+				var ret = new ListViewItem(itemData);
+				ret.Tag = new LvItemTag() { File = file, Node = node };
+				return ret;
 			}
 			catch (Exception ex)
 			{
@@ -2937,7 +2954,8 @@ namespace zfile
 			while (wcxModule.ReadHeader(handle, out headerData))
 			{
 				var item = new ListViewItem(headerData.FileName);
-				item.Tag = new ArchNodeTag() { Path = "", Handler = handle };
+				var lvitem = item.Tag as LvItemTag;
+				item.Tag = new ArchNodeTag(lvitem.File, lvitem.Node) { Path = "", Handler = handle };
 				item.SubItems.Add(archivePath + "\\" + headerData.FileName); // file name with full path
 																			 // 将 vhigh 左移32位，然后与 vlow 进行按位或运算
 				var isdir = (int)headerData.FileAttr == 16;

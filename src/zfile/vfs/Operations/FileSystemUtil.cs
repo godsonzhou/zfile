@@ -164,7 +164,7 @@ namespace zfile
 					{
 						Name = Path.GetFileName(entry),
 						Attributes = File.GetAttributes(entry),
-						Size = fileInfo.Length,
+						Size = File.Exists(fileInfo.FullName) ? fileInfo.Length : 0,
 						Time = fileInfo.LastWriteTime,
 						PlatformTime = fileInfo.CreationTime,
 						LastAccessTime = fileInfo.LastAccessTime

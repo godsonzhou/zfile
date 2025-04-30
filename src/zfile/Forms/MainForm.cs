@@ -1293,6 +1293,14 @@ namespace zfile
 				}
 			}
 
+			if (selectedItem.SubItems[0].Text.Equals(".."))
+			{
+				cmdProcessor.cm_gotoparent();
+				return;
+			}
+			else if (selectedItem.SubItems[0].Text.Equals("."))
+				return;
+
 			//string path = Path.Combine(CurrentDir[LRflag], selectedItem.Text);//bugfix:平铺模式下此方法获取完整路径不行，改为直接从subitem[1]读取
 			var path = selectedItem.SubItems[1].Text;
 			var fileSource = CurrentDir.GetFileSource(LRflag);
@@ -2587,7 +2595,7 @@ namespace zfile
 		// 创建新文件夹
 		public void cm_mkdir(string? folderName = null)
 		{
-			if (folderName == null)
+			if (string.IsNullOrEmpty(folderName))
 				folderName = Microsoft.VisualBasic.Interaction.InputBox("请输入新文件夹名称: eg. dir1,dir2\\dir3", "新建文件夹", "新建文件夹");
 			if (string.IsNullOrWhiteSpace(folderName)) return;
 			var dirs = folderName.Split(',');
@@ -2812,6 +2820,10 @@ namespace zfile
 				string path = CurrentDir["L"];
 				if (!string.IsNullOrEmpty(path))
 				{
+					//refresh the treeview
+					var node = uiManager.LeftTree.SelectedNode;
+					LoadSubDirectories(node, uiManager.LeftList);
+
 					// 使用 FileSourceManager 获取合适的 FileSource
 					IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path);
 					LeftFileSource = fileSource;
@@ -2834,6 +2846,9 @@ namespace zfile
 				string path = CurrentDir["R"];
 				if (!string.IsNullOrEmpty(path))
 				{
+					//refresh the treeview
+					var node = uiManager.RightTree.SelectedNode;
+					LoadSubDirectories(node, uiManager.RightList);
 					// 使用 FileSourceManager 获取合适的 FileSource
 					IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path);
 					RightFileSource = fileSource;
@@ -3062,9 +3077,12 @@ namespace zfile
 			if (item.Tag is ArchNodeTag archNode)
 				return Path.Combine(archNode.Path, item.Text);
 			// 检查是否是FTP节点 // 对于FTP项，直接使用SubItems[1]中存储的完整路径 // 对于本地文件系统
-			if ((item.Tag is TreeNode) || (uiManager.activeTreeview.SelectedNode.Tag is FtpNodeTag))
+			if (uiManager.activeTreeview.SelectedNode.Tag is FtpNodeTag)
 				//bugfix: 如果使用平铺模式，无法从树节点的路径获取到ITEM的真实完整路径，所以只能从ITEM.SUBITEM[1]中获取
 				return item.SubItems[1].Text;
+			var lvitemtag = item.Tag as LvItemTag;
+			if (lvitemtag.File != null)
+				return lvitemtag.File.FullPath;
 			return string.Empty;
 		}
 		public void ToolbarStrip_Click(object sender, EventArgs e)

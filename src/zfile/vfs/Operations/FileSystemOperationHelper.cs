@@ -350,7 +350,7 @@ namespace zfile
 					}
 				}
 
-				File.Copy(file.Name, targetFilePath, true);
+				File.Copy(file.FullPath, targetFilePath, true);
 
 				if (CopyAttributesOptions != CopyAttributesOption.None)
 				{

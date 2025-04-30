@@ -308,16 +308,61 @@ namespace WinShell
 			//}
 			return GetDisplayName(folder, pidl, flags);
 		}
+		//public static string GetDisplayName(IShellFolder folder, IntPtr pidl, SHGDN flags)
+		//{
+		//	//return Marshal.PtrToStringAuto(pszName);
+		//	IntPtr pszName = Marshal.AllocCoTaskMem(MAX_PATH * 2 + 4);
+		//	Marshal.WriteInt32(pszName, 0, 0);
+		//	StringBuilder buf = new StringBuilder(MAX_PATH);
+		//	if (folder.GetDisplayNameOf(pidl, flags, pszName) == S_OK)
+		//		API.StrRetToBuf(pszName, pidl, buf, MAX_PATH);
+		//	Marshal.FreeCoTaskMem(pszName);
+		//	return buf.ToString();
+		//}
+		private static readonly object _comLock = new object();
+
 		public static string GetDisplayName(IShellFolder folder, IntPtr pidl, SHGDN flags)
 		{
-			//return Marshal.PtrToStringAuto(pszName);
-			IntPtr pszName = Marshal.AllocCoTaskMem(MAX_PATH * 2 + 4);
-			Marshal.WriteInt32(pszName, 0, 0);
-			StringBuilder buf = new StringBuilder(MAX_PATH);
-			if (folder.GetDisplayNameOf(pidl, flags, pszName) == S_OK)
-				API.StrRetToBuf(pszName, pidl, buf, MAX_PATH);
-			Marshal.FreeCoTaskMem(pszName);
-			return buf.ToString();
+			lock (_comLock)
+			{
+				IntPtr pszName = IntPtr.Zero;
+				try
+				{
+					if (folder == null || pidl == IntPtr.Zero)
+					{
+						throw new ArgumentException("Invalid folder or pidl");
+					}
+
+					pszName = Marshal.AllocCoTaskMem(MAX_PATH * 2 + 4);
+					Marshal.WriteInt32(pszName, 0, 0);
+					StringBuilder buf = new StringBuilder(MAX_PATH);
+
+					int hr = folder.GetDisplayNameOf(pidl, flags, pszName);
+					if (hr == S_OK)
+					{
+						API.StrRetToBuf(pszName, pidl, buf, MAX_PATH);
+					}
+					else
+					{
+						Marshal.ThrowExceptionForHR(hr);
+					}
+
+					return buf.ToString();
+				}
+				catch (Exception ex)
+				{
+					// 处理异常
+					Console.WriteLine($"Error getting display name: {ex.Message}");
+					return string.Empty;
+				}
+				finally
+				{
+					if (pszName != IntPtr.Zero)
+					{
+						Marshal.FreeCoTaskMem(pszName);
+					}
+				}
+			}
 		}
 		public static string GetDetails(IShellFolder2 folder, IntPtr pidl, SHCOLUMNID columnID)
 		{

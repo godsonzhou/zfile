@@ -18,52 +18,91 @@ using zfile.vfs;
 
 namespace zfile
 {
-	// 自定义类来封装字典并实现映射
-
-
 	public partial class MainForm : Form
 	{
+		// 自定义类来封装字典并实现映射
 		public class FileSourceMapper
 		{
+			private MainForm _mainform;
+			// FileSource 相关成员变量
+			private IFileSource? _leftFileSource;
+			private IFileSource? _rightFileSource;
+
+			public IFileSource? LeftFileSource
+			{
+				get => _leftFileSource;
+				set
+				{
+					_leftFileSource = value;
+					UpdateFileSourceDict("L", value);
+				}
+			}
+			public IFileSource? RightFileSource
+			{
+				get => _rightFileSource;
+				set
+				{
+					_rightFileSource = value;
+					UpdateFileSourceDict("R", value);
+				}
+			}
+
+			public IFileSource? ActiveFileSource => _mainform.isleft ? _leftFileSource : _rightFileSource;
+			public IFileSource? InactiveFileSource => _mainform.isleft ? _rightFileSource : _leftFileSource;
 			private Dictionary<string, IFileSource?> FileSourceDict = new();
-			private MainForm _mainForm;
 			public FileSourceMapper(MainForm mainForm)
 			{
-				FileSourceDict.Add("L", mainForm._leftFileSource);
-				FileSourceDict.Add("R", _mainForm._rightFileSource);
-				FileSourceDict.Add("A", _mainForm.ActiveFileSource);
-				FileSourceDict.Add("I", _mainForm.InactiveFileSource);
-				_mainForm = mainForm;
+				_mainform = mainForm;
+				FileSourceDict.Add("L", _leftFileSource);
+				FileSourceDict.Add("R", _rightFileSource);
+				FileSourceDict.Add("A", ActiveFileSource);
+				FileSourceDict.Add("I", InactiveFileSource);
 			}
 			// 重写索引器
 			public string this[string key]
 			{
 				get
 				{
-					if (FileSourceDict.ContainsKey(key))
+					if (FileSourceDict.TryGetValue(key, out IFileSource? value))
 					{
-						return FileSourceDict[key].CurrentPath;
+						return value?.CurrentPath ?? string.Empty;
 					}
 					throw new KeyNotFoundException($"Key {key} not found in FileSourceDict.");
 				}
 				set
 				{
-					if (FileSourceDict.ContainsKey(key))
+					if (FileSourceDict.TryGetValue(key, out IFileSource? result))
 					{
-						FileSourceDict[key].CurrentPath = value;
+						result.CurrentPath = value;
 					}
-					throw new KeyNotFoundException($"Key {key} not found in FileSourceDict.");
+					else
+						throw new KeyNotFoundException($"Key {key} not found in FileSourceDict.");
 				}
+			}
+			public IFileSource? GetFileSource(string key)
+			{
+				if (FileSourceDict.TryGetValue(key, out IFileSource? value))
+				{
+					return value ?? null;
+				}
+				return null;
 			}
 			public bool TryGetValue(string key, out string? value)
 			{
-				if (FileSourceDict.ContainsKey(key))
+				if (FileSourceDict.TryGetValue(key, out IFileSource? result))
 				{
-					value = FileSourceDict[key]?.CurrentPath;
+					value = result?.CurrentPath;
 					return true;
 				}
 				value = null;
 				return false;
+			}
+			private void UpdateFileSourceDict(string key, IFileSource? fileSource)
+			{
+				if (FileSourceDict.ContainsKey(key))
+				{
+					FileSourceDict[key] = fileSource;
+				}
 			}
 		}
 		const int ILD_TRANSPARENT = 0x00000001;
@@ -72,11 +111,11 @@ namespace zfile
 		public readonly AsyncFTPMGR asyncfTPMGR;
 
 		// FileSource 相关成员变量
-		private IFileSource? _leftFileSource;
-		private IFileSource? _rightFileSource;
-		
-		private IFileSource? ActiveFileSource => uiManager.isleft ? _leftFileSource : _rightFileSource;
-		private IFileSource? InactiveFileSource => uiManager.isleft ? _rightFileSource : _leftFileSource;
+		private IFileSource? LeftFileSource { get => CurrentDir.LeftFileSource;  set => CurrentDir.LeftFileSource = value; }
+		private IFileSource? RightFileSource { get => CurrentDir.RightFileSource; set => CurrentDir.RightFileSource = value; }
+
+		private IFileSource? ActiveFileSource => CurrentDir.ActiveFileSource;
+		private IFileSource? InactiveFileSource => CurrentDir.InactiveFileSource;
 		private readonly OperationsManager _operationsManager = new OperationsManager();
 		private readonly VfsModuleManager _vfsModuleManager = new VfsModuleManager();
 		private readonly FileSourceManager _fileSourceManager = FileSourceManager.Instance;
@@ -278,7 +317,6 @@ namespace zfile
 		}
 		public MainForm()
 		{
-			CurrentDir = new(this);
 			env = Helper.getEnv();
 			specialpaths = Helper.GetSpecFolderPaths();
 			specFolderPaths = Helper.GetSpecPathFromReg(); //favarite
@@ -308,6 +346,7 @@ namespace zfile
 			// 创建UIManager并初始化
 			uiManager = new UIControlManager(this);
 			uiManager.InitializeUI();
+			CurrentDir = new(this);
 
 			// 创建默认书签
 			uiManager.BookmarkManager.CreateDefaultBookmarks();
@@ -354,8 +393,8 @@ namespace zfile
 			_fileSourceManager.Initialize(wcxModuleList, fTPMGR);
 
 			// 初始化默认 FileSource
-			_leftFileSource = new FileSystemFileSource();
-			_rightFileSource = new FileSystemFileSource();
+			LeftFileSource = new FileSystemFileSource();
+			RightFileSource = new FileSystemFileSource();
 
 			se = new ShellExecuteHelper(this);
 			ClearMemory();
@@ -968,20 +1007,20 @@ namespace zfile
 					var path = Helper.getFSpathbyTree(e.Node);
 					if (string.IsNullOrEmpty(path)) return;
 
-					if (!CurrentDir.TryGetValue(LRflag, out string p))
-						CurrentDir[LRflag] = path;
-					else if (!CurrentDir[LRflag].Equals(path))
-						// 记录目录历史
-						RecordDirectoryHistory(path);
-
 					// 使用 FileSourceManager 获取合适的 FileSource
 					IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path);
 
 					// 更新当前活动面板的 FileSource
 					if (uiManager.isleft)
-						_leftFileSource = fileSource;
+						LeftFileSource = fileSource;
 					else
-						_rightFileSource = fileSource;
+						RightFileSource = fileSource;
+
+					if (!CurrentDir.TryGetValue(LRflag, out string p))
+						CurrentDir[LRflag] = path;
+					else if (!CurrentDir[LRflag].Equals(path))
+						// 记录目录历史
+						RecordDirectoryHistory(path);
 
 					// 使用 FileSource 架构加载文件列表
 					_ = LoadListViewByFileSourceAsync(path, activeListView, e.Node);
@@ -1261,9 +1300,9 @@ namespace zfile
 
 				// 更新当前面板的 FileSource
 				if (listView == uiManager.LeftList)
-					_leftFileSource = fileSource;
+					LeftFileSource = fileSource;
 				else
-					_rightFileSource = fileSource;
+					RightFileSource = fileSource;
 
 				// 使用 FileSource 架构加载文件列表
 				_ = LoadListViewByFileSourceAsync(path, listView, selectedItem.Tag as TreeNode);
@@ -1814,9 +1853,9 @@ namespace zfile
 
 			// 更新当前面板的 FileSource
 			if (listView == uiManager.LeftList)
-				_leftFileSource = recycleBinFileSource;
+				LeftFileSource = recycleBinFileSource;
 			else
-				_rightFileSource = recycleBinFileSource;
+				RightFileSource = recycleBinFileSource;
 
 			// 使用 FileSource 架构加载文件列表
 			_ = LoadListViewByFileSourceAsync("回收站", listView, null);
@@ -2002,9 +2041,9 @@ namespace zfile
 
 			// 更新当前面板的 FileSource
 			if (isLeftPanel)
-				_leftFileSource = fileSource;
+				LeftFileSource = fileSource;
 			else
-				_rightFileSource = fileSource;
+				RightFileSource = fileSource;
 
 			try
 			{
@@ -2141,9 +2180,9 @@ namespace zfile
 
 			// 更新当前面板的 FileSource
 			if (listView == uiManager.LeftList)
-				_leftFileSource = fileSource;
+				LeftFileSource = fileSource;
 			else
-				_rightFileSource = fileSource;
+				RightFileSource = fileSource;
 
 			// 使用 FileSource 架构加载文件列表
 			await LoadListViewByFileSourceAsync(path, listView, parentnode);
@@ -2573,9 +2612,9 @@ namespace zfile
 
 			// 更新当前面板的 FileSource
 			if (listView == uiManager.LeftList)
-				_leftFileSource = fileSource;
+				LeftFileSource = fileSource;
 			else
-				_rightFileSource = fileSource;
+				RightFileSource = fileSource;
 
 			// 使用 FileSource 架构加载文件列表
 			_ = LoadListViewByFileSourceAsync(path, listView, node);
@@ -2604,9 +2643,9 @@ namespace zfile
 
 			// 更新当前面板的 FileSource
 			if (isLeftPanel)
-				_leftFileSource = fileSource;
+				LeftFileSource = fileSource;
 			else
-				_rightFileSource = fileSource;
+				RightFileSource = fileSource;
 
 			// 清空列表视图
 			listView.Items.Clear();
@@ -2735,7 +2774,7 @@ namespace zfile
 				{
 					// 使用 FileSourceManager 获取合适的 FileSource
 					IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path);
-					_leftFileSource = fileSource;
+					LeftFileSource = fileSource;
 
 					// 使用 FileSource 架构刷新左面板
 					_ = LoadListViewByFileSourceAsync(path, uiManager.LeftList, uiManager.LeftTree.SelectedNode);
@@ -2757,7 +2796,7 @@ namespace zfile
 				{
 					// 使用 FileSourceManager 获取合适的 FileSource
 					IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path);
-					_rightFileSource = fileSource;
+					RightFileSource = fileSource;
 
 					// 使用 FileSource 架构刷新右面板
 					_ = LoadListViewByFileSourceAsync(path, uiManager.RightList, uiManager.RightTree.SelectedNode);

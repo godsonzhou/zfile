@@ -105,7 +105,7 @@ namespace zfile
                 IShellFolder controlPanelFolder = _fileSource.GetControlPanelFolder();
 
                 // 枚举控制面板项目
-                var flags = SHCONTF.FOLDERS | SHCONTF.NONFOLDERS;
+                var flags = SHCONTF.FOLDERS;
                 controlPanelFolder.EnumObjects(IntPtr.Zero, flags, out IntPtr enumPtr);
 
                 if (enumPtr != IntPtr.Zero)

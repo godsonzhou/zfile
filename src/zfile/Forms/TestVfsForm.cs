@@ -430,6 +430,7 @@ namespace zfile
                     // Create archive file source
                     var fileSystemFileSource = new FileSystemFileSource();
                     _currentFileSource = new WcxArchiveFileSource(fileSystemFileSource, archivePath, wcxModule.FilePath, wcxModule.PluginCapabilities);
+
                     _currentPath = Path.DirectorySeparatorChar.ToString();
 
                     if (_currentFileSource == null || _currentPath == null) return;
@@ -500,8 +501,6 @@ namespace zfile
             {
                 ListViewItem selectedItem = listViewFiles.SelectedItems[0];
                 if (selectedItem.Tag is FileEntry file)
-
-
                 {
                     if (file.IsDirectory)
                     {

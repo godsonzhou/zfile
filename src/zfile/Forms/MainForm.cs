@@ -3565,6 +3565,7 @@ namespace zfile
 						if (Directory.Exists(dir))
 						{
 							Directory.Delete(dir, true);
+							FocusedTree.SelectedNode = FocusedTree.SelectedNode.Parent;//bugfix: if delete a node from tree, will lead to refreshpanel exception occurs, so change the selected node to its parent
 							RefreshPanel(FocusedTree);
 						}
 					}

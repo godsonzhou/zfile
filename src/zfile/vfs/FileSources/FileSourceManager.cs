@@ -105,6 +105,7 @@ namespace zfile
         /// <returns>A file source that can handle the path</returns>
         public IFileSource GetFileSourceForPath(string path)
         {
+			//isInArchive = false;
             if (string.IsNullOrEmpty(path))
                 return new FileSystemFileSource();
 
@@ -121,8 +122,11 @@ namespace zfile
                 fs is WcxArchiveFileSource wcxArchiveFileSource &&
                 path.StartsWith(wcxArchiveFileSource.ArchivePath, StringComparison.OrdinalIgnoreCase));
 
-            if (archiveFileSource != null)
-                return archiveFileSource;
+			if (archiveFileSource != null)
+			{
+				//isInArchive = true;
+				return archiveFileSource;
+			}
 
             // Check for recycle bin
             if (path == "回收站" || path.Contains(Resources.VfsRecycleBin))

@@ -2,10 +2,10 @@ using System.Net;
 using FluentFTP;
 namespace zfile
 {
-	public class LvItemTag(FileEntry file, TreeNode node)
+	public class LvItemTag(FileEntry? file, TreeNode? node)
 	{
-		public FileEntry File = file;
-		public TreeNode Node = node;
+		public FileEntry? File = file;
+		public TreeNode? Node = node;
 	}
 	public class ArchNodeTag : LvItemTag
 	{

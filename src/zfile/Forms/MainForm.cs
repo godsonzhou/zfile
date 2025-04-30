@@ -1297,20 +1297,22 @@ namespace zfile
 			var path = selectedItem.SubItems[1].Text;
 			var fileSource = CurrentDir.GetFileSource(LRflag);
 			var isarchive = false;
+			var isinarchive = false;
 			if ((fileSource is WcxArchiveFileSource))
 			{
 				isarchive = true;
+				isinarchive = true;
 			}
 			else if (IsArchiveFile(path))
 			{
-				// 使用 FileSourceManager 获取 WcxArchiveFileSource
-				//fileSource = _fileSourceManager.GetFileSourceForPath(path);
 				isarchive = true;
 			}
 			if (isarchive) {
+				// 使用 FileSourceManager 获取 WcxArchiveFileSource
+				//fileSource = _fileSourceManager.GetFileSourceForPath(path);
 				var lvItemTag = selectedItem.Tag as LvItemTag;
 				var lvItemFile = lvItemTag.File;
-				if (lvItemFile.IsDirectory)
+				if (lvItemFile.IsDirectory || !isinarchive)
 					// 使用 FileSource 架构加载文件列表
 					_ = LoadListViewByFileSourceAsync(path, listView, selectedItem.Tag as TreeNode);
 				else
@@ -1805,7 +1807,7 @@ namespace zfile
 							iconManager.LoadIconFromCacheByKey(ico, lv.SmallImageList);
 							i.ImageKey = ico;
 							i.Text = name;
-							i.Tag = new LvItemTag() { File = null, Node = node };   //tag存放父节点
+							i.Tag = new LvItemTag(null, node);   //tag存放父节点
 							lv.Items.Add(i);
 						}
 					}
@@ -2200,7 +2202,7 @@ namespace zfile
 				}
 
 				var ret = new ListViewItem(itemData);
-				ret.Tag = new LvItemTag() { File = file, Node = node };
+				ret.Tag = new LvItemTag(file, node);
 				return ret;
 			}
 			catch (Exception ex)

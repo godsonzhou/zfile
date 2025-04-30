@@ -12,64 +12,64 @@ namespace zfile
         private readonly object _syncRoot = new object();
         private WcxModuleList _wcxModuleList;
         private FTPMGR _ftpManager;
-		/// <summary>
-		/// 管理不同类型的文件源，并根据路径提供合适的文件源实例
-		/// </summary>
+        /// <summary>
+        /// 管理不同类型的文件源，并根据路径提供合适的文件源实例
+        /// </summary>
 
-		private static readonly Lazy<FileSourceManager> _instance = new Lazy<FileSourceManager>(() => new FileSourceManager());
-		public static FileSourceManager Instance => _instance.Value;
+        private static readonly Lazy<FileSourceManager> _instance = new Lazy<FileSourceManager>(() => new FileSourceManager());
+        public static FileSourceManager Instance => _instance.Value;
 
-		//private WcxModuleList _wcxModuleList;
-		//private FTPMGR _ftpManager;
-		private readonly Dictionary<string, Type> _fileSourceTypes = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
+        //private WcxModuleList _wcxModuleList;
+        //private FTPMGR _ftpManager;
+        private readonly Dictionary<string, Type> _fileSourceTypes = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
 
-		//private FileSourceManager()
-		//{
-		//}
+        //private FileSourceManager()
+        //{
+        //}
 
-		/// <summary>
-		/// 初始化 FileSourceManager
-		/// </summary>
-		public void Initialize(WcxModuleList wcxModuleList, FTPMGR ftpManager)
-		{
-			_wcxModuleList = wcxModuleList;
-			_ftpManager = ftpManager;
+        /// <summary>
+        /// 初始化 FileSourceManager
+        /// </summary>
+        public void Initialize(WcxModuleList wcxModuleList, FTPMGR ftpManager)
+        {
+            _wcxModuleList = wcxModuleList;
+            _ftpManager = ftpManager;
 
-			// 注册默认文件源类型
-			RegisterFileSourceType<FileSystemFileSource>("filesystem");
-			RegisterFileSourceType<RecycleBinFileSource>("recycleBin");
-			RegisterFileSourceType<WcxArchiveFileSource>("archive");
-			RegisterFileSourceType<FtpFileSource>("ftp");
-			RegisterFileSourceType<ControlPanelFileSource>("controlpanel");
-		}
+            // 注册默认文件源类型
+            RegisterFileSourceType<FileSystemFileSource>("filesystem");
+            RegisterFileSourceType<RecycleBinFileSource>("recycleBin");
+            RegisterFileSourceType<WcxArchiveFileSource>("archive");
+            RegisterFileSourceType<FtpFileSource>("ftp");
+            RegisterFileSourceType<ControlPanelFileSource>("controlpanel");
+        }
 
-		/// <summary>
-		/// 注册文件源类型
-		/// </summary>
-		public void RegisterFileSourceType<T>(string typeName) where T : IFileSource
-		{
-			_fileSourceTypes[typeName] = typeof(T);
-		}
+        /// <summary>
+        /// 注册文件源类型
+        /// </summary>
+        public void RegisterFileSourceType<T>(string typeName) where T : IFileSource
+        {
+            _fileSourceTypes[typeName] = typeof(T);
+        }
 
-		/// <summary>
-		/// Gets the singleton instance of the FileSourceManager
-		/// </summary>
-		//public static FileSourceManager Instance
-		//{
-		//    get
-		//    {
-		//        if (_instance == null)
-		//        {
-		//            _instance = new FileSourceManager();
-		//        }
-		//        return _instance;
-		//    }
-		//}
+        /// <summary>
+        /// Gets the singleton instance of the FileSourceManager
+        /// </summary>
+        //public static FileSourceManager Instance
+        //{
+        //    get
+        //    {
+        //        if (_instance == null)
+        //        {
+        //            _instance = new FileSourceManager();
+        //        }
+        //        return _instance;
+        //    }
+        //}
 
-		/// <summary>
-		/// Creates a new instance of the FileSourceManager class
-		/// </summary>
-		private FileSourceManager()
+        /// <summary>
+        /// Creates a new instance of the FileSourceManager class
+        /// </summary>
+        private FileSourceManager()
         {
         }
 
@@ -114,6 +114,15 @@ namespace zfile
 
             if (existingFileSource != null)
                 return existingFileSource;
+
+            // 检查是否是压缩文件内部路径
+            // 遍历所有已存在的文件源，查找是否有WcxArchiveFileSource包含当前路径
+            var archiveFileSource = _fileSources.FirstOrDefault(fs =>
+                fs is WcxArchiveFileSource wcxArchiveFileSource &&
+                path.StartsWith(wcxArchiveFileSource.ArchivePath, StringComparison.OrdinalIgnoreCase));
+
+            if (archiveFileSource != null)
+                return archiveFileSource;
 
             // Check for recycle bin
             if (path == "回收站" || path.Contains(Resources.VfsRecycleBin))
@@ -242,23 +251,23 @@ namespace zfile
             }
         }
 
-		/// <summary>
-		/// 创建适合的复制操作
-		/// </summary>
-		//public FileSourceOperation CreateCopyOperation(
-		//    IFileSource sourceFileSource,
-		//    IFileSource targetFileSource,
-		//    FileEntries fileEntries,
-		//    string targetPath)
-		//{
-		//    // 如果源和目标是同一类型的文件源，使用源文件源的复制操作
-		//    if (sourceFileSource.GetType() == targetFileSource.GetType())
-		//    {
-		//        return sourceFileSource.CreateCopyOperation(fileEntries, targetPath);
-		//    }
+        /// <summary>
+        /// 创建适合的复制操作
+        /// </summary>
+        //public FileSourceOperation CreateCopyOperation(
+        //    IFileSource sourceFileSource,
+        //    IFileSource targetFileSource,
+        //    FileEntries fileEntries,
+        //    string targetPath)
+        //{
+        //    // 如果源和目标是同一类型的文件源，使用源文件源的复制操作
+        //    if (sourceFileSource.GetType() == targetFileSource.GetType())
+        //    {
+        //        return sourceFileSource.CreateCopyOperation(fileEntries, targetPath);
+        //    }
 
-		//    // 如果是不同类型的文件源，创建跨文件源复制操作
-		//    return new CrossFileSourceCopyOperation(sourceFileSource, targetFileSource, fileEntries, targetPath);
-		//}
-	}
+        //    // 如果是不同类型的文件源，创建跨文件源复制操作
+        //    return new CrossFileSourceCopyOperation(sourceFileSource, targetFileSource, fileEntries, targetPath);
+        //}
+    }
 }

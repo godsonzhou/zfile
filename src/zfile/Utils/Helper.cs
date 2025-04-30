@@ -47,7 +47,7 @@ namespace zfile
 			return new MenuInfo(Name, Button, Cmd, Param, Path, Iconic, Menu);
 		}
 	}
-	
+
 	internal static class Helper
 	{
 		public static (string cmd, string arg) SplitCommand(string input)
@@ -192,7 +192,7 @@ namespace zfile
 		//			Debug.Print($"执行出错：{ex.Message}");
 		//		}
 		//	}
-		//	return string.Empty; 
+		//	return string.Empty;
 		//}
 		public static string Getfiletype(string args)
 		{
@@ -252,7 +252,7 @@ namespace zfile
 			}
 		}
 
-		public static void WriteConfigToFile( string path, List<MenuInfo> list)
+		public static void WriteConfigToFile(string path, List<MenuInfo> list)
 		{
 			var cfg = Write_em_Config(list);
 			File.WriteAllText(path, cfg);
@@ -699,7 +699,7 @@ namespace zfile
 			}
 			return result;
 		}
-		
+
 		public static string[] RemoveQuotes(string[] originalList)
 		{
 			List<string> resultList = new();
@@ -763,7 +763,7 @@ namespace zfile
 				}
 				// 将目标节的内容替换为新内容
 				fileContent = fileContent.Remove(sectionStartIndex + sectionContent.Length + 1, sectionEndIndex - sectionStartIndex - sectionContent.Length - 1);
-				fileContent = fileContent.Insert(sectionStartIndex + sectionContent.Length + 1, "\r\n"+string.Join("\r\n", content)) + "\r\n";
+				fileContent = fileContent.Insert(sectionStartIndex + sectionContent.Length + 1, "\r\n" + string.Join("\r\n", content)) + "\r\n";
 				// 写入文件
 				File.WriteAllText(filePath, fileContent, Encoding.GetEncoding("GB2312"));
 			}
@@ -817,9 +817,9 @@ namespace zfile
 
 			return sectionContent;
 		}
-	
 
-		public static Dictionary<string,string> GetSpecFolderPaths()
+
+		public static Dictionary<string, string> GetSpecFolderPaths()
 		{
 			//遍历ShellSpecialFolders枚举值，获取对应的路径并存入一个列表
 			Dictionary<string, string> specFolderPaths = new Dictionary<string, string>();
@@ -870,7 +870,7 @@ namespace zfile
 			//Windows用户打印目录路径
 			specialpaths["printhood"] = folders.GetValue("Printhood").ToString();
 			String Path = Environment.GetFolderPath(Environment.SpecialFolder.Favorites);//返回收藏夹位置
-			foreach(var p in specialpaths)
+			foreach (var p in specialpaths)
 				Debug.Print(p.Key + ":" + p.Value);
 			return specialpaths;
 		}
@@ -914,9 +914,9 @@ namespace zfile
 				//top node process, does not need to process listviewbyfilesystem
 				return string.Empty;
 			}
-			var parentfolder = ((ShellItem)Node.Parent.Tag).ShellFolder;	//获取父节点的ishellfoler
-			var pidl = ((ShellItem)Node.Tag).PIDL;	//获取c:\\节点的pidl
-			return w32.GetPathByIShell(parentfolder, pidl);	//取得实际path
+			var parentfolder = ((ShellItem)Node.Parent.Tag).ShellFolder;    //获取父节点的ishellfoler
+			var pidl = ((ShellItem)Node.Tag).PIDL;  //获取c:\\节点的pidl
+			return w32.GetPathByIShell(parentfolder, pidl); //取得实际path
 		}
 		public static string getFSpathbyList(string path)
 		{
@@ -946,8 +946,11 @@ namespace zfile
 		}
 		//Examples:
 		//ExtractDirLevel('/home', '/home/somedir/somefile') = '/somedir/somefile'
-		internal static string? ExtractDirLevel(string prefixdir, string fullPath)
+		internal static string ExtractDirLevel(string prefixdir, string fullPath)
 		{
+			if (string.IsNullOrEmpty(prefixdir) || string.IsNullOrEmpty(fullPath))
+				return fullPath ?? string.Empty;
+
 			if (FileSystemUtil.IsInPath(prefixdir, fullPath, true, true))
 			{
 				return fullPath.Substring(prefixdir.Length, fullPath.Length - prefixdir.Length);
@@ -957,12 +960,15 @@ namespace zfile
 
 		internal static string ExcludeFrontPathDelimiter(string fullPath)
 		{
+			if (string.IsNullOrEmpty(fullPath))
+				return string.Empty;
+
 			return fullPath.TrimStart('\\');
 		}
 
 		internal static string IncludeFrontPathDelimiter(string currentFilePath)
 		{
-			if(currentFilePath.Length > 0 && currentFilePath[1] == Path.DirectorySeparatorChar)
+			if (currentFilePath.Length > 0 && currentFilePath[1] == Path.DirectorySeparatorChar)
 			{
 				return currentFilePath;
 			}

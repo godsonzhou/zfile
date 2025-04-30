@@ -111,7 +111,7 @@ namespace zfile
 		public readonly AsyncFTPMGR asyncfTPMGR;
 
 		// FileSource 相关成员变量
-		private IFileSource? LeftFileSource { get => CurrentDir.LeftFileSource;  set => CurrentDir.LeftFileSource = value; }
+		private IFileSource? LeftFileSource { get => CurrentDir.LeftFileSource; set => CurrentDir.LeftFileSource = value; }
 		private IFileSource? RightFileSource { get => CurrentDir.RightFileSource; set => CurrentDir.RightFileSource = value; }
 
 		private IFileSource? ActiveFileSource => CurrentDir.ActiveFileSource;
@@ -193,7 +193,7 @@ namespace zfile
 		public TreeNode unactiveThispc { get { return !isleft ? thispcL : thispcR; } }
 		public TreeView? FocusedTree { get => uiManager.FocusedTree; }
 		private readonly FileSystemWatcher watcher = new();
-		
+
 		public FileSourceMapper CurrentDir;
 
 		private TreeNode? selectedNode = null;
@@ -2051,10 +2051,31 @@ namespace zfile
 				CurrentDir[isLeftPanel ? "L" : "R"] = path;
 
 				// 创建列表操作
-				var listOperation = fileSource.CreateListOperation(path);
+				string operationPath = path;
+
+				// 如果是WcxArchiveFileSource，需要处理路径
+				if (fileSource is WcxArchiveFileSource wcxArchiveFileSource)
+				{
+					// 获取压缩文件的路径
+					string archivePath = wcxArchiveFileSource.ArchivePath;
+
+					// 如果当前路径包含压缩文件路径，则提取相对路径
+					if (path.StartsWith(archivePath, StringComparison.OrdinalIgnoreCase))
+					{
+						// 使用Helper.ExtractDirLevel获取相对路径
+						operationPath = Helper.ExtractDirLevel(archivePath, path);
+
+						// 确保路径格式正确（去掉前导斜杠）
+						operationPath = Helper.ExcludeFrontPathDelimiter(operationPath);
+						if (operationPath.Equals(string.Empty)) operationPath = fileSource.GetRootDir();
+						Debug.Print($"WcxArchiveFileSource: 将绝对路径 {path} 转换为相对路径 {operationPath}");
+					}
+				}
+
+				var listOperation = fileSource.CreateListOperation(operationPath);
 				if (listOperation == null)
 				{
-					Debug.Print($"无法为路径 {path} 创建列表操作");
+					Debug.Print($"无法为路径 {operationPath} 创建列表操作");
 					return;
 				}
 

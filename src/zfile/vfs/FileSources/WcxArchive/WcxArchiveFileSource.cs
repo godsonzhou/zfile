@@ -28,6 +28,11 @@ namespace zfile
         public int PluginCapabilities => _pluginCapabilities;
         public WcxModule WcxModule => _wcxModule;
 
+        /// <summary>
+        /// 获取压缩文件的完整路径
+        /// </summary>
+        public string ArchivePath => ArchiveFileName;
+
         public WcxArchiveFileSource(IFileSource archiveFileSource, string archiveFileName, string wcxPluginFileName, int wcxPluginCapabilities)
             : base(archiveFileSource, archiveFileName)
         {
@@ -194,7 +199,7 @@ namespace zfile
                 while (_wcxModule.ReadWCXHeader(arcHandle, ref header) == 0)
                 {
                     _arcFileEntries.Add(header.Clone());
-					_wcxModule.ProcessFile(arcHandle, ProcessMode.PK_SKIP, "", "");
+                    _wcxModule.ProcessFile(arcHandle, ProcessMode.PK_SKIP, "", "");
                     header = new WcxHeader();
                 }
 

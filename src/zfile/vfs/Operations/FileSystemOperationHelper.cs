@@ -526,7 +526,7 @@ namespace zfile
 			_checkOperationState();
 
 			// 获取目标文件名
-			string absoluteTargetFileName = Path.Combine(currentTargetPath, fileTreeNode.Name());
+			string absoluteTargetFileName = Path.Combine(currentTargetPath, fileTreeNode.Name);
 
 			// 检查目标是否存在
 			FileSystemOperationTargetExistsResult targetExists = TargetExists(ref absoluteTargetFileName);
@@ -536,11 +536,11 @@ namespace zfile
 			{
 				case FileSystemOperationTargetExistsResult.NotExists:
 					// 目标不存在，根据节点类型处理
-					if (fileTreeNode.IsDirectory())
+					if (fileTreeNode.IsDirectory)
 					{
 						return ProcessDirectory(fileTreeNode, absoluteTargetFileName);
 					}
-					else if (fileTreeNode.IsLink())
+					else if (fileTreeNode.IsLink)
 					{
 						return ProcessLink(absoluteTargetFileName);
 					}
@@ -641,7 +641,7 @@ namespace zfile
 				}
 
 				// 处理目录中的文件
-				var files = node.Files();
+				var files = node.Files;
 				if (files != null)
 				{
 					foreach (var file in files)
@@ -730,14 +730,14 @@ namespace zfile
 				// 复制文件
 				if (_mode == FileSourceOperationHelperMode.Copy)
 				{
-					if (!CopyFile(node.FileEntry(), absoluteTargetFileName, FileSystemOperationHelperCopyMode.Default))
+					if (!CopyFile(node.FileEntry, absoluteTargetFileName, FileSystemOperationHelperCopyMode.Default))
 					{
 						return false;
 					}
 				}
 				else if (_mode == FileSourceOperationHelperMode.Move)
 				{
-					if (!MoveFile(node.FileEntry(), absoluteTargetFileName, FileSystemOperationHelperCopyMode.Default))
+					if (!MoveFile(node.FileEntry, absoluteTargetFileName, FileSystemOperationHelperCopyMode.Default))
 					{
 						return false;
 					}
@@ -787,14 +787,14 @@ namespace zfile
 				return;
 
 			// 更新跳过的文件和目录统计信息
-			if (node.IsDirectory())
+			if (node.IsDirectory)
 			{
 				_statistics.SkippedDirectories++;
 			}
 			else
 			{
 				_statistics.SkippedFiles++;
-				_statistics.SkippedBytes += node.Size();
+				_statistics.SkippedBytes += node.Size;
 			}
 
 			// 更新统计信息
@@ -807,14 +807,14 @@ namespace zfile
 				return;
 
 			// 更新总文件和目录统计信息
-			if (node.IsDirectory())
+			if (node.IsDirectory)
 			{
 				_statistics.TotalDirectories++;
 			}
 			else
 			{
 				_statistics.TotalFiles++;
-				_statistics.TotalBytes += node.Size();
+				_statistics.TotalBytes += node.Size;
 			}
 
 			// 更新统计信息

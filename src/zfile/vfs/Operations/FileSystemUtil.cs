@@ -534,28 +534,28 @@ namespace zfile
 			SearchTemplate = new SearchTemplate("*");
 		}
 
-		public new void BuildFromFiles(FileEntries files)
-		{
-			_currentTree = new FileTree(string.Empty);
-			_filesCount = 0;
-			_filesSize = 0;
+		//public void BuildFromFiles(FileEntries files)
+		//{
+		//	_currentTree = new FileTree(string.Empty);
+		//	_filesCount = 0;
+		//	_filesSize = 0;
 
-			foreach (var file in files)
-			{
-				_checkOperationState();
-				ProcessFile(file);
-			}
-		}
+		//	foreach (var file in files)
+		//	{
+		//		_checkOperationState();
+		//		ProcessFile(file);
+		//	}
+		//}
 
-		private void ProcessFile(FileEntry file)
-		{
-			if (SearchTemplate != null && !SearchTemplate.Check(file))
-				return;
+		//private void ProcessFile(FileEntry file)
+		//{
+		//	if (SearchTemplate != null && !SearchTemplate.Check(file))
+		//		return;
 
-			_filesCount++;
-			_filesSize += file.Size;
-			_currentTree?.AddFile(file);
-		}
+		//	_filesCount++;
+		//	_filesSize += file.Size;
+		//	_currentTree?.AddFile(file);
+		//}
 
 		public new FileTree ReleaseTree()
 		{

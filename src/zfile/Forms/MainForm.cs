@@ -392,11 +392,11 @@ namespace zfile
 			fTPMGR.Initialize();
 
 			// 初始化 FileSourceManager
-			_fileSourceManager.Initialize(wcxModuleList, fTPMGR);
+			_fileSourceManager.Initialize(wcxModuleList, fTPMGR, this);
 
 			// 初始化默认 FileSource
-			LeftFileSource = new FileSystemFileSource();
-			RightFileSource = new FileSystemFileSource();
+			LeftFileSource = _fileSourceManager.GetFileSourceForPath("C:\\", true);
+			RightFileSource = _fileSourceManager.GetFileSourceForPath("C:\\", false);
 
 			se = new ShellExecuteHelper(this);
 			ClearMemory();
@@ -1010,7 +1010,7 @@ namespace zfile
 					if (string.IsNullOrEmpty(path)) return;
 
 					// 使用 FileSourceManager 获取合适的 FileSource
-					IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path);
+					IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path, isleft);
 
 					// 更新当前活动面板的 FileSource
 					if (uiManager.isleft)
@@ -1018,7 +1018,7 @@ namespace zfile
 					else
 						RightFileSource = fileSource;
 
-					if(string.IsNullOrEmpty(CurrentDir[LRflag]))
+					if (string.IsNullOrEmpty(CurrentDir[LRflag]))
 						CurrentDir[LRflag] = path;
 					else if (!CurrentDir[LRflag].Equals(path))
 						// 记录目录历史
@@ -1315,7 +1315,8 @@ namespace zfile
 			{
 				isarchive = true;
 			}
-			if (isarchive) {
+			if (isarchive)
+			{
 				// 使用 FileSourceManager 获取 WcxArchiveFileSource
 				//fileSource = _fileSourceManager.GetFileSourceForPath(path);
 				var lvItemTag = selectedItem.Tag as LvItemTag;
@@ -1871,7 +1872,7 @@ namespace zfile
 		public void LoadRecycleBin(ListView listView)
 		{
 			// 使用 FileSourceManager 获取回收站 FileSource
-			IFileSource recycleBinFileSource = _fileSourceManager.GetFileSourceForPath("回收站");
+			IFileSource recycleBinFileSource = _fileSourceManager.GetFileSourceForPath("回收站", isleft);
 
 			// 更新当前面板的 FileSource
 			if (listView == uiManager.LeftList)
@@ -2061,7 +2062,7 @@ namespace zfile
 			// 使用 FileSourceManager 获取合适的 FileSource
 			IFileSource? fileSource;
 			if (Path.IsPathFullyQualified(path))
-				fileSource = _fileSourceManager.GetFileSourceForPath(path);
+				fileSource = _fileSourceManager.GetFileSourceForPath(path, isleft);
 			else
 				fileSource = CurrentDir.GetFileSource(listView.Name);
 			// 更新当前面板的 FileSource
@@ -2224,7 +2225,7 @@ namespace zfile
 		private async Task LoadListViewByFilesystem(string path, ListView listView, TreeNode parentnode)
 		{
 			// 使用 FileSourceManager 获取合适的 FileSource
-			IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path);
+			IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path, isleft);
 
 			// 更新当前面板的 FileSource
 			if (listView == uiManager.LeftList)
@@ -2604,7 +2605,7 @@ namespace zfile
 			try
 			{
 				// 使用 FileSourceManager 获取合适的 FileSource
-				IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path);
+				IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path, isleft);
 
 				// 使用 FileSource 架构创建目录
 				foreach (var dir in dirs)
@@ -2656,7 +2657,7 @@ namespace zfile
 			LoadSubDirectories(node, listView);
 
 			// 使用 FileSourceManager 获取合适的 FileSource
-			IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path);
+			IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path, listView.Name.Equals("L"));
 
 			// 更新当前面板的 FileSource
 			if (listView == uiManager.LeftList)
@@ -2687,7 +2688,7 @@ namespace zfile
 			bool isLeftPanel = listView == uiManager.LeftList;
 
 			// 使用 FileSourceManager 获取合适的 FileSource
-			IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path);
+			IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path, isLeftPanel);
 
 			// 更新当前面板的 FileSource
 			if (isLeftPanel)
@@ -2825,7 +2826,7 @@ namespace zfile
 					LoadSubDirectories(node, uiManager.LeftList);
 
 					// 使用 FileSourceManager 获取合适的 FileSource
-					IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path);
+					IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path, true);
 					LeftFileSource = fileSource;
 
 					// 使用 FileSource 架构刷新左面板
@@ -2850,7 +2851,7 @@ namespace zfile
 					var node = uiManager.RightTree.SelectedNode;
 					LoadSubDirectories(node, uiManager.RightList);
 					// 使用 FileSourceManager 获取合适的 FileSource
-					IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path);
+					IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path, false);
 					RightFileSource = fileSource;
 
 					// 使用 FileSource 架构刷新右面板
@@ -3180,8 +3181,8 @@ namespace zfile
 				if (targetPath != null)
 				{
 					// 使用 FileSourceManager 获取源和目标 FileSource
-					IFileSource sourceFileSource = _fileSourceManager.GetFileSourceForPath(srcPath);
-					IFileSource targetFileSource = _fileSourceManager.GetFileSourceForPath(targetPath);
+					IFileSource sourceFileSource = _fileSourceManager.GetFileSourceForPath(srcPath, isleft);
+					IFileSource targetFileSource = _fileSourceManager.GetFileSourceForPath(targetPath, !isleft);
 
 					// 创建文件条目列表
 					var fileEntries = new FileEntries();
@@ -3449,8 +3450,8 @@ namespace zfile
 			try
 			{
 				// 使用 FileSourceManager 获取源和目标 FileSource
-				IFileSource sourceFileSource = _fileSourceManager.GetFileSourceForPath(srcpath);
-				IFileSource targetFileSource = _fileSourceManager.GetFileSourceForPath(targetPath);
+				IFileSource sourceFileSource = _fileSourceManager.GetFileSourceForPath(srcpath, isleft);
+				IFileSource targetFileSource = _fileSourceManager.GetFileSourceForPath(targetPath, !isleft);
 
 				// 创建文件条目列表
 				var fileEntries = new FileEntries();
@@ -3594,7 +3595,7 @@ namespace zfile
 				{
 					// 使用 FileSourceManager 获取合适的 FileSource
 					var path = CurrentDir[LRflag];
-					IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path);
+					IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path, isleft);
 
 					// 创建文件条目列表
 					var fileEntries = new FileEntries();

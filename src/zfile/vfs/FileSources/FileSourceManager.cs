@@ -7,8 +7,9 @@ namespace zfile
     /// </summary>
     public partial class FileSourceManager
     {
-        //private static FileSourceManager _instance;
-        private readonly List<IFileSource> _fileSources = new List<IFileSource>();
+		private MainForm _mainform;
+		//private static FileSourceManager _instance;
+		private List<IFileSource> _fileSources => _mainform.isleft ? _leftPanelFileSources.Values.ToList() : _rightPanelFileSources.Values.ToList();
         private readonly object _syncRoot = new object();
         private WcxModuleList _wcxModuleList;
         private FTPMGR _ftpManager;
@@ -18,6 +19,10 @@ namespace zfile
 
         private static readonly Lazy<FileSourceManager> _instance = new Lazy<FileSourceManager>(() => new FileSourceManager());
         public static FileSourceManager Instance => _instance.Value;
+
+        // 左右面板的FileSource缓存，键为路径，值为FileSource实例
+        private readonly Dictionary<string, IFileSource> _leftPanelFileSources = new Dictionary<string, IFileSource>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, IFileSource> _rightPanelFileSources = new Dictionary<string, IFileSource>(StringComparer.OrdinalIgnoreCase);
 
         //private WcxModuleList _wcxModuleList;
         //private FTPMGR _ftpManager;
@@ -30,8 +35,9 @@ namespace zfile
         /// <summary>
         /// 初始化 FileSourceManager
         /// </summary>
-        public void Initialize(WcxModuleList wcxModuleList, FTPMGR ftpManager)
+        public void Initialize(WcxModuleList wcxModuleList, FTPMGR ftpManager, MainForm mainform)
         {
+			_mainform = mainform;
             _wcxModuleList = wcxModuleList;
             _ftpManager = ftpManager;
 
@@ -102,45 +108,134 @@ namespace zfile
         /// Gets the appropriate file source for the given path
         /// </summary>
         /// <param name="path">Path to get file source for</param>
+        /// <param name="isLeftPanel">True if this is for the left panel, false for the right panel</param>
         /// <returns>A file source that can handle the path</returns>
-        public IFileSource GetFileSourceForPath(string path)
-        {
+        public IFileSource GetFileSourceForPath(string path, bool isLeftPanel)
+		{
+			// 获取对应面板的缓存
+			var panelCache = isLeftPanel ? _leftPanelFileSources : _rightPanelFileSources;
+
+            // 如果路径为空，返回默认的FileSystemFileSource
             if (string.IsNullOrEmpty(path))
-                return new FileSystemFileSource();
+            {
+                var rootPath = "C:\\";
+                var cacheKey = $"filesystem:{rootPath}";
 
-			// 检查是否是压缩文件内部路径
-			// 遍历所有已存在的文件源，查找是否有WcxArchiveFileSource包含当前路径
-			var archiveFileSource = _fileSources.FirstOrDefault(fs =>
-				fs is WcxArchiveFileSource wcxArchiveFileSource &&
-				path.StartsWith(wcxArchiveFileSource.ArchivePath, StringComparison.OrdinalIgnoreCase));
-			if (archiveFileSource != null)
-				return archiveFileSource;
+                // 检查缓存中是否已有此路径的FileSource
+                if (panelCache.TryGetValue(cacheKey, out var cachedSource))
+                    return cachedSource;
 
-			// Check for archive file
-			if (IsArchiveFile(path))
-				return WcxArchiveFileSource.CreateByArchiveName(new FileSystemFileSource(), path);
+                // 创建新的FileSystemFileSource
+                var newSource = new FileSystemFileSource();
+                newSource.SetRootPath(rootPath);
 
-			// Check for existing file source first
-			var existingFileSource = _fileSources.FirstOrDefault(fs => fs is not WcxArchiveFileSource && path.StartsWith(fs.GetRootDir(), StringComparison.OrdinalIgnoreCase));
+                // 添加到缓存
+                panelCache[cacheKey] = newSource;
+                return newSource;
+            }
+
+            // 检查缓存中是否已有此路径的FileSource
+            if (panelCache.TryGetValue(path, out var fileSource))
+                return fileSource;
+
+            // 检查是否是压缩文件内部路径
+            // 遍历所有已存在的文件源，查找是否有WcxArchiveFileSource包含当前路径
+            var archiveFileSource = _fileSources.FirstOrDefault(fs =>
+                fs is WcxArchiveFileSource wcxArchiveFileSource &&
+                path.StartsWith(wcxArchiveFileSource.ArchivePath, StringComparison.OrdinalIgnoreCase));
+            if (archiveFileSource != null)
+            {
+                // 添加到缓存
+                panelCache[path] = archiveFileSource;
+                return archiveFileSource;
+            }
+
+            // Check for archive file
+            if (IsArchiveFile(path))
+            {
+                // 为压缩文件创建新的FileSystemFileSource作为基础文件源
+                var dirPath = Path.GetDirectoryName(path) ?? "C:\\";
+                var baseFileSource = GetFileSourceForPath(dirPath, isLeftPanel);
+                var archiveSource = WcxArchiveFileSource.CreateByArchiveName(baseFileSource, path);
+
+                // 添加到缓存
+                panelCache[path] = archiveSource;
+                return archiveSource;
+            }
+
+            // Check for existing file source first
+            var existingFileSource = _fileSources.FirstOrDefault(fs =>
+                fs is not WcxArchiveFileSource &&
+                path.StartsWith(fs.GetRootDir(), StringComparison.OrdinalIgnoreCase));
             if (existingFileSource != null)
+            {
+                // 添加到缓存
+                panelCache[path] = existingFileSource;
                 return existingFileSource;
+            }
 
             // Check for recycle bin
-            if (path == "回收站" || path.Contains(Resources.VfsRecycleBin))
-                return new RecycleBinFileSource();
+            if (path == "回收站" || (Resources.VfsRecycleBin != null && path.Contains(Resources.VfsRecycleBin)))
+            {
+                var recycleBinSource = new RecycleBinFileSource();
+
+                // 添加到缓存
+                panelCache[path] = recycleBinSource;
+                return recycleBinSource;
+            }
 
             // Check for control panel
             if (path == "控制面板" || path.StartsWith("controlpanel://"))
-                return new ControlPanelFileSource();
+            {
+                var controlPanelSource = new ControlPanelFileSource();
+
+                // 添加到缓存
+                panelCache[path] = controlPanelSource;
+                return controlPanelSource;
+            }
 
             // Check for FTP path
             if (_ftpManager != null && _ftpManager.IsFtpPath(path))
             {
-                return _ftpManager.GetFtpSource(path);
+                var ftpSource = _ftpManager.GetFtpSource(path);
+
+                // 添加到缓存
+                if (ftpSource != null)
+                {
+                    panelCache[path] = ftpSource;
+                    return ftpSource;
+                }
+
+                // 如果无法获取FTP源，则返回默认的文件系统源
+                var defaultFs = new FileSystemFileSource();
+                defaultFs.SetRootPath("C:\\");
+                return defaultFs;
             }
 
             // Default to file system
-            return new FileSystemFileSource();
+            var drive = Path.GetPathRoot(path);
+            if (string.IsNullOrEmpty(drive))
+                drive = "C:\\";
+
+            var cacheKeyFs = $"filesystem:{drive}";
+
+            // 检查缓存中是否已有此驱动器的FileSource
+            if (panelCache.TryGetValue(cacheKeyFs, out var cachedFsSource))
+            {
+                // 更新CurrentPath
+                cachedFsSource.CurrentPath = path;
+                return cachedFsSource;
+            }
+
+            // 创建新的FileSystemFileSource
+            var fileSystemSource = new FileSystemFileSource();
+            fileSystemSource.SetRootPath(drive);
+            fileSystemSource.CurrentPath = path;
+
+            // 添加到缓存
+            panelCache[cacheKeyFs] = fileSystemSource;
+
+            return fileSystemSource;
         }
 
         /// <summary>

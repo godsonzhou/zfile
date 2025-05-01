@@ -217,7 +217,8 @@ namespace zfile
             if (string.IsNullOrEmpty(drive))
                 drive = "C:\\";
 
-            var cacheKeyFs = $"filesystem:{drive}";
+			var lr = isLeftPanel ? 'l' : 'r';
+			var cacheKeyFs = path; //$"{lr}filesystem:\\\\{drive}";
 
             // 检查缓存中是否已有此驱动器的FileSource
             if (panelCache.TryGetValue(cacheKeyFs, out var cachedFsSource))

@@ -3462,7 +3462,9 @@ namespace zfile
 						FullPath = filePath,
 						IsDirectory = Directory.Exists(filePath),
 						Size = File.Exists(filePath) ? new FileInfo(filePath).Length : 0,
+						CreationTime = File.GetCreationTime(filePath),
 						ModificationTime = File.GetLastWriteTime(filePath),
+						LastAccessTime = File.GetLastAccessTime(filePath),
 						Attributes = File.GetAttributes(filePath)
 					};
 					fileEntries.Add(fileEntry);

@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace zfile
 {
@@ -10,96 +11,120 @@ namespace zfile
 		private readonly Action _checkOperationState;
 		private readonly Action<FileSourceCopyOperationStatistics> _updateStatistics;
 		private readonly Action<string, string> _showCompareFilesUI;
-		private readonly Thread _thread;
 		private readonly FileSourceOperationHelperMode _mode;
-		private readonly string _targetPath;
+		private readonly string _rootTargetPath;
 		private FileSourceCopyOperationStatistics _statistics;
 
-		//public bool Verify { get; set; }
-		//public string RenameMask { get; set; }
-		//public FileSourceOperationOptionGeneral CopyOnWrite { get; set; }
-		//public bool ReserveSpace { get; set; }
-		//public bool CheckFreeSpace { get; set; }
-		//public CopyAttributesOption CopyAttributesOptions { get; set; }
-		//public bool SkipAllBigFiles { get; set; }
-		public bool AutoRenameItself { get; set; }
-		//public bool CorrectSymLinks { get; set; }
-		//public FileSourceOperationOptionGeneral FileExistsOption { get; set; }
-		//public FileSourceOperationOptionGeneral DirExistsOption { get; set; }
-		//public FileSourceOperationOptionSetPropertyError SetPropertyError { get; set; }
-		private Thread _operationThread;
-		//private FileSystemOperationHelperMode _mode;
 		private IntPtr _buffer;
 		private uint _bufferSize;
-		private string _rootTargetPath;
-		private string _renameMask;
-		private string _renameNameMask;
-		private string _renameExtMask;
-		private FileSourceOperationOptionSetPropertyError _setPropertyError;
-		//private FileSourceCopyOperationStatistics _statistics;
-		private Description _description;
-		private string _logCaption;
+		private string _renameMask = string.Empty;
+		private string _renameNameMask = string.Empty;
+		private string _renameExtMask = string.Empty;
 		private bool _renamingFiles;
 		private bool _renamingRootDir;
-		private FileEntry _rootDir;
-		private bool _verify;
-		private bool _reserveSpace;
+		private FileEntry? _rootDir;
+		private string _logCaption = string.Empty;
 		private bool _checkFreeSpace;
 		private bool _skipAllBigFiles;
-		private bool _skipAllSpecialFiles;
-		private bool _skipRenameError;
-		private bool _skipOpenForReadingError;
-		private bool _skipOpenForWritingError;
 		private bool _skipReadError;
 		private bool _skipWriteError;
-		private bool _skipCopyError;
-		private bool _autoRenameItSelf;
-		private bool _correctSymLinks;
-		private CopyAttributesOption _copyAttributesOptions;
-		private FileSourceOperationUIResponse _maxPathOption;
-		private FileSourceOperationOptionGeneral _copyOnWrite;
-		private FileSourceOperationUIResponse _deleteFileOption;
-		private FileSourceOperationOptionFileExists _fileExistsOption;
-		private FileSourceOperationOptionDirectoryExists _dirExistsOption;
+		private FileSystemOperationHelperMoveOrCopy? _moveOrCopy;
 
-		private FileEntry _currentFile;
-		private string _currentTargetFilePath;
+		public FileSystemOperationHelper(
+			AskQuestionFunction askQuestionFunction,
+			Action abortOperationFunction,
+			Action appProcessMessagesFunction,
+			Action checkOperationStateFunction,
+			Action<FileSourceCopyOperationStatistics> updateStatisticsFunction,
+			Action<string, string> showCompareFilesUIFunction,
+			Thread operationThread,
+			FileSourceOperationHelperMode mode,
+			string targetPath,
+			FileSourceCopyOperationStatistics startingStatistics)
+		{
+			_askQuestion = askQuestionFunction;
+			_raiseAbortOperation = abortOperationFunction;
+			_appProcessMessages = appProcessMessagesFunction;
+			_checkOperationState = checkOperationStateFunction;
+			_updateStatistics = updateStatisticsFunction;
+			_showCompareFilesUI = showCompareFilesUIFunction;
+			_mode = mode;
+			_rootTargetPath = targetPath;
+			_statistics = startingStatistics;
 
-		//private AskQuestionFunction _askQuestion;
-		private Action _abortOperation;
-		//private CheckOperationStateFunction _checkOperationState;
-		//private UpdateStatisticsFunction _updateStatistics;
-		//private AppProcessMessagesFunction _appProcessMessages;
-		//private ShowCompareFilesUIFunction _showCompareFilesUI;
-		private FileSystemOperationHelperMoveOrCopy _moveOrCopy;
+			// Initialize buffer
+			_bufferSize = 65536; // Default buffer size (similar to gCopyBlockSize in Pascal)
+			_buffer = Marshal.AllocHGlobal((int)_bufferSize);
 
-		//public FileSystemOperationHelper(
-		//	AskQuestionFunction askQuestionFunction,
-		//	AbortOperationFunction abortOperationFunction,
-		//	AppProcessMessagesFunction appProcessMessagesFunction,
-		//	CheckOperationStateFunction checkOperationStateFunction,
-		//	UpdateStatisticsFunction updateStatisticsFunction,
-		//	ShowCompareFilesUIFunction showCompareFilesUIFunction,
-		//	Thread operationThread,
-		//	FileSystemOperationHelperMode mode,
-		//	string targetPath,
-		//	FileSourceCopyOperationStatistics startingStatistics)
-		//{
-		//	_askQuestion = askQuestionFunction;
-		//	_abortOperation = abortOperationFunction;
-		//	_appProcessMessages = appProcessMessagesFunction;
-		//	_checkOperationState = checkOperationStateFunction;
-		//	_updateStatistics = updateStatisticsFunction;
-		//	_showCompareFilesUI = showCompareFilesUIFunction;
-		//	_operationThread = operationThread;
-		//	_mode = mode;
-		//	_rootTargetPath = targetPath;
-		//	_statistics = startingStatistics;
-		//}
+			// Set default values
+			_checkFreeSpace = true;
+			_skipAllBigFiles = false;
+			_skipReadError = false;
+			_skipWriteError = false;
+			CopyAttributesOptions = CopyAttributesOption.CopyTime | CopyAttributesOption.CopyAttributes | CopyAttributesOption.CopyOwnership;
+			FileExistsOption = FileSourceOperationOptionFileExists.None;
+			DirExistsOption = FileSourceOperationOptionDirectoryExists.None;
+			SetPropertyError = FileSourceOperationOptionSetPropertyError.None;
+			RenameMask = string.Empty;
+			_renamingFiles = false;
+			_renamingRootDir = false;
+			_rootDir = null;
+
+			// Set the appropriate MoveOrCopy delegate based on mode
+			switch (_mode)
+			{
+				case FileSourceOperationHelperMode.Copy:
+					_moveOrCopy = CopyFile;
+					_logCaption = "Copy";
+					break;
+				case FileSourceOperationHelperMode.Move:
+					_moveOrCopy = MoveFile;
+					_logCaption = "Move";
+					break;
+				default:
+					throw new ArgumentException("Invalid operation mode");
+			}
+		}
 
 		public void Initialize()
 		{
-			// ��ʼ������
+			// Split the rename mask into name and extension parts
+			SplitFileMask(_renameMask, out _renameNameMask, out _renameExtMask);
+
+			// Create destination path if it doesn't exist
+			if (!Directory.Exists(_rootTargetPath))
+			{
+				try
+				{
+					Directory.CreateDirectory(_rootTargetPath);
+				}
+				catch (Exception ex)
+				{
+					ShowError($"Error creating destination directory: {ex.Message}");
+				}
+			}
+		}
+
+		private void SplitFileMask(string mask, out string nameMask, out string extMask)
+		{
+			if (string.IsNullOrEmpty(mask) || mask == "*.*")
+			{
+				nameMask = "*";
+				extMask = "*";
+				return;
+			}
+
+			int dotPos = mask.LastIndexOf('.');
+			if (dotPos < 0)
+			{
+				nameMask = mask;
+				extMask = "*";
+			}
+			else
+			{
+				nameMask = mask.Substring(0, dotPos);
+				extMask = mask.Substring(dotPos + 1);
+			}
 		}
 
 		public bool Verify { get; set; }
@@ -117,12 +142,22 @@ namespace zfile
 
 		private void ShowError(string message)
 		{
-			// ��ʾ������Ϣ
+			// 显示错误信息
+			// 在实际应用中，这里应该调用UI显示错误信息
+			// 由于我们没有实现UI部分，这里只是简单记录错误
+			Console.WriteLine($"ERROR: {message}");
+
+			// 如果有日志系统，也可以记录到日志
+			// 这里我们简单地输出到控制台
+			Console.WriteLine($"LOG: {message}");
 		}
 
 		private void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
 		{
-			// ��¼��־��Ϣ
+			// 记录日志信息
+			// 在实际应用中，这里应该调用日志系统记录日志
+			// 由于我们没有实现日志系统，这里只是简单输出到控制台
+			Console.WriteLine($"LOG: {message}");
 		}
 
 		/// <summary>
@@ -141,60 +176,264 @@ namespace zfile
 
 		private bool DeleteFile(FileEntry sourceFile)
 		{
-			// ɾ���ļ�
+			
 			return true;
 		}
 
 		private bool CheckFileHash(string fileName, string hash, long size)
 		{
-			// ����ļ���ϣ
+			
 			return true;
 		}
 
 		private bool CompareFiles(string fileName1, string fileName2, long size)
 		{
-			// �Ƚ��ļ�
-			return true;
+			try
+			{
+				// 检查文件是否存在
+				if (!File.Exists(fileName1) || !File.Exists(fileName2))
+				{
+					return false;
+				}
+
+				// 检查文件大小是否相同
+				FileInfo fileInfo1 = new FileInfo(fileName1);
+				FileInfo fileInfo2 = new FileInfo(fileName2);
+				if (fileInfo1.Length != fileInfo2.Length)
+				{
+					return false;
+				}
+
+				// 逐字节比较文件内容
+				using (FileStream fs1 = new FileStream(fileName1, FileMode.Open, FileAccess.Read, FileShare.Read))
+				using (FileStream fs2 = new FileStream(fileName2, FileMode.Open, FileAccess.Read, FileShare.Read))
+				{
+					byte[] buffer1 = new byte[_bufferSize];
+					byte[] buffer2 = new byte[_bufferSize];
+					int bytesRead1, bytesRead2;
+
+					do
+					{
+						bytesRead1 = fs1.Read(buffer1, 0, buffer1.Length);
+						bytesRead2 = fs2.Read(buffer2, 0, buffer2.Length);
+
+						if (bytesRead1 != bytesRead2)
+						{
+							return false;
+						}
+
+						for (int i = 0; i < bytesRead1; i++)
+						{
+							if (buffer1[i] != buffer2[i])
+							{
+								return false;
+							}
+						}
+					} while (bytesRead1 > 0);
+				}
+
+				return true;
+			}
+			catch (Exception ex)
+			{
+				ShowError($"Error comparing files: {ex.Message}");
+				return false;
+			}
 		}
 
 		private bool CopyFile(FileEntry sourceFile, string targetFileName, FileSystemOperationHelperCopyMode mode)
 		{
-			// �����ļ�
-			return true;
+			try
+			{
+				// 创建目标文件的目录（如果不存在）
+				string targetDir = Path.GetDirectoryName(targetFileName);
+				if (!string.IsNullOrEmpty(targetDir) && !Directory.Exists(targetDir))
+				{
+					Directory.CreateDirectory(targetDir);
+				}
+
+				// 根据模式处理文件复制
+				switch (mode)
+				{
+					case FileSystemOperationHelperCopyMode.Default:
+						// 默认模式：直接复制文件
+						File.Copy(sourceFile.FullPath, targetFileName, true);
+						break;
+
+					case FileSystemOperationHelperCopyMode.Append:
+						// 追加模式：将源文件内容追加到目标文件
+						using (FileStream sourceStream = new FileStream(sourceFile.FullPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+						using (FileStream targetStream = new FileStream(targetFileName, FileMode.Append, FileAccess.Write))
+						{
+							byte[] buffer = new byte[_bufferSize];
+							int bytesRead;
+							while ((bytesRead = sourceStream.Read(buffer, 0, buffer.Length)) > 0)
+							{
+								targetStream.Write(buffer, 0, bytesRead);
+								_statistics.DoneBytes += bytesRead;
+								_updateStatistics(_statistics);
+							}
+						}
+						break;
+
+					case FileSystemOperationHelperCopyMode.Resume:
+						// 续传模式：如果目标文件存在，则从目标文件大小位置开始复制
+						long targetSize = 0;
+						if (File.Exists(targetFileName))
+						{
+							targetSize = new FileInfo(targetFileName).Length;
+						}
+
+						using (FileStream sourceStream = new FileStream(sourceFile.FullPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+						using (FileStream targetStream = new FileStream(targetFileName, FileMode.OpenOrCreate, FileAccess.Write))
+						{
+							sourceStream.Seek(targetSize, SeekOrigin.Begin);
+							targetStream.Seek(targetSize, SeekOrigin.Begin);
+
+							byte[] buffer = new byte[_bufferSize];
+							int bytesRead;
+							while ((bytesRead = sourceStream.Read(buffer, 0, buffer.Length)) > 0)
+							{
+								targetStream.Write(buffer, 0, bytesRead);
+								_statistics.DoneBytes += bytesRead;
+								_updateStatistics(_statistics);
+							}
+						}
+						break;
+				}
+
+				// 复制文件属性
+				if (CopyAttributesOptions != CopyAttributesOption.None)
+				{
+					try
+					{
+						if ((CopyAttributesOptions & CopyAttributesOption.CopyAttributes) != 0)
+						{
+							File.SetAttributes(targetFileName, sourceFile.Attributes);
+						}
+						if ((CopyAttributesOptions & CopyAttributesOption.CopyTime) != 0)
+						{
+							File.SetCreationTime(targetFileName, sourceFile.CreationTime);
+							File.SetLastWriteTime(targetFileName, sourceFile.ModificationTime);
+							File.SetLastAccessTime(targetFileName, sourceFile.LastAccessTime);
+						}
+					}
+					catch (Exception ex)
+					{
+						ShowError($"Error copying file attributes: {ex.Message}");
+						if (SetPropertyError == FileSourceOperationOptionSetPropertyError.Abort)
+						{
+							_raiseAbortOperation();
+							return false;
+						}
+					}
+				}
+
+				// 验证文件是否正确复制
+				if (Verify)
+				{
+					if (!CompareFiles(sourceFile.FullPath, targetFileName, sourceFile.Size))
+					{
+						ShowError($"Verification failed for file: {sourceFile.FullPath}");
+						return false;
+					}
+				}
+
+				return true;
+			}
+			catch (Exception ex)
+			{
+				ShowError($"Error copying file: {ex.Message}");
+				return false;
+			}
 		}
 
 		private bool MoveFile(FileEntry sourceFile, string targetFileName, FileSystemOperationHelperCopyMode mode)
 		{
-			// �ƶ��ļ�
-			return true;
+			// 如果不是追加或续传模式，尝试直接重命名文件
+			if (mode != FileSystemOperationHelperCopyMode.Append && mode != FileSystemOperationHelperCopyMode.Resume)
+			{
+				try
+				{
+					// 创建目标文件的目录（如果不存在）
+					string targetDir = Path.GetDirectoryName(targetFileName);
+					if (!string.IsNullOrEmpty(targetDir) && !Directory.Exists(targetDir))
+					{
+						Directory.CreateDirectory(targetDir);
+					}
+
+					// 尝试直接移动文件
+					File.Move(sourceFile.FullPath, targetFileName);
+					return true;
+				}
+				catch (IOException ex)
+				{
+					// 如果不是因为不同设备导致的错误，则显示错误并询问用户
+					if (!ex.Message.Contains("different drive") && !ex.Message.Contains("different device"))
+					{
+						string message = $"Cannot move file {sourceFile.FullPath}. {ex.Message}";
+						bool skip = AskQuestionWithOutParam(message);
+						if (skip)
+							return false;
+					}
+					// 如果是不同设备错误或用户选择重试，则继续执行复制后删除
+				}
+				catch (Exception ex)
+				{
+					ShowError($"Error moving file: {ex.Message}");
+					return false;
+				}
+			}
+
+			// 如果直接移动失败或是追加/续传模式，则复制文件后删除源文件
+			if (Verify)
+			{
+				_statistics.TotalBytes += sourceFile.Size;
+			}
+
+			if (CopyFile(sourceFile, targetFileName, mode))
+			{
+				try
+				{
+					File.Delete(sourceFile.FullPath);
+					return true;
+				}
+				catch (Exception ex)
+				{
+					ShowError($"Error deleting source file after copy: {ex.Message}");
+					return false;
+				}
+			}
+
+			return false;
 		}
 
 		private void CopyProperties(FileEntry sourceFile, string targetFileName)
 		{
-			// �����ļ�����
+			
 		}
 
 		private bool ProcessNode(FileTreeNode fileTreeNode, string currentTargetPath)
 		{
-			// �����ڵ�
+			
 			return true;
 		}
 
 		private bool ProcessDirectory(FileTreeNode node, string absoluteTargetFileName)
 		{
-			// ����Ŀ¼
+			
 			return true;
 		}
 
 		private bool ProcessLink(FileTreeNode node, string absoluteTargetFileName)
 		{
-			// ��������
+			
 			return true;
 		}
 
 		private bool ProcessFile(FileTreeNode node, string absoluteTargetFileName)
 		{
-			// �����ļ�
+			
 			return true;
 		}
 
@@ -202,7 +441,7 @@ namespace zfile
 			FileTreeNode node,
 			ref string absoluteTargetFileName)
 		{
-			// ���Ŀ���Ƿ����
+			
 			return FileSystemOperationTargetExistsResult.NotExists;
 		}
 
@@ -212,13 +451,13 @@ namespace zfile
 			bool allowCopyInto,
 			bool allowDelete)
 		{
-			// ���Ŀ¼�Ƿ����
+			
 			return FileSourceOperationOptionDirectoryExists.None;
 		}
 
 		private void QuestionActionHandler(FileSourceOperationUIResponse action)
 		{
-			// �����������
+			
 		}
 
 		private FileSourceOperationOptionFileExists FileExists(
@@ -226,52 +465,33 @@ namespace zfile
 			ref string absoluteTargetFileName,
 			bool allowAppend)
 		{
-			// ����ļ��Ƿ����
+			
 			return FileSourceOperationOptionFileExists.None;
 		}
 
 		private void SkipStatistics(FileTreeNode node)
 		{
-			// ����ͳ��
+			
 		}
 
 		private void CountStatistics(FileTreeNode node)
 		{
-			// ͳ���ļ�
+			
 		}
 
 		public void Dispose()
 		{
-			// �ͷ���Դ
+			// Release unmanaged resources
 			if (_buffer != IntPtr.Zero)
 			{
 				Marshal.FreeHGlobal(_buffer);
 				_buffer = IntPtr.Zero;
 			}
+
+			// Suppress finalization
+			GC.SuppressFinalize(this);
 		}
-		public FileSystemOperationHelper(
-			AskQuestionFunction askQuestion,
-			Action raiseAbortOperation,
-			Action appProcessMessages,
-			Action checkOperationState,
-			Action<FileSourceCopyOperationStatistics> updateStatistics,
-			Action<string, string> showCompareFilesUI,
-			Thread thread,
-			FileSourceOperationHelperMode mode,
-			string targetPath,
-			FileSourceCopyOperationStatistics statistics)
-		{
-			_askQuestion = askQuestion;
-			_raiseAbortOperation = raiseAbortOperation;
-			_appProcessMessages = appProcessMessages;
-			_checkOperationState = checkOperationState;
-			_updateStatistics = updateStatistics;
-			_showCompareFilesUI = showCompareFilesUI;
-			_thread = thread;
-			_mode = mode;
-			_targetPath = targetPath;
-			_statistics = statistics;
-		}
+
 
 
 
@@ -301,7 +521,7 @@ namespace zfile
 		{
 			try
 			{
-				string targetFilePath = Path.Combine(_targetPath, file.Name);
+				string targetFilePath = Path.Combine(_rootTargetPath, file.Name);
 				bool fileExists = File.Exists(targetFilePath);
 
 				if (fileExists)
@@ -390,7 +610,5 @@ namespace zfile
 				_updateStatistics(_statistics);
 			}
 		}
-
-
 	}
 }

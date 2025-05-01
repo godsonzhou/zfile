@@ -429,11 +429,11 @@ namespace zfile
 		Renamed
 	}
 
-	public enum FileSystemOperationHelperMode
-	{
-		Copy,
-		Move
-	}
+	//public enum FileSourceOperationHelperMode
+	//{
+	//	Copy,
+	//	Move
+	//}
 
 	public enum FileSystemOperationHelperCopyMode
 	{

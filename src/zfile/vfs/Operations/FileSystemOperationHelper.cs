@@ -833,123 +833,120 @@ namespace zfile
 			GC.SuppressFinalize(this);
 		}
 
-
-
-
 		public void ProcessTree(FileTree tree)
 		{
-			if (tree == null)
-				return;
+			//if (tree == null)
+			//	return;
 
-			ProcessFiles(tree.Files);
-			foreach (var subNode in tree.SubNodes)
-			{
-				_checkOperationState();
-				ProcessTree(subNode);
-			}
+			//ProcessFiles(tree.Files);
+			//foreach (var subNode in tree.SubNodes)
+			//{
+			//	_checkOperationState();
+			//	ProcessTree(subNode);
+			//}
 		}
 
-		private void ProcessFiles(FileEntries files)
-		{
-			foreach (var file in files)
-			{
-				_checkOperationState();
-				ProcessFile(file);
-			}
-		}
+		//private void ProcessFiles(FileEntries files)
+		//{
+		//	foreach (var file in files)
+		//	{
+		//		_checkOperationState();
+		//		ProcessFile(file);
+		//	}
+		//}
 
-		private void ProcessFile(FileEntry file)
-		{
-			try
-			{
-				string targetFilePath = Path.Combine(_rootTargetPath, file.Name);
-				bool fileExists = File.Exists(targetFilePath);
+		//private void ProcessFile(FileEntry file)
+		//{
+		//	try
+		//	{
+		//		string targetFilePath = Path.Combine(_rootTargetPath, file.Name);
+		//		bool fileExists = File.Exists(targetFilePath);
 
-				if (fileExists)
-				{
-					// 将FileExistsOption转换为FileSourceOperationOptionGeneral类型
-					var option = (FileSourceOperationOptionGeneral)FileExistsOption;
-					switch (option)
-					{
-						case FileSourceOperationOptionGeneral.No:
-							return;
-						case FileSourceOperationOptionGeneral.AskUser:
-							// 使用辅助方法来处理out参数
-							bool overwrite = AskQuestionWithOutParam($"File {targetFilePath} already exists. Overwrite?");
-							if (!overwrite)
-								return;
-							break;
-					}
-				}
+		//		if (fileExists)
+		//		{
+		//			// 将FileExistsOption转换为FileSourceOperationOptionGeneral类型
+		//			var option = (FileSourceOperationOptionGeneral)FileExistsOption;
+		//			switch (option)
+		//			{
+		//				case FileSourceOperationOptionGeneral.No:
+		//					return;
+		//				case FileSourceOperationOptionGeneral.AskUser:
+		//					// 使用辅助方法来处理out参数
+		//					bool overwrite = AskQuestionWithOutParam($"File {targetFilePath} already exists. Overwrite?");
+		//					if (!overwrite)
+		//						return;
+		//					break;
+		//			}
+		//		}
 
-				if (CheckFreeSpace)
-				{
-					long requiredSpace = file.Size;
-					if (Verify)
-						requiredSpace *= 2;
-					if (ReserveSpace)
-						requiredSpace *= 2;
+		//		if (CheckFreeSpace)
+		//		{
+		//			long requiredSpace = file.Size;
+		//			if (Verify)
+		//				requiredSpace *= 2;
+		//			if (ReserveSpace)
+		//				requiredSpace *= 2;
 
-					// 获取目标路径的根目录，并检查是否为空
-					string? rootPath = Path.GetPathRoot(targetFilePath);
-					if (string.IsNullOrEmpty(rootPath))
-					{
-						// 如果无法获取根目录，则跳过检查
-						return;
-					}
+		//			// 获取目标路径的根目录，并检查是否为空
+		//			string? rootPath = Path.GetPathRoot(targetFilePath);
+		//			if (string.IsNullOrEmpty(rootPath))
+		//			{
+		//				// 如果无法获取根目录，则跳过检查
+		//				return;
+		//			}
 
-					DriveInfo drive = new(rootPath);
-					if (drive.AvailableFreeSpace < requiredSpace)
-					{
-						if (SkipAllBigFiles)
-							return;
+		//			DriveInfo drive = new(rootPath);
+		//			if (drive.AvailableFreeSpace < requiredSpace)
+		//			{
+		//				if (SkipAllBigFiles)
+		//					return;
 
-						// 使用辅助方法来处理out参数
-						bool skip = AskQuestionWithOutParam($"Not enough free space on drive {drive.Name}. Skip file?");
-						if (skip)
-							return;
-					}
-				}
+		//				// 使用辅助方法来处理out参数
+		//				bool skip = AskQuestionWithOutParam($"Not enough free space on drive {drive.Name}. Skip file?");
+		//				if (skip)
+		//					return;
+		//			}
+		//		}
 
-				File.Copy(file.FullPath, targetFilePath, true);
+		//		File.Copy(file.FullPath, targetFilePath, true);
 
-				if (CopyAttributesOptions != CopyAttributesOption.None)
-				{
-					try
-					{
-						if ((CopyAttributesOptions & CopyAttributesOption.CopyAttributes) != 0)
-							File.SetAttributes(targetFilePath, file.Attributes);
-						if ((CopyAttributesOptions & CopyAttributesOption.CopyTime) != 0)
-						{
-							File.SetCreationTime(targetFilePath, file.CreationTime);
-							File.SetLastWriteTime(targetFilePath, file.ModificationTime);
-							File.SetLastAccessTime(targetFilePath, file.LastAccessTime);
-						}
-					}
-					catch (Exception)
-					{
-						if (SetPropertyError == FileSourceOperationOptionSetPropertyError.Abort)
-							_raiseAbortOperation();
-						else if (SetPropertyError == FileSourceOperationOptionSetPropertyError.Skip)
-							return;
-					}
-				}
+		//		if (CopyAttributesOptions != CopyAttributesOption.None)
+		//		{
+		//			try
+		//			{
+		//				if ((CopyAttributesOptions & CopyAttributesOption.CopyAttributes) != 0)
+		//					File.SetAttributes(targetFilePath, file.Attributes);
+		//				if ((CopyAttributesOptions & CopyAttributesOption.CopyTime) != 0)
+		//				{
+		//					File.SetCreationTime(targetFilePath, file.CreationTime);
+		//					File.SetLastWriteTime(targetFilePath, file.ModificationTime);
+		//					File.SetLastAccessTime(targetFilePath, file.LastAccessTime);
+		//				}
+		//			}
+		//			catch (Exception)
+		//			{
+		//				if (SetPropertyError == FileSourceOperationOptionSetPropertyError.Abort)
+		//					_raiseAbortOperation();
+		//				else if (SetPropertyError == FileSourceOperationOptionSetPropertyError.Skip)
+		//					return;
+		//			}
+		//		}
 
-				if (Verify)
-				{
-					_showCompareFilesUI(file.FullName, targetFilePath);
-				}
+		//		if (Verify)
+		//		{
+		//			_showCompareFilesUI(file.FullName, targetFilePath);
+		//		}
 
-				_statistics.DoneFiles++;
-				_statistics.DoneBytes += file.Size;
-				_updateStatistics(_statistics);
-			}
-			catch (Exception)
-			{
-				_statistics.FailedFiles++;
-				_statistics.FailedBytes += file.Size;
-				_updateStatistics(_statistics);
-			}
-		}
+		//		_statistics.DoneFiles++;
+		//		_statistics.DoneBytes += file.Size;
+		//		_updateStatistics(_statistics);
+		//	}
+		//	catch (Exception)
+		//	{
+		//		_statistics.FailedFiles++;
+		//		_statistics.FailedBytes += file.Size;
+		//		_updateStatistics(_statistics);
+		//	}
+		//}
 	}
 }

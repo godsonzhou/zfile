@@ -105,28 +105,25 @@ namespace zfile
         /// <returns>A file source that can handle the path</returns>
         public IFileSource GetFileSourceForPath(string path)
         {
-			//isInArchive = false;
             if (string.IsNullOrEmpty(path))
                 return new FileSystemFileSource();
 
-            // Check for existing file source first
-            var existingFileSource = _fileSources.FirstOrDefault(fs =>
-                string.Equals(fs.CurrentPath, path, StringComparison.OrdinalIgnoreCase));
+			// 检查是否是压缩文件内部路径
+			// 遍历所有已存在的文件源，查找是否有WcxArchiveFileSource包含当前路径
+			var archiveFileSource = _fileSources.FirstOrDefault(fs =>
+				fs is WcxArchiveFileSource wcxArchiveFileSource &&
+				path.StartsWith(wcxArchiveFileSource.ArchivePath, StringComparison.OrdinalIgnoreCase));
+			if (archiveFileSource != null)
+				return archiveFileSource;
 
+			// Check for archive file
+			if (IsArchiveFile(path))
+				return WcxArchiveFileSource.CreateByArchiveName(new FileSystemFileSource(), path);
+
+			// Check for existing file source first
+			var existingFileSource = _fileSources.FirstOrDefault(fs => fs is not WcxArchiveFileSource && path.StartsWith(fs.GetRootDir(), StringComparison.OrdinalIgnoreCase));
             if (existingFileSource != null)
                 return existingFileSource;
-
-            // 检查是否是压缩文件内部路径
-            // 遍历所有已存在的文件源，查找是否有WcxArchiveFileSource包含当前路径
-            var archiveFileSource = _fileSources.FirstOrDefault(fs =>
-                fs is WcxArchiveFileSource wcxArchiveFileSource &&
-                path.StartsWith(wcxArchiveFileSource.ArchivePath, StringComparison.OrdinalIgnoreCase));
-
-			if (archiveFileSource != null)
-			{
-				//isInArchive = true;
-				return archiveFileSource;
-			}
 
             // Check for recycle bin
             if (path == "回收站" || path.Contains(Resources.VfsRecycleBin))
@@ -140,12 +137,6 @@ namespace zfile
             if (_ftpManager != null && _ftpManager.IsFtpPath(path))
             {
                 return _ftpManager.GetFtpSource(path);
-            }
-
-            // Check for archive file
-            if (IsArchiveFile(path))
-            {
-                return WcxArchiveFileSource.CreateByArchiveName(new FileSystemFileSource(), path);
             }
 
             // Default to file system

@@ -20,11 +20,11 @@ namespace zfile
     public class FileSystemFileSource : LocalFileSource, IFileSystemFileSource
     {
         private Description description;
+		private string _rootpath;
 
         public FileSystemFileSource()
         {
             description = new Description(false);
-
             // 注册操作类
             OperationsClasses[FileSourceOperationType.List] = typeof(FileSystemListOperation);
             OperationsClasses[FileSourceOperationType.Copy] = typeof(FileSystemCopyOperation);
@@ -339,14 +339,23 @@ namespace zfile
             return result;
         }
 
-        public override string GetRootDir(string path)
+		public void SetRootPath(string path)
+		{
+			if (string.IsNullOrEmpty(path))
+				return;
+			_rootpath = path;
+		}
+
+		public override string GetRootDir(string path)
         {
-            return Path.GetPathRoot(path);
-        }
+            //return Path.GetPathRoot(path);
+			return _rootpath;
+		}
 
         public override string GetRootDir()
         {
-            return GetRootDir(Directory.GetCurrentDirectory());
+            //return GetRootDir(Directory.GetCurrentDirectory());
+			return _rootpath;
         }
 
         public override PathType GetPathType(string path)

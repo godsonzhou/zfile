@@ -1018,7 +1018,7 @@ namespace zfile
 					else
 						RightFileSource = fileSource;
 
-					if (!CurrentDir.TryGetValue(LRflag, out string p))
+					if(string.IsNullOrEmpty(CurrentDir[LRflag]))
 						CurrentDir[LRflag] = path;
 					else if (!CurrentDir[LRflag].Equals(path))
 						// 记录目录历史

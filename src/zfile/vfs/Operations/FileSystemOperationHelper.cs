@@ -171,7 +171,8 @@ namespace zfile
 			// 然后调用_askQuestion并返回结果
 			// 由于无法直接使用out参数，我们假设用户会点击“是”
 			// 在实际应用中，应该使用一个正确的对话框来获取用户输入
-			return true;
+			var r = MessageBox.Show(question, "", MessageBoxButtons.OKCancel) == DialogResult.OK;
+			return r;
 		}
 
 		private bool DeleteFile(FileEntry sourceFile)
@@ -429,7 +430,7 @@ namespace zfile
 					}
 
 					// 尝试直接移动文件
-					File.Move(sourceFile.FullPath, targetFileName);
+					File.Move(sourceFile.FullPath, targetFileName, true);
 					return true;
 				}
 				catch (IOException ex)

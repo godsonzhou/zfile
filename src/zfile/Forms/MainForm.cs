@@ -3478,6 +3478,9 @@ namespace zfile
 				{
 					operation = sourceFileSource.CreateMoveOperation(fileEntries, targetPath);
 					operation.Execute();
+					// 刷新面板
+					RefreshPanel(activeListView);
+					RefreshPanel(unactiveListView); 
 					return;
 				}
 				else

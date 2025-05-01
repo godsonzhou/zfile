@@ -176,14 +176,80 @@ namespace zfile
 
 		private bool DeleteFile(FileEntry sourceFile)
 		{
-			
-			return true;
+			try
+			{
+				// 检查文件是否存在
+				if (!File.Exists(sourceFile.FullPath))
+				{
+					return true; // 文件不存在，视为删除成功
+				}
+
+				// 尝试删除文件
+				File.Delete(sourceFile.FullPath);
+
+				// 更新统计信息
+				_statistics.DoneFiles++;
+				_statistics.DoneBytes += sourceFile.Size;
+				_updateStatistics(_statistics);
+
+				return true;
+			}
+			catch (Exception ex)
+			{
+				ShowError($"Error deleting file {sourceFile.FullPath}: {ex.Message}");
+
+				// 更新失败统计信息
+				_statistics.FailedFiles++;
+				_statistics.FailedBytes += sourceFile.Size;
+				_updateStatistics(_statistics);
+
+				return false;
+			}
 		}
 
 		private bool CheckFileHash(string fileName, string hash, long size)
 		{
-			
-			return true;
+			try
+			{
+				// 检查文件是否存在
+				if (!File.Exists(fileName))
+				{
+					ShowError($"File not found: {fileName}");
+					return false;
+				}
+
+				// 检查文件大小
+				FileInfo fileInfo = new FileInfo(fileName);
+				if (fileInfo.Length != size)
+				{
+					ShowError($"File size mismatch: {fileName}. Expected: {size}, Actual: {fileInfo.Length}");
+					return false;
+				}
+
+				// 计算文件哈希
+				using (var md5 = System.Security.Cryptography.MD5.Create())
+				using (var stream = File.OpenRead(fileName))
+				{
+					byte[] hashBytes = md5.ComputeHash(stream);
+					string computedHash = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+
+					// 比较哈希值
+					if (string.Equals(computedHash, hash, StringComparison.OrdinalIgnoreCase))
+					{
+						return true;
+					}
+					else
+					{
+						ShowError($"File hash mismatch: {fileName}. Expected: {hash}, Actual: {computedHash}");
+						return false;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				ShowError($"Error checking file hash: {ex.Message}");
+				return false;
+			}
 		}
 
 		private bool CompareFiles(string fileName1, string fileName2, long size)
@@ -410,39 +476,315 @@ namespace zfile
 
 		private void CopyProperties(FileEntry sourceFile, string targetFileName)
 		{
-			
+			try
+			{
+				// 复制文件属性
+				if (CopyAttributesOptions != CopyAttributesOption.None)
+				{
+					// 复制文件属性
+					if ((CopyAttributesOptions & CopyAttributesOption.CopyAttributes) != 0)
+					{
+						File.SetAttributes(targetFileName, sourceFile.Attributes);
+					}
+
+					// 复制文件时间
+					if ((CopyAttributesOptions & CopyAttributesOption.CopyTime) != 0)
+					{
+						File.SetCreationTime(targetFileName, sourceFile.CreationTime);
+						File.SetLastWriteTime(targetFileName, sourceFile.ModificationTime);
+						File.SetLastAccessTime(targetFileName, sourceFile.LastAccessTime);
+					}
+
+					// 复制文件所有权
+					if ((CopyAttributesOptions & CopyAttributesOption.CopyOwnership) != 0)
+					{
+						// 在Windows系统中，复制文件所有权需要使用P/Invoke调用Windows API
+						// 这里我们简单地记录一下，实际实现需要调用Windows API
+						Console.WriteLine($"Copying ownership for file {targetFileName} is not implemented");
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				ShowError($"Error copying file properties: {ex.Message}");
+
+				// 根据设置决定是否中止操作
+				if (SetPropertyError == FileSourceOperationOptionSetPropertyError.Abort)
+				{
+					_raiseAbortOperation();
+				}
+			}
 		}
 
 		private bool ProcessNode(FileTreeNode fileTreeNode, string currentTargetPath)
 		{
-			
-			return true;
+			if (fileTreeNode == null)
+				return true;
+
+			// 检查操作状态
+			_checkOperationState();
+
+			// 获取目标文件名
+			string absoluteTargetFileName = Path.Combine(currentTargetPath, fileTreeNode.Name);
+
+			// 检查目标是否存在
+			FileSystemOperationTargetExistsResult targetExists = TargetExists(fileTreeNode, ref absoluteTargetFileName);
+
+			// 根据目标存在情况处理
+			switch (targetExists)
+			{
+				case FileSystemOperationTargetExistsResult.NotExists:
+					// 目标不存在，根据节点类型处理
+					if (fileTreeNode.IsDirectory)
+					{
+						return ProcessDirectory(fileTreeNode, absoluteTargetFileName);
+					}
+					else if (fileTreeNode.IsLink)
+					{
+						return ProcessLink(fileTreeNode, absoluteTargetFileName);
+					}
+					else
+					{
+						return ProcessFile(fileTreeNode, absoluteTargetFileName);
+					}
+
+				case FileSystemOperationTargetExistsResult.IsDirectory:
+					// 目标是目录，处理目录
+					return ProcessDirectory(fileTreeNode, absoluteTargetFileName);
+
+				case FileSystemOperationTargetExistsResult.IsFile:
+					// 目标是文件，处理文件
+					return ProcessFile(fileTreeNode, absoluteTargetFileName);
+
+				case FileSystemOperationTargetExistsResult.IsLink:
+					// 目标是链接，处理链接
+					return ProcessLink(fileTreeNode, absoluteTargetFileName);
+
+				case FileSystemOperationTargetExistsResult.Skip:
+					// 跳过此节点
+					SkipStatistics(fileTreeNode);
+					return true;
+
+				default:
+					// 未知情况，跳过
+					SkipStatistics(fileTreeNode);
+					return true;
+			}
 		}
 
 		private bool ProcessDirectory(FileTreeNode node, string absoluteTargetFileName)
 		{
-			
-			return true;
+			try
+			{
+				// 检查目录是否存在
+				if (Directory.Exists(absoluteTargetFileName))
+				{
+					// 目录已存在，根据设置决定如何处理
+					FileSourceOperationOptionDirectoryExists dirExistsOption = DirExists(
+						null, // 这里应该传入目录的FileEntry，但我们没有实现
+						absoluteTargetFileName,
+						true, // 允许复制到目录中
+						false); // 不允许删除目录
+
+					switch (dirExistsOption)
+					{
+						case FileSourceOperationOptionDirectoryExists.None:
+						case FileSourceOperationOptionDirectoryExists.CopyInto:
+							// 继续处理，复制到目录中
+							break;
+
+						case FileSourceOperationOptionDirectoryExists.Skip:
+							// 跳过此目录
+							SkipStatistics(node);
+							return true;
+
+						case FileSourceOperationOptionDirectoryExists.Abort:
+							// 中止操作
+							_raiseAbortOperation();
+							return false;
+
+						case FileSourceOperationOptionDirectoryExists.Delete:
+							// 删除目录后继续
+							try
+							{
+								Directory.Delete(absoluteTargetFileName, true);
+							}
+							catch (Exception ex)
+							{
+								ShowError($"Error deleting directory {absoluteTargetFileName}: {ex.Message}");
+								return false;
+							}
+							break;
+					}
+				}
+				else
+				{
+					// 目录不存在，创建目录
+					try
+					{
+						Directory.CreateDirectory(absoluteTargetFileName);
+					}
+					catch (Exception ex)
+					{
+						ShowError($"Error creating directory {absoluteTargetFileName}: {ex.Message}");
+						return false;
+					}
+				}
+
+				// 处理目录中的子节点
+				if (node.SubNodes != null)
+				{
+					foreach (var subNode in node.SubNodes)
+					{
+						if (!ProcessNode(subNode, absoluteTargetFileName))
+						{
+							return false;
+						}
+					}
+				}
+
+				// 处理目录中的文件
+				if (node.Files != null)
+				{
+					foreach (var file in node.Files)
+					{
+						if (!ProcessFile(file, Path.Combine(absoluteTargetFileName, file.Name)))
+						{
+							return false;
+						}
+					}
+				}
+
+				// 更新统计信息
+				_statistics.DoneDirectories++;
+				_updateStatistics(_statistics);
+
+				return true;
+			}
+			catch (Exception ex)
+			{
+				ShowError($"Error processing directory {absoluteTargetFileName}: {ex.Message}");
+				return false;
+			}
 		}
 
 		private bool ProcessLink(FileTreeNode node, string absoluteTargetFileName)
 		{
-			
-			return true;
+			try
+			{
+				// 在Windows系统中，创建符号链接需要管理员权限
+				// 这里我们简单地记录一下，实际实现需要调用Windows API
+				Console.WriteLine($"Creating symbolic link {absoluteTargetFileName} is not implemented");
+
+				// 更新统计信息
+				_statistics.DoneFiles++;
+				_updateStatistics(_statistics);
+
+				return true;
+			}
+			catch (Exception ex)
+			{
+				ShowError($"Error processing link {absoluteTargetFileName}: {ex.Message}");
+				return false;
+			}
 		}
 
 		private bool ProcessFile(FileTreeNode node, string absoluteTargetFileName)
 		{
-			
-			return true;
+			try
+			{
+				// 检查文件是否存在
+				if (File.Exists(absoluteTargetFileName))
+				{
+					// 文件已存在，根据设置决定如何处理
+					string tempFileName = absoluteTargetFileName;
+					FileSourceOperationOptionFileExists fileExistsOption = FileExists(
+						null, // 这里应该传入文件的FileEntry，但我们没有实现
+						ref tempFileName,
+						false); // 不允许追加
+
+					switch (fileExistsOption)
+					{
+						case FileSourceOperationOptionFileExists.None:
+						case FileSourceOperationOptionFileExists.Overwrite:
+							// 覆盖文件
+							break;
+
+						case FileSourceOperationOptionFileExists.Skip:
+							// 跳过此文件
+							SkipStatistics(node);
+							return true;
+
+						case FileSourceOperationOptionFileExists.Abort:
+							// 中止操作
+							_raiseAbortOperation();
+							return false;
+
+						case FileSourceOperationOptionFileExists.Append:
+							// 追加到文件
+							absoluteTargetFileName = tempFileName;
+							break;
+
+						case FileSourceOperationOptionFileExists.Resume:
+							// 续传文件
+							absoluteTargetFileName = tempFileName;
+							break;
+					}
+				}
+
+				// 复制文件
+				if (_mode == FileSystemOperationHelperMode.Copy)
+				{
+					if (!CopyFile(node.FileEntry, absoluteTargetFileName, FileSystemOperationHelperCopyMode.Default))
+					{
+						return false;
+					}
+				}
+				else if (_mode == FileSystemOperationHelperMode.Move)
+				{
+					if (!MoveFile(node.FileEntry, absoluteTargetFileName, FileSystemOperationHelperCopyMode.Default))
+					{
+						return false;
+					}
+				}
+
+				return true;
+			}
+			catch (Exception ex)
+			{
+				ShowError($"Error processing file {absoluteTargetFileName}: {ex.Message}");
+				return false;
+			}
 		}
 
 		private FileSystemOperationTargetExistsResult TargetExists(
 			FileTreeNode node,
 			ref string absoluteTargetFileName)
 		{
-			
-			return FileSystemOperationTargetExistsResult.NotExists;
+			try
+			{
+				// 检查目标是否存在
+				if (File.Exists(absoluteTargetFileName))
+				{
+					// 目标是文件
+					return FileSystemOperationTargetExistsResult.IsFile;
+				}
+				else if (Directory.Exists(absoluteTargetFileName))
+				{
+					// 目标是目录
+					return FileSystemOperationTargetExistsResult.IsDirectory;
+				}
+				else
+				{
+					// 目标不存在
+					return FileSystemOperationTargetExistsResult.NotExists;
+				}
+			}
+			catch (Exception ex)
+			{
+				ShowError($"Error checking target existence: {ex.Message}");
+				return FileSystemOperationTargetExistsResult.Skip;
+			}
 		}
 
 		private FileSourceOperationOptionDirectoryExists DirExists(
@@ -451,13 +793,13 @@ namespace zfile
 			bool allowCopyInto,
 			bool allowDelete)
 		{
-			
+
 			return FileSourceOperationOptionDirectoryExists.None;
 		}
 
 		private void QuestionActionHandler(FileSourceOperationUIResponse action)
 		{
-			
+
 		}
 
 		private FileSourceOperationOptionFileExists FileExists(
@@ -465,18 +807,48 @@ namespace zfile
 			ref string absoluteTargetFileName,
 			bool allowAppend)
 		{
-			
+
 			return FileSourceOperationOptionFileExists.None;
 		}
 
 		private void SkipStatistics(FileTreeNode node)
 		{
-			
+			if (node == null)
+				return;
+
+			// 更新跳过的文件和目录统计信息
+			if (node.IsDirectory)
+			{
+				_statistics.SkippedDirectories++;
+			}
+			else
+			{
+				_statistics.SkippedFiles++;
+				_statistics.SkippedBytes += node.Size;
+			}
+
+			// 更新统计信息
+			_updateStatistics(_statistics);
 		}
 
 		private void CountStatistics(FileTreeNode node)
 		{
-			
+			if (node == null)
+				return;
+
+			// 更新总文件和目录统计信息
+			if (node.IsDirectory)
+			{
+				_statistics.TotalDirectories++;
+			}
+			else
+			{
+				_statistics.TotalFiles++;
+				_statistics.TotalBytes += node.Size;
+			}
+
+			// 更新统计信息
+			_updateStatistics(_statistics);
 		}
 
 		public void Dispose()

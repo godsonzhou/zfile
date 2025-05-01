@@ -1135,7 +1135,9 @@ public class FileEntries : IEnumerable<FileEntry>
     public int Add(FileEntry file)
     {
         _list.Add(file);
-        return _list.Count - 1;
+		if (string.IsNullOrEmpty(_path))
+			_path = file.Path;
+		return _list.Count - 1;
     }
 
     public void Insert(FileEntry file, int atIndex)

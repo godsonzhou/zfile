@@ -24,10 +24,10 @@ namespace zfile
 	public abstract class FileSourceTreeBuilder : IDisposable
     {
         private FileTreeNode _filesTree;
-        private long _filesCount;
+        protected long _filesCount;
         private int _currentDepth;
         private long _directoriesCount;
-        private long _filesSize;
+        protected long _filesSize;
         private bool _excludeRootDir;
         private SearchTemplate _fileTemplate;
         private bool _excludeEmptyTemplateDirectories;
@@ -35,8 +35,8 @@ namespace zfile
         private bool _recursive;
         private string _rootDir;
 
-        protected readonly AskQuestionFunction _askQuestion;
-        protected readonly CheckOperationStateFunction _checkOperationState;
+        protected AskQuestionFunction _askQuestion;
+        protected CheckOperationStateFunction _checkOperationState;
 
         /// <summary>
         /// Creates a new instance of the FileSourceTreeBuilder class.

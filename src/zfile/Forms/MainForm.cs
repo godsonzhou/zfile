@@ -3421,9 +3421,8 @@ namespace zfile
 			}
 		}
 		// 移动选中的文件
-		public void cm_renmov(string? param = null, string? targetpath = null)
+		public void cm_renmov(string? param = null, string? targetPath = null)
 		{
-			string targetPath;
 			string srcpath;
 			var sourceFiles = GetFileListByViewOrParam(param);
 			if (sourceFiles.Count == 0) return;
@@ -3476,6 +3475,8 @@ namespace zfile
 				if (sourceFileSource.GetType() == targetFileSource.GetType())
 				{
 					operation = sourceFileSource.CreateMoveOperation(fileEntries, targetPath);
+					operation.Execute();
+					return;
 				}
 				else
 				{
@@ -3520,7 +3521,7 @@ namespace zfile
 				if (isSourceFtp || isTargetFtp)
 				{
 					// 如果涉及FTP，先复制后删除
-					if (cm_copy(param, targetpath))
+					if (cm_copy(param, targetPath))
 					{
 						// 如果源是FTP，使用FTP删除
 						if (isSourceFtp)
@@ -3534,7 +3535,7 @@ namespace zfile
 							cm_delete(param, false); // 源是本地文件，使用本地删除
 					}
 				}
-				else if (cm_copy(param, targetpath)) // 本地文件之间的移动
+				else if (cm_copy(param, targetPath)) // 本地文件之间的移动
 					cm_delete(param, false);
 			}
 			catch (Exception ex)

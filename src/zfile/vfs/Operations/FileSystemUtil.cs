@@ -405,7 +405,7 @@ namespace zfile
 
 		internal static bool IsSameVolume(string? v1, string? v2)
 		{
-			throw new NotImplementedException();
+			return Path.GetPathRoot(v1) == Path.GetPathRoot(v2);
 		}
 
 		internal static bool FileGetAttr(string linkTarget, out FileAttributeData attr)
@@ -499,18 +499,18 @@ namespace zfile
 
 		// These fields are used for compatibility with existing code
 		private readonly Func<string, bool, bool> _askQuestion;
-		private readonly Action _checkOperationState;
+		//private readonly Action _checkOperationState;
 		private FileTree? _currentTree;
-		private long _filesCount;
-		private long _filesSize;
+		//private long _filesCount;
+		//private long _filesSize;
 
-		public FileSourceOperationSymLinkOption SymLinkOption { get; set; }
-		public SearchTemplate SearchTemplate { get; set; }
-		public bool ExcludeEmptyTemplateDirectories { get; set; }
+		//public FileSourceOperationSymLinkOption SymLinkOption { get; set; }
+		//public SearchTemplate SearchTemplate { get; set; }
+		//public bool ExcludeEmptyTemplateDirectories { get; set; }
 
-		public long FilesCount => _filesCount;
-		public long FilesSize => _filesSize;
-		public bool Recursive { get; set; }
+		//public long FilesCount => _filesCount;
+		//public long FilesSize => _filesSize;
+		//public bool Recursive { get; set; }
 
 		public FileSystemTreeBuilder(AskQuestionFunction askQuestionFunction, CheckOperationStateFunction checkOperationStateFunction)
 			: base(askQuestionFunction, checkOperationStateFunction)

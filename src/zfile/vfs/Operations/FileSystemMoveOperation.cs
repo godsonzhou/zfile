@@ -37,7 +37,10 @@ namespace zfile
             skipAllBigFiles = false;
             correctSymlinks = GlobalSettings.OperationOptionCorrectLinks;
             excludeEmptyTemplateDirectories = true;
-        }
+			searchTemplate = new SearchTemplate(""); // 默认值
+			verify = GlobalSettings.OperationOptionVerify;
+			operationHelper = null;
+		}
 
         ~FileSystemMoveOperation()
         {

@@ -9,7 +9,8 @@ namespace zfile
     {
 		private MainForm _mainform;
 		//private static FileSourceManager _instance;
-		private List<IFileSource> _fileSources => _mainform.isleft ? _leftPanelFileSources.Values.ToList() : _rightPanelFileSources.Values.ToList();
+		private List<IFileSource> _fileSources = new();
+		private List<IFileSource> GetFileSources(bool isleft) { return isleft ? _leftPanelFileSources.Values.ToList() : _rightPanelFileSources.Values.ToList(); }
         private readonly object _syncRoot = new object();
         private WcxModuleList _wcxModuleList;
         private FTPMGR _ftpManager;
@@ -140,7 +141,7 @@ namespace zfile
 
             // 检查是否是压缩文件内部路径
             // 遍历所有已存在的文件源，查找是否有WcxArchiveFileSource包含当前路径
-            var archiveFileSource = _fileSources.FirstOrDefault(fs =>
+            var archiveFileSource = GetFileSources(isLeftPanel).FirstOrDefault(fs =>
                 fs is WcxArchiveFileSource wcxArchiveFileSource &&
                 path.StartsWith(wcxArchiveFileSource.ArchivePath, StringComparison.OrdinalIgnoreCase));
             if (archiveFileSource != null)
@@ -164,7 +165,7 @@ namespace zfile
             }
 
             // Check for existing file source first
-            var existingFileSource = _fileSources.FirstOrDefault(fs =>
+            var existingFileSource = GetFileSources(isLeftPanel).FirstOrDefault(fs =>
                 fs is not WcxArchiveFileSource &&
                 path.StartsWith(fs.GetRootDir(), StringComparison.OrdinalIgnoreCase));
             if (existingFileSource != null)

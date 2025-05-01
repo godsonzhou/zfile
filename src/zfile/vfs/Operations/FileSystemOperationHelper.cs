@@ -833,17 +833,144 @@ namespace zfile
 			GC.SuppressFinalize(this);
 		}
 
+		/// <summary>
+		/// Processes a file tree for copy or move operations.
+		/// </summary>
+		/// <param name="tree">The file tree to process.</param>
 		public void ProcessTree(FileTree tree)
 		{
-			//if (tree == null)
-			//	return;
+			if (tree == null)
+				return;
 
-			//ProcessFiles(tree.Files);
-			//foreach (var subNode in tree.SubNodes)
-			//{
-			//	_checkOperationState();
-			//	ProcessTree(subNode);
-			//}
+			// Check if we're renaming files
+			_renamingFiles = !string.IsNullOrEmpty(_renameMask) && _renameMask != "*.*";
+
+			// If there is a single root dir and rename mask doesn't have wildcards
+			// treat it as a rename of the root dir.
+			if (tree.SubNodes.Count == 1 && _renamingFiles)
+			{
+				// Get the first node and file
+				var firstFile = tree.SubNodes[0].Files.FirstOrDefault();
+				if (firstFile != null)
+				{
+					var fileTreeNode = new FileTreeNode(firstFile);
+					var file = fileTreeNode.TheFile;
+
+					// Check if it's a directory and the rename mask doesn't have wildcards
+					if ((file.IsDirectory || file.IsLinkToDirectory) && !ContainsWildcards(_renameMask))
+					{
+						_renamingFiles = false;
+						_renamingRootDir = true;
+						_rootDir = file;
+					}
+				}
+			}
+
+			// Process all nodes in the tree
+			foreach (var subNode in tree.SubNodes)
+			{
+				_checkOperationState();
+
+				// Get the first file in the subnode
+				var firstFile = subNode.Files.FirstOrDefault();
+				if (firstFile != null)
+				{
+					ProcessNode(new FileTreeNode(firstFile), _rootTargetPath);
+				}
+			}
+
+			// Process files at the root level of the tree
+			foreach (var file in tree.Files)
+			{
+				_checkOperationState();
+
+				// Make sure the file is not null
+				if (file != null)
+				{
+					// Create a file tree node for the file
+					var fileNode = new FileTreeNode(file);
+
+					// Determine the target name based on renaming settings
+					string targetName;
+					if (_renamingRootDir && file == _rootDir)
+						targetName = Path.Combine(_rootTargetPath, _renameMask);
+					else if (_renamingFiles)
+						targetName = Path.Combine(_rootTargetPath, ApplyRenameMask(file, _renameNameMask, _renameExtMask));
+					else
+						targetName = Path.Combine(_rootTargetPath, file.Name);
+
+					// Update statistics
+					_statistics.CurrentFileFrom = file.FullPath;
+					_statistics.CurrentFileTo = targetName;
+					_statistics.CurrentFileTotalBytes = file.Size;
+					_statistics.CurrentFileDoneBytes = 0;
+
+					// Process the file based on its type
+					bool processedOk;
+					if (file.IsLink)
+						processedOk = ProcessLink(targetName);
+					else if (file.IsDirectory)
+						processedOk = ProcessDirectory(fileNode, targetName);
+					else
+						processedOk = ProcessFile(fileNode, targetName);
+
+					// Update statistics if needed
+					if (!processedOk)
+					{
+						_statistics.FailedFiles++;
+					}
+
+					// Process application messages
+					_appProcessMessages?.Invoke();
+					_checkOperationState();
+				}
+			}
+		}
+
+		/// <summary>
+		/// Checks if a string contains wildcard characters (* or ?).
+		/// </summary>
+		/// <param name="str">The string to check.</param>
+		/// <returns>True if the string contains wildcards, false otherwise.</returns>
+		private static bool ContainsWildcards(string str)
+		{
+			return !string.IsNullOrEmpty(str) && (str.Contains('*') || str.Contains('?'));
+		}
+
+		/// <summary>
+		/// Applies a rename mask to a file.
+		/// </summary>
+		/// <param name="file">The file to rename.</param>
+		/// <param name="nameMask">The mask for the name part.</param>
+		/// <param name="extMask">The mask for the extension part.</param>
+		/// <returns>The new name after applying the mask.</returns>
+		private static string ApplyRenameMask(FileEntry file, string nameMask, string extMask)
+		{
+			if (string.IsNullOrEmpty(nameMask) || nameMask == "*")
+				nameMask = Path.GetFileNameWithoutExtension(file.Name);
+
+			if (string.IsNullOrEmpty(extMask) || extMask == "*")
+				extMask = Path.GetExtension(file.Name).TrimStart('.');
+
+			// Replace wildcards in name mask
+			if (nameMask.Contains('*'))
+			{
+				string fileName = Path.GetFileNameWithoutExtension(file.Name);
+				nameMask = nameMask.Replace("*", fileName);
+			}
+
+			// Replace wildcards in extension mask
+			if (extMask.Contains('*'))
+			{
+				string fileExt = Path.GetExtension(file.Name).TrimStart('.');
+				extMask = extMask.Replace("*", fileExt);
+			}
+
+			// Combine name and extension
+			if (string.IsNullOrEmpty(extMask))
+				return nameMask;
+			else
+				return $"{nameMask}.{extMask}";
 		}
 
 		//private void ProcessFiles(FileEntries files)

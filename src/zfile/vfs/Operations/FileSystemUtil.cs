@@ -426,7 +426,10 @@ namespace zfile
 		AddToTarget,
 		Resume,
 		Skip,
-		Renamed
+		Renamed,
+		IsFile,
+		IsDirectory,
+		IsLink
 	}
 
 	//public enum FileSourceOperationHelperMode

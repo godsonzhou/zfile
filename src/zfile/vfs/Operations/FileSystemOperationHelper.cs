@@ -29,7 +29,7 @@ namespace zfile
 		private bool _skipReadError;
 		private bool _skipWriteError;
 		private FileSystemOperationHelperMoveOrCopy? _moveOrCopy;
-
+		public bool AutoRenameItself { get; set; }
 		public FileSystemOperationHelper(
 			AskQuestionFunction askQuestionFunction,
 			Action abortOperationFunction,
@@ -152,7 +152,7 @@ namespace zfile
 			Console.WriteLine($"LOG: {message}");
 		}
 
-		private void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
+		private void LogMessage(string message)
 		{
 			// 记录日志信息
 			// 在实际应用中，这里应该调用日志系统记录日志
@@ -165,7 +165,7 @@ namespace zfile
 		/// </summary>
 		/// <param name="question">问题文本</param>
 		/// <returns>用户是否确认</returns>
-		private bool AskQuestionWithOutParam(string question)
+		private bool AskQuestionWithOutParam(string question = "")
 		{
 			// 创建一个带有默认值的布尔变量
 			// 然后调用_askQuestion并返回结果
@@ -252,7 +252,7 @@ namespace zfile
 			}
 		}
 
-		private bool CompareFiles(string fileName1, string fileName2, long size)
+		private bool CompareFiles(string fileName1, string fileName2)
 		{
 			try
 			{
@@ -398,7 +398,7 @@ namespace zfile
 				// 验证文件是否正确复制
 				if (Verify)
 				{
-					if (!CompareFiles(sourceFile.FullPath, targetFileName, sourceFile.Size))
+					if (!CompareFiles(sourceFile.FullPath, targetFileName))
 					{
 						ShowError($"Verification failed for file: {sourceFile.FullPath}");
 						return false;
@@ -525,23 +525,23 @@ namespace zfile
 			_checkOperationState();
 
 			// 获取目标文件名
-			string absoluteTargetFileName = Path.Combine(currentTargetPath, fileTreeNode.Name);
+			string absoluteTargetFileName = Path.Combine(currentTargetPath, fileTreeNode.Name());
 
 			// 检查目标是否存在
-			FileSystemOperationTargetExistsResult targetExists = TargetExists(fileTreeNode, ref absoluteTargetFileName);
+			FileSystemOperationTargetExistsResult targetExists = TargetExists(ref absoluteTargetFileName);
 
 			// 根据目标存在情况处理
 			switch (targetExists)
 			{
 				case FileSystemOperationTargetExistsResult.NotExists:
 					// 目标不存在，根据节点类型处理
-					if (fileTreeNode.IsDirectory)
+					if (fileTreeNode.IsDirectory())
 					{
 						return ProcessDirectory(fileTreeNode, absoluteTargetFileName);
 					}
-					else if (fileTreeNode.IsLink)
+					else if (fileTreeNode.IsLink())
 					{
-						return ProcessLink(fileTreeNode, absoluteTargetFileName);
+						return ProcessLink(absoluteTargetFileName);
 					}
 					else
 					{
@@ -558,7 +558,7 @@ namespace zfile
 
 				case FileSystemOperationTargetExistsResult.IsLink:
 					// 目标是链接，处理链接
-					return ProcessLink(fileTreeNode, absoluteTargetFileName);
+					return ProcessLink(absoluteTargetFileName);
 
 				case FileSystemOperationTargetExistsResult.Skip:
 					// 跳过此节点
@@ -580,11 +580,7 @@ namespace zfile
 				if (Directory.Exists(absoluteTargetFileName))
 				{
 					// 目录已存在，根据设置决定如何处理
-					FileSourceOperationOptionDirectoryExists dirExistsOption = DirExists(
-						null, // 这里应该传入目录的FileEntry，但我们没有实现
-						absoluteTargetFileName,
-						true, // 允许复制到目录中
-						false); // 不允许删除目录
+					FileSourceOperationOptionDirectoryExists dirExistsOption = DirExistsOption;
 
 					switch (dirExistsOption)
 					{
@@ -644,11 +640,12 @@ namespace zfile
 				}
 
 				// 处理目录中的文件
-				if (node.Files != null)
+				var files = node.Files();
+				if (files != null)
 				{
-					foreach (var file in node.Files)
+					foreach (var file in files)
 					{
-						if (!ProcessFile(file, Path.Combine(absoluteTargetFileName, file.Name)))
+						if (!ProcessFile(new FileTreeNode(file), Path.Combine(absoluteTargetFileName, file.Name)))
 						{
 							return false;
 						}
@@ -668,7 +665,7 @@ namespace zfile
 			}
 		}
 
-		private bool ProcessLink(FileTreeNode node, string absoluteTargetFileName)
+		private bool ProcessLink(string absoluteTargetFileName)
 		{
 			try
 			{
@@ -698,10 +695,7 @@ namespace zfile
 				{
 					// 文件已存在，根据设置决定如何处理
 					string tempFileName = absoluteTargetFileName;
-					FileSourceOperationOptionFileExists fileExistsOption = FileExists(
-						null, // 这里应该传入文件的FileEntry，但我们没有实现
-						ref tempFileName,
-						false); // 不允许追加
+					FileSourceOperationOptionFileExists fileExistsOption = FileExistsOption;
 
 					switch (fileExistsOption)
 					{
@@ -733,16 +727,16 @@ namespace zfile
 				}
 
 				// 复制文件
-				if (_mode == FileSystemOperationHelperMode.Copy)
+				if (_mode == FileSourceOperationHelperMode.Copy)
 				{
-					if (!CopyFile(node.FileEntry, absoluteTargetFileName, FileSystemOperationHelperCopyMode.Default))
+					if (!CopyFile(node.FileEntry(), absoluteTargetFileName, FileSystemOperationHelperCopyMode.Default))
 					{
 						return false;
 					}
 				}
-				else if (_mode == FileSystemOperationHelperMode.Move)
+				else if (_mode == FileSourceOperationHelperMode.Move)
 				{
-					if (!MoveFile(node.FileEntry, absoluteTargetFileName, FileSystemOperationHelperCopyMode.Default))
+					if (!MoveFile(node.FileEntry(), absoluteTargetFileName, FileSystemOperationHelperCopyMode.Default))
 					{
 						return false;
 					}
@@ -758,7 +752,6 @@ namespace zfile
 		}
 
 		private FileSystemOperationTargetExistsResult TargetExists(
-			FileTreeNode node,
 			ref string absoluteTargetFileName)
 		{
 			try
@@ -787,44 +780,20 @@ namespace zfile
 			}
 		}
 
-		private FileSourceOperationOptionDirectoryExists DirExists(
-			FileEntry file,
-			string absoluteTargetFileName,
-			bool allowCopyInto,
-			bool allowDelete)
-		{
-
-			return FileSourceOperationOptionDirectoryExists.None;
-		}
-
-		private void QuestionActionHandler(FileSourceOperationUIResponse action)
-		{
-
-		}
-
-		private FileSourceOperationOptionFileExists FileExists(
-			FileEntry file,
-			ref string absoluteTargetFileName,
-			bool allowAppend)
-		{
-
-			return FileSourceOperationOptionFileExists.None;
-		}
-
 		private void SkipStatistics(FileTreeNode node)
 		{
 			if (node == null)
 				return;
 
 			// 更新跳过的文件和目录统计信息
-			if (node.IsDirectory)
+			if (node.IsDirectory())
 			{
 				_statistics.SkippedDirectories++;
 			}
 			else
 			{
 				_statistics.SkippedFiles++;
-				_statistics.SkippedBytes += node.Size;
+				_statistics.SkippedBytes += node.Size();
 			}
 
 			// 更新统计信息
@@ -837,14 +806,14 @@ namespace zfile
 				return;
 
 			// 更新总文件和目录统计信息
-			if (node.IsDirectory)
+			if (node.IsDirectory())
 			{
 				_statistics.TotalDirectories++;
 			}
 			else
 			{
 				_statistics.TotalFiles++;
-				_statistics.TotalBytes += node.Size;
+				_statistics.TotalBytes += node.Size();
 			}
 
 			// 更新统计信息

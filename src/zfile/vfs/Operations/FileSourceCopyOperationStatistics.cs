@@ -15,13 +15,14 @@ namespace zfile
         public long DoneBytes;
         public long BytesPerSecond;
         public DateTime RemainingTime;
-
-		public long SkippedFiles;
-		public long SkippedBytes;
-		public long FailedFiles;
-		public long FailedBytes;
-	
-	}
+        public long SkippedFiles;
+        public long SkippedBytes;
+        public long FailedFiles;
+        public long FailedBytes;
+        public long TotalDirectories;
+        public long DoneDirectories;
+        public long SkippedDirectories;
+    }
 
     /// <summary>
     /// File exists option for operations
@@ -38,7 +39,8 @@ namespace zfile
         AutoRename,
         Resume,
         ResumeAll,
-        Abort
+        Abort,
+        Append
     }
 
     /// <summary>
@@ -51,7 +53,19 @@ namespace zfile
         Skip,
         SkipAll,
         Abort,
-		CopyInto
+        CopyInto,
+        Delete
     }
-   
+
+    /// <summary>
+    /// Set property error option for operations
+    /// </summary>
+    //public enum FileSourceOperationOptionSetPropertyError
+    //{
+    //    None,
+    //    DontSet,
+    //    IgnoreErrors,
+    //    Skip,
+    //    Abort
+    //}
 }

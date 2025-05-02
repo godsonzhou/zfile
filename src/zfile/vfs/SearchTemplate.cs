@@ -20,6 +20,7 @@ namespace zfile
         private readonly FileAttributes _attributes;
         private readonly bool _attributesUnset;
         private readonly FileAttributes _attributesUnsetMask;
+        private readonly string _excludeDirectories = string.Empty;
         internal int SearchDepth;
 
         /// <summary>
@@ -43,7 +44,8 @@ namespace zfile
             bool attributesSet = false,
             FileAttributes attributes = 0,
             bool attributesUnset = false,
-            FileAttributes attributesUnsetMask = 0)
+            FileAttributes attributesUnsetMask = 0,
+            string excludeDirectories = null)
         {
             _searchTemplate = searchTemplate;
             _caseSensitive = caseSensitive;
@@ -61,6 +63,7 @@ namespace zfile
             _attributes = attributes;
             _attributesUnset = attributesUnset;
             _attributesUnsetMask = attributesUnsetMask;
+            _excludeDirectories = excludeDirectories ?? string.Empty;
         }
 
         public bool Check(FileEntry file)
@@ -154,12 +157,94 @@ namespace zfile
 
         internal bool CheckDirectoryName(string name)
         {
-            throw new NotImplementedException();
+            // 检查目录名是否匹配排除目录列表
+            return !MatchesMaskList(name, _excludeDirectories);
         }
 
         internal bool CheckDirectoryNameEx(string fullPath, string rootDir)
         {
-            throw new NotImplementedException();
+            // 检查完整路径是否匹配排除目录列表
+            if (string.IsNullOrEmpty(_excludeDirectories))
+                return true;
+
+            foreach (var path in _excludeDirectories.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                var pathType = GetPathType(path);
+                if (pathType == PathType.Relative)
+                {
+                    // 检查相对于根目录的路径
+                    string relativePath = ExtractDirLevel(rootDir, fullPath);
+                    if (MatchesMask(relativePath, path))
+                        return false;
+                }
+                else if (pathType == PathType.Absolute)
+                {
+                    // 检查绝对路径
+                    if (MatchesMask(fullPath, path))
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        // 辅助方法：检查路径类型
+        private enum PathType { Relative, Absolute }
+
+        private PathType GetPathType(string path)
+        {
+            // 判断路径是相对路径还是绝对路径
+            return Path.IsPathRooted(path) ? PathType.Absolute : PathType.Relative;
+        }
+
+        // 辅助方法：提取相对于根目录的路径
+        private string ExtractDirLevel(string basePath, string fullPath)
+        {
+            // 从完整路径中提取相对于基础路径的部分
+            if (fullPath.StartsWith(basePath, StringComparison.OrdinalIgnoreCase))
+            {
+                string relativePath = fullPath.Substring(basePath.Length);
+                if (relativePath.StartsWith(Path.DirectorySeparatorChar.ToString()))
+                    relativePath = relativePath.Substring(1);
+                return relativePath;
+            }
+            return fullPath;
+        }
+
+        // 辅助方法：检查是否匹配掩码列表
+        private bool MatchesMaskList(string name, string maskList)
+        {
+            if (string.IsNullOrEmpty(maskList))
+                return false;
+
+            foreach (var mask in maskList.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (MatchesMask(name, mask))
+                    return true;
+            }
+            return false;
+        }
+
+        // 辅助方法：检查是否匹配掩码
+        private bool MatchesMask(string name, string mask)
+        {
+            if (_regExp)
+            {
+                try
+                {
+                    var regex = new Regex(mask, _caseSensitive ? RegexOptions.None : RegexOptions.IgnoreCase);
+                    return regex.IsMatch(name);
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                // 简单的通配符匹配
+                return new Regex("^" + Regex.Escape(mask).Replace("\\*", ".*").Replace("\\?", ".") + "$", 
+                    _caseSensitive ? RegexOptions.None : RegexOptions.IgnoreCase).IsMatch(name);
+            }
         }
     }
 }

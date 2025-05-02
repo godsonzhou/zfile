@@ -648,6 +648,13 @@ namespace zfile
 				// 导航到父目录
 				owner.fTPMGR.NavigateToPath(ftpnode.ConnectionName, parentPath, owner.activeListView);
 			}
+			else if (owner.CurrentDir.GetFileSource(owner.LRflag) is WcxArchiveFileSource wcxfs)
+			{
+				string? parentpath = Path.GetDirectoryName(wcxfs.CurrentPath);
+				owner.RecordDirectoryHistory(parentpath);
+				owner.CurrentDir[owner.LRflag] = parentpath;
+				_ = owner.LoadListViewByFileSourceAsync(parentpath, owner.activeListView, owner.activeTreeview.SelectedNode);
+			}
 			else
 			{
 				string? parentPath = Path.GetDirectoryName(owner.CurrentDir[owner.LRflag]);

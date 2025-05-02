@@ -164,7 +164,7 @@ namespace zfile
                 var dirPath = Path.GetDirectoryName(path) ?? "C:\\";
                 var baseFileSource = GetFileSourceForPath(dirPath, isLeftPanel);
                 var archiveSource = WcxArchiveFileSource.CreateByArchiveName(baseFileSource, path);
-				Debug.Print($"FileSourceManager: GetFileSourceForPath({path}) {lr} from fs.archivefile : {fileSource.GetRootDir()}");
+				Debug.Print($"FileSourceManager: GetFileSourceForPath({path}) {lr} from fs.archivefile : {archiveSource.GetRootDir()}");
 				// 添加到缓存
 				panelCache[path] = archiveSource;
                 return archiveSource;

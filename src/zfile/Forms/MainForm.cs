@@ -251,6 +251,14 @@ namespace zfile
 		// 导航到指定路径
 		public void NavigateToPath(string path, bool recordHistory = true, TreeSearchScope scope = TreeSearchScope.thispc, bool isactive = true)
 		{
+			if (CurrentDir.GetFileSource(LRflag) is WcxArchiveFileSource wcxfs)
+			{
+				if(recordHistory)
+					RecordDirectoryHistory(path);
+				CurrentDir[LRflag] = path;
+				_ = LoadListViewByFileSourceAsync(path, activeListView, activeTreeview.SelectedNode);
+				return;
+			}
 			//Debug.Print($"start to navigate to path {path}");
 			//scope : thispc, desktop, full
 			if (string.IsNullOrEmpty(path))
@@ -1322,12 +1330,18 @@ namespace zfile
 				var lvItemTag = selectedItem.Tag as LvItemTag;
 				var lvItemFile = lvItemTag.File;
 				if (lvItemFile.IsDirectory || !isinarchive)
+				{
+					if (!CurrentDir[LRflag].Equals(path))//由于在WCX内部，通过TREEVIEW_AFTERSELECT节点不会发生变化，所以无法记录历史，只能在LISTVIEW_DOUBLECLICK中记录历史
+						// 记录目录历史
+						RecordDirectoryHistory(path);
 					// 使用 FileSource 架构加载文件列表
 					_ = LoadListViewByFileSourceAsync(path, listView, selectedItem.Tag as TreeNode);
+				}
 				else
 				{
 					// 调用wcxfilesourceexecuteoperation
 					var op = fileSource.CreateExecuteOperation(lvItemFile, fileSource.CurrentPath, "open");
+					_operationsManager.AddOperation(op);
 					op?.Execute();
 				}
 				// 更新当前路径
@@ -1928,6 +1942,10 @@ namespace zfile
 				forwardStack.Clear();
 				ftpnode.Path = newPath;
 			}
+			//else if (CurrentDir.GetFileSource(LRflag) is WcxArchiveFileSource wcx)
+			//{
+
+			//}
 			else
 			{
 				if (string.IsNullOrEmpty(CurrentDir[LRflag]) || CurrentDir[LRflag].Equals(newPath)) return;
@@ -2052,7 +2070,7 @@ namespace zfile
 
 		}
 		// 加载文件列表 - 使用 FileSource 架构（异步版本）
-		private async Task LoadListViewByFileSourceAsync(string path, ListView listView, TreeNode parentnode)
+		public async Task LoadListViewByFileSourceAsync(string path, ListView listView, TreeNode parentnode)
 		{
 			if (string.IsNullOrEmpty(path)) return;
 

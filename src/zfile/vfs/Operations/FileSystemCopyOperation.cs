@@ -181,8 +181,6 @@ namespace zfile
 			_operationHelper.ProcessTree(_sourceFilesTree);
 		}
 
-
-
 		// This method is called when the operation is complete
 		protected override void Finalize()
 		{

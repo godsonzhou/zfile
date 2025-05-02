@@ -501,9 +501,9 @@ namespace zfile
 		}
 
 		// These fields are used for compatibility with existing code
-		private readonly Func<string, bool, bool> _askQuestion;
+		//private readonly Func<string, bool, bool> _askQuestion;
 		//private readonly Action _checkOperationState;
-		private FileTree? _currentTree;
+		//private FileTree? _currentTree;
 		//private long _filesCount;
 		//private long _filesSize;
 
@@ -519,18 +519,18 @@ namespace zfile
 			: base(askQuestionFunction, checkOperationStateFunction)
 		{
 			// Convert the delegates to the expected types
-			_askQuestion = (caption, isConfirmation) =>
-			{
-				var response = askQuestionFunction(caption, isConfirmation.ToString(),
-					new[] { FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.No },
-					FileSourceOperationUIResponse.Yes,
-					FileSourceOperationUIResponse.No);
-				return response == FileSourceOperationUIResponse.Yes;
-			};
-			_checkOperationState = () => checkOperationStateFunction();
+			//_askQuestion = (caption, isConfirmation) =>
+			//{
+			//	var response = askQuestionFunction(caption, isConfirmation.ToString(),
+			//		new[] { FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.No },
+			//		FileSourceOperationUIResponse.Yes,
+			//		FileSourceOperationUIResponse.No);
+			//	return response == FileSourceOperationUIResponse.Yes;
+			//};
+			//_checkOperationState = () => checkOperationStateFunction();
 
 			// Initialize required fields
-			_currentTree = new FileTree(string.Empty);
+			//_currentTree = new FileTree(string.Empty);
 			SearchTemplate = new SearchTemplate("*");
 		}
 
@@ -557,18 +557,18 @@ namespace zfile
 		//	_currentTree?.AddFile(file);
 		//}
 
-		public new FileTree ReleaseTree()
-		{
-			var tree = _currentTree ?? new FileTree(string.Empty);
-			_currentTree = null;
-			return tree;
-		}
+		//public FileTree ReleaseTree()
+		//{
+		//	var tree = _currentTree ?? new FileTree(string.Empty);
+		//	_currentTree = null;
+		//	return tree;
+		//}
 
-		public new void Dispose()
-		{
-			_currentTree?.Dispose();
-			GC.SuppressFinalize(this);
-		}
+		//public void Dispose()
+		//{
+		//	_currentTree?.Dispose();
+		//	GC.SuppressFinalize(this);
+		//}
 	}
 
 }

@@ -3,7 +3,7 @@ namespace zfile
     public class FileTree : IDisposable
     {
         private readonly List<FileTree> _subNodes;
-        private readonly FileEntries _files;
+        private readonly FileEntries _files = new();
 
         public string Path { get; }
         //public IReadOnlyList<FileTree> SubNodes => _subNodes;

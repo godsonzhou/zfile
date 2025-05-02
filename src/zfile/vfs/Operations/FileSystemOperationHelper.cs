@@ -517,62 +517,6 @@ namespace zfile
 			}
 		}
 
-		private bool ProcessNode(FileTree fileTreeNode, string currentTargetPath)
-		{
-			if (fileTreeNode == null)
-				return true;
-
-			// 检查操作状态
-			_checkOperationState();
-
-			// 获取目标文件名
-			string absoluteTargetFileName = Path.Combine(currentTargetPath, fileTreeNode.Name);
-
-			// 检查目标是否存在
-			FileSystemOperationTargetExistsResult targetExists = TargetExists(ref absoluteTargetFileName);
-
-			// 根据目标存在情况处理
-			switch (targetExists)
-			{
-				case FileSystemOperationTargetExistsResult.NotExists:
-					// 目标不存在，根据节点类型处理
-					if (fileTreeNode.IsDirectory)
-					{
-						return ProcessDirectory(fileTreeNode, absoluteTargetFileName);
-					}
-					else if (fileTreeNode.IsLink)
-					{
-						return ProcessLink(absoluteTargetFileName);
-					}
-					else
-					{
-						return ProcessFile(fileTreeNode, absoluteTargetFileName);
-					}
-
-				case FileSystemOperationTargetExistsResult.IsDirectory:
-					// 目标是目录，处理目录
-					return ProcessDirectory(fileTreeNode, absoluteTargetFileName);
-
-				case FileSystemOperationTargetExistsResult.IsFile:
-					// 目标是文件，处理文件
-					return ProcessFile(fileTreeNode, absoluteTargetFileName);
-
-				case FileSystemOperationTargetExistsResult.IsLink:
-					// 目标是链接，处理链接
-					return ProcessLink(absoluteTargetFileName);
-
-				case FileSystemOperationTargetExistsResult.Skip:
-					// 跳过此节点
-					SkipStatistics(fileTreeNode);
-					return true;
-
-				default:
-					// 未知情况，跳过
-					SkipStatistics(fileTreeNode);
-					return true;
-			}
-		}
-
 		private bool ProcessDirectory(FileTree node, string absoluteTargetFileName)
 		{
 			try
@@ -851,11 +795,11 @@ namespace zfile
 			if (tree.SubNodes.Count == 1 && _renamingFiles)
 			{
 				// Get the first node and file
-				var firstFile = tree.SubNodes[0].Files.FirstOrDefault();
-				if (firstFile != null)
+				var file = tree.SubNodes[0].TheFile;
+				//if (firstFile != null)
 				{
-					var fileTreeNode = new FileTree((FileEntry)firstFile);
-					var file = fileTreeNode.TheFile;
+					//var fileTreeNode = new FileTree((FileEntry)firstFile);
+					//var file = fileTreeNode.TheFile;
 
 					// Check if it's a directory and the rename mask doesn't have wildcards
 					if ((file.IsDirectory || file.IsLinkToDirectory) && !ContainsWildcards(_renameMask))
@@ -866,68 +810,181 @@ namespace zfile
 					}
 				}
 			}
-
+			ProcessNode(tree, _rootTargetPath);
 			// Process all nodes in the tree
-			foreach (var subNode in tree.SubNodes)
-			{
-				_checkOperationState();
+			//foreach (var subNode in tree.SubNodes)
+			//{
+			//	_checkOperationState();
 
-				// Get the first file in the subnode
-				var firstFile = subNode.Files.FirstOrDefault();
-				if (firstFile != null)
-				{
-					ProcessNode(new FileTree((FileEntry)firstFile), _rootTargetPath);
-				}
-			}
+			//	// Get the first file in the subnode
+			//	var firstFile = subNode.TheFile; //Files.FirstOrDefault();
+			//	if (firstFile != null)
+			//	{
+			//		ProcessNode(new FileTree((FileEntry)firstFile), _rootTargetPath);
+			//	}
+			//}
 
-			// Process files at the root level of the tree
-			foreach (var file in tree.Files)
-			{
-				_checkOperationState();
+			//// Process files at the root level of the tree
+			//foreach (var file in tree.Files)
+			//{
+			//	_checkOperationState();
 
-				// Make sure the file is not null
-				if (file != null)
-				{
-					// Create a file tree node for the file
-					var fileNode = new FileTree((FileEntry)file);
+			//	// Make sure the file is not null
+			//	if (file != null)
+			//	{
+			//		// Create a file tree node for the file
+			//		var fileNode = new FileTree((FileEntry)file);
 
-					// Determine the target name based on renaming settings
-					string targetName;
-					if (_renamingRootDir && file == _rootDir)
-						targetName = Path.Combine(_rootTargetPath, _renameMask);
-					else if (_renamingFiles)
-						targetName = Path.Combine(_rootTargetPath, ApplyRenameMask(file, _renameNameMask, _renameExtMask));
-					else
-						targetName = Path.Combine(_rootTargetPath, file.Name);
-
-					// Update statistics
-					_statistics.CurrentFileFrom = file.FullPath;
-					_statistics.CurrentFileTo = targetName;
-					_statistics.CurrentFileTotalBytes = file.Size;
-					_statistics.CurrentFileDoneBytes = 0;
-
-					// Process the file based on its type
-					bool processedOk;
-					if (file.IsLink)
-						processedOk = ProcessLink(targetName);
-					else if (file.IsDirectory)
-						processedOk = ProcessDirectory(fileNode, targetName);
-					else
-						processedOk = ProcessFile(fileNode, targetName);
-
-					// Update statistics if needed
-					if (!processedOk)
-					{
-						_statistics.FailedFiles++;
-					}
-
-					// Process application messages
-					_appProcessMessages?.Invoke();
-					_checkOperationState();
-				}
-			}
+			//	}
+			//}
 		}
+		private bool ProcessNode(FileTree fileTreeNode, string currentTargetPath)
+		{
+			bool result = true;
+			if (fileTreeNode == null)
+				return true;
+			foreach (var CurrentSubNode in fileTreeNode.SubNodes)
+			{
+				var file = CurrentSubNode.TheFile;
+				// Determine the target name based on renaming settings
+				string targetName;
+				if (_renamingRootDir && file == _rootDir)
+					targetName = Path.Combine(_rootTargetPath, _renameMask);
+				else if (_renamingFiles)
+					targetName = Path.Combine(_rootTargetPath, ApplyRenameMask(file, _renameNameMask, _renameExtMask));
+				else
+					targetName = Path.Combine(_rootTargetPath, file.Name);
 
+				// Update statistics
+				_statistics.CurrentFileFrom = file.FullPath;
+				_statistics.CurrentFileTo = targetName;
+				_statistics.CurrentFileTotalBytes = file.Size;
+				_statistics.CurrentFileDoneBytes = 0;
+				_updateStatistics(_statistics);
+				// check if moving to the same file
+				/* the pascal version:
+				 *  if mbFileSame(TargetName, aFile.FullPath) then
+				begin
+				  if (FMode = fsohmCopy) and FAutoRenameItSelf then
+					TargetName := GetNextCopyName(TargetName, aFile.IsDirectory or aFile.IsLinkToDirectory)
+				  else
+					case AskQuestion(Format(rsMsgCanNotCopyMoveItSelf, [TargetName]), '',
+									 [fsourAbort, fsourSkip], fsourAbort, fsourSkip) of
+					  fsourAbort:
+						AbortOperation();
+					else
+						begin
+						  Result := False;
+						  SkipStatistics(CurrentSubNode);
+						  AppProcessMessages;
+						  CheckOperationState;
+						  Continue;
+						end;
+					end;
+				end;
+				
+				// Check MAX_PATH
+				if gLongNameAlert and (UTF8Length(TargetName) > MAX_PATH - 1) then
+				begin
+				  if FMaxPathOption <> fsourInvalid then
+					AskResult := FMaxPathOption
+				  else begin
+					AskResult := AskQuestion(Format(rsMsgFilePathOverMaxPath,
+									 [UTF8Length(TargetName), MAX_PATH - 1, LineEnding + WrapTextSimple(TargetName, 100) + LineEnding]), '',
+									 [fsourIgnore, fsourSkip, fsourAbort, fsourIgnoreAll, fsourSkipAll], fsourIgnore, fsourSkip);
+				  end;
+				  case AskResult of
+					fsourAbort: AbortOperation();
+					fsourSkip,
+					fsourSkipAll:
+					  begin
+						Result := False;
+						FMaxPathOption := fsourSkip;
+						SkipStatistics(CurrentSubNode);
+						AppProcessMessages;
+						CheckOperationState;
+						Continue;
+					  end;
+					fsourIgnore: ;
+					fsourIgnoreAll: FMaxPathOption := fsourIgnore;
+				  end;
+				end;
+
+				 */
+
+				//		// Process the file based on its type
+				bool processedOk;
+				if (file.IsLink)
+					processedOk = ProcessLink(targetName);
+				else if (file.IsDirectory)
+					processedOk = ProcessDirectory(CurrentSubNode, targetName);
+				else
+					processedOk = ProcessFile(CurrentSubNode, targetName);
+
+				//		// Update statistics if needed
+				if (!processedOk)
+				{
+					_statistics.FailedFiles++;
+					result = false;
+				}
+
+				// Process application messages
+				_appProcessMessages?.Invoke();
+				_checkOperationState();
+				//if (!ProcessNode(CurrentSubNode, currentTargetPath))
+				//	return false;
+			}
+			// 检查操作状态
+			//_checkOperationState();
+
+			//// 获取目标文件名
+			//string absoluteTargetFileName = Path.Combine(currentTargetPath, fileTreeNode.Name);
+
+			//// 检查目标是否存在
+			//FileSystemOperationTargetExistsResult targetExists = TargetExists(ref absoluteTargetFileName);
+
+			//// 根据目标存在情况处理
+			//switch (targetExists)
+			//{
+			//	case FileSystemOperationTargetExistsResult.NotExists:
+			//		// 目标不存在，根据节点类型处理
+			//		if (fileTreeNode.IsDirectory)
+			//		{
+			//			return ProcessDirectory(fileTreeNode, absoluteTargetFileName);
+			//		}
+			//		else if (fileTreeNode.IsLink)
+			//		{
+			//			return ProcessLink(absoluteTargetFileName);
+			//		}
+			//		else
+			//		{
+			//			return ProcessFile(fileTreeNode, absoluteTargetFileName);
+			//		}
+
+			//	case FileSystemOperationTargetExistsResult.IsDirectory:
+			//		// 目标是目录，处理目录
+			//		return ProcessDirectory(fileTreeNode, absoluteTargetFileName);
+
+			//	case FileSystemOperationTargetExistsResult.IsFile:
+			//		// 目标是文件，处理文件
+			//		return ProcessFile(fileTreeNode, absoluteTargetFileName);
+
+			//	case FileSystemOperationTargetExistsResult.IsLink:
+			//		// 目标是链接，处理链接
+			//		return ProcessLink(absoluteTargetFileName);
+
+			//	case FileSystemOperationTargetExistsResult.Skip:
+			//		// 跳过此节点
+			//		SkipStatistics(fileTreeNode);
+			//		return true;
+
+			//	default:
+			//		// 未知情况，跳过
+			//		SkipStatistics(fileTreeNode);
+			//		return true;
+			//}
+			return result;
+		}
 		/// <summary>
 		/// Checks if a string contains wildcard characters (* or ?).
 		/// </summary>

@@ -6,7 +6,6 @@ namespace zfile
         private readonly FileEntries _files = new();
 
         public string Path { get; }
-        //public IReadOnlyList<FileTree> SubNodes => _subNodes;
         public FileEntries Files => _files;
 
         public FileTree(string path)
@@ -35,15 +34,7 @@ namespace zfile
             _subNodes.Clear();
             _files.Clear();
         }
- //   }
-
-
-	///// <summary>
-	///// Represents a node in a file tree.
-	///// </summary>
-	//public class FileTree : IDisposable
-	//{
-		//private readonly List<FileTree> _subNodes;
+ 
 		private object _data;
 
 		/// <summary>
@@ -65,31 +56,8 @@ namespace zfile
 				}
 			}
 		}
-		//private List<FileTreeNode> _subNodes;
-		//private object _data;
+
 		public List<FileTree> SubNodes => _subNodes;
-		//public int SubNodesCount
-		//{
-		//	get { return _subNodes.Count; }
-		//	set
-		//	{
-		//		if (value < _subNodes.Count)
-		//		{
-		//			_subNodes.RemoveRange(value, _subNodes.Count - value);
-		//		}
-		//		else if (value > _subNodes.Count)
-		//		{
-		//			for (int i = _subNodes.Count; i < value; i++)
-		//			{
-		//				_subNodes.Add(null);
-		//			}
-		//		}
-		//	}
-		//}
-		///// <summary>
-		///// Gets the subnodes of this node.
-		///// </summary>
-		//public IReadOnlyList<FileTreeNode> SubNodes => _subNodes;
 
 		/// <summary>
 		/// Gets the number of subnodes.
@@ -104,28 +72,12 @@ namespace zfile
 			_subNodes = new List<FileTree>();
 		}
 
-		/// <summary>
-		/// Creates a new instance of the FileTreeNode class with the specified file.
-		/// </summary>
-		/// <param name="file">The file associated with this node.</param>
-		//public FileTreeNode(FileEntry file) : this()
-		//{
-		//	TheFile = file;
-		//}
 		public FileTree this[int index] => _subNodes[index];
 
 		public FileTree(FileEntry file) : this()
 		{
 			_file = file;
 		}
-
-		//public FileTreeNode(FileEntry file, Type dataType) : this(file)
-		//{
-		//	if (dataType != null)
-		//	{
-		//		_data = Activator.CreateInstance(dataType);
-		//	}
-		//}
 
 		/// <summary>
 		/// Adds a subnode with the specified file.
@@ -152,15 +104,6 @@ namespace zfile
 		}
 
 		private bool _disposed = false;
-
-		/// <summary>
-		/// Disposes resources used by the FileTreeNode.
-		/// </summary>
-		//public void Dispose()
-		//{
-		//	Dispose(true);
-		//	GC.SuppressFinalize(this);
-		//}
 
 		/// <summary>
 		/// Disposes resources used by the FileTreeNode.
@@ -243,44 +186,6 @@ namespace zfile
 		/// Gets the file entry associated with this node
 		/// </summary>
 		public FileEntry FileEntry => TheFile;
-
-		//public bool IsDirectory(FileSystemOperationTargetExistsResult result)
-		//{
-		//	return result == FileSystemOperationTargetExistsResult.IsDirectory;
-		//}
-
-		/// <summary>
-		/// Checks if the result represents a file
-		/// </summary>
-		//public bool IsFile(this FileSystemOperationTargetExistsResult result)
-		//{
-		//	return result == FileSystemOperationTargetExistsResult.IsFile;
-		//}
-
-		///// <summary>
-		///// Checks if the result represents a symbolic link
-		///// </summary>
-		////public bool IsLink(this FileSystemOperationTargetExistsResult result)
-		////{
-		////	return result == FileSystemOperationTargetExistsResult.IsLink;
-		////}
-
-		///// <summary>
-		///// Gets the Delete option for directory exists
-		///// </summary>
-		//public bool Delete(this FileSourceOperationOptionDirectoryExists option)
-		//{
-		//	return option == FileSourceOperationOptionDirectoryExists.Delete;
-		//}
-
-		///// <summary>
-		///// Gets the Append option for file exists
-		///// </summary>
-		//public bool Append(this FileSourceOperationOptionFileExists option)
-		//{
-		//	return option == FileSourceOperationOptionFileExists.Append;
-		//}
-
 	}
 
 	/// <summary>

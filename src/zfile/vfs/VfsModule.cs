@@ -48,15 +48,6 @@ namespace zfile
 	//		// 清理资源
 	//	}
 	//}
-	/// <summary>
-	/// 文件源基类，所有具体文件源实现都应继承此类
-	/// </summary>
-	//public abstract partial class FileSource
- //   {
- //       //public abstract bool IsSupportedPath(string path);
- //       //public abstract void Initialize();
- //       //public abstract void Finalize();
- //   }
 
     /// <summary>
     /// 文件源类型的委托

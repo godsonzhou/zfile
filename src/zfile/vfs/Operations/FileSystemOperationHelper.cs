@@ -811,33 +811,8 @@ namespace zfile
 				}
 			}
 			ProcessNode(tree, _rootTargetPath);
-			// Process all nodes in the tree
-			//foreach (var subNode in tree.SubNodes)
-			//{
-			//	_checkOperationState();
-
-			//	// Get the first file in the subnode
-			//	var firstFile = subNode.TheFile; //Files.FirstOrDefault();
-			//	if (firstFile != null)
-			//	{
-			//		ProcessNode(new FileTree((FileEntry)firstFile), _rootTargetPath);
-			//	}
-			//}
-
-			//// Process files at the root level of the tree
-			//foreach (var file in tree.Files)
-			//{
-			//	_checkOperationState();
-
-			//	// Make sure the file is not null
-			//	if (file != null)
-			//	{
-			//		// Create a file tree node for the file
-			//		var fileNode = new FileTree((FileEntry)file);
-
-			//	}
-			//}
 		}
+
 		private bool ProcessNode(FileTree fileTreeNode, string currentTargetPath)
 		{
 			bool result = true;
@@ -931,58 +906,9 @@ namespace zfile
 				// Process application messages
 				_appProcessMessages?.Invoke();
 				_checkOperationState();
-				//if (!ProcessNode(CurrentSubNode, currentTargetPath))
-				//	return false;
+		
 			}
-			// 检查操作状态
-			//_checkOperationState();
-
-			//// 获取目标文件名
-			//string absoluteTargetFileName = Path.Combine(currentTargetPath, fileTreeNode.Name);
-
-			//// 检查目标是否存在
-			//FileSystemOperationTargetExistsResult targetExists = TargetExists(ref absoluteTargetFileName);
-
-			//// 根据目标存在情况处理
-			//switch (targetExists)
-			//{
-			//	case FileSystemOperationTargetExistsResult.NotExists:
-			//		// 目标不存在，根据节点类型处理
-			//		if (fileTreeNode.IsDirectory)
-			//		{
-			//			return ProcessDirectory(fileTreeNode, absoluteTargetFileName);
-			//		}
-			//		else if (fileTreeNode.IsLink)
-			//		{
-			//			return ProcessLink(absoluteTargetFileName);
-			//		}
-			//		else
-			//		{
-			//			return ProcessFile(fileTreeNode, absoluteTargetFileName);
-			//		}
-
-			//	case FileSystemOperationTargetExistsResult.IsDirectory:
-			//		// 目标是目录，处理目录
-			//		return ProcessDirectory(fileTreeNode, absoluteTargetFileName);
-
-			//	case FileSystemOperationTargetExistsResult.IsFile:
-			//		// 目标是文件，处理文件
-			//		return ProcessFile(fileTreeNode, absoluteTargetFileName);
-
-			//	case FileSystemOperationTargetExistsResult.IsLink:
-			//		// 目标是链接，处理链接
-			//		return ProcessLink(absoluteTargetFileName);
-
-			//	case FileSystemOperationTargetExistsResult.Skip:
-			//		// 跳过此节点
-			//		SkipStatistics(fileTreeNode);
-			//		return true;
-
-			//	default:
-			//		// 未知情况，跳过
-			//		SkipStatistics(fileTreeNode);
-			//		return true;
-			//}
+	
 			return result;
 		}
 		/// <summary>
@@ -1030,108 +956,5 @@ namespace zfile
 			else
 				return $"{nameMask}.{extMask}";
 		}
-
-		//private void ProcessFiles(FileEntries files)
-		//{
-		//	foreach (var file in files)
-		//	{
-		//		_checkOperationState();
-		//		ProcessFile(file);
-		//	}
-		//}
-
-		//private void ProcessFile(FileEntry file)
-		//{
-		//	try
-		//	{
-		//		string targetFilePath = Path.Combine(_rootTargetPath, file.Name);
-		//		bool fileExists = File.Exists(targetFilePath);
-
-		//		if (fileExists)
-		//		{
-		//			// 将FileExistsOption转换为FileSourceOperationOptionGeneral类型
-		//			var option = (FileSourceOperationOptionGeneral)FileExistsOption;
-		//			switch (option)
-		//			{
-		//				case FileSourceOperationOptionGeneral.No:
-		//					return;
-		//				case FileSourceOperationOptionGeneral.AskUser:
-		//					// 使用辅助方法来处理out参数
-		//					bool overwrite = AskQuestionWithOutParam($"File {targetFilePath} already exists. Overwrite?");
-		//					if (!overwrite)
-		//						return;
-		//					break;
-		//			}
-		//		}
-
-		//		if (CheckFreeSpace)
-		//		{
-		//			long requiredSpace = file.Size;
-		//			if (Verify)
-		//				requiredSpace *= 2;
-		//			if (ReserveSpace)
-		//				requiredSpace *= 2;
-
-		//			// 获取目标路径的根目录，并检查是否为空
-		//			string? rootPath = Path.GetPathRoot(targetFilePath);
-		//			if (string.IsNullOrEmpty(rootPath))
-		//			{
-		//				// 如果无法获取根目录，则跳过检查
-		//				return;
-		//			}
-
-		//			DriveInfo drive = new(rootPath);
-		//			if (drive.AvailableFreeSpace < requiredSpace)
-		//			{
-		//				if (SkipAllBigFiles)
-		//					return;
-
-		//				// 使用辅助方法来处理out参数
-		//				bool skip = AskQuestionWithOutParam($"Not enough free space on drive {drive.Name}. Skip file?");
-		//				if (skip)
-		//					return;
-		//			}
-		//		}
-
-		//		File.Copy(file.FullPath, targetFilePath, true);
-
-		//		if (CopyAttributesOptions != CopyAttributesOption.None)
-		//		{
-		//			try
-		//			{
-		//				if ((CopyAttributesOptions & CopyAttributesOption.CopyAttributes) != 0)
-		//					File.SetAttributes(targetFilePath, file.Attributes);
-		//				if ((CopyAttributesOptions & CopyAttributesOption.CopyTime) != 0)
-		//				{
-		//					File.SetCreationTime(targetFilePath, file.CreationTime);
-		//					File.SetLastWriteTime(targetFilePath, file.ModificationTime);
-		//					File.SetLastAccessTime(targetFilePath, file.LastAccessTime);
-		//				}
-		//			}
-		//			catch (Exception)
-		//			{
-		//				if (SetPropertyError == FileSourceOperationOptionSetPropertyError.Abort)
-		//					_raiseAbortOperation();
-		//				else if (SetPropertyError == FileSourceOperationOptionSetPropertyError.Skip)
-		//					return;
-		//			}
-		//		}
-
-		//		if (Verify)
-		//		{
-		//			_showCompareFilesUI(file.FullName, targetFilePath);
-		//		}
-
-		//		_statistics.DoneFiles++;
-		//		_statistics.DoneBytes += file.Size;
-		//		_updateStatistics(_statistics);
-		//	}
-		//	catch (Exception)
-		//	{
-		//		_statistics.FailedFiles++;
-		//		_statistics.FailedBytes += file.Size;
-		//		_updateStatistics(_statistics);
-		//	}
-		//}
 	}
 }

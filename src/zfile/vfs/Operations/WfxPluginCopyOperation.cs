@@ -15,7 +15,6 @@ namespace zfile
         private WfxPluginOperationHelper _operationHelper;
         private CallbackDataClass _callbackDataClass;
         private FileTree _sourceFilesTree;
-        //private FileSourceCopyOperationStatistics _statistics;
         private int _infoOperation;
 
         public WfxPluginCopyOperation(IFileSource sourceFileSource, IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)

@@ -8,7 +8,6 @@ namespace zfile
         private WfxPluginOperationHelper? _operationHelper;
         private readonly CallbackDataClass _callbackDataClass;
         private FileTree? _sourceFilesTree;
-        private FileSourceCopyOperationStatistics _statistics = new();
         private int _infoOperation;
         private bool _needsConnection;
 

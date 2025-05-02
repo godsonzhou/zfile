@@ -1,24 +1,5 @@
 namespace zfile
 {
-    //public struct FileSourceCopyOperationStatistics
-    //{
-    //	public string CurrentFileFrom;
-    //	public string CurrentFileTo;
-    //	public long CurrentFileTotalBytes;
-    //	public long CurrentFileDoneBytes;
-    //	public long TotalFiles;
-    //	public long DoneFiles;
-    //	public long TotalBytes;
-    //	public long DoneBytes;
-    //	public long BytesPerSecond;
-    //	public DateTime RemainingTime;
-
-    //	public long SkippedFiles;
-    //	public long SkippedBytes;
-    //	public long FailedFiles;
-    //	public long FailedBytes;
-    //}
-
 
     public class WfxPluginMoveOperation : FileSourceMoveOperation
     {

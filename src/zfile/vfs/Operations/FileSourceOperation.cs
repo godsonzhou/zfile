@@ -34,7 +34,6 @@ namespace zfile
         /// </summary>
         string Description { get; }
 
-
         int OperationHandle { get; }
         FileSourceOperationState State { get; }
         bool IsFree { get; }
@@ -118,7 +117,6 @@ namespace zfile
         /// Gets the target path
         /// </summary>
         public virtual string TargetPath { get; set; }
-
 
         /// <summary>
         /// Gets the operation state

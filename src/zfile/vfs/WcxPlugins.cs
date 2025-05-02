@@ -23,17 +23,6 @@ namespace zfile
 		/// <param name="index">Plugin index</param>
 		/// <returns>True if the plugin is enabled</returns>
 		public static bool[] Enabled => _moduleList.Enabled;
-        //{
-        //    get
-        //    {
-        //        bool[] result = new bool[Count];
-        //        for (int i = 0; i < Count; i++)
-        //        {
-        //            result[i] = true; // All plugins are enabled by default
-        //        }
-        //        return result;
-        //    }
-        //}
 
         /// <summary>
         /// Gets the file name of a plugin by index
@@ -41,18 +30,6 @@ namespace zfile
         /// <param name="index">Plugin index</param>
         /// <returns>The file name of the plugin</returns>
         public static string[] FileName => _moduleList.FileName;
-    //    {
-    //        get
-    //        {
-				//var moduleCount = _moduleList._modules.Count;
-				//string[] result = new string[moduleCount];
-    //            for (int i = 0; i < moduleCount; i++)
-    //            {
-    //                result[i] = _moduleList._modules[i].FilePath;
-    //            }
-    //            return result;
-    //        }
-    //    }
 
         /// <summary>
         /// Gets the flags (capabilities) of a plugin by index
@@ -60,17 +37,6 @@ namespace zfile
         /// <param name="index">Plugin index</param>
         /// <returns>The flags of the plugin</returns>
         public static int[] Flags => _moduleList.Flags;
-		//{
-		//    get
-		//    {
-		//        int[] result = new int[mCount];
-		//        for (int i = 0; i < mCount; i++)
-		//        {
-		//            result[i] = _moduleList._modules[i].PluginCapabilities;
-		//        }
-		//        return result;
-		//    }
-		//}
 
 		/// <summary>
 		/// Loads a WCX module by file name

@@ -91,41 +91,6 @@ namespace zfile
 			base.Dispose(disposing);
 		}
 
-		//private void ShowError(string message, int error, LogOption logOptions = LogOption.None)
-		//{
-		//	LogMessage(message, logOptions, LogOption.Error);
-
-		//	if (!GlobalSettings.SkipFileOpError && error > WcxModule.E_SUCCESS)
-		//	{
-		//		if (AskQuestion(message, "", new[] { FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort },
-		//					   FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Abort) == FileSourceOperationUIResponse.Abort)
-		//		{
-		//			RaiseAbortOperation();
-		//		}
-		//	}
-		//}
-
-		//private void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
-		//{
-		//	switch (logMsgType)
-		//	{
-		//		case LogOption.Error:
-		//			if (!GlobalSettings.LogOptions.HasFlag(LogOption.Error)) return;
-		//			break;
-		//		case LogOption.Info:
-		//			if (!GlobalSettings.LogOptions.HasFlag(LogOption.Info)) return;
-		//			break;
-		//		case LogOption.Success:
-		//			if (!GlobalSettings.LogOptions.HasFlag(LogOption.Success)) return;
-		//			break;
-		//	}
-
-		//	if (logOptions <= GlobalSettings.LogOptions)
-		//	{
-		//		Logger.Write(_thread, message, logMsgType);
-		//	}
-		//}
-
 		private void CountFiles(FileEntries files, string fileMask)
 		{
 			var arcFileEntries = _wcxArchiveFileSource.ArchiveFileEntries.LockList();
@@ -219,17 +184,5 @@ namespace zfile
 
 			return result;
 		}
-
-		// 这些方法不再直接使用，而是通过委托适配器调用ProcessDataProc
-		// 保留这些方法仅作参考
-		//private static int ProcessDataProcA(IntPtr fileName, int size)
-		//{
-		//	return ProcessDataProc(Marshal.PtrToStringAnsi(fileName) ?? string.Empty, size);
-		//}
-
-		//private static int ProcessDataProcW(IntPtr fileName, int size)
-		//{
-		//	return ProcessDataProc(Marshal.PtrToStringUni(fileName) ?? string.Empty, size);
-		//}
 	}
 }

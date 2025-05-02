@@ -2,8 +2,6 @@ using System.Collections;
 
 namespace zfile
 {
-
-
 	/// <summary>
 	/// A list of virtual file system modules
 	/// </summary>

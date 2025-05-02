@@ -500,75 +500,10 @@ namespace zfile
 			}
 		}
 
-		// These fields are used for compatibility with existing code
-		//private readonly Func<string, bool, bool> _askQuestion;
-		//private readonly Action _checkOperationState;
-		//private FileTree? _currentTree;
-		//private long _filesCount;
-		//private long _filesSize;
-
-		//public FileSourceOperationSymLinkOption SymLinkOption { get; set; }
-		//public SearchTemplate SearchTemplate { get; set; }
-		//public bool ExcludeEmptyTemplateDirectories { get; set; }
-
-		//public long FilesCount => _filesCount;
-		//public long FilesSize => _filesSize;
-		//public bool Recursive { get; set; }
-
 		public FileSystemTreeBuilder(AskQuestionFunction askQuestionFunction, CheckOperationStateFunction checkOperationStateFunction)
 			: base(askQuestionFunction, checkOperationStateFunction)
 		{
-			// Convert the delegates to the expected types
-			//_askQuestion = (caption, isConfirmation) =>
-			//{
-			//	var response = askQuestionFunction(caption, isConfirmation.ToString(),
-			//		new[] { FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.No },
-			//		FileSourceOperationUIResponse.Yes,
-			//		FileSourceOperationUIResponse.No);
-			//	return response == FileSourceOperationUIResponse.Yes;
-			//};
-			//_checkOperationState = () => checkOperationStateFunction();
-
-			// Initialize required fields
-			//_currentTree = new FileTree(string.Empty);
 			SearchTemplate = new SearchTemplate("*");
 		}
-
-		//public void BuildFromFiles(FileEntries files)
-		//{
-		//	_currentTree = new FileTree(string.Empty);
-		//	_filesCount = 0;
-		//	_filesSize = 0;
-
-		//	foreach (var file in files)
-		//	{
-		//		_checkOperationState();
-		//		ProcessFile(file);
-		//	}
-		//}
-
-		//private void ProcessFile(FileEntry file)
-		//{
-		//	if (SearchTemplate != null && !SearchTemplate.Check(file))
-		//		return;
-
-		//	_filesCount++;
-		//	_filesSize += file.Size;
-		//	_currentTree?.AddFile(file);
-		//}
-
-		//public FileTree ReleaseTree()
-		//{
-		//	var tree = _currentTree ?? new FileTree(string.Empty);
-		//	_currentTree = null;
-		//	return tree;
-		//}
-
-		//public void Dispose()
-		//{
-		//	_currentTree?.Dispose();
-		//	GC.SuppressFinalize(this);
-		//}
 	}
-
 }

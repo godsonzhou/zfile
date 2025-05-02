@@ -348,24 +348,5 @@ namespace zfile
                 return new List<IFileSource>(_fileSources);
             }
         }
-
-        /// <summary>
-        /// 创建适合的复制操作
-        /// </summary>
-        //public FileSourceOperation CreateCopyOperation(
-        //    IFileSource sourceFileSource,
-        //    IFileSource targetFileSource,
-        //    FileEntries fileEntries,
-        //    string targetPath)
-        //{
-        //    // 如果源和目标是同一类型的文件源，使用源文件源的复制操作
-        //    if (sourceFileSource.GetType() == targetFileSource.GetType())
-        //    {
-        //        return sourceFileSource.CreateCopyOperation(fileEntries, targetPath);
-        //    }
-
-        //    // 如果是不同类型的文件源，创建跨文件源复制操作
-        //    return new CrossFileSourceCopyOperation(sourceFileSource, targetFileSource, fileEntries, targetPath);
-        //}
     }
 }

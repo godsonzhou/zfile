@@ -2062,7 +2062,7 @@ namespace zfile
 			// 使用 FileSourceManager 获取合适的 FileSource
 			IFileSource? fileSource;
 			if (Path.IsPathFullyQualified(path))
-				fileSource = _fileSourceManager.GetFileSourceForPath(path, isleft);
+				fileSource = _fileSourceManager.GetFileSourceForPath(path, isLeftPanel);
 			else
 				fileSource = CurrentDir.GetFileSource(listView.Name);
 			// 更新当前面板的 FileSource

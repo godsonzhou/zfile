@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 
 namespace zfile
@@ -115,9 +116,10 @@ namespace zfile
 		{
 			// 获取对应面板的缓存
 			var panelCache = isLeftPanel ? _leftPanelFileSources : _rightPanelFileSources;
+			var lr = isLeftPanel ? 'l' : 'r';
 
-            // 如果路径为空，返回默认的FileSystemFileSource
-            if (string.IsNullOrEmpty(path))
+			// 如果路径为空，返回默认的FileSystemFileSource
+			if (string.IsNullOrEmpty(path))
             {
                 var rootPath = "C:\\";
                 var cacheKey = $"filesystem:{rootPath}";
@@ -135,9 +137,12 @@ namespace zfile
                 return newSource;
             }
 
-            // 检查缓存中是否已有此路径的FileSource
-            if (panelCache.TryGetValue(path, out var fileSource))
-                return fileSource;
+			// 检查缓存中是否已有此路径的FileSource
+			if (panelCache.TryGetValue(path, out var fileSource))
+			{
+				Debug.Print($"FileSourceManager: GetFileSourceForPath({path}) {lr} from cache : {fileSource.GetRootDir()}");
+				return fileSource;
+			}
 
             // 检查是否是压缩文件内部路径
             // 遍历所有已存在的文件源，查找是否有WcxArchiveFileSource包含当前路径
@@ -148,7 +153,8 @@ namespace zfile
             {
                 // 添加到缓存
                 panelCache[path] = archiveFileSource;
-                return archiveFileSource;
+				Debug.Print($"FileSourceManager: GetFileSourceForPath({path}) {lr} from wcxarchive : {fileSource?.GetRootDir()}");
+				return archiveFileSource;
             }
 
             // Check for archive file
@@ -158,9 +164,9 @@ namespace zfile
                 var dirPath = Path.GetDirectoryName(path) ?? "C:\\";
                 var baseFileSource = GetFileSourceForPath(dirPath, isLeftPanel);
                 var archiveSource = WcxArchiveFileSource.CreateByArchiveName(baseFileSource, path);
-
-                // 添加到缓存
-                panelCache[path] = archiveSource;
+				Debug.Print($"FileSourceManager: GetFileSourceForPath({path}) {lr} from fs.archivefile : {fileSource.GetRootDir()}");
+				// 添加到缓存
+				panelCache[path] = archiveSource;
                 return archiveSource;
             }
 
@@ -218,7 +224,6 @@ namespace zfile
             if (string.IsNullOrEmpty(drive))
                 drive = "C:\\";
 
-			var lr = isLeftPanel ? 'l' : 'r';
 			var cacheKeyFs = path; //$"{lr}filesystem:\\\\{drive}";
 
             // 检查缓存中是否已有此驱动器的FileSource
@@ -226,7 +231,8 @@ namespace zfile
             {
                 // 更新CurrentPath
                 cachedFsSource.CurrentPath = path;
-                return cachedFsSource;
+				Debug.Print($"FileSourceManager: GetFileSourceForPath({path}) {lr} from cache for drive[{drive}]: {fileSource.GetRootDir()}");
+				return cachedFsSource;
             }
 
             // 创建新的FileSystemFileSource
@@ -236,8 +242,8 @@ namespace zfile
 
             // 添加到缓存
             panelCache[cacheKeyFs] = fileSystemSource;
-
-            return fileSystemSource;
+			Debug.Print($"FileSourceManager: GetFileSourceForPath({path}) {lr} new() : {fileSystemSource.GetRootDir()}");
+			return fileSystemSource;
         }
 
         /// <summary>

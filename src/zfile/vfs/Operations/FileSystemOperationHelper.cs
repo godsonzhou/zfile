@@ -849,11 +849,11 @@ namespace zfile
 				// Determine the target name based on renaming settings
 				string targetName;
 				if (_renamingRootDir && file == _rootDir)
-					targetName = Path.Combine(_rootTargetPath, _renameMask);
+					targetName = Path.Combine(currentTargetPath, _renameMask);
 				else if (_renamingFiles)
-					targetName = Path.Combine(_rootTargetPath, ApplyRenameMask(file, _renameNameMask, _renameExtMask));
+					targetName = Path.Combine(currentTargetPath, ApplyRenameMask(file, _renameNameMask, _renameExtMask));
 				else
-					targetName = Path.Combine(_rootTargetPath, file.Name);
+					targetName = Path.Combine(currentTargetPath, file.Name);
 
 				// Update statistics
 				_statistics.CurrentFileFrom = file.FullPath;

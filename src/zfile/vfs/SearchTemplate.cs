@@ -21,7 +21,7 @@ namespace zfile
         private readonly bool _attributesUnset;
         private readonly FileAttributes _attributesUnsetMask;
         private readonly string _excludeDirectories = string.Empty;
-        internal int SearchDepth;
+        internal int SearchDepth = -1;
 
         /// <summary>
         /// 获取或设置搜索模板的名称

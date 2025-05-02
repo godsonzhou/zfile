@@ -23,7 +23,7 @@ namespace zfile
 	/// </summary>
 	public abstract class FileSourceTreeBuilder : IDisposable
     {
-        private FileTreeNode _filesTree;
+        private FileTree _filesTree;
         protected long _filesCount;
         private int _currentDepth;
         private long _directoriesCount;
@@ -55,7 +55,7 @@ namespace zfile
         /// Builds a file tree from a node.
         /// </summary>
         /// <param name="node">The node to build from.</param>
-        public void BuildFromNode(FileTreeNode node)
+        public void BuildFromNode(FileTree node)
         {
             _filesSize = 0;
             _filesCount = 0;
@@ -83,7 +83,7 @@ namespace zfile
                 _filesTree = null;
             }
 
-            _filesTree = new FileTreeNode();
+            _filesTree = new FileTree();
             _filesTree.Data = new FileTreeNodeData(_recursive);
             _filesSize = 0;
             _filesCount = 0;
@@ -115,10 +115,10 @@ namespace zfile
         /// </summary>
         /// <param name="file">The file to add.</param>
         /// <param name="currentNode">The current node.</param>
-        protected void AddFile(FileEntry file, FileTreeNode currentNode)
+        protected void AddFile(FileEntry file, FileTree currentNode)
         {
             int addedIndex = currentNode.AddSubNode(file);
-            FileTreeNode addedNode = currentNode.SubNodes[addedIndex];
+            FileTree addedNode = currentNode.SubNodes[addedIndex];
             addedNode.Data = new FileTreeNodeData(_recursive);
 
             _filesCount++;
@@ -131,10 +131,10 @@ namespace zfile
         /// </summary>
         /// <param name="file">The file to add.</param>
         /// <param name="currentNode">The current node.</param>
-        protected virtual void AddLink(FileEntry file, FileTreeNode currentNode)
+        protected virtual void AddLink(FileEntry file, FileTree currentNode)
         {
             int addedIndex = currentNode.AddSubNode(file);
-            FileTreeNode addedNode = currentNode.SubNodes[addedIndex];
+            FileTree addedNode = currentNode.SubNodes[addedIndex];
             addedNode.Data = new FileTreeNodeData(_recursive);
 
             ((FileTreeNodeData)currentNode.Data).SubnodesHaveLinks = true;
@@ -147,10 +147,10 @@ namespace zfile
         /// </summary>
         /// <param name="file">The file to add.</param>
         /// <param name="currentNode">The current node.</param>
-        protected void AddDirectory(FileEntry file, FileTreeNode currentNode)
+        protected void AddDirectory(FileEntry file, FileTree currentNode)
         {
             int addedIndex = currentNode.AddSubNode(file);
-            FileTreeNode addedNode = currentNode.SubNodes[addedIndex];
+            FileTree addedNode = currentNode.SubNodes[addedIndex];
             FileTreeNodeData nodeData = new FileTreeNodeData(_recursive);
             addedNode.Data = nodeData;
 
@@ -189,7 +189,7 @@ namespace zfile
         /// </summary>
         /// <param name="file">The file to process.</param>
         /// <param name="currentNode">The current node.</param>
-        protected void DecideOnLink(FileEntry file, FileTreeNode currentNode)
+        protected void DecideOnLink(FileEntry file, FileTree currentNode)
         {
             switch (_symlinkOption)
             {
@@ -234,7 +234,7 @@ namespace zfile
         /// </summary>
         /// <param name="file">The file to add.</param>
         /// <param name="currentNode">The current node.</param>
-        protected void AddItem(FileEntry file, FileTreeNode currentNode)
+        protected void AddItem(FileEntry file, FileTree currentNode)
         {
             bool matches = true;
 
@@ -269,9 +269,9 @@ namespace zfile
         /// Releases the tree.
         /// </summary>
         /// <returns>The released tree.</returns>
-        public FileTreeNode ReleaseTree()
+        public FileTree ReleaseTree()
         {
-            FileTreeNode result = _filesTree;
+            FileTree result = _filesTree;
             _filesTree = null;
             return result;
         }
@@ -287,14 +287,14 @@ namespace zfile
         /// </summary>
         /// <param name="srcPath">The source path.</param>
         /// <param name="currentNode">The current node.</param>
-        protected abstract void AddFilesInDirectory(string srcPath, FileTreeNode currentNode);
+        protected abstract void AddFilesInDirectory(string srcPath, FileTree currentNode);
 
         /// <summary>
         /// Adds a link target to the tree.
         /// </summary>
         /// <param name="file">The file to add.</param>
         /// <param name="currentNode">The current node.</param>
-        protected abstract void AddLinkTarget(FileEntry file, FileTreeNode currentNode);
+        protected abstract void AddLinkTarget(FileEntry file, FileTree currentNode);
 
         /// <summary>
         /// Gets or sets whether to exclude the root directory.
@@ -326,7 +326,7 @@ namespace zfile
         /// <summary>
         /// Gets the files tree.
         /// </summary>
-        public FileTreeNode FilesTree => _filesTree;
+        public FileTree FilesTree => _filesTree;
 
         /// <summary>
         /// Gets the total size of files.

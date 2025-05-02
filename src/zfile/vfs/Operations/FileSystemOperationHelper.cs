@@ -517,7 +517,7 @@ namespace zfile
 			}
 		}
 
-		private bool ProcessNode(FileTreeNode fileTreeNode, string currentTargetPath)
+		private bool ProcessNode(FileTree fileTreeNode, string currentTargetPath)
 		{
 			if (fileTreeNode == null)
 				return true;
@@ -573,7 +573,7 @@ namespace zfile
 			}
 		}
 
-		private bool ProcessDirectory(FileTreeNode node, string absoluteTargetFileName)
+		private bool ProcessDirectory(FileTree node, string absoluteTargetFileName)
 		{
 			try
 			{
@@ -646,7 +646,7 @@ namespace zfile
 				{
 					foreach (var file in files)
 					{
-						if (!ProcessFile(new FileTreeNode(file), Path.Combine(absoluteTargetFileName, file.Name)))
+						if (!ProcessFile(new FileTree((FileEntry)file), Path.Combine(absoluteTargetFileName, (string)file.Name)))
 						{
 							return false;
 						}
@@ -687,7 +687,7 @@ namespace zfile
 			}
 		}
 
-		private bool ProcessFile(FileTreeNode node, string absoluteTargetFileName)
+		private bool ProcessFile(FileTree node, string absoluteTargetFileName)
 		{
 			try
 			{
@@ -781,7 +781,7 @@ namespace zfile
 			}
 		}
 
-		private void SkipStatistics(FileTreeNode node)
+		private void SkipStatistics(FileTree node)
 		{
 			if (node == null)
 				return;
@@ -801,7 +801,7 @@ namespace zfile
 			_updateStatistics(_statistics);
 		}
 
-		private void CountStatistics(FileTreeNode node)
+		private void CountStatistics(FileTree node)
 		{
 			if (node == null)
 				return;
@@ -854,7 +854,7 @@ namespace zfile
 				var firstFile = tree.SubNodes[0].Files.FirstOrDefault();
 				if (firstFile != null)
 				{
-					var fileTreeNode = new FileTreeNode(firstFile);
+					var fileTreeNode = new FileTree((FileEntry)firstFile);
 					var file = fileTreeNode.TheFile;
 
 					// Check if it's a directory and the rename mask doesn't have wildcards
@@ -876,7 +876,7 @@ namespace zfile
 				var firstFile = subNode.Files.FirstOrDefault();
 				if (firstFile != null)
 				{
-					ProcessNode(new FileTreeNode(firstFile), _rootTargetPath);
+					ProcessNode(new FileTree((FileEntry)firstFile), _rootTargetPath);
 				}
 			}
 
@@ -889,7 +889,7 @@ namespace zfile
 				if (file != null)
 				{
 					// Create a file tree node for the file
-					var fileNode = new FileTreeNode(file);
+					var fileNode = new FileTree((FileEntry)file);
 
 					// Determine the target name based on renaming settings
 					string targetName;

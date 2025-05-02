@@ -452,7 +452,7 @@ namespace zfile
 
 	public class FileSystemTreeBuilder : FileSourceTreeBuilder, IDisposable
 	{
-		protected override void AddLinkTarget(FileEntry file, FileTreeNode currentNode)
+		protected override void AddLinkTarget(FileEntry file, FileTree currentNode)
 		{
 			string linkedFilePath = Path.GetFullPath(file.FullPath);
 			if (!string.IsNullOrEmpty(linkedFilePath) && !(file.IsLinkToDirectory && FileSystemUtil.IsInPath(linkedFilePath, file.FullPath, true, true)))
@@ -480,7 +480,7 @@ namespace zfile
 			}
 		}
 
-		protected override void AddFilesInDirectory(string srcPath, FileTreeNode currentNode)
+		protected override void AddFilesInDirectory(string srcPath, FileTree currentNode)
 		{
 			try
 			{

@@ -23,7 +23,7 @@ namespace zfile
             }
         }
 
-        private void AddNode(FileTreeNode node)
+        private void AddNode(FileTree node)
         {
             if (node != null)
             {

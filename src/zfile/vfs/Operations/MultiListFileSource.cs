@@ -2,14 +2,14 @@ namespace zfile
 {
     public interface IMultiListFileSource : IFileSource
     {
-        void AddList(ref FileTreeNode fileList, IFileSource fileSource);
-        FileTreeNode FileList { get; }
+        void AddList(ref FileTree fileList, IFileSource fileSource);
+        FileTree FileList { get; }
         IFileSource FileSource { get; }
     }
 
     public class MultiListFileSource : FileSource, IMultiListFileSource
     {
-        private FileTreeNode _fileList;
+        private FileTree _fileList;
         private IFileSource _fileSource;
 
         public MultiListFileSource()
@@ -28,7 +28,7 @@ namespace zfile
             _fileSource = null;
         }
 
-        public void AddList(ref FileTreeNode fileList, IFileSource fileSource)
+        public void AddList(ref FileTree fileList, IFileSource fileSource)
         {
             if (_fileList != null)
             {
@@ -42,7 +42,7 @@ namespace zfile
             _fileSource.AddReloadEventListener(FileSourceReloadEvent);
         }
 
-        public FileTreeNode FileList => _fileList;
+        public FileTree FileList => _fileList;
         public IFileSource FileSource => _fileSource;
 
         private void FileSourceReloadEvent(IFileSource fileSource, string[] reloadedPaths)

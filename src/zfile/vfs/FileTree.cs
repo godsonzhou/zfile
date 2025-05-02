@@ -6,7 +6,7 @@ namespace zfile
         private readonly FileEntries _files;
 
         public string Path { get; }
-        public IReadOnlyList<FileTree> SubNodes => _subNodes;
+        //public IReadOnlyList<FileTree> SubNodes => _subNodes;
         public FileEntries Files => _files;
 
         public FileTree(string path)
@@ -35,15 +35,15 @@ namespace zfile
             _subNodes.Clear();
             _files.Clear();
         }
-    }
+ //   }
 
 
-	/// <summary>
-	/// Represents a node in a file tree.
-	/// </summary>
-	public class FileTreeNode : IDisposable
-	{
-		private readonly List<FileTreeNode> _subNodes;
+	///// <summary>
+	///// Represents a node in a file tree.
+	///// </summary>
+	//public class FileTree : IDisposable
+	//{
+		//private readonly List<FileTree> _subNodes;
 		private object _data;
 
 		/// <summary>
@@ -67,7 +67,7 @@ namespace zfile
 		}
 		//private List<FileTreeNode> _subNodes;
 		//private object _data;
-		public List<FileTreeNode> SubNodes => _subNodes;
+		public List<FileTree> SubNodes => _subNodes;
 		//public int SubNodesCount
 		//{
 		//	get { return _subNodes.Count; }
@@ -99,9 +99,9 @@ namespace zfile
 		/// <summary>
 		/// Creates a new instance of the FileTreeNode class.
 		/// </summary>
-		public FileTreeNode()
+		public FileTree()
 		{
-			_subNodes = new List<FileTreeNode>();
+			_subNodes = new List<FileTree>();
 		}
 
 		/// <summary>
@@ -112,9 +112,9 @@ namespace zfile
 		//{
 		//	TheFile = file;
 		//}
-		public FileTreeNode this[int index] => _subNodes[index];
+		public FileTree this[int index] => _subNodes[index];
 
-		public FileTreeNode(FileEntry file) : this()
+		public FileTree(FileEntry file) : this()
 		{
 			_file = file;
 		}
@@ -134,7 +134,7 @@ namespace zfile
 		/// <returns>The index of the added node.</returns>
 		public int AddSubNode(FileEntry file)
 		{
-			var node = new FileTreeNode(file);
+			var node = new FileTree(file);
 			_subNodes.Add(node);
 			return _subNodes.Count - 1;
 		}
@@ -156,11 +156,11 @@ namespace zfile
 		/// <summary>
 		/// Disposes resources used by the FileTreeNode.
 		/// </summary>
-		public void Dispose()
-		{
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
+		//public void Dispose()
+		//{
+		//	Dispose(true);
+		//	GC.SuppressFinalize(this);
+		//}
 
 		/// <summary>
 		/// Disposes resources used by the FileTreeNode.
@@ -209,7 +209,7 @@ namespace zfile
 		/// <summary>
 		/// Finalizer to ensure resources are cleaned up if Dispose is not called.
 		/// </summary>
-		~FileTreeNode()
+		~FileTree()
 		{
 			Dispose(false);
 		}
@@ -232,7 +232,7 @@ namespace zfile
 		/// <summary>
 		/// Gets the files associated with this node
 		/// </summary>
-		public FileEntries Files => new FileEntries();
+		//public FileEntries Files => new FileEntries();
 
 		/// <summary>
 		/// Gets the size of the file associated with this node

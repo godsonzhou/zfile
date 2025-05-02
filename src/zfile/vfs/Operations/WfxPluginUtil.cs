@@ -33,7 +33,7 @@ namespace zfile
             set => _wfxModule = value;
         }
 
-        protected override void AddLinkTarget(FileEntry file, FileTreeNode currentNode)
+        protected override void AddLinkTarget(FileEntry file, FileTree currentNode)
         {
             if (file.AttributesProperty is NtfsFileAttributesProperty)
             {
@@ -62,7 +62,7 @@ namespace zfile
             }
         }
 
-        protected override void AddFilesInDirectory(string srcPath, FileTreeNode currentNode)
+        protected override void AddFilesInDirectory(string srcPath, FileTree currentNode)
         {
             var handle = _wfxModule.WfxFindFirst(srcPath, out var findData);
             if (handle == WfxModule.WfxInvalidHandle) return;

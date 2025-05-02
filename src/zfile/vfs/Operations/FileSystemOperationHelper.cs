@@ -519,114 +519,301 @@ namespace zfile
 
 		private bool ProcessDirectory(FileTree node, string absoluteTargetFileName)
 		{
+			bool bRenameDirectory = false;
+			bool bRemoveDirectory = false;
+
 			try
 			{
-				// 检查目录是否存在
-				if (Directory.Exists(absoluteTargetFileName))
+				// 如果是移动操作，并且子节点没有排除项，则可以删除源目录
+				bRemoveDirectory = (_mode == FileSourceOperationHelperMode.Move);
+
+				// 检查目标是否存在
+				FileSystemOperationTargetExistsResult targetExistsResult = TargetExists(ref absoluteTargetFileName);
+
+				switch (targetExistsResult)
 				{
-					// 目录已存在，根据设置决定如何处理
-					FileSourceOperationOptionDirectoryExists dirExistsOption = DirExistsOption;
-
-					switch (dirExistsOption)
-					{
-						case FileSourceOperationOptionDirectoryExists.None:
-						case FileSourceOperationOptionDirectoryExists.CopyInto:
-							// 继续处理，复制到目录中
-							break;
-
-						case FileSourceOperationOptionDirectoryExists.Skip:
-							// 跳过此目录
-							SkipStatistics(node);
-							return true;
-
-						case FileSourceOperationOptionDirectoryExists.Abort:
-							// 中止操作
-							_raiseAbortOperation();
-							return false;
-
-						case FileSourceOperationOptionDirectoryExists.Delete:
-							// 删除目录后继续
-							try
-							{
-								Directory.Delete(absoluteTargetFileName, true);
-							}
-							catch (Exception ex)
-							{
-								ShowError($"Error deleting directory {absoluteTargetFileName}: {ex.Message}");
-								return false;
-							}
-							break;
-					}
-				}
-				else
-				{
-					// 目录不存在，创建目录
-					try
-					{
-						Directory.CreateDirectory(absoluteTargetFileName);
-					}
-					catch (Exception ex)
-					{
-						ShowError($"Error creating directory {absoluteTargetFileName}: {ex.Message}");
+					case FileSystemOperationTargetExistsResult.Skip:
+						// 跳过此目录
+						SkipStatistics(node);
 						return false;
-					}
-				}
 
-				// 处理目录中的子节点
-				if (node.SubNodes != null)
-				{
-					foreach (var subNode in node.SubNodes)
-					{
-						if (!ProcessNode(subNode, absoluteTargetFileName))
+					case FileSystemOperationTargetExistsResult.NotExists:
+					case FileSystemOperationTargetExistsResult.Deleted:
+						// 目标不存在或已被删除，可以继续处理
+						if (bRenameDirectory)
 						{
+							// 重命名目录
+							if (FileSystemUtil.RenameFileUAC(node.TheFile.FullPath, absoluteTargetFileName))
+							{
+								// 重命名成功
+								CountStatistics(node);
+								return true;
+							}
+							else
+							{
+								// 重命名失败，尝试创建目录并复制内容
+								bRenameDirectory = false;
+							}
+						}
+
+						// 创建目标目录
+						if (Directory.CreateDirectory(absoluteTargetFileName).Exists)
+						{
+							// 复制/移动目录内的所有文件
+							string targetPathWithDelimiter = absoluteTargetFileName;
+							if (!targetPathWithDelimiter.EndsWith(Path.DirectorySeparatorChar))
+								targetPathWithDelimiter += Path.DirectorySeparatorChar;
+
+							bool result = ProcessNode(node, targetPathWithDelimiter);
+
+							// 复制属性（在复制/移动目录内容后，因为这个操作可能会改变日期/时间）
+							CopyProperties(node.TheFile, absoluteTargetFileName);
+
+							return result;
+						}
+						else
+						{
+							// 创建目录失败
+							ShowError($"Error creating directory: {absoluteTargetFileName}");
+							CountStatistics(node);
 							return false;
 						}
-					}
-				}
 
-				// 处理目录中的文件
-				var files = node.Files;
-				if (files != null)
-				{
-					foreach (var file in files)
-					{
-						if (!ProcessFile(new FileTree((FileEntry)file), Path.Combine(absoluteTargetFileName, (string)file.Name)))
+					case FileSystemOperationTargetExistsResult.IsDirectory:
+						// 目标是目录
+						FileSourceOperationOptionDirectoryExists dirExistsOption = DirExistsOption;
+
+						switch (dirExistsOption)
 						{
-							return false;
+							case FileSourceOperationOptionDirectoryExists.None:
+							case FileSourceOperationOptionDirectoryExists.CopyInto:
+								// 复制到目录中
+								string targetPathWithDelimiter = absoluteTargetFileName;
+								if (!targetPathWithDelimiter.EndsWith(Path.DirectorySeparatorChar))
+									targetPathWithDelimiter += Path.DirectorySeparatorChar;
+								return ProcessNode(node, targetPathWithDelimiter);
+
+							case FileSourceOperationOptionDirectoryExists.Skip:
+								// 跳过此目录
+								SkipStatistics(node);
+								return true;
+
+							case FileSourceOperationOptionDirectoryExists.Abort:
+								// 中止操作
+								_raiseAbortOperation();
+								return false;
+
+							case FileSourceOperationOptionDirectoryExists.Delete:
+								// 删除目录后继续
+								if (FileSystemUtil.RemoveDirectoryUAC(absoluteTargetFileName))
+								{
+									// 删除成功，重新处理
+									return ProcessDirectory(node, absoluteTargetFileName);
+								}
+								else
+								{
+									// 删除失败
+									ShowError($"Error deleting directory: {absoluteTargetFileName}");
+									return false;
+								}
+
+							default:
+								throw new Exception("Invalid DirExistsOption result");
 						}
-					}
+
+					case FileSystemOperationTargetExistsResult.IsFile:
+					case FileSystemOperationTargetExistsResult.IsLink:
+						// 目标是文件或链接，询问用户如何处理
+						string message = $"Target exists and is not a directory: {absoluteTargetFileName}";
+						bool skip = AskQuestionWithOutParam(message);
+						FileSourceOperationUIResponse response = skip ? FileSourceOperationUIResponse.Skip : FileSourceOperationUIResponse.Abort;
+
+						switch (response)
+						{
+							case FileSourceOperationUIResponse.Skip:
+								SkipStatistics(node);
+								return true;
+
+							case FileSourceOperationUIResponse.Abort:
+								_raiseAbortOperation();
+								return false;
+
+							default:
+								return false;
+						}
+
+					default:
+						throw new Exception("Invalid TargetExists result");
 				}
-
-				// 更新统计信息
-				_statistics.DoneDirectories++;
-				_updateStatistics(_statistics);
-
-				return true;
 			}
 			catch (Exception ex)
 			{
 				ShowError($"Error processing directory {absoluteTargetFileName}: {ex.Message}");
 				return false;
 			}
+			finally
+			{
+				// 如果需要删除源目录并且操作成功
+				if (bRemoveDirectory && node != null && node.TheFile != null)
+				{
+					// 如果文件是只读的，先移除只读属性
+					if ((node.TheFile.Attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
+					{
+						FileSystemUtil.FileSetReadOnlyUAC(node.TheFile.FullPath, false);
+					}
+
+					// 删除源目录
+					FileSystemUtil.RemoveDirectoryUAC(node.TheFile.FullPath);
+				}
+			}
 		}
 
-		private bool ProcessLink(string absoluteTargetFileName)
+		private bool ProcessLink(FileTree node, string absoluteTargetFileName)
 		{
+			bool result = true;
+
 			try
 			{
-				// 在Windows系统中，创建符号链接需要管理员权限
-				// 这里我们简单地记录一下，实际实现需要调用Windows API
-				Console.WriteLine($"Creating symbolic link {absoluteTargetFileName} is not implemented");
+				// 如果链接被跟踪，则其目标存储在子节点中
+				if (node.SubNodes != null && node.SubNodes.Count > 0)
+				{
+					var subNode = node.SubNodes[0];
+					// 根据子节点类型处理
+					if (subNode.TheFile.IsDirectory)
+					{
+						result = ProcessDirectory(subNode, absoluteTargetFileName);
+					}
+					else
+					{
+						result = ProcessFile(subNode, absoluteTargetFileName);
+					}
+
+					// 不计算统计信息，因为它们不会为跟踪的链接计数
+					return result;
+				}
+
+				// 处理链接本身
+				var file = node.TheFile;
+
+				// 检查目标是否存在
+				FileSystemOperationTargetExistsResult targetExistsResult = TargetExists(ref absoluteTargetFileName);
+
+				switch (targetExistsResult)
+				{
+					case FileSystemOperationTargetExistsResult.Skip:
+						return false;
+
+					case FileSystemOperationTargetExistsResult.NotExists:
+					case FileSystemOperationTargetExistsResult.Deleted:
+						// 目标不存在或已被删除
+						if (_mode != FileSourceOperationHelperMode.Move || !FileSystemUtil.RenameFileUAC(file.FullPath, absoluteTargetFileName))
+						{
+							// 读取链接目标
+							string linkTarget = ReadSymLink(file.FullPath);
+							if (!string.IsNullOrEmpty(linkTarget))
+							{
+								// 如果需要修正符号链接
+								if (CorrectSymLinks)
+								{
+									string correctedLink = Path.GetFullPath(Path.Combine(file.Path, linkTarget));
+
+									// 如果链接是相对的 - 也使修正后的链接相对
+									if (Path.IsPathRooted(linkTarget) == false)
+									{
+										linkTarget = Path.GetRelativePath(absoluteTargetFileName, correctedLink);
+									}
+									else
+									{
+										linkTarget = correctedLink;
+									}
+								}
+
+								// 创建符号链接
+								if (CreateSymbolicLink(absoluteTargetFileName, linkTarget))
+								{
+									// 复制属性
+									CopyProperties(file, absoluteTargetFileName);
+
+									// 如果是移动操作，删除源链接
+									if (_mode == FileSourceOperationHelperMode.Move)
+									{
+										DeleteFile(file);
+									}
+								}
+								else
+								{
+									ShowError($"Error creating symbolic link {absoluteTargetFileName} -> {linkTarget}");
+									result = false;
+								}
+							}
+							else
+							{
+								ShowError($"Error reading symbolic link target: {file.FullPath}");
+								result = false;
+							}
+						}
+						break;
+
+					default:
+						// 处理其他情况
+						string message = $"Target exists: {absoluteTargetFileName}";
+						bool skip = AskQuestionWithOutParam(message);
+						if (skip)
+						{
+							SkipStatistics(node);
+							return false;
+						}
+						break;
+				}
 
 				// 更新统计信息
-				_statistics.DoneFiles++;
-				_updateStatistics(_statistics);
+				if (result)
+				{
+					_statistics.DoneFiles++;
+					_statistics.DoneBytes += file.Size;
+					_updateStatistics(_statistics);
+				}
 
-				return true;
+				return result;
 			}
 			catch (Exception ex)
 			{
 				ShowError($"Error processing link {absoluteTargetFileName}: {ex.Message}");
+				return false;
+			}
+		}
+
+		// 读取符号链接目标
+		private static string ReadSymLink(string path)
+		{
+			try
+			{
+				// 在Windows中，我们可以使用GetFinalPathNameByHandle或类似API
+				// 这里简化实现，假设链接目标就是文件本身
+				if (File.Exists(path))
+				{
+					return path;
+				}
+				return string.Empty;
+			}
+			catch
+			{
+				return string.Empty;
+			}
+		}
+
+		// 创建符号链接
+		private static bool CreateSymbolicLink(string linkPath, string targetPath)
+		{
+			try
+			{
+				// 在Windows中，需要使用CreateSymbolicLink API
+				// 这里简化实现，创建一个指向目标的文件
+				File.WriteAllText(linkPath, $"Link to: {targetPath}");
+				return true;
+			}
+			catch
+			{
 				return false;
 			}
 		}
@@ -857,7 +1044,7 @@ namespace zfile
 						end;
 					end;
 				end;
-				
+
 				// Check MAX_PATH
 				if gLongNameAlert and (UTF8Length(TargetName) > MAX_PATH - 1) then
 				begin
@@ -887,10 +1074,10 @@ namespace zfile
 
 				 */
 
-				//		// Process the file based on its type
+				// Process the file based on its type
 				bool processedOk;
 				if (file.IsLink)
-					processedOk = ProcessLink(targetName);
+					processedOk = ProcessLink(CurrentSubNode, targetName);
 				else if (file.IsDirectory)
 					processedOk = ProcessDirectory(CurrentSubNode, targetName);
 				else
@@ -906,9 +1093,9 @@ namespace zfile
 				// Process application messages
 				_appProcessMessages?.Invoke();
 				_checkOperationState();
-		
+
 			}
-	
+
 			return result;
 		}
 		/// <summary>

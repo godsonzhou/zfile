@@ -102,9 +102,9 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
     private string _extractMask;
 
     // Static variables for WCX callbacks
-    private static WcxArchiveCopyOutOperation _wcxCopyOutOperationG = null;
+    private static WcxArchiveCopyOutOperation? _wcxCopyOutOperationG = null;
     [ThreadStatic]
-    private static WcxArchiveCopyOutOperation _wcxCopyOutOperationT;
+    private static WcxArchiveCopyOutOperation? _wcxCopyOutOperationT;
 
     public WcxArchiveCopyOutOperation(IFileSource sourceFileSource,
                                         IFileSource targetFileSource,
@@ -244,10 +244,14 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
                         UpdateStatistics(_statistics);
 
                         int result;
-                        if (DoFileExists(header, ref targetFileName) == FileSourceOperationOptionFileExists.Overwrite)
-                            result = wcxModule.ProcessFile(arcHandle, ProcessMode.PK_EXTRACT, "", targetFileName);
+                        string absoluteTargetFileName = targetFileName;
+                        if (DoFileExists(header, ref absoluteTargetFileName) == FileSourceOperationOptionFileExists.Overwrite)
+                            result = wcxModule.ProcessFile(arcHandle, ProcessMode.PK_EXTRACT, "", absoluteTargetFileName);
                         else
                             result = wcxModule.ProcessFile(arcHandle, ProcessMode.PK_SKIP, "", "");
+
+                        // Update the target file name if it was changed
+                        targetFileName = absoluteTargetFileName;
 
                         if (result != WcxModule.E_SUCCESS)
                         {
@@ -303,15 +307,15 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
     {
         if (string.IsNullOrEmpty(targetFileName))
             return string.Empty;
-            
+
         var result = new System.Text.StringBuilder();
-        
+
 #if MSWINDOWS
         char[] forbiddenChars = { '<', '>', ':', '"', '/', '|', '?', '*' };
 #else
         char[] forbiddenChars = { '\0' };
 #endif
-        
+
         foreach (char c in targetFileName)
         {
             if (Array.IndexOf(forbiddenChars, c) >= 0)
@@ -324,7 +328,7 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
                 result.Append(c);
             }
         }
-        
+
         return result.ToString();
     }
 
@@ -560,7 +564,7 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
             }
         }
     }
-    
+
     /// <summary>
     /// Shows an input dialog to get user input
     /// </summary>
@@ -575,7 +579,7 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
         value = prompt;
         return true;
     }
-    
+
     /// <summary>
     /// Gets the next available copy name for a file
     /// </summary>
@@ -589,38 +593,38 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
         string extension = Path.GetExtension(targetName);
         string newName;
         int i = 1;
-        
+
         do
         {
             newName = Path.Combine(path, $"{fileName} ({i}){extension}");
             i++;
         } while (File.Exists(newName) || Directory.Exists(newName));
-        
+
         return newName;
     }
 
     private FileSourceOperationOptionFileExists DoFileExists(WcxHeader header, ref string absoluteTargetFileName)
     {
         // Helper functions for different overwrite strategies
-        FileSourceOperationOptionFileExists OverwriteOlder()
+        FileSourceOperationOptionFileExists OverwriteOlder(string fileName)
         {
-            if (WcxModule.FileTimeToDateTime(header.FileTime) > FileSystemUtil.FileTimeToDateTime(File.GetLastWriteTime(absoluteTargetFileName).ToFileTime()))
+            if (FileTimeToDateTime(header.FileTime) > FileSystemUtil.FileTimeToDateTime(File.GetLastWriteTime(fileName).ToFileTime()))
                 return FileSourceOperationOptionFileExists.Overwrite;
             else
                 return FileSourceOperationOptionFileExists.Skip;
         }
 
-        FileSourceOperationOptionFileExists OverwriteSmaller()
+        FileSourceOperationOptionFileExists OverwriteSmaller(string fileName)
         {
-            if (header.UnpSize > new FileInfo(absoluteTargetFileName).Length)
+            if (header.UnpSize > new FileInfo(fileName).Length)
                 return FileSourceOperationOptionFileExists.Overwrite;
             else
                 return FileSourceOperationOptionFileExists.Skip;
         }
 
-        FileSourceOperationOptionFileExists OverwriteLarger()
+        FileSourceOperationOptionFileExists OverwriteLarger(string fileName)
         {
-            if (header.UnpSize < new FileInfo(absoluteTargetFileName).Length)
+            if (header.UnpSize < new FileInfo(fileName).Length)
                 return FileSourceOperationOptionFileExists.Overwrite;
             else
                 return FileSourceOperationOptionFileExists.Skip;
@@ -639,7 +643,7 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
                         answer = true;
                         // Prepare possible responses based on whether we need connection
                         FileSourceOperationUIResponse[] possibleResponses;
-                        
+
                         if (NeedsConnection)
                         {
                             // Can't asynchronously extract file for comparison when multiple operations are not supported
@@ -674,89 +678,95 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
                         }
 
                         string message = FileSystemUtil.FileExistsMessage(
-                            absoluteTargetFileName, 
-                            header.FileName, 
-                            header.UnpSize, 
+                            absoluteTargetFileName,
+                            header.FileName,
+                            header.UnpSize,
                             FileTimeToDateTime(header.FileTime));
 
                         _currentFilePath = header.FileName;
                         _currentTargetFilePath = absoluteTargetFileName;
 
+                        // Create a direct reference to the instance method
+                        FileSourceOperationUIActionHandler actionHandler = QuestionActionHandler;
+
                         var response = AskQuestion(
-                            message, 
-                            "", 
-                            possibleResponses, 
-                            FileSourceOperationUIResponse.Overwrite, 
+                            message,
+                            "",
+                            possibleResponses,
+                            FileSourceOperationUIResponse.Overwrite,
                             FileSourceOperationUIResponse.Skip,
-                            QuestionActionHandler);
+                            new FileSourceOperationUIActionHandlerAdapter(actionHandler));
 
                         switch (response)
                         {
                             case FileSourceOperationUIResponse.Overwrite:
                                 return FileSourceOperationOptionFileExists.Overwrite;
-                            
+
                             case FileSourceOperationUIResponse.Skip:
                                 return FileSourceOperationOptionFileExists.Skip;
-                            
+
                             case FileSourceOperationUIResponse.OverwriteAll:
                                 _fileExistsOption = FileSourceOperationOptionFileExists.Overwrite;
                                 return FileSourceOperationOptionFileExists.Overwrite;
-                            
+
                             case FileSourceOperationUIResponse.SkipAll:
                                 _fileExistsOption = FileSourceOperationOptionFileExists.Skip;
                                 return FileSourceOperationOptionFileExists.Skip;
-                            
+
                             case FileSourceOperationUIResponse.OverwriteOlder:
                                 _fileExistsOption = FileSourceOperationOptionFileExists.OverwriteOlder;
-                                return OverwriteOlder();
-                            
+                                return OverwriteOlder(absoluteTargetFileName);
+
                             case FileSourceOperationUIResponse.OverwriteSmaller:
                                 _fileExistsOption = FileSourceOperationOptionFileExists.OverwriteSmaller;
-                                return OverwriteSmaller();
-                            
+                                return OverwriteSmaller(absoluteTargetFileName);
+
                             case FileSourceOperationUIResponse.OverwriteLarger:
                                 _fileExistsOption = FileSourceOperationOptionFileExists.OverwriteLarger;
-                                return OverwriteLarger();
-                            
+                                return OverwriteLarger(absoluteTargetFileName);
+
                             case FileSourceOperationUIResponse.AutoRenameSource:
                                 _fileExistsOption = FileSourceOperationOptionFileExists.AutoRenameSource;
                                 absoluteTargetFileName = GetNextCopyName(absoluteTargetFileName, header.IsDirectory);
                                 return FileSourceOperationOptionFileExists.Overwrite;
-                            
+
                             case FileSourceOperationUIResponse.RenameSource:
                                 string newName = Path.GetFileName(absoluteTargetFileName);
                                 bool inputResult = ShowInputQuery("Edit New File Name", newName, out newName);
                                 if (inputResult)
                                 {
-                                    absoluteTargetFileName = Path.Combine(Path.GetDirectoryName(absoluteTargetFileName), newName);
+                                    string? dirName = Path.GetDirectoryName(absoluteTargetFileName);
+                                    absoluteTargetFileName = dirName != null
+                                        ? Path.Combine(dirName, newName)
+                                        : newName;
                                     return FileSourceOperationOptionFileExists.Overwrite;
                                 }
                                 answer = false;
                                 break;
-                            
+
                             case FileSourceOperationUIResponse.None:
                             case FileSourceOperationUIResponse.Cancel:
                                 RaiseAbortOperation();
                                 break;
                         }
                     } while (!answer);
-                    
+
                     // This should never be reached, but is needed to satisfy the compiler
                     return FileSourceOperationOptionFileExists.None;
-                
+
                 case FileSourceOperationOptionFileExists.OverwriteOlder:
-                    return OverwriteOlder();
-                
+                    return OverwriteOlder(absoluteTargetFileName);
+
                 case FileSourceOperationOptionFileExists.OverwriteSmaller:
-                    return OverwriteSmaller();
-                
+                    return OverwriteSmaller(absoluteTargetFileName);
+
                 case FileSourceOperationOptionFileExists.OverwriteLarger:
-                    return OverwriteLarger();
-                
+                    return OverwriteLarger(absoluteTargetFileName);
+
                 case FileSourceOperationOptionFileExists.AutoRenameSource:
                     absoluteTargetFileName = GetNextCopyName(absoluteTargetFileName, header.IsDirectory);
                     return FileSourceOperationOptionFileExists.Overwrite;
-                
+
                 default:
                     return _fileExistsOption;
             }
@@ -766,22 +776,10 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
     private void SetProcessDataProc(IntPtr arcData)
     {
         // 创建符合TProcessDataProc签名的委托
-        TProcessDataProc procAG = (string arcName, int mode) =>
-        {
-            return ProcessDataProcAG(IntPtr.Zero, mode);
-        };
-        TProcessDataProc procWG = (string arcName, int mode) =>
-        {
-            return ProcessDataProcWG(IntPtr.Zero, mode);
-        };
-        TProcessDataProc procAT = (string arcName, int mode) =>
-        {
-            return ProcessDataProcAT(IntPtr.Zero, mode);
-        };
-        TProcessDataProc procWT = (string arcName, int mode) =>
-        {
-            return ProcessDataProcWT(IntPtr.Zero, mode);
-        };
+        TProcessDataProc procAG = (_, mode) => ProcessDataProcAG(IntPtr.Zero, mode);
+        TProcessDataProc procWG = (_, mode) => ProcessDataProcWG(IntPtr.Zero, mode);
+        TProcessDataProc procAT = (_, mode) => ProcessDataProcAT(IntPtr.Zero, mode);
+        TProcessDataProc procWT = (_, mode) => ProcessDataProcWT(IntPtr.Zero, mode);
 
         // 获取委托的函数指针
         IntPtr procAGPtr = Marshal.GetFunctionPointerForDelegate(procAG);
@@ -818,29 +816,29 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
     }
 
     // WCX callback methods would be implemented here
-    private static int ProcessDataProc(WcxArchiveCopyOutOperation operation, string fileName, int size, IntPtr updateName)
+    private static int ProcessDataProc(WcxArchiveCopyOutOperation? _, string? __, int ___, IntPtr ____)
     {
-        // Implementation of process data callback
+        // Implementation of process data callback - just return success
         return 1;
     }
 
     private static int ProcessDataProcAG(IntPtr fileName, int size)
     {
-        return ProcessDataProc(_wcxCopyOutOperationG, System.Runtime.InteropServices.Marshal.PtrToStringAnsi(fileName), size, fileName);
+        return ProcessDataProc(_wcxCopyOutOperationG, Marshal.PtrToStringAnsi(fileName), size, fileName);
     }
 
     private static int ProcessDataProcWG(IntPtr fileName, int size)
     {
-        return ProcessDataProc(_wcxCopyOutOperationG, System.Runtime.InteropServices.Marshal.PtrToStringUni(fileName), size, fileName);
+        return ProcessDataProc(_wcxCopyOutOperationG, Marshal.PtrToStringUni(fileName), size, fileName);
     }
 
     private static int ProcessDataProcAT(IntPtr fileName, int size)
     {
-        return ProcessDataProc(_wcxCopyOutOperationT, System.Runtime.InteropServices.Marshal.PtrToStringAnsi(fileName), size, fileName);
+        return ProcessDataProc(_wcxCopyOutOperationT, Marshal.PtrToStringAnsi(fileName), size, fileName);
     }
 
     private static int ProcessDataProcWT(IntPtr fileName, int size)
     {
-        return ProcessDataProc(_wcxCopyOutOperationT, System.Runtime.InteropServices.Marshal.PtrToStringUni(fileName), size, fileName);
+        return ProcessDataProc(_wcxCopyOutOperationT, Marshal.PtrToStringUni(fileName), size, fileName);
     }
 }

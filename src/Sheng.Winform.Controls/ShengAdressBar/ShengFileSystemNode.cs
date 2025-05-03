@@ -172,7 +172,7 @@ namespace Sheng.Winform.Controls
             try
             {
                 //get sub-folders for this folder
-                Array subFolders = System.IO.Directory.GetDirectories(fullPath);
+                Array subFolders = System.IO.Directory.GetDirectories(fullPath);//todo: need to add wcxarchive virtual folder
 
                 //create space for the children
                 children = new ShengFileSystemNode[subFolders.Length];

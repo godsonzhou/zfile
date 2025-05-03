@@ -268,9 +268,9 @@ namespace zfile
                 return sourceFileSource.CreateCopyOperation(sourceFiles, targetPath);
             }
             // If target is an archive, use copy in
-            else if (targetFileSource is IArchiveFileSource)
+            else if (targetFileSource is IArchiveFileSource arc)
             {
-                return targetFileSource.CreateCopyInOperation(sourceFileSource, sourceFiles, targetPath);
+                return targetFileSource.CreateCopyInOperation(sourceFileSource, sourceFiles, Helper.ExtractDirLevel(arc.ArchiveFileName, targetPath, true));
             }
             // If source is an archive, use copy out
             else if (sourceFileSource is IArchiveFileSource)

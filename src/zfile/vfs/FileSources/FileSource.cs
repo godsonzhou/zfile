@@ -1042,7 +1042,7 @@ namespace zfile
 		{
 			if (pathsToReload == null || pathsToReload.Length == 0)
 				return;
-
+			DoReload(pathsToReload);
 			lock (_syncRoot)
 			{
 				foreach (var handler in _reloadEventListeners)

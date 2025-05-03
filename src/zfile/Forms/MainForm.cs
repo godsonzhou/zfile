@@ -3210,7 +3210,7 @@ namespace zfile
 				var listView = activeListView;
 				if (listView == null || listView.SelectedItems.Count <= 0) return false;
 				sourceFiles = listView.SelectedItems.Cast<ListViewItem>().Select(item => GetListItemPath(item)).ToArray();
-				srcPath = uiManager.srcDir;
+				srcPath = uiManager.srcDir;//todo: need add wcx virtual folder to shengfilesystemnode's child, 然后才能从srcdir获取到正确的srcpath
 				// 如果没有指定目标路径，则使用非活动面板的路径作为目标
 				if (string.IsNullOrEmpty(targetPath))
 					targetPath = Helper.getFSpath(unactiveTreeview.SelectedNode.FullPath);

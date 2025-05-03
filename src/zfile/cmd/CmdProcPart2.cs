@@ -807,7 +807,7 @@ namespace zfile
 					}
 					foreach (var file in selectedFiles)
 					{
-						var localfile = ftpSource.DownloadFile(file);
+						var localfile = ftpSource.DownloadFile(file.FullPath);
 						if (!File.Exists(localfile))
 						{
 							MessageBox.Show($"下载文件失败: {file}");
@@ -838,7 +838,7 @@ namespace zfile
 					// 每个文件创建单独的压缩包
 					foreach (var file in selectedFiles)
 					{
-						string singleTargetFile = Path.Combine(targetPath, Path.GetFileNameWithoutExtension(file) + extension);
+						string singleTargetFile = Path.Combine(targetPath, Path.GetFileNameWithoutExtension(file.FullPath) + extension);
 						if (File.Exists(singleTargetFile))
 						{
 							var result = MessageBox.Show($"文件 {singleTargetFile} 已存在，是否覆盖？", "确认", MessageBoxButtons.YesNoCancel);
@@ -857,7 +857,7 @@ namespace zfile
 				else
 				{
 					// 创建单个压缩包
-					targetFile = Path.Combine(targetPath, Path.GetFileNameWithoutExtension(selectedFiles[0]) + extension);
+					targetFile = Path.Combine(targetPath, Path.GetFileNameWithoutExtension(selectedFiles[0].FullPath) + extension);
 					if (File.Exists(targetFile))
 					{
 						var result = MessageBox.Show($"文件 {targetFile} 已存在，是否覆盖？", "确认", MessageBoxButtons.YesNo);
@@ -868,7 +868,8 @@ namespace zfile
 					if (wcxModule != null)
 					{
 						int flags = packOptionDialog.IncludePath ? 1 : 0;
-						string fileList = string.Join("\0", selectedFiles) + "\0\0";
+						var selectedfilepaths = selectedFiles.Select(file => file.FullPath).ToArray();
+						string fileList = string.Join("\0", selectedfilepaths) + "\0\0";
 						wcxModule.PackFiles(targetFile, "", sourcePath, fileList, flags);
 					}
 				}
@@ -893,7 +894,7 @@ namespace zfile
 					{
 						foreach (var file in selectedFiles)
 						{
-							string singleTargetFile = Path.Combine(targetPath, Path.GetFileNameWithoutExtension(file) + extension);
+							string singleTargetFile = Path.Combine(targetPath, Path.GetFileNameWithoutExtension(file.FullPath) + extension);
 							string localFile = Path.Combine(Path.GetTempPath(), Path.GetFileName(singleTargetFile));
 							if (!ftpTarget.UploadFile(localFile, singleTargetFile))
 							{

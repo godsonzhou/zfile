@@ -224,7 +224,7 @@ namespace zfile
 		public CmdProc cmdProcessor;
 		public KeyMgr keyManager;
 		private IShellFolder iDeskTop, iCtrlPanel;
-		private string[] draggedItems;
+		private FileEntry[] draggedItems;
 		private TreeNode rightClickBegin;
 		private string oldname;
 		public static WcxModuleList wcxModuleList;
@@ -621,7 +621,7 @@ namespace zfile
 
 			if (targetItem != null)
 			{
-				string itemPath = GetListItemPath(targetItem);
+				string? itemPath = GetListItemPath(targetItem)?.FullPath;
 				if (File.Exists(itemPath))
 				{
 					// 检查是否为可执行文件
@@ -661,7 +661,7 @@ namespace zfile
 				var targetItem = listView.GetItemAt(clientPoint.X, clientPoint.Y);
 				if (targetItem != null)
 				{
-					targetPath = GetListItemPath(targetItem);
+					targetPath = GetListItemPath(targetItem)?.FullPath;
 					return targetItem.SubItems[3].Text.Equals("<DIR>"); //IN ftp panel, if target is a dir then return true, otherwise return false
 				}
 				else
@@ -678,7 +678,7 @@ namespace zfile
 				// 使用 GetNodeAt 获取目标节点
 				var targetItem = listView.GetItemAt(clientPoint.X, clientPoint.Y);
 				if (targetItem != null)
-					targetPath = GetListItemPath(targetItem);
+					targetPath = GetListItemPath(targetItem)?.FullPath;
 				else
 				{
 					var targetTree = (listView == uiManager.LeftList) ? uiManager.LeftTree : uiManager.RightTree;
@@ -706,7 +706,7 @@ namespace zfile
 
 			if (targetItem != null)
 			{
-				string itemPath = GetListItemPath(targetItem);
+				string itemPath = GetListItemPath(targetItem)?.FullPath;
 				if (File.Exists(itemPath))
 				{
 					// 检查是否为可执行文件
@@ -2546,12 +2546,17 @@ namespace zfile
 		{
 			cm_list();
 		}
-		private List<string> GetFileListByViewOrParam(string param, bool needftpdownload = true)
+		private List<FileEntry> GetFileListByViewOrParam(string param, bool needftpdownload = true)
 		{
 			if (!string.IsNullOrWhiteSpace(param))
-				return se.PrepareParameter(param, new string[] { }, "");
-
-			List<string> result = new();
+			{
+				var ret = se.PrepareParameter(param, new string[] { }, "");
+				if (ret != null && ret.Count > 0)
+				{
+					return ret.Select(x => new FileEntry(x)).ToList();
+				}
+			}
+			List<FileEntry> result = new();
 			if (activeListView.SelectedItems.Count == 0) return result;
 
 			// 检查是否是FTP路径
@@ -2562,15 +2567,16 @@ namespace zfile
 				if (!string.IsNullOrEmpty(connectionName) && fTPMGR.ftpSources.TryGetValue(connectionName, out FtpFileSource source))
 				{
 					// 对于FTP文件，先下载到本地临时目录
-					return activeListView.SelectedItems.Cast<ListViewItem>()
-						.Where(i => i.SubItems[3].Text != "<DIR>") // 排除目录
-						.Select(i =>
-						{
-							string remotePath = i.SubItems[1].Text;
-							return source.DownloadFile(remotePath);
-						})
-						.Where(path => !string.IsNullOrEmpty(path)) // 排除下载失败的文件
-						.ToList();
+					//return activeListView.SelectedItems.Cast<ListViewItem>()
+					//	.Where(i => i.SubItems[3].Text != "<DIR>") // 排除目录
+					//	.Select(i =>
+					//	{
+					//		string remotePath = i.SubItems[1].Text;
+					//		return source.DownloadFile(remotePath);
+					//	})
+					//	.Where(path => !string.IsNullOrEmpty(path)) // 排除下载失败的文件
+					//	.ToList();
+
 				}
 			}
 
@@ -2584,7 +2590,7 @@ namespace zfile
 			// 编辑按钮点击处理逻辑
 			var filePaths = GetFileListByViewOrParam(param);
 			if (filePaths.Count == 0) return;
-			Form viewerForm = new ViewerForm(filePaths, wlxModuleList)
+			Form viewerForm = new ViewerForm(filePaths.Select(x => x.FullPath).ToList(), wlxModuleList)
 			{
 				Text = $"查看文件 - {filePaths}",
 				Size = new Size(800, 600)
@@ -2614,7 +2620,7 @@ namespace zfile
 			//	MessageBox.Show($"无法打开二进制文件{files[0]}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
 			//	return;
 			//}
-			var editorForm = new NewEditorForm(files)
+			var editorForm = new NewEditorForm(files.Select(x => x.FullPath).ToList())
 			{
 				Text = $"编辑文件 - {files[0]}",
 				Size = new Size(800, 600)
@@ -3114,18 +3120,31 @@ namespace zfile
 			var selectedDrive = uiManager.LeftDriveComboBox.SelectedItem?.ToString();
 			var listView = selectedDrive != null && watcher.Path.StartsWith(selectedDrive) ? uiManager.LeftList : uiManager.RightList;
 		}
-		public string GetListItemPath(ListViewItem item)
+		//public string GetListItemPath(ListViewItem item)
+		//{
+		//	if (item.Tag is ArchNodeTag archNode)
+		//		return Path.Combine(archNode.Path, item.Text);
+		//	// 检查是否是FTP节点 // 对于FTP项，直接使用SubItems[1]中存储的完整路径 // 对于本地文件系统
+		//	if (uiManager.activeTreeview.SelectedNode.Tag is FtpNodeTag)
+		//		//bugfix: 如果使用平铺模式，无法从树节点的路径获取到ITEM的真实完整路径，所以只能从ITEM.SUBITEM[1]中获取
+		//		return item.SubItems[1].Text;
+		//	var lvitemtag = item.Tag as LvItemTag;
+		//	if (lvitemtag.File != null)
+		//		return lvitemtag.File.FullPath;
+		//	return string.Empty;
+		//}
+		public FileEntry? GetListItemPath(ListViewItem item)
 		{
-			if (item.Tag is ArchNodeTag archNode)
-				return Path.Combine(archNode.Path, item.Text);
-			// 检查是否是FTP节点 // 对于FTP项，直接使用SubItems[1]中存储的完整路径 // 对于本地文件系统
-			if (uiManager.activeTreeview.SelectedNode.Tag is FtpNodeTag)
-				//bugfix: 如果使用平铺模式，无法从树节点的路径获取到ITEM的真实完整路径，所以只能从ITEM.SUBITEM[1]中获取
-				return item.SubItems[1].Text;
+			//if (item.Tag is ArchNodeTag archNode)
+			//	return Path.Combine(archNode.Path, item.Text);
+			//// 检查是否是FTP节点 // 对于FTP项，直接使用SubItems[1]中存储的完整路径 // 对于本地文件系统
+			//if (uiManager.activeTreeview.SelectedNode.Tag is FtpNodeTag)
+			//	//bugfix: 如果使用平铺模式，无法从树节点的路径获取到ITEM的真实完整路径，所以只能从ITEM.SUBITEM[1]中获取
+			//	return item.SubItems[1].Text;
 			var lvitemtag = item.Tag as LvItemTag;
-			if (lvitemtag.File != null)
-				return lvitemtag.File.FullPath;
-			return string.Empty;
+			if (lvitemtag?.File != null)
+				return lvitemtag.File;
+			return null;
 		}
 		public void ToolbarStrip_Click(object sender, EventArgs e)
 		{
@@ -3196,13 +3215,13 @@ namespace zfile
 		public bool cm_copy(string? param = null, string? targetPath = null)
 		{
 			string srcPath;
-			string[] sourceFiles;
+			FileEntry[] sourceFiles;
 			ListView targetlist;
 
 			if (!string.IsNullOrEmpty(param)) // if param exist, indicate that use clipboard to copy/move file, so the actpanel is targetpanel, otherwise is normal operation, the actpanel is srcpanel.
 			{
-				sourceFiles = GetFileListByViewOrParam(param).ToArray();
-				srcPath = Path.GetDirectoryName(sourceFiles[0]) ?? "";
+				sourceFiles = GetFileListByViewOrParam(param).ToArray(); ;
+				srcPath = Path.GetDirectoryName(sourceFiles[0].FullPath) ?? "";
 				targetlist = uiManager.activeListView;
 			}
 			else
@@ -3227,20 +3246,20 @@ namespace zfile
 
 					// 创建文件条目列表
 					var fileEntries = new FileEntries();
-					foreach (var filePath in sourceFiles)
+					foreach (var file in sourceFiles)
 					{
-						var fileEntry = new FileEntry
-						{
-							Name = Path.GetFileName(filePath),
-							FullPath = filePath,
-							IsDirectory = Directory.Exists(filePath),
-							Size = File.Exists(filePath) ? new FileInfo(filePath).Length : 0,
-							CreationTime = File.GetCreationTime(filePath),
-							ModificationTime = File.GetLastWriteTime(filePath),
-							LastAccessTime = File.GetLastAccessTime(filePath),
-							Attributes = File.GetAttributes(filePath)
-						};
-						fileEntries.Add(fileEntry);
+						//var fileEntry = new FileEntry
+						//{
+						//	Name = Path.GetFileName(filePath),
+						//	FullPath = filePath,
+						//	IsDirectory = Directory.Exists(filePath),
+						//	Size = File.Exists(filePath) ? new FileInfo(filePath).Length : 0,
+						//	CreationTime = File.GetCreationTime(filePath),
+						//	ModificationTime = File.GetLastWriteTime(filePath),
+						//	LastAccessTime = File.GetLastAccessTime(filePath),
+						//	Attributes = File.GetAttributes(filePath)
+						//};
+						fileEntries.Add(file);
 					}
 
 					// 使用 FileSourceManager 创建适合的复制操作
@@ -3279,16 +3298,16 @@ namespace zfile
 					var targetFtp = fTPMGR.GetFtpSource(targetPath);
 					if (sourceFtp != null && targetFtp != null)
 					{
-						foreach (string remotePath in sourceFiles)
+						foreach (var remotePath in sourceFiles)
 						{
 							// 先下载到临时目录
-							string tempFile = sourceFtp.DownloadFile(remotePath);
+							string tempFile = sourceFtp.DownloadFile(remotePath.FullPath);
 							if (!string.IsNullOrEmpty(tempFile))
 							{
 								try
 								{
 									// 再上传到目标FTP
-									string fileName = Path.GetFileName(remotePath);
+									string fileName = Path.GetFileName(remotePath.FullPath);
 									string targetRemotePath = Path.Combine(targetPath, fileName).Replace("\\", "/");
 									targetFtp.UploadFile(tempFile, targetRemotePath);
 								}
@@ -3309,11 +3328,11 @@ namespace zfile
 					var ftpSource = fTPMGR.GetFtpSource(srcPath);
 					if (ftpSource != null)
 					{
-						foreach (string remotePath in sourceFiles)
+						foreach (var remotePath in sourceFiles)
 						{
-							string fileName = Path.GetFileName(remotePath);
+							string fileName = Path.GetFileName(remotePath.FullPath);
 							string localPath = Path.Combine(targetPath, fileName);
-							string tempFile = ftpSource.DownloadFile(remotePath);
+							string tempFile = ftpSource.DownloadFile(remotePath.FullPath);
 							if (!string.IsNullOrEmpty(tempFile))
 							{
 								try
@@ -3340,9 +3359,9 @@ namespace zfile
 						try
 						{
 							// 先将文件从FTP下载到临时目录
-							foreach (string remotePath in sourceFiles)
+							foreach (var remotePath in sourceFiles)
 							{
-								string tempFile = ftpSource.DownloadFile(remotePath);
+								string tempFile = ftpSource.DownloadFile(remotePath.FullPath);
 								if (!string.IsNullOrEmpty(tempFile))
 									tempFiles.Add(tempFile);
 							}
@@ -3369,10 +3388,10 @@ namespace zfile
 					var ftpTarget = fTPMGR.GetFtpSource(targetPath);
 					if (ftpTarget != null)
 					{
-						foreach (string localFile in sourceFiles)
+						foreach (var localFile in sourceFiles)
 						{
-							string fullSourcePath = Path.Combine(srcPath, localFile);
-							string fileName = Path.GetFileName(localFile);
+							string fullSourcePath = Path.Combine(srcPath, localFile.FullPath);
+							string fileName = Path.GetFileName(localFile.FullPath);
 							string remotePath = Path.Combine(ftpTarget.CurrentPath, fileName).Replace("\\", "/");
 							if (Directory.Exists(fullSourcePath))
 								fTPMGR.UploadDirectory(ftpTarget.Client, fullSourcePath, remotePath);
@@ -3385,13 +3404,13 @@ namespace zfile
 				else if (!isSourceFtp && !isSourceArchive && !isTargetFtp && !isTargetArchive)
 				{
 					// 本地文件之间的复制
-					string[] fullPaths = sourceFiles.Select(f => Path.Combine(srcPath, f)).ToArray();
+					string[] fullPaths = sourceFiles.Select(f => Path.Combine(srcPath, f.FullPath)).ToArray();
 					FileSystemManager.CopyFilesAndDirectories(fullPaths, targetPath);
 				}
 				// 场景6: LOCAL -> ARCHIVE
 				else if (!isSourceFtp && !isSourceArchive && !isTargetFtp && isTargetArchive)
 				{
-					string[] fullPaths = sourceFiles.Select(f => Path.Combine(srcPath, f)).ToArray();
+					string[] fullPaths = sourceFiles.Select(f => Path.Combine(srcPath, f.FullPath)).ToArray();
 					AddToArchive(targetPath, fullPaths);
 				}
 				// 场景7: ARCHIVE -> FTP
@@ -3400,18 +3419,18 @@ namespace zfile
 					var ftpTarget = fTPMGR.GetFtpSource(targetPath);
 					if (ftpTarget != null)
 					{
-						foreach (string fileName in sourceFiles)
+						foreach (var fileName in sourceFiles)
 						{
 							// 先解压到临时目录
 							string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 							Directory.CreateDirectory(tempDir);
 							try
 							{
-								string tempFile = Path.Combine(tempDir, fileName);
-								if (ExtractArchiveFile(srcPath, fileName, tempDir))
+								string tempFile = Path.Combine(tempDir, fileName.FullPath);
+								if (ExtractArchiveFile(srcPath, fileName.FullPath, tempDir))
 								{
 									// 上传到FTP
-									string remotePath = Path.Combine(targetPath, fileName).Replace("\\", "/");
+									string remotePath = Path.Combine(targetPath, fileName.FullPath).Replace("\\", "/");
 									ftpTarget.UploadFile(tempFile, remotePath);
 								}
 							}
@@ -3427,8 +3446,8 @@ namespace zfile
 				// 场景8: ARCHIVE -> LOCAL
 				else if (!isSourceFtp && isSourceArchive && !isTargetFtp && !isTargetArchive)
 				{
-					foreach (string fileName in sourceFiles)
-						ExtractArchiveFile(srcPath, fileName, targetPath);
+					foreach (var fileName in sourceFiles)
+						ExtractArchiveFile(srcPath, fileName.FullPath, targetPath);
 				}
 				// 场景9: ARCHIVE -> ARCHIVE
 				else if (!isSourceFtp && isSourceArchive && !isTargetFtp && isTargetArchive)
@@ -3438,8 +3457,8 @@ namespace zfile
 					try
 					{
 						// 先从源压缩文件解压
-						foreach (string fileName in sourceFiles)
-							ExtractArchiveFile(srcPath, fileName, tempDir);
+						foreach (var fileName in sourceFiles)
+							ExtractArchiveFile(srcPath, fileName.FullPath, tempDir);
 
 						// 再添加到目标压缩文件
 						string[] tempFiles = Directory.GetFiles(tempDir);
@@ -3472,7 +3491,7 @@ namespace zfile
 
 			if (!string.IsNullOrEmpty(param)) // when use clipboard, the targetpath is actpanel dir, so use srcdir, and the srcpath is determined by the filenames in the clipboard, so use the first sourcefile dir, TODO: the sourcefiles with many directories
 			{
-				srcpath = Path.GetDirectoryName(sourceFiles[0]) ?? "";
+				srcpath = Path.GetDirectoryName(sourceFiles[0].FullPath) ?? "";
 				targetPath = uiManager.srcDir;
 			}
 			else
@@ -3497,19 +3516,19 @@ namespace zfile
 
 				// 创建文件条目列表
 				var fileEntries = new FileEntries();
-				foreach (var filePath in sourceFiles)
+				foreach (var fileEntry in sourceFiles)
 				{
-					var fileEntry = new FileEntry
-					{
-						Name = Path.GetFileName(filePath),
-						FullPath = filePath,
-						IsDirectory = Directory.Exists(filePath),
-						Size = File.Exists(filePath) ? new FileInfo(filePath).Length : 0,
-						CreationTime = File.GetCreationTime(filePath),
-						ModificationTime = File.GetLastWriteTime(filePath),
-						LastAccessTime = File.GetLastAccessTime(filePath),
-						Attributes = File.GetAttributes(filePath)
-					};
+					//var fileEntry = new FileEntry
+					//{
+					//	Name = Path.GetFileName(filePath),
+					//	FullPath = filePath,
+					//	IsDirectory = Directory.Exists(filePath),
+					//	Size = File.Exists(filePath) ? new FileInfo(filePath).Length : 0,
+					//	CreationTime = File.GetCreationTime(filePath),
+					//	ModificationTime = File.GetLastWriteTime(filePath),
+					//	LastAccessTime = File.GetLastAccessTime(filePath),
+					//	Attributes = File.GetAttributes(filePath)
+					//};
 					fileEntries.Add(fileEntry);
 				}
 
@@ -3576,8 +3595,8 @@ namespace zfile
 						{
 							var ftpSource = fTPMGR.GetFtpSource(srcpath);
 							if (ftpSource != null)
-								foreach (string remotePath in sourceFiles)
-									ftpSource.DeleteFile(remotePath);
+								foreach (var remotePath in sourceFiles)
+									ftpSource.DeleteFile(remotePath.FullPath);
 						}
 						else
 							cm_delete(param, false); // 源是本地文件，使用本地删除
@@ -3648,17 +3667,17 @@ namespace zfile
 
 					// 创建文件条目列表
 					var fileEntries = new FileEntries();
-					foreach (var filePath in files)
+					foreach (var fileEntry in files)
 					{
-						var fileEntry = new FileEntry
-						{
-							Name = Path.GetFileName(filePath),
-							FullPath = filePath,
-							IsDirectory = Directory.Exists(filePath),
-							Size = File.Exists(filePath) ? new FileInfo(filePath).Length : 0,
-							ModificationTime = File.GetLastWriteTime(filePath),
-							Attributes = File.GetAttributes(filePath)
-						};
+						//var fileEntry = new FileEntry
+						//{
+						//	Name = Path.GetFileName(filePath),
+						//	FullPath = filePath,
+						//	IsDirectory = Directory.Exists(filePath),
+						//	Size = File.Exists(filePath) ? new FileInfo(filePath).Length : 0,
+						//	ModificationTime = File.GetLastWriteTime(filePath),
+						//	Attributes = File.GetAttributes(filePath)
+						//};
 						fileEntries.Add(fileEntry);
 					}
 
@@ -3679,7 +3698,7 @@ namespace zfile
 					// 如果无法使用 FileSource 架构，使用传统方法
 					if (IsArchiveFile(CurrentFullpath[LRflag]))
 					{
-						if (DeleteFromArchive(CurrentFullpath[LRflag], files.ToArray()))
+						if (DeleteFromArchive(CurrentFullpath[LRflag], files.Select(x => x.FullPath).ToArray()))
 						{
 							var items = LoadArchiveContents(CurrentFullpath[LRflag]);
 							activeListView.Items.Clear();
@@ -3694,15 +3713,15 @@ namespace zfile
 						var ftpSource = fTPMGR.GetFtpFileSourceByConnectionName(ftpnode.ConnectionName);
 						if (ftpSource != null)
 						{
-							foreach (string remotePath in files)
-								ftpSource.DeleteFile(remotePath);
+							foreach (var remotePath in files)
+								ftpSource.DeleteFile(remotePath.FullPath);
 						}
 					}
 					else
 					{
 						// 本地文件删除
 						foreach (var file in files)
-							FileSystemManager.DeleteFile(file);
+							FileSystemManager.DeleteFile(file.FullPath);
 					}
 
 					RefreshPanel(activeListView);

@@ -560,12 +560,207 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
             }
         }
     }
+    
+    /// <summary>
+    /// Shows an input dialog to get user input
+    /// </summary>
+    /// <param name="caption">Dialog caption</param>
+    /// <param name="prompt">Prompt text</param>
+    /// <param name="value">Input/output value</param>
+    /// <returns>True if user confirmed, false if cancelled</returns>
+    private bool ShowInputQuery(string caption, string prompt, out string value)
+    {
+        // In a real implementation, this would show a dialog
+        // For now, we'll just return the original value and true
+        value = prompt;
+        return true;
+    }
+    
+    /// <summary>
+    /// Gets the next available copy name for a file
+    /// </summary>
+    /// <param name="targetName">Original target file name</param>
+    /// <param name="isDirectory">Whether the target is a directory</param>
+    /// <returns>A new file name that doesn't exist</returns>
+    private string GetNextCopyName(string targetName, bool isDirectory)
+    {
+        string path = Path.GetDirectoryName(targetName);
+        string fileName = Path.GetFileNameWithoutExtension(targetName);
+        string extension = Path.GetExtension(targetName);
+        string newName;
+        int i = 1;
+        
+        do
+        {
+            newName = Path.Combine(path, $"{fileName} ({i}){extension}");
+            i++;
+        } while (File.Exists(newName) || Directory.Exists(newName));
+        
+        return newName;
+    }
 
     private FileSourceOperationOptionFileExists DoFileExists(WcxHeader header, ref string absoluteTargetFileName)
     {
-        // Implementation of file exists handling logic
-        // This would be a complex method with similar logic to the Pascal version
-        return FileSourceOperationOptionFileExists.None;
+        // Helper functions for different overwrite strategies
+        FileSourceOperationOptionFileExists OverwriteOlder()
+        {
+            if (WcxModule.FileTimeToDateTime(header.FileTime) > FileSystemUtil.FileTimeToDateTime(File.GetLastWriteTime(absoluteTargetFileName).ToFileTime()))
+                return FileSourceOperationOptionFileExists.Overwrite;
+            else
+                return FileSourceOperationOptionFileExists.Skip;
+        }
+
+        FileSourceOperationOptionFileExists OverwriteSmaller()
+        {
+            if (header.UnpSize > new FileInfo(absoluteTargetFileName).Length)
+                return FileSourceOperationOptionFileExists.Overwrite;
+            else
+                return FileSourceOperationOptionFileExists.Skip;
+        }
+
+        FileSourceOperationOptionFileExists OverwriteLarger()
+        {
+            if (header.UnpSize < new FileInfo(absoluteTargetFileName).Length)
+                return FileSourceOperationOptionFileExists.Overwrite;
+            else
+                return FileSourceOperationOptionFileExists.Skip;
+        }
+
+        if (!File.Exists(absoluteTargetFileName))
+            return FileSourceOperationOptionFileExists.Overwrite;
+        else
+        {
+            switch (_fileExistsOption)
+            {
+                case FileSourceOperationOptionFileExists.None:
+                    bool answer = true;
+                    do
+                    {
+                        answer = true;
+                        // Prepare possible responses based on whether we need connection
+                        FileSourceOperationUIResponse[] possibleResponses;
+                        
+                        if (NeedsConnection)
+                        {
+                            // Can't asynchronously extract file for comparison when multiple operations are not supported
+                            possibleResponses = new[] {
+                                FileSourceOperationUIResponse.Overwrite,
+                                FileSourceOperationUIResponse.Skip,
+                                FileSourceOperationUIResponse.OverwriteLarger,
+                                FileSourceOperationUIResponse.OverwriteAll,
+                                FileSourceOperationUIResponse.SkipAll,
+                                FileSourceOperationUIResponse.OverwriteSmaller,
+                                FileSourceOperationUIResponse.OverwriteOlder,
+                                FileSourceOperationUIResponse.Cancel,
+                                FileSourceOperationUIResponse.RenameSource,
+                                FileSourceOperationUIResponse.AutoRenameSource
+                            };
+                        }
+                        else
+                        {
+                            possibleResponses = new[] {
+                                FileSourceOperationUIResponse.Overwrite,
+                                FileSourceOperationUIResponse.Skip,
+                                FileSourceOperationUIResponse.OverwriteLarger,
+                                FileSourceOperationUIResponse.OverwriteAll,
+                                FileSourceOperationUIResponse.SkipAll,
+                                FileSourceOperationUIResponse.OverwriteSmaller,
+                                FileSourceOperationUIResponse.OverwriteOlder,
+                                FileSourceOperationUIResponse.Cancel,
+                                FileSourceOperationUIResponse.CompareAction,
+                                FileSourceOperationUIResponse.RenameSource,
+                                FileSourceOperationUIResponse.AutoRenameSource
+                            };
+                        }
+
+                        string message = FileSystemUtil.FileExistsMessage(
+                            absoluteTargetFileName, 
+                            header.FileName, 
+                            header.UnpSize, 
+                            FileTimeToDateTime(header.FileTime));
+
+                        _currentFilePath = header.FileName;
+                        _currentTargetFilePath = absoluteTargetFileName;
+
+                        var response = AskQuestion(
+                            message, 
+                            "", 
+                            possibleResponses, 
+                            FileSourceOperationUIResponse.Overwrite, 
+                            FileSourceOperationUIResponse.Skip,
+                            QuestionActionHandler);
+
+                        switch (response)
+                        {
+                            case FileSourceOperationUIResponse.Overwrite:
+                                return FileSourceOperationOptionFileExists.Overwrite;
+                            
+                            case FileSourceOperationUIResponse.Skip:
+                                return FileSourceOperationOptionFileExists.Skip;
+                            
+                            case FileSourceOperationUIResponse.OverwriteAll:
+                                _fileExistsOption = FileSourceOperationOptionFileExists.Overwrite;
+                                return FileSourceOperationOptionFileExists.Overwrite;
+                            
+                            case FileSourceOperationUIResponse.SkipAll:
+                                _fileExistsOption = FileSourceOperationOptionFileExists.Skip;
+                                return FileSourceOperationOptionFileExists.Skip;
+                            
+                            case FileSourceOperationUIResponse.OverwriteOlder:
+                                _fileExistsOption = FileSourceOperationOptionFileExists.OverwriteOlder;
+                                return OverwriteOlder();
+                            
+                            case FileSourceOperationUIResponse.OverwriteSmaller:
+                                _fileExistsOption = FileSourceOperationOptionFileExists.OverwriteSmaller;
+                                return OverwriteSmaller();
+                            
+                            case FileSourceOperationUIResponse.OverwriteLarger:
+                                _fileExistsOption = FileSourceOperationOptionFileExists.OverwriteLarger;
+                                return OverwriteLarger();
+                            
+                            case FileSourceOperationUIResponse.AutoRenameSource:
+                                _fileExistsOption = FileSourceOperationOptionFileExists.AutoRenameSource;
+                                absoluteTargetFileName = GetNextCopyName(absoluteTargetFileName, header.IsDirectory);
+                                return FileSourceOperationOptionFileExists.Overwrite;
+                            
+                            case FileSourceOperationUIResponse.RenameSource:
+                                string newName = Path.GetFileName(absoluteTargetFileName);
+                                bool inputResult = ShowInputQuery("Edit New File Name", newName, out newName);
+                                if (inputResult)
+                                {
+                                    absoluteTargetFileName = Path.Combine(Path.GetDirectoryName(absoluteTargetFileName), newName);
+                                    return FileSourceOperationOptionFileExists.Overwrite;
+                                }
+                                answer = false;
+                                break;
+                            
+                            case FileSourceOperationUIResponse.None:
+                            case FileSourceOperationUIResponse.Cancel:
+                                RaiseAbortOperation();
+                                break;
+                        }
+                    } while (!answer);
+                    
+                    // This should never be reached, but is needed to satisfy the compiler
+                    return FileSourceOperationOptionFileExists.None;
+                
+                case FileSourceOperationOptionFileExists.OverwriteOlder:
+                    return OverwriteOlder();
+                
+                case FileSourceOperationOptionFileExists.OverwriteSmaller:
+                    return OverwriteSmaller();
+                
+                case FileSourceOperationOptionFileExists.OverwriteLarger:
+                    return OverwriteLarger();
+                
+                case FileSourceOperationOptionFileExists.AutoRenameSource:
+                    absoluteTargetFileName = GetNextCopyName(absoluteTargetFileName, header.IsDirectory);
+                    return FileSourceOperationOptionFileExists.Overwrite;
+                
+                default:
+                    return _fileExistsOption;
+            }
+        }
     }
 
     private void SetProcessDataProc(IntPtr arcData)

@@ -40,7 +40,8 @@ namespace zfile
         Resume,
         ResumeAll,
         Abort,
-        Append
+        Append,
+		AutoRenameSource
     }
 
     /// <summary>

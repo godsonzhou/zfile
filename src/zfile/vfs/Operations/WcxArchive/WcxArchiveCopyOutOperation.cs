@@ -301,7 +301,31 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
 
     private string ReplaceInvalidChars(string? targetFileName)
     {
-        throw new NotImplementedException();
+        if (string.IsNullOrEmpty(targetFileName))
+            return string.Empty;
+            
+        var result = new System.Text.StringBuilder();
+        
+#if MSWINDOWS
+        char[] forbiddenChars = { '<', '>', ':', '"', '/', '|', '?', '*' };
+#else
+        char[] forbiddenChars = { '\0' };
+#endif
+        
+        foreach (char c in targetFileName)
+        {
+            if (Array.IndexOf(forbiddenChars, c) >= 0)
+            {
+                // 替换为%加上字符的十六进制ASCII码
+                result.Append('%').Append(((int)c).ToString("X2"));
+            }
+            else
+            {
+                result.Append(c);
+            }
+        }
+        
+        return result.ToString();
     }
 
     // 注意：不要使用Finalize方法，因为它会干扰析构函数的调用

@@ -32,7 +32,10 @@ namespace zfile
 
 			CountFiles(FilesToDelete, "*.*");
 		}
-
+		~WcxArchiveDeleteOperation()
+		{
+			ClearCurrentOperation();
+		}
 		protected override void MainExecute()
 		{
 			var wcxModule = _wcxArchiveFileSource.WcxModule;

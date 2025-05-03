@@ -1219,7 +1219,7 @@ namespace zfile
 					listView.EndUpdate();
 
 					// 更新当前目录
-					form.CurrentDir[form.LRflag] = $"ftp://{source.Host}{path}";
+					form.CurrentFullpath[form.LRflag] = $"ftp://{source.Host}{path}";
 				}
 			}
 			catch (Exception ex)

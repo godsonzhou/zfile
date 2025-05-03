@@ -22,11 +22,11 @@ namespace zfile
 				//if (dialog.ShowDialog() != DialogResult.OK) return;
 
 				string targetPath = string.IsNullOrEmpty(dialog.TargetPath) ?
-					owner.CurrentDir[owner.LRflag] : dialog.TargetPath;
+					owner.CurrentFullpath[owner.LRflag] : dialog.TargetPath;
 
 				foreach (ListViewItem item in listView.SelectedItems)
 				{
-					var sourcePath = Path.Combine(owner.CurrentDir[owner.LRflag], item.Text);
+					var sourcePath = Path.Combine(owner.CurrentFullpath[owner.LRflag], item.Text);
 					string decodedContent;
 					try
 					{
@@ -51,10 +51,10 @@ namespace zfile
 			else
 			{
 				var files = owner.se.PrepareParameter(param, null, "");
-				var targetPath = owner.CurrentDir[owner.LRflag];
+				var targetPath = owner.CurrentFullpath[owner.LRflag];
 				foreach (var file in files)
 				{
-					var sourcePath = Path.Combine(owner.CurrentDir[owner.LRflag], file);
+					var sourcePath = Path.Combine(owner.CurrentFullpath[owner.LRflag], file);
 					string decodedContent;
 					try
 					{
@@ -173,11 +173,11 @@ namespace zfile
 				if (dialog.ShowDialog() != DialogResult.OK) return;
 
 				string targetPath = string.IsNullOrEmpty(dialog.TargetPath) ?
-					owner.CurrentDir[owner.LRflag] : dialog.TargetPath;
+					owner.CurrentFullpath[owner.LRflag] : dialog.TargetPath;
 
 				foreach (ListViewItem item in listView.SelectedItems)
 				{
-					var sourcePath = Path.Combine(owner.CurrentDir[owner.LRflag], item.Text);
+					var sourcePath = Path.Combine(owner.CurrentFullpath[owner.LRflag], item.Text);
 					string extension = dialog.SelectedEncoding switch
 					{
 						"MIME (Base64)" => ".B64",
@@ -233,12 +233,12 @@ namespace zfile
 				if (dialog.ShowDialog() != DialogResult.OK) return;
 
 				string targetPath = string.IsNullOrEmpty(dialog.TargetPath) ?
-					owner.CurrentDir[owner.LRflag] : dialog.TargetPath;
+					owner.CurrentFullpath[owner.LRflag] : dialog.TargetPath;
 
 				var files = owner.se.PrepareParameter(param, null, "");
 				foreach (var file in files)
 				{
-					var sourcePath = Path.Combine(owner.CurrentDir[owner.LRflag], file);
+					var sourcePath = Path.Combine(owner.CurrentFullpath[owner.LRflag], file);
 					string extension = dialog.SelectedEncoding switch
 					{
 						"MIME (Base64)" => ".B64",
@@ -561,7 +561,7 @@ namespace zfile
 
 			var paths = string.Join(Environment.NewLine,
 				lv.SelectedItems.Cast<ListViewItem>()
-					.Select(i => Path.Combine(owner.CurrentDir[owner.LRflag], i.Text)));
+					.Select(i => Path.Combine(owner.CurrentFullpath[owner.LRflag], i.Text)));
 			Clipboard.SetText(paths);
 		}
 
@@ -588,7 +588,7 @@ namespace zfile
 			var details = new StringBuilder();
 			foreach (ListViewItem item in lv.SelectedItems)
 			{
-				details.AppendLine(Path.Combine(owner.CurrentDir[owner.LRflag], item.Text) + "\t" +
+				details.AppendLine(Path.Combine(owner.CurrentFullpath[owner.LRflag], item.Text) + "\t" +
 					string.Join("\t", item.SubItems.Cast<ListViewItem.ListViewSubItem>().Skip(1).Select(si => si.Text)));
 			}
 			Clipboard.SetText(details.ToString());
@@ -607,7 +607,7 @@ namespace zfile
 				else
 				{
 					// 将当前目录存入前进栈
-					owner.forwardStack.Push(owner.CurrentDir[owner.LRflag]);
+					owner.forwardStack.Push(owner.CurrentFullpath[owner.LRflag]);
 					// 从后退栈获取上一个目录
 					string previousPath = owner.backStack.Pop();
 					// 导航到该目录，但不记录到历史（避免重复记录）
@@ -629,7 +629,7 @@ namespace zfile
 				else
 				{
 					// 将当前目录存入后退栈
-					owner.backStack.Push(owner.CurrentDir[owner.LRflag]);
+					owner.backStack.Push(owner.CurrentFullpath[owner.LRflag]);
 					// 从前进栈获取下一个目录
 					string nextPath = owner.forwardStack.Pop();
 					// 导航到该目录，但不记录到历史（避免重复记录）
@@ -644,24 +644,33 @@ namespace zfile
 			{
 				string? parentPath = Path.GetDirectoryName(ftpnode.Path);
 				// 记录当前目录到历史
-				owner.RecordDirectoryHistory(parentPath);
+				//owner.RecordDirectoryHistory(parentPath);
 				// 导航到父目录
 				owner.fTPMGR.NavigateToPath(ftpnode.ConnectionName, parentPath, owner.activeListView);
 			}
-			else if (owner.CurrentDir.GetFileSource(owner.LRflag) is WcxArchiveFileSource wcxfs)
+			else if (owner.CurrentFullpath.GetFileSource(owner.LRflag) is WcxArchiveFileSource wcxfs)
 			{
-				string? parentpath = Path.GetDirectoryName(wcxfs.CurrentPath);
-				owner.RecordDirectoryHistory(parentpath);
-				owner.CurrentDir[owner.LRflag] = parentpath;
-				_ = owner.LoadListViewByFileSourceAsync(parentpath, owner.activeListView, owner.activeTreeview.SelectedNode);
+				string? parentpath;
+				if (!wcxfs.CurrentPath.Equals("\\"))
+					parentpath = wcxfs.ArchivePath + Path.GetDirectoryName(wcxfs.CurrentPath);
+				else
+				{
+					parentpath = Path.GetDirectoryName(wcxfs.ArchivePath);
+					//bugfix: filesource changed, so reassign currentfilesource
+
+				}
+				//owner.RecordDirectoryHistory(parentpath);
+				//owner.CurrentDir[owner.LRflag] = parentpath;
+				//_ = owner.LoadListViewByFileSourceAsync(parentpath, owner.activeListView, owner.activeTreeview.SelectedNode);
+				owner.NavigateToPath(parentpath);
 			}
 			else
 			{
-				string? parentPath = Path.GetDirectoryName(owner.CurrentDir[owner.LRflag]);
+				string? parentPath = Path.GetDirectoryName(owner.CurrentFullpath[owner.LRflag]);
 				if (!string.IsNullOrEmpty(parentPath))
 				{
 					// 记录当前目录到历史
-					owner.RecordDirectoryHistory(parentPath);
+					//owner.RecordDirectoryHistory(parentPath);
 					// 导航到父目录
 					owner.NavigateToPath(parentPath);
 				}
@@ -682,7 +691,7 @@ namespace zfile
 			if (listView == null || listView.SelectedItems.Count <= 0) return;
 
 			var selectedItem = listView.SelectedItems[0];
-			var filePath = Path.Combine(owner.CurrentDir[owner.LRflag], selectedItem.Text);
+			var filePath = Path.Combine(owner.CurrentFullpath[owner.LRflag], selectedItem.Text);
 
 			try
 			{
@@ -743,8 +752,8 @@ namespace zfile
 				}
 			}
 
-			var leftFile = Path.Combine(owner.CurrentDir[owner.LRflag], files[0]);
-			var rightFile = Path.Combine(owner.CurrentDir[owner.LRflag], files[1]);
+			var leftFile = Path.Combine(owner.CurrentFullpath[owner.LRflag], files[0]);
+			var rightFile = Path.Combine(owner.CurrentFullpath[owner.LRflag], files[1]);
 
 			if (!File.Exists(leftFile) || !File.Exists(rightFile))
 			{

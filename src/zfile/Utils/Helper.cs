@@ -946,11 +946,11 @@ namespace zfile
 		}
 		//Examples:
 		//ExtractDirLevel('/home', '/home/somedir/somefile') = '/somedir/somefile'
-		internal static string ExtractDirLevel(string prefixdir, string fullPath)
+		internal static string ExtractDirLevel(string prefixdir, string fullPath, bool retRootIfSame = false)
 		{
 			if (string.IsNullOrEmpty(prefixdir) || string.IsNullOrEmpty(fullPath))
 				return fullPath ?? string.Empty;
-
+			if (prefixdir.Equals(fullPath)) return retRootIfSame ? Path.DirectorySeparatorChar.ToString() : string.Empty;
 			if (FileSystemUtil.IsInPath(prefixdir, fullPath, true, true))
 			{
 				return fullPath.Substring(prefixdir.Length, fullPath.Length - prefixdir.Length);

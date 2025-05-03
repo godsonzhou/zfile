@@ -568,7 +568,7 @@ namespace zfile
 
 			foreach (ListViewItem item in listView.SelectedItems)
 			{
-				var filePath = Path.Combine(owner.CurrentDir[owner.LRflag], item.Text);
+				var filePath = Path.Combine(owner.CurrentFullpath[owner.LRflag], item.Text);
 				var extension = Path.GetExtension(filePath).ToLower();
 
 				if (extension == ".sfv" || extension == ".md5" || extension == ".sha1" || extension == ".sha256" || extension == ".sha512")
@@ -715,7 +715,7 @@ namespace zfile
 
 				foreach (ListViewItem item in listView.SelectedItems)
 				{
-					var path = Path.Combine(owner.CurrentDir[owner.LRflag], item.Text);
+					var path = Path.Combine(owner.CurrentFullpath[owner.LRflag], item.Text);
 					if (Directory.Exists(path) && createSingleFolder)
 					{
 						GenerateChecksumForDirectory(path, selectedAlgorithm, useUtf8, useUnixFormat);
@@ -798,7 +798,7 @@ namespace zfile
 
 				// 获取选中的第一个文件
 				var firstFile = listView.SelectedItems[0].Text;
-				var directory = owner.CurrentDir[owner.LRflag];
+				var directory = owner.CurrentFullpath[owner.LRflag];
 				var fileNameWithoutExt = Path.GetFileNameWithoutExtension(firstFile);
 
 				// 如果文件名包含.part，则去掉.part及后面的数字
@@ -910,7 +910,7 @@ namespace zfile
 					return;
 				}
 				filesToSplit = listView.SelectedItems.Cast<ListViewItem>()
-					.Select(item => Path.Combine(owner.CurrentDir[owner.LRflag], item.Text))
+					.Select(item => Path.Combine(owner.CurrentFullpath[owner.LRflag], item.Text))
 					.ToList();
 			}
 			else

@@ -109,38 +109,42 @@ namespace zfile
         /// <summary>
         /// Gets the appropriate file source for the given path
         /// </summary>
-        /// <param name="path">Path to get file source for</param>
+        /// <param name="fullpath">Path to get file source for</param>
         /// <param name="isLeftPanel">True if this is for the left panel, false for the right panel</param>
         /// <returns>A file source that can handle the path</returns>
-        public IFileSource GetFileSourceForPath(string path, bool isLeftPanel)
+        public IFileSource GetFileSourceForFullPath(string fullpath, bool isLeftPanel)
 		{
+			if(!fullpath.Contains(":"))
+				throw new Exception("路径中不能为相对路径");
+
 			// 获取对应面板的缓存
 			var panelCache = isLeftPanel ? _leftPanelFileSources : _rightPanelFileSources;
 			var lr = isLeftPanel ? 'l' : 'r';
 
 			// 如果路径为空，返回默认的FileSystemFileSource
-			if (string.IsNullOrEmpty(path))
+			if (string.IsNullOrEmpty((string)fullpath))
             {
-                var rootPath = "C:\\";
-                var cacheKey = $"filesystem:{rootPath}";
+                //var rootPath = "C:\\";
+                //var cacheKey = $"filesystem:{rootPath}";
 
-                // 检查缓存中是否已有此路径的FileSource
-                if (panelCache.TryGetValue(cacheKey, out var cachedSource))
-                    return cachedSource;
+                //// 检查缓存中是否已有此路径的FileSource
+                //if (panelCache.TryGetValue(cacheKey, out var cachedSource))
+                //    return cachedSource;
 
-                // 创建新的FileSystemFileSource
-                var newSource = new FileSystemFileSource();
-                newSource.SetRootPath(rootPath);
+                //// 创建新的FileSystemFileSource
+                //var newSource = new FileSystemFileSource();
+                //newSource.SetRootPath(rootPath);
 
-                // 添加到缓存
-                panelCache[cacheKey] = newSource;
-                return newSource;
-            }
+                //// 添加到缓存
+                //panelCache[cacheKey] = newSource;
+                //return newSource;
+				throw new Exception("路径不能为空");
+			}
 
 			// 检查缓存中是否已有此路径的FileSource
-			if (panelCache.TryGetValue(path, out var fileSource))
+			if (panelCache.TryGetValue((string)fullpath, out var fileSource))
 			{
-				Debug.Print($"FileSourceManager: GetFileSourceForPath({path}) {lr} from cache : {fileSource.GetRootDir()}");
+				Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} from cache : {fileSource.GetRootDir()}");
 				return fileSource;
 			}
 
@@ -148,68 +152,68 @@ namespace zfile
             // 遍历所有已存在的文件源，查找是否有WcxArchiveFileSource包含当前路径
             var archiveFileSource = GetFileSources(isLeftPanel).FirstOrDefault(fs =>
                 fs is WcxArchiveFileSource wcxArchiveFileSource &&
-                path.StartsWith(wcxArchiveFileSource.ArchivePath, StringComparison.OrdinalIgnoreCase));
+                fullpath.StartsWith(wcxArchiveFileSource.ArchivePath, StringComparison.OrdinalIgnoreCase));
             if (archiveFileSource != null)
             {
                 // 添加到缓存
-                panelCache[path] = archiveFileSource;
-				Debug.Print($"FileSourceManager: GetFileSourceForPath({path}) {lr} from wcxarchive : {fileSource?.GetRootDir()}");
+                panelCache[(string)fullpath] = archiveFileSource;
+				Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} from wcxarchive : {fileSource?.GetRootDir()}");
 				return archiveFileSource;
             }
 
             // Check for archive file
-            if (IsArchiveFile(path))
+            if (IsArchiveFile((string)fullpath))
             {
                 // 为压缩文件创建新的FileSystemFileSource作为基础文件源
-                var dirPath = Path.GetDirectoryName(path) ?? "C:\\";
-                var baseFileSource = GetFileSourceForPath(dirPath, isLeftPanel);
-                var archiveSource = WcxArchiveFileSource.CreateByArchiveName(baseFileSource, path);
-				Debug.Print($"FileSourceManager: GetFileSourceForPath({path}) {lr} from fs.archivefile : {archiveSource.GetRootDir()}");
+                var dirPath = Path.GetDirectoryName((string)fullpath) ?? "C:\\";
+                var baseFileSource = GetFileSourceForFullPath((string)dirPath, isLeftPanel);
+                var archiveSource = WcxArchiveFileSource.CreateByArchiveName(baseFileSource, (string)fullpath);
+				Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} from fs.archivefile : {archiveSource.GetRootDir()}");
 				// 添加到缓存
-				panelCache[path] = archiveSource;
+				panelCache[(string)fullpath] = archiveSource;
                 return archiveSource;
             }
 
             // Check for existing file source first
             var existingFileSource = GetFileSources(isLeftPanel).FirstOrDefault(fs =>
                 fs is not WcxArchiveFileSource &&
-                path.StartsWith(fs.GetRootDir(), StringComparison.OrdinalIgnoreCase));
+                fullpath.StartsWith(fs.GetRootDir(), StringComparison.OrdinalIgnoreCase));
             if (existingFileSource != null)
             {
                 // 添加到缓存
-                panelCache[path] = existingFileSource;
+                panelCache[(string)fullpath] = existingFileSource;
                 return existingFileSource;
             }
 
             // Check for recycle bin
-            if (path == "回收站" || (Resources.VfsRecycleBin != null && path.Contains(Resources.VfsRecycleBin)))
+            if (fullpath == "回收站" || (Resources.VfsRecycleBin != null && fullpath.Contains(Resources.VfsRecycleBin)))
             {
                 var recycleBinSource = new RecycleBinFileSource();
 
                 // 添加到缓存
-                panelCache[path] = recycleBinSource;
+                panelCache[(string)fullpath] = recycleBinSource;
                 return recycleBinSource;
             }
 
             // Check for control panel
-            if (path == "控制面板" || path.StartsWith("controlpanel://"))
+            if (fullpath == "控制面板" || fullpath.StartsWith("controlpanel://"))
             {
                 var controlPanelSource = new ControlPanelFileSource();
 
                 // 添加到缓存
-                panelCache[path] = controlPanelSource;
+                panelCache[(string)fullpath] = controlPanelSource;
                 return controlPanelSource;
             }
 
             // Check for FTP path
-            if (_ftpManager != null && _ftpManager.IsFtpPath(path))
+            if (_ftpManager != null && _ftpManager.IsFtpPath((string)fullpath))
             {
-                var ftpSource = _ftpManager.GetFtpSource(path);
+                var ftpSource = _ftpManager.GetFtpSource((string)fullpath);
 
                 // 添加到缓存
                 if (ftpSource != null)
                 {
-                    panelCache[path] = ftpSource;
+                    panelCache[(string)fullpath] = ftpSource;
                     return ftpSource;
                 }
 
@@ -220,29 +224,27 @@ namespace zfile
             }
 
             // Default to file system
-            var drive = Path.GetPathRoot(path);
+            var drive = Path.GetPathRoot((string)fullpath);
             if (string.IsNullOrEmpty(drive))
                 drive = "C:\\";
 
-			var cacheKeyFs = path; //$"{lr}filesystem:\\\\{drive}";
-
             // 检查缓存中是否已有此驱动器的FileSource
-            if (panelCache.TryGetValue(cacheKeyFs, out var cachedFsSource))
+            if (panelCache.TryGetValue((string)fullpath, out var cachedFsSource))
             {
                 // 更新CurrentPath
-                cachedFsSource.CurrentPath = path;
-				Debug.Print($"FileSourceManager: GetFileSourceForPath({path}) {lr} from cache for drive[{drive}]: {fileSource.GetRootDir()}");
+                cachedFsSource.CurrentPath = fullpath;
+				Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} from cache for drive[{drive}]: {fileSource.GetRootDir()}");
 				return cachedFsSource;
             }
 
             // 创建新的FileSystemFileSource
             var fileSystemSource = new FileSystemFileSource();
             fileSystemSource.SetRootPath(drive);
-            fileSystemSource.CurrentPath = path;
+            fileSystemSource.CurrentPath = fullpath;
 
             // 添加到缓存
-            panelCache[cacheKeyFs] = fileSystemSource;
-			Debug.Print($"FileSourceManager: GetFileSourceForPath({path}) {lr} new() : {fileSystemSource.GetRootDir()}");
+            panelCache[fullpath] = fileSystemSource;
+			Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} new() : {fileSystemSource.GetRootDir()}");
 			return fileSystemSource;
         }
 

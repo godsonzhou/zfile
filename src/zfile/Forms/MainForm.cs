@@ -67,7 +67,10 @@ namespace zfile
 				{
 					if (FileSourceDict.TryGetValue(key, out IFileSource? value))
 					{
-						return value?.CurrentPath ?? string.Empty;
+						if (value is WcxArchiveFileSource wcx)
+							return wcx.ArchivePath + value?.CurrentPath;
+						else
+							return value?.CurrentPath ?? string.Empty;
 					}
 					throw new KeyNotFoundException($"Key {key} not found in FileSourceDict.");
 				}
@@ -75,7 +78,10 @@ namespace zfile
 				{
 					if (FileSourceDict.TryGetValue(key, out IFileSource? result))
 					{
-						result.CurrentPath = value;
+						if (result is WcxArchiveFileSource wcx && value.StartsWith(wcx.ArchivePath))
+							result.CurrentPath = Helper.ExtractDirLevel(wcx.ArchivePath, value, true);
+						else
+							result.CurrentPath = value;
 					}
 					else
 						throw new KeyNotFoundException($"Key {key} not found in FileSourceDict.");
@@ -113,11 +119,11 @@ namespace zfile
 		public readonly AsyncFTPMGR asyncfTPMGR;
 
 		// FileSource 相关成员变量
-		private IFileSource? LeftFileSource { get => CurrentDir.LeftFileSource; set => CurrentDir.LeftFileSource = value; }
-		private IFileSource? RightFileSource { get => CurrentDir.RightFileSource; set => CurrentDir.RightFileSource = value; }
+		private IFileSource? LeftFileSource { get => CurrentFullpath.LeftFileSource; set => CurrentFullpath.LeftFileSource = value; }
+		private IFileSource? RightFileSource { get => CurrentFullpath.RightFileSource; set => CurrentFullpath.RightFileSource = value; }
 
-		private IFileSource? ActiveFileSource => CurrentDir.ActiveFileSource;
-		private IFileSource? InactiveFileSource => CurrentDir.InactiveFileSource;
+		private IFileSource? ActiveFileSource => CurrentFullpath.ActiveFileSource;
+		private IFileSource? InactiveFileSource => CurrentFullpath.InactiveFileSource;
 		private readonly OperationsManager _operationsManager = new OperationsManager();
 		private readonly VfsModuleManager _vfsModuleManager = new VfsModuleManager();
 		private readonly FileSourceManager _fileSourceManager = FileSourceManager.Instance;
@@ -196,7 +202,7 @@ namespace zfile
 		public TreeView? FocusedTree { get => uiManager.FocusedTree; }
 		private readonly FileSystemWatcher watcher = new();
 
-		public FileSourceMapper CurrentDir;
+		public FileSourceMapper CurrentFullpath;
 
 		private TreeNode? selectedNode = null;
 		public TreeNode? SelectedNode
@@ -251,19 +257,32 @@ namespace zfile
 		// 导航到指定路径
 		public void NavigateToPath(string path, bool recordHistory = true, TreeSearchScope scope = TreeSearchScope.thispc, bool isactive = true)
 		{
-			if (CurrentDir.GetFileSource(LRflag) is WcxArchiveFileSource wcxfs)
+			//first change currentfilesource according to the path
+			// 使用 FileSourceManager 获取合适的 FileSource
+			IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, isleft);
+
+			// 更新当前活动面板的 FileSource
+			if (uiManager.isleft)
+				LeftFileSource = fileSource;
+			else
+				RightFileSource = fileSource;
+			bool isarch = false;
+			if (CurrentFullpath.GetFileSource(LRflag) is WcxArchiveFileSource wcxfs)
 			{
-				if(recordHistory)
-					RecordDirectoryHistory(path);
-				CurrentDir[LRflag] = path;
-				_ = LoadListViewByFileSourceAsync(path, activeListView, activeTreeview.SelectedNode);
-				return;
+				//	if(recordHistory)
+				//		RecordDirectoryHistory(path);
+				//	CurrentDir[LRflag] = path;
+				//	_ = LoadListViewByFileSourceAsync(path, activeListView, activeTreeview.SelectedNode);
+				//	return;
+				if(!path.StartsWith(wcxfs.ArchivePath))
+					path = wcxfs.ArchivePath + path;
+				isarch = true;
 			}
 			//Debug.Print($"start to navigate to path {path}");
 			//scope : thispc, desktop, full
 			if (string.IsNullOrEmpty(path))
 				return;
-			if (scope == TreeSearchScope.thispc && !Directory.Exists(path))
+			if (scope == TreeSearchScope.thispc && !Directory.Exists(path) && !isarch)
 				return;
 			var searchtarget = scope switch
 			{
@@ -281,7 +300,7 @@ namespace zfile
 					if (recordHistory)
 						RecordDirectoryHistory(path);
 					else
-						CurrentDir[LRflag] = path; // 直接更新当前目录，不记录历史
+						CurrentFullpath[LRflag] = path; // 直接更新当前目录，不记录历史
 				}
 				if (isactive)
 				{
@@ -356,7 +375,7 @@ namespace zfile
 			// 创建UIManager并初始化
 			uiManager = new UIControlManager(this);
 			uiManager.InitializeUI();
-			CurrentDir = new(this);
+			CurrentFullpath = new(this);
 
 			// 创建默认书签
 			uiManager.BookmarkManager.CreateDefaultBookmarks();
@@ -403,8 +422,8 @@ namespace zfile
 			_fileSourceManager.Initialize(wcxModuleList, fTPMGR, this);
 
 			// 初始化默认 FileSource
-			LeftFileSource = _fileSourceManager.GetFileSourceForPath("C:\\", true);
-			RightFileSource = _fileSourceManager.GetFileSourceForPath("C:\\", false);
+			LeftFileSource = _fileSourceManager.GetFileSourceForFullPath("C:\\", true);
+			RightFileSource = _fileSourceManager.GetFileSourceForFullPath("C:\\", false);
 
 			se = new ShellExecuteHelper(this);
 			ClearMemory();
@@ -976,7 +995,7 @@ namespace zfile
 					// 如果path是文件夹，则加载子目录
 					var treeView = sender as TreeView;
 					var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
-					CurrentDir[LRflag] = path;
+					CurrentFullpath[LRflag] = path;
 					SelectedNode = e.Node;
 					// 更新监视器
 					watcher.Path = path;
@@ -1018,7 +1037,7 @@ namespace zfile
 					if (string.IsNullOrEmpty(path)) return;
 
 					// 使用 FileSourceManager 获取合适的 FileSource
-					IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path, isleft);
+					IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, isleft);
 
 					// 更新当前活动面板的 FileSource
 					if (uiManager.isleft)
@@ -1026,14 +1045,14 @@ namespace zfile
 					else
 						RightFileSource = fileSource;
 
-					if (string.IsNullOrEmpty(CurrentDir[LRflag]))
-						CurrentDir[LRflag] = path;
-					else if (!CurrentDir[LRflag].Equals(path))
+					if (string.IsNullOrEmpty(CurrentFullpath[LRflag]))
+						CurrentFullpath[LRflag] = path;
+					else if (!CurrentFullpath[LRflag].Equals(path))
 						// 记录目录历史
 						RecordDirectoryHistory(path);
 
 					// 使用 FileSource 架构加载文件列表
-					_ = LoadListViewByFileSourceAsync(path, activeListView, e.Node);
+					_ = LoadListViewByFileSourceAsync(fileSource is WcxArchiveFileSource wcxfs ? Helper.ExtractDirLevel(wcxfs.ArchivePath, path, true) : path, activeListView, e.Node);
 
 					//uiManager.lastVisitedPaths[path.Substring(0,2)] = path;
 					uiManager.UpdateLastVisitedPath(path);
@@ -1173,8 +1192,8 @@ namespace zfile
 				item.Text = oldName;
 				return;
 			}
-			string oldPath = Path.Combine(CurrentDir[LRflag], oldName);
-			string newPath = Path.Combine(CurrentDir[LRflag], newName);
+			string oldPath = Path.Combine(CurrentFullpath[LRflag], oldName);
+			string newPath = Path.Combine(CurrentFullpath[LRflag], newName);
 			if (oldPath == newPath) return;
 			if (File.Exists(newPath) || Directory.Exists(newPath))
 			{
@@ -1225,10 +1244,10 @@ namespace zfile
 					listView.FocusedItem = item;
 
 					// 检查是否是FTP路径
-					if (CurrentDir[LRflag].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
+					if (CurrentFullpath[LRflag].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
 					{
 						// 从当前目录中提取连接名称
-						string connectionName = ExtractFtpConnectionName(CurrentDir[LRflag]);
+						string connectionName = ExtractFtpConnectionName(CurrentFullpath[LRflag]);
 						if (!string.IsNullOrEmpty(connectionName))
 						{
 							// 显示FTP右键菜单
@@ -1289,10 +1308,10 @@ namespace zfile
 			//Debug.Print("listview_mousedoubleclick:{0}, currentDir={1}", selectedItem.Text, currentDirectory[isleft]);
 
 			// 检查是否是FTP路径
-			if (CurrentDir[LRflag].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
+			if (CurrentFullpath[LRflag].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
 			{
 				// 从当前目录中提取连接名称
-				string connectionName = ExtractFtpConnectionName(CurrentDir[LRflag]);
+				string connectionName = ExtractFtpConnectionName(CurrentFullpath[LRflag]);
 				if (!string.IsNullOrEmpty(connectionName))
 				{
 					// 处理FTP列表项双击事件
@@ -1311,7 +1330,7 @@ namespace zfile
 
 			//string path = Path.Combine(CurrentDir[LRflag], selectedItem.Text);//bugfix:平铺模式下此方法获取完整路径不行，改为直接从subitem[1]读取
 			var path = selectedItem.SubItems[1].Text;
-			var fileSource = CurrentDir.GetFileSource(LRflag);
+			var fileSource = CurrentFullpath.GetFileSource(LRflag);
 			var isarchive = false;
 			var isinarchive = false;
 			if ((fileSource is WcxArchiveFileSource))
@@ -1331,11 +1350,15 @@ namespace zfile
 				var lvItemFile = lvItemTag.File;
 				if (lvItemFile.IsDirectory || !isinarchive)
 				{
-					if (!CurrentDir[LRflag].Equals(path))//由于在WCX内部，通过TREEVIEW_AFTERSELECT节点不会发生变化，所以无法记录历史，只能在LISTVIEW_DOUBLECLICK中记录历史
+					if (!CurrentFullpath[LRflag].Equals(path))//由于在WCX内部，通过TREEVIEW_AFTERSELECT节点不会发生变化，所以无法记录历史，只能在LISTVIEW_DOUBLECLICK中记录历史
 						// 记录目录历史
 						RecordDirectoryHistory(path);
+					
+					var node = FindTreeNode(activeTreeview.SelectedNode.Nodes, Path.GetFileName(path));
+					activeTreeview.SelectedNode = node;
 					// 使用 FileSource 架构加载文件列表
-					_ = LoadListViewByFileSourceAsync(path, listView, selectedItem.Tag as TreeNode);
+					//var lvitemtag = selectedItem.Tag as LvItemTag;
+					//_ = LoadListViewByFileSourceAsync(path, listView, lvitemtag.Node);
 				}
 				else
 				{
@@ -1345,7 +1368,7 @@ namespace zfile
 					op?.Execute();
 				}
 				// 更新当前路径
-				CurrentDir[LRflag] = path;
+				CurrentFullpath[LRflag] = path;
 				return;
 			}
 			// 获取关联的TreeView
@@ -1377,7 +1400,7 @@ namespace zfile
 					// 更新监视器
 					if (Directory.Exists(path))
 					{
-						CurrentDir[LRflag] = path;    //IF ITEMPATH IS DIR, UPDATE currentDirectory[isleft], ELSE NOT
+						CurrentFullpath[LRflag] = path;    //IF ITEMPATH IS DIR, UPDATE currentDirectory[isleft], ELSE NOT
 						watcher.Path = path;
 						watcher.EnableRaisingEvents = true;
 					}
@@ -1886,7 +1909,7 @@ namespace zfile
 		public void LoadRecycleBin(ListView listView)
 		{
 			// 使用 FileSourceManager 获取回收站 FileSource
-			IFileSource recycleBinFileSource = _fileSourceManager.GetFileSourceForPath("回收站", isleft);
+			IFileSource recycleBinFileSource = _fileSourceManager.GetFileSourceForFullPath("回收站", isleft);
 
 			// 更新当前面板的 FileSource
 			if (listView == uiManager.LeftList)
@@ -1948,10 +1971,10 @@ namespace zfile
 			//}
 			else
 			{
-				if (string.IsNullOrEmpty(CurrentDir[LRflag]) || CurrentDir[LRflag].Equals(newPath)) return;
-				backStack.Push(CurrentDir[LRflag]);
+				if (string.IsNullOrEmpty(CurrentFullpath[LRflag]) || CurrentFullpath[LRflag].Equals(newPath)) return;
+				backStack.Push(CurrentFullpath[LRflag]);
 				forwardStack.Clear(); // 清除前进历史
-				CurrentDir[LRflag] = newPath;
+				CurrentFullpath[LRflag] = newPath;
 			}
 		}
 		private string? SetIconForListViewItem(ListViewItem lvItem, ListView listView, string subkey)
@@ -2080,9 +2103,9 @@ namespace zfile
 			// 使用 FileSourceManager 获取合适的 FileSource
 			IFileSource? fileSource;
 			if (Path.IsPathFullyQualified(path))
-				fileSource = _fileSourceManager.GetFileSourceForPath(path, isLeftPanel);
+				fileSource = _fileSourceManager.GetFileSourceForFullPath(path, isLeftPanel);
 			else
-				fileSource = CurrentDir.GetFileSource(listView.Name);
+				fileSource = CurrentFullpath.GetFileSource(listView.Name);
 			// 更新当前面板的 FileSource
 			if (isLeftPanel)
 				LeftFileSource = fileSource;
@@ -2092,7 +2115,7 @@ namespace zfile
 			try
 			{
 				// 更新当前路径
-				CurrentDir[isLeftPanel ? "L" : "R"] = path;
+				CurrentFullpath[isLeftPanel ? "L" : "R"] = path;
 
 				// 创建列表操作
 				string operationPath = path;
@@ -2110,7 +2133,7 @@ namespace zfile
 						operationPath = Helper.ExtractDirLevel(archivePath, path);
 
 						// 确保路径格式正确（去掉前导斜杠）
-						operationPath = Helper.ExcludeFrontPathDelimiter(operationPath);
+						//operationPath = Helper.ExcludeFrontPathDelimiter(operationPath);
 						if (operationPath.Equals(string.Empty)) operationPath = fileSource.GetRootDir();
 						Debug.Print($"WcxArchiveFileSource: 将绝对路径 {path} 转换为相对路径 {operationPath}");
 					}
@@ -2243,7 +2266,7 @@ namespace zfile
 		private async Task LoadListViewByFilesystem(string path, ListView listView, TreeNode parentnode)
 		{
 			// 使用 FileSourceManager 获取合适的 FileSource
-			IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path, isleft);
+			IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, isleft);
 
 			// 更新当前面板的 FileSource
 			if (listView == uiManager.LeftList)
@@ -2364,12 +2387,12 @@ namespace zfile
 			if (listView.SelectedItems.Count > 0)
 			{
 				ListViewItem selectedItem = listView.SelectedItems[0];
-				string filePath = Helper.getFSpath(Path.Combine(CurrentDir[LRflag], selectedItem.Text));
+				string filePath = Helper.getFSpath(Path.Combine(CurrentFullpath[LRflag], selectedItem.Text));
 
 				if (File.Exists(filePath))
 					await PreviewFileAsync(filePath, previewPanel);
 			}
-			Debug.Print("selection index changed");
+			//Debug.Print("selection index changed");
 			uiManager.SetArgs();
 		}
 
@@ -2532,10 +2555,10 @@ namespace zfile
 			if (activeListView.SelectedItems.Count == 0) return result;
 
 			// 检查是否是FTP路径
-			if (CurrentDir[LRflag].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase) && needftpdownload)
+			if (CurrentFullpath[LRflag].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase) && needftpdownload)
 			{
 				// 从当前目录中提取连接名称
-				string connectionName = ExtractFtpConnectionName(CurrentDir[LRflag]);
+				string connectionName = ExtractFtpConnectionName(CurrentFullpath[LRflag]);
 				if (!string.IsNullOrEmpty(connectionName) && fTPMGR.ftpSources.TryGetValue(connectionName, out FtpFileSource source))
 				{
 					// 对于FTP文件，先下载到本地临时目录
@@ -2618,12 +2641,12 @@ namespace zfile
 				folderName = Microsoft.VisualBasic.Interaction.InputBox("请输入新文件夹名称: eg. dir1,dir2\\dir3", "新建文件夹", "新建文件夹");
 			if (string.IsNullOrWhiteSpace(folderName)) return;
 			var dirs = folderName.Split(',');
-			var path = CurrentDir[LRflag];
+			var path = CurrentFullpath[LRflag];
 
 			try
 			{
 				// 使用 FileSourceManager 获取合适的 FileSource
-				IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path, isleft);
+				IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, isleft);
 
 				// 使用 FileSource 架构创建目录
 				foreach (var dir in dirs)
@@ -2675,7 +2698,7 @@ namespace zfile
 			LoadSubDirectories(node, listView);
 
 			// 使用 FileSourceManager 获取合适的 FileSource
-			IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path, listView.Name.Equals("L"));
+			IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, listView.Name.Equals("L"));
 
 			// 更新当前面板的 FileSource
 			if (listView == uiManager.LeftList)
@@ -2706,7 +2729,7 @@ namespace zfile
 			bool isLeftPanel = listView == uiManager.LeftList;
 
 			// 使用 FileSourceManager 获取合适的 FileSource
-			IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path, isLeftPanel);
+			IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, isLeftPanel);
 
 			// 更新当前面板的 FileSource
 			if (isLeftPanel)
@@ -2720,7 +2743,7 @@ namespace zfile
 			try
 			{
 				// 更新当前路径
-				CurrentDir[isLeftPanel ? "L" : "R"] = path;
+				CurrentFullpath[isLeftPanel ? "L" : "R"] = path;
 
 				// 获取文件列表
 				var fileEntries = fileSource.GetFiles(path);
@@ -2836,7 +2859,7 @@ namespace zfile
 		{
 			if (mode.HasFlag(RefreshPanelMode.Left))
 			{
-				string path = CurrentDir["L"];
+				string path = CurrentFullpath["L"];
 				if (!string.IsNullOrEmpty(path))
 				{
 					//refresh the treeview
@@ -2844,7 +2867,7 @@ namespace zfile
 					LoadSubDirectories(node, uiManager.LeftList);
 
 					// 使用 FileSourceManager 获取合适的 FileSource
-					IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path, true);
+					IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, true);
 					LeftFileSource = fileSource;
 
 					// 使用 FileSource 架构刷新左面板
@@ -2862,14 +2885,14 @@ namespace zfile
 
 			if (mode.HasFlag(RefreshPanelMode.Right))
 			{
-				string path = CurrentDir["R"];
+				string path = CurrentFullpath["R"];
 				if (!string.IsNullOrEmpty(path))
 				{
 					//refresh the treeview
 					var node = uiManager.RightTree.SelectedNode;
 					LoadSubDirectories(node, uiManager.RightList);
 					// 使用 FileSourceManager 获取合适的 FileSource
-					IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path, false);
+					IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, false);
 					RightFileSource = fileSource;
 
 					// 使用 FileSource 架构刷新右面板
@@ -3199,8 +3222,8 @@ namespace zfile
 				if (targetPath != null)
 				{
 					// 使用 FileSourceManager 获取源和目标 FileSource
-					IFileSource sourceFileSource = _fileSourceManager.GetFileSourceForPath(srcPath, isleft);
-					IFileSource targetFileSource = _fileSourceManager.GetFileSourceForPath(targetPath, !isleft);
+					IFileSource sourceFileSource = _fileSourceManager.GetFileSourceForFullPath(srcPath, isleft);
+					IFileSource targetFileSource = _fileSourceManager.GetFileSourceForFullPath(targetPath, !isleft);
 
 					// 创建文件条目列表
 					var fileEntries = new FileEntries();
@@ -3469,8 +3492,8 @@ namespace zfile
 			try
 			{
 				// 使用 FileSourceManager 获取源和目标 FileSource
-				IFileSource sourceFileSource = _fileSourceManager.GetFileSourceForPath(srcpath, isleft);
-				IFileSource targetFileSource = _fileSourceManager.GetFileSourceForPath(targetPath, !isleft);
+				IFileSource sourceFileSource = _fileSourceManager.GetFileSourceForFullPath(srcpath, isleft);
+				IFileSource targetFileSource = _fileSourceManager.GetFileSourceForFullPath(targetPath, !isleft);
 
 				// 创建文件条目列表
 				var fileEntries = new FileEntries();
@@ -3603,7 +3626,7 @@ namespace zfile
 			var files = GetFileListByViewOrParam(param, false);
 			if (files.Count == 0) return;
 
-			var currentPath = CurrentDir[LRflag];
+			var currentPath = CurrentFullpath[LRflag];
 			var result = DialogResult.Yes;
 			if (needConfirm)
 			{
@@ -3620,8 +3643,8 @@ namespace zfile
 				try
 				{
 					// 使用 FileSourceManager 获取合适的 FileSource
-					var path = CurrentDir[LRflag];
-					IFileSource fileSource = _fileSourceManager.GetFileSourceForPath(path, isleft);
+					var path = CurrentFullpath[LRflag];
+					IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, isleft);
 
 					// 创建文件条目列表
 					var fileEntries = new FileEntries();
@@ -3654,11 +3677,11 @@ namespace zfile
 					}
 
 					// 如果无法使用 FileSource 架构，使用传统方法
-					if (IsArchiveFile(CurrentDir[LRflag]))
+					if (IsArchiveFile(CurrentFullpath[LRflag]))
 					{
-						if (DeleteFromArchive(CurrentDir[LRflag], files.ToArray()))
+						if (DeleteFromArchive(CurrentFullpath[LRflag], files.ToArray()))
 						{
-							var items = LoadArchiveContents(CurrentDir[LRflag]);
+							var items = LoadArchiveContents(CurrentFullpath[LRflag]);
 							activeListView.Items.Clear();
 							activeListView.Items.AddRange(items.ToArray());
 						}
@@ -3720,7 +3743,7 @@ namespace zfile
 
 				SelectedNode = eNode;
 				//uiManager.BookmarkManager.UpdateActiveBookmark(currentDirectory[isleft], selectedNode, isleft);
-				UpdatePathTextAndDriveComboBox(eNode, CurrentDir[LRflag], isleft);//TODO: BUGFIX: IF ENODE IS LEFT , LRFLAG IS R, SOME THING ERROR
+				UpdatePathTextAndDriveComboBox(eNode, CurrentFullpath[LRflag], isleft);//TODO: BUGFIX: IF ENODE IS LEFT , LRFLAG IS R, SOME THING ERROR
 				uiManager.SetArgs();
 				return true;
 			}

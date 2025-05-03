@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -166,22 +167,56 @@ namespace Sheng.Winform.Controls
         {
             InitChild();
         }
+		public static List<string> GetWcxFilesInFolder(string folderName)
+		{
+			List<string> zipFiles = new List<string>();
 
-        private void InitChild()
+			try
+			{
+				if (Directory.Exists(folderName))
+				{
+					// 定义常见的压缩文件扩展名
+					string[] extensions = { ".zip", ".rar", ".7z", ".tar", ".gz", ".bz2" }; // 可按需添加更多扩展名
+
+					foreach (var file in Directory.EnumerateFiles(folderName, "*", SearchOption.TopDirectoryOnly))
+					{
+						string fileExtension = Path.GetExtension(file).ToLower();
+						if (Array.IndexOf(extensions, fileExtension) != -1)
+						{
+							zipFiles.Add(file);
+						}
+					}
+				}
+				else
+				{
+					Console.WriteLine($"文件夹 {folderName} 不存在。");
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"发生错误: {ex.Message}");
+			}
+
+			return zipFiles;
+		}
+		private void InitChild()
         {
             try
             {
                 //get sub-folders for this folder
                 Array subFolders = System.IO.Directory.GetDirectories(fullPath);//todo: need to add wcxarchive virtual folder
-
+				var wcxfiles = GetWcxFilesInFolder(fullPath);
+			
                 //create space for the children
-                children = new ShengFileSystemNode[subFolders.Length];
+                children = new ShengFileSystemNode[subFolders.Length + wcxfiles.Count];
 
                 for (int i = 0; i < subFolders.Length; i++)
                 {
                     //create the child value
                     children[i] = new ShengFileSystemNode(subFolders.GetValue(i).ToString(), this);
                 }
+				for (int i = 0; i < wcxfiles.Count; i++)
+					children[i + subFolders.Length] = new ShengFileSystemNode(wcxfiles[i], this);
             }
             /**
            * This is just a sample, so has bad error handling ;)

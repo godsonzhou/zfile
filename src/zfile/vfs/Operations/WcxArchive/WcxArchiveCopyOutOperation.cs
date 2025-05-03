@@ -329,8 +329,155 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
                                         string destPath, string currentArchiveDir,
                                         ref StringHashListUtf8 createdPaths)
     {
-        // Implementation of directory creation and file counting logic
-        // This would be a complex method with similar logic to the Pascal version
+        // List of paths that we know must be created.
+        var pathsToCreate = new StringHashListUtf8(true);
+
+        // List of possible directories to create with their attributes.
+        // This hash list is created to speed up searches for attributes in archive file list.
+        var dirsAttributes = new StringHashListUtf8(true);
+
+        var fileList = _wcxArchiveFileSource.ArchiveFileEntries;
+        try
+        {
+            foreach (var item in fileList)
+            {
+                var header = (WcxHeader)item;
+
+                // Check if the file from the archive fits the selection given via SourceFiles.
+                if (!MatchesFileEntries(theFiles, header.FileName))
+                    continue;
+
+                if (header.IsDirectory)
+                {
+                    string currentFileName = Helper.ExtractDirLevel(currentArchiveDir, header.FileName);
+                    currentFileName = ReplaceInvalidChars(currentFileName);
+
+                    // Save this directory and a pointer to its entry.
+                    dirsAttributes.Add(currentFileName, header);
+
+                    // If extracting all files and directories, add this directory
+                    // to PathsToCreate so that empty directories are also created.
+                    if (maskList == null)
+                    {
+                        // Paths in PathsToCreate list must end with path delimiter.
+                        currentFileName = Helper.IncludeTrailingPathDelimiter(currentFileName);
+
+                        if (!pathsToCreate.Contains(currentFileName))
+                            pathsToCreate.Add(currentFileName, null);
+                    }
+                }
+                else
+                {
+                    if ((maskList == null) || maskList.Matches(Path.GetFileName(header.FileName)))
+                    {
+                        _statistics.TotalBytes += header.UnpSize;
+                        _statistics.TotalFiles++;
+
+                        string currentFileName = Helper.ExtractDirLevel(currentArchiveDir, Path.GetDirectoryName(header.FileName));
+                        currentFileName = ReplaceInvalidChars(currentFileName);
+
+                        // If CurrentFileName is empty now then it was a file in current archive
+                        // directory, therefore we don't have to create any paths for it.
+                        if (!string.IsNullOrEmpty(currentFileName))
+                            if (!pathsToCreate.Contains(currentFileName))
+                                pathsToCreate.Add(currentFileName, null);
+                    }
+                }
+            }
+        }
+        finally
+        {
+            fileList = null;
+        }
+
+        if (_extractWithoutPath)
+        {
+            pathsToCreate.Free();
+            dirsAttributes.Free();
+            return;
+        }
+
+        // Second, create paths and save which paths were created and their attributes.
+        var directories = new List<string>();
+
+        try
+        {
+            destPath = Helper.IncludeTrailingPathDelimiter(destPath);
+
+            // Create path to destination directory (we don't have attributes for that).
+            Directory.CreateDirectory(destPath);
+
+            createdPaths.Clear();
+
+            for (int pathIndex = 0; pathIndex < pathsToCreate.Count; pathIndex++)
+            {
+                directories.Clear();
+
+                // Create also all parent directories of the path to create.
+                // This adds directories to list in order from the outer to inner ones,
+                // for example: dir, dir/dir2, dir/dir2/dir3.
+                string path = pathsToCreate.List[pathIndex].Key;
+                GetDirectories(path, directories);
+
+                try
+                {
+                    foreach (var dir in directories)
+                    {
+                        string targetDir = destPath + dir;
+
+                        if (!createdPaths.Contains(targetDir) && !Directory.Exists(targetDir))
+                        {
+                            if (!Directory.CreateDirectory(targetDir).Exists)
+                            {
+                                // Error, cannot create directory.
+                                break; // Don't try to create subdirectories.
+                            }
+                            else
+                            {
+                                // Retrieve attributes for this directory, if they are stored.
+                                WcxHeader header = null;
+                                if (dirsAttributes.Contains(dir))
+                                    header = (WcxHeader)dirsAttributes[dir];
+
+                                createdPaths.Add(targetDir, header);
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // Ignore exceptions and continue with next path
+                }
+            }
+        }
+        finally
+        {
+            pathsToCreate.Free();
+            dirsAttributes.Free();
+        }
+    }
+
+    // Helper method to get all directories in a path
+    private void GetDirectories(string path, List<string> directories)
+    {
+        if (string.IsNullOrEmpty(path))
+            return;
+
+        // Split the path into components
+        string[] parts = path.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        string currentPath = "";
+
+        foreach (var part in parts)
+        {
+            if (string.IsNullOrEmpty(part))
+                continue;
+
+            if (currentPath.Length > 0)
+                currentPath += Path.DirectorySeparatorChar;
+
+            currentPath += part;
+            directories.Add(currentPath);
+        }
     }
 
     private bool SetDirsAttributes(StringHashListUtf8 paths)

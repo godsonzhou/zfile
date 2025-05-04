@@ -49,7 +49,7 @@ namespace zfile
         /// <param name="file">The file to process</param>
         private void ProcessFile(FileEntry file)
         {
-            _statistics.CurrentFile = file.FullName;
+            _statistics.CurrentFile = file.FullPath;
             UpdateStatistics(_statistics);
 
             // Update statistics based on file type

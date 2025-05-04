@@ -304,7 +304,7 @@ public class FileEntry : IDisposable
     private FilePropertyType _supportedProperties;
     private bool _disposed = false;
 
-    public string FullName => $"{Path}{System.IO.Path.DirectorySeparatorChar}{Name}";
+    //public string FullPath => $"{Path}{System.IO.Path.DirectorySeparatorChar}{Name}";
     public Dictionary<FilePropertyType, FileProperty> Properties => _properties;
 
     private void SplitIntoNameAndExtension(string fileName, out string fileNameOnly, out string extension)
@@ -767,8 +767,9 @@ public class FileEntry : IDisposable
         _variantProperties = new List<FileVariantProperty>();
         _supportedProperties = FilePropertyType.Name;
 
-        NameProperty = new FileNameProperty(System.IO.Path.GetFileName(path));
-        Path = path;
+		//NameProperty = new FileNameProperty(System.IO.Path.GetFileName(path));
+		//NameProperty = new FileNameProperty(); // use ensurepropertyexist, so do not need to init nameproperty here.
+		Path = path;
     }
 
     public FileEntry()

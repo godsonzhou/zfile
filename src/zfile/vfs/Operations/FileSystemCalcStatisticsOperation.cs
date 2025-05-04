@@ -42,7 +42,7 @@ namespace zfile
 
 		private void ProcessFile(FileEntry file)
         {
-            statistics.CurrentFile = file.FullName;
+            statistics.CurrentFile = file.FullPath;
             UpdateStatistics(statistics);
 
             if ((file.Attributes & FileAttributes.ReparsePoint) != 0)
@@ -85,7 +85,7 @@ namespace zfile
             else if ((file.Attributes & FileAttributes.Directory) != 0)
             {
                 statistics.Directories++;
-                ProcessSubDirs(file.FullName + Path.DirectorySeparatorChar);
+                ProcessSubDirs(file.FullPath + Path.DirectorySeparatorChar);
             }
             else
             {
@@ -110,7 +110,7 @@ namespace zfile
 
 		private void ProcessLink(FileEntry file)
         {
-            string pathToFile = GetLinkTarget(file.FullName);
+            string pathToFile = GetLinkTarget(file.FullPath);
             if (!string.IsNullOrEmpty(pathToFile))
             {
                 try
@@ -120,13 +120,13 @@ namespace zfile
                 }
                 catch (FileNotFoundException)
                 {
-                    LogMessage($"无效的符号链接: {file.FullName} -> {pathToFile}", 
+                    LogMessage($"无效的符号链接: {file.FullPath} -> {pathToFile}", 
                         LogOption.Error, LogOption.Error);
                 }
             }
             else
             {
-                LogMessage($"无效的符号链接: {file.FullName} -> {pathToFile}", 
+                LogMessage($"无效的符号链接: {file.FullPath} -> {pathToFile}", 
                     LogOption.Error, LogOption.Error);
             }
         }

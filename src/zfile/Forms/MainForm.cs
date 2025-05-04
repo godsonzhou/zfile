@@ -1694,22 +1694,21 @@ namespace zfile
 			iconKey = string.Empty;
 			return false;
 		}
-		public void LoadSubDirectories(TreeNode node, MyListView? lv = null)
+		public List<TreeNode> LoadSubDirectories(TreeNode node, MyListView? lv = null)
 		{
-			//bool isCtrlPanel = false;
-			//bool isTrash = false;
+			// 创建一个新的节点集合，用于存储需要保留的节点
+			List<TreeNode> nodesToKeep = new List<TreeNode>();
 			if (lv != null)
 			{
 				lv.SmallImageList ??= new ImageList();
 				lv.LargeImageList ??= new ImageList();
 				lv.Items.Clear();
 			}
-			if (node.Tag is not ShellItem) return; //eg, if it is ftp virtual node, do not load subnode
+			if (node.Tag is not ShellItem) return null; //eg, if it is ftp virtual node, do not load subnode
 			ShellItem sItem = (ShellItem)node.Tag;
-			if (sItem == null) return;
+			if (sItem == null) return null;
 			IShellFolder root = sItem.ShellFolder;
-			if (root == null) return;
-
+			if (root == null) return null;
 			if (node.Nodes.Count == 1 && node.Nodes[0].Text.Equals("..."))
 				node.Nodes.RemoveAt(0);
 			// 保存现有节点的引用，以便后续比较
@@ -1729,11 +1728,8 @@ namespace zfile
 				}
 			}
 
-			// 创建一个新的节点集合，用于存储需要保留的节点
-			List<TreeNode> nodesToKeep = new List<TreeNode>();
 			// 创建一个集合，用于存储新的PIDL，以便后续比较
 			HashSet<string> newPidls = new HashSet<string>();
-			IEnumIDList Enum;
 			try
 			{
 				//get the config showhiddensystem
@@ -1747,9 +1743,9 @@ namespace zfile
 				if (root.EnumObjects(this.Handle, shcontf, out nint EnumPtr) == w32.S_OK)    // 循环查找子项
 				{
 					if (EnumPtr == IntPtr.Zero)  //如果node=程序和功能,则EnumPtr=0，直接返回
-						return;
+						return null;
 
-					Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
+					var Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
 					while (Enum.Next(1, out nint pidlSub, out uint celtFetched) == 0 && celtFetched == w32.S_FALSE) //获取子节点的pidl
 					{
 						root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out IShellFolder iSub); //获取子节点的ishellfolder接口
@@ -1759,11 +1755,9 @@ namespace zfile
 						var pathPart = path.Split('\\');
 						name = !pathPart[^1].Equals(string.Empty) ? pathPart[^1] : pathPart[^2];
 						var subItem = new ShellItem(pidlSub, iSub, root); //子节点的tag存放pidl和ishellfolder接口
-																		  //if (subItem.parsepath.Equals("::{26EE0668-A00A-44D7-9371-BEB064C98683}"))//控制面板
-																		  //	isCtrlPanel = true;
-																		  //if (subItem.parsepath.Equals("::{645FF040-5081-101B-9F08-00AA002F954E}") )//回收站
-																		  //	isTrash = true;
-																		  // 使用路径作为唯一标识符，而不是PIDL的内存地址
+						//if (subItem.parsepath.Equals("::{26EE0668-A00A-44D7-9371-BEB064C98683}"))//控制面板
+						//if (subItem.parsepath.Equals("::{645FF040-5081-101B-9F08-00AA002F954E}") )//回收站
+						// 使用路径作为唯一标识符，而不是PIDL的内存地址
 						string nodeKey = path;
 						newPidls.Add(nodeKey);
 
@@ -1775,12 +1769,11 @@ namespace zfile
 							nodeSub = existingNode;
 							// 更新节点的Tag，确保使用最新的ShellItem
 							nodeSub.Tag = subItem;
-							// 将节点添加到保留列表
-							nodesToKeep.Add(nodeSub);
 						}
 						else
 							nodeSub = new TreeNode(name) { Tag = subItem }; // 创建新节点
-																			// 为虚拟文件夹或非文件系统项设置特定图标
+
+						// 为虚拟文件夹或非文件系统项设置特定图标
 						string iconkey;
 						if (subItem.IsVirtual || (subItem.GetAttributes() & SFGAO.FILESYSTEM) == 0)
 						{
@@ -1831,8 +1824,7 @@ namespace zfile
 
 						// 将节点添加到保留列表
 						nodesToKeep.Add(nodeSub);
-						if (subItem.parsepath.Equals("::{20D04FE0-3AEA-1069-A2D8-08002B30309D}"))
-						//if(nodeSub.Text.Equals("此电脑"))
+						if (subItem.parsepath.Equals("::{20D04FE0-3AEA-1069-A2D8-08002B30309D}")) //"此电脑"
 						{
 							if (isleft)
 								thispcL = nodeSub;
@@ -1877,6 +1869,7 @@ namespace zfile
 			{
 
 			}
+			return nodesToKeep;
 		}
 
 		private static bool IsChildrenExist(TreeNode node, bool includefile = false)

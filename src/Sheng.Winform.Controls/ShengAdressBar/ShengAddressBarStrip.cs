@@ -514,6 +514,8 @@ namespace Sheng.Winform.Controls
         }
 		public void SetAddress(TreeNode tnode)
 		{
+			//_currentNode.tNode = tnode;
+
 			if (tnode.Tag is ShellItem)
 			{
 				var i = (ShellItem)tnode.Tag;

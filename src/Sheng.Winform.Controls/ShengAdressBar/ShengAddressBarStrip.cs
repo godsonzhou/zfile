@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 using WinShell;
 
@@ -514,15 +515,65 @@ namespace Sheng.Winform.Controls
         }
 		public void SetAddress(TreeNode tnode)
 		{
-			//_currentNode.tNode = tnode;
-
 			if (tnode.Tag is ShellItem)
 			{
 				var i = (ShellItem)tnode.Tag;
 				SetAddress(i.parsepath);
 			}
-			
 			_currentNode.tNode = tnode;
+		}
+		public void SetChildren(string fullpath, List<string> children)
+		{
+			if (children != null) { 
+				var n = FindNodeByFullPath(fullpath);
+				if (n != null) {
+					n.SetChildren(children);
+				}
+			}
+		}
+		public IShengAddressNode FindNodeByFullPath(string fullpath)
+		{
+			string[] pathArray = fullpath.Split('\\');  //bugfix: '/' -> '\\' for windows, '/' is not a valid path separator
+			var tmpnode = _rootNode; //  _currentNode;     //record the original value
+			//_currentNode = _rootNode;
+			string pth = "";
+			for (int i = 0; i < pathArray.Length; i++)
+			{
+				//bugfix: c: -> c:\
+				if (pathArray[i] == string.Empty)
+					continue;
+				if (pathArray[i].EndsWith(":"))
+					pathArray[i] += "\\";
+				if (pth == string.Empty)
+					pth = pathArray[i];
+				else if (pth.EndsWith("\\"))
+					pth = pth + pathArray[i];
+				else
+					pth = pth + "\\" + pathArray[i];
+
+				//_currentNode.CreateChildNodes();    // 确保当前节点的子节点已加载
+				tmpnode.CreateChildNodes();
+				//foreach (IShengAddressNode node in _currentNode.Children)
+				foreach (IShengAddressNode node in tmpnode.Children)
+				{
+					if (node.UniqueID == pth)
+					{
+						//_currentNode = node;
+						tmpnode = node;
+						//if (tmpnode != node)
+						//{
+						//	Debug.Print("//fire the node change event");
+						//	if (SelectionChange != null)
+						//	{
+						//		NodeChangedArgs nca = new NodeChangedArgs(_currentNode.UniqueID);
+						//		SelectionChange(this, nca);
+						//	}
+						//}
+						break;
+					}
+				}
+			}
+			return tmpnode.UniqueID.Equals(fullpath) ? tmpnode : null;
 		}
         /// <summary>
         /// 通过这种方式设置路径的前提是有（初始化过）根节点
@@ -541,45 +592,8 @@ namespace Sheng.Winform.Controls
             }
 
             //解释path找到当前节点，然后调用RestBar方法就可以了
-            string[] pathArray = path.Split('\\');  //bugfix: '/' -> '\\' for windows, '/' is not a valid path separator
-			var tmpnode = _currentNode;		//record the original value
-			_currentNode =  _rootNode;
-			string pth = "";
-            for (int i = 0; i < pathArray.Length; i++)
-            {
-				//bugfix: c: -> c:\
-				if (pathArray[i] == string.Empty)
-					continue;
-				if (pathArray[i].EndsWith(":"))
-					pathArray[i] += "\\";
-				if(pth == string.Empty)
-					pth = pathArray[i];
-				else if (pth.EndsWith("\\"))
-					pth = pth + pathArray[i];
-				else
-					pth = pth + "\\" + pathArray[i];
-
-				_currentNode.CreateChildNodes();	// 确保当前节点的子节点已加载
-
-				foreach (IShengAddressNode node in _currentNode.Children)
-                {
-                    if (node.UniqueID == pth)
-                    {
-                        _currentNode = node;
-						//if (tmpnode != node)
-						//{
-						//	Debug.Print("//fire the node change event");
-						//	if (SelectionChange != null)
-						//	{
-						//		NodeChangedArgs nca = new NodeChangedArgs(_currentNode.UniqueID);
-						//		SelectionChange(this, nca);
-						//	}
-						//}
-						break;
-                    }
-                }
-            }
-            ResetBar();
+			_currentNode = FindNodeByFullPath(path);
+			ResetBar();
         }
 
         public void SetAddress(IShengAddressNode addressNode)

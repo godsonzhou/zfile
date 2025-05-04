@@ -1860,6 +1860,13 @@ namespace zfile
 						}
 					}
 				}
+				//refresh the addressbar's current node's children according to nodestokeep
+				var fullFSpath = Helper.getFSpath(node.FullPath);
+				var childrenpath = nodesToKeep.Select(x => Helper.getFSpath(x.FullPath)).ToList();
+				if (isleft)
+					uiManager.LeftPathTextBox.SetChildren(fullFSpath, childrenpath);
+				else
+					uiManager.RightPathTextBox.SetChildren(fullFSpath, childrenpath);
 			}
 			catch (Exception)
 			{
@@ -1869,6 +1876,7 @@ namespace zfile
 			{
 
 			}
+		
 			return nodesToKeep;
 		}
 

@@ -66,6 +66,8 @@ namespace Sheng.Winform.Controls
         /// </summary>
         void CreateChildNodes();
 
+		void SetChildren(List<string> children);
+
         /// <summary>
         /// 刷新（重新创建）子节点
         /// </summary>

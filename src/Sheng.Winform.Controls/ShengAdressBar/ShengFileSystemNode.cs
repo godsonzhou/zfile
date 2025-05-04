@@ -199,6 +199,14 @@ namespace Sheng.Winform.Controls
 
 			return zipFiles;
 		}
+		public void SetChildren(List<string> _children)
+		{
+			children = new ShengFileSystemNode[_children.Count];
+			for (int i = 0; i < _children.Count; i++)
+			{
+				children[i] = new ShengFileSystemNode(_children[i], this); //todo: need to use getfspath to get the corrent fullpath
+			}
+		}
 		private void InitChild()
         {
             try

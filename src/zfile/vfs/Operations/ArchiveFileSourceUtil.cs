@@ -329,13 +329,10 @@ namespace zfile
             {
                 foreach (string filePath in Directory.GetFileSystemEntries(srcPath, "*"))
                 {
-                    FileEntry FileEntry = new FileEntry(filePath);
                     string fileName = Path.GetFileName(filePath);
-
                     if (fileName == "." || fileName == "..") continue;
 
-                    FileEntry file = new FileEntry(srcPath + FileEntry.Name);
-
+                    FileEntry file = new FileEntry(srcPath, fileName);
                     if (file.IsLink)
                     {
                         newFiles.Add(file.Clone());

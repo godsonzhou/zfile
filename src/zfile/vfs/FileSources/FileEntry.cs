@@ -771,8 +771,18 @@ public class FileEntry : IDisposable
 		//NameProperty = new FileNameProperty(); // use ensurepropertyexist, so do not need to init nameproperty here.
 		Path = path;
     }
+	public FileEntry(string path, string name)
+	{
+		_properties = new Dictionary<FilePropertyType, FileProperty>();
+		_variantProperties = new List<FileVariantProperty>();
+		_supportedProperties = FilePropertyType.Name;
 
-    public FileEntry()
+		NameProperty = new FileNameProperty(name);
+		//NameProperty = new FileNameProperty(); // use ensurepropertyexist, so do not need to init nameproperty here.
+		Path = path;
+	}
+
+	public FileEntry()
     {
         _properties = new Dictionary<FilePropertyType, FileProperty>();
         _variantProperties = new List<FileVariantProperty>();

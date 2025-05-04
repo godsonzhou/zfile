@@ -310,7 +310,7 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
 
         var result = new System.Text.StringBuilder();
 
-#if MSWINDOWS
+#if WINDOWS
         char[] forbiddenChars = { '<', '>', ':', '"', '/', '|', '?', '*' };
 #else
         char[] forbiddenChars = { '\0' };

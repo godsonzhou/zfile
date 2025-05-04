@@ -925,6 +925,16 @@ namespace zfile
             {
                 if (string.Equals(file.Name, fileName, StringComparison.OrdinalIgnoreCase))
                     return true;
+				if (file.IsDirectory)
+				{
+					if (FileSystemUtil.IsInPath(file.FullPath, fileName, true, true))
+						return true;
+				}
+				else
+				{
+					if (string.Equals(file.FullPath, fileName, StringComparison.OrdinalIgnoreCase))
+						return true;
+				}
             }
 
             return false;

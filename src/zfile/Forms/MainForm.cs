@@ -124,7 +124,7 @@ namespace zfile
 
 		private IFileSource? ActiveFileSource => CurrentFullpath.ActiveFileSource;
 		private IFileSource? InactiveFileSource => CurrentFullpath.InactiveFileSource;
-		private readonly OperationsManager _operationsManager = new OperationsManager();
+		private readonly OperationsManager _operationsManager = OperationsManager.Instance;//new OperationsManager(); //bugfix: _operationsmanager and OperationsManager.Instance are not the same instance, so we need to use _operationsManager to update the progress bar in the UI thread
 		private readonly VfsModuleManager _vfsModuleManager = new VfsModuleManager();
 		private readonly FileSourceManager _fileSourceManager = FileSourceManager.Instance;
 
@@ -427,7 +427,7 @@ namespace zfile
 
 			se = new ShellExecuteHelper(this);
 			ClearMemory();
-			OperationsManager.Instance.AddEventListener(OperationManagerNotify);
+			_operationsManager.AddEventListener(OperationManagerNotify);
 		}
 
 		private void OperationManagerNotify(object? sender, OperationEventArgs e)
@@ -438,7 +438,7 @@ namespace zfile
 			if (e.EventType == OperationEventType.Removed)
 			{
 				// Hide progress information if there are no operations
-				if (OperationsManager.Instance.OperationsCount == 0)
+				if (_operationsManager.OperationsCount == 0)
 				{
 					// Update status bar to show no operations are running
 					if (statusStrip.Items.Count > 0)
@@ -482,10 +482,10 @@ namespace zfile
 		private void UpdateOperationProgress()
 		{
 			// Get overall progress
-			double progress = OperationsManager.Instance.AllProgressPoint();
+			double progress = _operationsManager.AllProgressPoint();
 
 			// Update status bar with progress information if operations are running
-			if (OperationsManager.Instance.OperationsCount > 0)
+			if (_operationsManager.OperationsCount > 0)
 			{
 				var statusStrip = isleft ? uiManager.LeftStatusStrip : uiManager.RightStatusStrip;
 				if (statusStrip.Items.Count > 0)

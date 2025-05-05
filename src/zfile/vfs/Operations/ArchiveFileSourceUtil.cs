@@ -168,8 +168,8 @@ namespace zfile
                         if (operation != null)
                         {
                             // Start operation
-                            var operationsManager = new OperationsManager();
-                            operationsManager.AddOperation(operation, queueIdentifier, false, true);
+                            //var operationsManager = new OperationsManager();
+                            OperationsManager.Instance.AddOperation(operation, queueIdentifier, false, true);
                         }
                         else
                         {
@@ -217,8 +217,8 @@ namespace zfile
                                             if (operation != null)
                                             {
                                                 // Start operation
-                                                var operationsManager = new OperationsManager();
-                                                operationsManager.AddOperation(operation, queueId, false, true);
+                                                //var operationsManager = new OperationsManager();
+                                                OperationsManager.Instance.AddOperation(operation, queueId, false, true);
                                             }
                                             else
                                             {

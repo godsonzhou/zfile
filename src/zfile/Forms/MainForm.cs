@@ -3264,7 +3264,7 @@ namespace zfile
 					}
 
 					// 使用 FileSourceManager 创建适合的复制操作
-					FileSourceOperation? operation = _fileSourceManager.CreateCopyOperation(
+					FileSourceOperation? operation = FileSourceManager.CreateCopyOperation(
 						sourceFileSource,
 						targetFileSource,
 						fileEntries,
@@ -3550,7 +3550,7 @@ namespace zfile
 				{
 					// 如果不是同一类型的 FileSource，先复制后删除
 					// 使用 FileSourceManager 创建复制操作
-					var copyOperation = _fileSourceManager.CreateCopyOperation(
+					var copyOperation = FileSourceManager.CreateCopyOperation(
 						sourceFileSource,
 						targetFileSource,
 						fileEntries,

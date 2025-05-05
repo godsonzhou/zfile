@@ -76,7 +76,7 @@ namespace zfile
 
                     if (operation != null)
                     {
-                        OperationsManager.AddOperationModal(operation);
+                        OperationsManager.Instance.AddOperationModal(operation);
 
                         if (operation.Result == FileSourceOperationResult.Finished)
                         {
@@ -187,7 +187,7 @@ namespace zfile
                     // If archives count > 1 then put to queue
                     int queueId;
                     if (files.Count > 1 && queueIdentifier == OperationsManager.FreeOperationsQueueId)
-                        queueId = OperationsManager.GetNewQueueIdentifier();
+                        queueId = OperationsManager.Instance.GetNewQueueIdentifier();
                     else
                         queueId = queueIdentifier;
 

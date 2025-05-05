@@ -256,7 +256,7 @@ namespace zfile
         /// <param name="sourceFiles">Files to copy</param>
         /// <param name="targetPath">Target path</param>
         /// <returns>A file source operation for copying</returns>
-        public FileSourceOperation CreateCopyOperation(
+        public static FileSourceOperation CreateCopyOperation(
             IFileSource sourceFileSource,
             IFileSource targetFileSource,
             FileEntries sourceFiles,

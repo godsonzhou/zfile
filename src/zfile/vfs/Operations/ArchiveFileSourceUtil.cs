@@ -332,7 +332,18 @@ namespace zfile
                     string fileName = Path.GetFileName(filePath);
                     if (fileName == "." || fileName == "..") continue;
 
-                    FileEntry file = new FileEntry(srcPath, fileName);
+					//FileEntry file = new FileEntry(srcPath, fileName);
+					var fileInfo = new FileInfo(filePath);
+					var sr = new SearchRec
+					{
+						Name = fileName,
+						Attributes = File.GetAttributes(filePath),
+						Size = File.Exists(fileInfo.FullName) ? fileInfo.Length : 0,
+						Time = fileInfo.LastWriteTime,
+						PlatformTime = fileInfo.CreationTime,
+						LastAccessTime = fileInfo.LastAccessTime
+					};
+					var file = FileSystemFileSource.CreateFile(filePath, sr);
                     if (file.IsLink)
                     {
                         newFiles.Add(file.Clone());

@@ -53,6 +53,7 @@ namespace zfile
 			
 			// Gets full list of files (recursive)
 			ArchiveFileSourceUtil.FillAndCount(SourceFiles,
+						//true, false,
 						 out _fullFilesTree,
 						 out _statistics.TotalFiles,
 						 out _statistics.TotalBytes);

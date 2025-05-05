@@ -766,10 +766,15 @@ public class FileEntry : IDisposable
         _properties = new Dictionary<FilePropertyType, FileProperty>();
         _variantProperties = new List<FileVariantProperty>();
         _supportedProperties = FilePropertyType.Name;
-
-		//NameProperty = new FileNameProperty(System.IO.Path.GetFileName(path));
-		//NameProperty = new FileNameProperty(); // use ensurepropertyexist, so do not need to init nameproperty here.
-		Path = path;
+		if (File.Exists(path))
+		{
+			//NameProperty = new FileNameProperty(System.IO.Path.GetFileName(path));
+			//NameProperty = new FileNameProperty(); // use ensurepropertyexist, so do not need to init nameproperty here.
+			FullPath = path;
+			//Path = path;
+		}
+		else 
+			Path = path;
     }
 	public FileEntry(string path, string name)
 	{

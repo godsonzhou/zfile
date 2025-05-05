@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.Internal;
 using System.Diagnostics;
 
 namespace zfile
@@ -21,7 +22,7 @@ namespace zfile
 
 			_thread = new Thread(ExecuteWorker)
 			{
-				IsBackground = true  // 默认设置为后台线程
+				IsBackground = false  // 默认设置为后台线程
 			};
 
 			if (!createSuspended)
@@ -32,7 +33,7 @@ namespace zfile
 
 		public void Start()
 		{
-			if (_thread.ThreadState == System.Threading.ThreadState.Unstarted)
+			if (_thread.ThreadState.HasFlag(System.Threading.ThreadState.Unstarted))
 			{
 				_thread.Start();
 			}
@@ -110,13 +111,13 @@ namespace zfile
     {
         private int handle;
         private FileSourceOperation operation;
-        private Thread operationThread;
+        private TOperationThread operationThread;
         private OperationsManagerQueue queue;
 
         public int Handle => handle;
         public FileSourceOperation Operation => operation;
         public OperationsManagerQueue Queue { get => queue; set => queue = value; }
-        public Thread OperationThread => operationThread;
+        public TOperationThread OperationThread => operationThread;
 
         public OperationsManagerItem(int handle, FileSourceOperation operation)
         {
@@ -124,7 +125,7 @@ namespace zfile
             this.operation = operation;
         }
 
-        public OperationsManagerItem(int handle, FileSourceOperation operation, Thread thread)
+        public OperationsManagerItem(int handle, FileSourceOperation operation, TOperationThread thread)
         {
             this.handle = handle;
             this.operation = operation;
@@ -135,7 +136,8 @@ namespace zfile
         {
             if (operationThread == null)
             {
-                operationThread = new Thread(() => operation.Start());
+                operationThread = new TOperationThread(true, operation);
+				operationThread.OnTerminated += OperationThread_OnTerminated;
                 operationThread.Start();
             }
             else
@@ -144,12 +146,17 @@ namespace zfile
             }
         }
 
-        /// <summary>
-        /// Moves the item and places it before or after another operation.
-        /// </summary>
-        /// <param name="targetOperation">Handle to another operation where item should be moved.</param>
-        /// <param name="placeBefore">If true then places item before TargetOperation, if false then places item after TargetOperation.</param>
-        public void Move(int targetOperation, bool placeBefore)
+		private void OperationThread_OnTerminated(object? sender, EventArgs e)
+		{
+			//throw new NotImplementedException();
+		}
+
+		/// <summary>
+		/// Moves the item and places it before or after another operation.
+		/// </summary>
+		/// <param name="targetOperation">Handle to another operation where item should be moved.</param>
+		/// <param name="placeBefore">If true then places item before TargetOperation, if false then places item after TargetOperation.</param>
+		public void Move(int targetOperation, bool placeBefore)
         {
             var targetItem = OperationsManager.Instance.GetItemByHandle(targetOperation);
             if (targetItem != null)
@@ -571,8 +578,9 @@ namespace zfile
         /// <returns>The handle of the added operation.</returns>
         public int AddOperation(FileSourceOperation operation, bool showProgress = true)
         {
+			//return AddOperation(operation, ModalQueueId, false, showProgress);
 			if (operation.FileSource.Properties.HasFlag(FileSourceProperties.ListOnMainThread))
-				return AddOperation(operation, ModalQueueId, false, showProgress);
+				return AddOperationModal(operation);
 			else
 				return AddOperation(operation, FreeOperationsQueueId, false, showProgress);
 		}
@@ -630,7 +638,7 @@ namespace zfile
 
             // In Pascal, this would create a thread and execute the operation modally
             // For now, we'll just create a thread and add it to the modal queue
-            Thread thread = new Thread(() => operation.Start());
+            var thread = new TOperationThread(true, operation);
             int handle = GetNextUnusedHandle();
             var item = new OperationsManagerItem(handle, operation, thread);
 
@@ -646,7 +654,7 @@ namespace zfile
                 // and then ThreadTerminatedEvent(Thread)
                 // For now, we'll just start the thread
                 thread.Start();
-
+				ThreadTerminatedEvent(thread);
                 return handle;
             }
             catch
@@ -813,10 +821,11 @@ namespace zfile
         /// Handles a thread termination event.
         /// </summary>
         /// <param name="thread">The thread that terminated.</param>
-        public void ThreadTerminatedEvent(Thread thread)
+        public void ThreadTerminatedEvent(Object sender)
         {
-            // Search for the terminated thread in the operations list
-            for (int i = 0; i < queues.Count; i++)
+			var thread = sender as TOperationThread;
+			// Search for the terminated thread in the operations list
+			for (int i = 0; i < queues.Count; i++)
             {
                 var queue = queues[i];
                 for (int j = 0; j < queue.Count; j++)

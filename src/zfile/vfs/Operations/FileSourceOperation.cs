@@ -558,7 +558,7 @@ namespace zfile
 				//if curent threadid <> mainthreadid, then wait indefinitely
 				//else wait 100ms
 				if (Thread.CurrentThread != _thread.Thread)
-					_pauseEvent.WaitOne();
+					_pauseEvent.WaitOne(1000);
 				else
 					_pauseEvent.WaitOne(100);
 			}

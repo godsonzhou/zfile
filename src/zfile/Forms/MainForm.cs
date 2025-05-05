@@ -2216,7 +2216,7 @@ namespace zfile
 				// 执行列表操作
 				_operationsManager.AddOperation(listOperation);
 				//await Task.Run(() => listOperation.Execute());
-				listOperation.Execute();
+				//listOperation.Execute();
 
 				// 获取文件列表结果
 				var fileListOperation = listOperation as FileSourceListOperation;

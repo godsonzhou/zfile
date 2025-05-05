@@ -9,7 +9,7 @@ namespace zfile
 
         public int Handle => handle;
         public FileSourceOperation Operation => operation;
-        public OperationsManagerQueue Queue => queue;
+        public OperationsManagerQueue Queue { get => queue; set => queue = value; }
         public Thread OperationThread => operationThread;
 
         public OperationsManagerItem(int handle, FileSourceOperation operation)
@@ -34,7 +34,7 @@ namespace zfile
             }
             else
             {
-                operation.Resume();
+                operation.Start();
             }
         }
 

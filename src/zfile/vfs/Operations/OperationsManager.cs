@@ -11,7 +11,7 @@ namespace zfile
 
 		public event EventHandler<ThreadExceptionEventArgs> OnException;
 		public event EventHandler OnTerminated;
-
+		public Thread Thread { get { return _thread; } }
 		public bool FreeOnTerminate { get; set; } = true;
 
 		public TOperationThread(bool createSuspended, FileSourceOperation operation)

@@ -17,7 +17,6 @@ namespace zfile
             : base(targetFileSource, currentPath, directoryPath)
         {
             fileSystemFileSource = targetFileSource as IFileSystemFileSource;
-            _thread = new TOperationThread(false, this);
         }
 
         protected override void Initialize()

@@ -191,9 +191,10 @@ namespace zfile
             _desiredState = FileSourceOperationState.Running; // Set for auto-start unless prevented
             _operationResult = FileSourceOperationResult.Aborted;
             _progress = 0.0;
+			_thread = new TOperationThread(false, this);
 
-            // Check if file source uses connections
-            _needsConnection = _fileSource != null && _fileSource.Properties.HasFlag(FileSourceProperties.UsersConnections);
+			// Check if file source uses connections
+			_needsConnection = _fileSource != null && _fileSource.Properties.HasFlag(FileSourceProperties.UsersConnections);
         }
 
         /// <summary>
@@ -531,17 +532,14 @@ namespace zfile
         {
             lock (_stateLock)
             {
-                if (expectedStates == null || expectedStates.Contains(_state) || _state == newState)
-                {
-                    if (_state != newState)
-                    {
-                        _state = newState;
-                        return true;
-                    }
-                    return true; // State already is newState
-                }
-                return false;
+				if (_state == newState) 
+					return true;
+                else if (expectedStates != null && !expectedStates.Contains(_state))
+					return false;
+                _state = newState;
             }
+			NotifyStateChanged(newState);
+			return true;
         }
 
         /// <summary>
@@ -550,12 +548,20 @@ namespace zfile
         /// <param name="desiredStates">If desired state is one of these states the pause is executed</param>
         protected void DoPauseIfNeeded(FileSourceOperationState[] desiredStates)
         {
-            if (desiredStates.Contains(_desiredState))
-            {
-                _pauseEvent.Reset();
-                UpdateState(_desiredState);
-                _pauseEvent.WaitOne();
-            }
+			lock (_stateLock)
+			{
+				if (!desiredStates.Contains(_desiredState))
+					return;
+				
+				_pauseEvent.Reset();
+				UpdateState(_desiredState);
+				//if curent threadid <> mainthreadid, then wait indefinitely
+				//else wait 100ms
+				if (Thread.CurrentThread != _thread.Thread)
+					_pauseEvent.WaitOne();
+				else
+					_pauseEvent.WaitOne(100);
+			}
         }
 
         /// <summary>

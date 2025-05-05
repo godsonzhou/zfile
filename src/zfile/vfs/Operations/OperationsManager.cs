@@ -1,6 +1,112 @@
+using System.Diagnostics;
+
 namespace zfile
 {
-    public class OperationsManagerItem
+
+	public class TOperationThread : IDisposable
+	{
+		private readonly Thread _thread;
+		private FileSourceOperation _operation;
+		private bool _disposed;
+
+		public event EventHandler<ThreadExceptionEventArgs> OnException;
+		public event EventHandler OnTerminated;
+
+		public bool FreeOnTerminate { get; set; } = true;
+
+		public TOperationThread(bool createSuspended, FileSourceOperation operation)
+		{
+			_operation = operation ?? throw new ArgumentNullException(nameof(operation));
+			_operation.AssignThread(this);
+
+			_thread = new Thread(ExecuteWorker)
+			{
+				IsBackground = true  // 默认设置为后台线程
+			};
+
+			if (!createSuspended)
+			{
+				Start();
+			}
+		}
+
+		public void Start()
+		{
+			if (_thread.ThreadState == System.Threading.ThreadState.Unstarted)
+			{
+				_thread.Start();
+			}
+		}
+
+		private void ExecuteWorker()
+		{
+			try
+			{
+				_operation.Execute();
+			}
+			catch (Exception ex)
+			{
+				HandleException(ex);
+			}
+			finally
+			{
+				OnTerminated?.Invoke(this, EventArgs.Empty);
+				if (FreeOnTerminate)
+				{
+					Dispose();
+				}
+			}
+		}
+
+		private void HandleException(Exception ex)
+		{
+			var args = new ThreadExceptionEventArgs(ex);
+			OnException?.Invoke(this, args);
+
+			// 如果没有订阅异常处理事件，记录到调试输出
+			if (!args.Handled)
+			{
+				Debug.WriteLine($"Unhandled operation thread exception: {ex}");
+			}
+		}
+
+		public void WaitFor()
+		{
+			if (_thread.IsAlive)
+			{
+				_thread.Join();
+			}
+		}
+
+		public void Abort()
+		{
+			if (_thread.IsAlive)
+			{
+				_thread.Abort();
+			}
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposed)
+			{
+				if (disposing)
+				{
+					// 释放托管资源
+					_operation = null;
+				}
+				_disposed = true;
+			}
+		}
+	}
+
+	public class OperationsManagerItem
     {
         private int handle;
         private FileSourceOperation operation;
@@ -465,21 +571,21 @@ namespace zfile
         /// <returns>The handle of the added operation.</returns>
         public int AddOperation(FileSourceOperation operation, bool showProgress = true)
         {
-            if (operation.FileSource.Properties.HasFlag(FileSourceProperties.ListOnMainThread))
-                return AddOperation(operation, ModalQueueId, false, showProgress);
-            else
-                return AddOperation(operation, FreeOperationsQueueId, false, showProgress);
-        }
+			if (operation.FileSource.Properties.HasFlag(FileSourceProperties.ListOnMainThread))
+				return AddOperation(operation, ModalQueueId, false, showProgress);
+			else
+				return AddOperation(operation, FreeOperationsQueueId, false, showProgress);
+		}
 
-        /// <summary>
-        /// Adds an operation to the manager.
-        /// </summary>
-        /// <param name="operation">The operation to add.</param>
-        /// <param name="queueIdentifier">The identifier of the queue to add the operation to.</param>
-        /// <param name="insertAtFrontOfQueue">Whether to insert at the front of the queue.</param>
-        /// <param name="showProgress">Whether to automatically show progress window.</param>
-        /// <returns>The handle of the added operation.</returns>
-        public int AddOperation(FileSourceOperation operation, int queueIdentifier, bool insertAtFrontOfQueue, bool showProgress = true)
+		/// <summary>
+		/// Adds an operation to the manager.
+		/// </summary>
+		/// <param name="operation">The operation to add.</param>
+		/// <param name="queueIdentifier">The identifier of the queue to add the operation to.</param>
+		/// <param name="insertAtFrontOfQueue">Whether to insert at the front of the queue.</param>
+		/// <param name="showProgress">Whether to automatically show progress window.</param>
+		/// <returns>The handle of the added operation.</returns>
+		public int AddOperation(FileSourceOperation operation, int queueIdentifier, bool insertAtFrontOfQueue, bool showProgress = true)
         {
             if (queueIdentifier == ModalQueueId)
             {

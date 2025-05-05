@@ -102,6 +102,10 @@ namespace zfile
 		internal bool FollowLinks;
 		internal bool CorrectLinks;
 		internal bool ExcludeEmptyDirectories;
+		public void AssignThread(Thread thread)
+		{
+			_thread = thread;
+		}
         public virtual bool NeedsConnection { get => _needsConnection; set => _needsConnection = value; }
         /// <summary>
         /// Gets the operation type

@@ -37,7 +37,7 @@ namespace zfile
 			Action checkOperationStateFunction,
 			Action<FileSourceCopyOperationStatistics> updateStatisticsFunction,
 			Action<string, string> showCompareFilesUIFunction,
-			Thread operationThread,
+			TOperationThread operationThread,
 			FileSourceOperationHelperMode mode,
 			string targetPath,
 			FileSourceCopyOperationStatistics startingStatistics)

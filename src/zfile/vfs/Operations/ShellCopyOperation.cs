@@ -141,7 +141,7 @@ namespace zfile
             // Log the error message
             // Since we're not sure if GlobalSettings has the required properties,
             // we'll just log the error unconditionally
-            Logger.Write(Thread.CurrentThread, message, LogOption.Error);
+            Logger.Write(_thread, message, LogOption.Error);
 
             // Use standard MessageBoxButtons instead of SkipCancel which doesn't exist
             if (MessageBox.Show(message, "", MessageBoxButtons.OKCancel, MessageBoxIcon.Error) == DialogResult.Cancel)

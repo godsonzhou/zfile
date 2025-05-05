@@ -8,7 +8,7 @@ namespace zfile
     public class FileSystemCreateDirectoryOperation : FileSourceCreateDirectoryOperation
     {
         private IFileSystemFileSource? fileSystemFileSource;
-        private readonly Thread _thread;
+        //private readonly TOperationThread _thread;
 
         public FileSystemCreateDirectoryOperation(
             IFileSource targetFileSource,
@@ -17,7 +17,7 @@ namespace zfile
             : base(targetFileSource, currentPath, directoryPath)
         {
             fileSystemFileSource = targetFileSource as IFileSystemFileSource;
-            _thread = Thread.CurrentThread;
+            _thread = new TOperationThread(false, this);
         }
 
         protected override void Initialize()

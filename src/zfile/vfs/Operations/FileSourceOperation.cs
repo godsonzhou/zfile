@@ -93,7 +93,7 @@ namespace zfile
         private IFileSourceOperationUIActionHandler _uiActionHandler;
         private FileSourceOperationUIResponse _uiResponse;
         private bool _tryAskQuestionResult;
-        protected Thread _thread;
+        protected TOperationThread _thread;
 		internal FileSourceOperationOptionSetPropertyError SetPropertyErrorOption;
 		internal bool CopyTime;
 		internal bool CopyOwnership;
@@ -102,7 +102,7 @@ namespace zfile
 		internal bool FollowLinks;
 		internal bool CorrectLinks;
 		internal bool ExcludeEmptyDirectories;
-		public void AssignThread(Thread thread)
+		public void AssignThread(TOperationThread thread)
 		{
 			_thread = thread;
 		}

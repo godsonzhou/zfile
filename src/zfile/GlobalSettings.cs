@@ -135,7 +135,7 @@ namespace zfile
 	}
 	public static class Logger
 	{
-		public static void Write(System.Threading.Thread thread, string message, LogOption type, bool Reservedflag = true )
+		public static void Write(TOperationThread thread, string message, LogOption type, bool Reservedflag = true )
 		{
 			// 实现日志记录逻辑
 		}

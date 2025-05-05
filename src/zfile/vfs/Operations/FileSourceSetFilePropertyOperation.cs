@@ -106,7 +106,7 @@ namespace zfile
         private FileProperty[] _newProperties;
         private bool _recursive;
         private bool _skipErrors;
-        private Thread _thread = Thread.CurrentThread;
+        //private Thread _thread = Thread.CurrentThread;
 
         /// <summary>
         /// Supported properties

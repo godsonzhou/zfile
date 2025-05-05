@@ -87,7 +87,7 @@ namespace zfile
     {
         private FileEntry _rootDir;
         private IWfxPluginFileSource _wfxPluginFileSource;
-        private Thread _operationThread;
+        private TOperationThread _operationThread;
         private WfxPluginOperationHelperMode _mode;
         private string _rootTargetPath;
         private string _renameMask;
@@ -120,7 +120,7 @@ namespace zfile
             UpdateStatisticsFunction updateStatisticsFunction,
             ShowCompareFilesUIFunction showCompareFilesUIFunction,
             ShowCompareFilesUIByFileObjectFunction showCompareFilesUIByFileObjectFunction,
-            Thread operationThread,
+			TOperationThread operationThread,
             WfxPluginOperationHelperMode mode,
             string targetPath)
         {

@@ -64,10 +64,10 @@ namespace zfile
 			OnException?.Invoke(this, args);
 
 			// 如果没有订阅异常处理事件，记录到调试输出
-			if (!args.Handled)
-			{
-				Debug.WriteLine($"Unhandled operation thread exception: {ex}");
-			}
+			//if (!args.Handled)
+			//{
+			//	Debug.WriteLine($"Unhandled operation thread exception: {ex}");
+			//}
 		}
 
 		public void WaitFor()

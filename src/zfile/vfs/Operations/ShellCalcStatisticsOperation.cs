@@ -130,7 +130,7 @@ namespace zfile
 
             if (logOptions <= GlobalSettings.LogOptions)
             {
-                Logger.Write(Thread.CurrentThread, message, logMsgType);
+                Logger.Write(_thread, message, logMsgType);
             }
         }
 

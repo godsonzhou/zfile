@@ -18,7 +18,7 @@ namespace zfile
             {
                 if (GlobalSettings.LogDirectoryOperations && GlobalSettings.LogSuccess)
                 {
-                    Logger.Write(Thread.CurrentThread,
+                    Logger.Write(_thread,
                                string.Format("Success: Create directory {0}", AbsolutePath),
                                LogOption.Success);
                 }
@@ -27,7 +27,7 @@ namespace zfile
             {
                 if (GlobalSettings.LogDirectoryOperations && GlobalSettings.LogErrors)
                 {
-                    Logger.Write(Thread.CurrentThread,
+                    Logger.Write(_thread,
                                string.Format("Error: Create directory {0}", AbsolutePath),
                                LogOption.Error);
                 }

@@ -274,7 +274,7 @@ namespace zfile
 				//	CurrentDir[LRflag] = path;
 				//	_ = LoadListViewByFileSourceAsync(path, activeListView, activeTreeview.SelectedNode);
 				//	return;
-				if(!path.StartsWith(wcxfs.ArchivePath))
+				if (!path.StartsWith(wcxfs.ArchivePath))
 					path = wcxfs.ArchivePath + path;
 				isarch = true;
 			}
@@ -427,6 +427,72 @@ namespace zfile
 
 			se = new ShellExecuteHelper(this);
 			ClearMemory();
+			OperationsManager.Instance.AddEventListener(OperationManagerNotify);
+		}
+
+		private void OperationManagerNotify(object? sender, OperationEventArgs e)
+		{
+			// Get the active status strip based on current panel
+			var statusStrip = isleft ? uiManager.LeftStatusStrip : uiManager.RightStatusStrip;
+
+			if (e.EventType == OperationEventType.Removed)
+			{
+				// Hide progress information if there are no operations
+				if (OperationsManager.Instance.OperationsCount == 0)
+				{
+					// Update status bar to show no operations are running
+					if (statusStrip.Items.Count > 0)
+					{
+						statusStrip.Items[0].Text = "就绪";
+					}
+				}
+			}
+			else if (e.EventType == OperationEventType.Added)
+			{
+				// Show operation information
+				if (statusStrip.Items.Count > 0)
+				{
+					var operation = e.Item?.Operation;
+					if (operation != null)
+					{
+						// Update status bar to show operation is running
+						statusStrip.Items[0].Text = $"正在执行: {GetOperationTypeString(operation)}";
+					}
+				}
+			}
+
+			// Update operation progress in UI
+			UpdateOperationProgress();
+		}
+
+		private string GetOperationTypeString(FileSourceOperation operation)
+		{
+			// Return a user-friendly string based on operation type
+			if (operation is FileSourceListOperation) return "列出文件";
+			if (operation is FileSourceCopyOperation) return "复制文件";
+			if (operation is FileSourceMoveOperation) return "移动文件";
+			if (operation is FileSourceDeleteOperation) return "删除文件";
+			if (operation is FileSourceCreateDirectoryOperation) return "创建目录";
+			if (operation is FileSourceExecuteOperation) return "执行操作";
+
+			// Default case
+			return "文件操作";
+		}
+
+		private void UpdateOperationProgress()
+		{
+			// Get overall progress
+			double progress = OperationsManager.Instance.AllProgressPoint();
+
+			// Update status bar with progress information if operations are running
+			if (OperationsManager.Instance.OperationsCount > 0)
+			{
+				var statusStrip = isleft ? uiManager.LeftStatusStrip : uiManager.RightStatusStrip;
+				if (statusStrip.Items.Count > 0)
+				{
+					statusStrip.Items[0].Text += $" - 进度: {progress:F1}%";
+				}
+			}
 		}
 		private void InitializeCOMComponents()
 		{
@@ -1351,9 +1417,9 @@ namespace zfile
 				if (lvItemFile.IsDirectory || !isinarchive)
 				{
 					if (!CurrentFullpath[LRflag].Equals(path))//由于在WCX内部，通过TREEVIEW_AFTERSELECT节点不会发生变化，所以无法记录历史，只能在LISTVIEW_DOUBLECLICK中记录历史
-						// 记录目录历史
+															  // 记录目录历史
 						RecordDirectoryHistory(path);
-					
+
 					var node = FindTreeNode(activeTreeview.SelectedNode.Nodes, Path.GetFileName(path));
 					activeTreeview.SelectedNode = node;
 					// 使用 FileSource 架构加载文件列表
@@ -1755,9 +1821,9 @@ namespace zfile
 						var pathPart = path.Split('\\');
 						name = !pathPart[^1].Equals(string.Empty) ? pathPart[^1] : pathPart[^2];
 						var subItem = new ShellItem(pidlSub, iSub, root); //子节点的tag存放pidl和ishellfolder接口
-						//if (subItem.parsepath.Equals("::{26EE0668-A00A-44D7-9371-BEB064C98683}"))//控制面板
-						//if (subItem.parsepath.Equals("::{645FF040-5081-101B-9F08-00AA002F954E}") )//回收站
-						// 使用路径作为唯一标识符，而不是PIDL的内存地址
+																		  //if (subItem.parsepath.Equals("::{26EE0668-A00A-44D7-9371-BEB064C98683}"))//控制面板
+																		  //if (subItem.parsepath.Equals("::{645FF040-5081-101B-9F08-00AA002F954E}") )//回收站
+																		  // 使用路径作为唯一标识符，而不是PIDL的内存地址
 						string nodeKey = path;
 						newPidls.Add(nodeKey);
 
@@ -1876,7 +1942,7 @@ namespace zfile
 			{
 
 			}
-		
+
 			return nodesToKeep;
 		}
 
@@ -3231,7 +3297,7 @@ namespace zfile
 				if (listView == null || listView.SelectedItems.Count <= 0) return false;
 				sourceFiles = listView.SelectedItems.Cast<ListViewItem>().Select(item => GetListItemPath(item)).ToArray();
 				srcPath = uiManager.srcDir;//todo: need add wcx virtual folder to shengfilesystemnode's child, 然后才能从srcdir获取到正确的srcpath
-				// 如果没有指定目标路径，则使用非活动面板的路径作为目标
+										   // 如果没有指定目标路径，则使用非活动面板的路径作为目标
 				if (string.IsNullOrEmpty(targetPath))
 					targetPath = Helper.getFSpath(unactiveTreeview.SelectedNode.FullPath);
 				targetlist = uiManager.unactiveListView;
@@ -3543,7 +3609,7 @@ namespace zfile
 					operation.Execute();
 					// 刷新面板
 					RefreshPanel(activeListView);
-					RefreshPanel(unactiveListView); 
+					RefreshPanel(unactiveListView);
 					return;
 				}
 				else

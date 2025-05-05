@@ -615,8 +615,9 @@ namespace zfile
 
                 if (showProgress)
                 {
-                    // In Pascal version, this would call ShowOperation(Item)
-                    // Implement this if needed
+					// In Pascal version, this would call ShowOperation(Item)
+					// Implement this if needed
+					FileSourceOperationMisc.ShowOperation(item);
                 }
 
                 return handle;
@@ -653,7 +654,8 @@ namespace zfile
                 // In Pascal version, this would call ShowOperationModal(Item)
                 // and then ThreadTerminatedEvent(Thread)
                 // For now, we'll just start the thread
-                thread.Start();
+                //thread.Start();
+				FileSourceOperationMisc.ShowOperationModal(item);
 				ThreadTerminatedEvent(thread);
                 return handle;
             }

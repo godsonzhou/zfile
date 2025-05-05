@@ -3336,6 +3336,12 @@ namespace zfile
 						fileEntries,
 						targetPath);
 
+					// 特殊情况：如果源和目标都是WcxArchiveFileSource，需要通过临时文件系统进行复制
+					if (operation == null && sourceFileSource is IWcxArchiveFileSource && targetFileSource is IWcxArchiveFileSource)
+					{
+						return CopyViaTemporaryDirectory(sourceFileSource, targetFileSource, fileEntries, targetPath);
+					}
+
 					if (operation != null)
 					{
 						_operationsManager.AddOperation(operation);
@@ -3810,6 +3816,87 @@ namespace zfile
 			var selectedItem = listView.SelectedItems[0];
 			// 启用编辑模式
 			selectedItem.BeginEdit();
+		}
+
+		/// <summary>
+		/// 通过临时文件系统复制文件，用于在两个压缩文件之间复制文件
+		/// </summary>
+		/// <param name="sourceFileSource">源文件源</param>
+		/// <param name="targetFileSource">目标文件源</param>
+		/// <param name="sourceFiles">要复制的文件</param>
+		/// <param name="targetPath">目标路径</param>
+		/// <returns>操作是否成功</returns>
+		private bool CopyViaTemporaryDirectory(
+			IFileSource sourceFileSource,
+			IFileSource targetFileSource,
+			FileEntries sourceFiles,
+			string targetPath)
+		{
+			bool result = false;
+
+			try
+			{
+				// 创建临时文件系统
+				ITempFileSystemFileSource tempFileSource = new TempFileSystemFileSource();
+				string tempPath = tempFileSource.FileSystemRoot;
+
+				// 第一步：从源压缩文件复制到临时文件系统
+				var copyOutOperation = sourceFileSource.CreateCopyOutOperation(
+					tempFileSource,
+					sourceFiles,
+					tempPath);
+
+				if (copyOutOperation != null)
+				{
+					// 添加操作到管理器并执行
+					_operationsManager.AddOperation(copyOutOperation);
+					copyOutOperation.Execute();
+
+					// 检查操作是否成功完成
+					if (copyOutOperation.Result == FileSourceOperationResult.Finished)
+					{
+						// 创建临时文件系统中的文件列表
+						var tempFiles = new FileEntries(tempPath);
+
+						// 获取临时目录中的所有文件
+						foreach (var file in sourceFiles)
+						{
+							string tempFilePath = Path.Combine(tempPath, file.FullPath);
+							if (File.Exists(tempFilePath))
+							{
+								var tempFile = FileSystemFileSource.CreateFileFromFile(tempFilePath);
+								tempFiles.Add(tempFile);
+							}
+						}
+
+						// 第二步：从临时文件系统复制到目标压缩文件
+						var copyInOperation = targetFileSource.CreateCopyInOperation(
+							tempFileSource,
+							tempFiles,
+							targetPath);
+
+						if (copyInOperation != null)
+						{
+							// 添加操作到管理器并执行
+							_operationsManager.AddOperation(copyInOperation);
+							copyInOperation.Execute();
+
+							// 操作成功
+							result = (copyInOperation.Result == FileSourceOperationResult.Finished);
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"复制文件失败: {ex.Message}", "错误");
+			}
+
+			// 刷新目标面板
+			RefreshPanel(activeListView);
+			RefreshPanel(unactiveListView);
+
+			return result;
 		}
 		private bool ftpNodeSelect(TreeNode eNode)
 		{

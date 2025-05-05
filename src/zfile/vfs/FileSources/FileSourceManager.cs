@@ -8,10 +8,10 @@ namespace zfile
     /// </summary>
     public partial class FileSourceManager
     {
-		private MainForm _mainform;
-		//private static FileSourceManager _instance;
-		private List<IFileSource> _fileSources = new();
-		private List<IFileSource> GetFileSources(bool isleft) { return isleft ? _leftPanelFileSources.Values.ToList() : _rightPanelFileSources.Values.ToList(); }
+        private MainForm _mainform;
+        //private static FileSourceManager _instance;
+        private List<IFileSource> _fileSources = new();
+        private List<IFileSource> GetFileSources(bool isleft) { return isleft ? _leftPanelFileSources.Values.ToList() : _rightPanelFileSources.Values.ToList(); }
         private readonly object _syncRoot = new object();
         private WcxModuleList _wcxModuleList;
         private FTPMGR _ftpManager;
@@ -39,7 +39,7 @@ namespace zfile
         /// </summary>
         public void Initialize(WcxModuleList wcxModuleList, FTPMGR ftpManager, MainForm mainform)
         {
-			_mainform = mainform;
+            _mainform = mainform;
             _wcxModuleList = wcxModuleList;
             _ftpManager = ftpManager;
 
@@ -113,16 +113,16 @@ namespace zfile
         /// <param name="isLeftPanel">True if this is for the left panel, false for the right panel</param>
         /// <returns>A file source that can handle the path</returns>
         public IFileSource GetFileSourceForFullPath(string fullpath, bool isLeftPanel)
-		{
-			if(!fullpath.Contains(":"))
-				throw new Exception("路径中不能为相对路径");
+        {
+            if (!fullpath.Contains(":"))
+                throw new Exception("路径中不能为相对路径");
 
-			// 获取对应面板的缓存
-			var panelCache = isLeftPanel ? _leftPanelFileSources : _rightPanelFileSources;
-			var lr = isLeftPanel ? 'l' : 'r';
+            // 获取对应面板的缓存
+            var panelCache = isLeftPanel ? _leftPanelFileSources : _rightPanelFileSources;
+            var lr = isLeftPanel ? 'l' : 'r';
 
-			// 如果路径为空，返回默认的FileSystemFileSource
-			if (string.IsNullOrEmpty((string)fullpath))
+            // 如果路径为空，返回默认的FileSystemFileSource
+            if (string.IsNullOrEmpty((string)fullpath))
             {
                 //var rootPath = "C:\\";
                 //var cacheKey = $"filesystem:{rootPath}";
@@ -138,15 +138,15 @@ namespace zfile
                 //// 添加到缓存
                 //panelCache[cacheKey] = newSource;
                 //return newSource;
-				throw new Exception("路径不能为空");
-			}
+                throw new Exception("路径不能为空");
+            }
 
-			// 检查缓存中是否已有此路径的FileSource
-			if (panelCache.TryGetValue((string)fullpath, out var fileSource))
-			{
-				Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} from cache : {fileSource.GetRootDir()}");
-				return fileSource;
-			}
+            // 检查缓存中是否已有此路径的FileSource
+            if (panelCache.TryGetValue((string)fullpath, out var fileSource))
+            {
+                Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} from cache : {fileSource.GetRootDir()}");
+                return fileSource;
+            }
 
             // 检查是否是压缩文件内部路径
             // 遍历所有已存在的文件源，查找是否有WcxArchiveFileSource包含当前路径
@@ -157,8 +157,8 @@ namespace zfile
             {
                 // 添加到缓存
                 panelCache[(string)fullpath] = archiveFileSource;
-				Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} from wcxarchive : {fileSource?.GetRootDir()}");
-				return archiveFileSource;
+                Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} from wcxarchive : {fileSource?.GetRootDir()}");
+                return archiveFileSource;
             }
 
             // Check for archive file
@@ -168,9 +168,9 @@ namespace zfile
                 var dirPath = Path.GetDirectoryName((string)fullpath) ?? "C:\\";
                 var baseFileSource = GetFileSourceForFullPath((string)dirPath, isLeftPanel);
                 var archiveSource = WcxArchiveFileSource.CreateByArchiveName(baseFileSource, (string)fullpath);
-				Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} from fs.archivefile : {archiveSource.GetRootDir()}");
-				// 添加到缓存
-				panelCache[(string)fullpath] = archiveSource;
+                Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} from fs.archivefile : {archiveSource.GetRootDir()}");
+                // 添加到缓存
+                panelCache[(string)fullpath] = archiveSource;
                 return archiveSource;
             }
 
@@ -233,8 +233,8 @@ namespace zfile
             {
                 // 更新CurrentPath
                 cachedFsSource.CurrentPath = fullpath;
-				Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} from cache for drive[{drive}]: {fileSource.GetRootDir()}");
-				return cachedFsSource;
+                Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} from cache for drive[{drive}]: {fileSource.GetRootDir()}");
+                return cachedFsSource;
             }
 
             // 创建新的FileSystemFileSource
@@ -244,8 +244,8 @@ namespace zfile
 
             // 添加到缓存
             panelCache[fullpath] = fileSystemSource;
-			Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} new() : {fileSystemSource.GetRootDir()}");
-			return fileSystemSource;
+            Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} new() : {fileSystemSource.GetRootDir()}");
+            return fileSystemSource;
         }
 
         /// <summary>
@@ -262,8 +262,14 @@ namespace zfile
             FileEntries sourceFiles,
             string targetPath)
         {
+            // Special case: If both source and target are WcxArchiveFileSource, we need to use a temp filesystem
+            if (sourceFileSource is IWcxArchiveFileSource && targetFileSource is IWcxArchiveFileSource)
+            {
+                // This will be handled by the caller using CopyViaTemporaryDirectory method
+                return null;
+            }
             // If source and target are the same type, use regular copy
-            if (sourceFileSource.GetType() == targetFileSource.GetType())
+            else if (sourceFileSource.GetType() == targetFileSource.GetType())
             {
                 return sourceFileSource.CreateCopyOperation(sourceFiles, targetPath);
             }

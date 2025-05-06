@@ -18,12 +18,11 @@ namespace zfile
 		public TOperationThread(bool createSuspended, FileSourceOperation operation)
 		{
 			_operation = operation ?? throw new ArgumentNullException(nameof(operation));
-			_operation.AssignThread(this);
-
 			_thread = new Thread(ExecuteWorker)
 			{
 				IsBackground = false  // 默认设置为后台线程
 			};
+			_operation.AssignThread(this);
 
 			if (!createSuspended)
 			{
@@ -43,6 +42,7 @@ namespace zfile
 		{
 			try
 			{
+				Debug.Print($"operation({_operation.Description}).execute by thread({_thread.ManagedThreadId})");
 				_operation.Execute();
 			}
 			catch (Exception ex)
@@ -62,13 +62,14 @@ namespace zfile
 		private void HandleException(Exception ex)
 		{
 			var args = new ThreadExceptionEventArgs(ex);
-			OnException?.Invoke(this, args);
 
 			// 如果没有订阅异常处理事件，记录到调试输出
-			//if (!args.Handled)
-			//{
-			//	Debug.WriteLine($"Unhandled operation thread exception: {ex}");
-			//}
+			if (OnException == null)
+			{
+				Debug.WriteLine($"Unhandled operation thread exception: {ex}");
+			}
+			else
+				OnException?.Invoke(this, args);
 		}
 
 		public void WaitFor()
@@ -142,13 +143,10 @@ namespace zfile
             {
                 operationThread = new TOperationThread(true, operation);
 				operationThread.OnTerminated += OperationsManager.Instance.ThreadTerminatedEvent;
-                operationThread.Start();
-            }
-            else
-            {
-                operation.Start();
-            }
-        }
+                operationThread.Start();    // operation.execute() will be called in the thread, 
+			}
+			operation.Start();  //should be started manually, otherwise it will be in suspended state
+		}
 
 		/// <summary>
 		/// Moves the item and places it before or after another operation.

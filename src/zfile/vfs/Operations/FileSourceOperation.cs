@@ -191,7 +191,7 @@ namespace zfile
             _desiredState = FileSourceOperationState.Running; // Set for auto-start unless prevented
             _operationResult = FileSourceOperationResult.Aborted;
             _progress = 0.0;
-			_thread = new TOperationThread(false, this);
+			//_thread = new TOperationThread(true, this);
 
 			// Check if file source uses connections
 			_needsConnection = _fileSource != null && _fileSource.Properties.HasFlag(FileSourceProperties.UsersConnections);
@@ -202,18 +202,32 @@ namespace zfile
         /// </summary>
         public virtual void Start()
         {
-            if (_state == FileSourceOperationState.NotStarted)
-            {
-                _startTime = DateTime.Now;
-                UpdateStatisticsAtStartTime();
-                ChangeState(FileSourceOperationState.Running);
-            }
-        }
+			//if (_state == FileSourceOperationState.NotStarted)
+			//{
+			//    _startTime = DateTime.Now;
+			//    UpdateStatisticsAtStartTime();
+			//    ChangeState(FileSourceOperationState.Running);
+			//}
+			FileSourceOperationState localstate;
+			lock (_stateLock)
+			{
+				if (_state == FileSourceOperationState.Pausing)
+					_state = FileSourceOperationState.Running;
+				else if (_state == FileSourceOperationState.NotStarted || _state == FileSourceOperationState.Paused)
+					_state = FileSourceOperationState.Starting;
+				else
+					return;
+				localstate = _state;
+			}
+			NotifyStateChanged(localstate);
+			_desiredState = FileSourceOperationState.Running;
+			DoUnPause();
+		}
 
-        /// <summary>
-        /// Executes the operation
-        /// </summary>
-        public void Execute()
+		/// <summary>
+		/// Executes the operation
+		/// </summary>
+		public void Execute()
         {
             try
             {
@@ -311,13 +325,33 @@ namespace zfile
         /// </summary>
         public virtual void Stop()
         {
-            if (_state == FileSourceOperationState.Running || _state == FileSourceOperationState.Paused)
-            {
-                _desiredState = FileSourceOperationState.Stopped;
-                UpdateState(FileSourceOperationState.Stopping);
-                _pauseEvent.Set(); // Wake up if paused
-            }
-        }
+			if (_state == FileSourceOperationState.Running || _state == FileSourceOperationState.Paused)
+			{
+				_desiredState = FileSourceOperationState.Stopped;
+				UpdateState(FileSourceOperationState.Stopping);
+				_pauseEvent.Set(); // Wake up if paused
+			}
+			//lock (_stateLock)
+			//{
+			//	if(_state != FileSourceOperationState.Stopping && _state != FileSourceOperationState.Stopped)
+			//		_state = FileSourceOperationState.Stopping;
+			//	else
+			//		return;
+			//}
+			//NotifyStateChanged(FileSourceOperationState.Stopping);
+			//_desiredState = FileSourceOperationState.Stopped;
+			//DoUnPause();
+			//// Also set "Connection available" event in case the operation is waiting
+			//// for a connection and the user wants to abort it
+			//// (this must be after setting desired state).
+			//ConnectionAvailableNotify();
+
+			//// The operation may be waiting for the user's response.
+			//// Wake it up then, because it is being aborted
+			//// (this must be after setting state to Stopping).
+			////RTLeventSetEvent(FUserInterfaceAssignedEvent);
+			//_userInterfaceAssignedEvent.Set();
+		}
 
         /// <summary>
         /// Prevents auto start of the operation on Execute
@@ -573,7 +607,7 @@ namespace zfile
 			//UpdateState(_desiredState);
 			//if curent threadid <> mainthreadid, then wait indefinitely
 			//else wait 100ms
-			if (Thread.CurrentThread.ManagedThreadId != MainForm.MainThreadId)//TODO: NEED CONFIRM
+			if (Thread.CurrentThread.ManagedThreadId != _thread.Thread.ManagedThreadId)//TODO: NEED CONFIRM
 				_pauseEvent.WaitOne();
 			else
 				while(_pauseEvent.WaitOne(100))

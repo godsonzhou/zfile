@@ -64,6 +64,7 @@ namespace zfile
         /// <param name="operationItem">The operation item</param>
         public static void ShowOperation(OperationsManagerItem operationItem)
         {
+			if (operationItem.Queue == null) return;
             if (operationItem.Queue.IsFree || operationItem.Queue.Count == 1)
             {
                 if (GlobalSettings.FileOperationsProgressKind == FileOperationsProgressKind.SeparateWindow ||
@@ -92,30 +93,31 @@ namespace zfile
         }
     }
 
-    /// <summary>
-    /// File operations progress kind
-    /// </summary>
+	/// <summary>
+	/// File operations progress kind
+	/// </summary>
+	[Flags]
     public enum FileOperationsProgressKind
     {
         /// <summary>
         /// No progress indication
         /// </summary>
-        None,
+        //None,
 
         /// <summary>
         /// Progress in separate window
         /// </summary>
-        SeparateWindow,
+        SeparateWindow = 0,
 
         /// <summary>
         /// Progress in separate minimized window
         /// </summary>
-        SeparateWindowMinimized,
+        SeparateWindowMinimized = 1,
 
         /// <summary>
         /// Progress in operations panel
         /// </summary>
-        OperationsPanel
+        OperationsPanel = 2
     }
 
     /// <summary>

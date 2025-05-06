@@ -241,7 +241,7 @@ namespace zfile
                 {
                     queue = newQueue;
                     newQueue.Insert(this, targetOperation, placeBefore);
-                    OperationsManager.Instance.NotifyEvent(this, OperationEventType.Moved);
+					OperationsManager.Instance.NotifyEvent(this, OperationEventType.Moved);
                 }
             }
         }
@@ -749,7 +749,7 @@ namespace zfile
                 if (GetQueueByIdentifier(id) == null)
                     return id;
             }
-            return FreeOperationsQueueId + 1; // Fallback, should never happen
+			throw new Exception("free operations queue id maxium reached"); // Fallback, should never happen
         }
 
         /// <summary>
@@ -768,7 +768,7 @@ namespace zfile
                     return id;
                 }
             }
-            return FreeOperationsQueueId + 1; // Fallback, should never happen
+			throw new Exception("MoveToNewQueue : maxium queue id reached");//return FreeOperationsQueueId + 1; // Fallback, should never happen
         }
 
         /// <summary>

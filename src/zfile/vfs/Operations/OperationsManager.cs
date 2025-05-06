@@ -107,7 +107,7 @@ namespace zfile
 		}
 	}
 
-	public class OperationsManagerItem
+	public class OperationsManagerItem : IDisposable
     {
         private int handle;
         private FileSourceOperation operation;
@@ -132,6 +132,10 @@ namespace zfile
             this.operationThread = thread;
         }
 
+		public void Dispose()
+		{
+
+		}
         public void Start()
         {
             if (operationThread == null)
@@ -835,9 +839,10 @@ namespace zfile
                     {
                         item.RemoveFromQueue();
                         NotifyEvent(item, OperationEventType.Removed);
-                        // Here the operation should not be used anymore
-                        // (by the thread and by any operations viewer).
-                        // In Pascal, this would free the item
+						// Here the operation should not be used anymore
+						// (by the thread and by any operations viewer).
+						// In Pascal, this would free the item
+						item.Dispose();
                         return;
                     }
                 }

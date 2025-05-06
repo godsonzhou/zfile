@@ -1,21 +1,11 @@
-using SharpCompress.Common;
-// using Shell32;
 using System.Collections;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using WinShell;
-using Keys = System.Windows.Forms.Keys;
 using zfile.Forms;
-using ICSharpCode.TextEditor.Actions;
-using MessagePack;
-using System.Security.Claims;
-using zfile.vfs;
-using System.Diagnostics.Eventing.Reader;
-// using zfile.vfs.FileSources;
-// using zfile.vfs.Operations;
-// using zfile.vfs.Operations.FileSystem;
+using Keys = System.Windows.Forms.Keys;
 
 namespace zfile
 {

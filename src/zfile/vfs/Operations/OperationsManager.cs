@@ -615,8 +615,6 @@ namespace zfile
 
                 if (showProgress)
                 {
-					// In Pascal version, this would call ShowOperation(Item)
-					// Implement this if needed
 					FileSourceOperationMisc.ShowOperation(item);
                 }
 

@@ -24,7 +24,7 @@ namespace zfile
         /// <summary>
         /// Gets the file source
         /// </summary>
-        protected IFileSource FileSource => _fileSource;
+        //protected IFileSource FileSource => _fileSource;
 
         /// <summary>
         /// Gets the source files
@@ -178,7 +178,7 @@ namespace zfile
         protected override void DoReloadFileSources()
         {
             string[] paths = new string[1];
-            paths[0] = System.IO.Path.GetDirectoryName(_targetFile);  // Combine target path
+            paths[0] = Path.GetDirectoryName(_targetFile);  // Combine target path
             _fileSource.Reload(paths);
         }
 

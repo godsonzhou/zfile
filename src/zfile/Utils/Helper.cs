@@ -948,9 +948,16 @@ namespace zfile
 				bytesPerSecond = (long)speed;
 			}
 
-			return result;
+			return ConvertTimeSpanToDateTime(result);
 		}
-
+		public static DateTime ConvertTimeSpanToDateTime(TimeSpan timeSpan)
+		{
+			return DateTime.MinValue.Add(timeSpan);
+		}
+		public static TimeSpan ConvertDateTimeToTimeSpan(DateTime dateTime)
+		{
+			return dateTime - DateTime.MinValue;
+		}
 		internal static string? IncludeTrailingPathDelimiter(string aTargetPath)
 		{
 			return aTargetPath.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;

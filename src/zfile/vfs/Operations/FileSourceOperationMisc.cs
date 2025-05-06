@@ -458,17 +458,17 @@ namespace zfile
                 // Update file count
                 lblFileCount.Text = $"{statistics.DoneFiles} / {statistics.TotalFiles} 文件";
 
-                // Update estimated time
-                if (statistics.RemainingTime.TotalSeconds > 0)
-                {
-                    TimeSpan time = statistics.RemainingTime;
-                    lblEstimated.Text = $"预计剩余时间: {time.Hours:D2}:{time.Minutes:D2}:{time.Seconds:D2}";
-                }
-                else
-                {
-                    lblEstimated.Text = "";
-                }
-            }
+				// Update estimated time
+				var time = Helper.ConvertDateTimeToTimeSpan(statistics.RemainingTime);
+				if (time.TotalSeconds > 0)
+				{
+					lblEstimated.Text = $"预计剩余时间: {time.Hours:D2}:{time.Minutes:D2}:{time.Seconds:D2}";
+				}
+				else
+				{
+					lblEstimated.Text = "";
+				}
+			}
             else
             {
                 // If no statistics available, show progress based on operation progress

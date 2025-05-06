@@ -57,10 +57,10 @@ namespace zfile
 		WaitingForFeedback,
 		WaitingForConnection,
 		Stopping,
-		Stopped,
-		Finished,
-		Failed,
-		Cancelled
+		Stopped
+		//Finished,
+		//Failed,
+		//Cancelled
 	}
 
 	/// <summary>

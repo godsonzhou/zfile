@@ -284,21 +284,16 @@ namespace zfile
                 {
                     Finalize();
                 }
-
-                // Set final state
-                if (_operationResult == FileSourceOperationResult.Finished)
-                {
-                    UpdateState(FileSourceOperationState.Finished);
-                }
-                else
-                {
-                    UpdateState(FileSourceOperationState.Stopped);
-                }
+				UpdateProgress(1);
+      
             }
             finally
             {
-                // Make sure all events are set when we're done
-                _pauseEvent.Set();
+				// Set final state
+				UpdateState(FileSourceOperationState.Stopped);
+				
+				// Make sure all events are set when we're done
+				_pauseEvent.Set();
                 _connectionAvailableEvent.Set();
             }
         }
@@ -406,25 +401,6 @@ namespace zfile
         protected void UpdateProgress(double newProgress)
         {
             _progress = Math.Min(Math.Max(newProgress, 0.0), 1.0);
-        }
-
-        /// <summary>
-        /// Changes the state of the operation
-        /// </summary>
-        /// <param name="newState">The new state</param>
-        protected void ChangeState(FileSourceOperationState newState)
-        {
-            if (UpdateState(newState))
-            {
-                OnStateChanged();
-
-                if (_state == FileSourceOperationState.Finished ||
-                    _state == FileSourceOperationState.Stopped ||
-                    _state == FileSourceOperationState.Failed)
-                {
-                    DoReloadFileSources();
-                }
-            }
         }
 
         /// <summary>

@@ -504,7 +504,7 @@ namespace zfile
         internal static readonly int FreeOperationsQueueId = 0;
         private static readonly int ModalQueueId = -1;
         internal static readonly int SingleQueueId = 1;
-        private const int InvalidOperationHandle = 0;
+        public static int InvalidOperationHandle = 0;
 
         private static OperationsManager? _instance;
         public static OperationsManager Instance => _instance ??= new OperationsManager();

@@ -6,33 +6,95 @@ namespace zfile
 	public enum FileSourceOperationType : uint
 	{
 		None = 0,
-		Copy,
-		CopyIn,
-		CopyOut,
-		Move,
-		Delete,
-		CreateDirectory,
-		Execute,
-		TestArchive,
-		CalcChecksum,
-		SetFileProperty,
-		Split,
-		Combine,
-		CreateHardLink,
-		CreateSymLink,
-		Wipe,
-		CalcStatistics,
+
+		/// <summary>
+		/// List operation
+		/// </summary>
 		List,
-		Compare,
-		CompareFiles,
-		CompareFilesByFileObject,
-		CreateArchive,
-		ExtractArchive,
-		ExtractArchiveToTemp,
-		ExtractArchiveToTempAndDelete,
-		ExtractArchiveToTempAndDeleteAll,
-		ExtractArchiveToTempAndDeleteAllAndMove,
-		ExtractArchiveToTempAndDeleteAllAndMoveAndDelete
+
+		/// <summary>
+		/// Copy operation
+		/// </summary>
+		Copy,
+
+		/// <summary>
+		/// Copy in operation
+		/// </summary>
+		CopyIn,
+
+		/// <summary>
+		/// Copy out operation
+		/// </summary>
+		CopyOut,
+
+		/// <summary>
+		/// Move operation
+		/// </summary>
+		Move,
+
+		/// <summary>
+		/// Delete operation
+		/// </summary>
+		Delete,
+
+		/// <summary>
+		/// Wipe operation
+		/// </summary>
+		Wipe,
+
+		/// <summary>
+		/// Create directory operation
+		/// </summary>
+		CreateDirectory,
+
+		/// <summary>
+		/// Execute operation
+		/// </summary>
+		Execute,
+
+		/// <summary>
+		/// Calculate checksum operation
+		/// </summary>
+		CalcChecksum,
+
+		/// <summary>
+		/// Calculate statistics operation
+		/// </summary>
+		CalcStatistics,
+
+		/// <summary>
+		/// Set file property operation
+		/// </summary>
+		SetFileProperty,
+
+		/// <summary>
+		/// Split operation
+		/// </summary>
+		Split,
+
+		/// <summary>
+		/// Combine operation
+		/// </summary>
+		Combine,
+
+		/// <summary>
+		/// Test archive operation
+		/// </summary>
+		TestArchive
+
+		//the following may be used in the future
+		//CreateHardLink,
+		//CreateSymLink,
+		//Compare,
+		//CompareFiles,
+		//CompareFilesByFileObject,
+		//CreateArchive,
+		//ExtractArchive,
+		//ExtractArchiveToTemp,
+		//ExtractArchiveToTempAndDelete,
+		//ExtractArchiveToTempAndDeleteAll,
+		//ExtractArchiveToTempAndDeleteAllAndMove,
+		//ExtractArchiveToTempAndDeleteAllAndMoveAndDelete,
 	}
 
 	[Flags]

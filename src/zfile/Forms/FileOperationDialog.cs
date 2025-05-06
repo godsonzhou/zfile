@@ -1,35 +1,469 @@
-﻿namespace zfile
+﻿using System.Diagnostics.Eventing.Reader;
+
+namespace zfile
 {
+	/// <summary>
+	/// File operation dialog look options
+	/// </summary>
+	[Flags]
+	public enum FileOpDlgLook
+	{
+		/// <summary>
+		/// Show "From" label
+		/// </summary>
+		FromLabel = 1,
+
+		/// <summary>
+		/// Show "To" label
+		/// </summary>
+		ToLabel = 2,
+
+		/// <summary>
+		/// Show current progress bar
+		/// </summary>
+		CurrentProgressBar = 4,
+
+		/// <summary>
+		/// Show total progress bar
+		/// </summary>
+		TotalProgressBar = 8
+	}
+
+	/// <summary>
+	/// Operation progress window event
+	/// </summary>
+	public enum OperationProgressWindowEvent
+	{
+		/// <summary>
+		/// Window opened
+		/// </summary>
+		Opened,
+
+		/// <summary>
+		/// Window closed
+		/// </summary>
+		Closed
+	}
+
+	/// <summary>
+	/// Operation progress window event handler
+	/// </summary>
+	/// <param name="operationHandle">Operation handle</param>
+	/// <param name="event">Event</param>
+	public delegate void OperationProgressWindowEventProc(int operationHandle, OperationProgressWindowEvent @event);
+
 	/// <summary>
 	/// File operation dialog for displaying progress of file operations
 	/// </summary>
 	public class FileOperationDialog : Form
 	{
 		private int _operationHandle;
-		private OperationsManagerItem _operationItem;
-		private System.Windows.Forms.Timer _updateTimer;
-		private static Dictionary<int, FileOperationDialog> _activeDialogs = new Dictionary<int, FileOperationDialog>();
+		private OperationsManagerItem? _operationItem;
+		private int _queueIdentifier;
+		private System.Windows.Forms.Timer? _updateTimer;
+		private FileSourceOperationUI? _userInterface;
+		private static readonly Dictionary<int, FileOperationDialog> _activeDialogs = new();
+		private bool _stopOperationOnClose = true;
 
-		// UI Controls
-		private Panel pnlClient;
-		private Panel pnlQueue;
-		private Label lblCurrentOperation;
-		private Label lblCurrentOperationText;
-		private Panel pnlFrom;
-		private Label lblFrom;
-		private Label lblFileNameFrom;
-		private Panel pnlTo;
-		private Label lblTo;
-		private Label lblFileNameTo;
-		private Label lblEstimated;
-		private ProgressBar pbCurrent;
-		private ProgressBar pbTotal;
-		private Panel pnlButtons;
-		private Button btnMinimizeToPanel;
-		private Button btnViewOperations;
-		private Button btnCancel;
-		private Button btnPauseStart;
-		private Label lblFileCount;
+		// UI Controls - marked as nullable to avoid constructor warnings
+		private Panel? pnlClient;
+		private Panel? pnlQueue;
+		private Label? lblCurrentOperation;
+		private Label? lblCurrentOperationText;
+		private Panel? pnlFrom;
+		private Label? lblFrom;
+		private Label? lblFileNameFrom;
+		private Panel? pnlTo;
+		private Label? lblTo;
+		private Label? lblFileNameTo;
+		private Label? lblEstimated;
+		private ProgressBar? pbCurrent;
+		private ProgressBar? pbTotal;
+		private Panel? pnlButtons;
+		private Button? btnMinimizeToPanel;
+		private Button? btnViewOperations;
+		private Button? btnCancel;
+		private Button? btnPauseStart;
+		private Label? lblFileCount;
+
+		// Event listeners
+		private static readonly Dictionary<OperationProgressWindowEvent, List<OperationProgressWindowEventProc>> _eventListeners =
+			new();
+
+		// Static constructor to initialize event listeners
+		static FileOperationDialog()
+		{
+			// Initialize event listeners for each event type
+			foreach (OperationProgressWindowEvent eventType in Enum.GetValues(typeof(OperationProgressWindowEvent)))
+			{
+				_eventListeners[eventType] = new List<OperationProgressWindowEventProc>();
+			}
+		}
+
+		// Implementation of missing methods
+
+		/// <summary>
+		/// Closes the dialog without stopping the operation
+		/// </summary>
+		private void CloseDialog()
+		{
+			_stopOperationOnClose = false;
+			Close();
+		}
+
+		/// <summary>
+		/// Gets the first operation handle from a queue
+		/// </summary>
+		/// <param name="queueIdentifier">The queue identifier</param>
+		/// <returns>The first operation handle or -1 if none</returns>
+		private static int GetFirstOperationHandle(int queueIdentifier)
+		{
+			var queue = OperationsManager.Instance.GetQueueByIdentifier(queueIdentifier);
+			if (queue != null && queue.Count > 0)
+			{
+				// Get the first operation from the queue
+				return queue.GetItem(0).Handle;
+			}
+
+			return OperationsManager.InvalidOperationHandle; // Invalid operation handle
+		}
+
+		/// <summary>
+		/// Initializes the operation
+		/// </summary>
+		/// <returns>True if successful, false otherwise</returns>
+		private bool InitializeOperation()
+		{
+			var opManItem = OperationsManager.Instance.GetItemByHandle(_operationHandle);
+
+			// If operation is in a queue, get the first operation from that queue
+			if (opManItem != null && !opManItem.Queue.IsFree)
+			{
+				_operationHandle = GetFirstOperationHandle(opManItem.Queue.Identifier);
+				opManItem = OperationsManager.Instance.GetItemByHandle(_operationHandle);
+			}
+
+			if (opManItem != null)
+			{
+				_queueIdentifier = opManItem.Queue.Identifier;
+
+				if (AddToOpenedForms(opManItem))
+				{
+					if (_userInterface == null)
+					{
+						_userInterface = new FileSourceOperationMessageBoxesUI();
+					}
+
+					opManItem.Operation.AddUserInterface(_userInterface);
+
+					// Set progress bar style to marquee initially
+					SetProgressBarStyle(ProgressBarStyle.Marquee);
+
+					// Initialize controls based on operation type
+					switch (opManItem.Operation.OperationType)
+					{
+						case FileSourceOperationType.Copy:
+						case FileSourceOperationType.CopyIn:
+						case FileSourceOperationType.CopyOut:
+							InitializeCopyOperation(opManItem);
+							break;
+						case FileSourceOperationType.Move:
+							InitializeMoveOperation(opManItem);
+							break;
+						case FileSourceOperationType.Delete:
+							InitializeDeleteOperation(opManItem);
+							break;
+						case FileSourceOperationType.Wipe:
+							InitializeWipeOperation(opManItem);
+							break;
+						case FileSourceOperationType.Split:
+							InitializeSplitOperation(opManItem);
+							break;
+						case FileSourceOperationType.Combine:
+							InitializeCombineOperation(opManItem);
+							break;
+						case FileSourceOperationType.CalcChecksum:
+							InitializeCalcChecksumOperation(opManItem);
+							break;
+						case FileSourceOperationType.TestArchive:
+							InitializeTestArchiveOperation(opManItem);
+							break;
+						case FileSourceOperationType.CalcStatistics:
+							InitializeCalcStatisticsOperation(opManItem);
+							break;
+						case FileSourceOperationType.SetFileProperty:
+							InitializeSetFilePropertyOperation(opManItem);
+							break;
+						default:
+							InitializeControls(opManItem, FileOpDlgLook.TotalProgressBar);
+							break;
+					}
+
+					UpdatePauseStartButton(opManItem);
+					Text = string.Empty;
+					_updateTimer?.Start();
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		/// <summary>
+		/// Finalizes the operation
+		/// </summary>
+		private void FinalizeOperation()
+		{
+			if (_updateTimer != null)
+			{
+				_updateTimer.Enabled = false;
+			}
+
+			if (_operationHandle != -1)
+			{
+				if (_userInterface != null)
+				{
+					var opManItem = OperationsManager.Instance.GetItemByHandle(_operationHandle);
+					if (opManItem != null)
+					{
+						opManItem.Operation.RemoveUserInterface(_userInterface);
+					}
+				}
+
+				RemoveFromOpenedForms();
+				_operationHandle = -1;
+			}
+		}
+
+		/// <summary>
+		/// Adds the form to the opened forms list
+		/// </summary>
+		/// <param name="opManItem">The operation manager item</param>
+		/// <returns>True if successful, false otherwise</returns>
+		private bool AddToOpenedForms(OperationsManagerItem opManItem)
+		{
+			// Check if another form is not already opened for the operation or queue
+			foreach (var item in _activeDialogs)
+			{
+				if (item.Key == _operationHandle ||
+					(!opManItem.Queue.IsFree && item.Key == _queueIdentifier))
+				{
+					return false;
+				}
+			}
+
+			_activeDialogs[_operationHandle] = this;
+			NotifyEvents(new[] { OperationProgressWindowEvent.Opened });
+			return true;
+		}
+
+		/// <summary>
+		/// Removes the form from the opened forms list
+		/// </summary>
+		private void RemoveFromOpenedForms()
+		{
+			if (_activeDialogs.ContainsKey(_operationHandle))
+			{
+				_activeDialogs.Remove(_operationHandle);
+				NotifyEvents(new[] { OperationProgressWindowEvent.Closed });
+			}
+		}
+
+		/// <summary>
+		/// Notifies event listeners
+		/// </summary>
+		/// <param name="events">The events to notify</param>
+		private void NotifyEvents(OperationProgressWindowEvent[] events)
+		{
+			foreach (var evt in events)
+			{
+				if (_eventListeners.TryGetValue(evt, out var listeners))
+				{
+					foreach (var listener in listeners)
+					{
+						listener(_operationHandle, evt);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// Sets the progress bar style
+		/// </summary>
+		/// <param name="style">The style</param>
+		private void SetProgressBarStyle(ProgressBarStyle style)
+		{
+			if (pbCurrent != null) pbCurrent.Style = style;
+			if (pbTotal != null) pbTotal.Style = style;
+		}
+
+		/// <summary>
+		/// Gets the progress bar style
+		/// </summary>
+		/// <returns>The style</returns>
+		private ProgressBarStyle GetProgressBarStyle()
+		{
+			if (pbCurrent != null && pbTotal != null &&
+				pbCurrent.Style == ProgressBarStyle.Marquee &&
+				pbTotal.Style == ProgressBarStyle.Marquee)
+			{
+				return ProgressBarStyle.Marquee;
+			}
+			return ProgressBarStyle.Continuous;
+		}
+
+		/// <summary>
+		/// Sets the label caption with proper ellipsis
+		/// </summary>
+		/// <param name="label">The label</param>
+		/// <param name="text">The text</param>
+		private static void SetLabelCaption(Label label, string text)
+		{
+			if (label != null)
+			{
+				label.Text = text;
+				// Set tooltip using Tag property since Label doesn't have ToolTip property
+				label.Tag = text;
+			}
+		}
+
+		/// <summary>
+		/// Initializes controls based on operation type
+		/// </summary>
+		/// <param name="opManItem">The operation manager item</param>
+		/// <param name="look">The look options</param>
+		private void InitializeControls(OperationsManagerItem opManItem, FileOpDlgLook look)
+		{
+			if (pnlQueue != null)
+				pnlQueue.Visible = !opManItem.Queue.IsFree;
+
+			if (lblFrom != null)
+				lblFrom.Visible = look.HasFlag(FileOpDlgLook.FromLabel);
+
+			if (lblFileNameFrom != null)
+				lblFileNameFrom.Visible = look.HasFlag(FileOpDlgLook.FromLabel);
+
+			if (lblTo != null)
+				lblTo.Visible = look.HasFlag(FileOpDlgLook.ToLabel);
+
+			if (lblFileNameTo != null)
+				lblFileNameTo.Visible = look.HasFlag(FileOpDlgLook.ToLabel);
+
+			if (pbCurrent != null)
+				pbCurrent.Visible = look.HasFlag(FileOpDlgLook.CurrentProgressBar);
+
+			if (pbTotal != null)
+				pbTotal.Visible = look.HasFlag(FileOpDlgLook.TotalProgressBar);
+
+			// Clear labels
+			if (lblFileNameFrom != null)
+				lblFileNameFrom.Text = string.Empty;
+
+			if (lblFileNameTo != null)
+				lblFileNameTo.Text = string.Empty;
+
+			if (lblEstimated != null)
+				lblEstimated.Text = " ";
+
+			if (lblFileCount != null)
+				lblFileCount.Text = string.Empty;
+		}
+
+		/// <summary>
+		/// Initializes a copy operation
+		/// </summary>
+		/// <param name="opManItem">The operation manager item</param>
+		private void InitializeCopyOperation(OperationsManagerItem opManItem)
+		{
+			InitializeControls(opManItem, FileOpDlgLook.FromLabel | FileOpDlgLook.ToLabel |
+				FileOpDlgLook.CurrentProgressBar | FileOpDlgLook.TotalProgressBar);
+		}
+
+		/// <summary>
+		/// Initializes a move operation
+		/// </summary>
+		/// <param name="opManItem">The operation manager item</param>
+		private void InitializeMoveOperation(OperationsManagerItem opManItem)
+		{
+			InitializeControls(opManItem, FileOpDlgLook.FromLabel | FileOpDlgLook.ToLabel |
+				FileOpDlgLook.CurrentProgressBar | FileOpDlgLook.TotalProgressBar);
+		}
+
+		/// <summary>
+		/// Initializes a delete operation
+		/// </summary>
+		/// <param name="opManItem">The operation manager item</param>
+		private void InitializeDeleteOperation(OperationsManagerItem opManItem)
+		{
+			InitializeControls(opManItem, FileOpDlgLook.FromLabel | FileOpDlgLook.TotalProgressBar);
+		}
+
+		/// <summary>
+		/// Initializes a wipe operation
+		/// </summary>
+		/// <param name="opManItem">The operation manager item</param>
+		private void InitializeWipeOperation(OperationsManagerItem opManItem)
+		{
+			InitializeControls(opManItem, FileOpDlgLook.CurrentProgressBar | FileOpDlgLook.TotalProgressBar);
+		}
+
+		/// <summary>
+		/// Initializes a split operation
+		/// </summary>
+		/// <param name="opManItem">The operation manager item</param>
+		private void InitializeSplitOperation(OperationsManagerItem opManItem)
+		{
+			InitializeControls(opManItem, FileOpDlgLook.FromLabel | FileOpDlgLook.ToLabel |
+				FileOpDlgLook.CurrentProgressBar | FileOpDlgLook.TotalProgressBar);
+		}
+
+		/// <summary>
+		/// Initializes a combine operation
+		/// </summary>
+		/// <param name="opManItem">The operation manager item</param>
+		private void InitializeCombineOperation(OperationsManagerItem opManItem)
+		{
+			InitializeControls(opManItem, FileOpDlgLook.FromLabel | FileOpDlgLook.ToLabel |
+				FileOpDlgLook.CurrentProgressBar | FileOpDlgLook.TotalProgressBar);
+		}
+
+		/// <summary>
+		/// Initializes a calculate checksum operation
+		/// </summary>
+		/// <param name="opManItem">The operation manager item</param>
+		private void InitializeCalcChecksumOperation(OperationsManagerItem opManItem)
+		{
+			InitializeControls(opManItem, FileOpDlgLook.FromLabel |
+				FileOpDlgLook.CurrentProgressBar | FileOpDlgLook.TotalProgressBar);
+		}
+
+		/// <summary>
+		/// Initializes a test archive operation
+		/// </summary>
+		/// <param name="opManItem">The operation manager item</param>
+		private void InitializeTestArchiveOperation(OperationsManagerItem opManItem)
+		{
+			InitializeControls(opManItem, FileOpDlgLook.FromLabel | FileOpDlgLook.ToLabel |
+				FileOpDlgLook.CurrentProgressBar | FileOpDlgLook.TotalProgressBar);
+		}
+
+		/// <summary>
+		/// Initializes a calculate statistics operation
+		/// </summary>
+		/// <param name="opManItem">The operation manager item</param>
+		private void InitializeCalcStatisticsOperation(OperationsManagerItem opManItem)
+		{
+			InitializeControls(opManItem, FileOpDlgLook.FromLabel);
+		}
+
+		/// <summary>
+		/// Initializes a set file property operation
+		/// </summary>
+		/// <param name="opManItem">The operation manager item</param>
+		private void InitializeSetFilePropertyOperation(OperationsManagerItem opManItem)
+		{
+			InitializeControls(opManItem, FileOpDlgLook.FromLabel | FileOpDlgLook.TotalProgressBar);
+		}
 
 		/// <summary>
 		/// Creates a new instance of the FileOperationDialog class
@@ -43,9 +477,57 @@
 			if (_operationItem == null)
 				throw new ArgumentException("Invalid operation handle", nameof(handle));
 
+			_queueIdentifier = _operationItem.Queue.Identifier;
+			_userInterface = new FileSourceOperationMessageBoxesUI();
+			_stopOperationOnClose = true;
+
 			InitializeComponent();
 			InitializeTimer();
-			UpdateControls();
+
+			if (!InitializeOperation())
+			{
+				CloseDialog();
+			}
+		}
+
+		/// <summary>
+		/// Creates a new instance of the FileOperationDialog class for a queue
+		/// </summary>
+		/// <param name="queueIdentifier">The queue identifier</param>
+		public FileOperationDialog(int queueIdentifier, bool isQueueIdentifier)
+		{
+			if (!isQueueIdentifier)
+			{
+				// Call the other constructor if this is not a queue identifier
+				_operationHandle = queueIdentifier;
+				_operationItem = OperationsManager.Instance.GetItemByHandle(queueIdentifier);
+
+				if (_operationItem == null)
+					throw new ArgumentException("Invalid operation handle", nameof(queueIdentifier));
+
+				_queueIdentifier = _operationItem.Queue.Identifier;
+			}
+			else
+			{
+				// This is a queue identifier
+				_queueIdentifier = queueIdentifier;
+				_operationHandle = GetFirstOperationHandle(queueIdentifier);
+				_operationItem = OperationsManager.Instance.GetItemByHandle(_operationHandle);
+
+				if (_operationItem == null)
+					throw new ArgumentException("Invalid queue identifier", nameof(queueIdentifier));
+			}
+
+			_userInterface = new FileSourceOperationMessageBoxesUI();
+			_stopOperationOnClose = true;
+
+			InitializeComponent();
+			InitializeTimer();
+
+			if (!InitializeOperation())
+			{
+				CloseDialog();
+			}
 		}
 
 		private void InitializeComponent()
@@ -199,7 +681,7 @@
 				AutoSize = true,
 				Width = 72
 			};
-			btnMinimizeToPanel.Click += btnMinimizeToPanelClick;
+			btnMinimizeToPanel.Click += BtnMinimizeToPanelClick;
 			pnlButtons.Controls.Add(btnMinimizeToPanel);
 
 			// View operations button
@@ -211,7 +693,7 @@
 				Width = 66,
 				Left = 75
 			};
-			btnViewOperations.Click += btnViewOperationsClick;
+			btnViewOperations.Click += BtnViewOperationsClick;
 			pnlButtons.Controls.Add(btnViewOperations);
 
 			// Cancel button
@@ -223,7 +705,7 @@
 				Width = 86,
 				DialogResult = DialogResult.Cancel
 			};
-			btnCancel.Click += btnCancelClick;
+			btnCancel.Click += BtnCancelClick;
 			pnlButtons.Controls.Add(btnCancel);
 
 			// Pause/Start button
@@ -234,7 +716,7 @@
 				AutoSize = true,
 				Width = 50
 			};
-			btnPauseStart.Click += btnPauseStartClick;
+			btnPauseStart.Click += BtnPauseStartClick;
 			pnlButtons.Controls.Add(btnPauseStart);
 
 			// File count label
@@ -340,8 +822,15 @@
 			UpdatePauseStartButton(operation.State);
 		}
 
+		/// <summary>
+		/// Updates the pause/start button based on operation state
+		/// </summary>
+		/// <param name="state">The operation state</param>
 		private void UpdatePauseStartButton(FileSourceOperationState state)
 		{
+			if (btnPauseStart == null)
+				return;
+
 			switch (state)
 			{
 				case FileSourceOperationState.Paused:
@@ -358,7 +847,59 @@
 			}
 		}
 
-		private void btnPauseStartClick(object sender, EventArgs e)
+		/// <summary>
+		/// Updates the pause/start button based on operation manager item
+		/// </summary>
+		/// <param name="opManItem">The operation manager item</param>
+		private void UpdatePauseStartButton(OperationsManagerItem opManItem)
+		{
+			if (opManItem?.Operation == null || btnPauseStart == null)
+				return;
+
+			//// Get operation state
+			//FileSourceOperationState state = FileSourceOperationState.Running;
+
+			//// Check if operation is paused
+			//if (opManItem.Operation.IsPaused)
+			//	state = FileSourceOperationState.Paused;
+
+			//// Update button based on state
+			//UpdatePauseStartButton(state);
+			if (opManItem.Queue.IsFree) { 
+				switch (opManItem.Operation.State) {
+					case FileSourceOperationState.NotStarted:
+					case FileSourceOperationState.Stopped:
+					case FileSourceOperationState.Paused:
+						btnPauseStart.Text = "&Start";
+						btnPauseStart.Enabled = true;
+						//setplayglyph;
+						break;
+					case FileSourceOperationState.Starting:
+					case FileSourceOperationState.Stopping:
+					case FileSourceOperationState.WaitingForFeedback:
+						btnPauseStart.Enabled = false;
+						break;
+					case FileSourceOperationState.Running:
+					case FileSourceOperationState.WaitingForConnection:
+						btnPauseStart.Enabled = true;
+						//setpausedglyph;
+						break;
+					default:
+						btnPauseStart.Enabled = false;
+						break;
+				}
+			}
+			else
+			{
+				btnPauseStart.Enabled = true;
+				//if(opManItem.Queue.Paused)
+				//	//setplayglyph;
+				//else
+				//	//setpausedglyph;
+			}
+		}
+
+		private void BtnPauseStartClick(object sender, EventArgs e)
 		{
 			if (_operationItem?.Operation != null)
 			{
@@ -367,35 +908,175 @@
 			}
 		}
 
-		private void btnCancelClick(object sender, EventArgs e)
+		private void BtnCancelClick(object sender, EventArgs e)
 		{
-			if (_operationItem?.Operation != null)
+			if (StopOperationOrQueue())
 			{
-				_operationItem.Operation.Stop();
+				DialogResult = DialogResult.Cancel;
 			}
 		}
 
-		private void btnMinimizeToPanelClick(object sender, EventArgs e)
+		/// <summary>
+		/// Stops the current operation or queue after confirmation
+		/// </summary>
+		/// <returns>True if operation was stopped, false otherwise</returns>
+		private bool StopOperationOrQueue()
+		{
+			bool result = true;
+			var opManItem = OperationsManager.Instance.GetItemByHandle(_operationHandle);
+
+			if (opManItem != null)
+			{
+				bool paused = false;
+
+				// Pause operation or queue before asking for confirmation
+				if (opManItem.Queue.IsFree)
+				{
+					paused = opManItem.Operation.State == FileSourceOperationState.Running ||
+							opManItem.Operation.State == FileSourceOperationState.Starting ||
+							opManItem.Operation.State == FileSourceOperationState.WaitingForConnection;
+
+					if (paused) opManItem.Operation.Pause();
+				}
+				else
+				{
+					paused = !opManItem.Queue.Paused;
+					if (paused) opManItem.Queue.Pause();
+				}
+
+				// Ask for confirmation
+				result = MessageBox.Show("确定要取消操作吗？", "确认", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes;
+
+				if (result)
+				{
+					// Stop operation or queue
+					if (opManItem.Queue.IsFree)
+					{
+						opManItem.Operation.Stop();
+					}
+					else
+					{
+						opManItem.Queue.Stop();
+					}
+				}
+				else if (paused)
+				{
+					// Resume operation or queue if user canceled
+					if (opManItem.Queue.IsFree)
+					{
+						opManItem.Operation.TogglePause();
+					}
+					else
+					{
+						opManItem.Queue.TogglePause();
+					}
+				}
+			}
+
+			return result;
+		}
+
+		private void BtnMinimizeToPanelClick(object sender, EventArgs e)
 		{
 			// Switch to operations panel view
 			GlobalSettings.FileOperationsProgressKind = FileOperationsProgressKind.OperationsPanel;
+			_stopOperationOnClose = false;
 			Close();
 		}
 
-		private void btnViewOperationsClick(object sender, EventArgs e)
+		private void BtnViewOperationsClick(object sender, EventArgs e)
 		{
-			// Show operations manager window
-			// This would typically open a window showing all operations
-			// Implementation depends on how operations are managed in the application
+			if (_operationItem?.Operation != null)
+			{
+				if (_operationItem.Queue.IsFree)
+				{
+					// Show operations viewer for this specific operation
+					ShowOperationsViewer(_operationItem.Handle);
+				}
+				else
+				{
+					// Show operations viewer for the entire queue
+					ShowOperationsViewer(_operationItem.Queue.Identifier);
+				}
+			}
+			else
+			{
+				ShowOperationsViewer();
+			}
 		}
+
+		/// <summary>
+		/// Shows the operations viewer window
+		/// </summary>
+		public static void ShowOperationsViewer()
+		{
+			// 在实际实现中，这里应该创建或显示一个操作查看器窗口
+			// 类似于Pascal版本中的frmViewOperations
+			// 由于C#版本中可能还没有实现OperationsViewer类，这里先留空
+			// 实际项目中应该实现一个类似于Pascal版本中的frmViewOperations的窗体
+			MessageBox.Show("Operations Viewer not implemented yet.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+		}
+
+		/// <summary>
+		/// Shows the operations viewer window and focuses on a specific operation
+		/// </summary>
+		/// <param name="handle">The operation handle to focus</param>
+		public static void ShowOperationsViewer(int handle)
+		{
+			ShowOperationsViewer();
+			// 在实际实现中，这里应该设置焦点到指定的操作
+			// 类似于Pascal版本中的frmViewOperations.SetFocusItem(AOperationHandle)
+		}
+
+		///// <summary>
+		///// Shows the operations viewer window and focuses on a specific queue
+		///// </summary>
+		///// <param name="queueIdentifier">The queue identifier to focus</param>
+		//public static void ShowOperationsViewer(int queueIdentifier)
+		//{
+		//	ShowOperationsViewer();
+		//	// 在实际实现中，这里应该设置焦点到指定的队列
+		//	// 类似于Pascal版本中的frmViewOperations.SetFocusItem(AQueueIdentifier)
+		//}
 
 		private void FormClose(object sender, FormClosingEventArgs e)
 		{
-			_updateTimer.Stop();
-			_updateTimer.Dispose();
+			if (_updateTimer != null)
+			{
+				_updateTimer.Stop();
+				_updateTimer.Dispose();
+			}
 
-			if (_activeDialogs.ContainsKey(_operationHandle))
+			if (_activeDialogs.TryGetValue(_operationHandle, out _))
+			{
 				_activeDialogs.Remove(_operationHandle);
+			}
+		}
+
+		/// <summary>
+		/// Handles form closing confirmation
+		/// </summary>
+		protected override void OnFormClosing(FormClosingEventArgs e)
+		{
+			// If form is being closed by user (not programmatically) and we should stop operation on close
+			if (e.CloseReason == CloseReason.UserClosing && _stopOperationOnClose)
+			{
+				// Check if operation is still running and ask for confirmation
+				var opManItem = OperationsManager.Instance.GetItemByHandle(_operationHandle);
+				if (opManItem != null && opManItem.Operation != null &&
+					(opManItem.Operation.State == FileSourceOperationState.Running ||
+					 opManItem.Operation.State == FileSourceOperationState.Paused))
+				{
+					// If user cancels the operation stop, cancel the form closing
+					if (!StopOperationOrQueue())
+					{
+						e.Cancel = true;
+						return;
+					}
+				}
+			}
+
+			base.OnFormClosing(e);
 		}
 
 		/// <summary>

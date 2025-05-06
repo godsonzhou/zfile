@@ -301,6 +301,10 @@ namespace zfile
                 _pauseEvent.Reset();
             }
         }
+		public virtual void DoUnPause()
+		{
+			_pauseEvent.Set();
+		}
 
         /// <summary>
         /// Stops the operation
@@ -409,10 +413,12 @@ namespace zfile
         {
             if (_fileSource != null)
             {
-                // In a real implementation, this would reload file sources
-                // For example: _fileSource.Reload();
-            }
-        }
+				// In a real implementation, this would reload file sources
+				// For example: _fileSource.Reload();
+				//_fileSource.Reload(TargetPath);
+				// Nothing by default.
+			}
+		}
 
         /// <summary>
         /// Initializes the operation
@@ -473,20 +479,28 @@ namespace zfile
         {
             if (_fileSource != null)
             {
-                // In a real implementation, this would get a connection from the file source
-                // For example: return _fileSource.GetConnection(this);
+				_fileSource.GetConnection(this);
             }
             return null;
         }
 
-        /// <summary>
-        /// Waits for a connection to become available
-        /// </summary>
-        /// <returns>The wait result</returns>
-        protected int WaitForConnection()
+		protected int DoWaitForConnection()
+		{
+			_connectionAvailableEvent.Reset();
+			return _connectionAvailableEvent.WaitOne(_connectionTimeout) ? 0 : WaitHandle.WaitTimeout;
+		}
+		/// <summary>
+		/// Waits for a connection to become available
+		/// </summary>
+		/// <returns>The wait result</returns>
+		protected int WaitForConnection()
         {
-            // Convert boolean result to WaitHandle result
-            return _connectionAvailableEvent.WaitOne(_connectionTimeout) ? 0 : WaitHandle.WaitTimeout;
+			// Convert boolean result to WaitHandle result
+			UpdateState(FileSourceOperationState.WaitingForConnection);
+			var result = DoWaitForConnection();
+			UpdateStartTime(DateTime.Now);
+			UpdateState(FileSourceOperationState.Running);
+			return result;
         }
 
         /// <summary>
@@ -545,23 +559,28 @@ namespace zfile
         /// <summary>
         /// Must be called from the operation thread
         /// </summary>
-        /// <param name="desiredStates">If desired state is one of these states the pause is executed</param>
+        /// <param name="desiredStates">If desired state is one of these states the pause is executed, otherwise nothing happens</param>
         protected void DoPauseIfNeeded(FileSourceOperationState[] desiredStates)
         {
 			lock (_stateLock)
 			{
 				if (!desiredStates.Contains(_desiredState))
 					return;
-				
+
 				_pauseEvent.Reset();
-				UpdateState(_desiredState);
-				//if curent threadid <> mainthreadid, then wait indefinitely
-				//else wait 100ms
-				if (Thread.CurrentThread != _thread.Thread)//TODO: NEED CONFIRM
-					_pauseEvent.WaitOne();
-				else
-					_pauseEvent.WaitOne(100);
 			}
+
+			//UpdateState(_desiredState);
+			//if curent threadid <> mainthreadid, then wait indefinitely
+			//else wait 100ms
+			if (Thread.CurrentThread.ManagedThreadId != MainForm.MainThreadId)//TODO: NEED CONFIRM
+				_pauseEvent.WaitOne();
+			else
+				while(_pauseEvent.WaitOne(100))
+				{
+					AppProcessMessages(); //widgetset.appprocessmessages() in pascal
+				}
+			
         }
 
         /// <summary>
@@ -569,14 +588,36 @@ namespace zfile
         /// </summary>
         protected void CheckOperationState()
         {
-            if (_desiredState == FileSourceOperationState.Paused)
-            {
-                DoPauseIfNeeded(new[] { FileSourceOperationState.Paused });
-            }
-            else if (_desiredState == FileSourceOperationState.Stopped)
-            {
-                throw new FileSourceOperationAbortingException();
-            }
+			//if (_desiredState == FileSourceOperationState.Paused)
+			//{
+			//    DoPauseIfNeeded(new[] { FileSourceOperationState.Paused });
+			//}
+			//else if (_desiredState == FileSourceOperationState.Stopped)
+			//{
+			//    throw new FileSourceOperationAbortingException();
+			//}
+			var desiredState = GetDesiredState();
+			switch (desiredState)
+			{
+				case FileSourceOperationState.Paused:
+					if( UpdateState(FileSourceOperationState.Paused, new[] { FileSourceOperationState.Pausing }))
+					{
+						DoPauseIfNeeded(new[] { FileSourceOperationState.Paused });
+						// check if the operation was unpaused because it is being aborted.
+						if (GetDesiredState() == FileSourceOperationState.Stopped)
+							RaiseAbortOperation();
+						UpdateStartTime(DateTime.Now);
+						if (_operationInitialized)
+							UpdateState(FileSourceOperationState.Running);
+						else
+							UpdateState(FileSourceOperationState.Starting);
+					}
+					break;
+
+				case FileSourceOperationState.Stopped:
+					RaiseAbortOperation();
+					break;
+			}
         }
 
         /// <summary>

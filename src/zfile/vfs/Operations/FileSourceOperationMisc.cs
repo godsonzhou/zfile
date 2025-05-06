@@ -147,7 +147,7 @@ namespace zfile
     {
         private int _operationHandle;
         private OperationsManagerItem _operationItem;
-        private Timer _updateTimer;
+        private System.Windows.Forms.Timer _updateTimer;
         private static Dictionary<int, FileOperationDialog> _activeDialogs = new Dictionary<int, FileOperationDialog>();
 
         // UI Controls
@@ -392,7 +392,7 @@ namespace zfile
 
         private void InitializeTimer()
         {
-            _updateTimer = new Timer
+            _updateTimer = new System.Windows.Forms.Timer
             {
                 Interval = 100 // Update 10 times per second
             };
@@ -413,7 +413,7 @@ namespace zfile
             var operation = _operationItem.Operation;
             
             // Update operation text
-            lblCurrentOperationText.Text = operation.Description + GetOperationStateString(operation.State);
+            lblCurrentOperationText.Text = operation.Description + (operation.State).ToString();
             
             // Get statistics based on operation type
             FileSourceCopyOperationStatistics statistics = null;

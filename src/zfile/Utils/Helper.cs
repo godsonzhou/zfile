@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System.Collections;
 using System.Diagnostics;
 using System.Text;
@@ -937,7 +937,18 @@ namespace zfile
 
 		internal static DateTime EstimateRemainingTime(long doneBytes1, long doneBytes2, long totalBytes, DateTime startTime, DateTime now, out long bytesPerSecond)
 		{
-			throw new NotImplementedException();
+			bytesPerSecond = 0;
+			TimeSpan result = TimeSpan.Zero;
+
+			if (doneBytes2 > doneBytes1 && now > startTime)
+			{
+				double speed = (double)(doneBytes2 - doneBytes1) / (now - startTime).TotalSeconds;
+				double remainingSeconds = (totalBytes - doneBytes2) / speed;
+				result = TimeSpan.FromSeconds(remainingSeconds);
+				bytesPerSecond = (long)speed;
+			}
+
+			return result;
 		}
 
 		internal static string? IncludeTrailingPathDelimiter(string aTargetPath)

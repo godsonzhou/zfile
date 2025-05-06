@@ -414,8 +414,9 @@ namespace zfile
                                     temp, sourceFiles, temp.GetRootDir()) as ArchiveCopyOutOperation;
                                 try
                                 {
-                                    operation.Execute();
-                                }
+									OperationsManager.Instance.AddOperation(operation);
+									//operation.Execute();
+								}
                                 finally
                                 {
                                     operation.Dispose();
@@ -446,7 +447,8 @@ namespace zfile
                                             new FileSystemFileSource(), files, installDir) as ArchiveCopyOutOperation;
                                         try
                                         {
-                                            operation.Execute();
+											OperationsManager.Instance.AddOperation(operation);
+                                            //operation.Execute();
                                             if (operation.Result == FileSourceOperationResult.Aborted)
                                                 return;
                                         }

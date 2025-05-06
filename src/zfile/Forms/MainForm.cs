@@ -1423,7 +1423,7 @@ namespace zfile
 					// 调用wcxfilesourceexecuteoperation
 					var op = fileSource.CreateExecuteOperation(lvItemFile, fileSource.CurrentPath, "open");
 					_operationsManager.AddOperation(op);
-					op?.Execute();
+					//op?.Execute();
 				}
 				// 更新当前路径
 				CurrentFullpath[LRflag] = path;
@@ -2721,7 +2721,7 @@ namespace zfile
 					if (operation != null)
 					{
 						_operationsManager.AddOperation(operation);
-						operation.Execute();
+						//operation.Execute();
 					}
 					else
 					{
@@ -3338,7 +3338,7 @@ namespace zfile
 					if (operation != null)
 					{
 						_operationsManager.AddOperation(operation);
-						operation.Execute();
+						//operation.Execute();
 
 						// 刷新目标面板
 						RefreshPanel(targetlist);
@@ -3605,7 +3605,8 @@ namespace zfile
 				if (sourceFileSource.GetType() == targetFileSource.GetType())
 				{
 					operation = sourceFileSource.CreateMoveOperation(fileEntries, targetPath);
-					operation.Execute();
+					_operationsManager.AddOperation(operation);
+					//operation.Execute();
 					// 刷新面板
 					RefreshPanel(activeListView);
 					RefreshPanel(unactiveListView);
@@ -3624,7 +3625,7 @@ namespace zfile
 					if (copyOperation != null)
 					{
 						_operationsManager.AddOperation(copyOperation);
-						copyOperation.Execute();
+						//copyOperation.Execute();
 
 						// 复制成功后删除源文件
 						operation = sourceFileSource.CreateDeleteOperation(fileEntries);
@@ -3637,7 +3638,7 @@ namespace zfile
 					if (operation != null)
 					{
 						_operationsManager.AddOperation(operation);
-						operation.Execute();
+						//operation.Execute();
 
 						// 刷新面板
 						RefreshPanel(activeListView);
@@ -3752,7 +3753,7 @@ namespace zfile
 					if (operation != null)
 					{
 						_operationsManager.AddOperation(operation);
-						operation.Execute();
+						//operation.Execute();
 
 						// 刷新面板
 						RefreshPanel(activeListView);
@@ -3843,7 +3844,7 @@ namespace zfile
 				{
 					// 添加操作到管理器并执行
 					_operationsManager.AddOperation(copyOutOperation);
-					copyOutOperation.Execute();
+					//copyOutOperation.Execute();
 
 					// 检查操作是否成功完成
 					if (copyOutOperation.Result == FileSourceOperationResult.Finished)
@@ -3872,7 +3873,7 @@ namespace zfile
 						{
 							// 添加操作到管理器并执行
 							_operationsManager.AddOperation(copyInOperation);
-							copyInOperation.Execute();
+							//copyInOperation.Execute();
 
 							// 操作成功
 							result = (copyInOperation.Result == FileSourceOperationResult.Finished);

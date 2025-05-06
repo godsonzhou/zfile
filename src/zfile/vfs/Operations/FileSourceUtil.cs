@@ -70,7 +70,7 @@ namespace zfile
 
                     if (operation != null)
                     {
-                        operation.Execute();
+                        OperationsManager.Instance.AddOperation(operation);
                         switch (operation.ExecuteOperationResult)
                         {
                             case FileSourceExecuteOperationResult.Error:
@@ -396,7 +396,7 @@ namespace zfile
                                 operation.AddUserInterface(userInterface);
                             }
 
-                            operation.Execute();
+                            OperationsManager.Instance.AddOperation(operation);
                             switch (operation.Result)
                             {
                                 case FileSourceOperationResult.Finished:

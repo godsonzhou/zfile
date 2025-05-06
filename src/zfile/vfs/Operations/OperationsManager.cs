@@ -141,7 +141,7 @@ namespace zfile
             if (operationThread == null)
             {
                 operationThread = new TOperationThread(true, operation);
-				operationThread.OnTerminated += OperationThread_OnTerminated;
+				operationThread.OnTerminated += OperationsManager.Instance.ThreadTerminatedEvent;
                 operationThread.Start();
             }
             else
@@ -149,11 +149,6 @@ namespace zfile
                 operation.Start();
             }
         }
-
-		private void OperationThread_OnTerminated(object? sender, EventArgs e)
-		{
-			//throw new NotImplementedException();
-		}
 
 		/// <summary>
 		/// Moves the item and places it before or after another operation.
@@ -343,6 +338,7 @@ namespace zfile
 
             if (!paused && (IsFree || position == 0))
                 item.Start();
+
             else
                 item.Operation.Pause();
 
@@ -825,7 +821,7 @@ namespace zfile
         /// Handles a thread termination event.
         /// </summary>
         /// <param name="thread">The thread that terminated.</param>
-        public void ThreadTerminatedEvent(Object sender)
+        public void ThreadTerminatedEvent(Object? sender, EventArgs e = null)
         {
 			var thread = sender as TOperationThread;
 			// Search for the terminated thread in the operations list

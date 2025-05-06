@@ -88,11 +88,5 @@ namespace zfile
                 Logger.Write($"Error in MainExecute: {ex.Message}", LogOption.Error);
             }
         }
-
-        private void CheckOperationState()
-        {
-            if (GetState() == FileSourceOperationState.Cancelled)
-                throw new OperationCanceledException();
-        }
     }
 } 

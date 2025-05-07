@@ -554,6 +554,8 @@ namespace Sheng.Winform.Controls
 				//_currentNode.CreateChildNodes();    // 确保当前节点的子节点已加载
 				tmpnode.CreateChildNodes();
 				//foreach (IShengAddressNode node in _currentNode.Children)
+				if (tmpnode.Children == null)
+					break;
 				foreach (IShengAddressNode node in tmpnode.Children)
 				{
 					if (node.UniqueID == pth)

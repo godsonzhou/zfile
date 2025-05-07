@@ -865,7 +865,7 @@ namespace zfile
 
 			//// Update button based on state
 			//UpdatePauseStartButton(state);
-			if (opManItem.Queue.IsFree) { 
+			if (opManItem.Queue != null && opManItem.Queue.IsFree) { 
 				switch (opManItem.Operation.State) {
 					case FileSourceOperationState.NotStarted:
 					case FileSourceOperationState.Stopped:

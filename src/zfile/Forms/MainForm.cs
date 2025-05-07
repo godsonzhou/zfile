@@ -3855,7 +3855,7 @@ namespace zfile
 						// 获取临时目录中的所有文件
 						foreach (var file in sourceFiles)
 						{
-							string tempFilePath = Path.Combine(tempPath, file.FullPath);
+							string tempFilePath = Path.Combine(tempPath, file.Name);
 							if (File.Exists(tempFilePath))
 							{
 								var tempFile = FileSystemFileSource.CreateFileFromFile(tempFilePath);
@@ -3864,10 +3864,8 @@ namespace zfile
 						}
 
 						// 第二步：从临时文件系统复制到目标压缩文件
-						var copyInOperation = targetFileSource.CreateCopyInOperation(
-							tempFileSource,
-							tempFiles,
-							targetPath);
+						var arc = targetFileSource as IArchiveFileSource;
+						var copyInOperation = targetFileSource.CreateCopyInOperation(tempFileSource, tempFiles, Helper.ExtractDirLevel(arc.ArchiveFileName, targetPath, true));
 
 						if (copyInOperation != null)
 						{

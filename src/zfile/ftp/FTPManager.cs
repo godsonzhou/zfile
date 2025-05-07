@@ -479,7 +479,7 @@ namespace zfile
 		/// <summary>
 		/// 查看FTP文件
 		/// </summary>
-		private void ViewFtpFile(FtpFileSource source, string path)
+		public void ViewFtpFile(FtpFileSource source, string path)
 		{
 			try
 			{
@@ -500,7 +500,7 @@ namespace zfile
 		/// <summary>
 		/// 编辑FTP文件
 		/// </summary>
-		private void EditFtpFile(FtpFileSource source, string path)
+		public void EditFtpFile(FtpFileSource source, string path)
 		{
 			try
 			{
@@ -535,7 +535,7 @@ namespace zfile
 		/// <summary>
 		/// 复制FTP项目
 		/// </summary>
-		private void CopyFtpItemToLocal(FtpFileSource source, string path, string? targetPath = null)
+		public void CopyFtpItemToLocal(FtpFileSource source, string path, string? targetPath = null)
 		{
 			try
 			{
@@ -577,7 +577,7 @@ namespace zfile
 		/// <summary>
 		/// 递归下载目录
 		/// </summary>
-		private void DownloadDirectory(FtpFileSource source, string remotePath, string localPath)
+		public void DownloadDirectory(FtpFileSource source, string remotePath, string localPath)
 		{
 			// 获取目录列表
 			var listing = source.Client.GetListing(remotePath, _listOption);
@@ -605,7 +605,7 @@ namespace zfile
 		/// <summary>
 		/// 重命名FTP项目
 		/// </summary>
-		private void RenameFtpItem(FtpFileSource source, string path)
+		public void RenameFtpItem(FtpFileSource source, string path)
 		{
 			try
 			{
@@ -638,7 +638,7 @@ namespace zfile
 		/// <summary>
 		/// 删除FTP项目
 		/// </summary>
-		private void DeleteFtpItem(FtpFileSource source, string path, bool isDirectory)
+		public void DeleteFtpItem(FtpFileSource source, string path, bool isDirectory)
 		{
 			try
 			{
@@ -1290,7 +1290,7 @@ namespace zfile
 			}
 		}
 
-		private void ReloadListview(ListView listView)
+		public void ReloadListview(ListView listView)
 		{
 			//  从 FtpMgr 获取现有连接列表并填充到 ListView
 			listView.Items.Clear();

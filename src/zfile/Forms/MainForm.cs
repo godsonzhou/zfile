@@ -2636,7 +2636,9 @@ namespace zfile
 					//	})
 					//	.Where(path => !string.IsNullOrEmpty(path)) // 排除下载失败的文件
 					//	.ToList();
-
+					//fTPMGR.CopyFtpItemToLocal(source, CurrentFullpath[LRflag]);
+					//foreach(var item in activeListView.SelectedItems) 
+					//	source.DownloadFile(CurrentFullpath[LRflag] + item);
 				}
 			}
 

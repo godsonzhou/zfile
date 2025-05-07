@@ -11,7 +11,7 @@ namespace zfile
 	{
 		private FtpClient _client;
 		private AsyncFtpClient _clientAsync;
-		private string _currentPath = "/";
+		//private string _currentPath = "/";
 		private string _ftpHost;
 		private string _connectionName;
 		//private MainForm _owner;
@@ -28,11 +28,11 @@ namespace zfile
 		/// <summary>
 		/// 获取或设置当前FTP路径
 		/// </summary>
-		public string CurrentPath
-		{
-			get => _currentPath;
-			set => _currentPath = value;
-		}
+		//public string CurrentPath
+		//{
+		//	get => _currentPath;
+		//	set => _currentPath = value;
+		//}
 
 		/// <summary>
 		/// 获取FTP客户端实例
@@ -136,7 +136,7 @@ namespace zfile
 		public List<ListViewItem> GetListing(string path = "", FtpListOption listOption = FtpListOption.Auto)
 		{
 			if (string.IsNullOrEmpty(path))
-				path = _currentPath;
+				path = CurrentPath;
 
 			var items = new List<ListViewItem>();
 
@@ -173,7 +173,8 @@ namespace zfile
 
 					// 设置图标
 					listItem.ImageKey = item.Type == FtpObjectType.Directory ? "folder" : GetFileIconKey(item.Name);
-					
+					var fileentry = CreateFile(item.FullName);
+					listItem.Tag = new LvItemTag(fileentry, null);	// 将文件对象存储在Tag属性中
 					// 添加到列表
 					items.Add(listItem);
 				}
@@ -185,7 +186,12 @@ namespace zfile
 
 			return items;
 		}
-
+		public override FileEntry CreateFile(string path)
+		{
+			var filename = Path.GetFileName(path);
+			var dir = Path.GetDirectoryName(path);
+			return new FileEntry(dir, filename);
+		}
 		/// <summary>
 		/// 下载FTP文件到本地临时目录
 		/// </summary>
@@ -398,7 +404,5 @@ namespace zfile
 					return "file";
 			}
 		}
-
-
 	}
 }

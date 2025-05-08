@@ -374,6 +374,7 @@ namespace zfile
 		/// <param name="sourceFiles">源文件列表</param>
 		/// <param name="targetPath">目标路径</param>
 		/// <returns>复制入操作</returns>
+		
 		public override FileSourceCopyInOperation CreateCopyInOperation(IFileSource sourceFileSource, FileEntries sourceFiles, string targetPath)
 		{
 			return new FtpCopyInOperation(sourceFileSource, this, sourceFiles, targetPath);
@@ -386,7 +387,7 @@ namespace zfile
 		/// <param name="targetFileSource">目标文件源</param>
 		/// <param name="targetPath">目标路径</param>
 		/// <returns>复制出操作</returns>
-		public FileSourceCopyOutOperation CreateCopyOutOperation(FileEntries sourceFiles, IFileSource targetFileSource, string targetPath)
+		public override FileSourceCopyOutOperation CreateCopyOutOperation(IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)
 		{
 			return new FtpCopyOutOperation(this, targetFileSource, sourceFiles, targetPath);
 		}

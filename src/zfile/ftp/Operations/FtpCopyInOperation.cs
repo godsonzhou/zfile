@@ -39,8 +39,24 @@ namespace zfile
         /// </summary>
         protected override void MainExecute()
         {
-            // 创建文件树
-            var sourceFilesTree = CreateFilesTree(SourceFiles);
+			var treebuilder = new FileSystemTreeBuilder(
+				(caption, msg, possibleResponses, defaultResponse, skipResponse) =>
+					AskQuestion(caption, msg, possibleResponses, defaultResponse, skipResponse),
+				CheckOperationState)
+			{
+				SymLinkOption = SymLinkOption
+				//SearchTemplate = SearchTemplate,
+				//ExcludeEmptyTemplateDirectories = ExcludeEmptyTemplateDirectories
+			};
+			// 构建文件树
+			treebuilder.BuildFromFiles(SourceFiles);
+			var sourceFilesTree = treebuilder.ReleaseTree();
+			_statistics.TotalFiles = treebuilder.FilesCount;
+			_statistics.TotalBytes = treebuilder.FilesSize;
+			//if (_verify)
+			//	_statistics.TotalBytes *= 2;
+			// 创建文件树
+			//var sourceFilesTree = CreateFilesTree(SourceFiles);
             
             // 处理文件树
             ProcessNode(sourceFilesTree, TargetPath);
@@ -51,13 +67,13 @@ namespace zfile
         /// </summary>
         /// <param name="node">文件树节点</param>
         /// <param name="targetPath">目标路径</param>
-        private void ProcessNode(FileTreeNode node, string targetPath)
+        private void ProcessNode(FileTree node, string targetPath)
         {
             foreach (var subNode in node.SubNodes)
             {
                 CheckOperationState();
                 
-                string newTargetPath = Path.Combine(targetPath, subNode.FileName).Replace('\\', '/');
+                string newTargetPath = Path.Combine(targetPath, subNode.Name).Replace('\\', '/');
                 
                 if (subNode.IsDirectory)
                 {
@@ -86,7 +102,7 @@ namespace zfile
                 else
                 {
                     // 复制文件
-                    CopyFile(subNode.FullPath, newTargetPath);
+                    CopyFile(subNode.Path, newTargetPath);
                 }
             }
         }

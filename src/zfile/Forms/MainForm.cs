@@ -2673,7 +2673,25 @@ namespace zfile
 				{
 					if (!file.IsDirectory) // 只处理文件，不处理目录
 					{
-						fileEntries.Add(file);
+						// 将FileEntry转换为FtpFileEntry
+						var ftpFile = new FtpFileEntry(file.Path, file.Name);
+
+						// 复制原始文件的属性
+						ftpFile.Size = file.Size;
+						ftpFile.Attributes = file.Attributes;
+						ftpFile.ModificationTime = file.ModificationTime;
+
+						// 如果有其他需要复制的属性，可以在这里添加
+						if (file.SupportedProperties.HasFlag(FilePropertyType.CompressedSize))
+							ftpFile.CompressedSize = file.CompressedSize;
+
+						if (file.SupportedProperties.HasFlag(FilePropertyType.CreationTime))
+							ftpFile.CreationTime = file.CreationTime;
+
+						if (file.SupportedProperties.HasFlag(FilePropertyType.LastAccessTime))
+							ftpFile.LastAccessTime = file.LastAccessTime;
+
+						fileEntries.Add(ftpFile);
 					}
 				}
 

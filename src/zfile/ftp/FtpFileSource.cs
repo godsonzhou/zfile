@@ -9,21 +9,38 @@ namespace zfile
 	/// </summary>
 	public class FtpFileSource : FileSource
 	{
-		private FtpClient _client;
-		private AsyncFtpClient _clientAsync;
+		private FtpClient? _client;
 		//private string _currentPath = "/";
-		private string _ftpHost;
-		private string _connectionName;
+		private readonly string? _ftpHost;
+		private readonly string? _connectionName;
 		//private MainForm _owner;
+
+		/// <summary>
+		/// 操作类字典
+		/// </summary>
+		private readonly Dictionary<FileSourceOperationType, Type> _operationsClasses;
+
+		/// <summary>
+		/// 获取支持的操作类型
+		/// </summary>
+		public override FileSourceOperationType OperationsTypes =>
+			FileSourceOperationType.List |
+			FileSourceOperationType.CopyIn |
+			FileSourceOperationType.CopyOut |
+			FileSourceOperationType.Delete |
+			FileSourceOperationType.CreateDirectory |
+			FileSourceOperationType.Execute |
+			FileSourceOperationType.Move |
+			FileSourceOperationType.CalcStatistics;
 		/// <summary>
 		/// 获取FTP连接名称
 		/// </summary>
-		public string ConnectionName => _connectionName;
+		public string ConnectionName => _connectionName ?? string.Empty;
 
 		/// <summary>
 		/// 获取FTP主机地址
 		/// </summary>
-		public string Host => _ftpHost;
+		public string Host => _ftpHost ?? string.Empty;
 
 		/// <summary>
 		/// 获取或设置当前FTP路径
@@ -37,27 +54,46 @@ namespace zfile
 		/// <summary>
 		/// 获取FTP客户端实例
 		/// </summary>
-		public FtpClient Client => _client;
+		public FtpClient? Client => _client;
 
 		public FtpFileSource()
 		{
+			_operationsClasses = [];
+			InitializeOperationsClasses();
 		}
 
-		public FtpFileSource(MainForm owner, string connectionName, FtpClient client)
+		public FtpFileSource(string connectionName, FtpClient client)
 		{
-			//_owner = owner;
 			_connectionName = connectionName;
 			_client = client;
 			_ftpHost = client.Host;
+			_operationsClasses = [];
+			InitializeOperationsClasses();
+		}
+
+		/// <summary>
+		/// 初始化操作类字典
+		/// </summary>
+		private void InitializeOperationsClasses()
+		{
+			// 注册操作类
+			_operationsClasses[FileSourceOperationType.List] = typeof(FtpListOperation);
+			_operationsClasses[FileSourceOperationType.CopyIn] = typeof(FtpCopyInOperation);
+			_operationsClasses[FileSourceOperationType.CopyOut] = typeof(FtpCopyOutOperation);
+			_operationsClasses[FileSourceOperationType.Delete] = typeof(FtpDeleteOperation);
+			_operationsClasses[FileSourceOperationType.CreateDirectory] = typeof(FtpCreateDirectoryOperation);
+			_operationsClasses[FileSourceOperationType.Execute] = typeof(FtpExecuteOperation);
+			_operationsClasses[FileSourceOperationType.Move] = typeof(FtpMoveOperation);
+			_operationsClasses[FileSourceOperationType.CalcStatistics] = typeof(FtpCalcStatisticsOperation);
 		}
 		/// <summary>
 		/// 将FTP文件属性转换为L777格式的字符串
 		/// </summary>
 		/// <param name="item">FTP文件项</param>
 		/// <returns>格式化的属性字符串</returns>
-		private string GetFtpAttributesString(FtpListItem item)
+		private static string GetFtpAttributesString(FtpListItem item)
 		{
-			StringBuilder sb = new StringBuilder("-----");
+			var sb = new StringBuilder("-----");
 
 			// 检查是否为链接文件
 			if (item.Type == FtpObjectType.Link)
@@ -143,40 +179,43 @@ namespace zfile
 			try
 			{
 				// 获取FTP目录列表
-				var listing = _client.GetListing(path, listOption);
+				var listing = _client?.GetListing(path, listOption);
 
-				foreach (var item in listing)
+				if (listing != null)
 				{
-					// 创建ListViewItem
-					var listItem = new ListViewItem(item.Name);
-
-					// 添加子项
-					listItem.SubItems.Add(item.FullName); // 完整路径作为第二列
-
-					// 根据类型设置不同的显示
-					if (item.Type == FtpObjectType.Directory)
+					foreach (var item in listing)
 					{
-						listItem.SubItems.Add(""); // 大小
-						listItem.SubItems.Add("<DIR>"); // 类型
-					}
-					else
-					{
-						listItem.SubItems.Add(FileSystemManager.FormatFileSize(item.Size, true)); // 格式化文件大小
-						listItem.SubItems.Add(Path.GetExtension(item.Name).TrimStart('.')); // 扩展名
-					}
-					listItem.SubItems.Add(item.Modified.ToString()); // 修改时间
-					listItem.SubItems.Add(item.Size.ToString()); //real size
+						// 创建ListViewItem
+						var listItem = new ListViewItem(item.Name);
 
-					// 添加FTP文件属性列
-					string attrStr = GetFtpAttributesString(item);
-					listItem.SubItems.Add(attrStr); // 属性
+						// 添加子项
+						listItem.SubItems.Add(item.FullName); // 完整路径作为第二列
 
-					// 设置图标
-					listItem.ImageKey = item.Type == FtpObjectType.Directory ? "folder" : GetFileIconKey(item.Name);
-					var fileentry = CreateFile(item.FullName);
-					listItem.Tag = new LvItemTag(fileentry, null);	// 将文件对象存储在Tag属性中
-					// 添加到列表
-					items.Add(listItem);
+						// 根据类型设置不同的显示
+						if (item.Type == FtpObjectType.Directory)
+						{
+							listItem.SubItems.Add(""); // 大小
+							listItem.SubItems.Add("<DIR>"); // 类型
+						}
+						else
+						{
+							listItem.SubItems.Add(FileSystemManager.FormatFileSize(item.Size, true)); // 格式化文件大小
+							listItem.SubItems.Add(Path.GetExtension(item.Name).TrimStart('.')); // 扩展名
+						}
+						listItem.SubItems.Add(item.Modified.ToString()); // 修改时间
+						listItem.SubItems.Add(item.Size.ToString()); //real size
+
+						// 添加FTP文件属性列
+						string attrStr = GetFtpAttributesString(item);
+						listItem.SubItems.Add(attrStr); // 属性
+
+						// 设置图标
+						listItem.ImageKey = item.Type == FtpObjectType.Directory ? "folder" : GetFileIconKey(item.Name);
+						var fileentry = CreateFile(item.FullName);
+						listItem.Tag = new LvItemTag(fileentry, null);  // 将文件对象存储在Tag属性中
+																		// 添加到列表
+						items.Add(listItem);
+					}
 				}
 			}
 			catch (Exception ex)
@@ -189,7 +228,7 @@ namespace zfile
 		public override FileEntry CreateFile(string path)
 		{
 			var filename = Path.GetFileName(path);
-			var dir = Path.GetDirectoryName(path);
+			var dir = Path.GetDirectoryName(path) ?? string.Empty;
 			return new FileEntry(dir, filename);
 		}
 		/// <summary>
@@ -197,7 +236,7 @@ namespace zfile
 		/// </summary>
 		/// <param name="remotePath">远程文件路径</param>
 		/// <returns>本地临时文件路径</returns>
-		public string DownloadFile(string remotePath, string? localpath=null)
+		public string DownloadFile(string remotePath, string? localpath = null)
 		{
 			try
 			{
@@ -214,7 +253,7 @@ namespace zfile
 				string localPath = Path.Combine(tempDir ?? localpath, fileName);
 
 				// 下载文件
-				var success = _client.DownloadFile(localPath, remotePath);
+				var success = _client?.DownloadFile(localPath, remotePath) ?? FtpStatus.Failed;
 
 				if (success.HasFlag(FtpStatus.Success))
 					return localPath;
@@ -230,7 +269,7 @@ namespace zfile
 		public bool DownloadCanBeResumed()
 		{
 			// 检查服务器是否支持续传
-			if (!_client.HasFeature(FtpCapability.REST))
+			if (_client == null || !_client.HasFeature(FtpCapability.REST))
 			{
 				Debug.Print("服务器不支持断点续传！");
 				return false;
@@ -278,7 +317,7 @@ namespace zfile
 		{
 			try
 			{
-				var result = _client.UploadFile(localPath, remotePath);
+				var result = _client?.UploadFile(localPath, remotePath) ?? FtpStatus.Failed;
 				return result.HasFlag(FtpStatus.Success);
 			}
 			catch (Exception ex)
@@ -293,11 +332,11 @@ namespace zfile
 		/// </summary>
 		/// <param name="path">目录路径</param>
 		/// <returns>是否创建成功</returns>
-		public bool CreateDirectory(string path)
+		public new bool CreateDirectory(string path)
 		{
 			try
 			{
-				_client.CreateDirectory(path);
+				_client?.CreateDirectory(path);
 				return true;
 			}
 			catch (Exception ex)
@@ -305,6 +344,94 @@ namespace zfile
 				MessageBox.Show($"创建目录失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return false;
 			}
+		}
+
+		/// <summary>
+		/// 创建目录操作
+		/// </summary>
+		/// <param name="basePath">基础路径</param>
+		/// <param name="directoryPath">目录路径</param>
+		/// <returns>目录创建操作</returns>
+		public override FileSourceCreateDirectoryOperation CreateCreateDirectoryOperation(string basePath, string directoryPath)
+		{
+			return new FtpCreateDirectoryOperation(this, basePath, directoryPath);
+		}
+
+		/// <summary>
+		/// 创建列表操作
+		/// </summary>
+		/// <param name="path">路径</param>
+		/// <returns>列表操作</returns>
+		public override FileSourceListOperation CreateListOperation(string path)
+		{
+			return new FtpListOperation(this, path);
+		}
+
+		/// <summary>
+		/// 创建复制入操作
+		/// </summary>
+		/// <param name="sourceFileSource">源文件源</param>
+		/// <param name="sourceFiles">源文件列表</param>
+		/// <param name="targetPath">目标路径</param>
+		/// <returns>复制入操作</returns>
+		public override FileSourceCopyInOperation CreateCopyInOperation(IFileSource sourceFileSource, FileEntries sourceFiles, string targetPath)
+		{
+			return new FtpCopyInOperation(sourceFileSource, this, sourceFiles, targetPath);
+		}
+
+		/// <summary>
+		/// 创建复制出操作
+		/// </summary>
+		/// <param name="sourceFiles">源文件列表</param>
+		/// <param name="targetFileSource">目标文件源</param>
+		/// <param name="targetPath">目标路径</param>
+		/// <returns>复制出操作</returns>
+		public FileSourceCopyOutOperation CreateCopyOutOperation(FileEntries sourceFiles, IFileSource targetFileSource, string targetPath)
+		{
+			return new FtpCopyOutOperation(this, targetFileSource, sourceFiles, targetPath);
+		}
+
+		/// <summary>
+		/// 创建删除操作
+		/// </summary>
+		/// <param name="filesToDelete">要删除的文件列表</param>
+		/// <returns>删除操作</returns>
+		public override FileSourceDeleteOperation CreateDeleteOperation(FileEntries filesToDelete)
+		{
+			return new FtpDeleteOperation(this, filesToDelete);
+		}
+
+		/// <summary>
+		/// 创建执行操作
+		/// </summary>
+		/// <param name="executableFile">可执行文件</param>
+		/// <param name="basePath">基础路径</param>
+		/// <param name="parameters">执行参数</param>
+		/// <returns>执行操作</returns>
+		public override FileSourceExecuteOperation CreateExecuteOperation(FileEntry executableFile, string basePath, string parameters)
+		{
+			return new FtpExecuteOperation(this, executableFile, basePath, parameters);
+		}
+
+		/// <summary>
+		/// 创建移动操作
+		/// </summary>
+		/// <param name="sourceFiles">源文件列表</param>
+		/// <param name="targetPath">目标路径</param>
+		/// <returns>移动操作</returns>
+		public override FileSourceMoveOperation CreateMoveOperation(FileEntries sourceFiles, string targetPath)
+		{
+			return new FtpMoveOperation(this, sourceFiles, targetPath);
+		}
+
+		/// <summary>
+		/// 创建计算统计信息操作
+		/// </summary>
+		/// <param name="files">文件列表</param>
+		/// <returns>计算统计信息操作</returns>
+		public override FileSourceCalcStatisticsOperation CreateCalcStatisticsOperation(FileEntries files)
+		{
+			return new FtpCalcStatisticsOperation(this, files);
 		}
 
 		/// <summary>
@@ -316,7 +443,7 @@ namespace zfile
 		{
 			try
 			{
-				_client.DeleteFile(path);
+				_client?.DeleteFile(path);
 				return true;
 			}
 			catch (Exception ex)
@@ -335,7 +462,7 @@ namespace zfile
 		{
 			try
 			{
-				_client.DeleteDirectory(path);
+				_client?.DeleteDirectory(path);
 				return true;
 			}
 			catch (Exception ex)
@@ -355,7 +482,7 @@ namespace zfile
 		{
 			try
 			{
-				_client.Rename(oldPath, newPath);
+				_client?.Rename(oldPath, newPath);
 				return true;
 			}
 			catch (Exception ex)
@@ -371,38 +498,30 @@ namespace zfile
 		/// </summary>
 		/// <param name="fileName">文件名</param>
 		/// <returns>图标键</returns>
-		private string GetFileIconKey(string fileName)
+		private static string GetFileIconKey(string fileName)
 		{
 			string extension = Path.GetExtension(fileName).ToLower();
 
 			// 根据扩展名返回不同的图标键
-			switch (extension)
+			return extension switch
 			{
-				case ".txt":
-					return "text";
-				case ".pdf":
-					return "pdf";
-				case ".doc":
-				case ".docx":
-					return "word";
-				case ".xls":
-				case ".xlsx":
-					return "excel";
-				case ".jpg":
-				case ".jpeg":
-				case ".png":
-				case ".gif":
-				case ".bmp":
-					return "image";
-				case ".zip":
-				case ".rar":
-				case ".7z":
-					return "archive";
-				case ".exe":
-					return "executable";
-				default:
-					return "file";
-			}
+				".txt" => "text",
+				".pdf" => "pdf",
+				".doc" => "word",
+				".docx" => "word",
+				".xls" => "excel",
+				".xlsx" => "excel",
+				".jpg" => "image",
+				".jpeg" => "image",
+				".png" => "image",
+				".gif" => "image",
+				".bmp" => "image",
+				".zip" => "archive",
+				".rar" => "archive",
+				".7z" => "archive",
+				".exe" => "executable",
+				_ => "file"
+			};
 		}
 	}
 }

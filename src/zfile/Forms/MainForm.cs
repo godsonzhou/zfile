@@ -2621,7 +2621,7 @@ namespace zfile
 			if (activeListView.SelectedItems.Count == 0) return result;
 
 			// 获取原始文件列表
-			List<FileEntry> originalFiles = new List<FileEntry>();
+			var originalFiles = new List<FtpFileEntry>();
 			foreach (ListViewItem item in activeListView.SelectedItems)
 			{
 				var fileEntry = GetListItemPath(item);
@@ -2650,7 +2650,7 @@ namespace zfile
 			}
 
 			// 非FTP路径或FTP处理失败，或者是不需要下载的操作（cm_copy, cm_renmov, cm_delete），使用原来的逻辑
-			return originalFiles;
+			return (FileEntry)originalFiles;
 		}
 
 		/// <summary>
@@ -2659,7 +2659,7 @@ namespace zfile
 		/// <param name="ftpSource">FTP文件源</param>
 		/// <param name="sourceFiles">源文件列表</param>
 		/// <returns>临时文件列表</returns>
-		private List<FileEntry> DownloadFtpFilesToTemp(FtpFileSource ftpSource, List<FileEntry> sourceFiles)
+		private List<FileEntry> DownloadFtpFilesToTemp(FtpFileSource ftpSource, List<FtpFileEntry> sourceFiles)
 		{
 			try
 			{
@@ -2692,7 +2692,7 @@ namespace zfile
 				{
 					// 添加操作到管理器并执行
 					_operationsManager.AddOperation(copyOutOperation);
-					copyOutOperation.Execute();
+					//copyOutOperation.Execute();
 
 					// 检查操作是否成功完成
 					if (copyOutOperation.Result == FileSourceOperationResult.Finished)

@@ -294,6 +294,16 @@ public class FileVariantProperty : FileProperty
     public override FilePropertyType ID => FilePropertyType.Variant;
 }
 
+public class FtpFileEntry : FileEntry
+{
+	public FtpFileEntry(string path) : base(path)
+	{
+	}
+	public FtpFileEntry(string path, string name) : base(path, name)
+	{
+	}
+	public override char PathSeparator => '/';
+}
 public class FileEntry : IDisposable
 {
     private string _extension;
@@ -304,10 +314,10 @@ public class FileEntry : IDisposable
     private FilePropertyType _supportedProperties;
     private bool _disposed = false;
 
-    //public string FullPath => $"{Path}{System.IO.Path.DirectorySeparatorChar}{Name}";
     public Dictionary<FilePropertyType, FileProperty> Properties => _properties;
+	public virtual char PathSeparator => System.IO.Path.DirectorySeparatorChar;
 
-    private void SplitIntoNameAndExtension(string fileName, out string fileNameOnly, out string extension)
+	private void SplitIntoNameAndExtension(string fileName, out string fileNameOnly, out string extension)
     {
         int dotIndex = fileName.LastIndexOf('.');
         if (dotIndex > 0 && dotIndex < fileName.Length - 1)
@@ -401,14 +411,14 @@ public class FileEntry : IDisposable
         }
     }
 
-    public string FullPath
+    public virtual string FullPath
     {
         get { return _path + ((FileNameProperty)_properties[FilePropertyType.Name]).Value; }
         set
         {
             if (!string.IsNullOrEmpty(value))
             {
-                if (value[value.Length - 1] == '\\') //Path.DirectorySeparatorChar)
+                if (value[value.Length - 1] == PathSeparator)
                 {
                     Path = value;
                     Name = string.Empty;
@@ -423,7 +433,7 @@ public class FileEntry : IDisposable
         }
     }
 
-    public string Path
+    public virtual string Path
     {
         get { return _path; }
         set
@@ -431,7 +441,7 @@ public class FileEntry : IDisposable
             if (string.IsNullOrEmpty(value))
                 _path = string.Empty;
             else
-                _path = value.EndsWith(System.IO.Path.DirectorySeparatorChar.ToString()) ? value : value + System.IO.Path.DirectorySeparatorChar;
+                _path = value.EndsWith(PathSeparator) ? value : value + PathSeparator;
         }
     }
 
@@ -1017,7 +1027,8 @@ public class FileEntries : IEnumerable<FileEntry>
     public bool IsFlat => _flat;
     public string Name => _list.Count > 0 ? _list[0].Name : string.Empty;
     public string PathName => _path;
-    public static FileEntries FromArray(FileEntry[] files)
+	public char PathSeparator = System.IO.Path.DirectorySeparatorChar;
+	public static FileEntries FromArray(FileEntry[] files)
     {
         var fileEntries = new FileEntries();
         foreach (var file in files)
@@ -1088,8 +1099,8 @@ public class FileEntries : IEnumerable<FileEntry>
 			else
 			{
 				_path = value;
-				if (value[^1] != System.IO.Path.DirectorySeparatorChar) //Path.DirectorySeparatorChar)
-					_path += System.IO.Path.DirectorySeparatorChar;
+				if (value[^1] != PathSeparator)
+					_path += PathSeparator;
 			}
             if (_flat)
             {
@@ -1152,7 +1163,10 @@ public class FileEntries : IEnumerable<FileEntry>
     {
         _list.Add(file);
 		if (string.IsNullOrEmpty(_path))
+		{
 			_path = file.Path;
+			PathSeparator = file.PathSeparator;
+		}
 		return _list.Count - 1;
     }
 

@@ -44,10 +44,11 @@ namespace zfile
 		public TreeNode ftpRootNode => form.isleft ? _ftpRootNodeL : _ftpRootNodeR;
 		public TreeNode unactiveFtpRootNode => form.isleft ? _ftpRootNodeR : _ftpRootNodeL;
 		private VfsModuleManager _vfsManager;
-		public Dictionary<string, FtpFileSource> ftpSources => _ftpSources;
+		public Dictionary<string, FtpFileSource> ftpSources => _ftpSources; //map ftp connection name to ftp filesource
 		private bool _isDownloading = false;
 		private FtpListOption _listOption = FtpListOption.Auto;
 		public FtpListOption ListOption { get => _listOption; set => _listOption = value; }
+		public List<string> RegisteredDrives => _registeredDrives;
 		/// <summary>
 		/// 显示FTP项目属性
 		/// </summary>

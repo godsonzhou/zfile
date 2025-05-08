@@ -40,11 +40,14 @@ namespace zfile
         protected override void MainExecute()
         {
             // 处理源文件
-            foreach (var file in SourceFiles)
+            foreach (var file in SourceFiles) 
             {
-                CheckOperationState();
-                
-                string targetFilePath = Path.Combine(TargetPath, file.Name);
+				//TODO: CURRENT SOURCEFILES USE '\' AS PATH SEPERATOR, SHOULD USE '/' AS DELIMITER INSTEAD. CONSIDER FILE ENTRY DO NOT SUPPORT '/', SO DO CONVERT IS NECESSARY
+				//another way is to use ftpfileentry
+				//file.FullPath = file.FullPath.Replace('\\', '/');
+				CheckOperationState();
+
+				string targetFilePath = Path.Combine(TargetPath, file.Name);
                 
                 if (file.IsDirectory)
                 {

@@ -303,12 +303,26 @@ public class FtpFileEntry : FileEntry
 	{
 	}
 	public override char PathSeparator => '/';
+	public override string Path {
+		get => base.Path;
+		set
+		{
+			if (string.IsNullOrEmpty(value))
+				base.Path = string.Empty;
+			else
+			{
+				// 处理路径分隔符
+				value = value.Replace('\\', PathSeparator);
+				_path = value.EndsWith(PathSeparator) ? value : value + PathSeparator;
+			}
+		}
+	}
 }
 public class FileEntry : IDisposable, IFileEntry
 {
 	private string _extension;
 	private string _nameNoExt;
-	private string _path;
+	protected string _path;
 	private Dictionary<FilePropertyType, FileProperty> _properties;
 	private List<FileVariantProperty> _variantProperties;
 	private FilePropertyType _supportedProperties;

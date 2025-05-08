@@ -66,7 +66,7 @@ namespace zfile
         private DateTime _startTime;
         private FileSourceOperationState _state;
         private FileSourceOperationState _desiredState;
-        private FileSourceOperationResult _operationResult;
+        protected FileSourceOperationResult _operationResult;
         private bool _operationInitialized;
         private object _connection;
         private bool _needsConnection;

@@ -62,10 +62,10 @@ namespace zfile
                     catch (Exception ex)
                     {
                         Debug.WriteLine($"创建目录失败: {ex.Message}");
-                        if (!AskQuestion($"创建目录 {targetFilePath} 失败: {ex.Message}\n是否继续?", 
+                        if (AskQuestion($"创建目录 {targetFilePath} 失败: {ex.Message}\n", "是否继续?", 
                             new[] { FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.No },
                             FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.No) 
-                            == FileSourceOperationUIResponse.Yes)
+                            != FileSourceOperationUIResponse.Yes)
                         {
                             RaiseAbortOperation();
                             return;
@@ -122,10 +122,10 @@ namespace zfile
             catch (Exception ex)
             {
                 Debug.WriteLine($"处理FTP目录失败: {ex.Message}");
-                if (!AskQuestion($"处理目录 {sourcePath} 失败: {ex.Message}\n是否继续?", 
+                if (AskQuestion($"处理目录 {sourcePath} 失败: {ex.Message}\n", "是否继续?", 
                     new[] { FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.No },
                     FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.No) 
-                    == FileSourceOperationUIResponse.Yes)
+                    != FileSourceOperationUIResponse.Yes)
                 {
                     RaiseAbortOperation();
                 }
@@ -168,10 +168,10 @@ namespace zfile
             catch (Exception ex)
             {
                 Debug.WriteLine($"从FTP复制文件失败: {ex.Message}");
-                if (!AskQuestion($"复制文件 {sourcePath} 到 {targetPath} 失败: {ex.Message}\n是否继续?", 
+                if (AskQuestion($"复制文件 {sourcePath} 到 {targetPath} 失败: {ex.Message}\n", "是否继续?", 
                     new[] { FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.No },
                     FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.No) 
-                    == FileSourceOperationUIResponse.Yes)
+                    != FileSourceOperationUIResponse.Yes)
                 {
                     RaiseAbortOperation();
                 }

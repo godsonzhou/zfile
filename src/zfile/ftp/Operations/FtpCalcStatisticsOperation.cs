@@ -93,10 +93,10 @@ namespace zfile
             catch (Exception ex)
             {
                 Debug.WriteLine($"处理FTP目录统计信息失败: {ex.Message}");
-                if (!AskQuestion($"处理目录 {path} 统计信息失败: {ex.Message}\n是否继续?", 
+                if (AskQuestion($"处理目录 {path} 统计信息失败: {ex.Message}\n", "是否继续?", 
                     new[] { FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.No },
                     FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.No) 
-                    == FileSourceOperationUIResponse.Yes)
+                    != FileSourceOperationUIResponse.Yes)
                 {
                     RaiseAbortOperation();
                 }

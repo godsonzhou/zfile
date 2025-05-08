@@ -42,21 +42,21 @@ namespace zfile
                 Process process = new Process();
                 process.StartInfo.FileName = localPath;
                 
-                if (!string.IsNullOrEmpty(Parameters))
+                if (!string.IsNullOrEmpty(Verb))
                 {
-                    process.StartInfo.Arguments = Parameters;
+                    process.StartInfo.Arguments = Verb;
                 }
                 
                 process.StartInfo.WorkingDirectory = Path.GetDirectoryName(localPath);
                 process.Start();
                 
                 // 设置结果
-                Result = FileSourceExecuteOperationResult.Success;
+                _operationResult = FileSourceOperationResult.Finished;
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"执行FTP文件失败: {ex.Message}");
-                Result = FileSourceExecuteOperationResult.Error;
+                _operationResult = FileSourceOperationResult.Aborted;
                 throw;
             }
         }

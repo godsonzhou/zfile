@@ -80,10 +80,10 @@ namespace zfile
             catch (Exception ex)
             {
                 Debug.WriteLine($"移动FTP项目失败: {ex.Message}");
-                if (!AskQuestion($"移动 {sourcePath} 到 {targetPath} 失败: {ex.Message}\n是否继续?", 
+                if (AskQuestion($"移动 {sourcePath} 到 {targetPath} 失败: {ex.Message}\n是否继续?", string.Empty,
                     new[] { FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.No },
                     FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.No) 
-                    == FileSourceOperationUIResponse.Yes)
+                    != FileSourceOperationUIResponse.Yes)
                 {
                     RaiseAbortOperation();
                 }

@@ -70,10 +70,10 @@ namespace zfile
                     catch (Exception ex)
                     {
                         Debug.WriteLine($"创建FTP目录失败: {ex.Message}");
-                        if (!AskQuestion($"创建目录 {newTargetPath} 失败: {ex.Message}\n是否继续?", 
+                        if (AskQuestion($"创建目录 {newTargetPath} 失败: {ex.Message}\n", "是否继续?", 
                             new[] { FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.No },
                             FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.No) 
-                            == FileSourceOperationUIResponse.Yes)
+                            != FileSourceOperationUIResponse.Yes)
                         {
                             RaiseAbortOperation();
                             return;
@@ -127,10 +127,10 @@ namespace zfile
             catch (Exception ex)
             {
                 Debug.WriteLine($"复制文件到FTP失败: {ex.Message}");
-                if (!AskQuestion($"复制文件 {sourcePath} 到 {targetPath} 失败: {ex.Message}\n是否继续?", 
+                if (AskQuestion($"复制文件 {sourcePath} 到 {targetPath} 失败: {ex.Message}\n", "是否继续?", 
                     new[] { FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.No },
                     FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.No) 
-                    == FileSourceOperationUIResponse.Yes)
+                    != FileSourceOperationUIResponse.Yes)
                 {
                     RaiseAbortOperation();
                 }

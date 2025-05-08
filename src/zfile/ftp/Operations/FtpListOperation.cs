@@ -9,7 +9,7 @@ namespace zfile
     public class FtpListOperation : FileSourceListOperation
     {
         private readonly FtpFileSource _ftpFileSource;
-        private readonly FtpListOption _listOption;
+        private FtpListOption _listOption;
 
         /// <summary>
         /// 创建FTP列表操作
@@ -49,7 +49,7 @@ namespace zfile
                 {
                     var parentFile = _ftpFileSource.CreateFile(Path);
                     parentFile.Name = "..";
-                    parentFile.Attributes = System.IO.FileAttributes.Directory;
+                    parentFile.Attributes = FileAttributes.Directory;
                     Files.Add(parentFile);
                 }
 
@@ -91,14 +91,14 @@ namespace zfile
             }
 
             // 设置时间属性
-            fileEntry.LastWriteTime = item.Modified;
+            fileEntry.ModificationTime = item.Modified;
             
             // 设置权限属性
-            var attributes = new FileAttributesProperty();
-            attributes.OwnerPermissions = (int)item.OwnerPermissions;
-            attributes.GroupPermissions = (int)item.GroupPermissions;
-            attributes.OthersPermissions = (int)item.OthersPermissions;
-            fileEntry.Properties.Add(attributes);
+            //var attributes = new FileAttributesProperty();
+            //attributes.OwnerPermissions = (int)item.OwnerPermissions;
+            //attributes.GroupPermissions = (int)item.GroupPermissions;
+            //attributes.OthersPermissions = (int)item.OthersPermissions;
+            //fileEntry.Properties.Add(attributes);
 
             return fileEntry;
         }

@@ -103,10 +103,10 @@ namespace zfile
             catch (Exception ex)
             {
                 Debug.WriteLine($"删除FTP目录失败: {ex.Message}");
-                if (!AskQuestion($"删除目录 {path} 失败: {ex.Message}\n是否继续?", 
+                if (AskQuestion($"删除目录 {path} 失败: {ex.Message}\n", "是否继续?", 
                     new[] { FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.No },
                     FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.No) 
-                    == FileSourceOperationUIResponse.Yes)
+                    != FileSourceOperationUIResponse.Yes)
                 {
                     RaiseAbortOperation();
                 }
@@ -142,10 +142,10 @@ namespace zfile
             catch (Exception ex)
             {
                 Debug.WriteLine($"删除FTP文件失败: {ex.Message}");
-                if (!AskQuestion($"删除文件 {path} 失败: {ex.Message}\n是否继续?", 
+                if (AskQuestion($"删除文件 {path} 失败: {ex.Message}\n", "是否继续?", 
                     new[] { FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.No },
                     FileSourceOperationUIResponse.Yes, FileSourceOperationUIResponse.No) 
-                    == FileSourceOperationUIResponse.Yes)
+                    != FileSourceOperationUIResponse.Yes)
                 {
                     RaiseAbortOperation();
                 }

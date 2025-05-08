@@ -223,8 +223,10 @@ namespace zfile
                         newQueue.Insert(this);
 
                     OperationsManager.Instance.NotifyEvent(this, OperationEventType.Moved);
-                }
-            }
+					//bugfix: queue became null after this line, do assign it again
+					queue = newQueue;
+				}
+			}
         }
 
         /// <summary>
@@ -608,7 +610,7 @@ namespace zfile
                 operation.PreventStart();
 
                 var queue = GetOrCreateQueue(queueIdentifier);
-                item.SetQueue(queue, insertAtFrontOfQueue);
+                item.SetQueue(queue, insertAtFrontOfQueue);//TODO: 当执行完这行，item.queue为何为空
                 NotifyEvent(item, OperationEventType.Added);
 
                 if (showProgress)

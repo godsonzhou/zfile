@@ -2710,10 +2710,13 @@ namespace zfile
 				{
 					// 添加操作到管理器并执行
 					_operationsManager.AddOperation(copyOutOperation);
-					//copyOutOperation.Execute();
+					var opitem = _operationsManager.GetItemByOperation(copyOutOperation);
+					opitem?.OperationThread.WaitFor();
 
+					Debug.Print($"now check the copyout operation result{copyOutOperation.Result}");
+					
 					// 检查操作是否成功完成
-					if (copyOutOperation.Result == FileSourceOperationResult.Finished)
+					if (copyOutOperation.Result == FileSourceOperationResult.Finished)//bugfix: when check the copyoutoperation.result, the operation is being executed, so the result is not finished yet.
 					{
 						// 获取临时目录中的所有文件
 						List<FileEntry> tempFiles = new List<FileEntry>();

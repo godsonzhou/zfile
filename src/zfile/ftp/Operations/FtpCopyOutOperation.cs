@@ -46,18 +46,15 @@ namespace zfile
 				//another way is to use ftpfileentry
 				//file.FullPath = file.FullPath.Replace('\\', '/');
 				CheckOperationState();
-
-				string targetFilePath = Path.Combine(TargetPath, file.Name);
                 
                 if (file.IsDirectory)
                 {
-                    // 创建目录
-                    try
-                    {
-                        if (!Directory.Exists(targetFilePath))
-                        {
+					string targetFilePath = Path.Combine(TargetPath, file.Name);
+					// 创建目录
+					try
+					{
+						if (!Directory.Exists(targetFilePath))
                             Directory.CreateDirectory(targetFilePath);
-                        }
                         
                         // 递归处理子目录
                         ProcessDirectory(file.FullPath, targetFilePath);
@@ -78,7 +75,7 @@ namespace zfile
                 else
                 {
                     // 复制文件
-                    CopyFile(file.FullPath, targetFilePath);
+                    CopyFile(file.FullPath, TargetPath);
                 }
             }
         }

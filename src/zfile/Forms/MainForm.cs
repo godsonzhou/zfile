@@ -1809,7 +1809,7 @@ namespace zfile
 						root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out IShellFolder iSub); //获取子节点的ishellfolder接口
 						string name;
 						string path = w32.GetPathByIShell(root, pidlSub);   //子节点path -> 此电脑\\迅雷下载, c:\\
-						//Debug.Print(path);
+																			//Debug.Print(path);
 						var pathPart = path.Split('\\');
 						name = !pathPart[^1].Equals(string.Empty) ? pathPart[^1] : pathPart[^2];
 						var subItem = new ShellItem(pidlSub, iSub, root); //子节点的tag存放pidl和ishellfolder接口
@@ -2193,7 +2193,7 @@ namespace zfile
 
 						// 确保路径格式正确（去掉前导斜杠）
 						//operationPath = Helper.ExcludeFrontPathDelimiter(operationPath);
-						if (operationPath.Equals(string.Empty)) 
+						if (operationPath.Equals(string.Empty))
 							operationPath = fileSource.GetRootDir();
 						Debug.Print($"WcxArchiveFileSource: 将绝对路径 {path} 转换为相对路径 {operationPath}");
 					}
@@ -2616,35 +2616,109 @@ namespace zfile
 					return ret.Select(x => new FileEntry(x)).ToList();
 				}
 			}
+
 			List<FileEntry> result = new();
 			if (activeListView.SelectedItems.Count == 0) return result;
 
-			// 检查是否是FTP路径
-			if (CurrentFullpath[LRflag].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase) && needftpdownload)
+			// 获取原始文件列表
+			List<FileEntry> originalFiles = new List<FileEntry>();
+			foreach (ListViewItem item in activeListView.SelectedItems)
 			{
-				// 从当前目录中提取连接名称
-				string connectionName = ExtractFtpConnectionName(CurrentFullpath[LRflag]);
-				if (!string.IsNullOrEmpty(connectionName) && fTPMGR.ftpSources.TryGetValue(connectionName, out FtpFileSource source))
+				var fileEntry = GetListItemPath(item);
+				if (fileEntry != null)
 				{
-					// 对于FTP文件，先下载到本地临时目录
-					//return activeListView.SelectedItems.Cast<ListViewItem>()
-					//	.Where(i => i.SubItems[3].Text != "<DIR>") // 排除目录
-					//	.Select(i =>
-					//	{
-					//		string remotePath = i.SubItems[1].Text;
-					//		return source.DownloadFile(remotePath);
-					//	})
-					//	.Where(path => !string.IsNullOrEmpty(path)) // 排除下载失败的文件
-					//	.ToList();
-					//fTPMGR.CopyFtpItemToLocal(source, CurrentFullpath[LRflag]);
-					//foreach(var item in activeListView.SelectedItems) 
-					//	source.DownloadFile(CurrentFullpath[LRflag] + item);
+					originalFiles.Add(fileEntry);
 				}
 			}
 
-			// 非FTP路径或FTP处理失败，使用原来的逻辑
-			//return activeListView.SelectedItems.Cast<ListViewItem>().Select(i => i.SubItems[1].Text).ToList();
-			return activeListView.SelectedItems.Cast<ListViewItem>().Select(i => GetListItemPath(i)).ToList();
+			// 检查是否是FTP路径，并且是需要下载的操作（cm_edit或cm_list）
+			bool isFtpPath = CurrentFullpath[LRflag].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase);
+
+			if (isFtpPath && needftpdownload)
+			{
+				// 从当前目录中提取连接名称
+				string connectionName = ExtractFtpConnectionName(CurrentFullpath[LRflag]);
+				if (!string.IsNullOrEmpty(connectionName) && fTPMGR.ftpSources.TryGetValue(connectionName, out FtpFileSource ftpSource))
+				{
+					// 使用FtpCopyOutOperation下载文件到临时目录
+					var tempFiles = DownloadFtpFilesToTemp(ftpSource, originalFiles);
+					if (tempFiles.Count > 0)
+					{
+						return tempFiles;
+					}
+				}
+			}
+
+			// 非FTP路径或FTP处理失败，或者是不需要下载的操作（cm_copy, cm_renmov, cm_delete），使用原来的逻辑
+			return originalFiles;
+		}
+
+		/// <summary>
+		/// 将FTP文件下载到临时目录
+		/// </summary>
+		/// <param name="ftpSource">FTP文件源</param>
+		/// <param name="sourceFiles">源文件列表</param>
+		/// <returns>临时文件列表</returns>
+		private List<FileEntry> DownloadFtpFilesToTemp(FtpFileSource ftpSource, List<FileEntry> sourceFiles)
+		{
+			try
+			{
+				// 创建临时文件系统
+				ITempFileSystemFileSource tempFileSource = new TempFileSystemFileSource();
+				string tempPath = tempFileSource.FileSystemRoot;
+
+				// 创建文件条目列表
+				var fileEntries = new FileEntries();
+				foreach (var file in sourceFiles)
+				{
+					if (!file.IsDirectory) // 只处理文件，不处理目录
+					{
+						fileEntries.Add(file);
+					}
+				}
+
+				if (fileEntries.Count == 0)
+				{
+					return new List<FileEntry>();
+				}
+
+				// 创建FTP复制出操作
+				var copyOutOperation = ftpSource.CreateCopyOutOperation(
+					tempFileSource,
+					fileEntries,
+					tempPath);
+
+				if (copyOutOperation != null)
+				{
+					// 添加操作到管理器并执行
+					_operationsManager.AddOperation(copyOutOperation);
+					copyOutOperation.Execute();
+
+					// 检查操作是否成功完成
+					if (copyOutOperation.Result == FileSourceOperationResult.Finished)
+					{
+						// 获取临时目录中的所有文件
+						List<FileEntry> tempFiles = new List<FileEntry>();
+						foreach (var file in fileEntries)
+						{
+							string tempFilePath = Path.Combine(tempPath, file.Name);
+							if (File.Exists(tempFilePath))
+							{
+								var tempFile = FileSystemFileSource.CreateFileFromFile(tempFilePath);
+								tempFiles.Add(tempFile);
+							}
+						}
+						return tempFiles;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"下载FTP文件到临时目录失败: {ex.Message}");
+				MessageBox.Show($"下载FTP文件失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+
+			return new List<FileEntry>();
 		}
 
 		public void cm_list(string param = "")
@@ -3282,7 +3356,7 @@ namespace zfile
 
 			if (!string.IsNullOrEmpty(param)) // if param exist, indicate that use clipboard to copy/move file, so the actpanel is targetpanel, otherwise is normal operation, the actpanel is srcpanel.
 			{
-				sourceFiles = GetFileListByViewOrParam(param).ToArray(); ;
+				sourceFiles = GetFileListByViewOrParam(param).ToArray();
 				srcPath = Path.GetDirectoryName(sourceFiles[0].FullPath) ?? "";
 				targetlist = uiManager.activeListView;
 			}
@@ -3290,7 +3364,18 @@ namespace zfile
 			{
 				var listView = activeListView;
 				if (listView == null || listView.SelectedItems.Count <= 0) return false;
-				sourceFiles = listView.SelectedItems.Cast<ListViewItem>().Select(item => GetListItemPath(item)).ToArray();
+
+				// 获取文件列表
+				List<FileEntry> fileList = new List<FileEntry>();
+				foreach (ListViewItem item in listView.SelectedItems)
+				{
+					var fileEntry = GetListItemPath(item);
+					if (fileEntry != null)
+					{
+						fileList.Add(fileEntry);
+					}
+				}
+				sourceFiles = fileList.ToArray();
 				srcPath = uiManager.srcDir;//todo: need add wcx virtual folder to shengfilesystemnode's child, 然后才能从srcdir获取到正确的srcpath
 										   // 如果没有指定目标路径，则使用非活动面板的路径作为目标
 				if (string.IsNullOrEmpty(targetPath))
@@ -3309,20 +3394,7 @@ namespace zfile
 					// 创建文件条目列表
 					var fileEntries = new FileEntries();
 					foreach (var file in sourceFiles)
-					{
-						//var fileEntry = new FileEntry
-						//{
-						//	Name = Path.GetFileName(filePath),
-						//	FullPath = filePath,
-						//	IsDirectory = Directory.Exists(filePath),
-						//	Size = File.Exists(filePath) ? new FileInfo(filePath).Length : 0,
-						//	CreationTime = File.GetCreationTime(filePath),
-						//	ModificationTime = File.GetLastWriteTime(filePath),
-						//	LastAccessTime = File.GetLastAccessTime(filePath),
-						//	Attributes = File.GetAttributes(filePath)
-						//};
 						fileEntries.Add(file);
-					}
 
 					// 使用 FileSourceManager 创建适合的复制操作
 					FileSourceOperation? operation = FileSourceManager.CreateCopyOperation(
@@ -3333,9 +3405,7 @@ namespace zfile
 
 					// 特殊情况：如果源和目标都是WcxArchiveFileSource，需要通过临时文件系统进行复制
 					if (operation == null && sourceFileSource is IWcxArchiveFileSource && targetFileSource is IWcxArchiveFileSource)
-					{
 						return CopyViaTemporaryDirectory(sourceFileSource, targetFileSource, fileEntries, targetPath);
-					}
 
 					if (operation != null)
 					{
@@ -3585,20 +3655,7 @@ namespace zfile
 				// 创建文件条目列表
 				var fileEntries = new FileEntries();
 				foreach (var fileEntry in sourceFiles)
-				{
-					//var fileEntry = new FileEntry
-					//{
-					//	Name = Path.GetFileName(filePath),
-					//	FullPath = filePath,
-					//	IsDirectory = Directory.Exists(filePath),
-					//	Size = File.Exists(filePath) ? new FileInfo(filePath).Length : 0,
-					//	CreationTime = File.GetCreationTime(filePath),
-					//	ModificationTime = File.GetLastWriteTime(filePath),
-					//	LastAccessTime = File.GetLastAccessTime(filePath),
-					//	Attributes = File.GetAttributes(filePath)
-					//};
 					fileEntries.Add(fileEntry);
-				}
 
 				// 创建移动操作
 				FileSourceOperation? operation;
@@ -3737,18 +3794,7 @@ namespace zfile
 					// 创建文件条目列表
 					var fileEntries = new FileEntries();
 					foreach (var fileEntry in files)
-					{
-						//var fileEntry = new FileEntry
-						//{
-						//	Name = Path.GetFileName(filePath),
-						//	FullPath = filePath,
-						//	IsDirectory = Directory.Exists(filePath),
-						//	Size = File.Exists(filePath) ? new FileInfo(filePath).Length : 0,
-						//	ModificationTime = File.GetLastWriteTime(filePath),
-						//	Attributes = File.GetAttributes(filePath)
-						//};
 						fileEntries.Add(fileEntry);
-					}
 
 					// 创建删除操作
 					var operation = fileSource.CreateDeleteOperation(fileEntries);

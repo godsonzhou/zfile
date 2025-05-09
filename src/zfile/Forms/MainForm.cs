@@ -1,3 +1,4 @@
+using Sheng.Winform.Controls;
 using System.Collections;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -1132,14 +1133,24 @@ namespace zfile
 		private void UpdatePathTextAndDriveComboBox(TreeNode eNode, string path, bool isleft)
 		{
 			if (!eNode.TreeView.Name.Equals(isleft ? "L" : "R")) return;
+			var txt = eNode.Text.Substring(0, 2);
+
 			if (isleft)
 			{
-				uiManager.LeftPathTextBox.SetAddress(eNode);    // 调用leftpathtextbox的setaddress方法来更新路径
+				if (ShengAddressBarStrip.FtpDrives.Contains(txt)) //if ftp node clicked, update the pathtextbox
+					uiManager.LeftPathTextBox.UpdateDrives(ShengAddressBarStrip.FtpDrives, txt);
+				else
+					uiManager.LeftPathTextBox.SetAddress(eNode);    // 调用leftpathtextbox的setaddress方法来更新路径
+
 				SetDriveComboByValue(uiManager.LeftDriveComboBox, eNode.FullPath);
 			}
 			else
 			{
-				uiManager.RightPathTextBox.SetAddress(eNode);
+				if (ShengAddressBarStrip.FtpDrives.Contains(txt)) //if ftp node clicked, update the pathtextbox
+					uiManager.RightPathTextBox.UpdateDrives(ShengAddressBarStrip.FtpDrives, txt);
+				else
+					uiManager.RightPathTextBox.SetAddress(eNode);
+
 				SetDriveComboByValue(uiManager.RightDriveComboBox, eNode.FullPath);
 			}
 

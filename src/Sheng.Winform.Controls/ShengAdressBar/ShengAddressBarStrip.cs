@@ -543,7 +543,8 @@ namespace Sheng.Winform.Controls
                 var i = (ShellItem)tnode.Tag;
                 SetAddress(i.parsepath);
             }
-            _currentNode.tNode = tnode;
+	
+			_currentNode.tNode = tnode;
         }
         public void SetChildren(string fullpath, List<string> children)
         {

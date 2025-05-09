@@ -325,6 +325,7 @@ namespace Sheng.Winform.Controls
 					{
 						this.szDisplayName = $"({fullPath})";
 						this.fullPath = fullPath + "\\";
+						//todo: set icon here
 						return;
 					}
                     //get the icon and display name

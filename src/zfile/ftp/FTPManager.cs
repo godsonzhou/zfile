@@ -255,10 +255,11 @@ namespace zfile
 					_registeredDrives.Add(driveId);
 
 					// 添加到DriveComboBox
-					AddToDriveComboBox(connectionName, driveId);
+					var drive = $"{driveId} [{connectionName}]";
+					AddToDriveComboBox(drive);
 					
-					form.uiManager.LeftPathTextBox.UpdateDrives(_registeredDrives);
-					form.uiManager.RightPathTextBox.UpdateDrives(_registeredDrives);
+					form.uiManager.LeftPathTextBox.UpdateDrives(_registeredDrives, form.isleft? driveId : null);
+					form.uiManager.RightPathTextBox.UpdateDrives(_registeredDrives, !form.isleft? driveId : null);
 					return true;
 				}
 			}
@@ -301,11 +302,11 @@ namespace zfile
 		/// <param name="form">主窗体</param>
 		/// <param name="connectionName">连接名称</param>
 		/// <param name="driveId">驱动器标识符</param>
-		private void AddToDriveComboBox(string connectionName, string driveId)
+		private void AddToDriveComboBox(string driveinfo)
 		{
 			// 添加到左侧和右侧驱动器下拉框
-			form.uiManager.LeftDriveComboBox.Items.Add($"{driveId} [{connectionName}]");
-			form.uiManager.RightDriveComboBox.Items.Add($"{driveId} [{connectionName}]");
+			form.uiManager.LeftDriveComboBox.Items.Add(driveinfo);
+			form.uiManager.RightDriveComboBox.Items.Add(driveinfo);
 		}
 
 		private void RemoveFtpNode(TreeNode node, bool isleft = false)

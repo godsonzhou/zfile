@@ -72,7 +72,7 @@ namespace Sheng.Winform.Controls
         /// </summary>
         public Bitmap Icon
         {
-            get { return this.icon.ToBitmap(); }
+            get { return this.icon?.ToBitmap(); }
         }
 
         /// <summary>
@@ -322,7 +322,11 @@ namespace Sheng.Winform.Controls
                 if (fullPath.Length > 0)
                 {
 					if (ShengAddressBarStrip.FtpDrives.Contains(fullPath))
+					{
+						this.szDisplayName = $"({fullPath})";
+						this.fullPath = fullPath + "\\";
 						return;
+					}
                     //get the icon and display name
                     Win32.SHGetFileInfo(fullPath, 0, ref shinfo, (uint)Marshal.SizeOf(shinfo), Win32.SHGFI_ICON | Win32.SHGFI_SMALLICON | Win32.SHGFI_DISPLAYNAME);
                 }

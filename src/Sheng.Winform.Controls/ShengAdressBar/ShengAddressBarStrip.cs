@@ -10,7 +10,7 @@ using WinShell;
 namespace Sheng.Winform.Controls
 {
 
-	/*
+    /*
      * 在使用前一定要先初始化根节点
      * 然后如果设置当前路径的话，就设置一个由唯一ID组成的Path
      * 然后此方法内部解释这个Path。
@@ -18,24 +18,39 @@ namespace Sheng.Winform.Controls
      * 这样的坏处是会创建很多新的对象浪费资源，改成由根节点解释路径好些
      */
 
-	[ToolboxItem(false)]
-	public class ShengAddressBarStrip : ToolStrip
-	{
-		//private static List<string> _ftpdrives = new List<string>();
-		public static List<string> FtpDrives = new List<string>(); //{ get => _ftpdrives; set { _ftpdrives = value; } }
-		public void UpdateDrives(List<string> ftpdrives)
-		{
-			FtpDrives = ftpdrives;
-			SetChildren("此电脑", Environment.GetLogicalDrives().Concat(ftpdrives).ToList());
-		}
-		#region 公开事件
+    [ToolboxItem(false)]
+    public class ShengAddressBarStrip : ToolStrip
+    {
+        //private static List<string> _ftpdrives = new List<string>();
+        public static List<string> FtpDrives = new List<string>(); //{ get => _ftpdrives; set { _ftpdrives = value; } }
+        public void UpdateDrives(List<string> ftpdrives, string currentPath = null)
+        {
+            FtpDrives = ftpdrives;
+            SetChildren("此电脑", Environment.GetLogicalDrives().Concat(ftpdrives).ToList());
+            // 重新初始化根节点以反映新的驱动器列表
+            if (_rootNode != null)
+            {
+                // 保存当前节点路径
+                string currentPathbak = _currentNode?.UniqueID ?? "";
 
-		/// <summary>
-		/// Delegate for handling when a new node is selected
-		/// </summary>
-		/// <param name="sender">Sender of this event</param>
-		/// <param name="nca">Event Arguments</param>
-		public delegate void SelectionChanged(object sender, NodeChangedArgs e);
+                // 重新初始化根节点
+                InitializeRoot(_rootNode);
+
+                // 如果有当前路径，尝试恢复
+                if (!string.IsNullOrEmpty(currentPath))
+                {
+                    SetAddress(currentPath + "\\"); //change f: -> f:\ here
+                }
+            }
+        }
+        #region 公开事件
+
+        /// <summary>
+        /// Delegate for handling when a new node is selected
+        /// </summary>
+        /// <param name="sender">Sender of this event</param>
+        /// <param name="nca">Event Arguments</param>
+        public delegate void SelectionChanged(object sender, NodeChangedArgs e);
 
         /// <summary>
         /// Delegate for handling a node double click event.
@@ -521,73 +536,75 @@ namespace Sheng.Winform.Controls
                 ResetBar();
             }
         }
-		public void SetAddress(TreeNode tnode)
-		{
-			if (tnode.Tag is ShellItem)
-			{
-				var i = (ShellItem)tnode.Tag;
-				SetAddress(i.parsepath);
-			}
-			_currentNode.tNode = tnode;
-		}
-		public void SetChildren(string fullpath, List<string> children)
-		{
-			if (children != null) { 
-				var n = FindNodeByFullPath(fullpath);
-				if (n != null) {
-					n.SetChildren(children);
-				}
-			}
-		}
-		public IShengAddressNode FindNodeByFullPath(string fullpath)
-		{
-			if (_rootNode.DisplayName == fullpath)
-				return _rootNode;
+        public void SetAddress(TreeNode tnode)
+        {
+            if (tnode.Tag is ShellItem)
+            {
+                var i = (ShellItem)tnode.Tag;
+                SetAddress(i.parsepath);
+            }
+            _currentNode.tNode = tnode;
+        }
+        public void SetChildren(string fullpath, List<string> children)
+        {
+            if (children != null)
+            {
+                var n = FindNodeByFullPath(fullpath);
+                if (n != null)
+                {
+                    n.SetChildren(children);
+                }
+            }
+        }
+        public IShengAddressNode FindNodeByFullPath(string fullpath)
+        {
+            if (_rootNode.DisplayName == fullpath)
+                return _rootNode;
 
-			string[] pathArray = fullpath.Split('\\');  //bugfix: '/' -> '\\' for windows, '/' is not a valid path separator
-			var tmpnode = _rootNode; //  _currentNode;     //record the original value
-			//_currentNode = _rootNode;
-			string pth = "";
-			for (int i = 0; i < pathArray.Length; i++)
-			{
-				//bugfix: c: -> c:\
-				if (pathArray[i] == string.Empty)
-					continue;
+            string[] pathArray = fullpath.Split('\\');  //bugfix: '/' -> '\\' for windows, '/' is not a valid path separator
+            var tmpnode = _rootNode; //  _currentNode;     //record the original value
+                                     //_currentNode = _rootNode;
+            string pth = "";
+            for (int i = 0; i < pathArray.Length; i++)
+            {
+                //bugfix: c: -> c:\
+                if (pathArray[i] == string.Empty)
+                    continue;
 				if (pathArray[i].EndsWith(":"))
 					pathArray[i] += "\\";
 				if (pth == string.Empty)
-					pth = pathArray[i];
-				else if (pth.EndsWith("\\"))
-					pth = pth + pathArray[i];
-				else
-					pth = pth + "\\" + pathArray[i];
+                    pth = pathArray[i];
+                else if (pth.EndsWith("\\"))
+                    pth = pth + pathArray[i];
+                else
+                    pth = pth + "\\" + pathArray[i];
 
-				//_currentNode.CreateChildNodes();    // 确保当前节点的子节点已加载
-				tmpnode.CreateChildNodes();
-				//foreach (IShengAddressNode node in _currentNode.Children)
-				if (tmpnode.Children == null)
-					break;
-				foreach (IShengAddressNode node in tmpnode.Children)
-				{
-					if (node.UniqueID == pth)
-					{
-						//_currentNode = node;
-						tmpnode = node;
-						//if (tmpnode != node)
-						//{
-						//	Debug.Print("//fire the node change event");
-						//	if (SelectionChange != null)
-						//	{
-						//		NodeChangedArgs nca = new NodeChangedArgs(_currentNode.UniqueID);
-						//		SelectionChange(this, nca);
-						//	}
-						//}
-						break;
-					}
-				}
-			}
-			return tmpnode.UniqueID.Equals(fullpath) ? tmpnode : null;
-		}
+                //_currentNode.CreateChildNodes();    // 确保当前节点的子节点已加载
+                tmpnode.CreateChildNodes();
+                //foreach (IShengAddressNode node in _currentNode.Children)
+                if (tmpnode.Children == null)
+                    break;
+                foreach (IShengAddressNode node in tmpnode.Children)
+                {
+                    if (node.UniqueID == pth)
+                    {
+                        //_currentNode = node;
+                        tmpnode = node;
+                        //if (tmpnode != node)
+                        //{
+                        //	Debug.Print("//fire the node change event");
+                        //	if (SelectionChange != null)
+                        //	{
+                        //		NodeChangedArgs nca = new NodeChangedArgs(_currentNode.UniqueID);
+                        //		SelectionChange(this, nca);
+                        //	}
+                        //}
+                        break;
+                    }
+                }
+            }
+            return tmpnode.UniqueID.Equals(fullpath) ? tmpnode : null;
+        }
         /// <summary>
         /// 通过这种方式设置路径的前提是有（初始化过）根节点
         /// </summary>
@@ -605,13 +622,13 @@ namespace Sheng.Winform.Controls
             }
 
             //解释path找到当前节点，然后调用RestBar方法就可以了
-			_currentNode = FindNodeByFullPath(path);
-			ResetBar();
+            _currentNode = FindNodeByFullPath(path);
+            ResetBar();
         }
 
         public void SetAddress(IShengAddressNode addressNode)
         {
-			
+
             _currentNode = addressNode;
             ResetBar();
         }

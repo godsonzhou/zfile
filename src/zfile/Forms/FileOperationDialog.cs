@@ -1106,7 +1106,7 @@ namespace zfile
 		}
 		private void OnUpdateTimer()
 		{
-			if (_operationItem != null && _operationItem.Queue.Identifier != _queueIdentifier)
+			if (_operationItem != null && _operationItem.Queue?.Identifier != _queueIdentifier)
 			{
 				var queue = OperationsManager.Instance.GetQueueByIdentifier(_queueIdentifier);
 				FinalizeOperation();
@@ -1117,7 +1117,7 @@ namespace zfile
 				}
 				else
 				{
-					_queueIdentifier = _operationItem.Queue.Identifier;
+					_queueIdentifier = _operationItem.Queue?.Identifier ?? 0;
 					_operationHandle = _operationItem.Handle;
 				}
 				if (!InitializeOperation())

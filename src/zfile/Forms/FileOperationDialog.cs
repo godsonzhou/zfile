@@ -208,9 +208,363 @@ namespace zfile
 
 			return false;
 		}
-		private void updateOperation(OperationsManagerItem item)
+		// Helper methods for operation updates
+		private static string GetProgressString(double progress)
 		{
+			return $"{(int)(progress * 100)}%";
+		}
 
+		private static string GetOperationStateString(FileSourceOperationState state)
+		{
+			switch (state)
+			{
+				case FileSourceOperationState.Paused:
+					return " [暂停]";
+				case FileSourceOperationState.Stopping:
+					return " [停止中]";
+				case FileSourceOperationState.WaitingForFeedback:
+					return " [等待反馈]";
+				case FileSourceOperationState.WaitingForConnection:
+					return " [等待连接]";
+				default:
+					return string.Empty;
+			}
+		}
+
+		private void SetLabelText(Label label, string text)
+		{
+			if (label != null && !string.IsNullOrEmpty(text))
+			{
+				label.Text = text;
+				label.Tag = text; // Store full text in Tag for tooltip
+			}
+		}
+
+		private void SetProgressBytes(FileSourceOperation operation, ProgressBar progressBar, long currentBytes, long totalBytes)
+		{
+			if (progressBar == null)
+				return;
+
+			if (currentBytes == -1)
+			{
+				progressBar.Style = ProgressBarStyle.Marquee;
+			}
+			else
+			{
+				if (operation.State == FileSourceOperationState.Running)
+					progressBar.Style = ProgressBarStyle.Continuous;
+
+				if (totalBytes > 0)
+				{
+					progressBar.Value = (int)Math.Min(100, (currentBytes * 100) / totalBytes);
+				}
+				else
+				{
+					progressBar.Style = ProgressBarStyle.Marquee;
+				}
+			}
+		}
+
+		private void SetProgressFiles(FileSourceOperation operation, ProgressBar progressBar, long currentFiles, long totalFiles)
+		{
+			if (progressBar == null)
+				return;
+
+			if (currentFiles == -1)
+			{
+				progressBar.Style = ProgressBarStyle.Marquee;
+			}
+			else
+			{
+				if (operation.State == FileSourceOperationState.Running)
+					progressBar.Style = ProgressBarStyle.Continuous;
+
+				if (totalFiles > 0)
+				{
+					progressBar.Value = (int)Math.Min(100, (currentFiles * 100) / totalFiles);
+				}
+				else
+				{
+					progressBar.Style = ProgressBarStyle.Marquee;
+				}
+			}
+		}
+
+		private void SetProgressCount(long doneFiles, long totalFiles)
+		{
+			if (lblFileCount == null)
+				return;
+
+			if (doneFiles < 0 || totalFiles == 0)
+				lblFileCount.Text = string.Empty;
+			else
+				lblFileCount.Text = $"{doneFiles} / {totalFiles}";
+		}
+
+		private void SetSpeedAndTime(FileSourceOperation operation, DateTime remainingTime, string speed)
+		{
+			if (lblEstimated == null)
+				return;
+
+			string estimatedText = " ";
+
+			if (operation.State == FileSourceOperationState.Running)
+			{
+				var time = Helper.ConvertDateTimeToTimeSpan(remainingTime);
+				if (time.TotalSeconds > 0)
+				{
+					if (time.Days > 0)
+						estimatedText = $"速度: {speed}, 剩余: {time.Days}天 {time.Hours:D2}:{time.Minutes:D2}:{time.Seconds:D2}";
+					else
+						estimatedText = $"速度: {speed}, 剩余: {time.Hours:D2}:{time.Minutes:D2}:{time.Seconds:D2}";
+				}
+				else
+				{
+					estimatedText = $"速度: {speed}";
+				}
+			}
+
+			lblEstimated.Text = estimatedText;
+		}
+
+		// Helper method to format file size
+		private static string FormatFileSize(long bytes)
+		{
+			if (bytes < 1024)
+				return $"{bytes} B";
+			else if (bytes < 1024 * 1024)
+				return $"{bytes / 1024.0:F2} KB";
+			else if (bytes < 1024 * 1024 * 1024)
+				return $"{bytes / (1024.0 * 1024.0):F2} MB";
+			else
+				return $"{bytes / (1024.0 * 1024.0 * 1024.0):F2} GB";
+		}
+
+		// Operation update methods
+		private void UpdateCopyOperation(FileSourceOperation operation)
+		{
+			if (operation is FileSourceCopyOperation copyOperation)
+			{
+				var statistics = copyOperation.RetrieveStatistics();
+
+				SetLabelText(lblFileNameFrom, statistics.CurrentFileFrom);
+				SetLabelText(lblFileNameTo, statistics.CurrentFileTo);
+
+				SetProgressCount(statistics.DoneFiles, statistics.TotalFiles);
+				SetProgressBytes(operation, pbCurrent, statistics.CurrentFileDoneBytes, statistics.CurrentFileTotalBytes);
+				SetProgressBytes(operation, pbTotal, statistics.DoneBytes, statistics.TotalBytes);
+				SetSpeedAndTime(operation, statistics.RemainingTime, FormatFileSize(statistics.BytesPerSecond) + "/s");
+			}
+		}
+
+		private void UpdateMoveOperation(FileSourceOperation operation)
+		{
+			if (operation is FileSourceMoveOperation moveOperation)
+			{
+				var statistics = moveOperation.RetrieveStatistics();
+
+				SetLabelText(lblFileNameFrom, statistics.CurrentFileFrom);
+				SetLabelText(lblFileNameTo, statistics.CurrentFileTo);
+
+				SetProgressCount(statistics.DoneFiles, statistics.TotalFiles);
+				SetProgressBytes(operation, pbCurrent, statistics.CurrentFileDoneBytes, statistics.CurrentFileTotalBytes);
+				SetProgressBytes(operation, pbTotal, statistics.DoneBytes, statistics.TotalBytes);
+				SetSpeedAndTime(operation, statistics.RemainingTime, FormatFileSize(statistics.BytesPerSecond) + "/s");
+			}
+		}
+
+		private void UpdateDeleteOperation(FileSourceOperation operation)
+		{
+			if (operation is FileSourceDeleteOperation deleteOperation)
+			{
+				var statistics = deleteOperation.RetrieveStatistics();
+
+				SetLabelText(lblFileNameFrom, statistics.CurrentFile);
+
+				SetProgressFiles(operation, pbTotal, statistics.DoneFiles, statistics.TotalFiles);
+				SetSpeedAndTime(operation, statistics.RemainingTime, statistics.FilesPerSecond.ToString() + " 文件/秒");
+			}
+		}
+
+		private void UpdateWipeOperation(FileSourceOperation operation)
+		{
+			if (operation is FileSourceWipeOperation wipeOperation)
+			{
+				var statistics = wipeOperation.RetrieveStatistics();
+
+				SetLabelText(lblFileNameFrom, statistics.CurrentFile);
+
+				SetProgressBytes(operation, pbCurrent, statistics.CurrentFileDoneBytes, statistics.CurrentFileTotalBytes);
+				SetProgressBytes(operation, pbTotal, statistics.DoneBytes, statistics.TotalBytes);
+				SetSpeedAndTime(operation, statistics.RemainingTime, FormatFileSize(statistics.BytesPerSecond) + "/s");
+			}
+		}
+
+		private void UpdateSplitOperation(FileSourceOperation operation)
+		{
+			if (operation is FileSourceSplitOperation splitOperation)
+			{
+				var statistics = splitOperation.RetrieveStatistics();
+
+				SetLabelText(lblFileNameFrom, statistics.CurrentFileFrom);
+				SetLabelText(lblFileNameTo, statistics.CurrentFileTo);
+
+				SetProgressBytes(operation, pbCurrent, statistics.CurrentFileDoneBytes, statistics.CurrentFileTotalBytes);
+				SetProgressBytes(operation, pbTotal, statistics.DoneBytes, statistics.TotalBytes);
+				SetSpeedAndTime(operation, statistics.RemainingTime, FormatFileSize(statistics.BytesPerSecond) + "/s");
+			}
+		}
+
+		private void UpdateCombineOperation(FileSourceOperation operation)
+		{
+			if (operation is FileSourceCombineOperation combineOperation)
+			{
+				var statistics = combineOperation.RetrieveStatistics();
+
+				SetLabelText(lblFileNameFrom, statistics.CurrentFileFrom);
+				SetLabelText(lblFileNameTo, statistics.CurrentFileTo);
+
+				SetProgressBytes(operation, pbCurrent, statistics.CurrentFileDoneBytes, statistics.CurrentFileTotalBytes);
+				SetProgressBytes(operation, pbTotal, statistics.DoneBytes, statistics.TotalBytes);
+				SetSpeedAndTime(operation, statistics.RemainingTime, FormatFileSize(statistics.BytesPerSecond) + "/s");
+			}
+		}
+
+		private void UpdateCalcStatisticsOperation(FileSourceOperation operation)
+		{
+			if (operation is FileSourceCalcStatisticsOperation calcStatisticsOperation)
+			{
+				var statistics = calcStatisticsOperation.RetrieveStatistics();
+
+				SetLabelText(lblFileNameFrom, statistics.CurrentFile);
+				SetSpeedAndTime(operation, DateTime.MinValue, statistics.FilesPerSecond.ToString() + " 文件/秒");
+			}
+		}
+
+		private void UpdateCalcChecksumOperation(FileSourceOperation operation)
+		{
+			if (operation is FileSourceCalcChecksumOperation calcChecksumOperation)
+			{
+				var statistics = calcChecksumOperation.RetrieveStatistics();
+
+				SetLabelText(lblFileNameFrom, statistics.CurrentFile);
+
+				SetProgressBytes(operation, pbCurrent, statistics.CurrentFileDoneBytes, statistics.CurrentFileTotalBytes);
+				SetProgressBytes(operation, pbTotal, statistics.DoneBytes, statistics.TotalBytes);
+				SetSpeedAndTime(operation, statistics.RemainingTime, FormatFileSize(statistics.BytesPerSecond) + "/s");
+			}
+		}
+
+		private void UpdateTestArchiveOperation(FileSourceOperation operation)
+		{
+			if (operation is FileSourceTestArchiveOperation testArchiveOperation)
+			{
+				var statistics = testArchiveOperation.RetrieveStatistics();
+
+				SetLabelText(lblFileNameFrom, statistics.ArchiveFile);
+				SetLabelText(lblFileNameTo, statistics.CurrentFile);
+
+				SetProgressBytes(operation, pbCurrent, statistics.CurrentFileDoneBytes, statistics.CurrentFileTotalBytes);
+				SetProgressBytes(operation, pbTotal, statistics.DoneBytes, statistics.TotalBytes);
+				SetSpeedAndTime(operation, statistics.RemainingTime, FormatFileSize(statistics.BytesPerSecond) + "/s");
+			}
+		}
+
+		private void UpdateSetFilePropertyOperation(FileSourceOperation operation)
+		{
+			if (operation is FileSourceSetFilePropertyOperation setFilePropertyOperation)
+			{
+				var statistics = setFilePropertyOperation.RetrieveStatistics();
+
+				SetLabelText(lblFileNameFrom, statistics.CurrentFile);
+
+				SetProgressFiles(operation, pbTotal, statistics.DoneFiles, statistics.TotalFiles);
+				SetSpeedAndTime(operation, statistics.RemainingTime, statistics.FilesPerSecond.ToString() + " 文件/秒");
+			}
+		}
+
+		private void UpdateOperation(OperationsManagerItem item)
+		{
+			if (item == null || item.Operation == null)
+				return;
+
+			var operation = item.Operation;
+
+			// Update operation based on type
+			switch (operation.OperationType)
+			{
+				case FileSourceOperationType.Copy:
+				case FileSourceOperationType.CopyIn:
+				case FileSourceOperationType.CopyOut:
+					UpdateCopyOperation(operation);
+					break;
+				case FileSourceOperationType.Move:
+					UpdateMoveOperation(operation);
+					break;
+				case FileSourceOperationType.Delete:
+					UpdateDeleteOperation(operation);
+					break;
+				case FileSourceOperationType.Wipe:
+					UpdateWipeOperation(operation);
+					break;
+				case FileSourceOperationType.Split:
+					UpdateSplitOperation(operation);
+					break;
+				case FileSourceOperationType.Combine:
+					UpdateCombineOperation(operation);
+					break;
+				case FileSourceOperationType.CalcChecksum:
+					UpdateCalcChecksumOperation(operation);
+					break;
+				case FileSourceOperationType.CalcStatistics:
+					UpdateCalcStatisticsOperation(operation);
+					break;
+				case FileSourceOperationType.TestArchive:
+					UpdateTestArchiveOperation(operation);
+					break;
+				case FileSourceOperationType.SetFileProperty:
+					UpdateSetFilePropertyOperation(operation);
+					break;
+				default:
+					// Operation not currently supported for display.
+					// Only show general progress.
+					if (pbTotal != null)
+						pbTotal.Value = (int)(operation.Progress * 100);
+					break;
+			}
+
+			UpdatePauseStartButton(item);
+
+			// Update window caption
+			string newCaption;
+			if (item.Queue.IsFree)
+			{
+				newCaption = GetProgressString(operation.Progress) + " " +
+							 operation.Description +
+							 GetOperationStateString(operation.State);
+			}
+			else
+			{
+				if (item.Queue.Paused)
+				{
+					newCaption = $"[{item.Queue.Count}] {item.Queue.GetDescription(false)}" +
+								 GetOperationStateString(FileSourceOperationState.Paused);
+				}
+				else
+				{
+					newCaption = $"[{item.Queue.Count}] {GetProgressString(operation.Progress)} " +
+								 $"{operation.Description} - " +
+								 item.Queue.GetDescription(false);
+				}
+
+				if (lblCurrentOperationText != null)
+				{
+					lblCurrentOperationText.Text = operation.Description + " " +
+											  GetProgressString(operation.Progress);
+				}
+			}
+
+			Text = newCaption;
 		}
 		/// <summary>
 		/// Finalizes the operation
@@ -785,14 +1139,14 @@ namespace zfile
 				}
 				_operationItem = OperationsManager.Instance.GetItemByHandle(_operationHandle);
 			}
-			if(_operationItem != null)
+			if (_operationItem != null)
 			{
-				updateOperation(_operationItem);
+				UpdateOperation(_operationItem);
 			}
 			else // operation was destroyed
 			{
 				var queue = OperationsManager.Instance.GetQueueByIdentifier(_queueIdentifier);
-				if(queue != null || queue.IsFree)
+				if (queue != null || queue.IsFree)
 				{
 					CloseDialog();
 				}
@@ -804,7 +1158,7 @@ namespace zfile
 				}
 			}
 		}
-	
+
 		private void UpdateControls()
 		{
 			if (_operationItem == null || _operationItem.Operation == null)
@@ -923,8 +1277,10 @@ namespace zfile
 
 			//// Update button based on state
 			//UpdatePauseStartButton(state);
-			if (opManItem.Queue != null && opManItem.Queue.IsFree) { 
-				switch (opManItem.Operation.State) {
+			if (opManItem.Queue != null && opManItem.Queue.IsFree)
+			{
+				switch (opManItem.Operation.State)
+				{
 					case FileSourceOperationState.NotStarted:
 					case FileSourceOperationState.Stopped:
 					case FileSourceOperationState.Paused:

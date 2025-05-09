@@ -288,16 +288,20 @@ namespace Sheng.Winform.Controls
             this.parent = null;
 
             //get our drives
-            string[] drives = Environment.GetLogicalDrives();//TODO: NEED ADD FTP VIRTUAL DRIVE
+            string[] drives = Environment.GetLogicalDrives();
 
             //create space for the children
-            children = new ShengFileSystemNode[drives.Length];
+            children = new ShengFileSystemNode[drives.Length + ShengAddressBarStrip.FtpDrives.Count];
 
             for (int i = 0; i < drives.Length; i++)
             {
                 //create the child value
                 children[i] = new ShengFileSystemNode(drives[i], this);
             }
+
+			//TODO: NEED ADD FTP VIRTUAL DRIVE
+			for (int j = 0; j < ShengAddressBarStrip.FtpDrives.Count; j++)
+				children[j + drives.Length] = new ShengFileSystemNode(ShengAddressBarStrip.FtpDrives[j], this);
 
             //get the icon
             GenerateNodeDisplayDetails();
@@ -317,6 +321,8 @@ namespace Sheng.Winform.Controls
                 //If we have an actual path, then we pass a string
                 if (fullPath.Length > 0)
                 {
+					if (ShengAddressBarStrip.FtpDrives.Contains(fullPath))
+						return;
                     //get the icon and display name
                     Win32.SHGetFileInfo(fullPath, 0, ref shinfo, (uint)Marshal.SizeOf(shinfo), Win32.SHGFI_ICON | Win32.SHGFI_SMALLICON | Win32.SHGFI_DISPLAYNAME);
                 }

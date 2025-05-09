@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 using WinShell;
 
 namespace Sheng.Winform.Controls
 {
-	
+
 	/*
      * 在使用前一定要先初始化根节点
      * 然后如果设置当前路径的话，就设置一个由唯一ID组成的Path
@@ -18,16 +19,23 @@ namespace Sheng.Winform.Controls
      */
 
 	[ToolboxItem(false)]
-    public class ShengAddressBarStrip : ToolStrip
-    {
-        #region 公开事件
+	public class ShengAddressBarStrip : ToolStrip
+	{
+		//private static List<string> _ftpdrives = new List<string>();
+		public static List<string> FtpDrives = new List<string>(); //{ get => _ftpdrives; set { _ftpdrives = value; } }
+		public void UpdateDrives(List<string> ftpdrives)
+		{
+			FtpDrives = ftpdrives;
+			SetChildren("此电脑", Environment.GetLogicalDrives().Concat(ftpdrives).ToList());
+		}
+		#region 公开事件
 
-        /// <summary>
-        /// Delegate for handling when a new node is selected
-        /// </summary>
-        /// <param name="sender">Sender of this event</param>
-        /// <param name="nca">Event Arguments</param>
-        public delegate void SelectionChanged(object sender, NodeChangedArgs e);
+		/// <summary>
+		/// Delegate for handling when a new node is selected
+		/// </summary>
+		/// <param name="sender">Sender of this event</param>
+		/// <param name="nca">Event Arguments</param>
+		public delegate void SelectionChanged(object sender, NodeChangedArgs e);
 
         /// <summary>
         /// Delegate for handling a node double click event.
@@ -533,6 +541,9 @@ namespace Sheng.Winform.Controls
 		}
 		public IShengAddressNode FindNodeByFullPath(string fullpath)
 		{
+			if (_rootNode.DisplayName == fullpath)
+				return _rootNode;
+
 			string[] pathArray = fullpath.Split('\\');  //bugfix: '/' -> '\\' for windows, '/' is not a valid path separator
 			var tmpnode = _rootNode; //  _currentNode;     //record the original value
 			//_currentNode = _rootNode;

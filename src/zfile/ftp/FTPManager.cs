@@ -1,4 +1,5 @@
 ﻿using FluentFTP;
+using Sheng.Winform.Controls;
 using System.Diagnostics;
 using System.Net;
 
@@ -255,7 +256,9 @@ namespace zfile
 
 					// 添加到DriveComboBox
 					AddToDriveComboBox(connectionName, driveId);
-
+					
+					form.uiManager.LeftPathTextBox.UpdateDrives(_registeredDrives);
+					form.uiManager.RightPathTextBox.UpdateDrives(_registeredDrives);
 					return true;
 				}
 			}
@@ -340,6 +343,9 @@ namespace zfile
 
 					// 从驱动器列表中移除
 					_registeredDrives.Remove(driveId);
+					ShengAddressBarStrip.FtpDrives = _registeredDrives;
+					form.uiManager.LeftPathTextBox.UpdateDrives(_registeredDrives);
+					form.uiManager.RightPathTextBox.UpdateDrives(_registeredDrives);
 
 					// 从驱动器下拉框中移除
 					RemoveFromDriveComboBox(driveId);

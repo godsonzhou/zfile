@@ -208,7 +208,10 @@ namespace zfile
 
 			return false;
 		}
+		private void updateOperation(OperationsManagerItem item)
+		{
 
+		}
 		/// <summary>
 		/// Finalizes the operation
 		/// </summary>
@@ -744,9 +747,64 @@ namespace zfile
 
 		private void UpdateTimer_Tick(object sender, EventArgs e)
 		{
-			UpdateControls();
+			//UpdateControls();
+			OnUpdateTimer();
 		}
-
+		private void OnUpdateTimer()
+		{
+			if (_operationItem != null && _operationItem.Queue.Identifier != _queueIdentifier)
+			{
+				var queue = OperationsManager.Instance.GetQueueByIdentifier(_queueIdentifier);
+				FinalizeOperation();
+				if (queue != null && queue.IsFree)
+				{
+					_queueIdentifier = queue.Identifier;
+					_operationHandle = GetFirstOperationHandle(queue.Identifier);
+				}
+				else
+				{
+					_queueIdentifier = _operationItem.Queue.Identifier;
+					_operationHandle = _operationItem.Handle;
+				}
+				if (!InitializeOperation())
+				{
+					CloseDialog();
+					return;
+				}
+				_operationItem = OperationsManager.Instance.GetItemByHandle(_operationHandle);
+			}
+			//check if first operation in the queue has not changed
+			if (_operationItem != null && !_operationItem.Queue.IsFree && GetFirstOperationHandle(_queueIdentifier) != _operationHandle)
+			{
+				FinalizeOperation();
+				_operationHandle = GetFirstOperationHandle(_queueIdentifier);
+				if (!InitializeOperation())
+				{
+					CloseDialog();
+					return;
+				}
+				_operationItem = OperationsManager.Instance.GetItemByHandle(_operationHandle);
+			}
+			if(_operationItem != null)
+			{
+				updateOperation(_operationItem);
+			}
+			else // operation was destroyed
+			{
+				var queue = OperationsManager.Instance.GetQueueByIdentifier(_queueIdentifier);
+				if(queue != null || queue.IsFree)
+				{
+					CloseDialog();
+				}
+				else
+				{
+					_operationHandle = GetFirstOperationHandle(_queueIdentifier);
+					_operationItem = OperationsManager.Instance.GetItemByHandle(_operationHandle);
+					_operationItem.Operation.AddUserInterface(_userInterface);
+				}
+			}
+		}
+	
 		private void UpdateControls()
 		{
 			if (_operationItem == null || _operationItem.Operation == null)

@@ -13,6 +13,86 @@ namespace zfile
 
 	public partial class MainForm : Form
 	{
+		public class lrflag
+		{
+			[Flags]
+			public enum LR : uint
+			{
+				None = 0,
+				Left = 1,
+				Right = 2,
+				Both = 3
+			}
+			private LR Val;
+			public bool Isleft => Val == LR.Left;
+			public string GetText(LR lr)
+			{
+				return lr.ToString();
+			}
+			public LR SetByText(string str)
+			{
+				return (LR)Enum.Parse(typeof(LR), str, true);
+			}
+			public lrflag()
+			{
+				Val = LR.None;
+			}
+			public lrflag(LR val)
+			{
+				Val = val;
+			}
+			public lrflag(string str)
+			{
+				Val = SetByText(str);
+			}
+			public lrflag(bool isleft)
+			{
+				Val = isleft ? LR.Left : LR.Right;
+			}
+			public LR GetRervese()
+			{
+				return Val switch
+				{
+					LR.None => LR.Both,
+					LR.Left => LR.Right,
+					LR.Right => LR.Left,
+					LR.Both => LR.None
+				};
+			}
+			public void SetByFlag(LR val)
+			{
+				Val = val;
+			}
+			public void SetByFlag(bool isleft)
+			{
+				Val = isleft ? LR.Left : LR.Right;
+			}
+			public void SetByFlag(string str)
+			{
+				Val = SetByText(str);
+			}
+			public void SetByFlag(lrflag val)
+			{
+				Val = val.Val;
+			}
+			public void SetByFlag(lrflag val, bool isleft)
+			{
+				Val = isleft ? val.Val : val.GetRervese();
+			}
+			public void SetByFlag(lrflag val, string str)
+			{
+				Val = str == "L" ? val.Val : val.GetRervese();
+			}
+			public void SetByFlag(lrflag val, LR lr)
+			{
+				Val = lr == LR.Left ? val.Val : val.GetRervese();
+			}
+			public void SetByFlag(lrflag val, lrflag lr)
+			{
+				Val = lr.Isleft ? val.Val : val.GetRervese();
+			}
+
+		}
 		// 自定义类来封装字典并实现映射
 		public class FileSourceMapper
 		{
@@ -3412,7 +3492,7 @@ namespace zfile
 
 				// 如果没有指定目标路径，则使用非活动面板的路径作为目标
 				if (string.IsNullOrEmpty(targetPath))
-					targetPath = Helper.getFSpath(unactiveTreeview.SelectedNode.FullPath);
+					targetPath = CurrentFullpath[unactiveTreeview.Name]; //Helper.getFSpath(unactiveTreeview.SelectedNode.FullPath);
 				targetlist = uiManager.unactiveListView;
 			}
 

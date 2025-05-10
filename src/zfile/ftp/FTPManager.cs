@@ -1978,23 +1978,31 @@ namespace zfile
 		/// </summary>
 		/// <param name="path">FTP路径</param>
 		/// <returns>对应的FtpFileSource，如果未找到则返回null</returns>
-		public FtpFileSource GetFtpSource(string path)
+		public FtpFileSource? GetFtpSource(string path)
 		{
+			bool isUrlPath = path.StartsWith("ftp://", StringComparison.OrdinalIgnoreCase);
 			// 遍历所有注册的FTP连接
 			foreach (var kvp in _ftpSources)
 			{
 				var connectionName = kvp.Key;
 				var ftpSource = kvp.Value;
-
-				// 检查路径是否属于此FTP连接
-				foreach (var node in _ftpNodesL.Values.Concat(_ftpNodesR.Values))
+				if (isUrlPath)
 				{
-					if (node.Tag is FtpNodeTag tag && tag.ConnectionName == connectionName)
+					if (path.Equals("ftp://{ftpSource.Host}{ftpSource.CurrentPath}", StringComparison.OrdinalIgnoreCase))
+						return ftpSource;
+				}
+				else
+				{
+					// 否则是虚拟盘格式，检查是否属于此FTP连接
+					foreach (var node in _ftpNodesL.Values) //.Concat(_ftpNodesR.Values) //because the left ftpnodes is same as right ftpnodes, so check one of them is enough
 					{
-						var drivePath = node.Text.Split('[')[0].Trim();
-						if (path.StartsWith(drivePath, StringComparison.OrdinalIgnoreCase))
+						if (node.Tag is FtpNodeTag tag && tag.ConnectionName == connectionName)
 						{
-							return ftpSource;
+							var drivePath = node.Text.Split('[')[0].Trim();
+							if (path.StartsWith(drivePath, StringComparison.OrdinalIgnoreCase))
+							{
+								return ftpSource;
+							}
 						}
 					}
 				}

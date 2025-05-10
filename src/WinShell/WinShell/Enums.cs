@@ -24,18 +24,11 @@ namespace WinShell
         SHIL_JUMBO = 4,
         SHIL_LAST = 4
     }
-	// 定义 IMAGELIST_SIZE_FLAG 枚举
-	//public enum SHIL
-	//{
-	//	SHIL_LARGE = 0x00000000, // 大图标
-	//	SHIL_SMALL = 0x00000001, // 小图标
-	//	SHIL_EXTRALARGE = 0x00000002, // 超大图标
-	//	SHIL_SYSSMALL = 0x00000003, // 系统小图标
-	//	SHIL_JUMBO = 0x00000004, // 巨型图标
-	//	SHIL_LAST = SHIL_JUMBO
-	//}
+	
+	[Flags]
 	public enum RefreshPanelMode
 	{
+		None = 0,
 		Left = 1,
 		Right = 2,
 		Both = 3

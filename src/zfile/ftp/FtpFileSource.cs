@@ -364,9 +364,12 @@ namespace zfile
 		/// <returns>列表操作</returns>
 		public override FileSourceListOperation CreateListOperation(string path)
 		{
-			return new FtpListOperation(this, path);
+			return new FtpListOperation(this, GetRelativePath(path));
 		}
-
+		private string GetRelativePath(string targetPath)
+		{
+			return (targetPath.StartsWith("ftp://")) ? targetPath.Replace($"ftp://{_ftpHost}", string.Empty) : targetPath;
+		}
 		/// <summary>
 		/// 创建复制入操作
 		/// </summary>
@@ -374,10 +377,9 @@ namespace zfile
 		/// <param name="sourceFiles">源文件列表</param>
 		/// <param name="targetPath">目标路径</param>
 		/// <returns>复制入操作</returns>
-		
 		public override FileSourceCopyInOperation CreateCopyInOperation(IFileSource sourceFileSource, FileEntries sourceFiles, string targetPath)
 		{
-			return new FtpCopyInOperation(sourceFileSource, this, sourceFiles, targetPath);
+			return new FtpCopyInOperation(sourceFileSource, this, sourceFiles, GetRelativePath(targetPath));
 		}
 
 		/// <summary>

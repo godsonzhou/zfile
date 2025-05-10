@@ -1988,7 +1988,7 @@ namespace zfile
 				var ftpSource = kvp.Value;
 				if (isUrlPath)
 				{
-					if (path.Equals("ftp://{ftpSource.Host}{ftpSource.CurrentPath}", StringComparison.OrdinalIgnoreCase))
+					if (path.Equals($"ftp://{ftpSource.Host}{ftpSource.CurrentPath}", StringComparison.OrdinalIgnoreCase))
 						return ftpSource;
 				}
 				else

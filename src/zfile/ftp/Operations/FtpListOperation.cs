@@ -37,17 +37,17 @@ namespace zfile
         /// </summary>
         protected override void MainExecute()
         {
-            Files.Clear();
+			Files = new FileEntries();
 
             try
             {
                 // 获取FTP目录列表
-                var listing = _ftpFileSource.Client.GetListing(Path, _listOption);
+                var listing = _ftpFileSource?.Client?.GetListing(Path, _listOption);
 
                 // 处理上级目录
                 if (!string.IsNullOrEmpty(Path) && Path != "/" && Path != "\\")
                 {
-                    var parentFile = _ftpFileSource.CreateFile(Path);
+                    var parentFile = _ftpFileSource?.CreateFile(Path);
                     parentFile.Name = "..";
                     parentFile.Attributes = FileAttributes.Directory;
                     Files.Add(parentFile);

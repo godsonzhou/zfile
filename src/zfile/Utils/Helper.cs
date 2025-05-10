@@ -958,9 +958,9 @@ namespace zfile
 		{
 			return dateTime - DateTime.MinValue;
 		}
-		internal static string? IncludeTrailingPathDelimiter(string? aTargetPath)
+		internal static string? IncludeTrailingPathDelimiter(string? aTargetPath, char sep = '\\')
 		{
-			return aTargetPath?.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+			return aTargetPath?.TrimEnd(sep) + sep;
 		}
 		//Examples:
 		//ExtractDirLevel('/home', '/home/somedir/somefile') = '/somedir/somefile'
@@ -976,26 +976,26 @@ namespace zfile
 			return fullPath;
 		}
 
-		internal static string ExcludeFrontPathDelimiter(string fullPath)
+		internal static string ExcludeFrontPathDelimiter(string fullPath, char sep = '\\')
 		{
 			if (string.IsNullOrEmpty(fullPath))
 				return string.Empty;
 
-			return fullPath.TrimStart('\\');
+			return fullPath.TrimStart(sep);
 		}
 
-		internal static string IncludeFrontPathDelimiter(string currentFilePath)
+		internal static string IncludeFrontPathDelimiter(string currentFilePath, char sep = '\\')
 		{
-			if (currentFilePath.Length > 0 && currentFilePath[1] == Path.DirectorySeparatorChar)
+			if (currentFilePath.Length > 0 && currentFilePath[1] == sep)
 			{
 				return currentFilePath;
 			}
-			return Path.DirectorySeparatorChar + currentFilePath;
+			return sep + currentFilePath;
 		}
-		internal static string ExcludeTrailingPathDelimiter(string fullPath)
+		internal static string ExcludeTrailingPathDelimiter(string fullPath, char sep = '\\')
 		{
 			//去掉路径末尾的\符号
-			return fullPath.TrimEnd(Path.DirectorySeparatorChar);
+			return fullPath.TrimEnd(sep);
 		}
 	}
 }

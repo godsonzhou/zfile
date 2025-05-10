@@ -345,7 +345,7 @@ namespace zfile
 		/// <returns>True if the path is at the root, false otherwise</returns>
 		bool IsPathAtRoot(string path);
 		string CurrentPath { get; set; }
-	
+		char PathSep { get; }
 		/// <summary>
 		/// Gets the parent directory of the specified path
 		/// </summary>
@@ -477,6 +477,7 @@ namespace zfile
 		private readonly List<FileSourceConnection> _connections = new List<FileSourceConnection>();
 		private readonly object _syncRoot = new object();
 		protected Dictionary<FileSourceOperationType, Type> OperationsClasses = new();
+		public virtual char PathSep { get; } = Path.DirectorySeparatorChar;
 		/// <summary>
 		/// Gets the URI of this file source
 		/// </summary>

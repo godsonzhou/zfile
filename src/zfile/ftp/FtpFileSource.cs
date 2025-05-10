@@ -10,11 +10,9 @@ namespace zfile
 	public class FtpFileSource : FileSource
 	{
 		private FtpClient? _client;
-		//private string _currentPath = "/";
 		private readonly string? _ftpHost;
 		private readonly string? _connectionName;
-		//private MainForm _owner;
-
+		public override char PathSep => '/';
 		/// <summary>
 		/// 操作类字典
 		/// </summary>
@@ -41,15 +39,6 @@ namespace zfile
 		/// 获取FTP主机地址
 		/// </summary>
 		public string Host => _ftpHost ?? string.Empty;
-
-		/// <summary>
-		/// 获取或设置当前FTP路径
-		/// </summary>
-		//public string CurrentPath
-		//{
-		//	get => _currentPath;
-		//	set => _currentPath = value;
-		//}
 
 		/// <summary>
 		/// 获取FTP客户端实例

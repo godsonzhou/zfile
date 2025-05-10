@@ -117,7 +117,7 @@ namespace zfile
             _sourceFileSource = aSourceFileSource;
             _targetFileSource = aTargetFileSource;
             _sourceFiles = theSourceFiles ?? new FileEntries();
-            _targetPath = Helper.IncludeTrailingPathDelimiter(aTargetPath);
+            _targetPath = Helper.IncludeTrailingPathDelimiter(aTargetPath, aTargetFileSource.PathSep);
 
             _renameMask = "";
 

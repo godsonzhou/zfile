@@ -44,6 +44,14 @@ namespace zfile
 		/// </summary>
 		Closed
 	}
+	// 扩展方法，用于设置进度条样式和颜色
+	static class ProgressBarExtensions
+	{
+		public static void SetStyle(this ProgressBar pb, ProgressBarStyle style)
+		{
+			pb.Style = style;
+		}
+	}
 
 	/// <summary>
 	/// Operation progress window event handler
@@ -891,55 +899,93 @@ namespace zfile
 		{
 			// Form settings
 			this.Text = "File Operation";
-			this.ClientSize = new Size(522, 212);
-			this.MinimumSize = new Size(500, 200);
+			this.ClientSize = new Size(500, 150);
+			this.MinimumSize = new Size(500, 150);
 			this.StartPosition = FormStartPosition.CenterScreen;
 			this.ShowInTaskbar = true;
+			this.FormBorderStyle = FormBorderStyle.FixedDialog;
+			this.MaximizeBox = false;
 			this.FormClosing += FormClose;
 
 			// Main panel
 			pnlClient = new Panel
 			{
-				Dock = DockStyle.Top,
-				AutoSize = true,
-				Padding = new Padding(3)
+				Dock = DockStyle.Fill,
+				Padding = new Padding(10)
 			};
 			this.Controls.Add(pnlClient);
 
-			// Queue panel
-			pnlQueue = new Panel
+			// 创建布局 - 从上到下排列
+			// 顶部信息区域
+			var topInfoPanel = new Panel
 			{
 				Dock = DockStyle.Top,
-				AutoSize = true,
-				Height = 21
+				Height = 20
 			};
-			pnlClient.Controls.Add(pnlQueue);
+			pnlClient.Controls.Add(topInfoPanel);
 
-			// Current operation label
+			// 文件计数标签 - 显示在顶部右侧
+			lblFileCount = new Label
+			{
+				Dock = DockStyle.Right,
+				AutoSize = true,
+				TextAlign = ContentAlignment.MiddleRight,
+				Text = "0"
+			};
+			topInfoPanel.Controls.Add(lblFileCount);
+
+			// 当前操作标签
 			lblCurrentOperation = new Label
 			{
-				Dock = DockStyle.Top,
-				Text = "Current operation:",
-				AutoSize = true
+				Dock = DockStyle.Left,
+				AutoSize = true,
+				TextAlign = ContentAlignment.MiddleLeft
 			};
-			pnlQueue.Controls.Add(lblCurrentOperation);
+			topInfoPanel.Controls.Add(lblCurrentOperation);
 
-			// Current operation text
+			// 当前操作文本
 			lblCurrentOperationText = new Label
 			{
-				Dock = DockStyle.Top,
+				Dock = DockStyle.Left,
 				AutoSize = true,
-				Top = 20
+				TextAlign = ContentAlignment.MiddleLeft,
+				Left = lblCurrentOperation.Right + 5
 			};
-			pnlQueue.Controls.Add(lblCurrentOperationText);
+			topInfoPanel.Controls.Add(lblCurrentOperationText);
 
+			// 进度条区域 - 两个进度条
+			// 第一个进度条（当前文件进度）
+			pbCurrent = new ProgressBar
+			{
+				Dock = DockStyle.Top,
+				Height = 20,
+				Margin = new Padding(0, 10, 0, 5),
+				Style = ProgressBarStyle.Continuous,
+				ForeColor = Color.Green,
+				Top = topInfoPanel.Bottom + 10
+			};
+			pnlClient.Controls.Add(pbCurrent);
+
+			// 第二个进度条（总体进度）
+			pbTotal = new ProgressBar
+			{
+				Dock = DockStyle.Top,
+				Height = 20,
+				Margin = new Padding(0, 5, 0, 10),
+				Style = ProgressBarStyle.Continuous,
+				ForeColor = Color.Green,
+				Top = pbCurrent.Bottom + 5
+			};
+			pnlClient.Controls.Add(pbTotal);
+
+			// 文件信息区域
 			// From panel
 			pnlFrom = new Panel
 			{
 				Dock = DockStyle.Top,
-				AutoSize = true,
-				Height = 15,
-				Top = 21
+				Height = 20,
+				Top = pbTotal.Bottom + 5,
+				Visible = false // 根据图片，这部分不显示
 			};
 			pnlClient.Controls.Add(pnlFrom);
 
@@ -947,7 +993,7 @@ namespace zfile
 			lblFrom = new Label
 			{
 				Dock = DockStyle.Left,
-				Text = "From:",
+				Text = "从:",
 				AutoSize = true,
 				Width = 40
 			};
@@ -966,9 +1012,9 @@ namespace zfile
 			pnlTo = new Panel
 			{
 				Dock = DockStyle.Top,
-				AutoSize = true,
-				Height = 15,
-				Top = 39
+				Height = 20,
+				Top = pnlFrom.Bottom,
+				Visible = false // 根据图片，这部分不显示
 			};
 			pnlClient.Controls.Add(pnlTo);
 
@@ -976,7 +1022,7 @@ namespace zfile
 			lblTo = new Label
 			{
 				Dock = DockStyle.Left,
-				Text = "To:",
+				Text = "到:",
 				AutoSize = true,
 				Width = 40
 			};
@@ -991,103 +1037,78 @@ namespace zfile
 			};
 			pnlTo.Controls.Add(lblFileNameTo);
 
-			// Estimated time
+			// 估计时间标签
 			lblEstimated = new Label
 			{
 				Dock = DockStyle.Top,
 				AutoSize = true,
-				Top = 57
+				Visible = false // 根据图片，这部分不显示
 			};
 			pnlClient.Controls.Add(lblEstimated);
 
-			// Current progress bar
-			pbCurrent = new ProgressBar
-			{
-				Dock = DockStyle.Top,
-				Height = 22,
-				Top = 61,
-				Style = ProgressBarStyle.Continuous
-			};
-			pnlClient.Controls.Add(pbCurrent);
-
-			// Total progress bar
-			pbTotal = new ProgressBar
-			{
-				Dock = DockStyle.Top,
-				Height = 22,
-				Top = 86,
-				Style = ProgressBarStyle.Continuous
-			};
-			pnlClient.Controls.Add(pbTotal);
-
-			// Buttons panel
+			// 按钮区域 - 底部
 			pnlButtons = new Panel
 			{
-				Dock = DockStyle.Top,
-				AutoSize = true,
+				Dock = DockStyle.Bottom,
 				Height = 30,
-				Top = 111
+				Padding = new Padding(0, 5, 0, 0)
 			};
 			pnlClient.Controls.Add(pnlButtons);
 
-			// Minimize to panel button
+			// 左侧按钮 - 到面板
 			btnMinimizeToPanel = new Button
 			{
 				Dock = DockStyle.Left,
-				Text = "&To panel",
-				AutoSize = true,
-				Width = 72
+				Text = "到面板(&T)",
+				Width = 80,
+				Height = 25
 			};
 			btnMinimizeToPanel.Click += BtnMinimizeToPanelClick;
 			pnlButtons.Controls.Add(btnMinimizeToPanel);
 
-			// View operations button
+			// 左侧按钮 - 查看全部
 			btnViewOperations = new Button
 			{
 				Dock = DockStyle.Left,
-				Text = "&View all",
-				AutoSize = true,
-				Width = 66,
-				Left = 75
+				Text = "查看全部(&V)",
+				Width = 80,
+				Height = 25,
+				Left = btnMinimizeToPanel.Right + 5
 			};
 			btnViewOperations.Click += BtnViewOperationsClick;
 			pnlButtons.Controls.Add(btnViewOperations);
 
-			// Cancel button
+			// 右侧按钮 - 取消
 			btnCancel = new Button
 			{
 				Dock = DockStyle.Right,
-				Text = "&Cancel",
-				AutoSize = true,
-				Width = 86,
+				Text = "取消(&C)",
+				Width = 80,
+				Height = 25,
 				DialogResult = DialogResult.Cancel
 			};
 			btnCancel.Click += BtnCancelClick;
 			pnlButtons.Controls.Add(btnCancel);
 
-			// Pause/Start button
+			// 右侧按钮 - 暂停/开始
 			btnPauseStart = new Button
 			{
 				Dock = DockStyle.Right,
-				Text = "&Pause",
-				AutoSize = true,
-				Width = 50
+				Text = "暂停(&P)",
+				Width = 80,
+				Height = 25,
+				//Right = btnCancel.Left + 5
 			};
 			btnPauseStart.Click += BtnPauseStartClick;
 			pnlButtons.Controls.Add(btnPauseStart);
 
-			// File count label
-			lblFileCount = new Label
-			{
-				Dock = DockStyle.Fill,
-				AutoSize = true,
-				TextAlign = ContentAlignment.MiddleCenter
-			};
-			pnlButtons.Controls.Add(lblFileCount);
-
-			// Set tab order
+			// 设置Tab顺序
 			this.CancelButton = btnCancel;
-		}
+
+			// 设置进度条颜色
+			pbCurrent.SetStyle(ProgressBarStyle.Continuous);
+			pbTotal.SetStyle(ProgressBarStyle.Continuous);
+		}		
 
 		private void InitializeTimer()
 		{

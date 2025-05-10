@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -21,12 +22,10 @@ namespace Sheng.Winform.Controls
     [ToolboxItem(false)]
     public class ShengAddressBarStrip : ToolStrip
     {
-        //private static List<string> _ftpdrives = new List<string>();
-        public static List<string> FtpDrives = new List<string>(); //{ get => _ftpdrives; set { _ftpdrives = value; } }
-        public void UpdateDrives(List<string> ftpdrives, string currentPath = null)
+        public static List<string> FtpDrives = new List<string>(); 
+        public void UpdateDrives(string currentPath = null)
         {
-            FtpDrives = ftpdrives;
-            SetChildren("此电脑", Environment.GetLogicalDrives().Concat(ftpdrives).ToList());
+            SetChildren("此电脑", Environment.GetLogicalDrives().Concat(FtpDrives).ToList());
             // 重新初始化根节点以反映新的驱动器列表
             if (_rootNode != null)
             {
@@ -41,6 +40,10 @@ namespace Sheng.Winform.Controls
                 {
                     SetAddress(currentPath + "\\"); //change f: -> f:\ here
                 }
+				else
+				{
+					SetAddress(currentPathbak);
+				}
             }
         }
         #region 公开事件
@@ -629,7 +632,6 @@ namespace Sheng.Winform.Controls
 
         public void SetAddress(IShengAddressNode addressNode)
         {
-
             _currentNode = addressNode;
             ResetBar();
         }

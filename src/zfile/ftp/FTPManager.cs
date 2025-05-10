@@ -253,14 +253,14 @@ namespace zfile
 					AddFtpNode(ftpNodeR);
 					_ftpNodesL[connectionName] = ftpNode;
 					_ftpNodesR[connectionName] = ftpNodeR;
-					//_registeredDrives.Add(driveId);
+					
 					_connection_RegisteredDrive_map.Add(connectionName, driveId);
 					// 添加到DriveComboBox
 					var drive = $"{driveId} [{connectionName}]";
 					AddToDriveComboBox(drive);
-					
-					form.uiManager.LeftPathTextBox.UpdateDrives(_registeredDrives, form.isleft? driveId : null);
-					form.uiManager.RightPathTextBox.UpdateDrives(_registeredDrives, !form.isleft? driveId : null);
+					ShengAddressBarStrip.FtpDrives = _registeredDrives;
+					form.uiManager.LeftPathTextBox.UpdateDrives(form.isleft? driveId : null);
+					form.uiManager.RightPathTextBox.UpdateDrives(!form.isleft? driveId : null);
 					return true;
 				}
 			}
@@ -347,8 +347,8 @@ namespace zfile
 					//_registeredDrives.Remove(driveId);
 					_connection_RegisteredDrive_map.Remove(connectionName);
 					ShengAddressBarStrip.FtpDrives = _registeredDrives;
-					form.uiManager.LeftPathTextBox.UpdateDrives(_registeredDrives);
-					form.uiManager.RightPathTextBox.UpdateDrives(_registeredDrives);
+					form.uiManager.LeftPathTextBox.UpdateDrives();
+					form.uiManager.RightPathTextBox.UpdateDrives();
 
 					// 从驱动器下拉框中移除
 					RemoveFromDriveComboBox(driveId);

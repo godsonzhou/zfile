@@ -33,7 +33,7 @@ namespace zfile
             bool caseSensitive = false,
             bool regExp = false,
             bool wholeWords = false,
-            bool searchInPath = true,
+            bool searchInPath = false,
             bool searchInContent = false,
             string contentEncoding = null,
             string contentPattern = null,

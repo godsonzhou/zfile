@@ -49,6 +49,7 @@ namespace zfile
 				//ExcludeEmptyTemplateDirectories = ExcludeEmptyTemplateDirectories
 			};
 			// 构建文件树
+
 			treebuilder.BuildFromFiles(SourceFiles);
 			var sourceFilesTree = treebuilder.ReleaseTree();
 			_statistics.TotalFiles = treebuilder.FilesCount;

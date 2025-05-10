@@ -3976,7 +3976,7 @@ namespace zfile
 				// 处理FTP节点双击事件
 				fTPMGR.HandleFtpNodeDoubleClick(eNode);
 				// 更新当前目录和路径显示
-				var ftpsrc = fTPMGR.GetFtpFileSourceByConnectionName(ftpTag.ConnectionName);
+				//var ftpsrc = fTPMGR.GetFtpFileSourceByConnectionName(ftpTag.ConnectionName);
 				//currentDirectory[isleft] = $"ftp://{ftpTag.ConnectionName}{ftpTag.Path}";
 				//CurrentDir[LRflag] = $"ftp://{ftpsrc?.Host}{ftpTag.Path}";        //bugfix: currentdir can not be set to connection name, use host instead,
 				//if (isleft)

@@ -1138,7 +1138,7 @@ namespace zfile
 			if (isleft)
 			{
 				if (ShengAddressBarStrip.FtpDrives.Contains(txt)) //if ftp node clicked, update the pathtextbox
-					uiManager.LeftPathTextBox.UpdateDrives(ShengAddressBarStrip.FtpDrives, txt);
+					uiManager.LeftPathTextBox.UpdateDrives(txt);
 				else
 					uiManager.LeftPathTextBox.SetAddress(eNode);    // 调用leftpathtextbox的setaddress方法来更新路径
 
@@ -1147,7 +1147,7 @@ namespace zfile
 			else
 			{
 				if (ShengAddressBarStrip.FtpDrives.Contains(txt)) //if ftp node clicked, update the pathtextbox
-					uiManager.RightPathTextBox.UpdateDrives(ShengAddressBarStrip.FtpDrives, txt);
+					uiManager.RightPathTextBox.UpdateDrives(txt);
 				else
 					uiManager.RightPathTextBox.SetAddress(eNode);
 

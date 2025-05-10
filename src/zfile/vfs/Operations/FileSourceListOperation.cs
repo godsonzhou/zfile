@@ -5,20 +5,14 @@ namespace zfile
     /// </summary>
     public abstract class FileSourceListOperation : FileSourceOperation
     {
-        private IFileSource _fileSource;
         private string _path;
-        private FileEntries _files;
+        private FileEntries _files = [];
         protected bool _flatView;
 
         /// <summary>
         /// Gets the operation type
         /// </summary>
         public override FileSourceOperationType OperationType => FileSourceOperationType.List;
-
-        /// <summary>
-        /// Gets the file source
-        /// </summary>
-        protected IFileSource FileSource => _fileSource;
 
         /// <summary>
         /// Gets the files
@@ -47,7 +41,6 @@ namespace zfile
         public FileSourceListOperation(IFileSource aFileSource, string aPath)
             : base(aFileSource)
         {
-            _fileSource = aFileSource;
             _path = aPath;
         }
 

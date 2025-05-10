@@ -37,8 +37,6 @@ namespace zfile
         /// </summary>
         protected override void MainExecute()
         {
-			Files = new FileEntries();
-
             try
             {
                 // 获取FTP目录列表

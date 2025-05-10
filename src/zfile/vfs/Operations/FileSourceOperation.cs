@@ -61,7 +61,7 @@ namespace zfile
     /// </summary>
     public abstract class FileSourceOperation : IDisposable
     {
-        private IFileSource _fileSource;
+        protected IFileSource _fileSource;
         private double _progress;
         private DateTime _startTime;
         private FileSourceOperationState _state;
@@ -191,7 +191,6 @@ namespace zfile
             _desiredState = FileSourceOperationState.Running; // Set for auto-start unless prevented
             _operationResult = FileSourceOperationResult.Aborted;
             _progress = 0.0;
-			//_thread = new TOperationThread(true, this);
 
 			// Check if file source uses connections
 			_needsConnection = _fileSource != null && _fileSource.Properties.HasFlag(FileSourceProperties.UsersConnections);
@@ -202,11 +201,6 @@ namespace zfile
         /// </summary>
         public virtual void Start()
         {
-			//if (_state == FileSourceOperationState.NotStarted)
-			//{
-			//    _startTime = DateTime.Now;
-			//    UpdateStatisticsAtStartTime();
-			//    ChangeState(FileSourceOperationState.Running);
 			//}
 			FileSourceOperationState localstate;
 			lock (_stateLock)

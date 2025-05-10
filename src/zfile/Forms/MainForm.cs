@@ -3382,7 +3382,7 @@ namespace zfile
 		}   // 复制选中的文件
 		public bool cm_copy(string? param = null, string? targetPath = null)
 		{
-			string srcPath;
+			string? srcPath;
 			FileEntry[] sourceFiles;
 			ListView targetlist;
 
@@ -3409,7 +3409,8 @@ namespace zfile
 				}
 				sourceFiles = fileList.ToArray();
 				srcPath = uiManager.srcDir;//todo: need add wcx virtual folder to shengfilesystemnode's child, 然后才能从srcdir获取到正确的srcpath
-										   // 如果没有指定目标路径，则使用非活动面板的路径作为目标
+
+				// 如果没有指定目标路径，则使用非活动面板的路径作为目标
 				if (string.IsNullOrEmpty(targetPath))
 					targetPath = Helper.getFSpath(unactiveTreeview.SelectedNode.FullPath);
 				targetlist = uiManager.unactiveListView;

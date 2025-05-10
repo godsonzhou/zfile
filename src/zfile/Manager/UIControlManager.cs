@@ -77,12 +77,12 @@ namespace zfile
 		private bool isToolStripHidden;
 
 		public bool isleft { get; set; } = true;
-		public string leftDir => LeftTree.SelectedNode?.Tag is FtpNodeTag ftpnode ? ftpnode.Path :  LeftPathTextBox?.CurrentNode?.UniqueID + "\\";
-		public string rightDir => RightTree.SelectedNode?.Tag is FtpNodeTag ftpnode ? ftpnode.Path : RightPathTextBox?.CurrentNode?.UniqueID + "\\";
+		public string? leftDir => LeftTree.SelectedNode?.Tag is FtpNodeTag ftpnode ? form.fTPMGR.Connection_RegisteredDrive_map[ftpnode.ConnectionName] + ftpnode.Path :  Helper.IncludeTrailingPathDelimiter(LeftPathTextBox?.CurrentNode?.UniqueID);
+		public string? rightDir => RightTree.SelectedNode?.Tag is FtpNodeTag ftpnode ? form.fTPMGR.Connection_RegisteredDrive_map[ftpnode.ConnectionName] + ftpnode.Path: Helper.IncludeTrailingPathDelimiter(RightPathTextBox?.CurrentNode?.UniqueID);
 		public string leftfiles => string.Join("|", LeftList.SelectedItems.Cast<ListViewItem>()?.Select(item => item.SubItems[0].Text));
 		public string rightfiles => string.Join("|", RightList.SelectedItems.Cast<ListViewItem>()?.Select(item => item.SubItems[0].Text));
-		public string targetDir => isleft ? rightDir : leftDir;
-		public string srcDir => isleft ? leftDir : rightDir;
+		public string? targetDir => isleft ? rightDir : leftDir;
+		public string? srcDir => isleft ? leftDir : rightDir;
 		public string targetfiles => isleft ? rightfiles : leftfiles;
 		public string srcfiles => isleft ? leftfiles : rightfiles;
 

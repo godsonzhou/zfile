@@ -958,9 +958,9 @@ namespace zfile
 		{
 			return dateTime - DateTime.MinValue;
 		}
-		internal static string? IncludeTrailingPathDelimiter(string aTargetPath)
+		internal static string? IncludeTrailingPathDelimiter(string? aTargetPath)
 		{
-			return aTargetPath.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+			return aTargetPath?.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
 		}
 		//Examples:
 		//ExtractDirLevel('/home', '/home/somedir/somefile') = '/somedir/somefile'

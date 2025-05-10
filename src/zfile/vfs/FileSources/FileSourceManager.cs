@@ -112,9 +112,12 @@ namespace zfile
         /// <param name="fullpath">Path to get file source for</param>
         /// <param name="isLeftPanel">True if this is for the left panel, false for the right panel</param>
         /// <returns>A file source that can handle the path</returns>
-        public IFileSource GetFileSourceForFullPath(string fullpath, bool isLeftPanel)
+        public IFileSource GetFileSourceForFullPath(string? fullpath, bool isLeftPanel)
         {
-            if (!fullpath.Contains(":"))
+			if (string.IsNullOrEmpty(fullpath))
+				throw new ArgumentNullException(nameof(fullpath));
+
+			if (!fullpath.Contains(":"))
                 throw new Exception("路径中不能为相对路径");
 
             // 获取对应面板的缓存
@@ -122,24 +125,24 @@ namespace zfile
             var lr = isLeftPanel ? 'l' : 'r';
 
             // 如果路径为空，返回默认的FileSystemFileSource
-            if (string.IsNullOrEmpty((string)fullpath))
-            {
-                //var rootPath = "C:\\";
-                //var cacheKey = $"filesystem:{rootPath}";
+            //if (string.IsNullOrEmpty((string)fullpath))
+            //{
+            //    //var rootPath = "C:\\";
+            //    //var cacheKey = $"filesystem:{rootPath}";
 
-                //// 检查缓存中是否已有此路径的FileSource
-                //if (panelCache.TryGetValue(cacheKey, out var cachedSource))
-                //    return cachedSource;
+            //    //// 检查缓存中是否已有此路径的FileSource
+            //    //if (panelCache.TryGetValue(cacheKey, out var cachedSource))
+            //    //    return cachedSource;
 
-                //// 创建新的FileSystemFileSource
-                //var newSource = new FileSystemFileSource();
-                //newSource.SetRootPath(rootPath);
+            //    //// 创建新的FileSystemFileSource
+            //    //var newSource = new FileSystemFileSource();
+            //    //newSource.SetRootPath(rootPath);
 
-                //// 添加到缓存
-                //panelCache[cacheKey] = newSource;
-                //return newSource;
-                throw new Exception("路径不能为空");
-            }
+            //    //// 添加到缓存
+            //    //panelCache[cacheKey] = newSource;
+            //    //return newSource;
+            //    throw new Exception("路径不能为空");
+            //}
 
             // 检查缓存中是否已有此路径的FileSource
             if (panelCache.TryGetValue((string)fullpath, out var fileSource))

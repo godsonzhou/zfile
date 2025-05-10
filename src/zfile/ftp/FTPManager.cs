@@ -40,7 +40,8 @@ namespace zfile
 		private readonly Dictionary<string, TreeNode> _ftpNodesR = new Dictionary<string, TreeNode>();
 		private Dictionary<string, TreeNode> _ftpNodes => form.isleft ? _ftpNodesL : _ftpNodesR;
 		private readonly Dictionary<string, FtpFileSource> _ftpSources = new Dictionary<string, FtpFileSource>();
-		private readonly List<string> _registeredDrives = new List<string>();
+		private readonly Dictionary<string, string> _connection_RegisteredDrive_map = new();
+		private List<string> _registeredDrives => _connection_RegisteredDrive_map.Values.ToList();
 		private TreeNode _ftpRootNodeL, _ftpRootNodeR;
 		public TreeNode ftpRootNode => form.isleft ? _ftpRootNodeL : _ftpRootNodeR;
 		public TreeNode unactiveFtpRootNode => form.isleft ? _ftpRootNodeR : _ftpRootNodeL;
@@ -49,7 +50,7 @@ namespace zfile
 		private bool _isDownloading = false;
 		private FtpListOption _listOption = FtpListOption.Auto;
 		public FtpListOption ListOption { get => _listOption; set => _listOption = value; }
-		public List<string> RegisteredDrives => _registeredDrives;
+		public Dictionary<string,string> Connection_RegisteredDrive_map => _connection_RegisteredDrive_map;
 		/// <summary>
 		/// 显示FTP项目属性
 		/// </summary>
@@ -252,8 +253,8 @@ namespace zfile
 					AddFtpNode(ftpNodeR);
 					_ftpNodesL[connectionName] = ftpNode;
 					_ftpNodesR[connectionName] = ftpNodeR;
-					_registeredDrives.Add(driveId);
-
+					//_registeredDrives.Add(driveId);
+					_connection_RegisteredDrive_map.Add(connectionName, driveId);
 					// 添加到DriveComboBox
 					var drive = $"{driveId} [{connectionName}]";
 					AddToDriveComboBox(drive);
@@ -343,7 +344,8 @@ namespace zfile
 					_ftpNodesR.Remove(connectionName);
 
 					// 从驱动器列表中移除
-					_registeredDrives.Remove(driveId);
+					//_registeredDrives.Remove(driveId);
+					_connection_RegisteredDrive_map.Remove(connectionName);
 					ShengAddressBarStrip.FtpDrives = _registeredDrives;
 					form.uiManager.LeftPathTextBox.UpdateDrives(_registeredDrives);
 					form.uiManager.RightPathTextBox.UpdateDrives(_registeredDrives);

@@ -3437,18 +3437,15 @@ namespace zfile
 						targetPath);
 
 					// 特殊情况：如果源和目标都是WcxArchiveFileSource，需要通过临时文件系统进行复制
-					if (operation == null && sourceFileSource is IWcxArchiveFileSource && targetFileSource is IWcxArchiveFileSource)
+					if (operation == null)
 						return CopyViaTemporaryDirectory(sourceFileSource, targetFileSource, fileEntries, targetPath);
+		
+					_operationsManager.AddOperation(operation);
+					//operation.Execute();
 
-					if (operation != null)
-					{
-						_operationsManager.AddOperation(operation);
-						//operation.Execute();
-
-						// 刷新目标面板
-						RefreshPanel(targetlist);
-						return true;
-					}
+					// 刷新目标面板
+					RefreshPanel(targetlist);
+					return true;
 				}
 
 				// 如果无法使用 FileSource 架构，使用传统方法

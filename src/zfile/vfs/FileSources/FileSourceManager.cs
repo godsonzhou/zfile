@@ -265,32 +265,36 @@ namespace zfile
             FileEntries sourceFiles,
             string targetPath)
         {
-            // Special case: If both source and target are WcxArchiveFileSource, we need to use a temp filesystem
-            if (sourceFileSource is IWcxArchiveFileSource && targetFileSource is IWcxArchiveFileSource)
-            {
-                // This will be handled by the caller using CopyViaTemporaryDirectory method
-                return null;
-            }
-            // If source and target are the same type, use regular copy
-            else if (sourceFileSource.GetType() == targetFileSource.GetType())
-            {
-                return sourceFileSource.CreateCopyOperation(sourceFiles, targetPath);
-            }
-            // If target is an archive, use copy in
-            else if (targetFileSource is IArchiveFileSource arc)
-            {
-                return targetFileSource.CreateCopyInOperation(sourceFileSource, sourceFiles, Helper.ExtractDirLevel(arc.ArchiveFileName, targetPath, true));
-            }
-            // If source is an archive, use copy out
-            else if (sourceFileSource is IArchiveFileSource)
-            {
-                return sourceFileSource.CreateCopyOutOperation(targetFileSource, sourceFiles, targetPath);
-            }
-            // Otherwise try to use target's copy in
-            else
-            {
-                return targetFileSource.CreateCopyInOperation(sourceFileSource, sourceFiles, targetPath);
-            }
+			// Special case: If both source and target are not filesystem filesource, we need to use a temp filesystem
+			if (sourceFileSource is not FileSystemFileSource && targetFileSource is not FileSystemFileSource)
+			{
+				// This will be handled by the caller using CopyViaTemporaryDirectory method
+				return null;
+			}
+			// If source and target are the same type, use regular copy
+			else if (sourceFileSource.GetType() == targetFileSource.GetType())
+			{
+				return sourceFileSource.CreateCopyOperation(sourceFiles, targetPath);
+			}
+			else if (sourceFileSource is FtpFileSource)
+				return sourceFileSource.CreateCopyOutOperation(targetFileSource, sourceFiles, targetPath);
+			else if (targetFileSource is FtpFileSource)
+				return targetFileSource.CreateCopyInOperation(sourceFileSource, sourceFiles, targetPath);
+			// If target is an archive, use copy in
+			else if (targetFileSource is IArchiveFileSource arc)
+			{
+				return targetFileSource.CreateCopyInOperation(sourceFileSource, sourceFiles, Helper.ExtractDirLevel(arc.ArchiveFileName, targetPath, true));
+			}
+			// If source is an archive, use copy out
+			else if (sourceFileSource is IArchiveFileSource)
+			{
+				return sourceFileSource.CreateCopyOutOperation(targetFileSource, sourceFiles, targetPath);
+			}
+			// Otherwise try to use target's copy in
+			else
+			{
+				return targetFileSource.CreateCopyInOperation(sourceFileSource, sourceFiles, targetPath);
+			}
         }
 
         /// <summary>

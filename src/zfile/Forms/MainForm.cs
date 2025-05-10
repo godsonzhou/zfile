@@ -140,6 +140,8 @@ namespace zfile
 					{
 						if (value is WcxArchiveFileSource wcx)
 							return wcx.ArchivePath + value?.CurrentPath;
+						else if (value is FtpFileSource ftp)
+							return $"ftp://{ftp.Host}{ftp.CurrentPath}";
 						else
 							return value?.CurrentPath ?? string.Empty;
 					}
@@ -151,6 +153,8 @@ namespace zfile
 					{
 						if (result is WcxArchiveFileSource wcx && value.StartsWith(wcx.ArchivePath))
 							result.CurrentPath = Helper.ExtractDirLevel(wcx.ArchivePath, value, true);
+						else if (result is FtpFileSource ftp)
+							result.CurrentPath = value.Replace($"ftp://{ftp.Host}", string.Empty, StringComparison.OrdinalIgnoreCase);
 						else
 							result.CurrentPath = value;
 					}
@@ -1167,22 +1171,19 @@ namespace zfile
 					e.Node.ForeColor = SystemColors.HighlightText;
 					treeView.Refresh(); // 强制重绘
 					uiManager.isleft = treeView == uiManager.LeftTree;
-
-					if (ftpNodeSelect(e.Node)) return;
-
-					LoadSubDirectories(e.Node, activeListView);
-					e.Node.Expand();
-					var path = Helper.getFSpathbyTree(e.Node);
-					if (string.IsNullOrEmpty(path)) return;
-
 					// 使用 FileSourceManager 获取合适的 FileSource
+					var path = Helper.getFSpathbyTree(e.Node);
 					IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, isleft);
-
 					// 更新当前活动面板的 FileSource
 					if (uiManager.isleft)
 						LeftFileSource = fileSource;
 					else
 						RightFileSource = fileSource;
+					if (ftpNodeSelect(e.Node)) return;
+
+					LoadSubDirectories(e.Node, activeListView);
+					e.Node.Expand();
+					if (string.IsNullOrEmpty(path)) return;
 
 					if (string.IsNullOrEmpty(CurrentFullpath[LRflag]))
 						CurrentFullpath[LRflag] = path;
@@ -1213,12 +1214,12 @@ namespace zfile
 		private void UpdatePathTextAndDriveComboBox(TreeNode eNode, string path, bool isleft)
 		{
 			if (!eNode.TreeView.Name.Equals(isleft ? "L" : "R")) return;
-			var txt = eNode.Text.Substring(0, 2);
+			var driveId = eNode.Text.Substring(0, 2);
 
 			if (isleft)
 			{
-				if (ShengAddressBarStrip.FtpDrives.Contains(txt)) //if ftp node clicked, update the pathtextbox
-					uiManager.LeftPathTextBox.UpdateDrives(txt);
+				if (ShengAddressBarStrip.FtpDrives.Contains(driveId)) //if ftp node clicked, update the pathtextbox
+					uiManager.LeftPathTextBox.UpdateDrives(driveId);
 				else
 					uiManager.LeftPathTextBox.SetAddress(eNode);    // 调用leftpathtextbox的setaddress方法来更新路径
 
@@ -1226,8 +1227,8 @@ namespace zfile
 			}
 			else
 			{
-				if (ShengAddressBarStrip.FtpDrives.Contains(txt)) //if ftp node clicked, update the pathtextbox
-					uiManager.RightPathTextBox.UpdateDrives(txt);
+				if (ShengAddressBarStrip.FtpDrives.Contains(driveId)) //if ftp node clicked, update the pathtextbox
+					uiManager.RightPathTextBox.UpdateDrives(driveId);
 				else
 					uiManager.RightPathTextBox.SetAddress(eNode);
 

@@ -909,14 +909,21 @@ namespace zfile
 		//获取当前树节点的实际文件系统路径，eg. 'system (c:)' -> c:\\
 		public static string getFSpathbyTree(TreeNode Node)
 		{
-			if (Node.Parent == null || Node.Parent.Tag is not ShellItem || Node.Tag is not ShellItem)
+			if (Node.Parent == null)
 			{
 				//top node process, does not need to process listviewbyfilesystem
 				return string.Empty;
 			}
-			var parentfolder = ((ShellItem)Node.Parent.Tag).ShellFolder;    //获取父节点的ishellfoler
-			var pidl = ((ShellItem)Node.Tag).PIDL;  //获取c:\\节点的pidl
-			return w32.GetPathByIShell(parentfolder, pidl); //取得实际path
+			if (Node.Parent.Tag is ShellItem && Node.Tag is ShellItem) {
+				var parentfolder = ((ShellItem)Node.Parent.Tag).ShellFolder;    //获取父节点的ishellfoler
+				var pidl = ((ShellItem)Node.Tag).PIDL;  //获取c:\\节点的pidl
+				return w32.GetPathByIShell(parentfolder, pidl); //取得实际path
+			}
+			if(Node.Tag is FtpNodeTag ftpnode)
+			{
+				return Node.Text.Substring(0,2);
+			}
+			return string.Empty;
 		}
 		public static string getFSpathbyList(string path)
 		{

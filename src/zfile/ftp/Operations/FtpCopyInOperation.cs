@@ -73,8 +73,7 @@ namespace zfile
             {
                 CheckOperationState();
                 
-                string newTargetPath = Path.Combine(targetPath, subNode.Name).Replace('\\', '/');
-                
+                string newTargetPath = Path.Combine(targetPath, subNode.Name);
                 if (subNode.IsDirectory)
                 {
                     // 创建目录
@@ -102,7 +101,7 @@ namespace zfile
                 else
                 {
                     // 复制文件
-                    CopyFile(subNode.Path, newTargetPath);
+                    CopyFile(subNode.TheFile.FullPath, newTargetPath);
                 }
             }
         }

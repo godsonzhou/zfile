@@ -442,7 +442,8 @@ namespace zfile
 					listView.EndUpdate();
 
 					// 更新当前目录
-					form.CurrentFullpath[listView.Name] = $"ftp://{source.Host}{path}";
+					//form.CurrentFullpath[listView.Name] = $"ftp://{source.Host}{path}";
+					form.CurrentFullpath[listView.Name] = path;
 				}
 			}
 			catch (Exception ex)

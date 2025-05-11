@@ -5,7 +5,7 @@ namespace zfile
     /// </summary>
     public class FileSourceDeleteOperationStatistics
     {
-        public string CurrentFile;
+        public string? CurrentFile;
         public long TotalFiles;
         public long DoneFiles;
         public long TotalBytes;
@@ -22,9 +22,9 @@ namespace zfile
     {
         private FileSourceDeleteOperationStatistics _statistics;
         private FileSourceDeleteOperationStatistics _statisticsAtStartTime;
-        private readonly object _statisticsLock = new object();
-        private IFileSource _fileSource;
-        private FileEntries _filesToDelete;
+        private readonly object _statisticsLock = new ();
+        //private IFileSource _fileSource;
+        private FileEntries? _filesToDelete;
 
         /// <summary>
         /// Gets the operation type
@@ -34,12 +34,12 @@ namespace zfile
         /// <summary>
         /// Gets the file source
         /// </summary>
-        protected IFileSource FileSource => _fileSource;
+        //protected IFileSource FileSource => _fileSource;
 
         /// <summary>
         /// Gets the files to delete
         /// </summary>
-        protected FileEntries FilesToDelete => _filesToDelete;
+        protected FileEntries? FilesToDelete => _filesToDelete;
 
         /// <summary>
         /// Creates a new instance of the <see cref="FileSourceDeleteOperation"/> class
@@ -61,7 +61,7 @@ namespace zfile
             };
 
             _fileSource = aTargetFileSource;
-            _filesToDelete = theFilesToDelete ?? new FileEntries();
+            _filesToDelete = theFilesToDelete ?? [];
         }
 
         /// <summary>
@@ -87,10 +87,10 @@ namespace zfile
             switch (details)
             {
                 case FileSourceOperationDescriptionDetails.JobAndTarget:
-                    if (FilesToDelete.Count == 1)
+                    if (FilesToDelete?.Count == 1)
                         return string.Format("Deleting {0}", FilesToDelete[0].FullPath);
                     else
-                        return string.Format("Deleting in {0}", FilesToDelete.Count > 0 ? FilesToDelete[0].Path : "");
+                        return string.Format("Deleting in {0}", FilesToDelete?.Count > 0 ? FilesToDelete[0].Path : "");
                 default:
                     return "Deleting";
             }
@@ -101,9 +101,9 @@ namespace zfile
         /// </summary>
         protected override void DoReloadFileSources()
         {
-            if (FilesToDelete.Count > 0)
+            if (FilesToDelete?.Count > 0)
             {
-                _fileSource.Reload(new[] { FilesToDelete[0].Path });
+                _fileSource.Reload([FilesToDelete[0].Path]);
             }
         }
 

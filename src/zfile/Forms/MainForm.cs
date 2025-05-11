@@ -694,10 +694,7 @@ namespace zfile
 			if (listView?.SelectedItems.Count == 0) return;
 
 			// 收集拖拽项路径
-			draggedItems = listView.SelectedItems
-				.Cast<ListViewItem>()
-				.Select(item => GetListItemPath(item))
-				.ToArray();
+			draggedItems = [..listView.SelectedItems.Cast<ListViewItem>().Select(item => GetListItemPath(item))];
 			// 启动拖拽操作
 			listView.DoDragDrop(new DataObject(DataFormats.FileDrop, draggedItems), DragDropEffects.Copy);
 		}

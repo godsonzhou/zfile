@@ -1463,17 +1463,6 @@ namespace zfile
 			// 类似于Pascal版本中的frmViewOperations.SetFocusItem(AOperationHandle)
 		}
 
-		///// <summary>
-		///// Shows the operations viewer window and focuses on a specific queue
-		///// </summary>
-		///// <param name="queueIdentifier">The queue identifier to focus</param>
-		//public static void ShowOperationsViewer(int queueIdentifier)
-		//{
-		//	ShowOperationsViewer();
-		//	// 在实际实现中，这里应该设置焦点到指定的队列
-		//	// 类似于Pascal版本中的frmViewOperations.SetFocusItem(AQueueIdentifier)
-		//}
-
 		private void FormClose(object sender, FormClosingEventArgs e)
 		{
 			if (_updateTimer != null)

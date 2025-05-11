@@ -47,7 +47,7 @@ namespace zfile
             description?.Dispose();
         }
 
-        public static FileEntry CreateFile(string path)
+        public new static FileEntry CreateFile(string path)
         {
             var file = new FileEntry(path);
             file.Attributes = FileAttributes.Normal;
@@ -253,12 +253,13 @@ namespace zfile
 
             if (propertiesToSet.HasFlag(FilePropertyType.Comment))
             {
-                file.CommentProperty = new FileCommentProperty();
-                file.CommentProperty.Value = description.ReadDescription(fullPath);
+				file.CommentProperty = new() {
+					Value = description.ReadDescription(fullPath)
+				};
             }
         }
 
-        public static IFileSystemFileSource GetFileSource()
+        public static IFileSystemFileSource? GetFileSource()
         {
             var fileSource = FileSourceManager.Instance.Find(typeof(FileSystemFileSource), string.Empty);
             if (fileSource == null)
@@ -530,25 +531,25 @@ namespace zfile
             return new FileSystemSetFilePropertyOperation(this, targetFiles, newProperties);
         }
 
-        private void SetOwner(FileEntry file)
+        private static void SetOwner(FileEntry file)
         {
             file.OwnerProperty = new FileOwnerProperty();
             // 这里需要根据操作系统实现获取文件所有者的功能
         }
 
-        private string GetFileDescription(string path)
+        private static string GetFileDescription(string path)
         {
             // 这里需要根据操作系统实现获取文件描述的功能
             return string.Empty;
         }
 
-        private long GetCompressedFileSize(string path)
+        private static long GetCompressedFileSize(string path)
         {
             // 这里需要根据Windows API实现获取压缩文件大小的功能
             return 0;
         }
 
-        private string GetDeepestExistingPath(string path)
+        private static string? GetDeepestExistingPath(string path)
         {
             while (!string.IsNullOrEmpty(path) && !Directory.Exists(path))
             {

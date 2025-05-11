@@ -1079,7 +1079,7 @@ namespace zfile
 			listView.SelectedIndexChanged += form.ListView_SelectedIndexChanged;
 			listView.MouseUp += form.ListView_MouseUp;
 			listView.MouseDown += form.ListView_MouseDown;
-			listView.MouseMove += form.ListView_MouseMove;
+			//listView.MouseMove += form.ListView_MouseMove;
 			listView.BeforeLabelEdit += form.ListView_BeforeLabelEdit;
 			listView.AfterLabelEdit += form.ListView_AfterLabelEdit;
 			parent.Controls.Add(listView);
@@ -1096,7 +1096,7 @@ namespace zfile
 			listView.SelectedIndexChanged -= form.ListView_SelectedIndexChanged;
 			listView.MouseUp -= form.ListView_MouseUp;
 			listView.MouseDown -= form.ListView_MouseDown;
-			listView.MouseMove -= form.ListView_MouseMove;
+			//listView.MouseMove -= form.ListView_MouseMove;
 			listView.BeforeLabelEdit -= form.ListView_BeforeLabelEdit;
 			listView.AfterLabelEdit -= form.ListView_AfterLabelEdit;
 		}
@@ -1290,14 +1290,14 @@ namespace zfile
 		{
 			string commanderPath = Environment.GetEnvironmentVariable("COMMANDER_PATH") ?? string.Empty;
 			//if (string.IsNullOrEmpty(commanderPath))
-			{
+			//{
 				//MessageBox.Show("未设置COMMANDER_PATH环境变量", "warning", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				//var bb = Environment.CurrentDirectory;
 				//var cc = AppDomain.CurrentDomain.BaseDirectory;
 				//var dd = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
 				return Directory.GetCurrentDirectory(); ;
-			}
-			return commanderPath;
+			//}
+			//return commanderPath;
 		}
 
 		public void ToolbarButton_Click(object? sender, EventArgs e)

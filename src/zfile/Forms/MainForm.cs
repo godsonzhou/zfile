@@ -1300,7 +1300,7 @@ namespace zfile
 			}
 		}
 
-		public void ListView_MouseDown(object sender, MouseEventArgs e)
+		public void ListView_MouseDown(object? sender, MouseEventArgs e)
 		{
 			if (e.Button == MouseButtons.Left)
 			{
@@ -1309,7 +1309,7 @@ namespace zfile
 				uiManager.SetArgs();
 			}
 		}
-		public void ListView_BeforeLabelEdit(object sender, EventArgs e)
+		public void ListView_BeforeLabelEdit(object? sender, EventArgs e)
 		{
 			var listView = sender as ListView;
 			if (listView?.SelectedItems.Count == 0) return;
@@ -1323,7 +1323,7 @@ namespace zfile
 			oldname = item?.Text;
 		}
 
-		public void ListView_AfterLabelEdit(object sender, EventArgs e)
+		public void ListView_AfterLabelEdit(object? sender, EventArgs e)
 		{
 			var listView = sender as ListView;
 			if (listView?.SelectedItems.Count == 0) return;
@@ -1357,7 +1357,7 @@ namespace zfile
 			catch (Exception ex)
 			{
 				MessageBox.Show($"重命名失败: {ex.Message}", "错误");
-				item.Text = oldName;
+				if(item != null) item.Text = oldName;
 			}
 			RefreshPanel(listView);
 		}
@@ -1366,7 +1366,7 @@ namespace zfile
 
 		//}
 
-		public void ListView_MouseUp(object sender, MouseEventArgs e)
+		public void ListView_MouseUp(object? sender, MouseEventArgs e)
 		{
 			//if (isSelecting)
 			//{
@@ -1379,7 +1379,7 @@ namespace zfile
 
 			if (sender is not ListView listView)
 				return;
-			ListViewItem item = listView.GetItemAt(e.X, e.Y);
+			var item = listView.GetItemAt(e.X, e.Y);
 			if (item != null)
 				item.Selected = true;
 
@@ -1445,7 +1445,7 @@ namespace zfile
 		{
 			if (sender is not ListView listView)
 				return;
-			ListViewItem item = listView.GetItemAt(e.X, e.Y);
+			var item = listView.GetItemAt(e.X, e.Y);
 			if (item != null)
 				item.Selected = true;
 			if (listView.SelectedItems.Count == 0) return;
@@ -1493,8 +1493,8 @@ namespace zfile
 				// 使用 FileSourceManager 获取 WcxArchiveFileSource
 				//fileSource = _fileSourceManager.GetFileSourceForPath(path);
 				var lvItemTag = selectedItem.Tag as LvItemTag;
-				var lvItemFile = lvItemTag.File;
-				if (lvItemFile.IsDirectory || !isinarchive)
+				var lvItemFile = lvItemTag?.File;
+				if (lvItemFile != null && (lvItemFile.IsDirectory || !isinarchive))
 				{
 					if (!CurrentFullpath[LRflag].Equals(path))//由于在WCX内部，通过TREEVIEW_AFTERSELECT节点不会发生变化，所以无法记录历史，只能在LISTVIEW_DOUBLECLICK中记录历史
 															  // 记录目录历史
@@ -1509,7 +1509,7 @@ namespace zfile
 				else
 				{
 					// 调用wcxfilesourceexecuteoperation
-					var op = fileSource.CreateExecuteOperation(lvItemFile, fileSource.CurrentPath, "open");
+					var op = fileSource?.CreateExecuteOperation(lvItemFile, fileSource.CurrentPath, "open");
 					_operationsManager.AddOperation(op);
 					//op?.Execute();
 				}
@@ -1591,7 +1591,7 @@ namespace zfile
 			foreach (var n in nodes)
 			{
 				var node = n as TreeNode;
-				if (node.Text.Equals(pathpart[0], StringComparison.OrdinalIgnoreCase))
+				if (node != null && node.Text.Equals(pathpart[0], StringComparison.OrdinalIgnoreCase))
 				{
 					if (pathpart.Length == 1)
 						return node;
@@ -1780,7 +1780,7 @@ namespace zfile
 		private bool getIconBySysImageList(ref ShellItem subItem, out string iconKey, bool islarge = false)
 		{
 			var IID_IImageList = new Guid("46EB5926-582E-4017-9FDF-E8998DAA0950");
-			IImageList hImageList = null;
+			IImageList? hImageList = null;
 
 			API.SHGetImageList(islarge ? SHIL.SHIL_LARGE : SHIL.SHIL_SMALL, ref IID_IImageList, ref hImageList);
 			if (hImageList != null)
@@ -1840,7 +1840,7 @@ namespace zfile
 			iconKey = string.Empty;
 			return false;
 		}
-		public List<TreeNode> LoadSubDirectories(TreeNode node, MyListView? lv = null)
+		public List<TreeNode>? LoadSubDirectories(TreeNode node, MyListView? lv = null)
 		{
 			// 创建一个新的节点集合，用于存储需要保留的节点
 			List<TreeNode> nodesToKeep = new List<TreeNode>();
@@ -1909,7 +1909,7 @@ namespace zfile
 
 						// 检查是否已存在相同路径的节点
 						TreeNode nodeSub;
-						if (existingNodes.TryGetValue(nodeKey, out TreeNode existingNode))
+						if (existingNodes.TryGetValue(nodeKey, out TreeNode? existingNode))
 						{
 							// 保留现有节点
 							nodeSub = existingNode;
@@ -2962,7 +2962,7 @@ namespace zfile
 			if (treeView == null) return;
 			RefreshPanel(treeView == uiManager.LeftTree ? RefreshPanelMode.Left : RefreshPanelMode.Right);
 		}
-		public void RefreshPanel(ListView listView)
+		public void RefreshPanel(ListView? listView)
 		{
 			if (listView == null) return;
 			RefreshPanel(listView == uiManager.LeftList ? RefreshPanelMode.Left : RefreshPanelMode.Right);

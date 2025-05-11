@@ -191,6 +191,10 @@ namespace zfile
 		internal static string? FileOpCopyMoveFileExistsOptions;
 		internal static IFormatProvider? MsgDelToTrashForce;
 		internal static string? VfsRecycleBin = "Recycle Bin";
+		internal static IFormatProvider? MsgExecutablePath;
+		internal static IFormatProvider? MsgApplicationName;
+		internal static IFormatProvider? MsgProcessId;
+		internal static string MsgOpenInAnotherProgram;
 
 		public static string? MsgLogSuccess { get; internal set; }
 		public static string? MsgLogMkDir { get; internal set; }

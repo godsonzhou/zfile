@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 namespace zfile
 {
 	public class Description(bool flag) : IDisposable
@@ -129,7 +130,7 @@ namespace zfile
         {
             var fileName = file.FullPath;
             bool retry;
-            int lastError;
+            int lastError = 0;
             var removeDirectly = FileSourceOperationOptionGeneral.None;
             string message, question;
             LogOption logOptions;
@@ -314,7 +315,7 @@ namespace zfile
                         if (!recycle || removeDirectly == FileSourceOperationOptionGeneral.Yes)
                         {
                             lastError = Marshal.GetLastWin32Error();
-#if MSWINDOWS
+#if WINDOWS
                             ProcessInfo[] processInfo;
                             if (GetFileInUseProcessFast(fileName, out processInfo))
                             {
@@ -335,7 +336,7 @@ namespace zfile
                         }
 						FileSourceOperationUIResponse[] possibleResponses;
 
-#if MSWINDOWS
+#if WINDOWS
                         if (ElevateAction != DuplicateAction.Accept && ElevationRequired(lastError))
                         {
                             possibleResponses = new FileSourceOperationUIResponse[] {
@@ -395,6 +396,16 @@ namespace zfile
                 }
             } while (retry);
         }
+
+		private bool GetFileInUseProcessFast(string fileName, out ProcessInfo[] processInfo)
+		{
+			throw new NotImplementedException();
+		}
+
+		private bool ElevationRequired(int lastError)
+		{
+			throw new NotImplementedException();
+		}
 
 		private string WrapTextSimple(string fileName, int length = 100)
 		{
@@ -501,5 +512,12 @@ namespace zfile
         }
 
 		public DuplicateAction ElevateAction { get; private set; }
+	}
+
+	internal class ProcessInfo
+	{
+		public string? ExecutablePath { get; internal set; }
+		public string ApplicationName { get; internal set; }
+		public string ProcessId { get; internal set; }
 	}
 } 

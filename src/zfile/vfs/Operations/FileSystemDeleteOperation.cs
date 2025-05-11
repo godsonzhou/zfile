@@ -106,11 +106,11 @@ namespace zfile
         private void DeleteSubDirectory(FileEntry file)
         {
             var rootFiles = new FileEntries { file };
-            FileEntries subFiles;
-            long filesCount, bytesCount;
+            //FileEntries subFiles;
+            //long filesCount, bytesCount;
 
 			// 只为子文件统计，因为根目录的统计已经完成
-			FileSystemUtil.FillAndCount(rootFiles, true, true, out subFiles, out filesCount, out bytesCount);
+			FileSystemUtil.FillAndCount(rootFiles, true, true, out var subFiles, out var filesCount, out var bytesCount);
 
             statistics.TotalFiles += filesCount;
             statistics.TotalBytes += bytesCount;
@@ -144,13 +144,13 @@ namespace zfile
                         var response = AskQuestion(
                             string.Format(Resources.MsgFileReadOnly, WrapTextSimple(fileName)),
                             string.Empty,
-                            new[] {
+                            [
                                 FileSourceOperationUIResponse.Yes,
                                 FileSourceOperationUIResponse.Skip,
                                 FileSourceOperationUIResponse.Abort,
                                 FileSourceOperationUIResponse.All,
                                 FileSourceOperationUIResponse.SkipAll
-                            },
+                            ],
                             FileSourceOperationUIResponse.Yes,
                             FileSourceOperationUIResponse.Abort);
 
@@ -208,13 +208,13 @@ namespace zfile
                                 var response = AskQuestion(
                                     string.Format(Resources.MsgDelToTrashForce, WrapTextSimple(fileName)),
                                     string.Empty,
-                                    new[] {
+                                    [
                                         FileSourceOperationUIResponse.Yes,
                                         FileSourceOperationUIResponse.All,
                                         FileSourceOperationUIResponse.Skip,
                                         FileSourceOperationUIResponse.SkipAll,
                                         FileSourceOperationUIResponse.Abort
-                                    },
+                                    ],
                                     FileSourceOperationUIResponse.Yes,
                                     FileSourceOperationUIResponse.Abort);
 
@@ -339,23 +339,23 @@ namespace zfile
 #if WINDOWS
                         if (ElevateAction != DuplicateAction.Accept && ElevationRequired(lastError))
                         {
-                            possibleResponses = new FileSourceOperationUIResponse[] {
+                            possibleResponses = [
                                 FileSourceOperationUIResponse.Retry,
                                 FileSourceOperationUIResponse.Skip,
                                 FileSourceOperationUIResponse.SkipAll,
                                 FileSourceOperationUIResponse.Abort,
                                 FileSourceOperationUIResponse.RetryAdmin
-                            };
+                            ];
                         }
                         else
 #endif
 						{
-							possibleResponses = new FileSourceOperationUIResponse[] {
+							possibleResponses = [
                                 FileSourceOperationUIResponse.Retry,
                                 FileSourceOperationUIResponse.Skip,
                                 FileSourceOperationUIResponse.SkipAll,
                                 FileSourceOperationUIResponse.Abort
-                            };
+                            ];
                         }
 
 #if MSWINDOWS
@@ -387,9 +387,9 @@ namespace zfile
                                 break;
                             case FileSourceOperationUIResponse.Unlock:
                                 retry = true;
-                                //GetFileInUseProcessSlow(fileName, lastError, out processInfo);
-                                //ShowUnlockForm(processInfo);
-                                break;
+								//GetFileInUseProcessSlow(fileName, lastError, out processInfo);
+								//ShowUnlockForm(processInfo);
+								break;
 #endif
                         }
                     }

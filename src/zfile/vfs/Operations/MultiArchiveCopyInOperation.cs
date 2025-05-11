@@ -6,7 +6,8 @@ namespace zfile
     {
         None = 0,
         Error = 1,
-		Ignore = 2
+		Ignore = 2,
+		Accept = 3
     }
 
     public class MultiArchiveCopyInOperation : ArchiveCopyInOperation

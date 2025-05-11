@@ -98,13 +98,13 @@ namespace zfile
 		// Helper class to hold data for the FillAndCount method
 		private class FillAndCountData
 		{
-			public FileEntries NewFiles { get; set; }
+			public FileEntries? NewFiles { get; set; }
 			public long FilesCount { get; set; }
 			public long FilesSize { get; set; }
 		}
 
 		public static void FillAndCount(
-			FileEntries files,
+			FileEntries? files,
 			bool countDirs,
 			bool excludeRootDir,
 			out FileEntries newFiles,

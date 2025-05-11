@@ -167,33 +167,33 @@ namespace zfile
 	}
 	public static class Resources
 	{
-		internal static string MsgLogError;
-		internal static string MsgLogWipe;
-		internal static string MsgLogWipeDir;
+		internal static string? MsgLogError;
+		internal static string? MsgLogWipe;
+		internal static string? MsgLogWipeDir;
 		internal static IFormatProvider? MsgErrDateNotSupported;
 		internal static IFormatProvider? MsgFileReadOnly;
 		internal static IFormatProvider? FileExistsMessage;
 		internal static IFormatProvider? MsgErrRename;
-		internal static string MsgLogMove;
-		internal static string MsgLogCopy;
-		internal static string MsgLogDelete;
-		internal static string MsgLogRmDir;
+		internal static string? MsgLogMove;
+		internal static string? MsgLogCopy;
+		internal static string? MsgLogDelete;
+		internal static string? MsgLogRmDir;
 		internal static IFormatProvider? MsgErrDirExists;
 		internal static IFormatProvider? MsgErrForceDir;
 		internal static IFormatProvider? MsgNotDelete;
-		internal static string MsgErrEWrite;
-		internal static string MsgErrNotSupported;
-		internal static string MsgNoFreeSpaceCont;
+		internal static string? MsgErrEWrite;
+		internal static string? MsgErrNotSupported;
+		internal static string? MsgNoFreeSpaceCont;
 		internal static IFormatProvider? MsgInsertNextDisk;
-		internal static string MsgErrEOpen;
+		internal static string? MsgErrEOpen;
 		internal static IFormatProvider? MsgCannotDeleteDirectory;
 		internal static int MsgLoadingFileEntries;
 		internal static string? FileOpCopyMoveFileExistsOptions;
 		internal static IFormatProvider? MsgDelToTrashForce;
 		internal static string? VfsRecycleBin = "Recycle Bin";
 
-		public static string MsgLogSuccess { get; internal set; }
-		public static string MsgLogMkDir { get; internal set; }
+		public static string? MsgLogSuccess { get; internal set; }
+		public static string? MsgLogMkDir { get; internal set; }
 	}
 	public static class Logger
 	{

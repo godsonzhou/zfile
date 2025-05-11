@@ -39,7 +39,7 @@ namespace zfile
 
 	public class FileSystemDeleteOperation : FileSourceDeleteOperation
     {
-        private FileEntries fullFilesTreeToDelete;  // 源文件，包括所有子目录中的文件/目录
+        private FileEntries? fullFilesTreeToDelete;  // 源文件，包括所有子目录中的文件/目录
         private FileSourceDeleteOperationStatistics statistics; // 统计信息的本地副本
         private Description description;
 
@@ -73,7 +73,7 @@ namespace zfile
             if (recycle)
             {
                 fullFilesTreeToDelete = FilesToDelete;
-                statistics.TotalFiles = fullFilesTreeToDelete.Count;
+                statistics.TotalFiles = fullFilesTreeToDelete?.Count ?? 0;
             }
             else
             {
@@ -379,15 +379,15 @@ namespace zfile
                             case FileSourceOperationUIResponse.Abort:
                                 RaiseAbortOperation();
                                 break;
-#if MSWINDOWS
+#if WINDOWS
                             case FileSourceOperationUIResponse.RetryAdmin:
                                 retry = true;
                                 ElevateAction = DuplicateAction.Accept;
                                 break;
                             case FileSourceOperationUIResponse.Unlock:
                                 retry = true;
-                                GetFileInUseProcessSlow(fileName, lastError, out processInfo);
-                                ShowUnlockForm(processInfo);
+                                //GetFileInUseProcessSlow(fileName, lastError, out processInfo);
+                                //ShowUnlockForm(processInfo);
                                 break;
 #endif
                         }
@@ -396,9 +396,9 @@ namespace zfile
             } while (retry);
         }
 
-		private string WrapTextSimple(string fileName)
+		private string WrapTextSimple(string fileName, int length = 100)
 		{
-			throw new NotImplementedException();
+			return fileName.Substring(0, Math.Min(fileName.Length, length));
 		}
 
 		private bool FileTrashUtf8(string fileName)
@@ -411,7 +411,7 @@ namespace zfile
 			throw new NotImplementedException();
 		}
 
-		private void ProcessList(FileEntries files)
+		private void ProcessList(FileEntries? files)
         {
             for (int i = files.Count - 1; i >= 0; i--)
             {
@@ -436,23 +436,23 @@ namespace zfile
 		//	//throw new NotImplementedException();
 		//}
 
-		private FileSourceOperationUIResponse ShowError(string message)
-        {
-            if (skipErrors)
-            {
-                Logger.Write(_thread, message, LogOption.Error, true);
-                return FileSourceOperationUIResponse.Skip;
-            }
-            else
-            {
-                var response = AskQuestion(message, string.Empty,
-                    new[] { FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Cancel },
-                    FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Cancel);
-                if (response == FileSourceOperationUIResponse.Cancel)
-                    RaiseAbortOperation();
-                return response;
-            }
-        }
+		//private FileSourceOperationUIResponse ShowError(string message)
+  //      {
+  //          if (skipErrors)
+  //          {
+  //              Logger.Write(_thread, message, LogOption.Error, true);
+  //              return FileSourceOperationUIResponse.Skip;
+  //          }
+  //          else
+  //          {
+  //              var response = AskQuestion(message, string.Empty,
+  //                  new[] { FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Cancel },
+  //                  FileSourceOperationUIResponse.Skip, FileSourceOperationUIResponse.Cancel);
+  //              if (response == FileSourceOperationUIResponse.Cancel)
+  //                  RaiseAbortOperation();
+  //              return response;
+  //          }
+  //      }
 
         //private void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
         //{

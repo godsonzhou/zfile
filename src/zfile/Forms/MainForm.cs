@@ -1,6 +1,7 @@
 using Sheng.Winform.Controls;
 using System.Collections;
 using System.Diagnostics;
+using System.Diagnostics.Eventing.Reader;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -2737,7 +2738,7 @@ namespace zfile
 			// 非FTP路径或FTP处理失败，或者是不需要下载的操作（cm_copy, cm_renmov, cm_delete），使用原来的逻辑
 			return originalFiles;
 		}
-
+	
 		/// <summary>
 		/// 将FTP文件下载到临时目录
 		/// </summary>
@@ -2753,37 +2754,9 @@ namespace zfile
 				string tempPath = tempFileSource.FileSystemRoot;
 
 				// 创建文件条目列表
-				var fileEntries = new FileEntries();
-				foreach (var file in sourceFiles)
-				{
-					if (!file.IsDirectory) // 只处理文件，不处理目录
-					{
-						// 将FileEntry转换为FtpFileEntry
-						var ftpFile = new FtpFileEntry(file.Path, file.Name)
-						{
-							// 复制原始文件的属性
-							Size = file.Size,
-							Attributes = file.Attributes,
-							ModificationTime = file.ModificationTime
-						};
-						// 如果有其他需要复制的属性，可以在这里添加
-						if (file.SupportedProperties.HasFlag(FilePropertyType.CompressedSize))
-							ftpFile.CompressedSize = file.CompressedSize;
-
-						if (file.SupportedProperties.HasFlag(FilePropertyType.CreationTime))
-							ftpFile.CreationTime = file.CreationTime;
-
-						if (file.SupportedProperties.HasFlag(FilePropertyType.LastAccessTime))
-							ftpFile.LastAccessTime = file.LastAccessTime;
-
-						fileEntries.Add(ftpFile);
-					}
-				}
-
+				var fileEntries = FileSourceUtil.FileEntryListToFtpFileEntries(sourceFiles);
 				if (fileEntries.Count == 0)
-				{
 					return [];
-				}
 
 				// 创建FTP复制出操作
 				var copyOutOperation = ftpSource.CreateCopyOutOperation(
@@ -4005,8 +3978,8 @@ namespace zfile
 						}
 
 						// 第二步：从临时文件系统复制到目标压缩文件
-						var arc = targetFileSource as IArchiveFileSource;
-						var copyInOperation = targetFileSource.CreateCopyInOperation(tempFileSource, tempFiles, Helper.ExtractDirLevel(arc.ArchiveFileName, targetPath, true));
+						//var arc = targetFileSource as IArchiveFileSource;
+						var copyInOperation = targetFileSource.CreateCopyInOperation(tempFileSource, tempFiles, targetPath);
 
 						if (copyInOperation != null)
 						{

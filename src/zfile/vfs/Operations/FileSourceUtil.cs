@@ -7,15 +7,45 @@ namespace zfile
     /// </summary>
     public static class FileSourceUtil
     {
-        /// <summary>
-        /// Decides what should be done when user chooses a file in a file view.
-        /// This function may add/remove a file source from the view,
-        /// change path, execute a file or a command, etc.
-        /// </summary>
-        /// <param name="fileView">File view</param>
-        /// <param name="fileSource">File source</param>
-        /// <param name="file">File</param>
-        public static void ChooseFile(FileView fileView, IFileSource fileSource, FileEntry file)
+		public static FileEntries FileEntryListToFtpFileEntries(List<FileEntry> sourceFiles)
+		{
+			var fileEntries = new FileEntries();
+			foreach (var file in sourceFiles)
+			{
+				//if (!file.IsDirectory) // 只处理文件，不处理目录
+				{
+					// 将FileEntry转换为FtpFileEntry
+					var ftpFile = new FtpFileEntry(file.Path, file.Name)
+					{
+						// 复制原始文件的属性
+						Size = file.Size,
+						Attributes = file.Attributes,
+						ModificationTime = file.ModificationTime
+					};
+					// 如果有其他需要复制的属性，可以在这里添加
+					if (file.SupportedProperties.HasFlag(FilePropertyType.CompressedSize))
+						ftpFile.CompressedSize = file.CompressedSize;
+
+					if (file.SupportedProperties.HasFlag(FilePropertyType.CreationTime))
+						ftpFile.CreationTime = file.CreationTime;
+
+					if (file.SupportedProperties.HasFlag(FilePropertyType.LastAccessTime))
+						ftpFile.LastAccessTime = file.LastAccessTime;
+
+					fileEntries.Add(ftpFile);
+				}
+			}
+			return fileEntries;
+		}
+		/// <summary>
+		/// Decides what should be done when user chooses a file in a file view.
+		/// This function may add/remove a file source from the view,
+		/// change path, execute a file or a command, etc.
+		/// </summary>
+		/// <param name="fileView">File view</param>
+		/// <param name="fileSource">File source</param>
+		/// <param name="file">File</param>
+		public static void ChooseFile(FileView fileView, IFileSource fileSource, FileEntry file)
         {
             // First test for file sources
             if (ChooseFileSource(fileView, fileSource, file))

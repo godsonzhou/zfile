@@ -385,7 +385,8 @@ namespace zfile
 
         public override FileSourceOperation CreateCopyInOperation(IFileSource sourceFileSource, FileEntries sourceFiles, string targetPath)
         {
-            return new WcxArchiveCopyInOperation(sourceFileSource, this, sourceFiles, targetPath);
+			targetPath = Helper.ExtractDirLevel(ArchiveFileName, targetPath, true);
+			return new WcxArchiveCopyInOperation(sourceFileSource, this, sourceFiles, targetPath);
         }
 
         public override FileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)

@@ -192,7 +192,7 @@ namespace zfile
 		public static IntPtr _Handle { get; set; }
 		public static int MainThreadId { get; set; } = 0;
 		public readonly FTPMGR fTPMGR;
-		public readonly AsyncFTPMGR asyncfTPMGR;
+		//public readonly AsyncFTPMGR asyncfTPMGR;
 
 		// FileSource 相关成员变量
 		private IFileSource? LeftFileSource { get => CurrentFullpath.LeftFileSource; set => CurrentFullpath.LeftFileSource = value; }

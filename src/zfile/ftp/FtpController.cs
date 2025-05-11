@@ -8,7 +8,7 @@ namespace zfile
 	public class FtpController : IDisposable
 	{
 		private readonly MainForm parentForm;
-		private readonly AsyncFTPMGR asyncFtpManager;
+		//private readonly AsyncFTPMGR asyncFtpManager;
 		private readonly FTPMGR ftpManager;
 
 		// UI Controls
@@ -26,11 +26,11 @@ namespace zfile
 		private List<string> commandHistory = new List<string>();
 		private int cmdHistoryIndex = 0;
 
-		public FtpController(MainForm parentForm, AsyncFTPMGR asyncFtpManager, FTPMGR ftpManager)
+		public FtpController(MainForm parentForm, FTPMGR ftpManager)
 		{
 			this.parentForm = parentForm;
 			this.ftpManager = ftpManager;
-			this.asyncFtpManager = asyncFtpManager;
+			//this.asyncFtpManager = asyncFtpManager;
 
 			// ���������
 			mainPanel = new Panel
@@ -118,19 +118,24 @@ namespace zfile
 		}
 		public string GetCmdHistory(int i)
 		{
-			if (commandHistory.Count == 0) {
+			if (commandHistory.Count == 0)
+			{
 				return string.Empty;
 			}
 
 			// -1 表示获取上一条命令（向上浏览历史）
-			if (i == -1) {
-				if (cmdHistoryIndex > 0) {
+			if (i == -1)
+			{
+				if (cmdHistoryIndex > 0)
+				{
 					cmdHistoryIndex--;
 				}
 			}
 			// 1 表示获取下一条命令（向下浏览历史）
-			else if (i == 1) {
-				if (cmdHistoryIndex < commandHistory.Count - 1) {
+			else if (i == 1)
+			{
+				if (cmdHistoryIndex < commandHistory.Count - 1)
+				{
 					cmdHistoryIndex++;
 				}
 			}
@@ -159,11 +164,10 @@ namespace zfile
 			isBinaryMode = !isBinaryMode;
 			transferModeButton.Text = isBinaryMode ? "Binary Mode" : "ASCII Mode";
 
+			// 获取当前活动面板的FTP客户端
 			if (ftpManager.ActiveClient != null)
 			{
-				// ����FTP����ģʽ
-				//ftpManager.ActiveClient.(isBinaryMode ? FtpDataType.ASCII : FtpDataType.Binary);
-				//SendCommand(isBinaryMode ? "bin" : "asc");
+				// 设置FTP传输模式
 				if (isBinaryMode)
 				{
 					ftpManager.ActiveClient.Config.DownloadDataType = FtpDataType.Binary;
@@ -181,9 +185,11 @@ namespace zfile
 
 		private void DisconnectButton_Click(object? sender, EventArgs e)
 		{
+			// 断开当前活动面板的FTP连接
 			parentForm.fTPMGR.CloseConnection();
 		}
-		public void SetPrevCmd(){
+		public void SetPrevCmd()
+		{
 			if (commandHistory.Count > 0)
 			{
 				string prevCmd = GetCmdHistory(-1);
@@ -193,20 +199,21 @@ namespace zfile
 				}
 			}
 		}
-		public void SetNextCmd(){
-		if (commandHistory.Count > 0 && cmdHistoryIndex < commandHistory.Count)
+		public void SetNextCmd()
+		{
+			if (commandHistory.Count > 0 && cmdHistoryIndex < commandHistory.Count)
+			{
+				string nextCmd = GetCmdHistory(1);
+				if (!string.IsNullOrEmpty(nextCmd))
 				{
-					string nextCmd = GetCmdHistory(1);
-					if (!string.IsNullOrEmpty(nextCmd))
-					{
-						SetCmdLine(nextCmd);
-					}
-					else
-					{
-						// 如果已经到达历史记录的末尾，清空输入框
-						SetCmdLine(string.Empty);
-					}
+					SetCmdLine(nextCmd);
 				}
+				else
+				{
+					// 如果已经到达历史记录的末尾，清空输入框
+					SetCmdLine(string.Empty);
+				}
+			}
 		}
 		private void CommandInput_KeyPress(object? sender, KeyPressEventArgs e)
 		{
@@ -214,11 +221,11 @@ namespace zfile
 			{
 				string lastcmd = string.Empty;
 				SendCommand(commandInput.Text);
-				if(commandHistory.Count > 0) 
+				if (commandHistory.Count > 0)
 					lastcmd = commandHistory.Last();
 				if (!string.IsNullOrEmpty(commandInput.Text) && !lastcmd.Equals(commandInput.Text))
 					commandHistory.Add(commandInput.Text);
-				
+
 				// 添加新命令后，将历史索引重置到最新位置
 				cmdHistoryIndex = commandHistory.Count;
 				commandInput.Clear();
@@ -251,19 +258,19 @@ namespace zfile
 
 			try
 			{
+				// 获取当前活动面板的FTP客户端
 				if (ftpManager.ActiveClient != null && isFtpConnected)
 				{
 					var response = ftpManager.ActiveClient.Execute(command);
-					//Debug.Print(response.Message);
+					AddReplayToList(command, response.Message);
 				}
 				else
 				{
-					// if ftp is not connected, send command to cmdproc
+					// 如果FTP未连接，将命令发送到命令处理器
 					var cmdparts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 					var param = cmdparts.Length > 1 ? string.Join(' ', cmdparts[1..]) : string.Empty;
 					parentForm.cmdProcessor.ExecCmd(cmdparts[0], param, parentForm.CurrentFullpath[parentForm.LRflag]);
 				}
-				//AddReplayToList(command, response);
 			}
 			catch (Exception ex)
 			{
@@ -288,18 +295,37 @@ namespace zfile
 		public void UpdateStatus(bool isConnected)
 		{
 			isFtpConnected = isConnected;
+
+			// 更新状态指示灯
 			statusLight.Image = isConnected ?
 				parentForm.iconManager.ImageList.Images[233] :
 				parentForm.iconManager.ImageList.Images[230];
-			if (!isConnected) 
-			{ 
-				statusLight.Hide();
-				disconnectButton.Hide();
-				transferModeButton.Hide();
-				replyList.Hide();
-				//replayDetail.Hide();
+
+			// 根据连接状态显示或隐藏控件
+			if (!isConnected)
+			{
+				// 检查是否还有活动的FTP连接
+				bool hasActiveConnections = false;
+				foreach (var client in ftpManager._activeClients.Values)
+				{
+					if (client.IsConnected)
+					{
+						hasActiveConnections = true;
+						break;
+					}
+				}
+
+				// 只有当没有任何活动连接时才隐藏控制面板
+				if (!hasActiveConnections)
+				{
+					statusLight.Hide();
+					disconnectButton.Hide();
+					transferModeButton.Hide();
+					replyList.Hide();
+					//replayDetail.Hide();
+				}
 			}
-			else 
+			else
 			{
 				statusLight.Show();
 				disconnectButton.Show();
@@ -307,6 +333,8 @@ namespace zfile
 				replyList.Show();
 				//replayDetail.Show();
 			}
+
+			// 更新按钮状态
 			transferModeButton.Enabled = isConnected;
 			disconnectButton.Enabled = isConnected;
 			//commandInput.Enabled = isConnected;

@@ -5,7 +5,7 @@ namespace zfile
 {
 	public class AsyncFtpConnectionMonitor
 	{
-		private readonly AsyncFTPMGR _ftpManager;
+		private readonly FTPMGR _ftpManager;
 		private readonly Dictionary<string, AsyncFtpMonitorItem> _monitoredConnections;
 		private readonly Timer _checkTimer;
 		private readonly int _checkInterval = 30000; // 默认30秒检查一次
@@ -16,7 +16,7 @@ namespace zfile
 		/// </summary>
 		/// <param name="ftpManager">FTP管理器实例</param>
 		/// <param name="checkIntervalMs">检查间隔（毫秒）</param>
-		public AsyncFtpConnectionMonitor(AsyncFTPMGR ftpManager, int checkIntervalMs = 30000)
+		public AsyncFtpConnectionMonitor(FTPMGR ftpManager, int checkIntervalMs = 30000)
 		{
 			_ftpManager = ftpManager;
 			_monitoredConnections = new Dictionary<string, AsyncFtpMonitorItem>();
@@ -118,7 +118,7 @@ namespace zfile
 				var t = Task.Run(async () =>
 				{
 					await client.IsStillConnected(5000);
-				} );
+				});
 				Task.WaitAll(t);
 				return true;
 			}
@@ -139,13 +139,59 @@ namespace zfile
 				// 从监控列表中移除
 				RemoveConnection(connectionName);
 
-				// 调用FTP管理器的UnregisterFtpConnection方法注销连接
-				_ftpManager.UnregisterFtpConnection(connectionName);
+				// 检查连接在左右面板中的状态
+				bool inLeftPanel = false;
+				bool inRightPanel = false;
+
+				if (_ftpManager._ftpNodesL.ContainsKey(connectionName))
+				{
+					inLeftPanel = true;
+				}
+
+				if (_ftpManager._ftpNodesR.ContainsKey(connectionName))
+				{
+					inRightPanel = true;
+				}
+
+				// 如果连接同时存在于左右面板，则分别注销
+				if (inLeftPanel && inRightPanel)
+				{
+					_ftpManager.UnregisterFtpConnection(connectionName, null); // 同时注销左右两侧
+				}
+				else if (inLeftPanel)
+				{
+					_ftpManager.UnregisterFtpConnection(connectionName, true); // 只注销左侧
+				}
+				else if (inRightPanel)
+				{
+					_ftpManager.UnregisterFtpConnection(connectionName, false); // 只注销右侧
+				}
+				else
+				{
+					// 如果找不到连接所在的面板，则完全注销
+					_ftpManager.UnregisterFtpConnection(connectionName, null);
+				}
 
 				// 更新UI状态
 				_ftpManager.form.Invoke(new Action(() =>
 				{
-					_ftpManager.form.uiManager.ftpController.UpdateStatus(false);
+					// 检查是否还有活动的FTP连接
+					bool hasActiveConnections = false;
+					foreach (var client in _ftpManager._activeClients.Values)
+					{
+						if (client.IsConnected)
+						{
+							hasActiveConnections = true;
+							break;
+						}
+					}
+
+					// 如果没有活动连接，更新FTP控制器状态
+					if (!hasActiveConnections)
+					{
+						_ftpManager.form.uiManager.ftpController.UpdateStatus(false);
+					}
+
 					MessageBox.Show($"FTP连接 '{connectionName}' 已断开，可能是由于网络问题或服务器超时。",
 						"FTP连接断开", MessageBoxButtons.OK, MessageBoxIcon.Information);
 				}));
@@ -313,13 +359,59 @@ namespace zfile
 				// 从监控列表中移除
 				RemoveConnection(connectionName);
 
-				// 调用FTP管理器的UnregisterFtpConnection方法注销连接
-				_ftpManager.UnregisterFtpConnection(connectionName);
+				// 检查连接在左右面板中的状态
+				bool inLeftPanel = false;
+				bool inRightPanel = false;
+
+				if (_ftpManager._ftpNodesL.ContainsKey(connectionName))
+				{
+					inLeftPanel = true;
+				}
+
+				if (_ftpManager._ftpNodesR.ContainsKey(connectionName))
+				{
+					inRightPanel = true;
+				}
+
+				// 如果连接同时存在于左右面板，则分别注销
+				if (inLeftPanel && inRightPanel)
+				{
+					_ftpManager.UnregisterFtpConnection(connectionName, null); // 同时注销左右两侧
+				}
+				else if (inLeftPanel)
+				{
+					_ftpManager.UnregisterFtpConnection(connectionName, true); // 只注销左侧
+				}
+				else if (inRightPanel)
+				{
+					_ftpManager.UnregisterFtpConnection(connectionName, false); // 只注销右侧
+				}
+				else
+				{
+					// 如果找不到连接所在的面板，则完全注销
+					_ftpManager.UnregisterFtpConnection(connectionName, null);
+				}
 
 				// 更新UI状态
 				_ftpManager.form.Invoke(new Action(() =>
 				{
-					_ftpManager.form.uiManager.ftpController.UpdateStatus(false);
+					// 检查是否还有活动的FTP连接
+					bool hasActiveConnections = false;
+					foreach (var client in _ftpManager._activeClients.Values)
+					{
+						if (client.IsConnected)
+						{
+							hasActiveConnections = true;
+							break;
+						}
+					}
+
+					// 如果没有活动连接，更新FTP控制器状态
+					if (!hasActiveConnections)
+					{
+						_ftpManager.form.uiManager.ftpController.UpdateStatus(false);
+					}
+
 					MessageBox.Show($"FTP连接 '{connectionName}' 已断开，可能是由于网络问题或服务器超时。",
 						"FTP连接断开", MessageBoxButtons.OK, MessageBoxIcon.Information);
 				}));

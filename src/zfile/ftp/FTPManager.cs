@@ -19,15 +19,48 @@ namespace zfile
 		private Dictionary<string, FtpConnectionInfo> _connections;
 
 		/// <summary>
-		/// 当前活动的FTP客户端
+		/// 存储所有活动的FTP客户端的字典，按连接名称索引
 		/// </summary>
-		private FtpClient _activeClient;
+		public Dictionary<string, FtpClient> _activeClients = new Dictionary<string, FtpClient>();
 
 		/// <summary>
-		/// 获取当前活动的FTP客户端
+		/// 获取当前活动面板对应的FTP客户端
 		/// </summary>
-		public FtpClient ActiveClient => _activeClient;
+		public FtpClient ActiveClient => GetActiveClientForCurrentPanel();
 		public AsyncFtpClient ActiveClientAsync;
+
+		/// <summary>
+		/// 根据当前活动面板获取对应的FTP客户端
+		/// </summary>
+		private FtpClient GetActiveClientForCurrentPanel()
+		{
+			// 查找当前活动面板对应的FTP连接
+			string connectionName = GetConnectionNameForPanel(form.isleft);
+			if (!string.IsNullOrEmpty(connectionName) && _activeClients.TryGetValue(connectionName, out FtpClient client))
+			{
+				return client;
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// 获取指定面板对应的FTP连接名称
+		/// </summary>
+		private string GetConnectionNameForPanel(bool isLeft)
+		{
+			var ftpNodes = isLeft ? _ftpNodesL : _ftpNodesR;
+			foreach (var node in ftpNodes)
+			{
+				if (node.Value.Tag is FtpNodeTag tag &&
+					_ftpSources.TryGetValue(tag.ConnectionName, out var source) &&
+					source.Client != null &&
+					source.Client.IsConnected)
+				{
+					return tag.ConnectionName;
+				}
+			}
+			return null;
+		}
 		ListView ftplistView;
 		public MainForm form;
 		private Form ftpConnMgrform;
@@ -36,8 +69,8 @@ namespace zfile
 		/// </summary>
 		private FtpConnectionMonitor _connectionMonitor;
 		#endregion
-		private readonly Dictionary<string, TreeNode> _ftpNodesL = new Dictionary<string, TreeNode>();
-		private readonly Dictionary<string, TreeNode> _ftpNodesR = new Dictionary<string, TreeNode>();
+		public readonly Dictionary<string, TreeNode> _ftpNodesL = new Dictionary<string, TreeNode>();
+		public readonly Dictionary<string, TreeNode> _ftpNodesR = new Dictionary<string, TreeNode>();
 		private Dictionary<string, TreeNode> _ftpNodes => form.isleft ? _ftpNodesL : _ftpNodesR;
 		private readonly Dictionary<string, FtpFileSource> _ftpSources = new Dictionary<string, FtpFileSource>();
 		private readonly Dictionary<string, string> _connection_RegisteredDrive_map = new();
@@ -50,7 +83,7 @@ namespace zfile
 		private bool _isDownloading = false;
 		private FtpListOption _listOption = FtpListOption.Auto;
 		public FtpListOption ListOption { get => _listOption; set => _listOption = value; }
-		public Dictionary<string,string> Connection_RegisteredDrive_map => _connection_RegisteredDrive_map;
+		public Dictionary<string, string> Connection_RegisteredDrive_map => _connection_RegisteredDrive_map;
 		/// <summary>
 		/// 显示FTP项目属性
 		/// </summary>
@@ -144,7 +177,7 @@ namespace zfile
 				if (recordHistory)
 					form.RecordDirectoryHistory(path);
 				tag.Path = path;
-				
+
 				// 更新活动书签
 				bool isLeft = listView.Name == "L";
 				form.uiManager.BookmarkManager.UpdateActiveBookmark($"ftp://{connectionName}{path}", node, isLeft);
@@ -236,8 +269,11 @@ namespace zfile
 					char driveLetter = GetNextAvailableDriveLetter();
 					string driveId = $"{driveLetter}:";
 
+					// 获取当前连接的客户端
+					var client = _activeClients[connectionName];
+
 					// 创建FTP文件源
-					var ftpSource = new FtpFileSource(connectionName, form.fTPMGR.ActiveClient);
+					var ftpSource = new FtpFileSource(connectionName, client);
 					_ftpSources[connectionName] = ftpSource;
 
 					// 创建FTP节点
@@ -253,14 +289,14 @@ namespace zfile
 					AddFtpNode(ftpNodeR);
 					_ftpNodesL[connectionName] = ftpNode;
 					_ftpNodesR[connectionName] = ftpNodeR;
-					
+
 					_connection_RegisteredDrive_map.Add(connectionName, driveId);
 					// 添加到DriveComboBox
 					var drive = $"{driveId} [{connectionName}]";
 					AddToDriveComboBox(drive);
 					ShengAddressBarStrip.FtpDrives = _registeredDrives;
-					form.uiManager.LeftPathTextBox.UpdateDrives(form.isleft? driveId : null);
-					form.uiManager.RightPathTextBox.UpdateDrives(!form.isleft? driveId : null);
+					form.uiManager.LeftPathTextBox.UpdateDrives(form.isleft ? driveId : null);
+					form.uiManager.RightPathTextBox.UpdateDrives(!form.isleft ? driveId : null);
 					return true;
 				}
 			}
@@ -320,49 +356,111 @@ namespace zfile
 		/// <summary>
 		/// 取消注册FTP连接
 		/// </summary>
-		/// <param name="form">主窗体</param>
 		/// <param name="connectionName">连接名称</param>
+		/// <param name="isLeft">是否为左侧面板的连接，如果为null则同时处理左右两侧</param>
 		/// <returns>是否取消注册成功</returns>
-		public bool UnregisterFtpConnection(string connectionName)
+		public bool UnregisterFtpConnection(string connectionName, bool? isLeft = null)
 		{
 			try
 			{
-				if (_ftpNodesL.TryGetValue(connectionName, out TreeNode node))
+				bool success = false;
+
+				// 根据isLeft参数决定处理哪个面板的连接
+				if (!isLeft.HasValue || isLeft.Value)
 				{
-					_ftpNodesR.TryGetValue(connectionName, out TreeNode nodeR);
-					// 从连接监视器中移除
-					_connectionMonitor.RemoveConnection(connectionName);
+					if (_ftpNodesL.TryGetValue(connectionName, out TreeNode nodeL))
+					{
+						// 获取驱动器标识符
+						string nodeText = nodeL.Text;
+						string driveId = nodeText.Substring(nodeText.IndexOf('(') + 1, 2);
 
-					// 获取驱动器标识符
-					string nodeText = node.Text;
-					string driveId = nodeText.Substring(nodeText.IndexOf('(') + 1, 2);
+						// 从树视图中移除节点
+						RemoveFtpNode(nodeL, true);
+						_ftpNodesL.Remove(connectionName);
 
-					// 从树视图中移除节点
-					RemoveFtpNode(node, true);
-					RemoveFtpNode(nodeR);
-					_ftpNodesL.Remove(connectionName);
-					_ftpNodesR.Remove(connectionName);
+						// 如果右侧没有相同的连接，才移除驱动器和断开连接
+						if (!isLeft.HasValue || !_ftpNodesR.ContainsKey(connectionName))
+						{
+							// 从驱动器列表中移除
+							_connection_RegisteredDrive_map.Remove(connectionName);
 
-					// 从驱动器列表中移除
-					//_registeredDrives.Remove(driveId);
-					_connection_RegisteredDrive_map.Remove(connectionName);
+							// 从驱动器下拉框中移除
+							RemoveFromDriveComboBox(driveId);
+
+							// 断开FTP连接
+							if (_ftpSources.TryGetValue(connectionName, out FtpFileSource? source))
+							{
+								source.Dispose();
+								_ftpSources.Remove(connectionName);
+							}
+
+							// 从活动客户端字典中移除
+							if (_activeClients.TryGetValue(connectionName, out var client))
+							{
+								if (client.IsConnected)
+								{
+									client.Disconnect();
+								}
+								_activeClients.Remove(connectionName);
+							}
+						}
+
+						success = true;
+					}
+				}
+
+				if (!isLeft.HasValue || !isLeft.Value)
+				{
+					if (_ftpNodesR.TryGetValue(connectionName, out TreeNode nodeR))
+					{
+						// 从树视图中移除节点
+						RemoveFtpNode(nodeR);
+						_ftpNodesR.Remove(connectionName);
+
+						// 如果左侧没有相同的连接，才移除驱动器和断开连接
+						if (!isLeft.HasValue || !_ftpNodesL.ContainsKey(connectionName))
+						{
+							// 获取驱动器标识符
+							string nodeText = nodeR.Text;
+							string driveId = nodeText.Substring(nodeText.IndexOf('(') + 1, 2);
+
+							// 从驱动器列表中移除
+							_connection_RegisteredDrive_map.Remove(connectionName);
+
+							// 从驱动器下拉框中移除
+							RemoveFromDriveComboBox(driveId);
+
+							// 断开FTP连接
+							if (_ftpSources.TryGetValue(connectionName, out FtpFileSource? source))
+							{
+								source.Dispose();
+								_ftpSources.Remove(connectionName);
+							}
+
+							// 从活动客户端字典中移除
+							if (_activeClients.TryGetValue(connectionName, out var client))
+							{
+								if (client.IsConnected)
+								{
+									client.Disconnect();
+								}
+								_activeClients.Remove(connectionName);
+							}
+						}
+
+						success = true;
+					}
+				}
+
+				// 更新驱动器列表
+				if (success)
+				{
 					ShengAddressBarStrip.FtpDrives = _registeredDrives;
 					form.uiManager.LeftPathTextBox.UpdateDrives();
 					form.uiManager.RightPathTextBox.UpdateDrives();
-
-					// 从驱动器下拉框中移除
-					RemoveFromDriveComboBox(driveId);
-
-					// 断开FTP连接
-					if (_ftpSources.TryGetValue(connectionName, out FtpFileSource? source))
-					{
-						//source.Finalize();
-						source.Dispose();
-						_ftpSources.Remove(connectionName);
-					}
-
-					return true;
 				}
+
+				return success;
 			}
 			catch (Exception ex)
 			{
@@ -476,7 +574,7 @@ namespace zfile
 					contextMenu.Items.Add("编辑", null, (s, e) => EditFtpFile(source, path));
 				}
 				contextMenu.Items.Add("复制...", null, (s, e) => CopyFtpItemToLocal(source, path));
-				contextMenu.Items.Add("重命名", null, (s, e) => RenameFtpItem(source, path)); 
+				contextMenu.Items.Add("重命名", null, (s, e) => RenameFtpItem(source, path));
 				contextMenu.Items.Add("删除", null, (s, e) => DeleteFtpItem(source, path, isDirectory));
 				contextMenu.Items.Add("下载", null, (s, e) => DownloadList(source, path, isDirectory));
 				contextMenu.Items.Add("添加到下载列表", null, (s, e) => AddToDownloadList(source, path, isDirectory));
@@ -558,7 +656,7 @@ namespace zfile
 					else
 						return;
 				}
-				
+
 				string fileName = Path.GetFileName(path);
 				string localTargetPath = Path.Combine(targetPath, fileName);
 				// 下载文件或文件夹
@@ -577,7 +675,7 @@ namespace zfile
 				}
 
 				MessageBox.Show($"复制完成", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
-				
+
 			}
 			catch (Exception ex)
 			{
@@ -805,14 +903,15 @@ namespace zfile
 			var connectionInfo = _connections[connectionName];
 			try
 			{
-				// 如果已有活动连接，先断开
-				if (_activeClient != null && _activeClient.IsConnected)
+				// 检查是否已经有这个连接
+				if (_activeClients.TryGetValue(connectionName, out var existingClient) && existingClient.IsConnected)
 				{
-					_activeClient.Disconnect();
+					// 连接已存在且已连接，直接返回
+					return true;
 				}
 
 				// 创建新的FTP客户端
-				_activeClient = new FtpClient(
+				var client = new FtpClient(
 					connectionInfo.Host,
 					connectionInfo.Credentials,
 					connectionInfo.Port,
@@ -823,24 +922,29 @@ namespace zfile
 				// 设置加密模式
 				if (connectionInfo.EncryptionMode.HasValue)
 				{
-					_activeClient.Config.EncryptionMode = connectionInfo.EncryptionMode.Value;
+					client.Config.EncryptionMode = connectionInfo.EncryptionMode.Value;
 				}
 
 				// 连接到服务器
-				var profile = _activeClient.AutoConnect();  //connect()
+				var profile = client.AutoConnect();  //connect()
 				if (profile != null)
 				{
 					Debug.Print("ftp auto connect success.");
+
+					// 添加到活动客户端字典
+					_activeClients[connectionName] = client;
+
+					// 更新FTP控制器状态
 					form.uiManager.ftpController.UpdateStatus(true);
 
 					// 添加到连接监视器进行监控
-					_connectionMonitor.AddConnection(connectionName, _activeClient);
+					_connectionMonitor.AddConnection(connectionName, client);
 				}
 				else
 				{
 					Debug.Print("ftp auto connect failed.");
 				}
-				return _activeClient.IsConnected;
+				return client.IsConnected;
 			}
 			catch (Exception ex)
 			{
@@ -957,41 +1061,67 @@ namespace zfile
 		/// <param name="port">端口号</param>
 		/// <param name="encryptionMode">加密模式</param>
 		/// <returns>是否编辑成功</returns>
-		public bool ChangeConnection(string name, string host = null, string username = null, string password = null, int? port = null, FtpEncryptionMode? encryptionMode = null)
+		public bool ChangeConnection(string name, string? host = null, string? username = null, string? password = null, int? port = null, FtpEncryptionMode? encryptionMode = null)
 		{
-			if (!_connections.ContainsKey(name))
+			if (!_connections.TryGetValue(name, out var connection))
 			{
 				return false;
 			}
 
-			var connection = _connections[name];
+			bool needReconnect = false;
 
-			if (host != null)
+			if (host != null && host != connection.Host)
 			{
 				connection.Host = host;
+				needReconnect = true;
 			}
 
 			if (username != null && password != null)
 			{
-				connection.Credentials = new NetworkCredential(username, password);
+				if (username != connection.Credentials.UserName || password != connection.Credentials.Password)
+				{
+					connection.Credentials = new NetworkCredential(username, password);
+					needReconnect = true;
+				}
 			}
 			else if (username != null)
 			{
-				connection.Credentials = new NetworkCredential(username, connection.Credentials.Password);
+				if (username != connection.Credentials.UserName)
+				{
+					connection.Credentials = new NetworkCredential(username, connection.Credentials.Password);
+					needReconnect = true;
+				}
 			}
 			else if (password != null)
 			{
-				connection.Credentials = new NetworkCredential(connection.Credentials.UserName, password);
+				if (password != connection.Credentials.Password)
+				{
+					connection.Credentials = new NetworkCredential(connection.Credentials.UserName, password);
+					needReconnect = true;
+				}
 			}
 
-			if (port.HasValue)
+			if (port.HasValue && port.Value != connection.Port)
 			{
 				connection.Port = port.Value;
+				needReconnect = true;
 			}
 
-			if (encryptionMode.HasValue)
+			if (encryptionMode.HasValue && encryptionMode != connection.EncryptionMode)
 			{
 				connection.EncryptionMode = encryptionMode;
+				needReconnect = true;
+			}
+
+			// 如果连接在活动客户端字典中且需要重新连接，则断开并重新连接
+			if (needReconnect && _activeClients.TryGetValue(name, out var client) && client.IsConnected)
+			{
+				// 断开连接
+				client.Disconnect();
+				_activeClients.Remove(name);
+
+				// 重新连接
+				Connect(name);
 			}
 
 			return true;
@@ -1009,13 +1139,11 @@ namespace zfile
 				return false;
 			}
 
-			// 如果是当前活动连接，先断开
-			if (_activeClient != null && _activeClient.IsConnected &&
-				_connections[name].Host == _activeClient.Host &&
-				_connections[name].Credentials.UserName == _activeClient.Credentials.UserName)
+			// 如果连接在活动客户端字典中，先断开
+			if (_activeClients.TryGetValue(name, out var client) && client.IsConnected)
 			{
-				_activeClient.Disconnect();
-				_activeClient = null;
+				client.Disconnect();
+				_activeClients.Remove(name);
 			}
 
 			return _connections.Remove(name);
@@ -1029,89 +1157,86 @@ namespace zfile
 		/// <returns>是否设置成功</returns>
 		public bool SetEncryption(string name, FtpEncryptionMode encryptionMode)
 		{
-			if (!_connections.ContainsKey(name))
+			if (!_connections.TryGetValue(name, out var connectionInfo))
 			{
 				return false;
 			}
 
-			_connections[name].EncryptionMode = encryptionMode;
+			connectionInfo.EncryptionMode = encryptionMode;
 
-			// 如果是当前活动连接，更新加密设置
-			if (_activeClient != null && _activeClient.IsConnected &&
-				_connections[name].Host == _activeClient.Host &&
-				_connections[name].Credentials.UserName == _activeClient.Credentials.UserName)
+			// 如果连接在活动客户端字典中，更新加密设置
+			if (_activeClients.TryGetValue(name, out var client) && client.IsConnected)
 			{
-				_activeClient.Config.EncryptionMode = encryptionMode;
+				client.Config.EncryptionMode = encryptionMode;
 			}
 
 			return true;
 		}
 
 		/// <summary>
-		/// 关闭当前连接
+		/// 关闭当前活动面板的FTP连接
 		/// </summary>
 		public void CloseConnection()
 		{
-			// 获取当前连接名称（如果有）
-			//string connectionName = null;
-			//if (_activeClient != null && _activeClient.IsConnected)
-			//{
-			//	// 尝试找到当前连接的名称
-			//	foreach (var conn in _connections)
-			//	{
-			//		if (conn.Value.Host == _activeClient.Host && 
-			//			conn.Value.Credentials.UserName == _activeClient.Credentials.UserName)
-			//		{
-			//			connectionName = conn.Key;
-			//			break;
-			//		}
-			//	}
-
-			//	// 断开连接
-			//	_activeClient.Disconnect();
-
-			//	// 如果找到了连接名称，从监视器中移除
-			//	if (connectionName != null)
-			//	{
-			//		_connectionMonitor.RemoveConnection(connectionName);
-			//	}
-			//}
-			//_activeClient = null;
+			// 获取当前活动面板的FTP连接
 			if (ActiveClient != null && ActiveClient.IsConnected)
 			{
 				// 查找当前连接的名称
-				string connectionName = null;
+				string connectionName = GetConnectionNameForPanel(form.isleft);
 				TreeNode ftpNode = null;
-				foreach (var node in _ftpNodes)
+
+				// 获取对应的树节点
+				if (!string.IsNullOrEmpty(connectionName))
 				{
-					if (node.Value.Tag is FtpNodeTag tag &&
-						_ftpSources.TryGetValue(tag.ConnectionName, out var source) &&
-						source.Client == ActiveClient)
+					var ftpNodes = form.isleft ? _ftpNodesL : _ftpNodesR;
+					if (ftpNodes.TryGetValue(connectionName, out var node))
 					{
-						connectionName = tag.ConnectionName;
-						ftpNode = node.Value;
-						break;
+						ftpNode = node;
 					}
 				}
 
 				// 断开连接
 				ActiveClient.Disconnect();
-				form.uiManager.ftpController.UpdateStatus(false);
+
+				// 从活动客户端字典中移除
+				if (!string.IsNullOrEmpty(connectionName))
+				{
+					_activeClients.Remove(connectionName);
+				}
+
+				// 清空当前面板
 				form.activeListView.Items.Clear();
-				
+
 				// 如果找到了连接名称，注销FTP连接
 				if (!string.IsNullOrEmpty(connectionName))
 				{
-					// 移除左右两侧的书签（如果存在）
+					// 移除当前面板的书签（如果存在）
 					if (ftpNode != null)
 					{
 						var ftpPath = $"ftp://{connectionName}";
-						form.uiManager.BookmarkManager.RemoveBookmarkByPath(ftpPath, true);
-						form.uiManager.BookmarkManager.RemoveBookmarkByPath(ftpPath, false);
+						form.uiManager.BookmarkManager.RemoveBookmarkByPath(ftpPath, form.isleft);
 					}
-					
-					UnregisterFtpConnection(connectionName);
-					_connectionMonitor.RemoveConnection(connectionName); //，从监视器中移除
+
+					// 只注销当前面板的FTP连接
+					UnregisterFtpConnection(connectionName, form.isleft);
+					_connectionMonitor.RemoveConnection(connectionName);
+				}
+
+				// 检查是否还有活动的FTP连接
+				bool hasActiveConnections = false;
+				foreach (var client in _activeClients.Values)
+				{
+					if (client.IsConnected)
+					{
+						hasActiveConnections = true;
+						break;
+					}
+				}
+
+				// 如果没有活动连接，更新FTP控制器状态
+				if (!hasActiveConnections)
+				{
+					form.uiManager.ftpController.UpdateStatus(false);
 				}
 			}
 		}
@@ -1127,14 +1252,14 @@ namespace zfile
 		/// <returns>是否创建成功</returns>
 		public bool CreateDirectory(string path)
 		{
-			if (_activeClient == null || !_activeClient.IsConnected)
+			if (ActiveClient == null || !ActiveClient.IsConnected)
 			{
 				return false;
 			}
 
 			try
 			{
-				_activeClient.CreateDirectory(path);
+				ActiveClient.CreateDirectory(path);
 				return true;
 			}
 			catch
@@ -1504,13 +1629,16 @@ namespace zfile
 							port,
 							sslCheckBox.Checked ? FluentFTP.FtpEncryptionMode.Explicit : FluentFTP.FtpEncryptionMode.None))
 						{
-							// 如果当前连接是活动连接，则断开重连
-							if (_activeClient != null && _activeClient.IsConnected &&
-								_connections[connectionName].Host == _activeClient.Host &&
-								_connections[connectionName].Credentials.UserName == _activeClient.Credentials.UserName)
+							// 如果连接在活动客户端字典中，则断开重连
+							if (_activeClients.TryGetValue(connectionName, out var client) && client.IsConnected)
 							{
 								try
 								{
+									// 断开连接
+									client.Disconnect();
+									_activeClients.Remove(connectionName);
+
+									// 重新连接
 									Connect(connectionName);
 								}
 								catch (Exception ex)
@@ -1635,7 +1763,7 @@ namespace zfile
 		#endregion
 
 		#region 辅助类
-	
+
 
 		#endregion
 		public void SaveToCfgloader()
@@ -1892,9 +2020,9 @@ namespace zfile
 			foreach (var item in connectionsSection.Items)
 			{
 				if (item.Key == "default") continue;
-				
+
 				string connName = item.Value;
-				
+
 				// 读取连接配置
 				var host = form.ftpconfigLoader.FindConfigValue(connName, "host");
 				var username = form.ftpconfigLoader.FindConfigValue(connName, "username");
@@ -1927,7 +2055,7 @@ namespace zfile
 					Name = connName,
 					Host = host,
 					Credentials = new NetworkCredential(username, password),
-					
+
 					Port = port,
 					Config = new FtpConfig
 					{

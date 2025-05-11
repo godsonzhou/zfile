@@ -68,11 +68,11 @@ namespace zfile
         private FileSourceOperationState _desiredState;
         protected FileSourceOperationResult _operationResult;
         private bool _operationInitialized;
-        private object _connection;
+        private object? _connection;
         private bool _needsConnection;
         private bool _wantsNewConnection;
         private int _connectionTimeout = -1; // Infinite timeout
-        private FileSourceOperation _parentOperation;
+        //private FileSourceOperation _parentOperation;
         private DuplicateOption _elevate;
 
         // Synchronization objects
@@ -92,7 +92,7 @@ namespace zfile
         private FileSourceOperationUIResponse _uiDefaultCancelResponse;
         private IFileSourceOperationUIActionHandler _uiActionHandler;
         private FileSourceOperationUIResponse _uiResponse;
-        private bool _tryAskQuestionResult;
+        //private bool _tryAskQuestionResult;
         protected TOperationThread _thread;
 		internal FileSourceOperationOptionSetPropertyError SetPropertyErrorOption;
 		internal bool CopyTime;
@@ -102,6 +102,7 @@ namespace zfile
 		internal bool FollowLinks;
 		internal bool CorrectLinks;
 		internal bool ExcludeEmptyDirectories;
+		public TOperationThread _Thread => _thread;
 		public void AssignThread(TOperationThread thread)
 		{
 			_thread = thread;
@@ -479,7 +480,7 @@ namespace zfile
         /// Gets a connection from the file source
         /// </summary>
         /// <returns>The connection object</returns>
-        protected virtual object GetConnection()
+        protected virtual object? GetConnection()
         {
             if (_fileSource != null)
             {
@@ -636,7 +637,7 @@ namespace zfile
                 _stateChangedEventListeners.Add(new StateChangedEventEntry
                 {
                     FunctionToCall = functionToCall,
-                    States = new List<FileSourceOperationState>(states)
+                    States = [..states]
                 });
             }
         }

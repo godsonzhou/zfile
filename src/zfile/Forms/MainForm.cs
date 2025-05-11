@@ -170,16 +170,16 @@ namespace zfile
 				}
 				return null;
 			}
-			public bool TryGetValue(string key, out string? value)
-			{
-				if (FileSourceDict.TryGetValue(key, out IFileSource? result))
-				{
-					value = result?.CurrentPath;
-					return true;
-				}
-				value = null;
-				return false;
-			}
+			//public bool TryGetValue(string key, out string? value)
+			//{
+			//	if (FileSourceDict.TryGetValue(key, out IFileSource? result))
+			//	{
+			//		value = result?.CurrentPath;
+			//		return true;
+			//	}
+			//	value = null;
+			//	return false;
+			//}
 			private void UpdateFileSourceDict(string key, IFileSource? fileSource)
 			{
 				if (FileSourceDict.ContainsKey(key))
@@ -205,41 +205,41 @@ namespace zfile
 		private readonly FileSourceManager _fileSourceManager = FileSourceManager.Instance;
 
 		// Method to update thumbnail progress asynchronously
-		private async Task UpdateThumbnailProgressAsync(int current, int total, bool isLeft)
-		{
-			await Task.Run(() =>
-			{
-				var statusStrip = isLeft ? uiManager.LeftStatusStrip : uiManager.RightStatusStrip;
-				var progressBar = statusStrip.Items[$"thumbnailProgress{(isLeft ? 'L' : 'R')}"] as ToolStripProgressBar;
-				var statusLabel = statusStrip.Items[$"thumbnailStatus{(isLeft ? 'L' : 'R')}"] as ToolStripStatusLabel;
+		//private async Task UpdateThumbnailProgressAsync(int current, int total, bool isLeft)
+		//{
+		//	await Task.Run(() =>
+		//	{
+		//		var statusStrip = isLeft ? uiManager.LeftStatusStrip : uiManager.RightStatusStrip;
+		//		var progressBar = statusStrip.Items[$"thumbnailProgress{(isLeft ? 'L' : 'R')}"] as ToolStripProgressBar;
+		//		var statusLabel = statusStrip.Items[$"thumbnailStatus{(isLeft ? 'L' : 'R')}"] as ToolStripStatusLabel;
 
-				if (progressBar != null && statusLabel != null)
-				{
-					if (current == 0 && total == 0)
-					{
-						progressBar.Visible = false;
-						statusLabel.Visible = false;
-						return;
-					}
+		//		if (progressBar != null && statusLabel != null)
+		//		{
+		//			if (current == 0 && total == 0)
+		//			{
+		//				progressBar.Visible = false;
+		//				statusLabel.Visible = false;
+		//				return;
+		//			}
 
-					if (!progressBar.Visible)
-					{
-						progressBar.Visible = true;
-						statusLabel.Visible = true;
-					}
+		//			if (!progressBar.Visible)
+		//			{
+		//				progressBar.Visible = true;
+		//				statusLabel.Visible = true;
+		//			}
 
-					progressBar.Maximum = total;
-					progressBar.Value = current;
-					statusLabel.Text = $"Generating thumbnails: {current}/{total}";
+		//			progressBar.Maximum = total;
+		//			progressBar.Value = current;
+		//			statusLabel.Text = $"Generating thumbnails: {current}/{total}";
 
-					if (current >= total)
-					{
-						progressBar.Visible = false;
-						statusLabel.Visible = false;
-					}
-				}
-			});
-		}
+		//			if (current >= total)
+		//			{
+		//				progressBar.Visible = false;
+		//				statusLabel.Visible = false;
+		//			}
+		//		}
+		//	});
+		//}
 
 		public readonly LLM_Helper lLM_Helper;
 		public readonly MCPClientManager mcpClientMgr;
@@ -258,8 +258,8 @@ namespace zfile
 
 		private readonly BackgroundIconManager _backgroundIconManager;
 		private Dictionary<Keys, string> hotkeyMappings;
-		private bool isSelecting = false;
-		private Rectangle selectionRectangle;
+		//private bool isSelecting = false;
+		//private Rectangle selectionRectangle;
 		public string LRflag => uiManager.isleft ? "L" : "R";
 		public bool isleft => uiManager.isleft;
 		public MyListView activeListView { get => uiManager.activeListView; }
@@ -302,9 +302,9 @@ namespace zfile
 		private IShellFolder iDeskTop, iCtrlPanel;
 		private FileEntry[] draggedItems;
 		private TreeNode rightClickBegin;
-		private string oldname;
-		public static WcxModuleList wcxModuleList;
-		public static WlxModuleList wlxModuleList;
+		private string? oldname;
+		public static WcxModuleList? wcxModuleList;
+		public static WlxModuleList? wlxModuleList;
 		private Dictionary<string, IntPtr> openArchives = new Dictionary<string, IntPtr>();
 		private Dictionary<string, string> archivePaths = new Dictionary<string, string>();
 		// 添加目录历史导航相关的字段
@@ -703,7 +703,7 @@ namespace zfile
 		{
 			return Helper.getFSpathbyTree(node);
 		}
-		private bool IsValidTarget(TreeView treeView, DragEventArgs e, out string targetPath)
+		private bool IsValidTarget(TreeView? treeView, DragEventArgs e, out string targetPath)
 		{
 			targetPath = string.Empty;
 			if (treeView == null) return false;
@@ -901,11 +901,11 @@ namespace zfile
 				//hotkeyMappings = optionsForm.commandHotkeys.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
 			}
 		}
-		private void InitializeContextMenu()
-		{
-			// 初始化ContextMenuStrip
-			contextMenuStrip.Opening += ContextMenuStrip_Opening;
-		}
+		//private void InitializeContextMenu()
+		//{
+		//	// 初始化ContextMenuStrip
+		//	contextMenuStrip.Opening += ContextMenuStrip_Opening;
+		//}
 		public void ContextMenuStrip_Opening(object sender, System.ComponentModel.CancelEventArgs e)
 		{
 			// 在这里可以添加自定义的菜单项
@@ -1185,11 +1185,10 @@ namespace zfile
 					if (string.IsNullOrEmpty(CurrentFullpath[LRflag]))
 						CurrentFullpath[LRflag] = path;
 					else if (!CurrentFullpath[LRflag].Equals(path))
-						// 记录目录历史
-						RecordDirectoryHistory(path);
+						RecordDirectoryHistory(path);   // 记录目录历史
 
 					// 使用 FileSource 架构加载文件列表
-					_ = LoadListViewByFileSourceAsync(fileSource is WcxArchiveFileSource wcxfs ? Helper.ExtractDirLevel(wcxfs.ArchivePath, path, true) : path, activeListView, e.Node);
+					LoadListViewByFileSourceSync(fileSource is WcxArchiveFileSource wcxfs ? Helper.ExtractDirLevel(wcxfs.ArchivePath, path, true) : path, activeListView, e.Node);
 
 					//uiManager.lastVisitedPaths[path.Substring(0,2)] = path;
 					uiManager.UpdateLastVisitedPath(path);
@@ -1312,31 +1311,31 @@ namespace zfile
 		}
 		public void ListView_BeforeLabelEdit(object sender, EventArgs e)
 		{
-			ListView listView = sender as ListView;
-			if (listView.SelectedItems.Count == 0) return;
-			ListViewItem item = listView.SelectedItems[0];
-			if (item.SubItems[3].Text == "本地磁盘")
+			var listView = sender as ListView;
+			if (listView?.SelectedItems.Count == 0) return;
+			var item = listView?.SelectedItems[0];
+			if (item?.SubItems[3].Text == "本地磁盘")
 			{
 				MessageBox.Show("不能重命名本地磁盘");
 				e = null;
 				return;
 			}
-			oldname = item.Text;
+			oldname = item?.Text;
 		}
 
 		public void ListView_AfterLabelEdit(object sender, EventArgs e)
 		{
-			ListView listView = sender as ListView;
-			if (listView.SelectedItems.Count == 0) return;
-			ListViewItem item = listView.SelectedItems[0];
+			var listView = sender as ListView;
+			if (listView?.SelectedItems.Count == 0) return;
+			var item = listView?.SelectedItems[0];
 			string oldName = oldname;
 			var labeleditEvent = e as LabelEditEventArgs;
 			if (labeleditEvent.CancelEdit) return;
-			string newName = labeleditEvent.Label;
+			var newName = labeleditEvent.Label;
 			if (string.IsNullOrEmpty(newName))
 			{
 				MessageBox.Show("文件名不能为空");
-				item.Text = oldName;
+				if(item != null) item.Text = oldName;
 				return;
 			}
 			string oldPath = Path.Combine(CurrentFullpath[LRflag], oldName);
@@ -1345,7 +1344,7 @@ namespace zfile
 			if (File.Exists(newPath) || Directory.Exists(newPath))
 			{
 				MessageBox.Show("文件已存在");
-				item.Text = oldName;
+				if(item != null) item.Text = oldName;
 				return;
 			}
 			try
@@ -1362,10 +1361,10 @@ namespace zfile
 			}
 			RefreshPanel(listView);
 		}
-		public void ListView_MouseMove(object sender, MouseEventArgs e)
-		{
+		//public void ListView_MouseMove(object sender, MouseEventArgs e)
+		//{
 
-		}
+		//}
 
 		public void ListView_MouseUp(object sender, MouseEventArgs e)
 		{
@@ -1426,21 +1425,21 @@ namespace zfile
 				return;
 			}
 		}
-		private void SelectItemsInRectangle(ListView listView, Rectangle rect)
-		{
-			foreach (ListViewItem item in listView.Items)
-			{
-				if (item.Bounds.IntersectsWith(rect))
-					item.Selected = true;
-			}
-		}
+		//private void SelectItemsInRectangle(ListView listView, Rectangle rect)
+		//{
+		//	foreach (ListViewItem item in listView.Items)
+		//	{
+		//		if (item.Bounds.IntersectsWith(rect))
+		//			item.Selected = true;
+		//	}
+		//}
 
-		private void ListView_DrawItem(object sender, DrawListViewItemEventArgs e)
-		{
-			if (isSelecting && e.Bounds.IntersectsWith(selectionRectangle))
-				e.Graphics.FillRectangle(Brushes.LightBlue, e.Bounds);
-			e.DrawDefault = true;
-		}
+		//private void ListView_DrawItem(object sender, DrawListViewItemEventArgs e)
+		//{
+		//	if (isSelecting && e.Bounds.IntersectsWith(selectionRectangle))
+		//		e.Graphics.FillRectangle(Brushes.LightBlue, e.Bounds);
+		//	e.DrawDefault = true;
+		//}
 
 		public void ListView_MouseDoubleClick(object? sender, MouseEventArgs e)
 		{
@@ -1731,29 +1730,29 @@ namespace zfile
 			}
 			return false;
 		}
-		private bool getIconByShellItem1(string clsid, ref ShellItem subItem, out string iconKey, bool islarge = false)
-		{
-			var shellInfo = new SHFILEINFO();
-			// 首先获取系统图标索引
-			var result = API.SHGetFileInfo(clsid, 0, ref shellInfo, Marshal.SizeOf(typeof(SHFILEINFO)),
-				((islarge ? SHGFI.LARGEICON : SHGFI.SMALLICON) | SHGFI.ICON));
-			//Debug.Print($"Virtual 1folder：result={result} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}");
-			// 使用系统图标索引作为键值
-			iconKey = string.Empty;
-			if (shellInfo.hIcon != IntPtr.Zero && shellInfo.iIcon != 0)
-			{
-				// 使用系统图标索引作为键值
-				iconKey = $"{clsid}_{shellInfo.iIcon}".ToLower();
-				subItem.IconKey = iconKey;
-				using (Icon icon = Icon.FromHandle(shellInfo.hIcon))
-				{
-					iconManager.AddIcon(iconKey, icon, islarge);
-				}
-				API.DestroyIcon(shellInfo.hIcon);
-				return true;
-			}
-			return false;
-		}
+		//private bool getIconByShellItem1(string clsid, ref ShellItem subItem, out string iconKey, bool islarge = false)
+		//{
+		//	var shellInfo = new SHFILEINFO();
+		//	// 首先获取系统图标索引
+		//	var result = API.SHGetFileInfo(clsid, 0, ref shellInfo, Marshal.SizeOf(typeof(SHFILEINFO)),
+		//		((islarge ? SHGFI.LARGEICON : SHGFI.SMALLICON) | SHGFI.ICON));
+		//	//Debug.Print($"Virtual 1folder：result={result} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}");
+		//	// 使用系统图标索引作为键值
+		//	iconKey = string.Empty;
+		//	if (shellInfo.hIcon != IntPtr.Zero && shellInfo.iIcon != 0)
+		//	{
+		//		// 使用系统图标索引作为键值
+		//		iconKey = $"{clsid}_{shellInfo.iIcon}".ToLower();
+		//		subItem.IconKey = iconKey;
+		//		using (Icon icon = Icon.FromHandle(shellInfo.hIcon))
+		//		{
+		//			iconManager.AddIcon(iconKey, icon, islarge);
+		//		}
+		//		API.DestroyIcon(shellInfo.hIcon);
+		//		return true;
+		//	}
+		//	return false;
+		//}
 		public bool getIconByShellItemPIDL1(ref ShellItem subItem, out string iconKey, bool islarge = false)
 		{
 			iconKey = string.Empty;
@@ -2027,82 +2026,82 @@ namespace zfile
 			return nodesToKeep;
 		}
 
-		private static bool IsChildrenExist(TreeNode node, bool includefile = false)
-		{
-			ShellItem sItem = (ShellItem)node.Tag;
-			if (sItem != null)
-				return sItem.IsChildrenExist();
-			return false;
-		}
-		private static void LoadRecycleBinbak(ListView listview)
-		{
-			int MAX_PATH = 260;
-			// 获取回收站中的文件和文件夹信息
-			SHQUERYRBINFO shQueryRBInfo = new SHQUERYRBINFO();
-			shQueryRBInfo.cbSize = Marshal.SizeOf(shQueryRBInfo);
-			API.SHQueryRecycleBin(null, ref shQueryRBInfo);
+		//private static bool IsChildrenExist(TreeNode node, bool includefile = false)
+		//{
+		//	ShellItem sItem = (ShellItem)node.Tag;
+		//	if (sItem != null)
+		//		return sItem.IsChildrenExist();
+		//	return false;
+		//}
+		//private static void LoadRecycleBinbak(ListView listview)
+		//{
+		//	int MAX_PATH = 260;
+		//	// 获取回收站中的文件和文件夹信息
+		//	SHQUERYRBINFO shQueryRBInfo = new SHQUERYRBINFO();
+		//	shQueryRBInfo.cbSize = Marshal.SizeOf(shQueryRBInfo);
+		//	API.SHQueryRecycleBin(null, ref shQueryRBInfo);
 
-			uint dwFlags = 0;
-			StringBuilder sbDisplayName = new(MAX_PATH);
-			StringBuilder sbOriginalPath = new(MAX_PATH);
+		//	uint dwFlags = 0;
+		//	StringBuilder sbDisplayName = new(MAX_PATH);
+		//	StringBuilder sbOriginalPath = new(MAX_PATH);
 
-			while (API.SHEnumRecycleBin(null, 0, ref dwFlags, sbDisplayName, MAX_PATH, sbOriginalPath, MAX_PATH) == 0)
-			{
-				// 创建 ListViewItem 并添加到 ListView 中
-				ListViewItem item = new ListViewItem(sbDisplayName.ToString());
-				item.SubItems.Add(sbOriginalPath.ToString());
-				listview.Items.Add(item);
-			}
-		}
-		public void LoadRecycleBin(ListView listView)
-		{
-			// 使用 FileSourceManager 获取回收站 FileSource
-			IFileSource recycleBinFileSource = _fileSourceManager.GetFileSourceForFullPath("回收站", isleft);
+		//	while (API.SHEnumRecycleBin(null, 0, ref dwFlags, sbDisplayName, MAX_PATH, sbOriginalPath, MAX_PATH) == 0)
+		//	{
+		//		// 创建 ListViewItem 并添加到 ListView 中
+		//		ListViewItem item = new ListViewItem(sbDisplayName.ToString());
+		//		item.SubItems.Add(sbOriginalPath.ToString());
+		//		listview.Items.Add(item);
+		//	}
+		//}
+		//public void LoadRecycleBin(ListView listView)
+		//{
+		//	// 使用 FileSourceManager 获取回收站 FileSource
+		//	IFileSource recycleBinFileSource = _fileSourceManager.GetFileSourceForFullPath("回收站", isleft);
 
-			// 更新当前面板的 FileSource
-			if (listView == uiManager.LeftList)
-				LeftFileSource = recycleBinFileSource;
-			else
-				RightFileSource = recycleBinFileSource;
+		//	// 更新当前面板的 FileSource
+		//	if (listView == uiManager.LeftList)
+		//		LeftFileSource = recycleBinFileSource;
+		//	else
+		//		RightFileSource = recycleBinFileSource;
 
-			// 使用 FileSource 架构加载文件列表
-			_ = LoadListViewByFileSourceAsync("回收站", listView, null);
-		}
-		public IEnumerable<string> GetRecycleBinFilenames()
-		{
-			// 使用 Shell API 获取回收站文件
-			var fileList = new List<string>();
+		//	// 使用 FileSource 架构加载文件列表
+		//	LoadListViewByFileSourceSync("回收站", listView, null);
+		//}
+		//public IEnumerable<string> GetRecycleBinFilenames()
+		//{
+		//	// 使用 Shell API 获取回收站文件
+		//	var fileList = new List<string>();
 
-			// 使用直接方法获取回收站文件
-			string recycleBinPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "..\\$Recycle.Bin");
+		//	// 使用直接方法获取回收站文件
+		//	string recycleBinPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "..\\$Recycle.Bin");
 
-			if (Directory.Exists(recycleBinPath))
-			{
-				// 获取所有用户的回收站目录
-				foreach (var userDir in Directory.GetDirectories(recycleBinPath))
-				{
-					// 获取每个用户回收站中的文件
-					try
-					{
-						foreach (var file in Directory.GetFiles(userDir, "*", SearchOption.AllDirectories))
-						{
-							// 过滤掉系统文件
-							if (!Path.GetFileName(file).StartsWith("$"))
-							{
-								fileList.Add(Path.GetFileName(file) ?? string.Empty);
-							}
-						}
-					}
-					catch
-					{
-						// 忽略访问错误
-					}
-				}
-			}
+		//	if (Directory.Exists(recycleBinPath))
+		//	{
+		//		// 获取所有用户的回收站目录
+		//		foreach (var userDir in Directory.GetDirectories(recycleBinPath))
+		//		{
+		//			// 获取每个用户回收站中的文件
+		//			try
+		//			{
+		//				foreach (var file in Directory.GetFiles(userDir, "*", SearchOption.AllDirectories))
+		//				{
+		//					// 过滤掉系统文件
+		//					if (!Path.GetFileName(file).StartsWith("$"))
+		//					{
+		//						fileList.Add(Path.GetFileName(file) ?? string.Empty);
+		//					}
+		//				}
+		//			}
+		//			catch
+		//			{
+		//				// 忽略访问错误
+		//			}
+		//		}
+		//	}
 
-			// 返回收集到的文件名
-			return fileList;
-		}
+		//	// 返回收集到的文件名
+		//	return fileList;
+		//}
 		// 在目录变更时调用此方法记录历史
 		public void RecordDirectoryHistory(string newPath)
 		{
@@ -2241,7 +2240,7 @@ namespace zfile
 
 		}
 		// 加载文件列表 - 使用 FileSource 架构（异步版本）
-		public async Task LoadListViewByFileSourceAsync(string path, ListView listView, TreeNode parentnode)
+		public void LoadListViewByFileSourceSync(string path, ListView listView, TreeNode parentnode)
 		{
 			if (string.IsNullOrEmpty(path)) return;
 
@@ -2263,7 +2262,7 @@ namespace zfile
 			try
 			{
 				// 更新当前路径
-				CurrentFullpath[isLeftPanel ? "L" : "R"] = path;
+				//CurrentFullpath[isLeftPanel ? "L" : "R"] = path;	//读取数据时不更新currentfullpath
 
 				// 创建列表操作
 				string operationPath = path;
@@ -2284,11 +2283,11 @@ namespace zfile
 						//operationPath = Helper.ExcludeFrontPathDelimiter(operationPath);
 						if (operationPath.Equals(string.Empty))
 							operationPath = fileSource.GetRootDir();
-						Debug.Print($"WcxArchiveFileSource: 将绝对路径 {path} 转换为相对路径 {operationPath}");
+						//Debug.Print($"WcxArchiveFileSource: 将绝对路径 {path} 转换为相对路径 {operationPath}");
 					}
 				}
 
-				var listOperation = fileSource.CreateListOperation(operationPath);
+				var listOperation = fileSource?.CreateListOperation(operationPath);
 				if (listOperation == null)
 				{
 					Debug.Print($"无法为路径 {operationPath} 创建列表操作");
@@ -2297,12 +2296,10 @@ namespace zfile
 
 				// 执行列表操作
 				_operationsManager.AddOperation(listOperation);
-				//await Task.Run(() => listOperation.Execute());
-				//listOperation.Execute();
+				_operationsManager.GetItemByOperation(listOperation)?.OperationThread.WaitFor();    // 等待操作完成
 
 				// 获取文件列表结果
-				var fileListOperation = listOperation as FileSourceListOperation;
-				if (fileListOperation == null)
+				if (listOperation is not FileSourceListOperation fileListOperation)
 				{
 					Debug.Print($"操作不是 FileSourceListOperation 类型");
 					return;
@@ -2371,8 +2368,7 @@ namespace zfile
 					// 目录项
 					string attrStr = GetFileAttributesString(file.Attributes);
 
-					itemData = new[]
-					{
+					itemData = [
 						file.Name,
 						file.FullPath,
 						showFolderSize && EverythingWrapper.IsEverythingServiceRunning() ? FileSystemManager.FormatFileSize(file.Size, true) : "",
@@ -2380,7 +2376,7 @@ namespace zfile
 						file.ModificationTime.ToString("yyyy-MM-dd HH:mm"),
 						file.Size.ToString(),
 						attrStr
-					};
+					];
 				}
 				else
 				{
@@ -2412,20 +2408,20 @@ namespace zfile
 		}
 
 		// 原始的文件系统加载方法 (保留以便兼容)
-		private async Task LoadListViewByFilesystem(string path, ListView listView, TreeNode parentnode)
-		{
-			// 使用 FileSourceManager 获取合适的 FileSource
-			IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, isleft);
+		//private void LoadListViewByFilesystem(string path, ListView listView, TreeNode parentnode)
+		//{
+		//	// 使用 FileSourceManager 获取合适的 FileSource
+		//	IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, isleft);
 
-			// 更新当前面板的 FileSource
-			if (listView == uiManager.LeftList)
-				LeftFileSource = fileSource;
-			else
-				RightFileSource = fileSource;
+		//	// 更新当前面板的 FileSource
+		//	if (listView == uiManager.LeftList)
+		//		LeftFileSource = fileSource;
+		//	else
+		//		RightFileSource = fileSource;
 
-			// 使用 FileSource 架构加载文件列表
-			await LoadListViewByFileSourceAsync(path, listView, parentnode);
-		}
+		//	// 使用 FileSource 架构加载文件列表
+		//	LoadListViewByFileSourceSync(path, listView, parentnode);
+		//}
 
 		// 将文件属性转换为RAHSC格式的字符串
 		private string GetFileAttributesString(FileAttributes attributes)
@@ -2447,57 +2443,57 @@ namespace zfile
 			return sb.ToString();
 		}
 
-		private ListViewItem? CreateListViewItem(FileSystemInfo item, bool showFolderSize)
-		{
-			try
-			{
-				string[] itemData;
-				if (item is DirectoryInfo)
-				{
-					//var size = showFolderSize ? EverythingWrapper.CalculateDirectorySize(item.FullName) : 0;
-					var size = 0;
-					// 获取目录属性并格式化为RAHSC格式
-					string attrStr = GetFileAttributesString(item.Attributes);
+		//private ListViewItem? CreateListViewItem(FileSystemInfo item, bool showFolderSize)
+		//{
+		//	try
+		//	{
+		//		string[] itemData;
+		//		if (item is DirectoryInfo)
+		//		{
+		//			//var size = showFolderSize ? EverythingWrapper.CalculateDirectorySize(item.FullName) : 0;
+		//			var size = 0;
+		//			// 获取目录属性并格式化为RAHSC格式
+		//			string attrStr = GetFileAttributesString(item.Attributes);
 
-					itemData = new[]
-					{
-						item.Name,
-						item.FullName,
-						showFolderSize && EverythingWrapper.IsEverythingServiceRunning() ? FileSystemManager.FormatFileSize(size, true) : "",
-						"<DIR>",
-						item.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),
-						size.ToString(),
-						attrStr
-					};
-				}
-				else if (item is FileInfo fileInfo)
-				{
-					// 获取文件属性并格式化为RAHSC格式
-					string attrStr = GetFileAttributesString(item.Attributes);
+		//			itemData = new[]
+		//			{
+		//				item.Name,
+		//				item.FullName,
+		//				showFolderSize && EverythingWrapper.IsEverythingServiceRunning() ? FileSystemManager.FormatFileSize(size, true) : "",
+		//				"<DIR>",
+		//				item.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),
+		//				size.ToString(),
+		//				attrStr
+		//			};
+		//		}
+		//		else if (item is FileInfo fileInfo)
+		//		{
+		//			// 获取文件属性并格式化为RAHSC格式
+		//			string attrStr = GetFileAttributesString(item.Attributes);
 
-					itemData = new[]
-					{
-						item.Name,
-						item.FullName,	//真实完整路径
-                        FileSystemManager.FormatFileSize(fileInfo.Length, true),
-						fileInfo.Extension.ToUpperInvariant(),
-						item.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),
-						fileInfo.Length.ToString(),
-						attrStr
-					};
-				}
-				else
-					return null;
+		//			itemData = new[]
+		//			{
+		//				item.Name,
+		//				item.FullName,	//真实完整路径
+  //                      FileSystemManager.FormatFileSize(fileInfo.Length, true),
+		//				fileInfo.Extension.ToUpperInvariant(),
+		//				item.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),
+		//				fileInfo.Length.ToString(),
+		//				attrStr
+		//			};
+		//		}
+		//		else
+		//			return null;
 
-				var i = new ListViewItem(itemData);
-				return i;
-			}
-			catch
-			{
-				Debug.Print("exception in createlistview item");
-				return null;
-			}
-		}
+		//		var i = new ListViewItem(itemData);
+		//		return i;
+		//	}
+		//	catch
+		//	{
+		//		Debug.Print("exception in createlistview item");
+		//		return null;
+		//	}
+		//}
 
 		// 预览文件内容
 		private async Task PreviewFileAsync(string filePath, TextBox previewPanel)
@@ -2667,16 +2663,16 @@ namespace zfile
 			watcher.IncludeSubdirectories = false;
 		}
 
-		private void InitializeThemeToggleButton()
-		{
-			ToolStripButton themeToggleButton = new ToolStripButton
-			{
-				Text = "切换主题",
-				DisplayStyle = ToolStripItemDisplayStyle.Text
-			};
-			themeToggleButton.Click += ThemeToggleButton_Click;
-			uiManager.toolbarManager.DynamicToolStrip.Items.Add(themeToggleButton);
-		}
+		//private void InitializeThemeToggleButton()
+		//{
+		//	ToolStripButton themeToggleButton = new ToolStripButton
+		//	{
+		//		Text = "切换主题",
+		//		DisplayStyle = ToolStripItemDisplayStyle.Text
+		//	};
+		//	themeToggleButton.Click += ThemeToggleButton_Click;
+		//	uiManager.toolbarManager.DynamicToolStrip.Items.Add(themeToggleButton);
+		//}
 
 		private void ThemeToggleButton_Click(object? sender, EventArgs e)
 		{
@@ -2763,13 +2759,13 @@ namespace zfile
 					if (!file.IsDirectory) // 只处理文件，不处理目录
 					{
 						// 将FileEntry转换为FtpFileEntry
-						var ftpFile = new FtpFileEntry(file.Path, file.Name);
-
-						// 复制原始文件的属性
-						ftpFile.Size = file.Size;
-						ftpFile.Attributes = file.Attributes;
-						ftpFile.ModificationTime = file.ModificationTime;
-
+						var ftpFile = new FtpFileEntry(file.Path, file.Name)
+						{
+							// 复制原始文件的属性
+							Size = file.Size,
+							Attributes = file.Attributes,
+							ModificationTime = file.ModificationTime
+						};
 						// 如果有其他需要复制的属性，可以在这里添加
 						if (file.SupportedProperties.HasFlag(FilePropertyType.CompressedSize))
 							ftpFile.CompressedSize = file.CompressedSize;
@@ -2786,7 +2782,7 @@ namespace zfile
 
 				if (fileEntries.Count == 0)
 				{
-					return new List<FileEntry>();
+					return [];
 				}
 
 				// 创建FTP复制出操作
@@ -2828,7 +2824,7 @@ namespace zfile
 				MessageBox.Show($"下载FTP文件失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
 			}
 
-			return new List<FileEntry>();
+			return [];
 		}
 
 		public void cm_list(string param = "")
@@ -2959,7 +2955,7 @@ namespace zfile
 				RightFileSource = fileSource;
 
 			// 使用 FileSource 架构加载文件列表
-			_ = LoadListViewByFileSourceAsync(path, listView, node);
+			LoadListViewByFileSourceSync(path, listView, node);
 		}
 		public void RefreshPanel(TreeView treeView)
 		{
@@ -2973,132 +2969,132 @@ namespace zfile
 		}
 
 		// 使用 FileSource 架构加载文件列表
-		private void LoadListViewByFileSource(string path, ListView listView, TreeNode parentNode)
-		{
-			if (string.IsNullOrEmpty(path)) return;
+		//private void LoadListViewByFileSource(string path, ListView listView, TreeNode parentNode)
+		//{
+		//	if (string.IsNullOrEmpty(path)) return;
 
-			// 确定当前面板
-			bool isLeftPanel = listView == uiManager.LeftList;
+		//	// 确定当前面板
+		//	bool isLeftPanel = listView == uiManager.LeftList;
 
-			// 使用 FileSourceManager 获取合适的 FileSource
-			IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, isLeftPanel);
+		//	// 使用 FileSourceManager 获取合适的 FileSource
+		//	IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, isLeftPanel);
 
-			// 更新当前面板的 FileSource
-			if (isLeftPanel)
-				LeftFileSource = fileSource;
-			else
-				RightFileSource = fileSource;
+		//	// 更新当前面板的 FileSource
+		//	if (isLeftPanel)
+		//		LeftFileSource = fileSource;
+		//	else
+		//		RightFileSource = fileSource;
 
-			// 清空列表视图
-			listView.Items.Clear();
+		//	// 清空列表视图
+		//	listView.Items.Clear();
 
-			try
-			{
-				// 更新当前路径
-				CurrentFullpath[isLeftPanel ? "L" : "R"] = path;
+		//	try
+		//	{
+		//		// 更新当前路径
+		//		CurrentFullpath[isLeftPanel ? "L" : "R"] = path;
 
-				// 获取文件列表
-				var fileEntries = fileSource.GetFiles(path);
-				if (fileEntries == null) return;
+		//		// 获取文件列表
+		//		var fileEntries = fileSource.GetFiles(path);
+		//		if (fileEntries == null) return;
 
-				// 添加文件条目到列表视图
-				foreach (var entry in fileEntries)
-				{
-					// 创建列表项
-					var item = new ListViewItem(entry.Name);
+		//		// 添加文件条目到列表视图
+		//		foreach (var entry in fileEntries)
+		//		{
+		//			// 创建列表项
+		//			var item = new ListViewItem(entry.Name);
 
-					// 添加子项
-					item.SubItems.Add(entry.FullPath);
-					item.SubItems.Add(entry.Size.ToString());
+		//			// 添加子项
+		//			item.SubItems.Add(entry.FullPath);
+		//			item.SubItems.Add(entry.Size.ToString());
 
-					// 设置目录标记
-					if (entry.IsDirectory)
-					{
-						item.SubItems.Add("<DIR>");
-					}
-					else
-					{
-						item.SubItems.Add(Path.GetExtension(entry.Name));
-					}
+		//			// 设置目录标记
+		//			if (entry.IsDirectory)
+		//			{
+		//				item.SubItems.Add("<DIR>");
+		//			}
+		//			else
+		//			{
+		//				item.SubItems.Add(Path.GetExtension(entry.Name));
+		//			}
 
-					// 添加修改时间
-					item.SubItems.Add(entry.ModificationTime.ToString());
+		//			// 添加修改时间
+		//			item.SubItems.Add(entry.ModificationTime.ToString());
 
-					// 设置图标
-					if (entry.IsDirectory)
-					{
-						if (listView.SmallImageList != null)
-							iconManager.LoadIconFromCacheByKey("folder", listView.SmallImageList);
-						if (listView.LargeImageList != null)
-							iconManager.LoadIconFromCacheByKey("folder", listView.LargeImageList, true);
-						item.ImageKey = "folder";
-					}
-					else
-					{
-						// 使用文件扩展名设置图标
-						string ext = Path.GetExtension(entry.Name).ToLower();
-						string iconKey = "file" + ext;
+		//			// 设置图标
+		//			if (entry.IsDirectory)
+		//			{
+		//				if (listView.SmallImageList != null)
+		//					iconManager.LoadIconFromCacheByKey("folder", listView.SmallImageList);
+		//				if (listView.LargeImageList != null)
+		//					iconManager.LoadIconFromCacheByKey("folder", listView.LargeImageList, true);
+		//				item.ImageKey = "folder";
+		//			}
+		//			else
+		//			{
+		//				// 使用文件扩展名设置图标
+		//				string ext = Path.GetExtension(entry.Name).ToLower();
+		//				string iconKey = "file" + ext;
 
-						if (!iconManager.HasIconKey(iconKey, false))
-						{
-							// 尝试获取图标
-							using (Icon? ico = IconManager.GetIconByFileNameEx("FILE", entry.FullPath, false))
-							{
-								if (ico != null)
-									iconManager.AddIcon(iconKey, ico, false);
-							}
-						}
+		//				if (!iconManager.HasIconKey(iconKey, false))
+		//				{
+		//					// 尝试获取图标
+		//					using (Icon? ico = IconManager.GetIconByFileNameEx("FILE", entry.FullPath, false))
+		//					{
+		//						if (ico != null)
+		//							iconManager.AddIcon(iconKey, ico, false);
+		//					}
+		//				}
 
-						if (listView.SmallImageList != null)
-							iconManager.LoadIconFromCacheByKey(iconKey, listView.SmallImageList);
-						item.ImageKey = iconKey;
+		//				if (listView.SmallImageList != null)
+		//					iconManager.LoadIconFromCacheByKey(iconKey, listView.SmallImageList);
+		//				item.ImageKey = iconKey;
 
-						// 如果是大图标视图，还需要加载大图标
-						if (listView.View == System.Windows.Forms.View.LargeIcon || listView.View == System.Windows.Forms.View.Tile)
-						{
-							string largeIconKey = iconKey + "_large";
-							if (!iconManager.HasIconKey(largeIconKey, true))
-							{
-								using (Icon? icol = IconManager.GetIconByFileNameEx("FILE", entry.FullPath, true))
-								{
-									if (icol != null)
-										iconManager.AddIcon(largeIconKey, icol, true);
-								}
-							}
+		//				// 如果是大图标视图，还需要加载大图标
+		//				if (listView.View == System.Windows.Forms.View.LargeIcon || listView.View == System.Windows.Forms.View.Tile)
+		//				{
+		//					string largeIconKey = iconKey + "_large";
+		//					if (!iconManager.HasIconKey(largeIconKey, true))
+		//					{
+		//						using (Icon? icol = IconManager.GetIconByFileNameEx("FILE", entry.FullPath, true))
+		//						{
+		//							if (icol != null)
+		//								iconManager.AddIcon(largeIconKey, icol, true);
+		//						}
+		//					}
 
-							if (listView.LargeImageList != null)
-								iconManager.LoadIconFromCacheByKey(iconKey + "_large", listView.LargeImageList, true);
-						}
-					}
+		//					if (listView.LargeImageList != null)
+		//						iconManager.LoadIconFromCacheByKey(iconKey + "_large", listView.LargeImageList, true);
+		//				}
+		//			}
 
-					// 设置标签
-					item.Tag = parentNode;
+		//			// 设置标签
+		//			item.Tag = parentNode;
 
-					// 添加到列表视图
-					listView.Items.Add(item);
-				}
+		//			// 添加到列表视图
+		//			listView.Items.Add(item);
+		//		}
 
-				// 更新状态栏
-				var status = (listView == uiManager.LeftList) ? uiManager.LeftStatusStrip : uiManager.RightStatusStrip;
-				status.Items[0].Text = $"{fileEntries.Count} 个项目";
+		//		// 更新状态栏
+		//		var status = (listView == uiManager.LeftList) ? uiManager.LeftStatusStrip : uiManager.RightStatusStrip;
+		//		status.Items[0].Text = $"{fileEntries.Count} 个项目";
 
-				// 添加滚动事件处理程序（如果尚未添加）
-				if (listView.Tag == null && listView is MyListView myListView)
-				{
-					EventHandler scrollHandler = (s, e) =>
-					{
-						if (s != null) ListView_Scroll(s, e);
-					};
-					myListView.VScroll += scrollHandler;
-					myListView.MouseWheel += scrollHandler;
-					listView.Tag = "ScrollEventAttached";
-				}
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show($"加载文件列表失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-			}
-		}
+		//		// 添加滚动事件处理程序（如果尚未添加）
+		//		if (listView.Tag == null && listView is MyListView myListView)
+		//		{
+		//			EventHandler scrollHandler = (s, e) =>
+		//			{
+		//				if (s != null) ListView_Scroll(s, e);
+		//			};
+		//			myListView.VScroll += scrollHandler;
+		//			myListView.MouseWheel += scrollHandler;
+		//			listView.Tag = "ScrollEventAttached";
+		//		}
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		MessageBox.Show($"加载文件列表失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+		//	}
+		//}
 		public void RefreshPanel()
 		{
 			RefreshPanel(isleft);
@@ -3117,13 +3113,10 @@ namespace zfile
 					//refresh the treeview
 					var node = uiManager.LeftTree.SelectedNode;
 					LoadSubDirectories(node, uiManager.LeftList);
-
-					// 使用 FileSourceManager 获取合适的 FileSource
-					IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, true);
-					LeftFileSource = fileSource;
+					LeftFileSource = CurrentFullpath.GetFileSource("L");
 
 					// 使用 FileSource 架构刷新左面板
-					_ = LoadListViewByFileSourceAsync(path, uiManager.LeftList, uiManager.LeftTree.SelectedNode);
+					LoadListViewByFileSourceSync(path, uiManager.LeftList, uiManager.LeftTree.SelectedNode);
 				}
 				else if (IsFtpPanel(out var ftpnode, "L") && ftpnode != null)
 				{
@@ -3143,12 +3136,10 @@ namespace zfile
 					//refresh the treeview
 					var node = uiManager.RightTree.SelectedNode;
 					LoadSubDirectories(node, uiManager.RightList);
-					// 使用 FileSourceManager 获取合适的 FileSource
-					IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, false);
-					RightFileSource = fileSource;
+					RightFileSource = CurrentFullpath.GetFileSource("R");
 
 					// 使用 FileSource 架构刷新右面板
-					_ = LoadListViewByFileSourceAsync(path, uiManager.RightList, uiManager.RightTree.SelectedNode);
+					LoadListViewByFileSourceSync(path, uiManager.RightList, uiManager.RightTree.SelectedNode);
 				}
 				else if (IsFtpPanel(out var ftpnode, "R") && ftpnode != null)
 				{
@@ -3233,11 +3224,11 @@ namespace zfile
 			}
 			return false; // 所有插件都无法处理该文件，返回false
 		}
-		public void CloseAllArchives()
-		{
-			foreach (var archive in openArchives.Keys.ToList())
-				CloseArchive(archive);
-		}
+		//public void CloseAllArchives()
+		//{
+		//	foreach (var archive in openArchives.Keys.ToList())
+		//		CloseArchive(archive);
+		//}
 		private void CloseArchive(string archivePath)
 		{
 			if (!openArchives.ContainsKey(archivePath)) return;
@@ -3252,41 +3243,41 @@ namespace zfile
 			}
 		}
 
-		public List<ListViewItem> LoadArchiveContents(string archivePath)
-		{
-			List<ListViewItem> items = new List<ListViewItem>();
-			string ext = Path.GetExtension(archivePath).ToLower();
-			var wcxModule = wcxModuleList.GetModuleByExt(ext);
-			if (wcxModule == null || !openArchives.ContainsKey(archivePath)) return items;
+		//public List<ListViewItem> LoadArchiveContents(string archivePath)
+		//{
+		//	List<ListViewItem> items = new List<ListViewItem>();
+		//	string ext = Path.GetExtension(archivePath).ToLower();
+		//	var wcxModule = wcxModuleList.GetModuleByExt(ext);
+		//	if (wcxModule == null || !openArchives.ContainsKey(archivePath)) return items;
 
-			IntPtr handle = openArchives[archivePath];
-			//THeaderDataExW headerData = new THeaderDataExW();
-			var headerData = new WcxHeader();
-			while (wcxModule.ReadHeader(handle, out headerData))
-			{
-				var item = new ListViewItem(headerData.FileName);
-				var lvitem = item.Tag as LvItemTag;
-				item.Tag = new ArchNodeTag(lvitem.File, lvitem.Node) { Path = "", Handler = handle };
-				item.SubItems.Add(archivePath + "\\" + headerData.FileName); // file name with full path
-																			 // 将 vhigh 左移32位，然后与 vlow 进行按位或运算
-				var isdir = (int)headerData.FileAttr == 16;
-				var ext1 = Path.GetExtension(headerData.FileName);
-				var UnpSize = headerData.UnpSize; // ((ulong)headerData.UnpSizeHigh << 32) | headerData.UnpSizeLow;
-				item.SubItems.Add(FileSystemManager.FormatFileSize(UnpSize, true));
-				item.SubItems.Add(isdir ? "<DIR>" : ext1.TrimStart('.')); // <dir> / <ext>
-				item.SubItems.Add(DateTime.FromFileTime(headerData.FileTime).ToString());
-				//item.SubItems.Add(headerData.Method.ToString());
+		//	IntPtr handle = openArchives[archivePath];
+		//	//THeaderDataExW headerData = new THeaderDataExW();
+		//	var headerData = new WcxHeader();
+		//	while (wcxModule.ReadHeader(handle, out headerData))
+		//	{
+		//		var item = new ListViewItem(headerData.FileName);
+		//		var lvitem = item.Tag as LvItemTag;
+		//		item.Tag = new ArchNodeTag(lvitem.File, lvitem.Node) { Path = "", Handler = handle };
+		//		item.SubItems.Add(archivePath + "\\" + headerData.FileName); // file name with full path
+		//																	 // 将 vhigh 左移32位，然后与 vlow 进行按位或运算
+		//		var isdir = (int)headerData.FileAttr == 16;
+		//		var ext1 = Path.GetExtension(headerData.FileName);
+		//		var UnpSize = headerData.UnpSize; // ((ulong)headerData.UnpSizeHigh << 32) | headerData.UnpSizeLow;
+		//		item.SubItems.Add(FileSystemManager.FormatFileSize(UnpSize, true));
+		//		item.SubItems.Add(isdir ? "<DIR>" : ext1.TrimStart('.')); // <dir> / <ext>
+		//		item.SubItems.Add(DateTime.FromFileTime(headerData.FileTime).ToString());
+		//		//item.SubItems.Add(headerData.Method.ToString());
 
-				item.SubItems.Add(UnpSize.ToString()); // origin size
-				var attrstr = GetFileAttributesString((FileAttributes)headerData.FileAttr);
-				item.SubItems.Add(attrstr); // ACDHS
-				items.Add(item);
+		//		item.SubItems.Add(UnpSize.ToString()); // origin size
+		//		var attrstr = GetFileAttributesString((FileAttributes)headerData.FileAttr);
+		//		item.SubItems.Add(attrstr); // ACDHS
+		//		items.Add(item);
 
-				wcxModule.ProcessFile(handle, ProcessMode.PK_SKIP, "", ""); // Skip file
-			}
-			CloseArchive(archivePath);
-			return items;
-		}
+		//		wcxModule.ProcessFile(handle, ProcessMode.PK_SKIP, "", ""); // Skip file
+		//	}
+		//	CloseArchive(archivePath);
+		//	return items;
+		//}
 
 		public bool ExtractArchiveFile(string archivePath, string fileName, string destPath)
 		{
@@ -3307,22 +3298,22 @@ namespace zfile
 			return false;
 		}
 
-		public bool AddToArchive(string archivePath, string[] files)
-		{
-			string ext = Path.GetExtension(archivePath).ToLower();
-			var wcxModule = wcxModuleList.GetModuleByExt(ext);
-			if (wcxModule == null)
-				return false;
-			if ((wcxModule.PluginCapabilities & (int)PackerCaps.PK_CAPS_MODIFY) == 0)
-			{
-				MessageBox.Show("该插件不支持修改压缩文件内容", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-				return false;
-			}
-			//string fileList = string.Join("\n", files); //TODO:Each string in fileList is zero-delimited (ends in zero), and the fileList string ends with an extra zero byte, i.e. there are two zero bytes at the end of AddList.
-			//string fileList = string.Join("\0", files) + "\0\0";
-			var packfilesflags = PackFilesFlags.PK_PACK_SAVE_PATHS;
-			return wcxModule.PackFiles(archivePath, "", Path.GetDirectoryName(files[0]), ConvertStringArrayToStringSeperateWithZeroDelimiter(files), (int)packfilesflags) == 0;
-		}
+		//public bool AddToArchive(string archivePath, string[] files)
+		//{
+		//	string ext = Path.GetExtension(archivePath).ToLower();
+		//	var wcxModule = wcxModuleList.GetModuleByExt(ext);
+		//	if (wcxModule == null)
+		//		return false;
+		//	if ((wcxModule.PluginCapabilities & (int)PackerCaps.PK_CAPS_MODIFY) == 0)
+		//	{
+		//		MessageBox.Show("该插件不支持修改压缩文件内容", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+		//		return false;
+		//	}
+		//	//string fileList = string.Join("\n", files); //TODO:Each string in fileList is zero-delimited (ends in zero), and the fileList string ends with an extra zero byte, i.e. there are two zero bytes at the end of AddList.
+		//	//string fileList = string.Join("\0", files) + "\0\0";
+		//	var packfilesflags = PackFilesFlags.PK_PACK_SAVE_PATHS;
+		//	return wcxModule.PackFiles(archivePath, "", Path.GetDirectoryName(files[0]), ConvertStringArrayToStringSeperateWithZeroDelimiter(files), (int)packfilesflags) == 0;
+		//}
 
 		public static string ConvertStringArrayToStringSeperateWithZeroDelimiter(string[] input)
 		{
@@ -3336,29 +3327,29 @@ namespace zfile
 			return result;
 		}
 
-		public bool DeleteFromArchive(string archivePath, string[] files)
-		{
-			string ext = Path.GetExtension(archivePath).ToLower();
-			var wcxModule = wcxModuleList.GetModuleByExt(ext);
-			if (wcxModule == null)
-				return false;
-			if ((wcxModule.PluginCapabilities & (int)PackerCaps.PK_CAPS_DELETE) == 0)
-			{
-				MessageBox.Show("该插件不支持删除文件", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-				return false;
-			}
-			//OpenArchive(archivePath, UnpackFlags.PK_OM_EXTRACT);
-			//string fileList = string.Join("\0", files) + "\0\0";
-			string fileList = ConvertStringArrayToStringSeperateWithZeroDelimiter(files);
-			Encoding utf8Encoding = Encoding.UTF8;
-			int byteCount = utf8Encoding.GetByteCount(fileList);
-			Debug.Print($"字符串在 UTF - 8 编码下的字节数: {byteCount}");
+		//public bool DeleteFromArchive(string archivePath, string[] files)
+		//{
+		//	string ext = Path.GetExtension(archivePath).ToLower();
+		//	var wcxModule = wcxModuleList.GetModuleByExt(ext);
+		//	if (wcxModule == null)
+		//		return false;
+		//	if ((wcxModule.PluginCapabilities & (int)PackerCaps.PK_CAPS_DELETE) == 0)
+		//	{
+		//		MessageBox.Show("该插件不支持删除文件", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+		//		return false;
+		//	}
+		//	//OpenArchive(archivePath, UnpackFlags.PK_OM_EXTRACT);
+		//	//string fileList = string.Join("\0", files) + "\0\0";
+		//	string fileList = ConvertStringArrayToStringSeperateWithZeroDelimiter(files);
+		//	Encoding utf8Encoding = Encoding.UTF8;
+		//	int byteCount = utf8Encoding.GetByteCount(fileList);
+		//	Debug.Print($"字符串在 UTF - 8 编码下的字节数: {byteCount}");
 
-			Encoding asciiEncoding = Encoding.ASCII;
-			byteCount = asciiEncoding.GetByteCount(fileList);
-			Debug.Print($"字符串在 ASCII 编码下的字节数: {byteCount}");
-			return wcxModule.DeleteFiles(archivePath, fileList) == 0; // archivepath should be full path and name of the the archive.
-		}
+		//	Encoding asciiEncoding = Encoding.ASCII;
+		//	byteCount = asciiEncoding.GetByteCount(fileList);
+		//	Debug.Print($"字符串在 ASCII 编码下的字节数: {byteCount}");
+		//	return wcxModule.DeleteFiles(archivePath, fileList) == 0; // archivepath should be full path and name of the the archive.
+		//}
 
 		private void Watcher_Changed(object sender, FileSystemEventArgs e)
 		{
@@ -3481,9 +3472,7 @@ namespace zfile
 				{
 					var fileEntry = GetListItemPath(item);
 					if (fileEntry != null)
-					{
 						fileList.Add(fileEntry);
-					}
 				}
 				sourceFiles = fileList.ToArray();
 				srcPath = uiManager.srcDir;//todo: need add wcx virtual folder to shengfilesystemnode's child, 然后才能从srcdir获取到正确的srcpath
@@ -3519,7 +3508,7 @@ namespace zfile
 						return CopyViaTemporaryDirectory(sourceFileSource, targetFileSource, fileEntries, targetPath);
 		
 					_operationsManager.AddOperation(operation);
-					//operation.Execute();
+					operation._Thread.WaitFor();
 
 					// 刷新目标面板
 					RefreshPanel(targetlist);
@@ -3528,199 +3517,200 @@ namespace zfile
 
 				// 如果无法使用 FileSource 架构，使用传统方法
 				// 确定源路径和目标路径的类型
-				bool isSourceArchive = !string.IsNullOrEmpty(srcPath) && IsArchiveFile(srcPath);//bugfix: the srcpath is the dir in which the arch file located, so always return false, it should use vfs to process the arch file as virtual dir
-				if (isSourceArchive)
-					OpenArchive(srcPath, OpenMode.PK_OM_EXTRACT);
-				bool isTargetArchive = targetPath != null && IsArchiveFile(targetPath);
-				if (isTargetArchive && targetPath != null)
-					OpenArchive(targetPath, OpenMode.PK_OM_EXTRACT);
-				bool isSourceFtp = fTPMGR.IsFtpPath(srcPath);
-				bool isTargetFtp = targetPath != null && fTPMGR.IsFtpPath(targetPath);
+				//bool isSourceArchive = !string.IsNullOrEmpty(srcPath) && IsArchiveFile(srcPath);//bugfix: the srcpath is the dir in which the arch file located, so always return false, it should use vfs to process the arch file as virtual dir
+				//if (isSourceArchive)
+				//	OpenArchive(srcPath, OpenMode.PK_OM_EXTRACT);
+				//bool isTargetArchive = targetPath != null && IsArchiveFile(targetPath);
+				//if (isTargetArchive && targetPath != null)
+				//	OpenArchive(targetPath, OpenMode.PK_OM_EXTRACT);
+				//bool isSourceFtp = fTPMGR.IsFtpPath(srcPath);
+				//bool isTargetFtp = targetPath != null && fTPMGR.IsFtpPath(targetPath);
 
-				// 场景1: FTP -> FTP
-				if (isSourceFtp && isTargetFtp)
-				{
-					var sourceFtp = fTPMGR.GetFtpSource(srcPath);
-					var targetFtp = fTPMGR.GetFtpSource(targetPath);
-					if (sourceFtp != null && targetFtp != null)
-					{
-						foreach (var remotePath in sourceFiles)
-						{
-							// 先下载到临时目录
-							string tempFile = sourceFtp.DownloadFile(remotePath.FullPath);
-							if (!string.IsNullOrEmpty(tempFile))
-							{
-								try
-								{
-									// 再上传到目标FTP
-									string fileName = Path.GetFileName(remotePath.FullPath);
-									string targetRemotePath = Path.Combine(targetPath, fileName).Replace("\\", "/");
-									targetFtp.UploadFile(tempFile, targetRemotePath);
-								}
-								finally
-								{
-									// 清理临时文件
-									if (File.Exists(tempFile))
-										File.Delete(tempFile);
-								}
-							}
-						}
-					}
-				}
-				// 场景2: FTP -> LOCAL
-				else if (isSourceFtp && !isTargetFtp && !isTargetArchive)
-				{
-					// 从FTP下载到本地
-					var ftpSource = fTPMGR.GetFtpSource(srcPath);
-					if (ftpSource != null)
-					{
-						foreach (var remotePath in sourceFiles)
-						{
-							string fileName = Path.GetFileName(remotePath.FullPath);
-							string localPath = Path.Combine(targetPath, fileName);
-							string tempFile = ftpSource.DownloadFile(remotePath.FullPath);
-							if (!string.IsNullOrEmpty(tempFile))
-							{
-								try
-								{
-									File.Copy(tempFile, localPath, true);
-								}
-								finally
-								{
-									// 清理临时文件
-									if (File.Exists(tempFile))
-										File.Delete(tempFile);
-								}
-							}
-						}
-					}
-				}
-				// 场景3: FTP -> ARCHIVE
-				else if (isSourceFtp && !isTargetFtp && isTargetArchive)
-				{
-					var ftpSource = fTPMGR.GetFtpSource(srcPath);
-					if (ftpSource != null)
-					{
-						List<string> tempFiles = new List<string>();
-						try
-						{
-							// 先将文件从FTP下载到临时目录
-							foreach (var remotePath in sourceFiles)
-							{
-								string tempFile = ftpSource.DownloadFile(remotePath.FullPath);
-								if (!string.IsNullOrEmpty(tempFile))
-									tempFiles.Add(tempFile);
-							}
+				//// 场景1: FTP -> FTP
+				//if (isSourceFtp && isTargetFtp)
+				//{
+				//	var sourceFtp = fTPMGR.GetFtpSource(srcPath);
+				//	var targetFtp = fTPMGR.GetFtpSource(targetPath);
+				//	if (sourceFtp != null && targetFtp != null)
+				//	{
+				//		foreach (var remotePath in sourceFiles)
+				//		{
+				//			// 先下载到临时目录
+				//			string tempFile = sourceFtp.DownloadFile(remotePath.FullPath);
+				//			if (!string.IsNullOrEmpty(tempFile))
+				//			{
+				//				try
+				//				{
+				//					// 再上传到目标FTP
+				//					string fileName = Path.GetFileName(remotePath.FullPath);
+				//					string targetRemotePath = Path.Combine(targetPath, fileName).Replace("\\", "/");
+				//					targetFtp.UploadFile(tempFile, targetRemotePath);
+				//				}
+				//				finally
+				//				{
+				//					// 清理临时文件
+				//					if (File.Exists(tempFile))
+				//						File.Delete(tempFile);
+				//				}
+				//			}
+				//		}
+				//	}
+				//}
+				//// 场景2: FTP -> LOCAL
+				//else if (isSourceFtp && !isTargetFtp && !isTargetArchive)
+				//{
+				//	// 从FTP下载到本地
+				//	var ftpSource = fTPMGR.GetFtpSource(srcPath);
+				//	if (ftpSource != null)
+				//	{
+				//		foreach (var remotePath in sourceFiles)
+				//		{
+				//			string fileName = Path.GetFileName(remotePath.FullPath);
+				//			string localPath = Path.Combine(targetPath, fileName);
+				//			string tempFile = ftpSource.DownloadFile(remotePath.FullPath);
+				//			if (!string.IsNullOrEmpty(tempFile))
+				//			{
+				//				try
+				//				{
+				//					File.Copy(tempFile, localPath, true);
+				//				}
+				//				finally
+				//				{
+				//					// 清理临时文件
+				//					if (File.Exists(tempFile))
+				//						File.Delete(tempFile);
+				//				}
+				//			}
+				//		}
+				//	}
+				//}
+				//// 场景3: FTP -> ARCHIVE
+				//else if (isSourceFtp && !isTargetFtp && isTargetArchive)
+				//{
+				//	var ftpSource = fTPMGR.GetFtpSource(srcPath);
+				//	if (ftpSource != null)
+				//	{
+				//		List<string> tempFiles = new List<string>();
+				//		try
+				//		{
+				//			// 先将文件从FTP下载到临时目录
+				//			foreach (var remotePath in sourceFiles)
+				//			{
+				//				string tempFile = ftpSource.DownloadFile(remotePath.FullPath);
+				//				if (!string.IsNullOrEmpty(tempFile))
+				//					tempFiles.Add(tempFile);
+				//			}
 
-							// 然后添加到压缩文件
-							if (tempFiles.Count > 0)
-								AddToArchive(targetPath, tempFiles.ToArray());
-						}
-						finally
-						{
-							// 清理临时文件
-							foreach (var tempFile in tempFiles)
-							{
-								if (File.Exists(tempFile))
-									File.Delete(tempFile);
-							}
-						}
-					}
-				}
-				// 场景4: LOCAL -> FTP
-				else if (!isSourceFtp && !isSourceArchive && isTargetFtp)
-				{
-					// 从本地上传到FTP
-					var ftpTarget = fTPMGR.GetFtpSource(targetPath);
-					if (ftpTarget != null)
-					{
-						foreach (var localFile in sourceFiles)
-						{
-							string fullSourcePath = Path.Combine(srcPath, localFile.FullPath);
-							string fileName = Path.GetFileName(localFile.FullPath);
-							string remotePath = Path.Combine(ftpTarget.CurrentPath, fileName).Replace("\\", "/");
-							if (Directory.Exists(fullSourcePath))
-								fTPMGR.UploadDirectory(ftpTarget.Client, fullSourcePath, remotePath);
-							else
-								ftpTarget.UploadFile(fullSourcePath, remotePath);
-						}
-					}
-				}
-				// 场景5: LOCAL -> LOCAL
-				else if (!isSourceFtp && !isSourceArchive && !isTargetFtp && !isTargetArchive)
-				{
-					// 本地文件之间的复制
-					string[] fullPaths = sourceFiles.Select(f => Path.Combine(srcPath, f.FullPath)).ToArray();
-					FileSystemManager.CopyFilesAndDirectories(fullPaths, targetPath);
-				}
-				// 场景6: LOCAL -> ARCHIVE
-				else if (!isSourceFtp && !isSourceArchive && !isTargetFtp && isTargetArchive)
-				{
-					string[] fullPaths = sourceFiles.Select(f => Path.Combine(srcPath, f.FullPath)).ToArray();
-					AddToArchive(targetPath, fullPaths);
-				}
-				// 场景7: ARCHIVE -> FTP
-				else if (!isSourceFtp && isSourceArchive && isTargetFtp)
-				{
-					var ftpTarget = fTPMGR.GetFtpSource(targetPath);
-					if (ftpTarget != null)
-					{
-						foreach (var fileName in sourceFiles)
-						{
-							// 先解压到临时目录
-							string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-							Directory.CreateDirectory(tempDir);
-							try
-							{
-								string tempFile = Path.Combine(tempDir, fileName.FullPath);
-								if (ExtractArchiveFile(srcPath, fileName.FullPath, tempDir))
-								{
-									// 上传到FTP
-									string remotePath = Path.Combine(targetPath, fileName.FullPath).Replace("\\", "/");
-									ftpTarget.UploadFile(tempFile, remotePath);
-								}
-							}
-							finally
-							{
-								// 清理临时目录
-								if (Directory.Exists(tempDir))
-									Directory.Delete(tempDir, true);
-							}
-						}
-					}
-				}
-				// 场景8: ARCHIVE -> LOCAL
-				else if (!isSourceFtp && isSourceArchive && !isTargetFtp && !isTargetArchive)
-				{
-					foreach (var fileName in sourceFiles)
-						ExtractArchiveFile(srcPath, fileName.FullPath, targetPath);
-				}
-				// 场景9: ARCHIVE -> ARCHIVE
-				else if (!isSourceFtp && isSourceArchive && !isTargetFtp && isTargetArchive)
-				{
-					string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-					Directory.CreateDirectory(tempDir);
-					try
-					{
-						// 先从源压缩文件解压
-						foreach (var fileName in sourceFiles)
-							ExtractArchiveFile(srcPath, fileName.FullPath, tempDir);
+				//			// 然后添加到压缩文件
+				//			if (tempFiles.Count > 0)
+				//				AddToArchive(targetPath, tempFiles.ToArray());
+				//		}
+				//		finally
+				//		{
+				//			// 清理临时文件
+				//			foreach (var tempFile in tempFiles)
+				//			{
+				//				if (File.Exists(tempFile))
+				//					File.Delete(tempFile);
+				//			}
+				//		}
+				//	}
+				//}
+				//// 场景4: LOCAL -> FTP
+				//else if (!isSourceFtp && !isSourceArchive && isTargetFtp)
+				//{
+				//	// 从本地上传到FTP
+				//	var ftpTarget = fTPMGR.GetFtpSource(targetPath);
+				//	if (ftpTarget != null)
+				//	{
+				//		foreach (var localFile in sourceFiles)
+				//		{
+				//			string fullSourcePath = Path.Combine(srcPath, localFile.FullPath);
+				//			string fileName = Path.GetFileName(localFile.FullPath);
+				//			string remotePath = Path.Combine(ftpTarget.CurrentPath, fileName).Replace("\\", "/");
+				//			if (Directory.Exists(fullSourcePath))
+				//				fTPMGR.UploadDirectory(ftpTarget.Client, fullSourcePath, remotePath);
+				//			else
+				//				ftpTarget.UploadFile(fullSourcePath, remotePath);
+				//		}
+				//	}
+				//}
+				//// 场景5: LOCAL -> LOCAL
+				//else if (!isSourceFtp && !isSourceArchive && !isTargetFtp && !isTargetArchive)
+				//{
+				//	// 本地文件之间的复制
+				//	string[] fullPaths = sourceFiles.Select(f => Path.Combine(srcPath, f.FullPath)).ToArray();
+				//	FileSystemManager.CopyFilesAndDirectories(fullPaths, targetPath);
+				//}
+				//// 场景6: LOCAL -> ARCHIVE
+				//else if (!isSourceFtp && !isSourceArchive && !isTargetFtp && isTargetArchive)
+				//{
+				//	string[] fullPaths = sourceFiles.Select(f => Path.Combine(srcPath, f.FullPath)).ToArray();
+				//	AddToArchive(targetPath, fullPaths);
+				//}
+				//// 场景7: ARCHIVE -> FTP
+				//else if (!isSourceFtp && isSourceArchive && isTargetFtp)
+				//{
+				//	var ftpTarget = fTPMGR.GetFtpSource(targetPath);
+				//	if (ftpTarget != null)
+				//	{
+				//		foreach (var fileName in sourceFiles)
+				//		{
+				//			// 先解压到临时目录
+				//			string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+				//			Directory.CreateDirectory(tempDir);
+				//			try
+				//			{
+				//				string tempFile = Path.Combine(tempDir, fileName.FullPath);
+				//				if (ExtractArchiveFile(srcPath, fileName.FullPath, tempDir))
+				//				{
+				//					// 上传到FTP
+				//					string remotePath = Path.Combine(targetPath, fileName.FullPath).Replace("\\", "/");
+				//					ftpTarget.UploadFile(tempFile, remotePath);
+				//				}
+				//			}
+				//			finally
+				//			{
+				//				// 清理临时目录
+				//				if (Directory.Exists(tempDir))
+				//					Directory.Delete(tempDir, true);
+				//			}
+				//		}
+				//	}
+				//}
+				//// 场景8: ARCHIVE -> LOCAL
+				//else if (!isSourceFtp && isSourceArchive && !isTargetFtp && !isTargetArchive)
+				//{
+				//	foreach (var fileName in sourceFiles)
+				//		ExtractArchiveFile(srcPath, fileName.FullPath, targetPath);
+				//}
+				//// 场景9: ARCHIVE -> ARCHIVE
+				//else if (!isSourceFtp && isSourceArchive && !isTargetFtp && isTargetArchive)
+				//{
+				//	string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+				//	Directory.CreateDirectory(tempDir);
+				//	try
+				//	{
+				//		// 先从源压缩文件解压
+				//		foreach (var fileName in sourceFiles)
+				//			ExtractArchiveFile(srcPath, fileName.FullPath, tempDir);
 
-						// 再添加到目标压缩文件
-						string[] tempFiles = Directory.GetFiles(tempDir);
-						if (tempFiles.Length > 0)
-							AddToArchive(targetPath, tempFiles);
-					}
-					finally
-					{
-						// 清理临时目录
-						if (Directory.Exists(tempDir))
-							Directory.Delete(tempDir, true);
-					}
-				}
+				//		// 再添加到目标压缩文件
+				//		string[] tempFiles = Directory.GetFiles(tempDir);
+				//		if (tempFiles.Length > 0)
+				//			AddToArchive(targetPath, tempFiles);
+				//	}
+				//	finally
+				//	{
+				//		// 清理临时目录
+				//		if (Directory.Exists(tempDir))
+				//			Directory.Delete(tempDir, true);
+				//	}
+				//}
 
-				RefreshPanel(targetlist);
-				return true;
+				//RefreshPanel(targetlist);
+				//return true;
+				return false;
 			}
 			catch (Exception ex)
 			{
@@ -3783,16 +3773,11 @@ namespace zfile
 				{
 					// 如果不是同一类型的 FileSource，先复制后删除
 					// 使用 FileSourceManager 创建复制操作
-					var copyOperation = FileSourceManager.CreateCopyOperation(
-						sourceFileSource,
-						targetFileSource,
-						fileEntries,
-						targetPath);
-
+					var copyOperation = FileSourceManager.CreateCopyOperation(sourceFileSource, targetFileSource, fileEntries, targetPath);
 					if (copyOperation != null)
 					{
 						_operationsManager.AddOperation(copyOperation);
-						//copyOperation.Execute();
+						copyOperation._Thread.WaitFor();
 
 						// 复制成功后删除源文件
 						operation = sourceFileSource.CreateDeleteOperation(fileEntries);
@@ -3805,7 +3790,7 @@ namespace zfile
 					if (operation != null)
 					{
 						_operationsManager.AddOperation(operation);
-						//operation.Execute();
+						operation._Thread.WaitFor();
 
 						// 刷新面板
 						RefreshPanel(activeListView);
@@ -3816,28 +3801,28 @@ namespace zfile
 
 				// 如果无法使用 FileSource 架构，使用传统方法
 				// 检查源路径和目标路径是否为FTP路径
-				bool isSourceFtp = fTPMGR.IsFtpPath(srcpath);
-				bool isTargetFtp = fTPMGR.IsFtpPath(targetPath);
+				//bool isSourceFtp = fTPMGR.IsFtpPath(srcpath);
+				//bool isTargetFtp = fTPMGR.IsFtpPath(targetPath);
 
-				if (isSourceFtp || isTargetFtp)
-				{
-					// 如果涉及FTP，先复制后删除
-					if (cm_copy(param, targetPath))
-					{
-						// 如果源是FTP，使用FTP删除
-						if (isSourceFtp)
-						{
-							var ftpSource = fTPMGR.GetFtpSource(srcpath);
-							if (ftpSource != null)
-								foreach (var remotePath in sourceFiles)
-									ftpSource.DeleteFile(remotePath.FullPath);
-						}
-						else
-							cm_delete(param, false); // 源是本地文件，使用本地删除
-					}
-				}
-				else if (cm_copy(param, targetPath)) // 本地文件之间的移动
-					cm_delete(param, false);
+				//if (isSourceFtp || isTargetFtp)
+				//{
+				//	// 如果涉及FTP，先复制后删除
+				//	if (cm_copy(param, targetPath))
+				//	{
+				//		// 如果源是FTP，使用FTP删除
+				//		if (isSourceFtp)
+				//		{
+				//			var ftpSource = fTPMGR.GetFtpSource(srcpath);
+				//			if (ftpSource != null)
+				//				foreach (var remotePath in sourceFiles)
+				//					ftpSource.DeleteFile(remotePath.FullPath);
+				//		}
+				//		else
+				//			cm_delete(param, false); // 源是本地文件，使用本地删除
+				//	}
+				//}
+				//else if (cm_copy(param, targetPath)) // 本地文件之间的移动
+				//	cm_delete(param, false);
 			}
 			catch (Exception ex)
 			{
@@ -3909,7 +3894,7 @@ namespace zfile
 					if (operation != null)
 					{
 						_operationsManager.AddOperation(operation);
-						//operation.Execute();
+						operation._Thread.WaitFor();
 
 						// 刷新面板
 						RefreshPanel(activeListView);
@@ -3919,37 +3904,37 @@ namespace zfile
 					}
 
 					// 如果无法使用 FileSource 架构，使用传统方法
-					if (IsArchiveFile(CurrentFullpath[LRflag]))
-					{
-						if (DeleteFromArchive(CurrentFullpath[LRflag], files.Select(x => x.FullPath).ToArray()))
-						{
-							var items = LoadArchiveContents(CurrentFullpath[LRflag]);
-							activeListView.Items.Clear();
-							activeListView.Items.AddRange(items.ToArray());
-						}
-						return;
-					}
+					//if (IsArchiveFile(CurrentFullpath[LRflag]))
+					//{
+					//	if (DeleteFromArchive(CurrentFullpath[LRflag], files.Select(x => x.FullPath).ToArray()))
+					//	{
+					//		var items = LoadArchiveContents(CurrentFullpath[LRflag]);
+					//		activeListView.Items.Clear();
+					//		activeListView.Items.AddRange(items.ToArray());
+					//	}
+					//	return;
+					//}
 
-					// 检查是否为FTP路径
-					if (IsActiveFtpPanel(out var ftpnode))
-					{
-						var ftpSource = fTPMGR.GetFtpFileSourceByConnectionName(ftpnode.ConnectionName);
-						if (ftpSource != null)
-						{
-							foreach (var remotePath in files)
-								ftpSource.DeleteFile(remotePath.FullPath);
-						}
-					}
-					else
-					{
-						// 本地文件删除
-						foreach (var file in files)
-							FileSystemManager.DeleteFile(file.FullPath);
-					}
+					//// 检查是否为FTP路径
+					//if (IsActiveFtpPanel(out var ftpnode))
+					//{
+					//	var ftpSource = fTPMGR.GetFtpFileSourceByConnectionName(ftpnode.ConnectionName);
+					//	if (ftpSource != null)
+					//	{
+					//		foreach (var remotePath in files)
+					//			ftpSource.DeleteFile(remotePath.FullPath);
+					//	}
+					//}
+					//else
+					//{
+					//	// 本地文件删除
+					//	foreach (var file in files)
+					//		FileSystemManager.DeleteFile(file.FullPath);
+					//}
 
-					RefreshPanel(activeListView);
-					if (!string.IsNullOrEmpty(param))
-						RefreshPanel(unactiveListView);
+					//RefreshPanel(activeListView);
+					//if (!string.IsNullOrEmpty(param))
+					//	RefreshPanel(unactiveListView);
 				}
 				catch (Exception ex)
 				{
@@ -4000,7 +3985,7 @@ namespace zfile
 				{
 					// 添加操作到管理器并执行
 					_operationsManager.AddOperation(copyOutOperation);
-					//copyOutOperation.Execute();
+					copyOutOperation._Thread.WaitFor();
 
 					// 检查操作是否成功完成
 					if (copyOutOperation.Result == FileSourceOperationResult.Finished)
@@ -4027,7 +4012,7 @@ namespace zfile
 						{
 							// 添加操作到管理器并执行
 							_operationsManager.AddOperation(copyInOperation);
-							//copyInOperation.Execute();
+							copyInOperation._Thread.WaitFor();
 
 							// 操作成功
 							result = (copyInOperation.Result == FileSourceOperationResult.Finished);
@@ -4053,45 +4038,35 @@ namespace zfile
 			{
 				// 处理FTP节点双击事件
 				fTPMGR.HandleFtpNodeDoubleClick(eNode);
-				// 更新当前目录和路径显示
-				//var ftpsrc = fTPMGR.GetFtpFileSourceByConnectionName(ftpTag.ConnectionName);
-				//currentDirectory[isleft] = $"ftp://{ftpTag.ConnectionName}{ftpTag.Path}";
-				//CurrentDir[LRflag] = $"ftp://{ftpsrc?.Host}{ftpTag.Path}";        //bugfix: currentdir can not be set to connection name, use host instead,
-				//if (isleft)
-				//	uiManager.LeftPathTextBox.Text = currentDirectory[isleft];
-				//else
-				//	uiManager.RightPathTextBox.Text = currentDirectory[isleft];
-
 				SelectedNode = eNode;
-				//uiManager.BookmarkManager.UpdateActiveBookmark(currentDirectory[isleft], selectedNode, isleft);
 				UpdatePathTextAndDriveComboBox(eNode, CurrentFullpath[LRflag], isleft);//TODO: BUGFIX: IF ENODE IS LEFT , LRFLAG IS R, SOME THING ERROR
 				uiManager.SetArgs();
 				return true;
 			}
 			return false;
 		}
-		private void HandleRegistryContextMenuItems(string path)
-		{
-			string[] registryPaths = new[]
-			{
-				@"*\shellex\ContextMenuHandlers",
-				@"Directory\shell\",
-				@"Directory\shellex\ContextMenuHandlers",
-				@"Folder\shell",
-				@"Folder\shellex\ContextMenuHandlers"
-			};
+		//private void HandleRegistryContextMenuItems(string path)
+		//{
+		//	string[] registryPaths = new[]
+		//	{
+		//		@"*\shellex\ContextMenuHandlers",
+		//		@"Directory\shell\",
+		//		@"Directory\shellex\ContextMenuHandlers",
+		//		@"Folder\shell",
+		//		@"Folder\shellex\ContextMenuHandlers"
+		//	};
 
-			foreach (string registryPath in registryPaths)
-			{
-				Guid? guid = ContextMenuHandler.GetContextMenuHandlerGuid(registryPath);
-				if (guid.HasValue)
-				{
-					object? comObject = ContextMenuHandler.CreateComObject(guid.Value);
-					if (comObject != null)
-						ContextMenuHandler.InvokeComMethod(comObject, "InvokeCommand", path);
-				}
-			}
-		}
+		//	foreach (string registryPath in registryPaths)
+		//	{
+		//		Guid? guid = ContextMenuHandler.GetContextMenuHandlerGuid(registryPath);
+		//		if (guid.HasValue)
+		//		{
+		//			object? comObject = ContextMenuHandler.CreateComObject(guid.Value);
+		//			if (comObject != null)
+		//				ContextMenuHandler.InvokeComMethod(comObject, "InvokeCommand", path);
+		//		}
+		//	}
+		//}
 
 		public void myShellExe(string pathWithArgs = "c:\\windows\\system32")
 		{

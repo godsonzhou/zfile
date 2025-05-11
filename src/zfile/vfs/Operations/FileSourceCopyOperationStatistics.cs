@@ -5,8 +5,8 @@ namespace zfile
     /// </summary>
     public class FileSourceCopyOperationStatistics
     {
-        public string CurrentFileFrom;
-        public string CurrentFileTo;
+        public string? CurrentFileFrom;
+        public string? CurrentFileTo;
         public long CurrentFileTotalBytes;
         public long CurrentFileDoneBytes;
         public long TotalFiles;

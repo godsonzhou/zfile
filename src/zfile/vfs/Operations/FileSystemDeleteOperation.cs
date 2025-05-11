@@ -86,7 +86,7 @@ namespace zfile
             if (GlobalSettings.ProcessComments)
                 description.Clear();
 
-#if MSWINDOWS
+#if WINDOWS
             if (ElevateAction == DuplicateAction.Ignore)
                 ElevateAction = DuplicateAction.Error;
 #endif
@@ -499,5 +499,7 @@ namespace zfile
             get { return skipErrors; }
             set { skipErrors = value; }
         }
-    }
+
+		public DuplicateAction ElevateAction { get; private set; }
+	}
 } 

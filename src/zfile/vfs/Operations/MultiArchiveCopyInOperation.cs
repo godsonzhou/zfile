@@ -5,21 +5,22 @@ namespace zfile
     public enum DuplicateAction
     {
         None = 0,
-        Error = 1
+        Error = 1,
+		Ignore = 2
     }
 
     public class MultiArchiveCopyInOperation : ArchiveCopyInOperation
     {
-        private readonly IMultiArchiveFileSource _fileSource;
-        private FileEntries _removeFilesTree;
-        private string _password;
+        private new readonly IMultiArchiveFileSource? _fileSource;
+		private FileEntries? _removeFilesTree;
+        private string? _password;
         private string _volumeSize;
         private string _customParams;
-        private bool _callResult;
+        //private bool _callResult;
         private Process _exProcess;
         private string _tempFile;
         private int _errorLevel;
-        private string _commandLine;
+        private string? _commandLine;
         public int PackingFlags { get; set; }
         public string Password { get; set; }
         public string VolumeSize { get; set; }
@@ -32,7 +33,7 @@ namespace zfile
             : base(sourceFileSource, targetFileSource, sourceFiles, targetPath)
         {
             _fileSource = targetFileSource as IMultiArchiveFileSource;
-            _password = _fileSource.Password;
+            _password = _fileSource?.Password;
             _removeFilesTree = null;
             PackingFlags = 0;
             _volumeSize = string.Empty;
@@ -52,14 +53,14 @@ namespace zfile
 
         protected override void Initialize()
         {
-            if (Path.GetExtension(_fileSource.ArchiveFileName) == _fileSource.GetSfxExt() &&
-                !string.IsNullOrEmpty(_fileSource.MultiArcItem.AddSelfExtract))
+            if (Path.GetExtension(_fileSource?.ArchiveFileName) == _fileSource?.GetSfxExt() &&
+                !string.IsNullOrEmpty(_fileSource?.MultiArcItem.AddSelfExtract))
             {
                 _commandLine = _fileSource.MultiArcItem.AddSelfExtract;
             }
             else
             {
-                _commandLine = _fileSource.MultiArcItem.Add;
+                _commandLine = _fileSource?.MultiArcItem.Add;
             }
 
             if (TargetPath != Path.DirectorySeparatorChar.ToString() && !_commandLine.Contains("%R"))
@@ -75,7 +76,7 @@ namespace zfile
             _exProcess.OutputDataReceived += OnReadLn;
             _tempFile = Path.GetTempFileName();
 
-            if (!string.IsNullOrEmpty(_fileSource.MultiArcItem.PasswordQuery))
+            if (!string.IsNullOrEmpty(_fileSource?.MultiArcItem.PasswordQuery))
             {
                 _exProcess.StartInfo.Arguments = _fileSource.MultiArcItem.PasswordQuery;
                 _exProcess.StartInfo.RedirectStandardInput = true;
@@ -91,7 +92,7 @@ namespace zfile
             {
                 Statistics.CurrentFileFrom = SourceFiles[0].Path + "*.*";
             }
-            Statistics.CurrentFileTo = _fileSource.ArchiveFileName;
+            Statistics.CurrentFileTo = _fileSource?.ArchiveFileName;
 
             ElevateAction = DuplicateAction.Error;
 
@@ -104,7 +105,7 @@ namespace zfile
             if (TarBefore)
                 Tar();
 
-            var multiArcItem = _fileSource.MultiArcItem;
+            var multiArcItem = _fileSource?.MultiArcItem;
             string destPath = TargetPath.TrimStart(Path.DirectorySeparatorChar).TrimEnd(Path.DirectorySeparatorChar);
             string rootPath = _removeFilesTree[0].Path;
             ChangeFileEntriesRoot(string.Empty, _removeFilesTree);
@@ -127,7 +128,7 @@ namespace zfile
                         file.FullPath,
                         destPath,
                         _tempFile,
-                        _password,
+                        _password ?? string.Empty,
                         _volumeSize,
                         _customParams);
 
@@ -194,10 +195,10 @@ namespace zfile
             LogMessage(message, logOptions, LogOption.Error);
         }
 
-        private void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
-        {
-            // 实现日志记录
-        }
+        //private void LogMessage(string message, LogOption logOptions, LogOption logMsgType)
+        //{
+        //    // 实现日志记录
+        //}
 
         private void LogCommand(string command)
         {

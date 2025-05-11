@@ -8,7 +8,7 @@ namespace zfile
             Files = new FileEntries();
         }
 
-        private void FlatView(string path)
+        private new void FlatView(string path)
         {
             try
             {

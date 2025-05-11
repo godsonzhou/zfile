@@ -1028,7 +1028,7 @@ namespace zfile
 						string remotePath = Path.Combine(targetPath, relativePath).Replace("\\", "/");
 
 						// 确保远程目录存在
-						string remoteDir = Path.GetDirectoryName(remotePath)?.Replace("\\", "/");
+						string? remoteDir = Path.GetDirectoryName(remotePath)?.Replace("\\", "/");
 						if (!string.IsNullOrEmpty(remoteDir))
 						{
 							ftpTarget.CreateDirectory(remoteDir);
@@ -1089,7 +1089,7 @@ namespace zfile
 			var syncDlg = new SyncDirsDlg(leftPath, rightPath);
 			syncDlg.Show();
 		}
-		private async Task<string> ShowAIassistDialog(List<string> filePaths, string prompt, bool isBackground = true)
+		private async Task<string> ShowAIassistDialogAsync(List<string> filePaths, string prompt, bool isBackground = true)
 		{
 			string response = string.Empty;
 			if (!isBackground)
@@ -1188,8 +1188,8 @@ namespace zfile
 					Width = 80
 				};
 
-				buttonPanel.Controls.AddRange(new Control[] { btnCancel, btnOK });
-				panel.Controls.AddRange(new Control[] { chkIncludePath, chkOverwrite, chkSeparateFolder, buttonPanel });
+				buttonPanel.Controls.AddRange([ btnCancel, btnOK ]);
+				panel.Controls.AddRange([ chkIncludePath, chkOverwrite, chkSeparateFolder, buttonPanel ]);
 
 				Controls.Add(panel);
 				AcceptButton = btnOK;

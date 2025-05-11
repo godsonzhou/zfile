@@ -487,7 +487,7 @@ namespace zfile
 					//{
 					//	Debug.Print($"{owner.lLM_Helper.currentModel}: {response}");
 					//});
-					var response = await ShowAIassistDialog(filePaths, "开始执行：\r\n", false);
+					var response = await ShowAIassistDialogAsync(filePaths, "开始执行：\r\n", false);
 					Debug.Print(response);
 				}
 				catch (Exception ex)

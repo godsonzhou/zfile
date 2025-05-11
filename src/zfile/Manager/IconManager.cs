@@ -144,8 +144,9 @@ namespace zfile
 			return iconCache[(key + subkey).ToLower()];
 		}
 
-		public void LoadIconFromCacheByKey(string key, ImageList l, bool islarge = false)
+		public void LoadIconFromCacheByKey(string key, ImageList? l, bool islarge = false)
 		{
+			if (l == null) return;
 			if (HasIconKey(key, islarge) && !l.Images.ContainsKey(key))
 			{
 				l.Images.Add(key, GetIcon(key, islarge));
@@ -153,12 +154,12 @@ namespace zfile
 			}
 		}
 	
-		public static Icon ConvertImageToIcon(Image image)
+		public static Icon? ConvertImageToIcon(Image image)
 		{
 			// 创建32位ARGB格式的Bitmap保持透明通道
 			//Debug.Print(image.Width + " " + image.Height);
-			using (Bitmap srcBmp = new Bitmap(image))
-			using (Bitmap argbBmp = new Bitmap(srcBmp.Width, srcBmp.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb))
+			using (Bitmap srcBmp = new Bitmap(image)) 
+			using (Bitmap argbBmp = new Bitmap(srcBmp.Width, srcBmp.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb)) 
 			{
 				using (Graphics g = Graphics.FromImage(argbBmp))
 				{
@@ -177,7 +178,7 @@ namespace zfile
 			}
 		}
 
-		private static Icon ResizeIcon(Icon icon, Size targetSize)
+		private static Icon? ResizeIcon(Icon icon, Size targetSize)
 		{
 			if (icon.Size == targetSize)
 				return icon;
@@ -328,7 +329,7 @@ namespace zfile
 			return icons.ToArray();
 		}
 
-		public static Icon GetIconByFileName(string fileName, bool isLarge = true)
+		public static Icon? GetIconByFileName(string fileName, bool isLarge = true)
 		{
 			IntPtr[] phiconLarge = new IntPtr[1];
 			IntPtr[] phiconSmall = new IntPtr[1];
@@ -340,13 +341,13 @@ namespace zfile
 			return Icon.FromHandle(IconHnd);
 		}
 		
-		public static Icon GetIconByFileType(string fileType, bool isLarge)
+		public static Icon? GetIconByFileType(string fileType, bool isLarge)
 		{
 			if (fileType == null || fileType.Equals(string.Empty)) return null;
 
-			RegistryKey regVersion = null;
-			string regFileType = null;
-			string regIconString = null;
+			RegistryKey? regVersion = null;
+			string? regFileType = null;
+			string? regIconString = null;
 			string systemDirectory = Environment.SystemDirectory + "\\";
 
 			if (fileType[0] == '.')
@@ -373,7 +374,7 @@ namespace zfile
 			{
 				fileIcon = new string[] { systemDirectory + "shell32.dll", "2" };
 			}
-			Icon resultIcon = null;
+			Icon? resultIcon = null;
 			try
 			{
 				IntPtr[] phiconLarge = new IntPtr[1];
@@ -386,15 +387,15 @@ namespace zfile
 			return resultIcon;
 		}
 		
-		public static Icon GetIconByFileNameEx(string tcType, string tcFullName, bool tlIsLarge = false)
+		public static Icon? GetIconByFileNameEx(string tcType, string tcFullName, bool tlIsLarge = false)
 		{
-			Icon ico = null;
+			Icon? ico = null;
 
 			string fileType = tcFullName.Contains(".") ? tcFullName.Substring(tcFullName.LastIndexOf('.')).ToLower() : string.Empty;
 
-			RegistryKey regVersion = null;
-			string regFileType = null;
-			string regIconString = null;
+			RegistryKey? regVersion = null;
+			string? regFileType = null;
+			string? regIconString = null;
 			string systemDirectory = Environment.SystemDirectory + "\\";
 			IntPtr[] phiconLarge = new IntPtr[1];
 			IntPtr[] phiconSmall = new IntPtr[1];
@@ -449,7 +450,7 @@ namespace zfile
 
 			if (tcType == "FILE")
 			{
-				fileIcon = new string[] { systemDirectory + "shell32.dll", "2" };
+				fileIcon = [ systemDirectory + "shell32.dll", "2" ];
 				phiconLarge = new IntPtr[1];
 				phiconSmall = new IntPtr[1];
 				rst = API.ExtractIconEx(fileIcon[0], Int32.Parse(fileIcon[1]), phiconLarge, phiconSmall, 1);
@@ -511,7 +512,7 @@ namespace zfile
 			return null;
 		}
 		//调用.NET内部提供的ExtractAssociatedIcon方法，只能从文件获取一种规格的ICON图标，一般是Size(32,32)
-		public static System.Drawing.Icon GetIconFromFile(string fileName)
+		public static System.Drawing.Icon? GetIconFromFile(string fileName)
 		{
 			if (System.IO.File.Exists(fileName) == false)
 				return null;
@@ -564,7 +565,7 @@ namespace zfile
 		/// <returns></returns>
 		public static System.Drawing.Icon GetIcon(int iIcon, SHIL flag)
 		{
-			IImageList list = null;
+			IImageList? list = null;
 			Guid theGuid = Guids.IID_IIMAGELIST; //new Guid(IID_IImageList);//目前所知用IID_IImageList2也是一样的
 			API.SHGetImageList(flag, ref theGuid, ref list);//获取系统图标列表
 			IntPtr hIcon = IntPtr.Zero;

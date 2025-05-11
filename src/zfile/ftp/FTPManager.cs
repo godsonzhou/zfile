@@ -1217,8 +1217,8 @@ namespace zfile
 						form.uiManager.BookmarkManager.RemoveBookmarkByPath(ftpPath, form.isleft);
 					}
 
-					// 只注销当前面板的FTP连接
-					UnregisterFtpConnection(connectionName, form.isleft);
+					// 同时注销左右两侧面板的FTP连接，传入null表示同时处理左右两侧
+					UnregisterFtpConnection(connectionName, null);
 					_connectionMonitor.RemoveConnection(connectionName);
 				}
 

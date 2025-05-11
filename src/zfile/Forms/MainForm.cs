@@ -1183,7 +1183,8 @@ namespace zfile
 					e.Node.Expand();
 					if (string.IsNullOrEmpty(path)) return;
 
-					if (string.IsNullOrEmpty(CurrentFullpath[LRflag]))
+					//if (string.IsNullOrEmpty(CurrentFullpath[LRflag]))//BUGFIX: FOR WCXARCHIVEFILESOURCE, EVEN THE CURRENTPATH IS NULL, THE CURRENTFULLPATH[] IS NOT NULL, SO THIS CHECK ALWAYS RETURN FALSE, SO CHANGE TO USE FILESOURCE.CURRENTPATH DIRECTLY
+					if (string.IsNullOrEmpty(fileSource.CurrentPath))
 						CurrentFullpath[LRflag] = path;
 					else if (!CurrentFullpath[LRflag].Equals(path))
 						RecordDirectoryHistory(path);   // 记录目录历史

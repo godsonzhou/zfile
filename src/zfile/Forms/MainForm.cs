@@ -190,6 +190,7 @@ namespace zfile
 			}
 		}
 		const int ILD_TRANSPARENT = 0x00000001;
+		public static MainForm Instance { get; private set; } = null!;
 		public static IntPtr _Handle { get; set; }
 		public static int MainThreadId { get; set; } = 0;
 		public readonly FTPMGR fTPMGR;
@@ -423,6 +424,7 @@ namespace zfile
 		}
 		public MainForm()
 		{
+			Instance = this;
 			env = Helper.getEnv();
 			specialpaths = Helper.GetSpecFolderPaths();
 			specFolderPaths = Helper.GetSpecPathFromReg(); //favarite

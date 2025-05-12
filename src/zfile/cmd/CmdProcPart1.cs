@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using zfile.Forms;
+using zfile.Platform;
 
 namespace zfile
 {
@@ -501,11 +502,11 @@ namespace zfile
 		}
 		private void do_cm_netConnect()     //调用操作系统命令来映射网上邻居的共享文件夹到虚拟盘符
 		{
-
+			OSForms.NetConnect();
 		}
 		private void do_cm_netDisconnect()
 		{
-
+			OSForms.NetDisconnect();
 		}
 		private void do_cm_matchsrc()
 		{

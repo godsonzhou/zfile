@@ -1,6 +1,7 @@
 using Microsoft.Win32;
 using System.Collections;
 using System.Diagnostics;
+using System.Management;
 using System.Text;
 using System.Text.RegularExpressions;
 using WinShell;
@@ -895,6 +896,45 @@ namespace zfile
 				Debug.Print($"{environmentKey}={environment[environmentKey].ToString()}");
 			return environment;
 		}
+		// 获取所有 WSL 实例及其网络路径
+		public static Dictionary<string, string> GetWslInstancePaths()
+		{
+			var result = new Dictionary<string, string>();
+
+			try
+			{
+				// 创建 WMI 查询，获取所有固定磁盘驱动器
+				using var searcher = new ManagementObjectSearcher(
+					"SELECT DeviceID, ProviderName FROM Win32_LogicalDisk WHERE DriveType = 4");
+
+				foreach (var disk in searcher.Get())
+				{
+					string deviceId = disk["DeviceID"]?.ToString() ?? "";
+					string providerName = disk["ProviderName"]?.ToString() ?? "";
+
+					// 过滤出 WSL 相关的网络路径
+					if (!string.IsNullOrEmpty(providerName) &&
+						providerName.StartsWith(@"\\wsl$\") ||
+						providerName.StartsWith(@"\\wsl.localhost\"))
+					{
+						// 提取实例名称（例如从 \\wsl$\Ubuntu 中提取 Ubuntu）
+						string[] parts = providerName.Split('\\', StringSplitOptions.RemoveEmptyEntries);
+						if (parts.Length >= 2)
+						{
+							string instanceName = parts[1];
+							string networkPath = $"\\\\wsl.localhost\\{instanceName}";
+							result.Add(instanceName, networkPath);
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"获取 WSL 路径时出错: {ex.Message}");
+			}
+
+			return result;
+		}
 		public static string getFSpath(string path)
 		{
 			if (path.Contains(':'))
@@ -914,9 +954,17 @@ namespace zfile
 				//top node process, does not need to process listviewbyfilesystem
 				return string.Empty;
 			}
-			if (Node.Parent.Tag is ShellItem && Node.Tag is ShellItem) {
+			if (Node.Parent.Tag is ShellItem && Node.Tag is ShellItem item) {
 				var parentfolder = ((ShellItem)Node.Parent.Tag).ShellFolder;    //获取父节点的ishellfoler
 				var pidl = ((ShellItem)Node.Tag).PIDL;  //获取c:\\节点的pidl
+				var parsepath = item.parsepath;
+				var name = w32.GetNameByPIDL(pidl);
+				var path = w32.GetPathByIShell(parentfolder, pidl);
+				if (path.Equals("Linux"))
+				{
+					//var wslpaths = GetWslInstancePaths();
+					return "\\\\wsl.localhost\\";
+				}
 				return w32.GetPathByIShell(parentfolder, pidl); //取得实际path
 			}
 			if(Node.Tag is FtpNodeTag ftpnode)

@@ -127,7 +127,12 @@ namespace zfile
 				Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} from cache : {fileSource.GetRootDir()}");
 				return fileSource;
 			}
-
+			if (fullpath == "Linux" || fullpath.StartsWith("\\\\wsl.localhost"))
+			{
+				var wslfilesource = new WslFileSource();
+				panelCache[fullpath] = wslfilesource;
+				return wslfilesource;
+			}
 			// Check for recycle bin
 			if (fullpath == "回收站" || (Resources.VfsRecycleBin != null && fullpath.Contains(Resources.VfsRecycleBin)))
 			{

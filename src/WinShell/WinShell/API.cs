@@ -408,7 +408,6 @@ namespace WinShell
 			return (IShellFolder)obj;
 		}
 
-
 		public static string GetPathByIShell(IShellFolder Root, IntPtr pidlSub)
 		{
 			IntPtr strr = Marshal.AllocCoTaskMem(MAX_PATH * 2 + 4);

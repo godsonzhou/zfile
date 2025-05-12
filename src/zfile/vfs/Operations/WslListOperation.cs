@@ -68,31 +68,47 @@ namespace zfile
         private static IShellFolder GetDesktopFolder()
         {
             // Implementation of SHGetDesktopFolder
-            return null;
+            return w32.GetDesktopFolder(out _);
         }
 
         private static IntPtr ParseDisplayName(IShellFolder folder, string path)
         {
             // Implementation of ParseDisplayName
+			if (folder == null)
+			{
+				uint attr = 0;
+				folder.ParseDisplayName(IntPtr.Zero, IntPtr.Zero, path, out var _, out var _, ref attr);
+			}
             return IntPtr.Zero;
         }
 
         private static IShellFolder BindToObject(IShellFolder folder, IntPtr pidl)
         {
-            // Implementation of BindToObject
-            return null;
+			// Implementation of BindToObject
+			Guid iid = typeof(IShellFolder).GUID;
+			folder.BindToObject(pidl, IntPtr.Zero, ref iid, out IShellFolder subFolder);
+			return subFolder;
+		}
+		private static IShellFolder BindToObject(IShellFolder folder, string path)
+		{
+			// Implementation of BindToObject
+			return null;
         }
 
         private static IEnumIDList EnumObjects(IShellFolder folder)
         {
             // Implementation of EnumObjects
-            return null;
+			folder.EnumObjects(IntPtr.Zero, (SHCONTF.FOLDERS | SHCONTF.STORAGE), out var EnumPtr);
+			if (EnumPtr == IntPtr.Zero)  //如果node=程序和功能,则EnumPtr=0，直接返回
+				return null;
+
+			return (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
         }
 
         private static string GetDisplayName(IShellFolder folder, IntPtr pidl, uint flags)
         {
             // Implementation of GetDisplayName
-            return string.Empty;
+			return w32.GetDisplayName(folder, pidl, (SHGDN)flags);
         }
 
         private static void ShowError(Thread thread, string message)

@@ -29,7 +29,7 @@ namespace zfile.Platform
 
                         // Set the file system path in the active frame
                         //MainForm.Instance.SetFileSystemPath(MainForm.Instance.ActiveFrame, drivePath);
-					}
+                    }
                     else if (ret != 0xFFFFFFFF) // DWORD(-1)
                     {
                         MessageBox.Show(GetSysErrorMessage(ret), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -45,12 +45,16 @@ namespace zfile.Platform
                 }
             }
         }
-		public static void NetDisconnect()
-		{
-
-		}
-		// Win32 API constants
-		private const uint NO_ERROR = 0;
+        public static void NetDisconnect()
+        {
+            uint ret = WNetDisconnectDialog(MainForm.Instance.Handle, RESOURCETYPE_DISK);
+            if (ret != NO_ERROR && ret != 0xFFFFFFFF) // 0xFFFFFFFF is returned when user cancels
+            {
+                MessageBox.Show(GetSysErrorMessage(ret), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        // Win32 API constants
+        private const uint NO_ERROR = 0;
         private const uint RESOURCETYPE_DISK = 1;
 
         // Win32 API structures
@@ -84,6 +88,9 @@ namespace zfile.Platform
         // Win32 API functions
         [DllImport("mpr.dll", CharSet = CharSet.Auto)]
         private static extern uint WNetConnectionDialog1(ref CONNECTDLGSTRUCT lpConnDlgStruct);
+
+        [DllImport("mpr.dll", CharSet = CharSet.Auto)]
+        private static extern uint WNetDisconnectDialog(IntPtr hwnd, uint dwType);
 
         // Helper method to get system error message
         private static string GetSysErrorMessage(uint errorCode)

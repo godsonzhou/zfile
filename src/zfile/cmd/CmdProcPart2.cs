@@ -971,7 +971,7 @@ namespace zfile
 					}
 
 					// 创建目标文件源
-					FileEntry archiveFileEntry = new FileEntry(targetArchivePath);
+					FileEntry archiveFileEntry = new FileEntry(targetPath, archiveFileName);
 					var archiveFileSource = ArchiveFileSourceUtil.GetArchiveFileSource(
 						targetFileSource,
 						archiveFileEntry,

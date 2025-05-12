@@ -513,7 +513,7 @@ namespace zfile
 		{
 			try
 			{
-				if (_ftpSources.TryGetValue(connectionName, out FtpFileSource source))
+				if (_ftpSources.TryGetValue(connectionName, out FtpFileSource? source))
 				{
 					// 设置当前路径
 					source.CurrentPath = path;

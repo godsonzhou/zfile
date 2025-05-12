@@ -117,19 +117,38 @@ namespace zfile
 			if (string.IsNullOrEmpty(fullpath))
 				throw new ArgumentNullException(nameof(fullpath));
 
+			// 获取对应面板的缓存
+			var panelCache = isLeftPanel ? _leftPanelFileSources : _rightPanelFileSources;
+			var lr = isLeftPanel ? 'l' : 'r';
+
+			// 检查缓存中是否已有此路径的FileSource
+			if (panelCache.TryGetValue(fullpath, out var fileSource))
+			{
+				Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} from cache : {fileSource.GetRootDir()}");
+				return fileSource;
+			}
+
+			// Check for recycle bin
+			if (fullpath == "回收站" || (Resources.VfsRecycleBin != null && fullpath.Contains(Resources.VfsRecycleBin)))
+			{
+				var recycleBinSource = new RecycleBinFileSource();
+
+				// 添加到缓存
+				panelCache[fullpath] = recycleBinSource;
+				return recycleBinSource;
+			}
+
+			// Check for control panel
+			if (fullpath == "控制面板" || fullpath.StartsWith("controlpanel://"))
+			{
+				var controlPanelSource = new ControlPanelFileSource();
+
+				// 添加到缓存
+				panelCache[fullpath] = controlPanelSource;
+				return controlPanelSource;
+			}
 			if (!fullpath.Contains(":"))
                 throw new Exception("路径中不能为相对路径");
-
-            // 获取对应面板的缓存
-            var panelCache = isLeftPanel ? _leftPanelFileSources : _rightPanelFileSources;
-            var lr = isLeftPanel ? 'l' : 'r';
-
-            // 检查缓存中是否已有此路径的FileSource
-            if (panelCache.TryGetValue(fullpath, out var fileSource))
-            {
-                Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} from cache : {fileSource.GetRootDir()}");
-                return fileSource;
-            }
 
             // 检查是否是压缩文件内部路径
             // 遍历所有已存在的文件源，查找是否有WcxArchiveFileSource包含当前路径
@@ -166,26 +185,6 @@ namespace zfile
                 // 添加到缓存
                 panelCache[fullpath] = existingFileSource;
                 return existingFileSource;
-            }
-
-            // Check for recycle bin
-            if (fullpath == "回收站" || (Resources.VfsRecycleBin != null && fullpath.Contains(Resources.VfsRecycleBin)))
-            {
-                var recycleBinSource = new RecycleBinFileSource();
-
-                // 添加到缓存
-                panelCache[fullpath] = recycleBinSource;
-                return recycleBinSource;
-            }
-
-            // Check for control panel
-            if (fullpath == "控制面板" || fullpath.StartsWith("controlpanel://"))
-            {
-                var controlPanelSource = new ControlPanelFileSource();
-
-                // 添加到缓存
-                panelCache[fullpath] = controlPanelSource;
-                return controlPanelSource;
             }
 
             // Check for FTP path

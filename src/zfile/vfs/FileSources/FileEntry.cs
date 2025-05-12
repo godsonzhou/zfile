@@ -832,7 +832,8 @@ public class FileEntry : IDisposable, IFileEntry
 		_variantProperties = new List<FileVariantProperty>();
 		_supportedProperties = FilePropertyType.Name;
 
-		NameProperty = new FileNameProperty(name);
+		//NameProperty = new FileNameProperty(name); // bugfix: use this method will not update extension and namewithoutextension,so use name assignment 
+		Name = name;
 		//NameProperty = new FileNameProperty(); // use ensurepropertyexist, so do not need to init nameproperty here.
 		Path = path;
 	}

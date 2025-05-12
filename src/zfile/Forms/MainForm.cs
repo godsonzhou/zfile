@@ -3971,13 +3971,13 @@ namespace zfile
 						foreach (var file in sourceFiles)
 						{
 							string tempFilePath = Path.Combine(tempPath, file.Name);
-							if (File.Exists(tempFilePath))
+							if (File.Exists(tempFilePath) || Directory.Exists(tempFilePath))
 							{
 								var tempFile = FileSystemFileSource.CreateFileFromFile(tempFilePath);
 								tempFiles.Add(tempFile);
 							}
 						}
-
+			
 						// 第二步：从临时文件系统复制到目标压缩文件
 						//var arc = targetFileSource as IArchiveFileSource;
 						var copyInOperation = targetFileSource.CreateCopyInOperation(tempFileSource, tempFiles, targetPath);

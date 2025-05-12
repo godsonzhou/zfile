@@ -98,13 +98,13 @@ namespace zfile
                     
                     if (item.Name == "." || item.Name == "..")
                         continue;
-                    
-                    string newTargetPath = Path.Combine(targetPath, item.Name);
-                    
+
                     if (item.Type == FtpObjectType.Directory)
                     {
-                        // 创建目录
-                        if (!Directory.Exists(newTargetPath))
+						string newTargetPath = Path.Combine(targetPath, item.Name);
+
+						// 创建目录
+						if (!Directory.Exists(newTargetPath))
                         {
                             Directory.CreateDirectory(newTargetPath);
                         }
@@ -115,7 +115,7 @@ namespace zfile
                     else
                     {
                         // 复制文件
-                        CopyFile(item.FullName, newTargetPath);
+                        CopyFile(item.FullName, targetPath);
                     }
                 }
             }

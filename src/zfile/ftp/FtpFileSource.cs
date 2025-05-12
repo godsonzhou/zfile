@@ -201,8 +201,14 @@ namespace zfile
 						// 设置图标
 						listItem.ImageKey = item.Type == FtpObjectType.Directory ? "folder" : GetFileIconKey(item.Name);
 						var fileentry = CreateFile(item.FullName);
+						fileentry.ModificationTime = item.Modified;
+						fileentry.CreationTime = item.Created;
+						fileentry.IsDirectory = item.Type == FtpObjectType.Directory;
+						fileentry.Size = item.Size;
+
 						listItem.Tag = new LvItemTag(fileentry, null);  // 将文件对象存储在Tag属性中
-																		// 添加到列表
+						
+						// 添加到列表
 						items.Add(listItem);
 					}
 				}
@@ -224,6 +230,7 @@ namespace zfile
 		/// 下载FTP文件到本地临时目录
 		/// </summary>
 		/// <param name="remotePath">远程文件路径</param>
+		/// <param name="localPath">本地文件路径，不包括文件名，若为空，则下载到临时文件夹</param>
 		/// <returns>本地临时文件路径</returns>
 		public string DownloadFile(string remotePath, string? localpath = null)
 		{

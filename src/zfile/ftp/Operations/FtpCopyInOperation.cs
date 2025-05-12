@@ -73,7 +73,7 @@ namespace zfile
             {
                 CheckOperationState();
                 
-                string newTargetPath = Path.Combine(targetPath, subNode.Name);
+                string newTargetPath =  $"{Helper.IncludeTrailingPathDelimiter(targetPath, '/')}{subNode.Name}"; //bugfix: do not use path.combine here, because it will lead to the result like "path\\file", the corrent syntax is "path/file", so use / instead
                 if (subNode.IsDirectory)
                 {
                     // 创建目录
@@ -101,7 +101,7 @@ namespace zfile
                 else
                 {
                     // 复制文件
-                    CopyFile(subNode.TheFile.FullPath, newTargetPath);
+                    CopyFile(subNode.TheFile.FullPath, newTargetPath); 
                 }
             }
         }

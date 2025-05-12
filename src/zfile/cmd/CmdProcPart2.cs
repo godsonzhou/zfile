@@ -624,7 +624,7 @@ namespace zfile
 				{
 					owner.backStack.Push(ftpnode.Path);
 					string nextpath = owner.forwardStack.Pop();
-					owner.fTPMGR.NavigateToPath(ftpnode.ConnectionName, nextpath, owner.activeListView,false);
+					owner.fTPMGR.NavigateToPath(ftpnode.ConnectionName, nextpath, owner.activeListView, false);
 				}
 				else
 				{
@@ -764,7 +764,299 @@ namespace zfile
 			var form = new FileCompareForm(leftFile, rightFile);
 			form.Show();
 		}
+		private void cm_packfiles()
+		{
+			var listView = owner.activeListView;
+			if (listView == null || listView.SelectedItems.Count == 0) return;
 
+			// 显示压缩选项对话框
+			var packOptionDialog = new PackOptionDialog();
+
+			// 获取源面板和目标面板
+			var sourcePanel = owner.activeListView;
+			var targetPanel = owner.unactiveListView;
+			var sourcePath = owner.uiManager.srcDir ?? "";
+			var targetPath = owner.uiManager.targetDir ?? "";
+
+			// 获取源文件源和目标文件源
+			IFileSource? sourceFileSource = owner.CurrentFullpath.GetFileSource(owner.LRflag);
+			IFileSource? targetFileSource = owner.CurrentFullpath.GetFileSource(owner.isleft ? "L" : "R");
+
+			if (sourceFileSource == null || targetFileSource == null)
+			{
+				MessageBox.Show("无法获取文件源", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return;
+			}
+
+			// 检查源路径是否为FTP路径
+			bool isSourceFtp = sourceFileSource is FtpFileSource;
+
+			// 获取选中的文件
+			var selectedFiles = new FileEntries();
+			foreach (ListViewItem item in listView.SelectedItems)
+			{
+				var file = owner.GetListItemPath(item);
+				if (file != null)
+				{
+					var fileEntry = new FileEntry(file.FullPath)
+					{
+						IsDirectory = file.IsDirectory,
+						Size = file.Size
+					};
+					selectedFiles.Add(fileEntry);
+				}
+			}
+
+			// 检查是否有文件夹，用于决定是否启用某些选项
+			bool hasFolder = false;
+			foreach (var file in selectedFiles)
+			{
+				if (file.IsDirectory)
+				{
+					hasFolder = true;
+					break;
+				}
+			}
+
+			// 根据WCX插件能力设置对话框选项
+			string archiveType = "zip"; // 默认类型
+			SetPackDialogOptions(packOptionDialog, archiveType, hasFolder);
+
+			// 显示对话框
+			if (packOptionDialog.ShowDialog() != DialogResult.OK)
+				return;
+
+			try
+			{
+				// 获取选择的压缩格式
+				archiveType = packOptionDialog.CompressMethod.ToLower();
+				if (archiveType.EndsWith('*'))
+					archiveType = archiveType.TrimEnd('*');
+
+				// 如果源是FTP，需要先下载到临时目录
+				TempFileSystemFileSource? tempFileSource = null;
+				FileEntries? tempFiles = null;
+
+				if (isSourceFtp)
+				{
+					// 创建临时文件系统
+					tempFileSource = new TempFileSystemFileSource();
+					string tempPath = tempFileSource.FileSystemRoot;
+
+					// 从FTP复制到临时文件系统
+					var copyOutOperation = sourceFileSource.CreateCopyOutOperation(
+						tempFileSource,
+						selectedFiles,
+						tempPath);
+
+					if (copyOutOperation != null)
+					{
+						// 添加操作到管理器并执行
+						OperationsManager.Instance.AddOperation(copyOutOperation);
+						copyOutOperation._Thread.WaitFor();
+
+						// 获取临时文件系统中的文件
+						tempFiles = new FileEntries();
+						var listOperation = tempFileSource.CreateListOperation(tempPath);
+						if (listOperation != null)
+						{
+							listOperation.Execute();
+							var files = (listOperation as FileSourceListOperation)?.Files;
+							if (files != null)
+							{
+								foreach (var file in files)
+								{
+									if (file.Name != "." && file.Name != "..")
+										tempFiles.Add(file);
+								}
+							}
+						}
+
+						// 更新源文件源和文件列表
+						sourceFileSource = tempFileSource;
+						selectedFiles = tempFiles;
+					}
+				}
+
+				// 构建目标文件名
+				string archiveFileName;
+				string archiveExt = "." + archiveType;
+
+				if (selectedFiles.Count == 1)
+					archiveFileName = selectedFiles[0].NameNoExt + archiveExt;
+				else
+					archiveFileName = "archive" + archiveExt;
+
+				string targetArchivePath = Path.Combine(targetPath, archiveFileName);
+
+				// 设置打包标志
+				int packingFlags = 0;
+				if (packOptionDialog.MoveToArchive)
+					packingFlags |= (int)PackFilesFlags.PK_PACK_MOVE_FILES;
+				if (packOptionDialog.IncludePath)
+					packingFlags |= (int)PackFilesFlags.PK_PACK_SAVE_PATHS;
+				if (packOptionDialog.Encrypt)
+					packingFlags |= (int)PackFilesFlags.PK_PACK_ENCRYPT;
+
+				// 处理单独创建压缩文件的情况
+				if (packOptionDialog.SeparateArchives)
+				{
+					// 为每个选中的文件/目录创建单独的压缩文件
+					foreach (var file in selectedFiles)
+					{
+						string singleArchiveName = file.NameNoExt + archiveExt;
+						string singleTargetPath = Path.Combine(targetPath, singleArchiveName);
+
+						// 检查文件是否存在
+						if (File.Exists(singleTargetPath))
+						{
+							var result = MessageBox.Show(
+								$"文件 {singleTargetPath} 已存在，是否覆盖？",
+								"确认",
+								MessageBoxButtons.YesNoCancel);
+
+							if (result == DialogResult.No) continue;
+							if (result == DialogResult.Cancel) return;
+						}
+
+						// 创建单个文件的文件列表
+						var singleFileList = new FileEntries { file };
+
+						// 创建目标文件源
+						FileEntry archiveFileEntry = new FileEntry(singleTargetPath);
+						var singleFileSource = ArchiveFileSourceUtil.GetArchiveFileSource(
+							sourceFileSource,
+							archiveFileEntry,
+							archiveType,
+							false,
+							true);
+
+						if (singleFileSource != null)
+						{
+							// 创建复制操作
+							var operation = singleFileSource.CreateCopyInOperation(
+								sourceFileSource,
+								singleFileList,
+								"\\");
+
+							if (operation != null)
+							{
+								// 设置操作参数
+								if (operation is WcxArchiveCopyInOperation wcxOperation)
+								{
+									wcxOperation.PackingFlags = packingFlags;
+									wcxOperation.CreateNew = true;
+									wcxOperation.TarBefore = packOptionDialog.TarBefore;
+								}
+
+								// 执行操作
+								OperationsManager.Instance.AddOperation(operation);
+								operation._Thread.WaitFor();
+							}
+						}
+					}
+				}
+				else
+				{
+					// 创建单个压缩文件
+					// 检查文件是否存在
+					if (File.Exists(targetArchivePath))
+					{
+						var result = MessageBox.Show(
+							$"文件 {targetArchivePath} 已存在，是否覆盖？",
+							"确认",
+							MessageBoxButtons.YesNo);
+
+						if (result == DialogResult.No) return;
+					}
+
+					// 创建目标文件源
+					FileEntry archiveFileEntry = new FileEntry(targetArchivePath);
+					var archiveFileSource = ArchiveFileSourceUtil.GetArchiveFileSource(
+						targetFileSource,
+						archiveFileEntry,
+						archiveType,
+						false,
+						true);
+
+					if (archiveFileSource != null)
+					{
+						// 创建复制操作
+						var operation = archiveFileSource.CreateCopyInOperation(
+							sourceFileSource,
+							selectedFiles,
+							"\\");
+
+						if (operation != null)
+						{
+							// 设置操作参数
+							if (operation is WcxArchiveCopyInOperation wcxOperation)
+							{
+								wcxOperation.PackingFlags = packingFlags;
+								wcxOperation.CreateNew = true;
+								wcxOperation.TarBefore = packOptionDialog.TarBefore;
+							}
+
+							// 执行操作
+							OperationsManager.Instance.AddOperation(operation);
+							operation._Thread.WaitFor();
+						}
+					}
+				}
+
+				// 刷新面板
+				owner.RefreshPanel();
+				owner.RefreshPanel(!owner.isleft);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"压缩文件时出错: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+
+		/// <summary>
+		/// 根据WCX插件能力设置压缩对话框选项
+		/// </summary>
+		private static void SetPackDialogOptions(PackOptionDialog dialog, string archiveType, bool hasFolder)
+		{
+			// 获取WCX插件
+			var wcxModule = MainForm.wcxModuleList?.GetModuleByExt(archiveType);
+			if (wcxModule == null) return;
+
+			// 获取插件能力
+			int capabilities = wcxModule.GetPackerCaps();
+
+			// 设置选项可用性
+			dialog.EnableEncrypt((capabilities & (int)PackerCaps.PK_CAPS_ENCRYPT) != 0);
+			dialog.EnableMultiple((capabilities & (int)PackerCaps.PK_CAPS_MULTIPLE) != 0);
+			PackOptionDialog.EnableModify((capabilities & (int)PackerCaps.PK_CAPS_MODIFY) != 0);
+			PackOptionDialog.EnableDelete((capabilities & (int)PackerCaps.PK_CAPS_DELETE) != 0);
+			dialog.EnableOptions((capabilities & (int)PackerCaps.PK_CAPS_OPTIONS) != 0);
+			PackOptionDialog.EnableMemPack((capabilities & (int)PackerCaps.PK_CAPS_MEMPACK) != 0);
+
+			// 如果插件不支持多文件，则强制使用单独压缩
+			if ((capabilities & (int)PackerCaps.PK_CAPS_MULTIPLE) == 0)
+			{
+				dialog.SetSeparateArchives(true);
+				dialog.EnableSeparateArchives(false);
+			}
+			else
+			{
+				dialog.EnableSeparateArchives(true);
+			}
+
+			// 如果有文件夹且插件不支持多文件，则需要先打包成TAR
+			if (hasFolder && (capabilities & (int)PackerCaps.PK_CAPS_MULTIPLE) == 0)
+			{
+				dialog.EnableTarBefore(true);
+				dialog.SetTarBefore(true);
+			}
+			else
+			{
+				dialog.EnableTarBefore(false);
+				dialog.SetTarBefore(false);
+			}
+		}
 		// 打包文件
 		private void PackFiles()
 		{
@@ -1105,7 +1397,7 @@ namespace zfile
 					//var result = Helper.Getfiletype(file);
 					//Debug.Print($"{file} => {result}");
 					//if (!result.Contains("text", StringComparison.OrdinalIgnoreCase)) continue;
-					if(!Helper.IsTextFile(file)) continue;
+					if (!Helper.IsTextFile(file)) continue;
 					var content = File.ReadAllText(file);
 					response = await owner.lLM_Helper.Call_llm_ApiAsync(prompt + content);
 				}
@@ -1188,8 +1480,8 @@ namespace zfile
 					Width = 80
 				};
 
-				buttonPanel.Controls.AddRange([ btnCancel, btnOK ]);
-				panel.Controls.AddRange([ chkIncludePath, chkOverwrite, chkSeparateFolder, buttonPanel ]);
+				buttonPanel.Controls.AddRange([btnCancel, btnOK]);
+				panel.Controls.AddRange([chkIncludePath, chkOverwrite, chkSeparateFolder, buttonPanel]);
 
 				Controls.Add(panel);
 				AcceptButton = btnOK;

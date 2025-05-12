@@ -1019,7 +1019,8 @@ namespace zfile
 		{
 			if (_packFilesW != null)
 			{
-				if (string.IsNullOrEmpty(subPath)) return _packFilesW(packedFile, null, srcPath, addList, flags);
+				if (string.IsNullOrEmpty(subPath)) 
+					return _packFilesW(packedFile, null, srcPath, addList, flags);
 				return _packFilesW(packedFile, subPath, srcPath, addList, flags);
 			}
 			else if (_packFiles != null)

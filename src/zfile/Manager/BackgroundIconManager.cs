@@ -39,10 +39,13 @@ namespace zfile
         // 是否已释放
         private bool _disposed;
 
-        /// <summary>
-        /// 图标任务进度信息
-        /// </summary>
-        public class IconProgress
+		// 缓存dirsize
+		private Dictionary<string, long> _dirsizeCache = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+
+		/// <summary>
+		/// 图标任务进度信息
+		/// </summary>
+		public class IconProgress
         {
             /// <summary>
             /// 总任务数
@@ -350,8 +353,10 @@ namespace zfile
 						i.ImageKey = imageKey;
 					else
 					{
-						i.SubItems[2].Text = FileSystemManager.FormatFileSize(dirsize, true);
-						i.SubItems[5].Text = dirsize.ToString();
+						i.SubItems[MainForm.LVCOL_SIZE].Text = FileSystemManager.FormatFileSize(dirsize, true);
+						//i.SubItems[5].Text = dirsize.ToString();
+						if (i.Tag is LvItemTag tag && tag.File != null)
+							tag.File.Size = dirsize;
 					}
 				}
             }

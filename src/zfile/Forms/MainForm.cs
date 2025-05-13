@@ -2186,7 +2186,7 @@ namespace zfile
 
 						if (lv != null)
 						{
-							string[] s = ["", name, name.Contains(':') ? "本地磁盘" : "<CLS>", ""];
+							string[] s = ["", "", name.Contains(':') ? "本地磁盘" : "<CLS>", ""];
 							var i = new ListViewItem(s);
 							var ico = IconManager.GetIconKey(subItem);
 							if (lv.View == View.Tile)
@@ -2413,11 +2413,14 @@ namespace zfile
 																				   // 检查项目是否在可见区域内
 				if (isYin && isYin1) // (itemRect.IntersectsWith(visibleRect))// temp set to true
 				{
-					var itemFullName = item.SubItems[1].Text;
-					if (item.SubItems[LVCOL_TYPE].Text.Equals("<DIR>"))
+					var file = (item.Tag as LvItemTag)?.File;
+					var itemFullName = file?.FullPath;  //item.SubItems[1].Text;
+					var isdir = (file?.IsDirectory) ?? false;
+					//if (item.SubItems[LVCOL_TYPE].Text.Equals("<DIR>"))
+					if (isdir)
 					{
 						//if is dir, calc dir size
-						if ((item.SubItems[LVCOL_SIZE].Text.Equals("0")) && showFolderSize)
+						if ((item.SubItems[LVCOL_SIZE].Text.Equals("0 B")) && showFolderSize)
 						{
 							itemsForJob.Add(itemFullName);
 							lvitemsForJob.Add(item);

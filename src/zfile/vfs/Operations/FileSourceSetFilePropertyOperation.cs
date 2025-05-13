@@ -111,7 +111,7 @@ namespace zfile
         /// <summary>
         /// Supported properties
         /// </summary>
-        protected FilePropertyType _supportedProperties;
+        protected FilePropertiesTypes _supportedProperties;
 
         /// <summary>
         /// Function to call when a property is set
@@ -164,7 +164,7 @@ namespace zfile
         /// <summary>
         /// Gets the supported properties
         /// </summary>
-        public FilePropertyType SupportedProperties { get => _supportedProperties; set => _supportedProperties = value; }
+        public FilePropertiesTypes SupportedProperties { get => _supportedProperties; set => _supportedProperties = value; }
 
         /// <summary>
         /// Gets or sets whether to skip errors
@@ -309,7 +309,7 @@ namespace zfile
         protected void SetProperties(int index, FileEntry aFile, FileEntry aTemplateFile)
         {
             // Iterate over all properties supported by this operation
-            foreach (FilePropertyType prop in Enum.GetValues(typeof(FilePropertyType)))
+            foreach (FilePropertiesTypes prop in Enum.GetValues(typeof(FilePropertiesTypes)))
             {
                 if ((_supportedProperties & prop) == 0)
                     continue;
@@ -416,12 +416,12 @@ namespace zfile
 
             return aProperty.ID switch
             {
-                FilePropertyType.Name => string.Format(Strings.MsgErrRename, aFile.FullPath, ((FileNameProperty)aProperty).Value),
-                FilePropertyType.Attributes => string.Format(Strings.MsgErrSetAttribute, aFile.FullPath),
-                FilePropertyType.ModificationTime => string.Format(Strings.MsgErrSetDateTime, aFile.FullPath),
-                FilePropertyType.CreationTime => string.Format(Strings.MsgErrSetDateTime, aFile.FullPath),
-                FilePropertyType.LastAccessTime => string.Format(Strings.MsgErrSetDateTime, aFile.FullPath),
-                FilePropertyType.Owner => string.Format(Strings.MsgErrSetOwnership, aFile.FullPath),
+                FilePropertiesTypes.Name => string.Format(Strings.MsgErrRename, aFile.FullPath, ((FileNameProperty)aProperty).Value),
+                FilePropertiesTypes.Attributes => string.Format(Strings.MsgErrSetAttribute, aFile.FullPath),
+                FilePropertiesTypes.ModificationTime => string.Format(Strings.MsgErrSetDateTime, aFile.FullPath),
+                FilePropertiesTypes.CreationTime => string.Format(Strings.MsgErrSetDateTime, aFile.FullPath),
+                FilePropertiesTypes.LastAccessTime => string.Format(Strings.MsgErrSetDateTime, aFile.FullPath),
+                FilePropertiesTypes.Owner => string.Format(Strings.MsgErrSetOwnership, aFile.FullPath),
                 _ => Strings.MsgLogError
             };
         }

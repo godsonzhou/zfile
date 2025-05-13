@@ -3,7 +3,7 @@ namespace zfile
 {
 	public interface IFileEntry
 	{
-		FilePropertyType AssignedProperties { get; }
+		FilePropertiesTypes AssignedProperties { get; }
 		FileAttributes Attributes { get; set; }
 		FileAttributesProperty AttributesProperty { get; set; }
 		DateTime ChangeTime { get; set; }
@@ -34,10 +34,10 @@ namespace zfile
 		FileOwnerProperty OwnerProperty { get; set; }
 		string Path { get; set; }
 		char PathSeparator { get; }
-		Dictionary<FilePropertyType, FileProperty> Properties { get; }
+		Dictionary<FilePropertiesTypes, FileProperty> Properties { get; }
 		long Size { get; set; }
 		FileSizeProperty SizeProperty { get; set; }
-		FilePropertyType SupportedProperties { get; }
+		FilePropertiesTypes SupportedProperties { get; }
 		FileTypeProperty TypeProperty { get; set; }
 		IReadOnlyList<FileVariantProperty> VariantProperties { get; }
 
@@ -45,12 +45,12 @@ namespace zfile
 		void ClearVariantProperties();
 		FileEntry Clone();
 		void CloneTo(FileEntry file);
-		FilePropertyType Compare(FileEntry file);
+		FilePropertiesTypes Compare(FileEntry file);
 		void Dispose();
 		bool IsExecutable();
 		bool IsNameValid();
 		Stream OpenRead();
 		Stream OpenRead(long offset, long size);
-		FileProperty ReleaseProperty(FilePropertyType propType);
+		FileProperty ReleaseProperty(FilePropertiesTypes propType);
 	}
 }

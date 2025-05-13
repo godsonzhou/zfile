@@ -1,13 +1,9 @@
-using System;
 using System.Collections;
-using System.IO;
-using System.Linq;
-using System.Net;
 
 namespace zfile;
 
 [Flags]
-public enum FilePropertyType : uint
+public enum FilePropertiesTypes : uint
 {
     None = 0,
     Name = 1 << 0,
@@ -39,7 +35,7 @@ public class UnixFileAttributesProperty : FileProperty
     {
         return other is UnixFileAttributesProperty prop && Value == prop.Value;
     }
-    public override FilePropertyType ID => FilePropertyType.Attributes;
+    public override FilePropertiesTypes ID => FilePropertiesTypes.Attributes;
 }
 public class NtfsFileAttributesProperty : FileProperty
 {
@@ -52,7 +48,7 @@ public class NtfsFileAttributesProperty : FileProperty
     {
         return other is NtfsFileAttributesProperty prop && Value == prop.Value;
     }
-    public override FilePropertyType ID => FilePropertyType.Attributes;
+    public override FilePropertiesTypes ID => FilePropertiesTypes.Attributes;
 }
 public abstract class FileProperty
 {
@@ -61,7 +57,7 @@ public abstract class FileProperty
     /// <summary>
     /// Gets the property ID
     /// </summary>
-    public abstract FilePropertyType ID { get; }
+    public abstract FilePropertiesTypes ID { get; }
     public bool IsValid { get; internal set; }
 
 }
@@ -81,7 +77,7 @@ public class FileNameProperty(string filename) : FileProperty
     }    /// <summary>
          /// Gets the property ID
          /// </summary>
-    public override FilePropertyType ID => FilePropertyType.Name;
+    public override FilePropertiesTypes ID => FilePropertiesTypes.Name;
 
 }
 
@@ -98,7 +94,7 @@ public class FileSizeProperty : FileProperty
     {
         return other is FileSizeProperty prop && Value == prop.Value;
     }
-    public override FilePropertyType ID => FilePropertyType.Size;
+    public override FilePropertiesTypes ID => FilePropertiesTypes.Size;
 
 }
 
@@ -115,7 +111,7 @@ public class FileCompressedSizeProperty : FileProperty
     {
         return other is FileCompressedSizeProperty prop && Value == prop.Value;
     }
-    public override FilePropertyType ID => FilePropertyType.CompressedSize;
+    public override FilePropertiesTypes ID => FilePropertiesTypes.CompressedSize;
 }
 
 public class FileAttributesProperty : FileProperty
@@ -131,7 +127,7 @@ public class FileAttributesProperty : FileProperty
     {
         return other is FileAttributesProperty prop && Value == prop.Value;
     }
-    public override FilePropertyType ID => FilePropertyType.Attributes;
+    public override FilePropertiesTypes ID => FilePropertiesTypes.Attributes;
 }
 
 public class FileModificationDateTimeProperty : FileProperty
@@ -147,7 +143,7 @@ public class FileModificationDateTimeProperty : FileProperty
     {
         return other is FileModificationDateTimeProperty prop && Value == prop.Value;
     }
-    public override FilePropertyType ID => FilePropertyType.ModificationTime;
+    public override FilePropertiesTypes ID => FilePropertiesTypes.ModificationTime;
 }
 
 public class FileCreationDateTimeProperty : FileProperty
@@ -163,7 +159,7 @@ public class FileCreationDateTimeProperty : FileProperty
     {
         return other is FileCreationDateTimeProperty prop && Value == prop.Value;
     }
-    public override FilePropertyType ID => FilePropertyType.CreationTime;
+    public override FilePropertiesTypes ID => FilePropertiesTypes.CreationTime;
 }
 
 public class FileLastAccessDateTimeProperty : FileProperty
@@ -179,7 +175,7 @@ public class FileLastAccessDateTimeProperty : FileProperty
     {
         return other is FileLastAccessDateTimeProperty prop && Value == prop.Value;
     }
-    public override FilePropertyType ID => FilePropertyType.LastAccessTime;
+    public override FilePropertiesTypes ID => FilePropertiesTypes.LastAccessTime;
 }
 
 public class FileChangeDateTimeProperty : FileProperty
@@ -195,7 +191,7 @@ public class FileChangeDateTimeProperty : FileProperty
     {
         return other is FileChangeDateTimeProperty prop && Value == prop.Value;
     }
-    public override FilePropertyType ID => FilePropertyType.ChangeTime;
+    public override FilePropertiesTypes ID => FilePropertiesTypes.ChangeTime;
 }
 
 public class FileLinkProperty : FileProperty
@@ -225,7 +221,7 @@ public class FileLinkProperty : FileProperty
                LinkTarget == prop.LinkTarget &&
                IsLinkToDirectory == prop.IsLinkToDirectory;
     }
-    public override FilePropertyType ID => FilePropertyType.Link;
+    public override FilePropertiesTypes ID => FilePropertiesTypes.Link;
 }
 
 public class FileOwnerProperty : FileProperty
@@ -241,7 +237,7 @@ public class FileOwnerProperty : FileProperty
     {
         return other is FileOwnerProperty prop && Value == prop.Value;
     }
-    public override FilePropertyType ID => FilePropertyType.Owner;
+    public override FilePropertiesTypes ID => FilePropertiesTypes.Owner;
 }
 
 public class FileTypeProperty : FileProperty
@@ -257,7 +253,7 @@ public class FileTypeProperty : FileProperty
     {
         return other is FileTypeProperty prop && Value == prop.Value;
     }
-    public override FilePropertyType ID => FilePropertyType.Type;
+    public override FilePropertiesTypes ID => FilePropertiesTypes.Type;
 }
 
 public class FileCommentProperty : FileProperty
@@ -273,7 +269,7 @@ public class FileCommentProperty : FileProperty
     {
         return other is FileCommentProperty prop && Value == prop.Value;
     }
-    public override FilePropertyType ID => FilePropertyType.Comment;
+    public override FilePropertiesTypes ID => FilePropertiesTypes.Comment;
 }
 
 public class FileVariantProperty : FileProperty
@@ -291,7 +287,7 @@ public class FileVariantProperty : FileProperty
                (Value == null && prop.Value == null ||
                 Value != null && Value.Equals(prop.Value));
     }
-    public override FilePropertyType ID => FilePropertyType.Variant;
+    public override FilePropertiesTypes ID => FilePropertiesTypes.Variant;
 }
 
 public class FtpFileEntry : FileEntry
@@ -323,12 +319,12 @@ public class FileEntry : IDisposable, IFileEntry
 	private string _extension;
 	private string _nameNoExt;
 	protected string _path;
-	private Dictionary<FilePropertyType, FileProperty> _properties;
+	private Dictionary<FilePropertiesTypes, FileProperty> _properties;
 	private List<FileVariantProperty> _variantProperties;
-	private FilePropertyType _supportedProperties;
+	private FilePropertiesTypes _supportedProperties;
 	private bool _disposed = false;
 
-	public Dictionary<FilePropertyType, FileProperty> Properties => _properties;
+	public Dictionary<FilePropertiesTypes, FileProperty> Properties => _properties;
 	public virtual char PathSeparator => System.IO.Path.DirectorySeparatorChar;
 
 	private void SplitIntoNameAndExtension(string fileName, out string fileNameOnly, out string extension)
@@ -372,9 +368,9 @@ public class FileEntry : IDisposable, IFileEntry
 		}
 	}
 
-	protected FileProperty GetProperty(FilePropertyType propType)
+	protected FileProperty GetProperty(FilePropertiesTypes propType)
 	{
-		if (propType < FilePropertyType.Variant)
+		if (propType < FilePropertiesTypes.Variant)
 		{
 			if (_properties.ContainsKey(propType))
 				return _properties[propType];
@@ -382,16 +378,16 @@ public class FileEntry : IDisposable, IFileEntry
 		}
 		else
 		{
-			int index = (int)propType - (int)FilePropertyType.Variant;
+			int index = (int)propType - (int)FilePropertiesTypes.Variant;
 			if (index >= 0 && index < _variantProperties.Count)
 				return _variantProperties[index];
 			return null;
 		}
 	}
 
-	protected void SetProperty(FilePropertyType propType, FileProperty newValue)
+	protected void SetProperty(FilePropertiesTypes propType, FileProperty newValue)
 	{
-		if (propType < FilePropertyType.Variant)
+		if (propType < FilePropertiesTypes.Variant)
 		{
 			if (newValue == null)
 			{
@@ -409,7 +405,7 @@ public class FileEntry : IDisposable, IFileEntry
 		}
 		else
 		{
-			int index = (int)propType - (int)FilePropertyType.Variant;
+			int index = (int)propType - (int)FilePropertiesTypes.Variant;
 			if (index >= _variantProperties.Count)
 			{
 				for (int i = _variantProperties.Count; i <= index; i++)
@@ -427,7 +423,7 @@ public class FileEntry : IDisposable, IFileEntry
 
 	public virtual string FullPath
 	{
-		get { return _path + ((FileNameProperty)_properties[FilePropertyType.Name]).Value; }
+		get { return _path + ((FileNameProperty)_properties[FilePropertiesTypes.Name]).Value; }
 		set
 		{
 			if (!string.IsNullOrEmpty(value))
@@ -463,13 +459,13 @@ public class FileEntry : IDisposable, IFileEntry
 	{
 		get
 		{
-			EnsurePropertyExists(FilePropertyType.Name);
-			return ((FileNameProperty)_properties[FilePropertyType.Name]).Value;
+			EnsurePropertyExists(FilePropertiesTypes.Name);
+			return ((FileNameProperty)_properties[FilePropertiesTypes.Name]).Value;
 		}
 		set
 		{
-			EnsurePropertyExists(FilePropertyType.Name);
-			((FileNameProperty)_properties[FilePropertyType.Name]).Value = value;
+			EnsurePropertyExists(FilePropertiesTypes.Name);
+			((FileNameProperty)_properties[FilePropertiesTypes.Name]).Value = value;
 			UpdateNameAndExtension(value);
 		}
 	}
@@ -485,55 +481,55 @@ public class FileEntry : IDisposable, IFileEntry
 	}
 
 
-	private void EnsurePropertyExists(FilePropertyType propertyType)
+	private void EnsurePropertyExists(FilePropertiesTypes propertyType)
 	{
 		if (!_properties.ContainsKey(propertyType))
 		{
 			switch (propertyType)
 			{
-				case FilePropertyType.Name:
+				case FilePropertiesTypes.Name:
 					_properties[propertyType] = new FileNameProperty(string.Empty);
 					break;
-				case FilePropertyType.Attributes:
+				case FilePropertiesTypes.Attributes:
 					_properties[propertyType] = new FileAttributesProperty();
 					break;
-				case FilePropertyType.Size:
+				case FilePropertiesTypes.Size:
 					_properties[propertyType] = new FileSizeProperty();
 					break;
-				case FilePropertyType.CompressedSize:
+				case FilePropertiesTypes.CompressedSize:
 					_properties[propertyType] = new FileCompressedSizeProperty();
 					break;
-				case FilePropertyType.ModificationTime:
+				case FilePropertiesTypes.ModificationTime:
 					_properties[propertyType] = new FileModificationDateTimeProperty();
 					break;
-				case FilePropertyType.CreationTime:
+				case FilePropertiesTypes.CreationTime:
 					_properties[propertyType] = new FileCreationDateTimeProperty();
 					break;
-				case FilePropertyType.LastAccessTime:
+				case FilePropertiesTypes.LastAccessTime:
 					_properties[propertyType] = new FileLastAccessDateTimeProperty();
 					break;
-				case FilePropertyType.ChangeTime:
+				case FilePropertiesTypes.ChangeTime:
 					_properties[propertyType] = new FileChangeDateTimeProperty();
 					break;
-				case FilePropertyType.Link:
+				case FilePropertiesTypes.Link:
 					_properties[propertyType] = new FileLinkProperty();
 					break;
-				case FilePropertyType.Owner:
+				case FilePropertiesTypes.Owner:
 					_properties[propertyType] = new FileOwnerProperty();
 					break;
-				case FilePropertyType.Group:
+				case FilePropertiesTypes.Group:
 					// 注意：Group属性类尚未实现，需要添加
 					break;
-				case FilePropertyType.Type:
+				case FilePropertiesTypes.Type:
 					_properties[propertyType] = new FileTypeProperty();
 					break;
-				case FilePropertyType.Comment:
+				case FilePropertiesTypes.Comment:
 					_properties[propertyType] = new FileCommentProperty();
 					break;
-				case FilePropertyType.Extension:
+				case FilePropertiesTypes.Extension:
 					// 注意：Extension属性类尚未实现，需要添加
 					break;
-				case FilePropertyType.Variant:
+				case FilePropertiesTypes.Variant:
 					_properties[propertyType] = new FileVariantProperty();
 					break;
 			}
@@ -551,8 +547,8 @@ public class FileEntry : IDisposable, IFileEntry
 			//	_properties[FilePropertyType.Attributes] = new FileAttributesProperty();
 			//	_supportedProperties |= FilePropertyType.Attributes;
 			//}
-			EnsurePropertyExists(FilePropertyType.Attributes);
-			return ((FileAttributesProperty)_properties[FilePropertyType.Attributes]).Value;
+			EnsurePropertyExists(FilePropertiesTypes.Attributes);
+			return ((FileAttributesProperty)_properties[FilePropertiesTypes.Attributes]).Value;
 		}
 		set
 		{
@@ -561,8 +557,8 @@ public class FileEntry : IDisposable, IFileEntry
 			//	_properties[FilePropertyType.Attributes] = new FileAttributesProperty();
 			//	_supportedProperties |= FilePropertyType.Attributes;
 			//}
-			EnsurePropertyExists(FilePropertyType.Attributes);
-			((FileAttributesProperty)_properties[FilePropertyType.Attributes]).Value = value;
+			EnsurePropertyExists(FilePropertiesTypes.Attributes);
+			((FileAttributesProperty)_properties[FilePropertiesTypes.Attributes]).Value = value;
 		}
 	}
 
@@ -570,13 +566,13 @@ public class FileEntry : IDisposable, IFileEntry
 	{
 		get
 		{
-			EnsurePropertyExists(FilePropertyType.Size);
-			return ((FileSizeProperty)_properties[FilePropertyType.Size]).Value;
+			EnsurePropertyExists(FilePropertiesTypes.Size);
+			return ((FileSizeProperty)_properties[FilePropertiesTypes.Size]).Value;
 		}
 		set
 		{
-			EnsurePropertyExists(FilePropertyType.Size);
-			((FileSizeProperty)_properties[FilePropertyType.Size]).Value = value;
+			EnsurePropertyExists(FilePropertiesTypes.Size);
+			((FileSizeProperty)_properties[FilePropertiesTypes.Size]).Value = value;
 		}
 	}
 
@@ -584,13 +580,13 @@ public class FileEntry : IDisposable, IFileEntry
 	{
 		get
 		{
-			EnsurePropertyExists(FilePropertyType.CompressedSize);
-			return ((FileCompressedSizeProperty)_properties[FilePropertyType.CompressedSize]).Value;
+			EnsurePropertyExists(FilePropertiesTypes.CompressedSize);
+			return ((FileCompressedSizeProperty)_properties[FilePropertiesTypes.CompressedSize]).Value;
 		}
 		set
 		{
-			EnsurePropertyExists(FilePropertyType.CompressedSize);
-			((FileCompressedSizeProperty)_properties[FilePropertyType.CompressedSize]).Value = value;
+			EnsurePropertyExists(FilePropertiesTypes.CompressedSize);
+			((FileCompressedSizeProperty)_properties[FilePropertiesTypes.CompressedSize]).Value = value;
 		}
 	}
 
@@ -598,13 +594,13 @@ public class FileEntry : IDisposable, IFileEntry
 	{
 		get
 		{
-			EnsurePropertyExists(FilePropertyType.ModificationTime);
-			return ((FileModificationDateTimeProperty)_properties[FilePropertyType.ModificationTime]).Value;
+			EnsurePropertyExists(FilePropertiesTypes.ModificationTime);
+			return ((FileModificationDateTimeProperty)_properties[FilePropertiesTypes.ModificationTime]).Value;
 		}
 		set
 		{
-			EnsurePropertyExists(FilePropertyType.ModificationTime);
-			((FileModificationDateTimeProperty)_properties[FilePropertyType.ModificationTime]).Value = value;
+			EnsurePropertyExists(FilePropertiesTypes.ModificationTime);
+			((FileModificationDateTimeProperty)_properties[FilePropertiesTypes.ModificationTime]).Value = value;
 		}
 	}
 
@@ -612,13 +608,13 @@ public class FileEntry : IDisposable, IFileEntry
 	{
 		get
 		{
-			EnsurePropertyExists(FilePropertyType.CreationTime);
-			return ((FileCreationDateTimeProperty)_properties[FilePropertyType.CreationTime]).Value;
+			EnsurePropertyExists(FilePropertiesTypes.CreationTime);
+			return ((FileCreationDateTimeProperty)_properties[FilePropertiesTypes.CreationTime]).Value;
 		}
 		set
 		{
-			EnsurePropertyExists(FilePropertyType.CreationTime);
-			((FileCreationDateTimeProperty)_properties[FilePropertyType.CreationTime]).Value = value;
+			EnsurePropertyExists(FilePropertiesTypes.CreationTime);
+			((FileCreationDateTimeProperty)_properties[FilePropertiesTypes.CreationTime]).Value = value;
 		}
 	}
 
@@ -626,13 +622,13 @@ public class FileEntry : IDisposable, IFileEntry
 	{
 		get
 		{
-			EnsurePropertyExists(FilePropertyType.LastAccessTime);
-			return ((FileLastAccessDateTimeProperty)_properties[FilePropertyType.LastAccessTime]).Value;
+			EnsurePropertyExists(FilePropertiesTypes.LastAccessTime);
+			return ((FileLastAccessDateTimeProperty)_properties[FilePropertiesTypes.LastAccessTime]).Value;
 		}
 		set
 		{
-			EnsurePropertyExists(FilePropertyType.LastAccessTime);
-			((FileLastAccessDateTimeProperty)_properties[FilePropertyType.LastAccessTime]).Value = value;
+			EnsurePropertyExists(FilePropertiesTypes.LastAccessTime);
+			((FileLastAccessDateTimeProperty)_properties[FilePropertiesTypes.LastAccessTime]).Value = value;
 		}
 	}
 
@@ -640,13 +636,13 @@ public class FileEntry : IDisposable, IFileEntry
 	{
 		get
 		{
-			EnsurePropertyExists(FilePropertyType.ChangeTime);
-			return ((FileChangeDateTimeProperty)_properties[FilePropertyType.ChangeTime]).Value;
+			EnsurePropertyExists(FilePropertiesTypes.ChangeTime);
+			return ((FileChangeDateTimeProperty)_properties[FilePropertiesTypes.ChangeTime]).Value;
 		}
 		set
 		{
-			EnsurePropertyExists(FilePropertyType.ChangeTime);
-			((FileChangeDateTimeProperty)_properties[FilePropertyType.ChangeTime]).Value = value;
+			EnsurePropertyExists(FilePropertiesTypes.ChangeTime);
+			((FileChangeDateTimeProperty)_properties[FilePropertiesTypes.ChangeTime]).Value = value;
 		}
 	}
 
@@ -654,15 +650,15 @@ public class FileEntry : IDisposable, IFileEntry
 	{
 		get
 		{
-			EnsurePropertyExists(FilePropertyType.Link);
-			if (_supportedProperties.HasFlag(FilePropertyType.Link))
-				return ((FileLinkProperty)_properties[FilePropertyType.Link]).IsLinkToDirectory;
+			EnsurePropertyExists(FilePropertiesTypes.Link);
+			if (_supportedProperties.HasFlag(FilePropertiesTypes.Link))
+				return ((FileLinkProperty)_properties[FilePropertiesTypes.Link]).IsLinkToDirectory;
 			return false;
 		}
 		set
 		{
-			EnsurePropertyExists(FilePropertyType.Link);
-			((FileLinkProperty)_properties[FilePropertyType.Link]).IsLinkToDirectory = value;
+			EnsurePropertyExists(FilePropertiesTypes.Link);
+			((FileLinkProperty)_properties[FilePropertiesTypes.Link]).IsLinkToDirectory = value;
 		}
 	}
 
@@ -670,13 +666,13 @@ public class FileEntry : IDisposable, IFileEntry
 	{
 		get
 		{
-			EnsurePropertyExists(FilePropertyType.Type);
-			return ((FileTypeProperty)_properties[FilePropertyType.Type]).Value;
+			EnsurePropertyExists(FilePropertiesTypes.Type);
+			return ((FileTypeProperty)_properties[FilePropertiesTypes.Type]).Value;
 		}
 		set
 		{
-			EnsurePropertyExists(FilePropertyType.Type);
-			((FileTypeProperty)_properties[FilePropertyType.Type]).Value = value;
+			EnsurePropertyExists(FilePropertiesTypes.Type);
+			((FileTypeProperty)_properties[FilePropertiesTypes.Type]).Value = value;
 		}
 	}
 
@@ -684,42 +680,42 @@ public class FileEntry : IDisposable, IFileEntry
 	{
 		get
 		{
-			EnsurePropertyExists(FilePropertyType.Name);
-			return (FileNameProperty)_properties[FilePropertyType.Name];
+			EnsurePropertyExists(FilePropertiesTypes.Name);
+			return (FileNameProperty)_properties[FilePropertiesTypes.Name];
 		}
-		set { SetProperty(FilePropertyType.Name, value); }
+		set { SetProperty(FilePropertiesTypes.Name, value); }
 	}
 
 	public FileSizeProperty SizeProperty
 	{
 		get
 		{
-			EnsurePropertyExists(FilePropertyType.Size);
-			return (FileSizeProperty)_properties[FilePropertyType.Size];
+			EnsurePropertyExists(FilePropertiesTypes.Size);
+			return (FileSizeProperty)_properties[FilePropertiesTypes.Size];
 		}
-		set { SetProperty(FilePropertyType.Size, value); }
+		set { SetProperty(FilePropertiesTypes.Size, value); }
 	}
 
 	public FileCompressedSizeProperty CompressedSizeProperty
 	{
 		get
 		{
-			EnsurePropertyExists(FilePropertyType.CompressedSize);
-			return (FileCompressedSizeProperty)_properties[FilePropertyType.CompressedSize];
+			EnsurePropertyExists(FilePropertiesTypes.CompressedSize);
+			return (FileCompressedSizeProperty)_properties[FilePropertiesTypes.CompressedSize];
 		}
-		set { SetProperty(FilePropertyType.CompressedSize, value); }
+		set { SetProperty(FilePropertiesTypes.CompressedSize, value); }
 	}
 
 	public FileAttributesProperty AttributesProperty
 	{
 		get
 		{
-			EnsurePropertyExists(FilePropertyType.Attributes);
-			return (FileAttributesProperty)_properties[FilePropertyType.Attributes];
+			EnsurePropertyExists(FilePropertiesTypes.Attributes);
+			return (FileAttributesProperty)_properties[FilePropertiesTypes.Attributes];
 		}
 		set
 		{
-			SetProperty(FilePropertyType.Attributes, value);
+			SetProperty(FilePropertiesTypes.Attributes, value);
 			if (value != null)
 				UpdateNameAndExtension(Name);
 		}
@@ -729,93 +725,93 @@ public class FileEntry : IDisposable, IFileEntry
 	{
 		get
 		{
-			EnsurePropertyExists(FilePropertyType.ModificationTime);
-			return (FileModificationDateTimeProperty)_properties[FilePropertyType.ModificationTime];
+			EnsurePropertyExists(FilePropertiesTypes.ModificationTime);
+			return (FileModificationDateTimeProperty)_properties[FilePropertiesTypes.ModificationTime];
 		}
-		set { SetProperty(FilePropertyType.ModificationTime, value); }
+		set { SetProperty(FilePropertiesTypes.ModificationTime, value); }
 	}
 
 	public FileCreationDateTimeProperty CreationTimeProperty
 	{
 		get
 		{
-			EnsurePropertyExists(FilePropertyType.CreationTime);
-			return (FileCreationDateTimeProperty)_properties[FilePropertyType.CreationTime];
+			EnsurePropertyExists(FilePropertiesTypes.CreationTime);
+			return (FileCreationDateTimeProperty)_properties[FilePropertiesTypes.CreationTime];
 		}
-		set { SetProperty(FilePropertyType.CreationTime, value); }
+		set { SetProperty(FilePropertiesTypes.CreationTime, value); }
 	}
 
 	public FileLastAccessDateTimeProperty LastAccessTimeProperty
 	{
 		get
 		{
-			EnsurePropertyExists(FilePropertyType.LastAccessTime);
-			return (FileLastAccessDateTimeProperty)_properties[FilePropertyType.LastAccessTime];
+			EnsurePropertyExists(FilePropertiesTypes.LastAccessTime);
+			return (FileLastAccessDateTimeProperty)_properties[FilePropertiesTypes.LastAccessTime];
 		}
-		set { SetProperty(FilePropertyType.LastAccessTime, value); }
+		set { SetProperty(FilePropertiesTypes.LastAccessTime, value); }
 	}
 
 	public FileChangeDateTimeProperty ChangeTimeProperty
 	{
 		get
 		{
-			EnsurePropertyExists(FilePropertyType.ChangeTime);
-			return (FileChangeDateTimeProperty)_properties[FilePropertyType.ChangeTime];
+			EnsurePropertyExists(FilePropertiesTypes.ChangeTime);
+			return (FileChangeDateTimeProperty)_properties[FilePropertiesTypes.ChangeTime];
 		}
-		set { SetProperty(FilePropertyType.ChangeTime, value); }
+		set { SetProperty(FilePropertiesTypes.ChangeTime, value); }
 	}
 
 	public FileLinkProperty LinkProperty
 	{
 		get
 		{
-			EnsurePropertyExists(FilePropertyType.Link);
-			return (FileLinkProperty)_properties[FilePropertyType.Link];
+			EnsurePropertyExists(FilePropertiesTypes.Link);
+			return (FileLinkProperty)_properties[FilePropertiesTypes.Link];
 		}
-		set { SetProperty(FilePropertyType.Link, value); }
+		set { SetProperty(FilePropertiesTypes.Link, value); }
 	}
 
 	public FileOwnerProperty OwnerProperty
 	{
 		get
 		{
-			EnsurePropertyExists(FilePropertyType.Owner);
-			return (FileOwnerProperty)_properties[FilePropertyType.Owner];
+			EnsurePropertyExists(FilePropertiesTypes.Owner);
+			return (FileOwnerProperty)_properties[FilePropertiesTypes.Owner];
 		}
-		set { SetProperty(FilePropertyType.Owner, value); }
+		set { SetProperty(FilePropertiesTypes.Owner, value); }
 	}
 
 	public FileTypeProperty TypeProperty
 	{
 		get
 		{
-			EnsurePropertyExists(FilePropertyType.Type);
-			return (FileTypeProperty)_properties[FilePropertyType.Type];
+			EnsurePropertyExists(FilePropertiesTypes.Type);
+			return (FileTypeProperty)_properties[FilePropertiesTypes.Type];
 		}
-		set { SetProperty(FilePropertyType.Type, value); }
+		set { SetProperty(FilePropertiesTypes.Type, value); }
 	}
 
 	public FileCommentProperty CommentProperty
 	{
 		get
 		{
-			EnsurePropertyExists(FilePropertyType.Comment);
-			return (FileCommentProperty)_properties[FilePropertyType.Comment];
+			EnsurePropertyExists(FilePropertiesTypes.Comment);
+			return (FileCommentProperty)_properties[FilePropertiesTypes.Comment];
 		}
-		set { SetProperty(FilePropertyType.Comment, value); }
+		set { SetProperty(FilePropertiesTypes.Comment, value); }
 	}
 
 	public IReadOnlyList<FileVariantProperty> VariantProperties => _variantProperties.AsReadOnly();
 
-	public FilePropertyType SupportedProperties => _supportedProperties;
+	public FilePropertiesTypes SupportedProperties => _supportedProperties;
 
-	public FilePropertyType AssignedProperties => _supportedProperties;
+	public FilePropertiesTypes AssignedProperties => _supportedProperties;
 
 	public FileEntry(string path)
 	{
-		_properties = new Dictionary<FilePropertyType, FileProperty>();
+		_properties = new Dictionary<FilePropertiesTypes, FileProperty>();
 		_variantProperties = new List<FileVariantProperty>();
-		_supportedProperties = FilePropertyType.Name;
+		_supportedProperties = FilePropertiesTypes.Name;
 		if (File.Exists(path))
 		{
 			//NameProperty = new FileNameProperty(System.IO.Path.GetFileName(path));
@@ -828,9 +824,9 @@ public class FileEntry : IDisposable, IFileEntry
 	}
 	public FileEntry(string path, string name)
 	{
-		_properties = new Dictionary<FilePropertyType, FileProperty>();
+		_properties = new Dictionary<FilePropertiesTypes, FileProperty>();
 		_variantProperties = new List<FileVariantProperty>();
-		_supportedProperties = FilePropertyType.Name;
+		_supportedProperties = FilePropertiesTypes.Name;
 
 		//NameProperty = new FileNameProperty(name); // bugfix: use this method will not update extension and namewithoutextension,so use name assignment 
 		Name = name;
@@ -840,7 +836,7 @@ public class FileEntry : IDisposable, IFileEntry
 
 	public FileEntry()
 	{
-		_properties = new Dictionary<FilePropertyType, FileProperty>();
+		_properties = new Dictionary<FilePropertiesTypes, FileProperty>();
 		_variantProperties = new List<FileVariantProperty>();
 	}
 
@@ -873,13 +869,13 @@ public class FileEntry : IDisposable, IFileEntry
 		}
 	}
 
-	public FilePropertyType Compare(FileEntry file)
+	public FilePropertiesTypes Compare(FileEntry file)
 	{
-		FilePropertyType result = FilePropertyType.None;
+		FilePropertiesTypes result = FilePropertiesTypes.None;
 
 		if (_path != file._path)
 		{
-			result |= FilePropertyType.Name;
+			result |= FilePropertiesTypes.Name;
 			return result;
 		}
 
@@ -904,7 +900,7 @@ public class FileEntry : IDisposable, IFileEntry
 
 		if (_variantProperties.Count != file._variantProperties.Count)
 		{
-			result |= FilePropertyType.Variant;
+			result |= FilePropertiesTypes.Variant;
 			return result;
 		}
 
@@ -917,7 +913,7 @@ public class FileEntry : IDisposable, IFileEntry
 				(prop1 != null && prop2 == null) ||
 				(prop1 != null && prop2 != null && !prop1.Equals(prop2)))
 			{
-				result |= FilePropertyType.Variant;
+				result |= FilePropertiesTypes.Variant;
 				break;
 			}
 		}
@@ -930,25 +926,25 @@ public class FileEntry : IDisposable, IFileEntry
 		ClearVariantProperties();
 		foreach (var key in _properties.Keys.ToList())
 		{
-			if (key != FilePropertyType.Name)
+			if (key != FilePropertiesTypes.Name)
 			{
 				_properties.Remove(key);
 			}
 		}
-		_supportedProperties = FilePropertyType.Name;
+		_supportedProperties = FilePropertiesTypes.Name;
 	}
 
 	public void ClearVariantProperties()
 	{
 		_variantProperties.Clear();
-		_supportedProperties &= ~FilePropertyType.Variant;
+		_supportedProperties &= ~FilePropertiesTypes.Variant;
 	}
 
-	public FileProperty ReleaseProperty(FilePropertyType propType)
+	public FileProperty ReleaseProperty(FilePropertiesTypes propType)
 	{
 		FileProperty result = null;
 
-		if (propType < FilePropertyType.Variant)
+		if (propType < FilePropertiesTypes.Variant)
 		{
 			if (_properties.TryGetValue(propType, out result))
 			{
@@ -958,7 +954,7 @@ public class FileEntry : IDisposable, IFileEntry
 		}
 		else
 		{
-			int index = (int)propType - (int)FilePropertyType.Variant;
+			int index = (int)propType - (int)FilePropertiesTypes.Variant;
 			if (index >= 0 && index < _variantProperties.Count)
 			{
 				result = _variantProperties[index];
@@ -977,32 +973,32 @@ public class FileEntry : IDisposable, IFileEntry
 
 	public bool IsDirectory
 	{
-		get => _supportedProperties.HasFlag(FilePropertyType.Attributes) &&
+		get => _supportedProperties.HasFlag(FilePropertiesTypes.Attributes) &&
 			   (Attributes & FileAttributes.Directory) == FileAttributes.Directory;
 		set => Attributes = value ? Attributes | FileAttributes.Directory : Attributes & ~FileAttributes.Directory;
 	}
 
 	public bool IsSysFile
 	{
-		get => _supportedProperties.HasFlag(FilePropertyType.Attributes) &&
+		get => _supportedProperties.HasFlag(FilePropertiesTypes.Attributes) &&
 			   (Attributes & FileAttributes.System) == FileAttributes.System;
 	}
 
 	public bool IsHidden
 	{
-		get => _supportedProperties.HasFlag(FilePropertyType.Attributes) &&
+		get => _supportedProperties.HasFlag(FilePropertiesTypes.Attributes) &&
 			   (Attributes & FileAttributes.Hidden) == FileAttributes.Hidden;
 	}
 
 	public bool IsLink
 	{
-		get => _supportedProperties.HasFlag(FilePropertyType.Link) &&
-			   !string.IsNullOrEmpty(((FileLinkProperty)_properties[FilePropertyType.Link]).LinkTarget);
+		get => _supportedProperties.HasFlag(FilePropertiesTypes.Link) &&
+			   !string.IsNullOrEmpty(((FileLinkProperty)_properties[FilePropertiesTypes.Link]).LinkTarget);
 	}
 
 	public bool IsExecutable()
 	{
-		if (!_supportedProperties.HasFlag(FilePropertyType.Name))
+		if (!_supportedProperties.HasFlag(FilePropertiesTypes.Name))
 			return false;
 
 		string ext = Extension.ToLower();
@@ -1011,7 +1007,7 @@ public class FileEntry : IDisposable, IFileEntry
 
 	public bool IsReadOnly
 	{
-		get => _supportedProperties.HasFlag(FilePropertyType.Attributes) && (Attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly;
+		get => _supportedProperties.HasFlag(FilePropertiesTypes.Attributes) && (Attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly;
 	}
 	public bool Exists { get; internal set; }
 

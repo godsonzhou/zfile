@@ -181,12 +181,12 @@ namespace zfile
             return result;
         }
 
-        public override void RetrieveProperties(FileEntry file, FilePropertyType propertiesToSet, string[] variantProperties)
+        public override void RetrieveProperties(FileEntry file, FilePropertiesTypes propertiesToSet, string[] variantProperties)
         {
             var assignedProperties = file.AssignedProperties;
             propertiesToSet = propertiesToSet & ~assignedProperties;
 
-            if (propertiesToSet == FilePropertyType.None)
+            if (propertiesToSet == FilePropertiesTypes.None)
                 return;
 
             var fullPath = file.FullPath;
@@ -198,22 +198,22 @@ namespace zfile
                 if (!FileEntry.Exists)
                     throw new FileNotFoundException(fullPath);
 
-                if (!assignedProperties.HasFlag(FilePropertyType.Attributes))
+                if (!assignedProperties.HasFlag(FilePropertiesTypes.Attributes))
                     file.Attributes = FileEntry.Attributes;
 
-                if (!assignedProperties.HasFlag(FilePropertyType.Size))
+                if (!assignedProperties.HasFlag(FilePropertiesTypes.Size))
                     file.Size = FileEntry.Size;
 
-                if (!assignedProperties.HasFlag(FilePropertyType.ModificationTime))
+                if (!assignedProperties.HasFlag(FilePropertiesTypes.ModificationTime))
                     file.ModificationTime = FileEntry.ModificationTime;
 
-                if (!assignedProperties.HasFlag(FilePropertyType.CreationTime))
+                if (!assignedProperties.HasFlag(FilePropertiesTypes.CreationTime))
                     file.CreationTime = FileEntry.CreationTime;
 
-                if (!assignedProperties.HasFlag(FilePropertyType.LastAccessTime))
+                if (!assignedProperties.HasFlag(FilePropertiesTypes.LastAccessTime))
                     file.LastAccessTime = FileEntry.LastAccessTime;
 
-                if (propertiesToSet.HasFlag(FilePropertyType.Link))
+                if (propertiesToSet.HasFlag(FilePropertiesTypes.Link))
                 {
                     file.LinkProperty = new FileLinkProperty();
                     if ((file.Attributes & FileAttributes.ReparsePoint) != 0)
@@ -228,18 +228,18 @@ namespace zfile
                     }
                 }
 
-                if (propertiesToSet.HasFlag(FilePropertyType.Owner))
+                if (propertiesToSet.HasFlag(FilePropertiesTypes.Owner))
                 {
                     SetOwner(file);
                 }
 
-                if (propertiesToSet.HasFlag(FilePropertyType.Type))
+                if (propertiesToSet.HasFlag(FilePropertiesTypes.Type))
                 {
                     file.TypeProperty = new FileTypeProperty();
                     file.TypeProperty.Value = GetFileDescription(fullPath);
                 }
 
-                if (propertiesToSet.HasFlag(FilePropertyType.CompressedSize))
+                if (propertiesToSet.HasFlag(FilePropertiesTypes.CompressedSize))
                 {
                     file.CompressedSizeProperty = new FileCompressedSizeProperty();
                     file.CompressedSize = GetCompressedFileSize(fullPath);
@@ -251,7 +251,7 @@ namespace zfile
                 // 这里需要根据Unix系统实现相应的功能
             }
 
-            if (propertiesToSet.HasFlag(FilePropertyType.Comment))
+            if (propertiesToSet.HasFlag(FilePropertiesTypes.Comment))
             {
 				file.CommentProperty = new() {
 					Value = description.ReadDescription(fullPath)
@@ -415,47 +415,47 @@ namespace zfile
             }
         }
 
-        public FilePropertyType GetSupportedFileProperties()
+        public FilePropertiesTypes GetSupportedFileProperties()
         {
             var properties = base.SupportedFileProperties;
-            properties |= FilePropertyType.Size |
-                        FilePropertyType.Attributes |
-                        FilePropertyType.ModificationTime |
-                        FilePropertyType.LastAccessTime |
-                        FilePropertyType.Link;
+            properties |= FilePropertiesTypes.Size |
+                        FilePropertiesTypes.Attributes |
+                        FilePropertiesTypes.ModificationTime |
+                        FilePropertiesTypes.LastAccessTime |
+                        FilePropertiesTypes.Link;
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                properties |= FilePropertyType.CreationTime;
+                properties |= FilePropertiesTypes.CreationTime;
             }
             else
             {
-                properties |= FilePropertyType.ChangeTime;
+                properties |= FilePropertiesTypes.ChangeTime;
             }
 
             return properties;
         }
 
-        public FilePropertyType GetRetrievableFileProperties()
+        public FilePropertiesTypes GetRetrievableFileProperties()
         {
             var properties = base.RetrievableFileProperties;
-            properties |= FilePropertyType.Size |
-                        FilePropertyType.Attributes |
-                        FilePropertyType.ModificationTime |
-                        FilePropertyType.LastAccessTime |
-                        FilePropertyType.Link |
-                        FilePropertyType.Owner |
-                        FilePropertyType.Type |
-                        FilePropertyType.Comment;
+            properties |= FilePropertiesTypes.Size |
+                        FilePropertiesTypes.Attributes |
+                        FilePropertiesTypes.ModificationTime |
+                        FilePropertiesTypes.LastAccessTime |
+                        FilePropertiesTypes.Link |
+                        FilePropertiesTypes.Owner |
+                        FilePropertiesTypes.Type |
+                        FilePropertiesTypes.Comment;
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                properties |= FilePropertyType.CreationTime |
-                            FilePropertyType.CompressedSize;
+                properties |= FilePropertiesTypes.CreationTime |
+                            FilePropertiesTypes.CompressedSize;
             }
             else
             {
-                properties |= FilePropertyType.ChangeTime;
+                properties |= FilePropertiesTypes.ChangeTime;
             }
 
             return properties;

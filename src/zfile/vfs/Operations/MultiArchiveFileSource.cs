@@ -81,9 +81,9 @@ namespace zfile
             return _multiArcItem.Packer;
         }
 
-        protected FilePropertyType GetSupportedFileProperties()
+        protected FilePropertiesTypes GetSupportedFileProperties()
         {
-            return FilePropertyType.All;
+            return FilePropertiesTypes.All;
         }
 
         protected bool SetCurrentWorkingDirectory(string newDir)

@@ -23,13 +23,13 @@ namespace zfile
 						ModificationTime = file.ModificationTime
 					};
 					// 如果有其他需要复制的属性，可以在这里添加
-					if (file.SupportedProperties.HasFlag(FilePropertyType.CompressedSize))
+					if (file.SupportedProperties.HasFlag(FilePropertiesTypes.CompressedSize))
 						ftpFile.CompressedSize = file.CompressedSize;
 
-					if (file.SupportedProperties.HasFlag(FilePropertyType.CreationTime))
+					if (file.SupportedProperties.HasFlag(FilePropertiesTypes.CreationTime))
 						ftpFile.CreationTime = file.CreationTime;
 
-					if (file.SupportedProperties.HasFlag(FilePropertyType.LastAccessTime))
+					if (file.SupportedProperties.HasFlag(FilePropertiesTypes.LastAccessTime))
 						ftpFile.LastAccessTime = file.LastAccessTime;
 
 					fileEntries.Add(ftpFile);
@@ -416,7 +416,7 @@ namespace zfile
                     if (operation != null)
                     {
                         // Only if the operation can change file name
-                        if (operation.SupportedProperties.HasFlag(FilePropertyType.Name))
+                        if (operation.SupportedProperties.HasFlag(FilePropertiesTypes.Name))
                         {
                             operation.SkipErrors = !interactive;
 

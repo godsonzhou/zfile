@@ -126,7 +126,7 @@ namespace zfile
             return FileSourceProperties.UsersConnections | FileSourceProperties.ListFlatView;
         }
 
-        protected FilePropertyType GetSupportedFileProperties()
+        protected FilePropertiesTypes GetSupportedFileProperties()
         {
             return base.SupportedFileProperties;
         }

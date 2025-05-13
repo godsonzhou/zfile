@@ -109,15 +109,15 @@ namespace zfile
         /// Gets the supported file properties
         /// </summary>
         /// <returns>The supported file properties</returns>
-        public override FilePropertyType RetrievableFileProperties
+        public override FilePropertiesTypes RetrievableFileProperties
         {
             get
             {
                 return base.RetrievableFileProperties | 
-                       FilePropertyType.Size | 
-                       FilePropertyType.CompressedSize | 
-                       FilePropertyType.Attributes | 
-                       FilePropertyType.ModificationTime;
+                       FilePropertiesTypes.Size | 
+                       FilePropertiesTypes.CompressedSize | 
+                       FilePropertiesTypes.Attributes | 
+                       FilePropertiesTypes.ModificationTime;
             }
         }
     }

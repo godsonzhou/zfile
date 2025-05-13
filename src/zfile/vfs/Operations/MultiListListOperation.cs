@@ -42,7 +42,7 @@ namespace zfile
             {
                 var file = FileSource.CreateFile(Path);
                 file.Name = "..";
-                if (file.SupportedProperties.HasFlag(FilePropertyType.Attributes))
+                if (file.SupportedProperties.HasFlag(FilePropertiesTypes.Attributes))
                     file.Attributes = FileAttributes.Directory;
                 Files.Add(file);
             }

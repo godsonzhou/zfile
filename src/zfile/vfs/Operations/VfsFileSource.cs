@@ -83,9 +83,9 @@ namespace zfile
             return "vfs:" + Path.DirectorySeparatorChar;
         }
 
-        protected FilePropertyType GetSupportedFileProperties()
+        protected FilePropertiesTypes GetSupportedFileProperties()
         {
-            return base.SupportedFileProperties | FilePropertyType.Attributes | FilePropertyType.Link;
+            return base.SupportedFileProperties | FilePropertiesTypes.Attributes | FilePropertiesTypes.Link;
         }
 
         public FileSourceOperation CreateListOperation(string targetPath)

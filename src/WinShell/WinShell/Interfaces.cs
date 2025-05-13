@@ -154,9 +154,9 @@ namespace WinShell
 	[ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("000214E6-0000-0000-C000-000000000046")]
 	public interface IShellFolder
 	{
-		void ParseDisplayName(IntPtr hwnd, IntPtr pbc, [MarshalAs(UnmanagedType.LPWStr)] string pszDisplayName, out uint pchEaten, out IntPtr ppidl, ref uint pdwAttributes);
+		int ParseDisplayName(IntPtr hwnd, IntPtr pbc, [MarshalAs(UnmanagedType.LPWStr)] string pszDisplayName, out uint pchEaten, out IntPtr ppidl, ref uint pdwAttributes);
 		int EnumObjects(IntPtr hwnd, SHCONTF grfFlags, out IntPtr ppenumIDList);
-		void BindToObject(IntPtr pidl, IntPtr pbc, ref Guid riid, out IShellFolder ppv);
+		int BindToObject(IntPtr pidl, IntPtr pbc, ref Guid riid, out IShellFolder ppv);
 		void BindToStorage(IntPtr pidl, IntPtr pbc, ref Guid riid, out IntPtr ppv);
 		[PreserveSig]
 		int CompareIDs(IntPtr lParam, IntPtr pidl1, IntPtr pidl2);

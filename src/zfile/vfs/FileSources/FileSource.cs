@@ -160,12 +160,12 @@ namespace zfile
 		/// <summary>
 		/// Gets the supported file properties of this file source
 		/// </summary>
-		FilePropertyType SupportedFileProperties { get; }
+		FilePropertiesTypes SupportedFileProperties { get; }
 
 		/// <summary>
 		/// Gets the retrievable file properties of this file source
 		/// </summary>
-		FilePropertyType RetrievableFileProperties { get; }
+		FilePropertiesTypes RetrievableFileProperties { get; }
 
 		/// <summary>
 		/// Gets the operation types supported by this file source
@@ -202,7 +202,7 @@ namespace zfile
 		/// <param name="file">The file</param>
 		/// <param name="propertiesToSet">The properties to set</param>
 		/// <returns>True if the properties can be retrieved, false otherwise</returns>
-		bool CanRetrieveProperties(FileEntry file, FilePropertyType propertiesToSet);
+		bool CanRetrieveProperties(FileEntry file, FilePropertiesTypes propertiesToSet);
 
 		/// <summary>
 		/// Retrieves the specified properties for the file
@@ -210,7 +210,7 @@ namespace zfile
 		/// <param name="file">The file</param>
 		/// <param name="propertiesToSet">The properties to set</param>
 		/// <param name="variantProperties">The variant properties</param>
-		void RetrieveProperties(FileEntry file, FilePropertyType propertiesToSet, string[] variantProperties);
+		void RetrieveProperties(FileEntry file, FilePropertiesTypes propertiesToSet, string[] variantProperties);
 
 		/// <summary>
 		/// Creates a list operation for the specified target path
@@ -511,12 +511,12 @@ namespace zfile
 		/// <summary>
 		/// Gets the supported file properties of this file source
 		/// </summary>
-		public virtual FilePropertyType SupportedFileProperties { get; protected set; }
+		public virtual FilePropertiesTypes SupportedFileProperties { get; protected set; }
 
 		/// <summary>
 		/// Gets the retrievable file properties of this file source
 		/// </summary>
-		public virtual FilePropertyType RetrievableFileProperties { get; protected set; }
+		public virtual FilePropertiesTypes RetrievableFileProperties { get; protected set; }
 
 		/// <summary>
 		/// Gets the operation types supported by this file source
@@ -662,7 +662,7 @@ namespace zfile
 		/// <param name="file">The file</param>
 		/// <param name="propertiesToSet">The properties to set</param>
 		/// <returns>True if the properties can be retrieved, false otherwise</returns>
-		public virtual bool CanRetrieveProperties(FileEntry file, FilePropertyType propertiesToSet)
+		public virtual bool CanRetrieveProperties(FileEntry file, FilePropertiesTypes propertiesToSet)
 		{
 			return (((uint)propertiesToSet & ~(uint)file.AssignedProperties) & (uint)RetrievableFileProperties) != 0;
 		}
@@ -673,7 +673,7 @@ namespace zfile
 		/// <param name="file">The file</param>
 		/// <param name="propertiesToSet">The properties to set</param>
 		/// <param name="variantProperties">The variant properties</param>
-		public virtual void RetrieveProperties(FileEntry file, FilePropertyType propertiesToSet, string[] variantProperties)
+		public virtual void RetrieveProperties(FileEntry file, FilePropertiesTypes propertiesToSet, string[] variantProperties)
 		{
 			// Default implementation is empty
 		}

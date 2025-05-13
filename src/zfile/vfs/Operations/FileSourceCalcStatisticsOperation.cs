@@ -8,7 +8,7 @@ namespace zfile
     /// </summary>
     public struct FileSourceCalcStatisticsOperationStatistics
     {
-        public FilePropertyType SupportedProperties;
+        public FilePropertiesTypes SupportedProperties;
         public string CurrentFile;
         public long Files;          // 仅文件，即非目录
         public long Directories;

@@ -15,7 +15,7 @@ namespace zfile
         {
 
             fileOp = (IFileOperation)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(Constants.CLSID_FileOperation)))!;
-            SupportedProperties = FilePropertyType.Name;
+            SupportedProperties = FilePropertiesTypes.Name;
         }
 
         ~ShellSetFilePropertyOperation()
@@ -91,7 +91,7 @@ namespace zfile
 
             switch (templateProperty.ID)
             {
-                case FilePropertyType.Name:
+                case FilePropertiesTypes.Name:
                     var fileNameProperty = (FileNameProperty)templateProperty;
                     if (fileNameProperty.Value != file.Name)
                     {

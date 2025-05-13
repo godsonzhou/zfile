@@ -55,7 +55,7 @@ namespace zfile
             // 实现重新加载逻辑
         }
 
-        public FilePropertyType GetSupportedFileProperties()
+        public FilePropertiesTypes GetSupportedFileProperties()
         {
             return _fileSource.SupportedFileProperties;
         }
@@ -93,17 +93,17 @@ namespace zfile
             return _fileSource.FileSystemEntryExists(path);
         }
 
-        public override FilePropertyType RetrievableFileProperties
+        public override FilePropertiesTypes RetrievableFileProperties
         {
             get => _fileSource.RetrievableFileProperties;
         }
 
-        public override void RetrieveProperties(FileEntry file, FilePropertyType propertiesToSet, string[] variantProperties)
+        public override void RetrieveProperties(FileEntry file, FilePropertiesTypes propertiesToSet, string[] variantProperties)
         {
             _fileSource.RetrieveProperties(file, propertiesToSet, variantProperties);
         }
 
-        public override bool CanRetrieveProperties(FileEntry file, FilePropertyType propertiesToSet)
+        public override bool CanRetrieveProperties(FileEntry file, FilePropertiesTypes propertiesToSet)
         {
             return _fileSource.CanRetrieveProperties(file, propertiesToSet);
         }

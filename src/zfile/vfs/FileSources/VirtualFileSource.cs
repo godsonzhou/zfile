@@ -17,9 +17,9 @@ namespace zfile
 
         public override string CurrentWorkingDirectory => "virtual://";
 
-		public override FilePropertyType SupportedFileProperties => FilePropertyType.Standard;
+		public override FilePropertiesTypes SupportedFileProperties => FilePropertiesTypes.Standard;
 
-		public override FilePropertyType RetrievableFileProperties => FilePropertyType.Standard;
+		public override FilePropertiesTypes RetrievableFileProperties => FilePropertiesTypes.Standard;
 
 		public bool IsOperational => true;
 

@@ -4,7 +4,6 @@ namespace zfile
 {
 	public interface IShellFileSource : IVirtualFileSource
 	{
-		bool SetCurrentWorkingDirectory(string newDir);
 		int CreateFolder(IShellFolder2 parent, string newDir);
 		int FindFolder(string path, out IShellFolder2 folder);
 		int FindObject(string obj, out IntPtr pidl);
@@ -318,28 +317,24 @@ namespace zfile
 			return result;
 		}
 
-		public override FileSourceOperationTypes GetOperationsTypes()
-		{
-			return FileSourceOperationTypes.List |
-				   FileSourceOperationTypes.Execute |
-				   FileSourceOperationTypes.Delete |
-				   FileSourceOperationTypes.CreateDirectory |
-				   FileSourceOperationTypes.CopyIn |
-				   FileSourceOperationTypes.CopyOut |
-				   FileSourceOperationTypes.SetFileProperty |
-				   FileSourceOperationTypes.CalcStatistics;
-		}
+		public override FileSourceOperationTypes OperationsTypes => FileSourceOperationTypes.List |
+			FileSourceOperationTypes.Execute |
+			FileSourceOperationTypes.Delete |
+			FileSourceOperationTypes.CreateDirectory |
+			FileSourceOperationTypes.CopyIn |
+			FileSourceOperationTypes.CopyOut |
+			FileSourceOperationTypes.SetFileProperty |
+			FileSourceOperationTypes.CalcStatistics;
 
-		public override FilePropertiesTypes GetSupportedFileProperties()
-		{
-			return base.GetSupportedFileProperties() |
-				   FilePropertiesTypes.Size |
-				   FilePropertiesTypes.Attributes |
-				   FilePropertiesTypes.ModificationTime |
-				   FilePropertiesTypes.CreationTime |
-				   FilePropertiesTypes.Link |
-				   FilePropertiesTypes.Comment;
-		}
+		public override FilePropertiesTypes SupportedFileProperties => 
+			base.SupportedFileProperties |
+			FilePropertiesTypes.Size |
+			FilePropertiesTypes.Attributes |
+			FilePropertiesTypes.ModificationTime |
+			FilePropertiesTypes.CreationTime |
+			FilePropertiesTypes.Link |
+			FilePropertiesTypes.Comment;
+		
 
 		public override string GetRootDir(string path)
 		{
@@ -350,10 +345,7 @@ namespace zfile
 				   Path.DirectorySeparatorChar.ToString();
 		}
 
-		public override FileSourceProperties GetProperties()
-		{
-			return FileSourceProperties.Virtual;
-		}
+		public override FileSourceProperties Properties => FileSourceProperties.Virtual;
 
 		public override FileSourceOperation CreateListOperation(string targetPath)
 		{
@@ -400,7 +392,7 @@ namespace zfile
 			return new ShellCalcStatisticsOperation(this, files);
 		}
 
-		public override FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, FileProperties newProperties)
+		public override FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, FileProperty[] newProperties)
 		{
 			return new ShellSetFilePropertyOperation(this, targetFiles, newProperties);
 		}

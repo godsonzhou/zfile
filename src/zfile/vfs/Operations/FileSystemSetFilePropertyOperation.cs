@@ -31,15 +31,15 @@ namespace zfile
             fullFilesTree = null;
 
             // 在调用基类构造函数后赋值
-            SupportedProperties = FilePropertyType.Name |
+            SupportedProperties = FilePropertiesTypes.Name |
 #if UNIX
                 // 在设置MODE之前设置所有者/组，因为它会清除SUID位
                 FilePropertyType.Owner,
 #endif
-                FilePropertyType.Attributes |
-                FilePropertyType.ModificationTime |
-                FilePropertyType.CreationTime |
-                FilePropertyType.LastAccessTime;
+                FilePropertiesTypes.Attributes |
+                FilePropertiesTypes.ModificationTime |
+                FilePropertiesTypes.CreationTime |
+                FilePropertiesTypes.LastAccessTime;
 
             if (GlobalSettings.ProcessComments)
             {
@@ -116,7 +116,7 @@ namespace zfile
             {
                 switch (templateProperty.ID)
                 {
-                    case FilePropertyType.Name:
+                    case FilePropertiesTypes.Name:
                         if ((templateProperty as FileNameProperty)?.Value != file.Name)
                         {
                             result = RenameFile(
@@ -134,9 +134,9 @@ namespace zfile
                         }
                         break;
 
-                    case FilePropertyType.Attributes:
+                    case FilePropertiesTypes.Attributes:
                         if ((templateProperty as FileAttributesProperty)?.Value !=
-                            (file.Properties[FilePropertyType.Attributes] as FileAttributesProperty)?.Value)
+                            (file.Properties[FilePropertiesTypes.Attributes] as FileAttributesProperty)?.Value)
                         {
                             if (!FileSystemUtil.SetAttributesUAC(
                                 file.FullPath,
@@ -151,9 +151,9 @@ namespace zfile
                         }
                         break;
 
-                    case FilePropertyType.ModificationTime:
+                    case FilePropertiesTypes.ModificationTime:
                         if ((templateProperty as FileModificationDateTimeProperty)?.Value !=
-                            (file.Properties[FilePropertyType.ModificationTime] as FileModificationDateTimeProperty)?.Value)
+                            (file.Properties[FilePropertiesTypes.ModificationTime] as FileModificationDateTimeProperty)?.Value)
                         {
                             if (!FileSystemUtil.SetTimeExUAC(
                                 file.FullPath,
@@ -170,9 +170,9 @@ namespace zfile
                         }
                         break;
 
-                    case FilePropertyType.CreationTime:
+                    case FilePropertiesTypes.CreationTime:
                         if ((templateProperty as FileCreationDateTimeProperty)?.Value !=
-                            (file.Properties[FilePropertyType.CreationTime] as FileCreationDateTimeProperty)?.Value)
+                            (file.Properties[FilePropertiesTypes.CreationTime] as FileCreationDateTimeProperty)?.Value)
                         {
                             if (!FileSystemUtil.SetTimeExUAC(
                                 file.FullPath,
@@ -189,9 +189,9 @@ namespace zfile
                         }
                         break;
 
-                    case FilePropertyType.LastAccessTime:
+                    case FilePropertiesTypes.LastAccessTime:
                         if ((templateProperty as FileLastAccessDateTimeProperty)?.Value !=
-                            (file.Properties[FilePropertyType.LastAccessTime] as FileLastAccessDateTimeProperty)?.Value)
+                            (file.Properties[FilePropertiesTypes.LastAccessTime] as FileLastAccessDateTimeProperty)?.Value)
                         {
                             if (!FileSystemUtil.SetTimeExUAC(
                                 file.FullPath,

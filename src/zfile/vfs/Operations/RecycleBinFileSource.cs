@@ -63,17 +63,17 @@ namespace zfile
             return FileSourceOperationTypes.List;
         }
 
-        public FilePropertyType GetSupportedFileProperties()
+        public FilePropertiesTypes GetSupportedFileProperties()
         {
             return base.SupportedFileProperties |
-                   FilePropertyType.Size |
-                   FilePropertyType.Attributes |
-                   FilePropertyType.ModificationTime |
-                   FilePropertyType.CreationTime |
-                   FilePropertyType.LastAccessTime |
-                   FilePropertyType.ChangeTime |
-                   FilePropertyType.Link |
-                   FilePropertyType.Comment;
+                   FilePropertiesTypes.Size |
+                   FilePropertiesTypes.Attributes |
+                   FilePropertiesTypes.ModificationTime |
+                   FilePropertiesTypes.CreationTime |
+                   FilePropertiesTypes.LastAccessTime |
+                   FilePropertiesTypes.ChangeTime |
+                   FilePropertiesTypes.Link |
+                   FilePropertiesTypes.Comment;
         }
 
         public override bool GetLocalName(ref FileEntry file)

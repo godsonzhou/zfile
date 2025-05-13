@@ -21,7 +21,7 @@ namespace zfile
             _wfxPluginFileSource = targetFileSource as IWfxPluginFileSource;
 
             // Assign after calling inherited constructor.
-            SupportedProperties = FilePropertyType.Name | FilePropertyType.Attributes | FilePropertyType.ModificationTime |FilePropertyType.CreationTime | FilePropertyType.LastAccessTime;
+            SupportedProperties = FilePropertiesTypes.Name | FilePropertiesTypes.Attributes | FilePropertiesTypes.ModificationTime |FilePropertiesTypes.CreationTime | FilePropertiesTypes.LastAccessTime;
         }
 
         protected override void Initialize()
@@ -73,7 +73,7 @@ namespace zfile
 
             switch (templateProperty.ID)
             {
-                case FilePropertyType.Name:
+                case FilePropertiesTypes.Name:
                     var nameProperty = (FileNameProperty)templateProperty;
                     if (nameProperty.Value != file.Name)
                     {
@@ -91,9 +91,9 @@ namespace zfile
                     }
                     break;
 
-                case FilePropertyType.Attributes:
+                case FilePropertiesTypes.Attributes:
                     var attributesProperty = (FileAttributesProperty)templateProperty;
-                    var currentAttributes = (FileAttributesProperty)file.Properties[FilePropertyType.Attributes];
+                    var currentAttributes = (FileAttributesProperty)file.Properties[FilePropertiesTypes.Attributes];
                     if (attributesProperty.Value != currentAttributes.Value)
                     {
                         var newAttributes = attributesProperty.Value;
@@ -125,9 +125,9 @@ namespace zfile
                     }
                     break;
 
-                case FilePropertyType.ModificationTime:
+                case FilePropertiesTypes.ModificationTime:
                     var modTimeProperty = (FileModificationDateTimeProperty)templateProperty;
-                    var currentModTime = (FileModificationDateTimeProperty)file.Properties[FilePropertyType.ModificationTime];
+                    var currentModTime = (FileModificationDateTimeProperty)file.Properties[FilePropertiesTypes.ModificationTime];
                     if (modTimeProperty.Value != currentModTime.Value)
                     {
                         var ftTime = DateTimeToWfxFileTime(modTimeProperty.Value);
@@ -142,9 +142,9 @@ namespace zfile
                     }
                     break;
 
-                case FilePropertyType.CreationTime:
+                case FilePropertiesTypes.CreationTime:
                     var createTimeProperty = (FileCreationDateTimeProperty)templateProperty;
-                    var currentCreateTime = (FileCreationDateTimeProperty)file.Properties[FilePropertyType.CreationTime];
+                    var currentCreateTime = (FileCreationDateTimeProperty)file.Properties[FilePropertiesTypes.CreationTime];
                     if (createTimeProperty.Value != currentCreateTime.Value)
                     {
                         var ftTime = DateTimeToWfxFileTime(createTimeProperty.Value);
@@ -159,9 +159,9 @@ namespace zfile
                     }
                     break;
 
-                case FilePropertyType.LastAccessTime:
+                case FilePropertiesTypes.LastAccessTime:
                     var accessTimeProperty = (FileLastAccessDateTimeProperty)templateProperty;
-                    var currentAccessTime = (FileLastAccessDateTimeProperty)file.Properties[FilePropertyType.LastAccessTime];
+                    var currentAccessTime = (FileLastAccessDateTimeProperty)file.Properties[FilePropertiesTypes.LastAccessTime];
                     if (accessTimeProperty.Value != currentAccessTime.Value)
                     {
                         var ftTime = DateTimeToWfxFileTime(accessTimeProperty.Value);

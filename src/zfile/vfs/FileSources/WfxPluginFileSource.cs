@@ -73,10 +73,10 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 	public int RefCount { get; private set; } = 1;
 	public override string FileSystem => _pluginName;
 	public override string CurrentWorkingDirectory => _currentAddress;
-	public FilePropertyType SupportedFileProperties => FilePropertyType.Name | FilePropertyType.Size |
-		FilePropertyType.Attributes | FilePropertyType.ModificationTime |
-		FilePropertyType.CreationTime | FilePropertyType.LastAccessTime;
-	public FilePropertyType RetrievableFileProperties => SupportedFileProperties;
+	public FilePropertiesTypes SupportedFileProperties => FilePropertiesTypes.Name | FilePropertiesTypes.Size |
+		FilePropertiesTypes.Attributes | FilePropertiesTypes.ModificationTime |
+		FilePropertiesTypes.CreationTime | FilePropertiesTypes.LastAccessTime;
+	public FilePropertiesTypes RetrievableFileProperties => SupportedFileProperties;
 	public FileSourceOperationTypes[] OperationsTypes => new[] {
 		FileSourceOperationTypes.List,
 		FileSourceOperationTypes.Copy,
@@ -156,18 +156,18 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 		};
 	}
 
-	public override bool CanRetrieveProperties(FileEntry file, FilePropertyType properties)
+	public override bool CanRetrieveProperties(FileEntry file, FilePropertiesTypes properties)
 	{
-		return (_wfxModule.ContentPlugin && (properties & FilePropertyType.Variant) != 0) ||
+		return (_wfxModule.ContentPlugin && (properties & FilePropertiesTypes.Variant) != 0) ||
 			   ((properties & SupportedFileProperties) == properties);
 	}
 
-	public void RetrieveProperties(FileEntry file, FilePropertyType properties)
+	public void RetrieveProperties(FileEntry file, FilePropertiesTypes properties)
 	{
 		if (_wfxModule.ContentPlugin)
 		{
 			// Handle variant properties for content plugins
-			if ((properties & FilePropertyType.Variant) != 0)
+			if ((properties & FilePropertiesTypes.Variant) != 0)
 			{
 				// Retrieve variant properties
 			}

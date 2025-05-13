@@ -5,7 +5,7 @@ namespace zfile
         private readonly IMultiArchiveFileSource? _fileSource;
         private FileSourceCalcStatisticsOperationStatistics _statistics;
 
-        public override FileSourceOperationType OperationType => FileSourceOperationType.CalcStatistics;
+        public override FileSourceOperationTypes OperationType => FileSourceOperationTypes.CalcStatistics;
 
         public MultiArchiveCalcStatisticsOperation(IFileSource targetFileSource, FileEntries files)
             : base(targetFileSource, files)

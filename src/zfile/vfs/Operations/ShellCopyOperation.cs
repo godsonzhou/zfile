@@ -44,11 +44,11 @@ namespace zfile
         {
             switch (GetID())
             {
-                case FileSourceOperationType.Copy:
-                case FileSourceOperationType.CopyOut:
+                case FileSourceOperationTypes.Copy:
+                case FileSourceOperationTypes.CopyOut:
                     shellFileSource = sourceFileSource as IShellFileSource;
                     break;
-                case FileSourceOperationType.CopyIn:
+                case FileSourceOperationTypes.CopyIn:
                     shellFileSource = targetFileSource as IShellFileSource;
                     break;
             }
@@ -71,7 +71,7 @@ namespace zfile
 
                 switch (GetID())
                 {
-                    case FileSourceOperationType.Copy:
+                    case FileSourceOperationTypes.Copy:
                         IShellFolder2 folder;
                         w32.OleCheck(shellFileSource.FindFolder(TargetPath, out folder));
                         IntPtr objectPtr;
@@ -88,7 +88,7 @@ namespace zfile
                             Marshal.FreeCoTaskMem(objectPtr);
                         }
                         break;
-                    case FileSourceOperationType.CopyOut:
+                    case FileSourceOperationTypes.CopyOut:
                         var shellItemGuid = typeof(IShellItem).GUID;
                         object shellItem;
                         w32.OleCheck(API.SHCreateItemFromParsingName(TargetPath, IntPtr.Zero, ref shellItemGuid, out shellItem));
@@ -174,9 +174,9 @@ namespace zfile
         {
         }
 
-        protected override FileSourceOperationType GetID()
+        protected override FileSourceOperationTypes GetID()
         {
-            return FileSourceOperationType.CopyIn;
+            return FileSourceOperationTypes.CopyIn;
         }
 
         protected override void Initialize()
@@ -219,9 +219,9 @@ namespace zfile
         {
         }
 
-        protected override FileSourceOperationType GetID()
+        protected override FileSourceOperationTypes GetID()
         {
-            return FileSourceOperationType.CopyOut;
+            return FileSourceOperationTypes.CopyOut;
         }
     }
 

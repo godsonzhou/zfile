@@ -27,7 +27,7 @@ namespace zfile
         /// <summary>
         /// Gets the operation type
         /// </summary>
-        public override FileSourceOperationType OperationType => FileSourceOperationType.Move;
+        public override FileSourceOperationTypes OperationType => FileSourceOperationTypes.Move;
 
         /// <summary>
         /// Gets the file source

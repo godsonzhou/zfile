@@ -82,7 +82,7 @@ namespace zfile
                     }
                 }
 
-                if (fileSource.OperationsTypes.HasFlag(FileSourceOperationType.CalcChecksum) &&
+                if (fileSource.OperationsTypes.HasFlag(FileSourceOperationTypes.CalcChecksum) &&
                     FileExtIsHash(file.Extension))
                 {
                     ProcessExtCommandFork("cm_CheckSumVerify");
@@ -90,7 +90,7 @@ namespace zfile
                 }
             }
 
-            if (fileSource.OperationsTypes.HasFlag(FileSourceOperationType.Execute))
+            if (fileSource.OperationsTypes.HasFlag(FileSourceOperationTypes.Execute))
             {
                 try
                 {
@@ -402,7 +402,7 @@ namespace zfile
         {
             SetFilePropertyResult result = SetFilePropertyResult.Error;
 
-            if (fileSource.OperationsTypes.HasFlag(FileSourceOperationType.SetFileProperty))
+            if (fileSource.OperationsTypes.HasFlag(FileSourceOperationTypes.SetFileProperty))
             {
                 FileNameProperty newNameProperty = new FileNameProperty(newFileName);
                 FileEntries files = new FileEntries();
@@ -455,27 +455,27 @@ namespace zfile
         /// <param name="targetFileSource">Target file source</param>
         /// <param name="operationType">Output operation type</param>
         /// <returns>True if a suitable operation type was found, false otherwise</returns>
-        public static bool GetCopyOperationType(IFileSource sourceFileSource, IFileSource targetFileSource, out FileSourceOperationType operationType)
+        public static bool GetCopyOperationType(IFileSource sourceFileSource, IFileSource targetFileSource, out FileSourceOperationTypes operationType)
         {
             // If same file source and address
-            if (sourceFileSource.OperationsTypes.HasFlag(FileSourceOperationType.Copy) &&
-                targetFileSource.OperationsTypes.HasFlag(FileSourceOperationType.Copy) &&
+            if (sourceFileSource.OperationsTypes.HasFlag(FileSourceOperationTypes.Copy) &&
+                targetFileSource.OperationsTypes.HasFlag(FileSourceOperationTypes.Copy) &&
                 sourceFileSource.Equals(targetFileSource) &&
                 string.Equals(sourceFileSource.CurrentAddress, targetFileSource.CurrentAddress, StringComparison.OrdinalIgnoreCase))
             {
-                operationType = FileSourceOperationType.Copy;
+                operationType = FileSourceOperationTypes.Copy;
                 return true;
             }
             else if (targetFileSource is FileSystemFileSource &&
-                     sourceFileSource.OperationsTypes.HasFlag(FileSourceOperationType.CopyOut))
+                     sourceFileSource.OperationsTypes.HasFlag(FileSourceOperationTypes.CopyOut))
             {
-                operationType = FileSourceOperationType.CopyOut;
+                operationType = FileSourceOperationTypes.CopyOut;
                 return true;
             }
             else if (sourceFileSource is FileSystemFileSource &&
-                     targetFileSource.OperationsTypes.HasFlag(FileSourceOperationType.CopyIn))
+                     targetFileSource.OperationsTypes.HasFlag(FileSourceOperationTypes.CopyIn))
             {
-                operationType = FileSourceOperationType.CopyIn;
+                operationType = FileSourceOperationTypes.CopyIn;
                 return true;
             }
             else

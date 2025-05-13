@@ -14,7 +14,7 @@ namespace zfile
         /// <summary>
         /// Gets the operation type
         /// </summary>
-        public override FileSourceOperationType OperationType => FileSourceOperationType.CreateDirectory;
+        public override FileSourceOperationTypes OperationType => FileSourceOperationTypes.CreateDirectory;
 
         /// <summary>
         /// Gets the base path

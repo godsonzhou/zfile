@@ -12,7 +12,7 @@ namespace zfile
         private FileSourceCalcStatisticsOperationStatistics statistics; // 统计信息的本地副本
         private FileSourceOperationSymLinkOption symLinkOption;
 
-		public override FileSourceOperationType OperationType => FileSourceOperationType.CalcStatistics;
+		public override FileSourceOperationTypes OperationType => FileSourceOperationTypes.CalcStatistics;
 
 		public FileSystemCalcStatisticsOperation(IFileSource targetFileSource, FileEntries files)
             : base(targetFileSource, files)

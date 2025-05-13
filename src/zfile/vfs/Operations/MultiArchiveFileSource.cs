@@ -42,8 +42,8 @@ namespace zfile
             _outputParser = new MultiArchiveParser(multiArcItem, archiveFileName);
             _outputParser.OnGetArchiveItem += OnGetArchiveItem;
 
-            OperationsClasses[FileSourceOperationType.CopyIn] = typeof(MultiArchiveCopyInOperation);
-            OperationsClasses[FileSourceOperationType.CopyOut] = typeof(MultiArchiveCopyOutOperation);
+            OperationsClasses[FileSourceOperationTypes.CopyIn] = typeof(MultiArchiveCopyInOperation);
+            OperationsClasses[FileSourceOperationTypes.CopyOut] = typeof(MultiArchiveCopyOutOperation);
 
             if ((multiArcItem.FormMode & (int)MultiArcFormMode.UnixAttr) != 0)
             {

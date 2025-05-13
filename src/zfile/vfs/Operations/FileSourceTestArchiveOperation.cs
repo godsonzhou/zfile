@@ -31,7 +31,7 @@ namespace zfile
         /// <summary>
         /// Gets the operation type
         /// </summary>
-        public override FileSourceOperationType OperationType => FileSourceOperationType.TestArchive;
+        public override FileSourceOperationTypes OperationType => FileSourceOperationTypes.TestArchive;
 
         /// <summary>
         /// Gets the source files

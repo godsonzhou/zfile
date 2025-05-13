@@ -99,11 +99,11 @@ namespace zfile
         /// 获取操作类型ID
         /// </summary>
         /// <returns>操作类型</returns>
-        protected override FileSourceOperationType GetID()
+        protected override FileSourceOperationTypes GetID()
         {
-            return FileSourceOperationType.CalcStatistics;
+            return FileSourceOperationTypes.CalcStatistics;
         }
-		public override FileSourceOperationType OperationType => FileSourceOperationType.CalcStatistics;
+		public override FileSourceOperationTypes OperationType => FileSourceOperationTypes.CalcStatistics;
 		/// <summary>
 		/// 更新统计信息
 		/// </summary>

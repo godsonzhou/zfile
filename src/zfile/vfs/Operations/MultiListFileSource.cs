@@ -60,21 +60,21 @@ namespace zfile
             return _fileSource.SupportedFileProperties;
         }
 
-        public override FileSourceOperationType OperationsTypes
+        public override FileSourceOperationTypes OperationsTypes
         {
             // 默认只支持fsoList
             // 其他操作只有在文件源支持时才支持
             // 但这只适用于单个文件源
-            get => FileSourceOperationType.List |
+            get => FileSourceOperationTypes.List |
                    (_fileSource.OperationsTypes &
-                    (FileSourceOperationType.CopyOut |
-                     FileSourceOperationType.Delete |
-                     FileSourceOperationType.Wipe |
-                     FileSourceOperationType.CalcChecksum |
-                     FileSourceOperationType.CalcStatistics |
-                     FileSourceOperationType.SetFileProperty |
-                     FileSourceOperationType.Execute |
-                     FileSourceOperationType.TestArchive));
+                    (FileSourceOperationTypes.CopyOut |
+                     FileSourceOperationTypes.Delete |
+                     FileSourceOperationTypes.Wipe |
+                     FileSourceOperationTypes.CalcChecksum |
+                     FileSourceOperationTypes.CalcStatistics |
+                     FileSourceOperationTypes.SetFileProperty |
+                     FileSourceOperationTypes.Execute |
+                     FileSourceOperationTypes.TestArchive));
         }
 
         public override FileSourceProperties Properties

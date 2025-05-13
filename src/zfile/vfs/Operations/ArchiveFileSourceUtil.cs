@@ -50,7 +50,7 @@ namespace zfile
                 }
             }
 
-            if (result == null && sourceFileSource.OperationsTypes.HasFlag(FileSourceOperationType.CopyOut))
+            if (result == null && sourceFileSource.OperationsTypes.HasFlag(FileSourceOperationTypes.CopyOut))
             {
                 // If checking by extension we don't have to unpack files yet
                 // First check if there is a registered plugin for the archive extension
@@ -161,7 +161,7 @@ namespace zfile
                 if (fileView.ActiveFileSource is IArchiveFileSource)
                 {
                     FileEntries filesToTest = files.Clone();
-                    if (fileView.ActiveFileSource.OperationsTypes.HasFlag(FileSourceOperationType.TestArchive))
+                    if (fileView.ActiveFileSource.OperationsTypes.HasFlag(FileSourceOperationTypes.TestArchive))
                     {
                         FileSourceOperation operation = fileView.ActiveFileSource.CreateTestArchiveOperation(filesToTest);
 
@@ -201,8 +201,8 @@ namespace zfile
                             if (archiveFileSource != null)
                             {
                                 // Check if List and TestArchive are supported
-                                if (archiveFileSource.OperationsTypes.HasFlag(FileSourceOperationType.List) &&
-                                    archiveFileSource.OperationsTypes.HasFlag(FileSourceOperationType.TestArchive))
+                                if (archiveFileSource.OperationsTypes.HasFlag(FileSourceOperationTypes.List) &&
+                                    archiveFileSource.OperationsTypes.HasFlag(FileSourceOperationTypes.TestArchive))
                                 {
                                     // Get files to test
                                     FileEntries filesToTest = archiveFileSource.GetFiles(archiveFileSource.GetRootDir());

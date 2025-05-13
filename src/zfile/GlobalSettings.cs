@@ -3,7 +3,7 @@ using System.Diagnostics;
 namespace zfile
 {
 	[Flags]
-	public enum FileSourceOperationType : uint
+	public enum FileSourceOperationTypes : uint
 	{
 		None = 0,
 

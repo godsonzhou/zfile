@@ -170,36 +170,36 @@ namespace zfile
 					// Initialize controls based on operation type
 					switch (opManItem.Operation.OperationType)
 					{
-						case FileSourceOperationType.Copy:
-						case FileSourceOperationType.CopyIn:
-						case FileSourceOperationType.CopyOut:
+						case FileSourceOperationTypes.Copy:
+						case FileSourceOperationTypes.CopyIn:
+						case FileSourceOperationTypes.CopyOut:
 							InitializeCopyOperation(opManItem);
 							break;
-						case FileSourceOperationType.Move:
+						case FileSourceOperationTypes.Move:
 							InitializeMoveOperation(opManItem);
 							break;
-						case FileSourceOperationType.Delete:
+						case FileSourceOperationTypes.Delete:
 							InitializeDeleteOperation(opManItem);
 							break;
-						case FileSourceOperationType.Wipe:
+						case FileSourceOperationTypes.Wipe:
 							InitializeWipeOperation(opManItem);
 							break;
-						case FileSourceOperationType.Split:
+						case FileSourceOperationTypes.Split:
 							InitializeSplitOperation(opManItem);
 							break;
-						case FileSourceOperationType.Combine:
+						case FileSourceOperationTypes.Combine:
 							InitializeCombineOperation(opManItem);
 							break;
-						case FileSourceOperationType.CalcChecksum:
+						case FileSourceOperationTypes.CalcChecksum:
 							InitializeCalcChecksumOperation(opManItem);
 							break;
-						case FileSourceOperationType.TestArchive:
+						case FileSourceOperationTypes.TestArchive:
 							InitializeTestArchiveOperation(opManItem);
 							break;
-						case FileSourceOperationType.CalcStatistics:
+						case FileSourceOperationTypes.CalcStatistics:
 							InitializeCalcStatisticsOperation(opManItem);
 							break;
-						case FileSourceOperationType.SetFileProperty:
+						case FileSourceOperationTypes.SetFileProperty:
 							InitializeSetFilePropertyOperation(opManItem);
 							break;
 						default:
@@ -501,36 +501,36 @@ namespace zfile
 			// Update operation based on type
 			switch (operation.OperationType)
 			{
-				case FileSourceOperationType.Copy:
-				case FileSourceOperationType.CopyIn:
-				case FileSourceOperationType.CopyOut:
+				case FileSourceOperationTypes.Copy:
+				case FileSourceOperationTypes.CopyIn:
+				case FileSourceOperationTypes.CopyOut:
 					UpdateCopyOperation(operation);
 					break;
-				case FileSourceOperationType.Move:
+				case FileSourceOperationTypes.Move:
 					UpdateMoveOperation(operation);
 					break;
-				case FileSourceOperationType.Delete:
+				case FileSourceOperationTypes.Delete:
 					UpdateDeleteOperation(operation);
 					break;
-				case FileSourceOperationType.Wipe:
+				case FileSourceOperationTypes.Wipe:
 					UpdateWipeOperation(operation);
 					break;
-				case FileSourceOperationType.Split:
+				case FileSourceOperationTypes.Split:
 					UpdateSplitOperation(operation);
 					break;
-				case FileSourceOperationType.Combine:
+				case FileSourceOperationTypes.Combine:
 					UpdateCombineOperation(operation);
 					break;
-				case FileSourceOperationType.CalcChecksum:
+				case FileSourceOperationTypes.CalcChecksum:
 					UpdateCalcChecksumOperation(operation);
 					break;
-				case FileSourceOperationType.CalcStatistics:
+				case FileSourceOperationTypes.CalcStatistics:
 					UpdateCalcStatisticsOperation(operation);
 					break;
-				case FileSourceOperationType.TestArchive:
+				case FileSourceOperationTypes.TestArchive:
 					UpdateTestArchiveOperation(operation);
 					break;
-				case FileSourceOperationType.SetFileProperty:
+				case FileSourceOperationTypes.SetFileProperty:
 					UpdateSetFilePropertyOperation(operation);
 					break;
 				default:

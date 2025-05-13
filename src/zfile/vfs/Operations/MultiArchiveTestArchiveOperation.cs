@@ -5,7 +5,7 @@ namespace zfile
         private readonly IMultiArchiveFileSource _multiArchiveFileSource;
         private readonly FileEntries _sourceFiles;
 
-        public override FileSourceOperationType OperationType => FileSourceOperationType.TestArchive;
+        public override FileSourceOperationTypes OperationType => FileSourceOperationTypes.TestArchive;
 
         public MultiArchiveTestArchiveOperation(
             IMultiArchiveFileSource fileSource,

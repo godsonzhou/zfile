@@ -78,9 +78,9 @@ namespace zfile
             Text = "压缩文件属性";
 
             // 设置按钮状态
-            btnUnpackAndExec.Enabled = _fileSource.OperationsTypes.HasFlag(FileSourceOperationType.CopyOut);
-            btnUnpackAllAndExec.Enabled = _fileSource.OperationsTypes.HasFlag(FileSourceOperationType.List) &&
-                                         _fileSource.OperationsTypes.HasFlag(FileSourceOperationType.CopyOut);
+            btnUnpackAndExec.Enabled = _fileSource.OperationsTypes.HasFlag(FileSourceOperationTypes.CopyOut);
+            btnUnpackAllAndExec.Enabled = _fileSource.OperationsTypes.HasFlag(FileSourceOperationTypes.List) &&
+                                         _fileSource.OperationsTypes.HasFlag(FileSourceOperationTypes.CopyOut);
 
             // 设置文件信息
             edtPackedFile.Text = _file.FullPath;

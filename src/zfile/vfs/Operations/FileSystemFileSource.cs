@@ -26,20 +26,20 @@ namespace zfile
         {
             description = new Description(false);
             // 注册操作类
-            OperationsClasses[FileSourceOperationType.List] = typeof(FileSystemListOperation);
-            OperationsClasses[FileSourceOperationType.Copy] = typeof(FileSystemCopyOperation);
-            OperationsClasses[FileSourceOperationType.CopyIn] = typeof(FileSystemCopyInOperation);
-            OperationsClasses[FileSourceOperationType.CopyOut] = typeof(FileSystemCopyOutOperation);
-            OperationsClasses[FileSourceOperationType.Move] = typeof(FileSystemMoveOperation);
-            OperationsClasses[FileSourceOperationType.Delete] = typeof(FileSystemDeleteOperation);
-            OperationsClasses[FileSourceOperationType.Wipe] = typeof(FileSystemWipeOperation);
-            OperationsClasses[FileSourceOperationType.Combine] = typeof(FileSystemCombineOperation);
-			OperationsClasses[FileSourceOperationType.Split] = typeof(FileSystemSplitOperation);
-            OperationsClasses[FileSourceOperationType.CreateDirectory] = typeof(FileSystemCreateDirectoryOperation);
-            OperationsClasses[FileSourceOperationType.CalcChecksum] = typeof(FileSystemCalcChecksumOperation);
-            OperationsClasses[FileSourceOperationType.CalcStatistics] = typeof(FileSystemCalcStatisticsOperation);
-            OperationsClasses[FileSourceOperationType.SetFileProperty] = typeof(FileSystemSetFilePropertyOperation);
-            OperationsClasses[FileSourceOperationType.Execute] = typeof(FileSystemExecuteOperation);
+            OperationsClasses[FileSourceOperationTypes.List] = typeof(FileSystemListOperation);
+            OperationsClasses[FileSourceOperationTypes.Copy] = typeof(FileSystemCopyOperation);
+            OperationsClasses[FileSourceOperationTypes.CopyIn] = typeof(FileSystemCopyInOperation);
+            OperationsClasses[FileSourceOperationTypes.CopyOut] = typeof(FileSystemCopyOutOperation);
+            OperationsClasses[FileSourceOperationTypes.Move] = typeof(FileSystemMoveOperation);
+            OperationsClasses[FileSourceOperationTypes.Delete] = typeof(FileSystemDeleteOperation);
+            OperationsClasses[FileSourceOperationTypes.Wipe] = typeof(FileSystemWipeOperation);
+            OperationsClasses[FileSourceOperationTypes.Combine] = typeof(FileSystemCombineOperation);
+			OperationsClasses[FileSourceOperationTypes.Split] = typeof(FileSystemSplitOperation);
+            OperationsClasses[FileSourceOperationTypes.CreateDirectory] = typeof(FileSystemCreateDirectoryOperation);
+            OperationsClasses[FileSourceOperationTypes.CalcChecksum] = typeof(FileSystemCalcChecksumOperation);
+            OperationsClasses[FileSourceOperationTypes.CalcStatistics] = typeof(FileSystemCalcStatisticsOperation);
+            OperationsClasses[FileSourceOperationTypes.SetFileProperty] = typeof(FileSystemSetFilePropertyOperation);
+            OperationsClasses[FileSourceOperationTypes.Execute] = typeof(FileSystemExecuteOperation);
         }
 
         ~FileSystemFileSource()
@@ -267,22 +267,22 @@ namespace zfile
             return fileSource as IFileSystemFileSource;
         }
 
-        public FileSourceOperationType GetOperationsTypes()
+        public FileSourceOperationTypes GetOperationsTypes()
         {
-            return FileSourceOperationType.List |
-                   FileSourceOperationType.Copy |
-                   FileSourceOperationType.CopyIn |
-                   FileSourceOperationType.CopyOut |
-                   FileSourceOperationType.Move |
-                   FileSourceOperationType.Delete |
-                   FileSourceOperationType.Wipe |
-                   FileSourceOperationType.Split |
-                   FileSourceOperationType.Combine |
-                   FileSourceOperationType.CreateDirectory |
-                   FileSourceOperationType.CalcChecksum |
-                   FileSourceOperationType.CalcStatistics |
-                   FileSourceOperationType.SetFileProperty |
-                   FileSourceOperationType.Execute;
+            return FileSourceOperationTypes.List |
+                   FileSourceOperationTypes.Copy |
+                   FileSourceOperationTypes.CopyIn |
+                   FileSourceOperationTypes.CopyOut |
+                   FileSourceOperationTypes.Move |
+                   FileSourceOperationTypes.Delete |
+                   FileSourceOperationTypes.Wipe |
+                   FileSourceOperationTypes.Split |
+                   FileSourceOperationTypes.Combine |
+                   FileSourceOperationTypes.CreateDirectory |
+                   FileSourceOperationTypes.CalcChecksum |
+                   FileSourceOperationTypes.CalcStatistics |
+                   FileSourceOperationTypes.SetFileProperty |
+                   FileSourceOperationTypes.Execute;
         }
 
         public virtual FileSourceProperties GetProperties()

@@ -68,9 +68,9 @@ namespace zfile
             return result;
         }
 
-        public FileSourceOperationType GetOperationsTypes()
+        public FileSourceOperationTypes GetOperationsTypes()
         {
-            return FileSourceOperationType.List | FileSourceOperationType.Execute;
+            return FileSourceOperationTypes.List | FileSourceOperationTypes.Execute;
         }
 
         public FileSourceProperties GetProperties()

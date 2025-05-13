@@ -11,9 +11,9 @@ namespace zfile
         {
         }
 
-        protected override FileSourceOperationType GetID()
+        protected override FileSourceOperationTypes GetID()
         {
-            return FileSourceOperationType.CopyIn;
+            return FileSourceOperationTypes.CopyIn;
         }
     }
 
@@ -28,9 +28,9 @@ namespace zfile
         {
         }
 
-        protected override FileSourceOperationType GetID()
+        protected override FileSourceOperationTypes GetID()
         {
-            return FileSourceOperationType.CopyOut;
+            return FileSourceOperationTypes.CopyOut;
         }
     }
 } 

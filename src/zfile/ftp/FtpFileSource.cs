@@ -16,20 +16,20 @@ namespace zfile
 		/// <summary>
 		/// 操作类字典
 		/// </summary>
-		private readonly Dictionary<FileSourceOperationType, Type> _operationsClasses;
+		private readonly Dictionary<FileSourceOperationTypes, Type> _operationsClasses;
 
 		/// <summary>
 		/// 获取支持的操作类型
 		/// </summary>
-		public override FileSourceOperationType OperationsTypes =>
-			FileSourceOperationType.List |
-			FileSourceOperationType.CopyIn |
-			FileSourceOperationType.CopyOut |
-			FileSourceOperationType.Delete |
-			FileSourceOperationType.CreateDirectory |
-			FileSourceOperationType.Execute |
-			FileSourceOperationType.Move |
-			FileSourceOperationType.CalcStatistics;
+		public override FileSourceOperationTypes OperationsTypes =>
+			FileSourceOperationTypes.List |
+			FileSourceOperationTypes.CopyIn |
+			FileSourceOperationTypes.CopyOut |
+			FileSourceOperationTypes.Delete |
+			FileSourceOperationTypes.CreateDirectory |
+			FileSourceOperationTypes.Execute |
+			FileSourceOperationTypes.Move |
+			FileSourceOperationTypes.CalcStatistics;
 		/// <summary>
 		/// 获取FTP连接名称
 		/// </summary>
@@ -66,14 +66,14 @@ namespace zfile
 		private void InitializeOperationsClasses()
 		{
 			// 注册操作类
-			_operationsClasses[FileSourceOperationType.List] = typeof(FtpListOperation);
-			_operationsClasses[FileSourceOperationType.CopyIn] = typeof(FtpCopyInOperation);
-			_operationsClasses[FileSourceOperationType.CopyOut] = typeof(FtpCopyOutOperation);
-			_operationsClasses[FileSourceOperationType.Delete] = typeof(FtpDeleteOperation);
-			_operationsClasses[FileSourceOperationType.CreateDirectory] = typeof(FtpCreateDirectoryOperation);
-			_operationsClasses[FileSourceOperationType.Execute] = typeof(FtpExecuteOperation);
-			_operationsClasses[FileSourceOperationType.Move] = typeof(FtpMoveOperation);
-			_operationsClasses[FileSourceOperationType.CalcStatistics] = typeof(FtpCalcStatisticsOperation);
+			_operationsClasses[FileSourceOperationTypes.List] = typeof(FtpListOperation);
+			_operationsClasses[FileSourceOperationTypes.CopyIn] = typeof(FtpCopyInOperation);
+			_operationsClasses[FileSourceOperationTypes.CopyOut] = typeof(FtpCopyOutOperation);
+			_operationsClasses[FileSourceOperationTypes.Delete] = typeof(FtpDeleteOperation);
+			_operationsClasses[FileSourceOperationTypes.CreateDirectory] = typeof(FtpCreateDirectoryOperation);
+			_operationsClasses[FileSourceOperationTypes.Execute] = typeof(FtpExecuteOperation);
+			_operationsClasses[FileSourceOperationTypes.Move] = typeof(FtpMoveOperation);
+			_operationsClasses[FileSourceOperationTypes.CalcStatistics] = typeof(FtpCalcStatisticsOperation);
 		}
 		/// <summary>
 		/// 将FTP文件属性转换为L777格式的字符串

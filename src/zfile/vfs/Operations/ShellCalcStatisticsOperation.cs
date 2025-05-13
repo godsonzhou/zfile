@@ -7,7 +7,7 @@ namespace zfile
         private IShellFileSource shellFileSource;
         private FileSourceCalcStatisticsOperationStatistics statistics;
 
-		public override FileSourceOperationType OperationType => FileSourceOperationType.CalcStatistics;
+		public override FileSourceOperationTypes OperationType => FileSourceOperationTypes.CalcStatistics;
 
 		public ShellCalcStatisticsOperation(IFileSource targetFileSource, FileEntries files)
             : base(targetFileSource, files)

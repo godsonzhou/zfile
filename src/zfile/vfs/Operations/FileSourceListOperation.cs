@@ -12,7 +12,7 @@ namespace zfile
         /// <summary>
         /// Gets the operation type
         /// </summary>
-        public override FileSourceOperationType OperationType => FileSourceOperationType.List;
+        public override FileSourceOperationTypes OperationType => FileSourceOperationTypes.List;
 
         /// <summary>
         /// Gets the files

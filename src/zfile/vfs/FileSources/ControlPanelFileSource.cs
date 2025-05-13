@@ -67,7 +67,7 @@ namespace zfile
 
         public override string CurrentWorkingDirectory => "controlpanel://";
 
-        public override FileSourceOperationType OperationsTypes => FileSourceOperationType.List | FileSourceOperationType.Execute;
+        public override FileSourceOperationTypes OperationsTypes => FileSourceOperationTypes.List | FileSourceOperationTypes.Execute;
     }
 
     /// <summary>

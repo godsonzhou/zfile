@@ -17,7 +17,7 @@ namespace zfile
     {   /// <summary>
         /// Gets the operation type
         /// </summary>
-        FileSourceOperationType OperationType { get; }
+        FileSourceOperationTypes OperationType { get; }
 
         /// <summary>
         /// Gets the file source associated with this operation
@@ -111,7 +111,7 @@ namespace zfile
         /// <summary>
         /// Gets the operation type
         /// </summary>
-        public abstract FileSourceOperationType OperationType { get; }
+        public abstract FileSourceOperationTypes OperationType { get; }
 
         /// <summary>
         /// Gets the file source
@@ -516,7 +516,7 @@ namespace zfile
         {
             _startTime = newStartTime;
         }
-        protected virtual FileSourceOperationType GetID()
+        protected virtual FileSourceOperationTypes GetID()
         {
             return OperationType;
         }

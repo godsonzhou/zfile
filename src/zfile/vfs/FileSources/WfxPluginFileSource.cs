@@ -77,16 +77,16 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 		FilePropertyType.Attributes | FilePropertyType.ModificationTime |
 		FilePropertyType.CreationTime | FilePropertyType.LastAccessTime;
 	public FilePropertyType RetrievableFileProperties => SupportedFileProperties;
-	public FileSourceOperationType[] OperationsTypes => new[] {
-		FileSourceOperationType.List,
-		FileSourceOperationType.Copy,
-		FileSourceOperationType.CopyIn,
-		FileSourceOperationType.CopyOut,
-		FileSourceOperationType.Move,
-		FileSourceOperationType.Delete,
-		FileSourceOperationType.CreateDirectory,
-		FileSourceOperationType.Execute,
-		FileSourceOperationType.SetFileProperty
+	public FileSourceOperationTypes[] OperationsTypes => new[] {
+		FileSourceOperationTypes.List,
+		FileSourceOperationTypes.Copy,
+		FileSourceOperationTypes.CopyIn,
+		FileSourceOperationTypes.CopyOut,
+		FileSourceOperationTypes.Move,
+		FileSourceOperationTypes.Delete,
+		FileSourceOperationTypes.CreateDirectory,
+		FileSourceOperationTypes.Execute,
+		FileSourceOperationTypes.SetFileProperty
 	};
 	public FileSourceProperty Properties => FileSourceProperty.IsVirtual |
 		FileSourceProperty.IsRemote |
@@ -498,12 +498,12 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 
 			lock (_connectionLock)
 			{
-				var allowedOps = new List<FileSourceOperationType>();
-				if (operation.OperationType == FileSourceOperationType.CopyIn ||
-					operation.OperationType == FileSourceOperationType.CopyOut ||
-					operation.OperationType == FileSourceOperationType.Delete ||
-					operation.OperationType == FileSourceOperationType.Copy ||
-					operation.OperationType == FileSourceOperationType.Move)
+				var allowedOps = new List<FileSourceOperationTypes>();
+				if (operation.OperationType == FileSourceOperationTypes.CopyIn ||
+					operation.OperationType == FileSourceOperationTypes.CopyOut ||
+					operation.OperationType == FileSourceOperationTypes.Delete ||
+					operation.OperationType == FileSourceOperationTypes.Copy ||
+					operation.OperationType == FileSourceOperationTypes.Move)
 				{
 					allowedOps.Add(operation.OperationType);
 					NotifyNextWaitingOperation(allowedOps);
@@ -516,7 +516,7 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 		}
 	}
 
-	private void NotifyNextWaitingOperation(List<FileSourceOperationType> allowedOps)
+	private void NotifyNextWaitingOperation(List<FileSourceOperationTypes> allowedOps)
 	{
 		lock (_operationsQueueLock)
 		{

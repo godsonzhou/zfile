@@ -110,7 +110,7 @@ namespace zfile
         /// <summary>
         /// Gets the operation type
         /// </summary>
-        public override FileSourceOperationType OperationType => FileSourceOperationType.Execute;
+        public override FileSourceOperationTypes OperationType => FileSourceOperationTypes.Execute;
         
         /// <summary>
         /// Updates statistics at start time

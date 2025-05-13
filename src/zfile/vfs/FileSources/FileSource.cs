@@ -170,7 +170,7 @@ namespace zfile
 		/// <summary>
 		/// Gets the operation types supported by this file source
 		/// </summary>
-		FileSourceOperationType OperationsTypes { get; }
+		FileSourceOperationTypes OperationsTypes { get; }
 
 		/// <summary>
 		/// Gets the properties of this file source
@@ -336,7 +336,7 @@ namespace zfile
 		/// </summary>
 		/// <param name="operationType">The operation type</param>
 		/// <returns>The operation class</returns>
-		Type GetOperationClass(FileSourceOperationType operationType);
+		Type GetOperationClass(FileSourceOperationTypes operationType);
 
 		/// <summary>
 		/// Checks if the specified path is at the root of the file source
@@ -476,7 +476,7 @@ namespace zfile
 		private readonly List<FileSourceReloadEventHandler> _reloadEventListeners = new List<FileSourceReloadEventHandler>();
 		private readonly List<FileSourceConnection> _connections = new List<FileSourceConnection>();
 		private readonly object _syncRoot = new object();
-		protected Dictionary<FileSourceOperationType, Type> OperationsClasses = new();
+		protected Dictionary<FileSourceOperationTypes, Type> OperationsClasses = new();
 		public virtual char PathSep { get; } = Path.DirectorySeparatorChar;
 		/// <summary>
 		/// Gets the URI of this file source
@@ -521,7 +521,7 @@ namespace zfile
 		/// <summary>
 		/// Gets the operation types supported by this file source
 		/// </summary>
-		public virtual FileSourceOperationType OperationsTypes { get; }
+		public virtual FileSourceOperationTypes OperationsTypes { get; }
 
 		/// <summary>
 		/// Gets the properties of this file source
@@ -846,7 +846,7 @@ namespace zfile
 		/// </summary>
 		/// <param name="operationType">The operation type</param>
 		/// <returns>The operation class</returns>
-		public virtual Type GetOperationClass(FileSourceOperationType operationType)
+		public virtual Type GetOperationClass(FileSourceOperationTypes operationType)
 		{
 			throw new NotImplementedException();
 		}

@@ -31,7 +31,7 @@ namespace zfile
         /// <summary>
         /// Gets the operation type
         /// </summary>
-        public override FileSourceOperationType OperationType => FileSourceOperationType.Wipe;
+        public override FileSourceOperationTypes OperationType => FileSourceOperationTypes.Wipe;
 
         /// <summary>
         /// Gets the file source

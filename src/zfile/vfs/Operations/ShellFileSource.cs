@@ -28,10 +28,16 @@ namespace zfile
 			_rootFolder = (IShellFolder2)tempFolder;
 			_rootPath = w32.GetDisplayName(_desktopFolder, _drives, SHGDN.INFOLDER);
 
-			OperationsClasses[FileSourceOperationType.Move] = typeof(ShellMoveOperation);
-			OperationsClasses[FileSourceOperationType.Copy] = typeof(ShellCopyOperation);
-			OperationsClasses[FileSourceOperationType.CopyIn] = typeof(ShellCopyInOperation);
-			OperationsClasses[FileSourceOperationType.CopyOut] = typeof(ShellCopyOutOperation);
+			OperationsClasses[FileSourceOperationTypes.Move] = typeof(ShellMoveOperation);
+			OperationsClasses[FileSourceOperationTypes.Copy] = typeof(ShellCopyOperation);
+			OperationsClasses[FileSourceOperationTypes.CopyIn] = typeof(ShellCopyInOperation);
+			OperationsClasses[FileSourceOperationTypes.CopyOut] = typeof(ShellCopyOutOperation);
+			OperationsClasses[FileSourceOperationTypes.List] = typeof(ShellListOperation);
+			OperationsClasses[FileSourceOperationTypes.Delete] = typeof(ShellDeleteOperation);
+			OperationsClasses[FileSourceOperationTypes.CreateDirectory] = typeof(ShellCreateDirectoryOperation);
+			OperationsClasses[FileSourceOperationTypes.Execute] = typeof(ShellExecuteOperation);
+			OperationsClasses[FileSourceOperationTypes.CalcStatistics] = typeof(ShellCalcStatisticsOperation);
+			OperationsClasses[FileSourceOperationTypes.SetFileProperty] = typeof(ShellSetFilePropertyOperation);
 		}
 
 		~ShellFileSource()
@@ -159,24 +165,244 @@ namespace zfile
 
 		public int CreateFolder(IShellFolder2 parent, string newDir)
 		{
-			throw new NotImplementedException();
+			// 实现创建文件夹的功能
+			// 这里需要使用Shell API创建文件夹
+			// 在Pascal版本中，这个方法是通过调用Shell32的API来实现的
+			// 在C#中，我们可以使用类似的方式
+			try
+			{
+				// 创建一个新的文件夹
+				IntPtr pidl;
+				uint attrs = 0;
+				return parent.ParseDisplayName(IntPtr.Zero, IntPtr.Zero, newDir, out _, out pidl, ref attrs);
+			}
+			catch (Exception ex)
+			{
+				return Marshal.GetHRForException(ex);
+			}
 		}
 
 		public int FindFolder(string path, out IShellFolder2 folder)
 		{
-			throw new NotImplementedException();
+			folder = null;
+			try
+			{
+				// 分割路径
+				string[] pathParts = path.Split(new[] { Path.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
+
+				if (pathParts.Length == 0)
+				{
+					return unchecked((int)0x80030002); // STG_E_PATHNOTFOUND
+				}
+				else
+				{
+					if (pathParts[0] != _rootPath)
+					{
+						return unchecked((int)0x80030002); // STG_E_PATHNOTFOUND
+					}
+					else
+					{
+						folder = _rootFolder;
+						// 查找子目录
+						for (int i = 1; i < pathParts.Length; i++)
+						{
+							int result = List(folder, pathParts[i]);
+							if (result < 0) // Failed
+							{
+								return result;
+							}
+						}
+					}
+				}
+				return 0; // S_OK
+			}
+			catch (Exception ex)
+			{
+				return Marshal.GetHRForException(ex);
+			}
 		}
 
-		public int FindObject(string obj, out nint pidl)
+		private int List(IShellFolder2 folder, string name)
 		{
-			throw new NotImplementedException();
+			try
+			{
+				IntPtr pidl;
+				uint attrs = 0;
+				int hr = folder.ParseDisplayName(IntPtr.Zero, IntPtr.Zero, name, out _, out pidl, ref attrs);
+				if (hr >= 0) // Succeeded
+				{
+					IShellFolder tempFolder;
+					hr = folder.BindToObject(pidl, IntPtr.Zero, ref Guids.IID_IShellFolder, out tempFolder);
+					if (hr >= 0) // Succeeded
+					{
+						folder = (IShellFolder2)tempFolder;
+					}
+					Marshal.FreeCoTaskMem(pidl);
+				}
+				return hr;
+			}
+			catch (Exception ex)
+			{
+				return Marshal.GetHRForException(ex);
+			}
 		}
 
-		public int FindObject(IShellFolder2 parent, string name, out nint pidl)
+		public int FindObject(string obj, out IntPtr pidl)
 		{
-			throw new NotImplementedException();
+			pidl = IntPtr.Zero;
+			try
+			{
+				string path = Path.GetDirectoryName(obj);
+				IShellFolder2 folder;
+				int result = FindFolder(path, out folder);
+
+				if (result >= 0) // Succeeded
+				{
+					IntPtr itemPidl;
+					result = FindObject(folder, Path.GetFileName(obj), out itemPidl);
+
+					if (result >= 0) // Succeeded
+					{
+						IntPtr folderPidl;
+						result = API.SHGetIDListFromObject(folder, out folderPidl);
+						if (result >= 0) // Succeeded
+						{
+							pidl = API.ILCombine(folderPidl, itemPidl);
+							Marshal.FreeCoTaskMem(folderPidl);
+						}
+						Marshal.FreeCoTaskMem(itemPidl);
+					}
+				}
+				return result;
+			}
+			catch (Exception ex)
+			{
+				return Marshal.GetHRForException(ex);
+			}
 		}
 
-		// ... 其他接口实现 ...
+		public int FindObject(IShellFolder2 parent, string name, out IntPtr pidl)
+		{
+			pidl = IntPtr.Zero;
+			try
+			{
+				uint attrs = 0;
+				return parent.ParseDisplayName(IntPtr.Zero, IntPtr.Zero, name, out _, out pidl, ref attrs);
+			}
+			catch (Exception ex)
+			{
+				return Marshal.GetHRForException(ex);
+			}
+		}
+
+		public override bool CreateDirectory(string path)
+		{
+			string name = Path.GetFileName(path);
+			IShellFolder2 parent;
+			bool result = FindFolder(Path.GetDirectoryName(path), out parent) >= 0;
+			if (result)
+			{
+				result = CreateFolder(parent, name) >= 0;
+			}
+			return result;
+		}
+
+		public override bool FileSystemEntryExists(string path)
+		{
+			IntPtr obj;
+			bool result = FindObject(path, out obj) >= 0;
+			if (result)
+			{
+				Marshal.FreeCoTaskMem(obj);
+			}
+			return result;
+		}
+
+		public override FileSourceOperationTypes GetOperationsTypes()
+		{
+			return FileSourceOperationTypes.List |
+				   FileSourceOperationTypes.Execute |
+				   FileSourceOperationTypes.Delete |
+				   FileSourceOperationTypes.CreateDirectory |
+				   FileSourceOperationTypes.CopyIn |
+				   FileSourceOperationTypes.CopyOut |
+				   FileSourceOperationTypes.SetFileProperty |
+				   FileSourceOperationTypes.CalcStatistics;
+		}
+
+		public override FilePropertiesTypes GetSupportedFileProperties()
+		{
+			return base.GetSupportedFileProperties() |
+				   FilePropertiesTypes.Size |
+				   FilePropertiesTypes.Attributes |
+				   FilePropertiesTypes.ModificationTime |
+				   FilePropertiesTypes.CreationTime |
+				   FilePropertiesTypes.Link |
+				   FilePropertiesTypes.Comment;
+		}
+
+		public override string GetRootDir(string path)
+		{
+			return Path.DirectorySeparatorChar.ToString() +
+				   Path.DirectorySeparatorChar.ToString() +
+				   Path.DirectorySeparatorChar.ToString() +
+				   _rootPath +
+				   Path.DirectorySeparatorChar.ToString();
+		}
+
+		public override FileSourceProperties GetProperties()
+		{
+			return FileSourceProperties.Virtual;
+		}
+
+		public override FileSourceOperation CreateListOperation(string targetPath)
+		{
+			return new ShellListOperation(this, targetPath);
+		}
+
+		public override FileSourceOperation CreateDeleteOperation(FileEntries filesToDelete)
+		{
+			return new ShellDeleteOperation(this, filesToDelete);
+		}
+
+		public override FileSourceOperation CreateCreateDirectoryOperation(string basePath, string directoryPath)
+		{
+			return new ShellCreateDirectoryOperation(this, basePath, directoryPath);
+		}
+
+		public override FileSourceOperation CreateExecuteOperation(FileEntry executableFile, string basePath, string verb)
+		{
+			return new ShellExecuteOperation(this, executableFile, basePath, verb);
+		}
+
+		public override FileSourceOperation CreateMoveOperation(FileEntries sourceFiles, string targetPath)
+		{
+			return new ShellMoveOperation(this, sourceFiles, targetPath);
+		}
+
+		public override FileSourceOperation CreateCopyOperation(FileEntries sourceFiles, string targetPath)
+		{
+			return new ShellCopyOperation(this, this, sourceFiles, targetPath);
+		}
+
+		public override FileSourceOperation CreateCopyInOperation(IFileSource sourceFileSource, FileEntries sourceFiles, string targetPath)
+		{
+			return new ShellCopyInOperation(sourceFileSource, this, sourceFiles, targetPath);
+		}
+
+		public override FileSourceOperation CreateCopyOutOperation(IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)
+		{
+			return new ShellCopyOutOperation(this, targetFileSource, sourceFiles, targetPath);
+		}
+
+		public override FileSourceOperation CreateCalcStatisticsOperation(FileEntries files)
+		{
+			return new ShellCalcStatisticsOperation(this, files);
+		}
+
+		public override FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, FileProperties newProperties)
+		{
+			return new ShellSetFilePropertyOperation(this, targetFiles, newProperties);
+		}
 	}
 }

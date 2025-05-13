@@ -104,19 +104,19 @@ namespace zfile
             return file;
         }
 
-        public FileSourceOperationType GetOperationTypes()
+        public FileSourceOperationTypes GetOperationTypes()
         {
-            var result = FileSourceOperationType.List | FileSourceOperationType.CopyOut |
-                        FileSourceOperationType.TestArchive | FileSourceOperationType.Execute |
-                        FileSourceOperationType.CalcStatistics;
+            var result = FileSourceOperationTypes.List | FileSourceOperationTypes.CopyOut |
+                        FileSourceOperationTypes.TestArchive | FileSourceOperationTypes.Execute |
+                        FileSourceOperationTypes.CalcStatistics;
 
             if (((_pluginCapabilities & (int)PackerCaps.PK_CAPS_NEW) != 0 || (_pluginCapabilities & (int)PackerCaps.PK_CAPS_MODIFY) != 0) &&
                 (_wcxModule._packFiles != null || _wcxModule._packFilesW != null))
-                result |= FileSourceOperationType.CopyIn;
+                result |= FileSourceOperationTypes.CopyIn;
 
             if ((_pluginCapabilities & (int)PackerCaps.PK_CAPS_DELETE) != 0 &&
                 (_wcxModule._deleteFiles != null || _wcxModule._deleteFilesW != null))
-                result |= FileSourceOperationType.Delete;
+                result |= FileSourceOperationTypes.Delete;
 
             return result;
         }
@@ -273,7 +273,7 @@ namespace zfile
             }
         }
 
-        private void NotifyNextWaitingOperation(FileSourceOperationType allowedOps)
+        private void NotifyNextWaitingOperation(FileSourceOperationTypes allowedOps)
         {
             lock (_operationsQueueLock)
             {
@@ -301,21 +301,21 @@ namespace zfile
             ClearCurrentOperation(operation);
 
             // Determine which operations can be performed based on the finished operation
-            FileSourceOperationType allowedOps = FileSourceOperationType.None;
+            FileSourceOperationTypes allowedOps = FileSourceOperationTypes.None;
 
             switch (operation.OperationType)
             {
-                case FileSourceOperationType.CopyIn:
-                    allowedOps = FileSourceOperationType.CopyIn;
+                case FileSourceOperationTypes.CopyIn:
+                    allowedOps = FileSourceOperationTypes.CopyIn;
                     break;
-                case FileSourceOperationType.CopyOut:
-                    allowedOps = FileSourceOperationType.CopyOut;
+                case FileSourceOperationTypes.CopyOut:
+                    allowedOps = FileSourceOperationTypes.CopyOut;
                     break;
-                case FileSourceOperationType.Delete:
-                    allowedOps = FileSourceOperationType.Delete;
+                case FileSourceOperationTypes.Delete:
+                    allowedOps = FileSourceOperationTypes.Delete;
                     break;
-                case FileSourceOperationType.TestArchive:
-                    allowedOps = FileSourceOperationType.TestArchive;
+                case FileSourceOperationTypes.TestArchive:
+                    allowedOps = FileSourceOperationTypes.TestArchive;
                     break;
             }
 
@@ -343,16 +343,16 @@ namespace zfile
 
                 switch (operation.OperationType)
                 {
-                    case FileSourceOperationType.CopyIn:
+                    case FileSourceOperationTypes.CopyIn:
                         connIndex = 0; // connCopyIn
                         break;
-                    case FileSourceOperationType.CopyOut:
+                    case FileSourceOperationTypes.CopyOut:
                         connIndex = 1; // connCopyOut
                         break;
-                    case FileSourceOperationType.Delete:
+                    case FileSourceOperationTypes.Delete:
                         connIndex = 2; // connDelete
                         break;
-                    case FileSourceOperationType.TestArchive:
+                    case FileSourceOperationTypes.TestArchive:
                         connIndex = 3; // connTestArchive
                         break;
                 }

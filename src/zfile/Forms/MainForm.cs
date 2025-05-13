@@ -380,9 +380,7 @@ namespace zfile
 						RecordDirectoryHistory(path);
 					else
 						CurrentFullpath[LRflag] = path; // 直接更新当前目录，不记录历史
-				}
-				if (isactive)
-				{
+	
 					activeTreeview.SelectedNode = node;
 					RefreshPanel(activeListView);
 					//Debug.Print($" for {activeListView.Name}");
@@ -698,7 +696,7 @@ namespace zfile
 			if (listView?.SelectedItems.Count == 0) return;
 
 			// 收集拖拽项路径
-			draggedItems = [..listView.SelectedItems.Cast<ListViewItem>().Select(item => GetListItemPath(item))];
+			draggedItems = [.. listView.SelectedItems.Cast<ListViewItem>().Select(item => GetListItemPath(item))];
 			// 启动拖拽操作
 			listView.DoDragDrop(new DataObject(DataFormats.FileDrop, draggedItems), DragDropEffects.Copy);
 		}
@@ -1043,8 +1041,9 @@ namespace zfile
 
 						foreach (ListViewItem item in activeListView.SelectedItems)
 						{
-							if (item.Tag is FileEntry file)
+							if (item.Tag is LvItemTag tag)
 							{
+								var file = tag.File;
 								// Get original path from link property
 								//string originalPath = file.LinkProperty.LinkTarget;
 								string originalPath = file.FullPath;
@@ -1524,7 +1523,7 @@ namespace zfile
 			if (string.IsNullOrEmpty(newName))
 			{
 				MessageBox.Show("文件名不能为空");
-				if(item != null) item.Text = oldName;
+				if (item != null) item.Text = oldName;
 				return;
 			}
 			string oldPath = Path.Combine(CurrentFullpath[LRflag], oldName);
@@ -1533,7 +1532,7 @@ namespace zfile
 			if (File.Exists(newPath) || Directory.Exists(newPath))
 			{
 				MessageBox.Show("文件已存在");
-				if(item != null) item.Text = oldName;
+				if (item != null) item.Text = oldName;
 				return;
 			}
 			try
@@ -1546,7 +1545,7 @@ namespace zfile
 			catch (Exception ex)
 			{
 				MessageBox.Show($"重命名失败: {ex.Message}", "错误");
-				if(item != null) item.Text = oldName;
+				if (item != null) item.Text = oldName;
 			}
 			RefreshPanel(listView);
 		}
@@ -1598,6 +1597,7 @@ namespace zfile
 					{
 						if (node.Text.Equals("回收站"))
 						{
+							showCtxMenuOnRecyclebin();
 							return;
 						}
 						// Get the full path by combining current directory and selected item name
@@ -1617,6 +1617,13 @@ namespace zfile
 				}
 				return;
 			}
+		}
+		private void showCtxMenuOnRecyclebin()
+		{
+			var menu = new ContextMenuStrip();
+			menu.Items.Add("还原", null, MenuItemRestore_Click);
+			menu.Items.Add("清空回收站", null, MenuItemEmptyRecycleBin_Click);
+			menu.Show(Cursor.Position);
 		}
 		//private void SelectItemsInRectangle(ListView listView, Rectangle rect)
 		//{
@@ -2094,9 +2101,9 @@ namespace zfile
 						var pathPart = path.Split('\\');
 						name = !pathPart[^1].Equals(string.Empty) ? pathPart[^1] : pathPart[^2];
 						var subItem = new ShellItem(pidlSub, iSub, root); //子节点的tag存放pidl和ishellfolder接口
-																		  //if (subItem.parsepath.Equals("::{26EE0668-A00A-44D7-9371-BEB064C98683}"))//控制面板
-																		  //if (subItem.parsepath.Equals("::{645FF040-5081-101B-9F08-00AA002F954E}") )//回收站
-																		  // 使用路径作为唯一标识符，而不是PIDL的内存地址
+						//if (subItem.parsepath.Equals("::{26EE0668-A00A-44D7-9371-BEB064C98683}"))//控制面板
+						//if (subItem.parsepath.Equals("::{645FF040-5081-101B-9F08-00AA002F954E}") )//回收站
+						// 使用路径作为唯一标识符，而不是PIDL的内存地址
 						string nodeKey = path;
 						newPidls.Add(nodeKey);
 
@@ -2447,10 +2454,10 @@ namespace zfile
 			else
 				fileSource = CurrentFullpath.GetFileSource(listView.Name);
 			// 更新当前面板的 FileSource
-			if (isLeftPanel)
-				LeftFileSource = fileSource;
-			else
-				RightFileSource = fileSource;
+			//if (isLeftPanel)
+			//	LeftFileSource = fileSource;
+			//else
+			//	RightFileSource = fileSource;
 
 			try
 			{
@@ -2668,7 +2675,7 @@ namespace zfile
 		//			{
 		//				item.Name,
 		//				item.FullName,	//真实完整路径
-  //                      FileSystemManager.FormatFileSize(fileInfo.Length, true),
+		//                      FileSystemManager.FormatFileSize(fileInfo.Length, true),
 		//				fileInfo.Extension.ToUpperInvariant(),
 		//				item.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),
 		//				fileInfo.Length.ToString(),
@@ -2930,7 +2937,7 @@ namespace zfile
 			// 非FTP路径或FTP处理失败，或者是不需要下载的操作（cm_copy, cm_renmov, cm_delete），使用原来的逻辑
 			return originalFiles;
 		}
-	
+
 		/// <summary>
 		/// 将FTP文件下载到临时目录
 		/// </summary>
@@ -2964,7 +2971,7 @@ namespace zfile
 					opitem?.OperationThread.WaitFor();
 
 					Debug.Print($"now check the copyout operation result{copyOutOperation.Result}");
-					
+
 					// 检查操作是否成功完成
 					if (copyOutOperation.Result == FileSourceOperationResult.Finished)//bugfix: when check the copyoutoperation.result, the operation is being executed, so the result is not finished yet.
 					{
@@ -3111,13 +3118,13 @@ namespace zfile
 			LoadSubDirectories(node, listView);
 
 			// 使用 FileSourceManager 获取合适的 FileSource
-			IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, listView.Name.Equals("L"));
+			//IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, listView.Name.Equals("L"));
 
-			// 更新当前面板的 FileSource
-			if (listView == uiManager.LeftList)
-				LeftFileSource = fileSource;
-			else
-				RightFileSource = fileSource;
+			//// 更新当前面板的 FileSource
+			//if (listView == uiManager.LeftList)
+			//	LeftFileSource = fileSource;
+			//else
+			//	RightFileSource = fileSource;
 
 			// 使用 FileSource 架构加载文件列表
 			LoadListViewByFileSourceSync(path, listView, node);
@@ -3287,9 +3294,13 @@ namespace zfile
 				{
 					RefreshTreeViewAndListView(uiManager.LeftList, ftpnode.Path);
 				}
-				else if (uiManager.LeftPathTextBox.CurrentNode != null)
+				//else if (uiManager.LeftPathTextBox.CurrentNode != null)
+				//{
+				//	RefreshTreeViewAndListView(uiManager.LeftList, uiManager.LeftPathTextBox.CurrentNode.UniqueID);
+				//}
+				else if (uiManager.LeftTree.SelectedNode?.Tag is ShellItem shellItem)
 				{
-					RefreshTreeViewAndListView(uiManager.LeftList, uiManager.LeftPathTextBox.CurrentNode.UniqueID);
+					RefreshTreeViewAndListView(uiManager.LeftList, shellItem.parsepath);
 				}
 			}
 
@@ -3671,7 +3682,7 @@ namespace zfile
 					// 特殊情况：如果源和目标都是WcxArchiveFileSource，需要通过临时文件系统进行复制
 					if (operation == null)
 						return CopyViaTemporaryDirectory(sourceFileSource, targetFileSource, fileEntries, targetPath);
-		
+
 					_operationsManager.AddOperation(operation);
 					operation._Thread.WaitFor();
 
@@ -4168,7 +4179,7 @@ namespace zfile
 								tempFiles.Add(tempFile);
 							}
 						}
-			
+
 						// 第二步：从临时文件系统复制到目标压缩文件
 						//var arc = targetFileSource as IArchiveFileSource;
 						var copyInOperation = targetFileSource.CreateCopyInOperation(tempFileSource, tempFiles, targetPath);

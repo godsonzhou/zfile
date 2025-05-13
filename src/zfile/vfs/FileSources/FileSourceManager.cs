@@ -152,6 +152,12 @@ namespace zfile
 				panelCache[fullpath] = controlPanelSource;
 				return controlPanelSource;
 			}
+			if (fullpath == "桌面")
+			{
+				var shellfilesource = new ShellFileSource();
+				panelCache[fullpath] = shellfilesource;
+				return shellfilesource;
+			}
 			if (!fullpath.Contains(":"))
                 throw new Exception("路径中不能为相对路径");
 

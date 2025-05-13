@@ -59,7 +59,9 @@ namespace zfile
 
 							StringBuilder pszPath = new();
 							API.SHGetPathFromIDList(pidl, pszPath);
-							var file = RecycleBinFileSource.CreateFile(Path+ pszPath.ToString());
+							var fullpath = pszPath.ToString();
+							
+							var file = RecycleBinFileSource.CreateFile(fullpath);
 							file.Name = w32.GetNameByIShell(folder, pidl);//删除前的名称
 							file.FullPath = w32.GetDisplayName2(folder, pidl, SHGDN.NORMAL); //删除前的路径
 							//file.FullPath = w32.GetPathByIShell(folder, pidl); //删除前的路径
@@ -76,7 +78,7 @@ namespace zfile
                                 file.ModificationTime = DateTime.FromFileTime(attr.LastWriteTime);
                                 file.CommentProperty.Value = w32.GetDetails(folder, pidl, SCID_OriginalLocation);
                                 //file.ChangeTime = DateTime.FromOADate(
-                                    //Convert.ToDouble(w32.GetDetails(folder, pidl, SCID_DateDeleted)));
+                                //Convert.ToDouble(w32.GetDetails(folder, pidl, SCID_DateDeleted)));
                             }
 
                             Files.Add(file);

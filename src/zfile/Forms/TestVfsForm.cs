@@ -1,14 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Windows.Forms;
 using Microsoft.VisualBasic;
 using Shell32;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
+using System.Text;
 using WinShell;
+
 namespace zfile
 {
     public partial class TestVfsForm : Form
@@ -26,7 +22,6 @@ namespace zfile
             _currentFiles = new FileEntries();
             InitializeTreeView();
         }
-
 
         private void TestVfsForm_Load(object sender, EventArgs e)
         {
@@ -118,8 +113,6 @@ namespace zfile
                     DisplayFiles(_currentFiles);
                 }
 
-
-
                 // Update status bar
                 toolStripStatusLabel.Text = $"文件系统: {_currentPath}";
             }
@@ -144,8 +137,6 @@ namespace zfile
                     _currentFiles = ((FileSourceListOperation)listOperation).Files;
                     DisplayFiles(_currentFiles);
                 }
-
-
 
                 // Update status bar
                 toolStripStatusLabel.Text = "回收站";
@@ -441,8 +432,6 @@ namespace zfile
                         _currentFiles = ((FileSourceListOperation)listOperation).Files;
                         DisplayFiles(_currentFiles);
                     }
-
-
 
                     // Update status bar
                     toolStripStatusLabel.Text = $"压缩文件: {archivePath}";

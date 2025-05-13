@@ -1,3 +1,4 @@
+using Shell32;
 using Sheng.Winform.Controls;
 using System.Collections;
 using System.Diagnostics;
@@ -943,6 +944,191 @@ namespace zfile
 			}
 		}
 
+		private void MenuItemEmptyRecycleBin_Click(object sender, EventArgs e)
+		{
+			if (CurrentFullpath.GetFileSource(LRflag) is RecycleBinFileSource)
+			{
+				if (MessageBox.Show("确定要清空回收站吗?", "确认", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+				{
+					try
+					{
+						// Initialize COM
+						//w32.InitializeCOM();
+
+						try
+						{
+							// Empty recycle bin using Shell API
+							// Pass null for pszRootPath to empty all recycle bins
+							// Use SHERB.NOCONFIRMATION to suppress the confirmation dialog
+							int result = API.SHEmptyRecycleBin(
+								Handle,
+								null,
+								(uint)SHERB.NOCONFIRMATION
+							);
+
+							if (result != 0)
+							{
+								Marshal.ThrowExceptionForHR(result);
+							}
+						}
+						finally
+						{
+							// Uninitialize COM
+							//w32.UninitializeCOM();
+						}
+
+						// Refresh view
+						//RefreshCurrentView();
+						RefreshPanel();
+						MessageBox.Show("回收站已清空", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
+					}
+					catch (Exception ex)
+					{
+						MessageBox.Show($"清空回收站出错: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					}
+				}
+			}
+		}
+		private static void Restore(string filepath)
+		{
+			//object[] args = (object[])param;
+			//string filename = (string)args[0];
+			//string filepath = (string)args[1];
+
+			var Shl = new Shell();
+			Folder Recycler = Shl.NameSpace(10);
+			var c = Recycler.Items().Count;
+
+			var _recycler = Recycler.Items();
+			for (int i = 0; i < _recycler.Count; i++)
+			{
+				FolderItem FI = _recycler.Item(i);
+				string FileName = Recycler.GetDetailsOf(FI, 0);
+				if (Path.GetExtension(FileName) == "") FileName += Path.GetExtension(FI.Path);
+				//Necessary for systems with hidden file extensions.
+
+				string FilePath = Recycler.GetDetailsOf(FI, 1);
+				if (filepath == Path.Combine(FilePath, FileName))
+				{
+					DoVerb(FI, "还原");
+					break;
+				}
+			}
+		}
+
+		private static bool DoVerb(FolderItem Item, string Verb)
+		{
+			foreach (FolderItemVerb FIVerb in Item.Verbs())
+			{
+				if (FIVerb.Name.Contains(Verb, StringComparison.OrdinalIgnoreCase))
+				{
+					FIVerb.DoIt();
+					return true;
+				}
+			}
+			return false;
+		}
+		private void MenuItemRestore_Click(object sender, EventArgs e)
+		{
+			if (CurrentFullpath.GetFileSource(LRflag) is RecycleBinFileSource && activeListView.SelectedItems.Count > 0)
+			{
+				try
+				{
+					// Initialize COM
+					//w32.InitializeCOM();
+
+					try
+					{
+						bool anyRestored = false;
+
+						foreach (ListViewItem item in activeListView.SelectedItems)
+						{
+							if (item.Tag is FileEntry file)
+							{
+								// Get original path from link property
+								//string originalPath = file.LinkProperty.LinkTarget;
+								string originalPath = file.FullPath;
+								if (string.IsNullOrEmpty(originalPath))
+								{
+									MessageBox.Show($"无法还原 {file.Name}，找不到原始路径", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+									continue;
+								}
+
+								// Create directory for the file if it doesn't exist
+								string? directory = Path.GetDirectoryName(originalPath);
+								if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+								{
+									Directory.CreateDirectory(directory);
+								}
+								Restore(originalPath);
+								//// Get the full path to the file in the recycle bin
+								//string recycleBinPath = file.LinkProperty.LinkTarget; //file.FullPath ?? string.Empty;
+
+								//                        // Create a shell item for the file in the recycle bin
+								//                        IShellItem? shellItem = null;
+								//                        IntPtr pidl = API.ILCreateFromPath(recycleBinPath);
+
+								//                        try
+								//                        {
+								//                            Guid iidShellItem = Guids.IID_IShellItem;
+								//                            int hr = API.SHCreateItemFromIDList(pidl, ref iidShellItem, out shellItem);
+
+								//                            if (hr != 0)
+								//                            {
+								//                                Marshal.ThrowExceptionForHR(hr);
+								//                            }
+
+								//                            // Get the parent folder of the file
+								//                            w32.OleCheck(API.SHGetDesktopFolder(out IShellFolder desktopFolder));
+
+								//                            // Get the context menu for the file
+								//                            Guid iidContextMenu = Guids.IID_IContextMenu;
+								//                            IntPtr[] pidls = [pidl];
+								//                            desktopFolder.GetUIObjectOf(IntPtr.Zero, 1, pidls, ref iidContextMenu, out IntPtr contextMenuPtr);
+
+								//                            IContextMenu contextMenu = (IContextMenu)Marshal.GetObjectForIUnknown(contextMenuPtr);
+
+								//                            // Execute the "Restore" verb
+								//                            ContextMenuHandler.ExecuteVerb(this, "restore", string.Empty, contextMenu);
+
+								//                            anyRestored = true;
+								//                        }
+								//                        finally
+								//                        {
+								//                            if (pidl != IntPtr.Zero)
+								//                            {
+								//                                API.ILFree(pidl);
+								//                            }
+
+								//                            if (shellItem != null)
+								//                            {
+								//                                Marshal.ReleaseComObject(shellItem);
+								//                            }
+								//                        }
+							}
+						}
+
+						if (anyRestored)
+						{
+							// Refresh view
+							//RefreshCurrentView();
+							RefreshPanel();
+							MessageBox.Show("文件已成功还原", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
+						}
+					}
+					finally
+					{
+						// Uninitialize COM
+						//w32.UninitializeCOM();
+					}
+				}
+				catch (Exception ex)
+				{
+					MessageBox.Show($"还原文件出错: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			}
+		}
+
 		private void ShowCtxMenuOnListview(string path, Point location)
 		{
 			// 先获取路径的父目录
@@ -1026,7 +1212,6 @@ namespace zfile
 					API.ILFree(pidl);
 			}
 		}
-
 
 		private void ShowContextMenuOnTreeview(TreeNode node, Point location)
 		{
@@ -1411,6 +1596,10 @@ namespace zfile
 					TreeNode? node = tree1.SelectedNode;
 					if (node != null)
 					{
+						if (node.Text.Equals("回收站"))
+						{
+							return;
+						}
 						// Get the full path by combining current directory and selected item name
 						//string iPath = Path.Combine(currentDirectory[isleft], item.Text);
 						string iPath = item.SubItems[1].Text;

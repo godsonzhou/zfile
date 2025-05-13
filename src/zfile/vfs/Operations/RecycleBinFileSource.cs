@@ -38,7 +38,9 @@ namespace zfile
 
         public static FileEntry CreateFile(string path)
         {
-            var file = new FileEntry(path);
+			var dir = Path.GetDirectoryName(path);
+			var name = Path.GetFileName(path);
+			var file = new FileEntry(dir, name);
             file.AttributesProperty = new FileAttributesProperty();
             file.SizeProperty = new FileSizeProperty();
             file.ModificationTimeProperty = new FileModificationDateTimeProperty();

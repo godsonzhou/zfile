@@ -175,7 +175,7 @@ namespace zfile
 			if (_ftpNodes.TryGetValue(connectionName, out TreeNode? node) && node.Tag is FtpNodeTag tag)
 			{
 				if (recordHistory)
-					form.RecordDirectoryHistory(path);
+					form.RecordDirectoryHistory(path, form.CurrentFullpath.GetFileSource(listView.Name));
 				tag.Path = path;
 
 				// 更新活动书签

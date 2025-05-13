@@ -950,10 +950,8 @@ namespace zfile
 		public static string getFSpathbyTree(TreeNode Node)
 		{
 			if (Node.Parent == null)
-			{
-				//top node process, does not need to process listviewbyfilesystem
-				return string.Empty;
-			}
+				return "桌面";
+			
 			if (Node.Parent.Tag is ShellItem && Node.Tag is ShellItem item) {
 				var parentfolder = ((ShellItem)Node.Parent.Tag).ShellFolder;    //获取父节点的ishellfoler
 				var pidl = ((ShellItem)Node.Tag).PIDL;  //获取c:\\节点的pidl

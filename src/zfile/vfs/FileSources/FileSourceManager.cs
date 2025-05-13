@@ -152,7 +152,7 @@ namespace zfile
 				panelCache[fullpath] = controlPanelSource;
 				return controlPanelSource;
 			}
-			if (fullpath == "桌面")
+			if (fullpath.Equals("桌面") || fullpath.Equals("此电脑"))
 			{
 				var shellfilesource = new ShellFileSource();
 				panelCache[fullpath] = shellfilesource;

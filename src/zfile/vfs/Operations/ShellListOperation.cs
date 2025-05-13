@@ -27,14 +27,10 @@ namespace zfile
             Files.Clear();
             try
             {
-                if (shellFileSource.IsPathAtRoot(Path))
-                {
-                    ListDrives();
-                }
-                else
-                {
-                    ListDirectory();
-                }
+				if (Path.Equals("´ËµçÄÔ"))
+					ListDrives();
+				else //if (shellFileSource.IsPathAtRoot(Path))
+					ListDirectory(); //if path is desktop, use listdir
             }
             catch
             {
@@ -79,39 +75,39 @@ namespace zfile
                             }
                         }
 
-                        object value = w32.GetDetails(folder, pidl, SCIDHelper.FileSize);
-                        if (value is long longValue)
-                        {
-                            file.Size = longValue;
-                        }
-                        else if (file.IsDirectory)
-                        {
-                            file.Size = 0;
-                        }
-                        else
-                        {
-                            file.SizeProperty.IsValid = false;
-                        }
+                        //object value = w32.GetDetails(folder, pidl, SCIDHelper.FileSize);
+                        //if (value is long longValue)
+                        //{
+                        //    file.Size = longValue;
+                        //}
+                        //else if (file.IsDirectory)
+                        //{
+                        //    file.Size = 0;
+                        //}
+                        //else
+                        //{
+                        //    file.SizeProperty.IsValid = false;
+                        //}
 
-                        value = w32.GetDetails(folder, pidl, SCIDHelper.DateModified);
-                        if (value != null)
-                        {
-                            file.ModificationTime = (DateTime)value;
-                        }
-                        else
-                        {
-                            file.ModificationTimeProperty.IsValid = false;
-                        }
+                        //value = w32.GetDetails(folder, pidl, SCIDHelper.DateModified);
+                        //if (value != null)
+                        //{
+                        //    file.ModificationTime = (DateTime)value;
+                        //}
+                        //else
+                        //{
+                        //    file.ModificationTimeProperty.IsValid = false;
+                        //}
 
-                        value = w32.GetDetails(folder, pidl, SCIDHelper.DateCreated);
-                        if (value != null)
-                        {
-                            file.CreationTime = (DateTime)value;
-                        }
-                        else
-                        {
-                            file.CreationTimeProperty.IsValid = false;
-                        }
+                        //value = w32.GetDetails(folder, pidl, SCIDHelper.DateCreated);
+                        //if (value != null)
+                        //{
+                        //    file.CreationTime = (DateTime)value;
+                        //}
+                        //else
+                        //{
+                        //    file.CreationTimeProperty.IsValid = false;
+                        //}
 
                         Files.Add(file);
                     }
@@ -175,19 +171,23 @@ namespace zfile
 
                         file.ModificationTimeProperty.IsValid = false;
 
-                        object value = w32.GetDetails(shellFolder2, pidl, SCIDHelper.Capacity);
-                        if (value is long longValue)
-                        {
-                            file.Size = longValue;
-                        }
-                        else if (file.IsDirectory)
-                        {
-                            file.Size = 0;
-                        }
-                        else
-                        {
-                            file.SizeProperty.IsValid = false;
-                        }
+						try
+						{
+							object value = w32.GetDetails(shellFolder2, pidl, SCIDHelper.Capacity);//todo: get capacity return 0?
+							if (value is long longValue)
+							{
+								file.Size = longValue;
+							}
+							else if (file.IsDirectory)
+							{
+								file.Size = 0;
+							}
+							else
+							{
+								file.SizeProperty.IsValid = false;
+							}
+						}
+						catch { }
 
                         Files.Add(file);
                     }
@@ -207,8 +207,8 @@ namespace zfile
         {
             if (shellFileSource.FindFolder(Path.TrimEnd('\\'), out IShellFolder2 folder) == 0)
             {
-                ListFolder(folder, (uint)(SHCONTF.FOLDERS | SHCONTF.NONFOLDERS | SHCONTF.INCLUDEHIDDEN));
-            }
+                ListFolder(folder, (uint)(SHCONTF.FOLDERS )); //| SHCONTF.NONFOLDERS | SHCONTF.INCLUDEHIDDEN
+			}
         }
     }
 }

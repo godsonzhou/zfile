@@ -22,10 +22,11 @@ namespace zfile
 			w32.OleCheck(API.SHGetFolderLocation(IntPtr.Zero, CSIDL.DRIVES, IntPtr.Zero, 0, out _drives));
 
 			// Use IShellFolder interface for BindToObject, then cast to IShellFolder2
-			IShellFolder tempFolder;
-			_desktopFolder.BindToObject(_drives, IntPtr.Zero, ref Guids.IID_IShellFolder, out tempFolder);
-			_rootFolder = (IShellFolder2)tempFolder;
-			_rootPath = w32.GetDisplayName(_desktopFolder, _drives, SHGDN.INFOLDER);
+			//IShellFolder tempFolder;
+			//_desktopFolder.BindToObject(_drives, IntPtr.Zero, ref Guids.IID_IShellFolder, out tempFolder);
+			//_rootFolder = (IShellFolder2)tempFolder; //change rootfolder from 此电脑 -> 桌面
+			_rootFolder = (IShellFolder2)w32.GetDesktopFolder(out _);//(IShellFolder2)_desktopFolder;
+			//_rootPath = ""; // w32.GetDisplayName(_desktopFolder, _drives, SHGDN.INFOLDER);  //c: d: e: use filesystemfilesource, use shellfilesource to process virtual node, for instance, control panel, desktop, etc.
 
 			OperationsClasses[FileSourceOperationTypes.Move] = typeof(ShellMoveOperation);
 			OperationsClasses[FileSourceOperationTypes.Copy] = typeof(ShellCopyOperation);
@@ -37,6 +38,8 @@ namespace zfile
 			OperationsClasses[FileSourceOperationTypes.Execute] = typeof(ShellExecuteOperation);
 			OperationsClasses[FileSourceOperationTypes.CalcStatistics] = typeof(ShellCalcStatisticsOperation);
 			OperationsClasses[FileSourceOperationTypes.SetFileProperty] = typeof(ShellSetFilePropertyOperation);
+			//_rootPath = w32.GetDisplayName(_desktopFolder, _drives, SHGDN.INFOLDER);    //此电脑
+			_rootPath = "桌面";
 		}
 
 		~ShellFileSource()

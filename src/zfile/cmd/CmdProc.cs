@@ -848,21 +848,21 @@ namespace zfile
 			// 收集左面板文件名
 			foreach (ListViewItem item in leftList.Items)
 			{
-				if (!item.SubItems[3].Text.Equals("<DIR>"))
+				if (!item.SubItems[MainForm.LVCOL_TYPE].Text.Equals("<DIR>"))
 					leftFiles.Add(item.Text);
 			}
 
 			// 收集右面板文件名
 			foreach (ListViewItem item in rightList.Items)
 			{
-				if (!item.SubItems[3].Text.Equals("<DIR>"))
+				if (!item.SubItems[MainForm.LVCOL_TYPE].Text.Equals("<DIR>"))
 					rightFiles.Add(item.Text);
 			}
 
 			// 遍历左面板文件，标记差异
 			foreach (ListViewItem item in leftList.Items)
 			{
-				if (item.SubItems[3].Text.Equals("<DIR>")) continue;
+				if (item.SubItems[MainForm.LVCOL_TYPE].Text.Equals("<DIR>")) continue;
 				if (!rightFiles.Contains(item.Text))
 				{
 					// 文件只存在于左面板，高亮显示
@@ -885,7 +885,7 @@ namespace zfile
 			// 遍历右面板文件，标记差异
 			foreach (ListViewItem item in rightList.Items)
 			{
-				if (item.SubItems[3].Text.Equals("<DIR>")) continue;
+				if (item.SubItems[MainForm.LVCOL_TYPE].Text.Equals("<DIR>")) continue;
 				if (!leftFiles.Contains(item.Text))
 				{
 					// 文件只存在于右面板，高亮显示
@@ -1284,7 +1284,7 @@ namespace zfile
 			// 比较文件并选择符合条件的文件
 			foreach (ListViewItem leftItem in leftList.Items)
 			{
-				if (leftItem.SubItems[3].Text.Equals("<DIR>")) continue;
+				if (leftItem.SubItems[MainForm.LVCOL_TYPE].Text.Equals("<DIR>")) continue;
 				string fileName = leftItem.Text;
 				string leftFullPath = Path.Combine(leftPath, fileName);
 				FileInfo leftFileInfo = new FileInfo(leftFullPath);
@@ -1333,7 +1333,7 @@ namespace zfile
 
 			foreach (ListViewItem rightItem in rightList.Items)
 			{
-				if (rightItem.SubItems[3].Text.Equals("<DIR>")) continue;
+				if (rightItem.SubItems[MainForm.LVCOL_TYPE].Text.Equals("<DIR>")) continue;
 				string fileName = rightItem.Text;
 				string rightFullPath = Path.Combine(rightPath, fileName);
 				FileInfo rightFileInfo = new FileInfo(rightFullPath);

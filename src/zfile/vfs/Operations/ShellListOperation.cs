@@ -174,6 +174,7 @@ namespace zfile
 						try
 						{
 							object value = w32.GetDetails(shellFolder2, pidl, SCIDHelper.Capacity);//todo: get capacity return 0?
+
 							if (value is long longValue)
 							{
 								file.Size = longValue;

@@ -12,7 +12,7 @@ using Keys = System.Windows.Forms.Keys;
 
 namespace zfile
 {
-
+	
 	public partial class MainForm : Form
 	{
 		public class lrflag
@@ -191,6 +191,11 @@ namespace zfile
 			}
 		}
 		const int ILD_TRANSPARENT = 0x00000001;
+		public const int LVCOL_NAME = 0;
+		public const int LVCOL_SIZE = 1;
+		public const int LVCOL_TYPE = 2;
+		public const int LVCOL_DATE = 3;
+		public const int LVCOL_ATTR = 4;
 		public static MainForm Instance { get; private set; } = null!;
 		public static IntPtr _Handle { get; set; }
 		public static int MainThreadId { get; set; } = 0;
@@ -804,7 +809,7 @@ namespace zfile
 				if (targetItem != null)
 				{
 					targetPath = GetListItemPath(targetItem)?.FullPath;
-					return targetItem.SubItems[3].Text.Equals("<DIR>"); //IN ftp panel, if target is a dir then return true, otherwise return false
+					return targetItem.SubItems[LVCOL_TYPE].Text.Equals("<DIR>"); //IN ftp panel, if target is a dir then return true, otherwise return false
 				}
 				else
 				{
@@ -1502,7 +1507,7 @@ namespace zfile
 			var listView = sender as ListView;
 			if (listView?.SelectedItems.Count == 0) return;
 			var item = listView?.SelectedItems[0];
-			if (item?.SubItems[3].Text == "本地磁盘")
+			if (item?.SubItems[LVCOL_TYPE].Text == "本地磁盘")
 			{
 				MessageBox.Show("不能重命名本地磁盘");
 				e = null;
@@ -1675,7 +1680,8 @@ namespace zfile
 				return;
 
 			//string path = Path.Combine(CurrentDir[LRflag], selectedItem.Text);//bugfix:平铺模式下此方法获取完整路径不行，改为直接从subitem[1]读取
-			var path = selectedItem.SubItems[1].Text;
+			var path = (selectedItem.Tag as LvItemTag)?.File?.FullPath;
+			//var path = selectedItem.SubItems[1].Text;
 			var fileSource = CurrentFullpath.GetFileSource(LRflag);
 			var isarchive = false;
 			var isinarchive = false;
@@ -1719,7 +1725,7 @@ namespace zfile
 			}
 			// 获取关联的TreeView
 			var treeView = listView == uiManager.LeftList ? uiManager.LeftTree : uiManager.RightTree;
-			if (selectedItem.SubItems[3].Text.Equals("<DIR>") || selectedItem.SubItems[3].Text == "本地磁盘")
+			if (selectedItem.SubItems[LVCOL_TYPE].Text.Equals("<DIR>") || selectedItem.SubItems[LVCOL_TYPE].Text == "本地磁盘")
 			{
 				//try
 				{
@@ -2180,7 +2186,7 @@ namespace zfile
 
 						if (lv != null)
 						{
-							string[] s = ["", name, "", name.Contains(':') ? "本地磁盘" : "<CLS>", "", ""];
+							string[] s = ["", name, name.Contains(':') ? "本地磁盘" : "<CLS>", ""];
 							var i = new ListViewItem(s);
 							var ico = IconManager.GetIconKey(subItem);
 							if (lv.View == View.Tile)
@@ -2328,7 +2334,7 @@ namespace zfile
 		{
 			if (lvItem != null)
 			{
-				if (lvItem.SubItems[3].Text.Equals("<DIR>"))
+				if (lvItem.SubItems[MainForm.LVCOL_TYPE].Text.Equals("<DIR>"))
 				{
 					iconManager.LoadIconFromCacheByKey("folder", listView.SmallImageList);
 					iconManager.LoadIconFromCacheByKey("folder", listView.LargeImageList, true);
@@ -2336,7 +2342,7 @@ namespace zfile
 				}
 				else
 				{
-					var itemFullName = lvItem.SubItems[1].Text;
+					var itemFullName = (lvItem.Tag as LvItemTag)?.File?.FullPath;	//lvItem.SubItems[1].Text;
 					var key = Path.GetExtension(itemFullName);
 
 					// 设置默认图标
@@ -2408,10 +2414,10 @@ namespace zfile
 				if (isYin && isYin1) // (itemRect.IntersectsWith(visibleRect))// temp set to true
 				{
 					var itemFullName = item.SubItems[1].Text;
-					if (item.SubItems[3].Text.Equals("<DIR>"))
+					if (item.SubItems[LVCOL_TYPE].Text.Equals("<DIR>"))
 					{
 						//if is dir, calc dir size
-						if ((item.SubItems[5].Text.Equals("0")) && showFolderSize)
+						if ((item.SubItems[LVCOL_SIZE].Text.Equals("0")) && showFolderSize)
 						{
 							itemsForJob.Add(itemFullName);
 							lvitemsForJob.Add(item);
@@ -2449,15 +2455,18 @@ namespace zfile
 
 			// 使用 FileSourceManager 获取合适的 FileSource
 			IFileSource? fileSource;
-			if (Path.IsPathFullyQualified(path))
-				fileSource = _fileSourceManager.GetFileSourceForFullPath(path, isLeftPanel);
-			else
+			//if (Path.IsPathFullyQualified(path))
+			//	fileSource = _fileSourceManager.GetFileSourceForFullPath(path, isLeftPanel);
+			//else
 				fileSource = CurrentFullpath.GetFileSource(listView.Name);
+
 			// 更新当前面板的 FileSource
 			//if (isLeftPanel)
 			//	LeftFileSource = fileSource;
 			//else
 			//	RightFileSource = fileSource;
+			if (fileSource is ShellFileSource)	//如果是虚拟节点（由shellfilesource处理的节点），由于在loadsubdirectories中已经生成，所以无需再处理
+				return;
 
 			try
 			{
@@ -2570,11 +2579,11 @@ namespace zfile
 
 					itemData = [
 						file.Name,
-						file.FullPath,
+						//file.FullPath,
 						showFolderSize && EverythingWrapper.IsEverythingServiceRunning() ? FileSystemManager.FormatFileSize(file.Size, true) : "",
 						"<DIR>",
 						file.ModificationTime.ToString("yyyy-MM-dd HH:mm"),
-						file.Size.ToString(),
+						//file.Size.ToString(),
 						attrStr
 					];
 				}
@@ -2587,11 +2596,11 @@ namespace zfile
 					itemData = new[]
 					{
 						file.Name,
-						file.FullPath,
+						//file.FullPath,
 						FileSystemManager.FormatFileSize(file.Size, true),
 						extension,
 						file.ModificationTime.ToString("yyyy-MM-dd HH:mm"),
-						file.Size.ToString(),
+						//file.Size.ToString(),
 						attrStr
 					};
 				}

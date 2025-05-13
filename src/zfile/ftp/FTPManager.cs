@@ -149,7 +149,7 @@ namespace zfile
 		/// </summary>
 		public void HandleFtpListItemDoubleClick(string connectionName, ListViewItem item, ListView listView)
 		{
-			bool isDirectory = item.SubItems[3].Text == "<DIR>";
+			bool isDirectory = item.SubItems[MainForm.LVCOL_TYPE].Text == "<DIR>";
 			string path = item.SubItems[1].Text;
 
 			if (isDirectory)
@@ -530,7 +530,7 @@ namespace zfile
 						if (!form.iconManager.HasIconKey(item.ImageKey, false))
 						{
 							// 使用默认图标
-							item.ImageKey = item.SubItems[3].Text == "<DIR>" ? "folder" : "file";
+							item.ImageKey = item.SubItems[MainForm.LVCOL_TYPE].Text == "<DIR>" ? "folder" : "file";
 						}
 
 						// 添加到ListView
@@ -558,10 +558,10 @@ namespace zfile
 		/// <param name="item">选中的ListViewItem</param>
 		public void ShowFtpContextMenu(string connectionName, ListViewItem item)
 		{
-			if (_ftpSources.TryGetValue(connectionName, out FtpFileSource source))
+			if (_ftpSources.TryGetValue(connectionName, out FtpFileSource? source))
 			{
-				bool isDirectory = item.SubItems[3].Text == "<DIR>";
-				string path = item.SubItems[1].Text;
+				bool isDirectory = item.SubItems[MainForm.LVCOL_TYPE].Text == "<DIR>";
+				string path = (item.Tag as LvItemTag)?.File?.FullPath ?? "";
 
 				// 创建右键菜单
 				var contextMenu = new ContextMenuStrip();

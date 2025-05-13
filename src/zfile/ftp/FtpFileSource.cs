@@ -178,7 +178,7 @@ namespace zfile
 						var listItem = new ListViewItem(item.Name);
 
 						// 添加子项
-						listItem.SubItems.Add(item.FullName); // 完整路径作为第二列
+						//listItem.SubItems.Add(item.FullName); // 完整路径作为第二列
 
 						// 根据类型设置不同的显示
 						if (item.Type == FtpObjectType.Directory)
@@ -192,7 +192,7 @@ namespace zfile
 							listItem.SubItems.Add(Path.GetExtension(item.Name).TrimStart('.')); // 扩展名
 						}
 						listItem.SubItems.Add(item.Modified.ToString()); // 修改时间
-						listItem.SubItems.Add(item.Size.ToString()); //real size
+						//listItem.SubItems.Add(item.Size.ToString()); //real size
 
 						// 添加FTP文件属性列
 						string attrStr = GetFtpAttributesString(item);

@@ -377,8 +377,10 @@ namespace zfile
 			//scope : thispc, desktop, full
 			if (string.IsNullOrEmpty(path))
 				return;
-			if (scope == TreeSearchScope.thispc && !Directory.Exists(path) && !isarch)
-				return;
+			if (!Directory.Exists(path))    //如果路径不存在，可能是虚拟节点，扩展搜索范围到桌面，
+				scope = TreeSearchScope.desktop;
+			//if (scope == TreeSearchScope.thispc && !isarch)	//bugfix: 这里无法在虚拟节点中导航，比如此电脑
+			//	return;
 			var searchtarget = scope switch
 			{
 				TreeSearchScope.thispc => isactive ? activeThispc.Nodes : unactiveThispc.Nodes,
@@ -3309,7 +3311,7 @@ namespace zfile
 					//refresh the treeview
 					var node = uiManager.LeftTree.SelectedNode;
 					LoadSubDirectories(node, uiManager.LeftList);
-					LeftFileSource = CurrentFullpath.GetFileSource("L");
+					LeftFileSource = CurrentFullpath.GetFileSource("L");///////////////////////////////////
 
 					// 使用 FileSource 架构刷新左面板
 					LoadListViewByFileSourceSync(path, uiManager.LeftList, uiManager.LeftTree.SelectedNode);
@@ -3336,7 +3338,7 @@ namespace zfile
 					//refresh the treeview
 					var node = uiManager.RightTree.SelectedNode;
 					LoadSubDirectories(node, uiManager.RightList);
-					RightFileSource = CurrentFullpath.GetFileSource("R");
+					RightFileSource = CurrentFullpath.GetFileSource("R");///////////////////////////////////
 
 					// 使用 FileSource 架构刷新右面板
 					LoadListViewByFileSourceSync(path, uiManager.RightList, uiManager.RightTree.SelectedNode);

@@ -159,10 +159,10 @@ namespace zfile
             foreach (var serverName in serverNames)
             {
 				connectionTasks.Add(ProcessServerAsync(serverName));
-            }
-            
-            await Task.WhenAll(connectionTasks);
-            return allMCPTools;
+		        await Task.WhenAll(connectionTasks);
+			}
+
+			return allMCPTools;
         }
         
         private async Task ProcessServerAsync(string serverName)

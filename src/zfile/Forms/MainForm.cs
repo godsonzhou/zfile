@@ -2063,6 +2063,7 @@ namespace zfile
 		}
 		public List<TreeNode>? LoadSubDirectories(TreeNode node, MyListView? lv = null)
 		{
+			Debug.Print($"load sub dirs");
 			// 创建一个新的节点集合，用于存储需要保留的节点
 			List<TreeNode> nodesToKeep = new List<TreeNode>();
 			if (lv != null)
@@ -2486,7 +2487,7 @@ namespace zfile
 			//	RightFileSource = fileSource;
 			if (fileSource is ShellFileSource)	//如果是虚拟节点（由shellfilesource处理的节点），由于在loadsubdirectories中已经生成，所以无需再处理
 				return;
-
+			Debug.Print($"load listview by filesource");
 			try
 			{
 				// 更新当前路径
@@ -3313,7 +3314,14 @@ namespace zfile
 					//refresh the treeview
 					var node = uiManager.LeftTree.SelectedNode;
 					LoadSubDirectories(node, uiManager.LeftList);
-					LeftFileSource = CurrentFullpath.GetFileSource("L");///////////////////////////////////
+					var fs = CurrentFullpath.GetFileSource("L");///////////////////////////////////
+					if (LeftFileSource != fs)
+					{
+						Debug.Print($"WARNING: filesource CHANGED in refreshpanel {LeftFileSource} -> {fs}");
+						LeftFileSource = fs;
+					}
+					else
+						Debug.Print("unnecessary filesource assignment in refreshpanel");
 
 					// 使用 FileSource 架构刷新左面板
 					LoadListViewByFileSourceSync(path, uiManager.LeftList, uiManager.LeftTree.SelectedNode);

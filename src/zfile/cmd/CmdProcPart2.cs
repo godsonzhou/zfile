@@ -77,7 +77,7 @@ namespace zfile
 				}
 
 			}
-			owner.RefreshPanel();
+			owner.RefreshActivePanel();
 		}
 
 		private string DecodeBase64(string encodedContent)
@@ -290,7 +290,7 @@ namespace zfile
 			}
 
 
-			owner.RefreshPanel();
+			owner.RefreshActivePanel();
 		}
 
 		private string UUEncode(byte[] data)
@@ -428,7 +428,7 @@ namespace zfile
 			try
 			{
 				// 刷新当前面板
-				owner.RefreshPanel();
+				owner.RefreshActivePanel();
 			}
 			catch (Exception ex)
 			{
@@ -439,7 +439,7 @@ namespace zfile
 		private void cm_DirBranch()
 		{
 			owner.fsManager.isDirBranchMode = !owner.fsManager.isDirBranchMode;
-			owner.RefreshPanel();
+			owner.RefreshActivePanel();
 		}
 		// 全选
 		private void do_cm_SelectAll()
@@ -1005,7 +1005,7 @@ namespace zfile
 				}
 
 				// 刷新面板
-				owner.RefreshPanel();
+				owner.RefreshActivePanel();
 				owner.RefreshPanel(!owner.isleft);
 			}
 			catch (Exception ex)

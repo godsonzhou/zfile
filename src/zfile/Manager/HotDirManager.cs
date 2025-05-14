@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace zfile
 {
     public class HotDirManager

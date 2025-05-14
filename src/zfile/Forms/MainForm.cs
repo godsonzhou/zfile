@@ -997,7 +997,7 @@ namespace zfile
 
 						// Refresh view
 						//RefreshCurrentView();
-						RefreshPanel();
+						RefreshActivePanel();
 						MessageBox.Show("回收站已清空", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
 					}
 					catch (Exception ex)
@@ -1131,7 +1131,7 @@ namespace zfile
 						{
 							// Refresh view
 							//RefreshCurrentView();
-							RefreshPanel();
+							RefreshActivePanel();
 							MessageBox.Show("文件已成功还原", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
 						}
 					}
@@ -3296,7 +3296,7 @@ namespace zfile
 		//		MessageBox.Show($"加载文件列表失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
 		//	}
 		//}
-		public void RefreshPanel()
+		public void RefreshActivePanel()
 		{
 			RefreshPanel(isleft);
 		}
@@ -3400,7 +3400,7 @@ namespace zfile
 			var needupdate = viewMode == View.Tile || activeListView.View == View.Tile;
 			activeListView.View = viewMode;
 			if (needupdate)
-				RefreshPanel();//update imagekey
+				RefreshActivePanel();//update imagekey
 		}
 		public bool IsArchiveFile(string filePath)
 		{

@@ -438,7 +438,7 @@ namespace zfile
 			if (listView == null) return;
 
 			listView.ListViewItemSorter = null;
-			owner.RefreshPanel(); // 刷新面板以恢复默认顺序
+			owner.RefreshActivePanel(); // 刷新面板以恢复默认顺序
 		}
 
 		// 反向排序
@@ -727,7 +727,7 @@ namespace zfile
 					}
 				}
 
-				owner.RefreshPanel();
+				owner.RefreshActivePanel();
 			}
 		}
 
@@ -890,7 +890,7 @@ namespace zfile
 				}
 
 				// 刷新当前面板
-				owner.RefreshPanel();
+				owner.RefreshActivePanel();
 			}
 			catch (Exception ex)
 			{
@@ -1016,7 +1016,7 @@ namespace zfile
 				}
 
 				// 刷新当前面板
-				owner.RefreshPanel();
+				owner.RefreshActivePanel();
 			}
 		}
 

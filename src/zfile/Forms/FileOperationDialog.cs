@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.Eventing.Reader;
+﻿using System.Diagnostics;
+using System.Diagnostics.Eventing.Reader;
 
 namespace zfile
 {
@@ -77,22 +78,22 @@ namespace zfile
 		private Panel? pnlClient;
 		private Panel? pnlQueue;
 		private Label? lblCurrentOperation;
-		private Label? lblCurrentOperationText;
+		private Label lblCurrentOperationText;
 		private Panel? pnlFrom;
 		private Label? lblFrom;
-		private Label? lblFileNameFrom;
+		private Label lblFileNameFrom;
 		private Panel? pnlTo;
 		private Label? lblTo;
-		private Label? lblFileNameTo;
-		private Label? lblEstimated;
-		private ProgressBar? pbCurrent;
-		private ProgressBar? pbTotal;
+		private Label lblFileNameTo;
+		private Label lblEstimated;
+		private ProgressBar pbCurrent;
+		private ProgressBar pbTotal;
 		private Panel? pnlButtons;
 		private Button? btnMinimizeToPanel;
 		private Button? btnViewOperations;
 		private Button? btnCancel;
 		private Button? btnPauseStart;
-		private Label? lblFileCount;
+		private Label lblFileCount;
 
 		// Event listeners
 		private static readonly Dictionary<OperationProgressWindowEvent, List<OperationProgressWindowEventProc>> _eventListeners =
@@ -116,6 +117,7 @@ namespace zfile
 		private void CloseDialog()
 		{
 			_stopOperationOnClose = false;
+			Debug.Print("Closing file operation dialog...");
 			Close();
 		}
 
@@ -239,7 +241,7 @@ namespace zfile
 			}
 		}
 
-		private void SetLabelText(Label label, string text)
+		private void SetLabelText(Label label, string? text)
 		{
 			if (label != null && !string.IsNullOrEmpty(text))
 			{
@@ -836,6 +838,7 @@ namespace zfile
 		/// <param name="handle">The operation handle</param>
 		public FileOperationDialog(int handle)
 		{
+			Debug.Print($"FileOperationDialog.ctor({handle})");
 			_operationHandle = handle;
 			_operationItem = OperationsManager.Instance.GetItemByHandle(handle);
 
@@ -1108,7 +1111,7 @@ namespace zfile
 			// 设置进度条颜色
 			pbCurrent.SetStyle(ProgressBarStyle.Continuous);
 			pbTotal.SetStyle(ProgressBarStyle.Continuous);
-		}		
+		}
 
 		private void InitializeTimer()
 		{
@@ -1120,7 +1123,7 @@ namespace zfile
 			_updateTimer.Start();
 		}
 
-		private void UpdateTimer_Tick(object sender, EventArgs e)
+		private void UpdateTimer_Tick(object? sender, EventArgs e)
 		{
 			//UpdateControls();
 			OnUpdateTimer();
@@ -1191,7 +1194,7 @@ namespace zfile
 			lblCurrentOperationText.Text = operation.Description + (operation.State).ToString();
 
 			// Get statistics based on operation type
-			FileSourceCopyOperationStatistics statistics = null;
+			FileSourceCopyOperationStatistics? statistics = null;
 
 			// Try to get statistics from different operation types
 			if (operation is FileSourceCopyOperation copyOperation)
@@ -1334,7 +1337,7 @@ namespace zfile
 			}
 		}
 
-		private void BtnPauseStartClick(object sender, EventArgs e)
+		private void BtnPauseStartClick(object? sender, EventArgs e)
 		{
 			if (_operationItem?.Operation != null)
 			{
@@ -1343,7 +1346,7 @@ namespace zfile
 			}
 		}
 
-		private void BtnCancelClick(object sender, EventArgs e)
+		private void BtnCancelClick(object? sender, EventArgs e)
 		{
 			if (StopOperationOrQueue())
 			{
@@ -1411,7 +1414,7 @@ namespace zfile
 			return result;
 		}
 
-		private void BtnMinimizeToPanelClick(object sender, EventArgs e)
+		private void BtnMinimizeToPanelClick(object? sender, EventArgs e)
 		{
 			// Switch to operations panel view
 			GlobalSettings.FileOperationsProgressKind = FileOperationsProgressKind.OperationsPanel;
@@ -1419,7 +1422,7 @@ namespace zfile
 			Close();
 		}
 
-		private void BtnViewOperationsClick(object sender, EventArgs e)
+		private void BtnViewOperationsClick(object? sender, EventArgs e)
 		{
 			if (_operationItem?.Operation != null)
 			{
@@ -1469,11 +1472,13 @@ namespace zfile
 			{
 				_updateTimer.Stop();
 				_updateTimer.Dispose();
+				_updateTimer = null; // 防止多次释放
 			}
 
 			if (_activeDialogs.TryGetValue(_operationHandle, out _))
 			{
 				_activeDialogs.Remove(_operationHandle);
+				Debug.Print($"FormClosing: Removed active dialog for operation {_operationHandle}");
 			}
 		}
 
@@ -1491,9 +1496,10 @@ namespace zfile
 					(opManItem.Operation.State == FileSourceOperationState.Running ||
 					 opManItem.Operation.State == FileSourceOperationState.Paused))
 				{
-					// If user cancels the operation stop, cancel the form closing
+
 					if (!StopOperationOrQueue())
 					{
+						Debug.Print($"// user cancels the operation stop, cancel the form closing");
 						e.Cancel = true;
 						return;
 					}
@@ -1530,8 +1536,8 @@ namespace zfile
 			{
 				dialog.WindowState = FormWindowState.Minimized;
 			}
-
-			dialog.Show();
+			if(!dialog.IsDisposed) 
+				dialog.Show();
 		}
 
 		/// <summary>

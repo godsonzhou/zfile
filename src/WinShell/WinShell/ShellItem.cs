@@ -34,12 +34,14 @@ namespace WinShell
 		{
 			if (!_disposed)
 			{
-				// 释放子 PIDL 列表
+				Debug.Print($"// 释放{Name} {parsepath} 以及其子PIDL列表");
 				foreach (var pidl in GetChildPIDLs())
 				{
 					API.ILFree(pidl);
+					Debug.Print($"// 释放子PIDL {pidl}");
 				}
 				API.ILFree(PIDL);
+				Debug.Print($"// 释放PIDL {PIDL}");
 				Marshal.ReleaseComObject(ShellFolder);
 				//Marshal.ReleaseComObject(ParentShellFolder);
 				_disposed = true;

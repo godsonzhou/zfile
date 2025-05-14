@@ -73,7 +73,8 @@ namespace zfile
 					// 等待初始化完成或超时
 					if (await Task.WhenAny(initTask, timeout) == timeout)
 					{
-						throw new TimeoutException($"连接服务器 {serverName} 超时");
+						//throw new TimeoutException($"连接服务器 {serverName} 超时");
+						Debug.Print($"连接服务器 {serverName} 超时");
 					}
 					//client.ConnectAsync(serverConfig.Command, serverConfig.Args);
 					// 等待工具列表初始化完成

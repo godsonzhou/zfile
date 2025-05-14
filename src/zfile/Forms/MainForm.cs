@@ -347,6 +347,7 @@ namespace zfile
 			filesourceChanged = (oldfs != fileSource);
 			if (filesourceChanged)
 			{
+				Debug.Print($"file source update {oldfs} -> {fileSource}");
 				// 更新当前活动面板的 FileSource
 				if (uiManager.isleft)
 					LeftFileSource = fileSource;
@@ -358,6 +359,7 @@ namespace zfile
 		// 导航到指定路径
 		public void NavigateToPath(string path, bool recordHistory = true, TreeSearchScope scope = TreeSearchScope.thispc, bool isactive = true)
 		{
+			Debug.Print($"Navigate to path : {path}");
 			//first change currentfilesource according to the path
 			var fs = UpdateFilesource(path, out var flag, out var oldfs);
 
@@ -2008,7 +2010,7 @@ namespace zfile
 				var shellInfo = new SHFILEINFO();
 				var r = API.SHGetFileInfo(subItem.parsepath, 0, ref shellInfo, Marshal.SizeOf(shellInfo),
 				SHGFI.SYSICONINDEX | (islarge ? SHGFI.LARGEICON : SHGFI.SMALLICON));
-				Debug.Print($"Virtual 2folder：result={r} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}");
+				//Debug.Print($"Virtual 2folder：result={r} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}");
 				if (shellInfo.iIcon > 0 || shellInfo.hIcon != 0)
 				{
 					// 使用系统图标索引作为键值
@@ -2088,9 +2090,9 @@ namespace zfile
 				}
 				else if (existingNode.Tag is FtpRootNodeTag)
 					existingNodes["ftproot"] = existingNode;
-				else if (existingNode.Tag is FtpNodeTag ftptag)
-				{
-				}
+				//else if (existingNode.Tag is FtpNodeTag ftptag)
+				//{
+				//}
 			}
 
 			// 创建一个集合，用于存储新的PIDL，以便后续比较
@@ -2177,7 +2179,7 @@ namespace zfile
 							}
 							catch (UnauthorizedAccessException)
 							{
-								Debug.Print($"unauthorized access exception while try to access {path}");
+								//Debug.Print($"unauthorized access exception while try to access {path}");
 							}
 						}
 						nodeSub.ImageKey = iconkey;

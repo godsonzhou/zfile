@@ -153,12 +153,17 @@ namespace zfile
 				{
 					if (FileSourceDict.TryGetValue(key, out IFileSource? result))
 					{
+						string CurrentPath;
 						if (result is WcxArchiveFileSource wcx && value.StartsWith(wcx.ArchivePath))
-							result.CurrentPath = Helper.ExtractDirLevel(wcx.ArchivePath, value, true);
+							CurrentPath = Helper.ExtractDirLevel(wcx.ArchivePath, value, true);
 						else if (result is FtpFileSource ftp)
-							result.CurrentPath = value.Replace($"ftp://{ftp.Host}", string.Empty, StringComparison.OrdinalIgnoreCase);
+							CurrentPath = value.Replace($"ftp://{ftp.Host}", string.Empty, StringComparison.OrdinalIgnoreCase);
 						else
-							result.CurrentPath = value;
+							CurrentPath = value;
+						if (CurrentPath.Equals(result.CurrentPath))
+							Debug.Print("WARNING: SET CURRENTPATH IS NOT NEEDED!");
+						else
+							result.CurrentPath = CurrentPath;
 					}
 					else
 						throw new KeyNotFoundException($"Key {key} not found in FileSourceDict.");
@@ -354,6 +359,8 @@ namespace zfile
 				else
 					RightFileSource = fileSource;
 			}
+			else
+				Debug.Print($"WARNING: Update Filesource is not necessary!");
 			return fileSource;
 		}
 		// 导航到指定路径
@@ -2344,7 +2351,7 @@ namespace zfile
 				//if (string.IsNullOrEmpty(CurrentFullpath[LRflag]) || CurrentFullpath[LRflag].Equals(newPath)) return;
 				backStack.Push(oldfs == null ? CurrentFullpath[LRflag] : oldfs.CurrentPath); //同一个filesource下，压入currentpath，不同filesource下，压入老filesource.currentpath
 				forwardStack.Clear(); // 清除前进历史
-				CurrentFullpath[LRflag] = newPath;
+				CurrentFullpath[LRflag] = newPath;////////////////////////////////////////////////
 			}
 		}
 		private string? SetIconForListViewItem(ListViewItem lvItem, ListView listView, string subkey)
@@ -2487,7 +2494,7 @@ namespace zfile
 			//	RightFileSource = fileSource;
 			if (fileSource is ShellFileSource)	//如果是虚拟节点（由shellfilesource处理的节点），由于在loadsubdirectories中已经生成，所以无需再处理
 				return;
-			Debug.Print($"load listview by filesource");
+			Debug.Print($"load listview by filesource [{listView.Name}]: {path}");
 			try
 			{
 				// 更新当前路径

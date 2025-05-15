@@ -235,7 +235,7 @@ namespace zfile
             // 创建新的FileSystemFileSource
             var fileSystemSource = new FileSystemFileSource(drive);
             //fileSystemSource.SetRootPath(drive);
-            fileSystemSource.CurrentPath = fullpath;
+            fileSystemSource.CurrentFullPath = fullpath;
 
             // 添加到缓存
             panelCache[fullpath] = fileSystemSource;

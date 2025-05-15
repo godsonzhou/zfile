@@ -156,7 +156,7 @@ namespace zfile
 				{
 					if (FileSourceDict.TryGetValue(key, out IFileSource? result))
 					{
-						string CurrentPath = value;
+						//string CurrentPath = value;
 
 						//if (result is FileSystemFileSource filesys)
 						//	CurrentPath = value;
@@ -175,12 +175,12 @@ namespace zfile
 						//else
 						//	throw new Exception("unsupport filesouce while set current full path");
 
-						if (CurrentPath.Equals(result.CurrentPath))
+						if (value.Equals(result.CurrentFullPath))
 							Debug.Print("WARNING: SET CURRENTPATH IS NOT NEEDED!");
 						else
 						{
-							Debug.Print($"change CURRENTPATH : {result.CurrentPath} -> {CurrentPath}");
-							result.CurrentPath = CurrentPath;
+							//Debug.Print($"change CURRENTPATH : {result.CurrentPath} -> {CurrentPath}");
+							result.CurrentFullPath = value;
 						}
 					}
 					else
@@ -370,7 +370,7 @@ namespace zfile
 			filesourceChanged = (oldfs != fileSource);
 			if (filesourceChanged)
 			{
-				Debug.Print($"file source update {oldfs} -> {fileSource}");
+				Debug.Print($"file source update {oldfs}{oldfs.RootPath} -> {fileSource}{fileSource.RootPath}");
 				// 更新当前活动面板的 FileSource
 				if (uiManager.isleft)
 					LeftFileSource = fileSource;
@@ -2398,7 +2398,7 @@ namespace zfile
 		// 在目录变更时调用此方法记录历史
 		public void RecordDirectoryHistory(string newPath, IFileSource? oldfs)
 		{
-			if (oldfs?.CurrentPath == newPath) return;
+			if (oldfs?.CurrentFullPath == newPath) return;
 
 			if (IsActiveFtpPanel(out var ftpnode))
 			{
@@ -2413,9 +2413,9 @@ namespace zfile
 			else
 			{
 				//if (string.IsNullOrEmpty(CurrentFullpath[LRflag]) || CurrentFullpath[LRflag].Equals(newPath)) return;
-				backStack.Push(oldfs == null ? CurrentFullpath[LRflag] : oldfs.CurrentPath); //同一个filesource下，压入currentpath，不同filesource下，压入老filesource.currentpath
+				backStack.Push(oldfs == null ? CurrentFullpath[LRflag] : oldfs.CurrentFullPath); //同一个filesource下，压入currentpath，不同filesource下，压入老filesource.currentpath
 				forwardStack.Clear(); // 清除前进历史
-				CurrentFullpath[LRflag] = newPath;////////////////////////////////////////////////
+				//CurrentFullpath[LRflag] = newPath;////////////////////////////////////////////////
 			}
 		}
 		private string? SetIconForListViewItem(ListViewItem lvItem, ListView listView, string subkey)

@@ -541,17 +541,22 @@ namespace zfile
 		public virtual IFileSource ParentFileSource { get; set; }
 
 		// currentpath 是不包括ROOTPATH的相对路径
-		public virtual string CurrentPath { get; set; }
+		public virtual string CurrentPath { 
+			get => _CurrentPath; 
+			set => _CurrentPath = value; 
+		}
+
+		private string _CurrentPath;
 
 		// CurrentFullPath 是包含rootpath的完整路径
 		public virtual string CurrentFullPath { 
-			get { return GetRootDir() + CurrentPath; } 
+			get { return GetRootDir() + _CurrentPath; } 
 			set { 
 				//if the value is full path, save its relative part to currentpath, otherwise save it directly
-				if (string.IsNullOrEmpty(value) && value.StartsWith(GetRootDir()))
-					CurrentPath = value.Replace(GetRootDir(), string.Empty, StringComparison.OrdinalIgnoreCase);
+				if (!string.IsNullOrEmpty(value) && value.StartsWith(GetRootDir()))
+					_CurrentPath = value.Replace(GetRootDir(), string.Empty, StringComparison.OrdinalIgnoreCase);
 				else
-					CurrentPath = value;
+					_CurrentPath = value;
 			} 
 		}
 

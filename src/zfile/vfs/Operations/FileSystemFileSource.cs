@@ -48,8 +48,8 @@ namespace zfile
         {
             description?.Dispose();
         }
-
-        public new static FileEntry CreateFile(string path)
+		public override string CurrentFullPath { get => base.CurrentFullPath; set => base.CurrentFullPath = value; }
+		public new static FileEntry CreateFile(string path)
         {
             var file = new FileEntry(path);
             file.Attributes = FileAttributes.Normal;

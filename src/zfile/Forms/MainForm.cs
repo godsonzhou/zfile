@@ -12,7 +12,7 @@ using Keys = System.Windows.Forms.Keys;
 
 namespace zfile
 {
-	
+
 	public partial class MainForm : Form
 	{
 		public class lrflag
@@ -407,7 +407,7 @@ namespace zfile
 						RecordDirectoryHistory(path, oldfs);    //传入老filesource以确保跨filesource时的正确地将老路径记录到历史中
 					else
 						CurrentFullpath[LRflag] = path; // 直接更新当前目录，不记录历史
-	
+
 					activeTreeview.SelectedNode = node;
 					RefreshPanel(activeListView);
 					//Debug.Print($" for {activeListView.Name}");
@@ -1388,12 +1388,12 @@ namespace zfile
 					if (string.IsNullOrEmpty(path))
 						return;
 
-					var oldpath = CurrentFullpath[LRflag];	//before update the filesource, save current path to oldpath
+					var oldpath = CurrentFullpath[LRflag];  //before update the filesource, save current path to oldpath
 					var fileSource = UpdateFilesource(path, out var fschanged, out var oldfs);
 					if (string.IsNullOrEmpty(fileSource.CurrentPath))
 						CurrentFullpath[LRflag] = path;
 
-					var driveChanged = UpdatePathTextAndDriveComboBox(e.Node, path, isleft);
+					var driveChanged = UpdatePathTextAndDriveComboBox(e.Node, path, isleft);    //盘符改变时在combobox事件中刷新
 					SelectedNode = e.Node;
 
 					//if (ftpNodeSelect(e.Node)) 
@@ -1414,8 +1414,8 @@ namespace zfile
 					if (!driveChanged)
 					{
 						//如果盘符改变了，则不刷新treeview&listview, 因为在盘符改变时，会触发事件，在事件中会刷新(refreshpanel)
-						LoadSubDirectories(e.Node, activeListView);
-						// 使用 FileSource 架构加载文件列表
+						LoadSubDirectories(e.Node, activeListView); //盘符不变时在这里刷新TREEVIEW/LISTVIEW
+																	// 使用 FileSource 架构加载文件列表
 						LoadListViewByFileSourceSync(fileSource is WcxArchiveFileSource wcxfs ? Helper.ExtractDirLevel(wcxfs.ArchivePath, path, true) : path, activeListView, e.Node);
 					}
 					uiManager.UpdateLastVisitedPath(path);
@@ -2150,9 +2150,9 @@ namespace zfile
 						var pathPart = path.Split('\\');
 						name = !pathPart[^1].Equals(string.Empty) ? pathPart[^1] : pathPart[^2];
 						var subItem = new ShellItem(pidlSub, iSub, root); //子节点的tag存放pidl和ishellfolder接口
-						//if (subItem.parsepath.Equals("::{26EE0668-A00A-44D7-9371-BEB064C98683}"))//控制面板
-						//if (subItem.parsepath.Equals("::{645FF040-5081-101B-9F08-00AA002F954E}") )//回收站
-						// 使用路径作为唯一标识符，而不是PIDL的内存地址
+																		  //if (subItem.parsepath.Equals("::{26EE0668-A00A-44D7-9371-BEB064C98683}"))//控制面板
+																		  //if (subItem.parsepath.Equals("::{645FF040-5081-101B-9F08-00AA002F954E}") )//回收站
+																		  // 使用路径作为唯一标识符，而不是PIDL的内存地址
 						string nodeKey = path;
 						newPidls.Add(nodeKey);
 
@@ -2386,7 +2386,7 @@ namespace zfile
 				}
 				else
 				{
-					var itemFullName = (lvItem.Tag as LvItemTag)?.File?.FullPath;	//lvItem.SubItems[1].Text;
+					var itemFullName = (lvItem.Tag as LvItemTag)?.File?.FullPath;   //lvItem.SubItems[1].Text;
 					var key = Path.GetExtension(itemFullName);
 
 					// 设置默认图标
@@ -2505,14 +2505,14 @@ namespace zfile
 			//if (Path.IsPathFullyQualified(path))
 			//	fileSource = _fileSourceManager.GetFileSourceForFullPath(path, isLeftPanel);
 			//else
-				fileSource = CurrentFullpath.GetFileSource(listView.Name);
+			fileSource = CurrentFullpath.GetFileSource(listView.Name);
 
 			// 更新当前面板的 FileSource
 			//if (isLeftPanel)
 			//	LeftFileSource = fileSource;
 			//else
 			//	RightFileSource = fileSource;
-			if (fileSource is ShellFileSource)	//如果是虚拟节点（由shellfilesource处理的节点），由于在loadsubdirectories中已经生成，所以无需再处理
+			if (fileSource is ShellFileSource)  //如果是虚拟节点（由shellfilesource处理的节点），由于在loadsubdirectories中已经生成，所以无需再处理
 				return;
 			Debug.Print($"load listview by filesource [{listView.Name}]: {path}");
 			try

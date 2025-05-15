@@ -214,14 +214,13 @@ namespace zfile
 
                 // 如果无法获取FTP源，则返回默认的文件系统源
                 var defaultFs = new FileSystemFileSource("C:");
-                //defaultFs.SetRootPath("C:\\");
                 return defaultFs;
             }
 
             // Default to file system
             var drive = Path.GetPathRoot(fullpath);
             if (string.IsNullOrEmpty(drive))
-                drive = "C:\\";
+                drive = "C:";
 
             // 检查缓存中是否已有此驱动器的FileSource
             if (panelCache.TryGetValue(fullpath, out var cachedFsSource))
@@ -234,7 +233,6 @@ namespace zfile
 
             // 创建新的FileSystemFileSource
             var fileSystemSource = new FileSystemFileSource(drive);
-            //fileSystemSource.SetRootPath(drive);
             fileSystemSource.CurrentFullPath = fullpath;
 
             // 添加到缓存

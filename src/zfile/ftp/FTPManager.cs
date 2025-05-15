@@ -153,16 +153,12 @@ namespace zfile
 			string path = item.SubItems[1].Text;
 
 			if (isDirectory)
-			{
 				NavigateToPath(connectionName, path, listView);
-			}
 			else
 			{
 				// 如果是文件，查看文件
 				if (_ftpSources.TryGetValue(connectionName, out FtpFileSource? source))
-				{
 					ViewFtpFile(source, path);
-				}
 			}
 		}
 
@@ -175,7 +171,10 @@ namespace zfile
 			if (_ftpNodes.TryGetValue(connectionName, out TreeNode? node) && node.Tag is FtpNodeTag tag)
 			{
 				if (recordHistory)
-					form.RecordDirectoryHistory(path, form.CurrentFullpath.GetFileSource(listView.Name));
+				{
+					var fs = form.CurrentFullpath.GetFileSource(listView.Name);
+					form.RecordDirectoryHistory(path, form.CurrentFullpath[listView.Name]);
+				}
 				tag.Path = path;
 
 				// 更新活动书签
@@ -195,9 +194,6 @@ namespace zfile
 
 			// 创建FTP根节点
 			CreateFtpRootNode();
-
-			// 加载已保存的FTP连接 //启动程序时不自动连接FTP
-			//LoadSavedFtpConnections();
 		}
 
 		/// <summary>
@@ -235,15 +231,15 @@ namespace zfile
 		/// 加载已保存的FTP连接
 		/// </summary>
 		/// <param name="form">主窗体</param>
-		private void LoadSavedFtpConnections()
-		{
-			// 从配置加载FTP连接
-			var connections = form.fTPMGR.GetConnections();
-			foreach (var conn in connections)
-			{
-				RegisterFtpConnection(conn.Name);
-			}
-		}
+		//private void LoadSavedFtpConnections()
+		//{
+		//	// 从配置加载FTP连接
+		//	var connections = form.fTPMGR.GetConnections();
+		//	foreach (var conn in connections)
+		//	{
+		//		RegisterFtpConnection(conn.Name);
+		//	}
+		//}
 
 		/// <summary>
 		/// 注册FTP连接为虚拟盘

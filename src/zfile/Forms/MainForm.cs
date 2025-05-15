@@ -361,9 +361,10 @@ namespace zfile
 			ftproot = 2,
 			full = 3
 		}
-		private IFileSource UpdateFilesourceAndCurrentPath(string path, out bool filesourceChanged, out IFileSource? oldfs)
+		private IFileSource UpdateFilesourceAndCurrentPath(string path, out bool filesourceChanged, out IFileSource? oldfs, out string oldpath)
 		{
 			// get the current filesource
+			oldpath = CurrentFullpath[LRflag];
 			oldfs = CurrentFullpath.GetFileSource(LRflag);
 			// 使用 FileSourceManager 获取合适的 FileSource,
 			IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, isleft);
@@ -388,9 +389,8 @@ namespace zfile
 		{
 			Debug.Print($"Navigate to path : {path}");
 			//first change currentfilesource according to the path
-			var fs = UpdateFilesourceAndCurrentPath(path, out var flag, out var oldfs);
+			var fs = UpdateFilesourceAndCurrentPath(path, out _, out var oldfs, out var oldpath);
 
-			bool isarch = false;
 			if (CurrentFullpath.GetFileSource(LRflag) is WcxArchiveFileSource wcxfs)
 			{
 				//	if(recordHistory)
@@ -400,7 +400,6 @@ namespace zfile
 				//	return;
 				if (!path.StartsWith(wcxfs.ArchivePath))
 					path = wcxfs.ArchivePath + path;
-				isarch = true;
 			}
 			//Debug.Print($"start to navigate to path {path}");
 			//scope : thispc, desktop, full
@@ -424,7 +423,7 @@ namespace zfile
 				if (isactive)
 				{
 					if (recordHistory)
-						RecordDirectoryHistory(path, oldfs);    //传入老filesource以确保跨filesource时的正确地将老路径记录到历史中
+						RecordDirectoryHistory(path, oldpath);    //传入老filesource以确保跨filesource时的正确地将老路径记录到历史中
 					else
 						CurrentFullpath[LRflag] = path; // 直接更新当前目录，不记录历史
 
@@ -1409,10 +1408,7 @@ namespace zfile
 					if (string.IsNullOrEmpty(path))
 						return;
 
-					var oldpath = CurrentFullpath[LRflag];  //before update the filesource, save current path to oldpath
-					var fileSource = UpdateFilesourceAndCurrentPath(path, out var fschanged, out var oldfs);
-					//if (string.IsNullOrEmpty(fileSource.CurrentPath))
-					//CurrentFullpath[LRflag] = path;
+					var fileSource = UpdateFilesourceAndCurrentPath(path, out var fschanged, out var oldfs, out var oldpath);
 
 					var driveChanged = CheckDriveChange(path, oldpath);
 					SelectedNode = e.Node;
@@ -1431,7 +1427,7 @@ namespace zfile
 					e.Node.Expand();
 
 					if (fschanged || path != oldpath)
-						RecordDirectoryHistory(path, oldfs);   // 记录目录历史, 并更新filesource的currentpath
+						RecordDirectoryHistory(path, oldpath);   // 记录目录历史, 并更新filesource的currentpath
 
 					if (!driveChanged)
 					{
@@ -1761,9 +1757,8 @@ namespace zfile
 			else if (selectedItem.SubItems[0].Text.Equals("."))
 				return;
 
-			//string path = Path.Combine(CurrentDir[LRflag], selectedItem.Text);//bugfix:平铺模式下此方法获取完整路径不行，改为直接从subitem[1]读取
+			var oldpath = CurrentFullpath[LRflag];
 			var path = (selectedItem.Tag as LvItemTag)?.File?.FullPath;
-			//var path = selectedItem.SubItems[1].Text;
 			var fileSource = CurrentFullpath.GetFileSource(LRflag);
 			var isarchive = false;
 			var isinarchive = false;
@@ -1787,7 +1782,7 @@ namespace zfile
 					if (!CurrentFullpath[LRflag].Equals(path))
 						//由于在WCX内部，通过TREEVIEW_AFTERSELECT节点不会发生变化，所以无法记录历史，只能在LISTVIEW_DOUBLECLICK中记录历史
 						// 记录目录历史
-						RecordDirectoryHistory(path, fileSource);
+						RecordDirectoryHistory(path, oldpath);
 
 					var node = FindTreeNode(activeTreeview.SelectedNode.Nodes, Path.GetFileName(path));
 					activeTreeview.SelectedNode = node;
@@ -2396,26 +2391,20 @@ namespace zfile
 		//	return fileList;
 		//}
 		// 在目录变更时调用此方法记录历史
-		public void RecordDirectoryHistory(string newPath, IFileSource? oldfs)
+		public void RecordDirectoryHistory(string newPath, string oldpath)
 		{
-			if (oldfs?.CurrentFullPath == newPath) return;
+			if (string.IsNullOrEmpty(oldpath) || oldpath.Equals(newPath)) return;
 
 			if (IsActiveFtpPanel(out var ftpnode))
 			{
-				//if (string.IsNullOrEmpty(ftpnode.Path) || ftpnode.Path.Equals(newPath)) return;
-				//backStack.Push(ftpnode.Path);//bugfix: can not go back to the path across the different filesource
-				var oldpath = oldfs?.CurrentPath;
-				if (string.IsNullOrEmpty(oldpath) || oldpath.Equals(newPath)) return;
 				backStack.Push(oldpath);
 				forwardStack.Clear();
 				ftpnode.Path = newPath;
 			}
 			else
 			{
-				//if (string.IsNullOrEmpty(CurrentFullpath[LRflag]) || CurrentFullpath[LRflag].Equals(newPath)) return;
-				backStack.Push(oldfs == null ? CurrentFullpath[LRflag] : oldfs.CurrentFullPath); //同一个filesource下，压入currentpath，不同filesource下，压入老filesource.currentpath
+				backStack.Push(oldpath); //同一个filesource下，压入currentpath，不同filesource下，压入老filesource.currentpath
 				forwardStack.Clear(); // 清除前进历史
-				//CurrentFullpath[LRflag] = newPath;////////////////////////////////////////////////
 			}
 		}
 		private string? SetIconForListViewItem(ListViewItem lvItem, ListView listView, string subkey)

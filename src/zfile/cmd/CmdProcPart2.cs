@@ -651,17 +651,10 @@ namespace zfile
 			else if (owner.CurrentFullpath.GetFileSource(owner.LRflag) is WcxArchiveFileSource wcxfs)
 			{
 				string? parentpath;
-				if (!wcxfs.CurrentPath.Equals("\\"))
+				if (!wcxfs.IsPathAtRoot(wcxfs.CurrentFullPath)) //CurrentPath.Equals("\\")
 					parentpath = wcxfs.ArchivePath + Path.GetDirectoryName(wcxfs.CurrentPath);
 				else
-				{
 					parentpath = Path.GetDirectoryName(wcxfs.ArchivePath);
-					//bugfix: filesource changed, so reassign currentfilesource
-
-				}
-				//owner.RecordDirectoryHistory(parentpath);
-				//owner.CurrentDir[owner.LRflag] = parentpath;
-				//_ = owner.LoadListViewByFileSourceAsync(parentpath, owner.activeListView, owner.activeTreeview.SelectedNode);
 				owner.NavigateToPath(parentpath);
 			}
 			else
@@ -669,8 +662,6 @@ namespace zfile
 				string? parentPath = Path.GetDirectoryName(owner.CurrentFullpath[owner.LRflag]);
 				if (!string.IsNullOrEmpty(parentPath))
 				{
-					// 记录当前目录到历史
-					//owner.RecordDirectoryHistory(parentPath);
 					// 导航到父目录
 					owner.NavigateToPath(parentPath);
 				}

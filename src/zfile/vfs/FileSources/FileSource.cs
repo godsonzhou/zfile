@@ -902,7 +902,7 @@ namespace zfile
 		/// <returns>The parent directory</returns>
 		public virtual string GetParentDir(string path)
 		{
-			return System.IO.Path.GetDirectoryName(path);
+			return Path.GetDirectoryName(path) ?? "";
 		}
 
 		/// <summary>

@@ -10,67 +10,67 @@ namespace zfile
     {
         // 任务队列
         private readonly ConcurrentQueue<IconJob> _jobQueue = new ConcurrentQueue<IconJob>();
-        
+
         // 缩略图管理器引用
         private readonly ThumbnailManager _thumbnailManager;
         private readonly IconManager _iconManager;
-        
+
         // 取消令牌源
         private CancellationTokenSource _cancellationTokenSource;
-        
+
         // 处理线程
         private Task _processingTask;
-        
+
         // 是否正在处理
         private bool _isProcessing;
-        
+
         // 批量更新计数器
         private int _batchCounter;
-        
+
         // 批量更新阈值，每处理这么多项后更新一次UI
         private const int BatchUpdateThreshold = 100;
-        
+
         // 进度回调
         private readonly Action<IconProgress> _progressCallback;
-        
+
         // 当前进度信息
         private IconProgress _currentProgress;
-        
+
         // 是否已释放
         private bool _disposed;
 
-		// 缓存dirsize
-		private Dictionary<string, long> _dirsizeCache = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+        // 缓存dirsize
+        private Dictionary<string, long> _dirsizeCache = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
 
-		/// <summary>
-		/// 图标任务进度信息
-		/// </summary>
-		public class IconProgress
+        /// <summary>
+        /// 图标任务进度信息
+        /// </summary>
+        public class IconProgress
         {
             /// <summary>
             /// 总任务数
             /// </summary>
             public int TotalJobs { get; set; }
-            
+
             /// <summary>
             /// 已完成任务数
             /// </summary>
             public int CompletedJobs { get; set; }
-            
+
             /// <summary>
             /// 当前处理的文件名
             /// </summary>
             public string CurrentFile { get; set; }
-            
+
             /// <summary>
             /// 是否已完成所有任务
             /// </summary>
             public bool IsCompleted => CompletedJobs >= TotalJobs;
-            
+
             /// <summary>
             /// 待更新的ListViewItem集合
             /// </summary>
-            public List<(ListView Item, string ImageKey, string filepath, ListViewItem item, long dirsize)> ItemsToUpdate { get; } = new ();
+            public List<(ListView Item, string ImageKey, string filepath, ListViewItem item, long dirsize)> ItemsToUpdate { get; } = new();
         }
 
         /// <summary>
@@ -82,13 +82,13 @@ namespace zfile
             /// 需要处理的ListViewItem
             /// </summary>
             public ListView View { get; set; }
-            
+
             /// <summary>
             /// 文件完整路径
             /// </summary>
             public List<string> FilePaths { get; set; }
-            
-			public List<JobType> Type { get; set; }
+
+            public List<JobType> Type { get; set; }
 
             /// <summary>
             /// 所属的ImageList
@@ -111,11 +111,11 @@ namespace zfile
             _currentProgress = new IconProgress();
             _cancellationTokenSource = new CancellationTokenSource();
         }
-		public enum JobType
-		{
-			Thumbnail = 0,
-			DirSize = 1
-		}
+        public enum JobType
+        {
+            Thumbnail = 0,
+            DirSize = 1
+        }
         /// <summary>
         /// 将图标生成任务加入队列
         /// </summary>
@@ -132,8 +132,8 @@ namespace zfile
             {
                 View = view,
                 FilePaths = filePaths,
-				Type = jobtypes,
-				Items = Items
+                Type = jobtypes,
+                Items = Items
             };
 
             _jobQueue.Enqueue(job);
@@ -157,6 +157,32 @@ namespace zfile
         }
 
         /// <summary>
+        /// 检查缓存中是否存在指定目录的大小
+        /// </summary>
+        /// <param name="directoryPath">目录路径</param>
+        /// <returns>是否存在缓存</returns>
+        public bool HasDirSizeCache(string directoryPath)
+        {
+            if (string.IsNullOrEmpty(directoryPath))
+                return false;
+
+            return _dirsizeCache.ContainsKey(directoryPath);
+        }
+
+        /// <summary>
+        /// 从缓存中获取目录大小
+        /// </summary>
+        /// <param name="directoryPath">目录路径</param>
+        /// <returns>目录大小</returns>
+        public long GetDirSizeFromCache(string directoryPath)
+        {
+            if (string.IsNullOrEmpty(directoryPath) || !_dirsizeCache.ContainsKey(directoryPath))
+                return 0;
+
+            return _dirsizeCache[directoryPath];
+        }
+
+        /// <summary>
         /// 异步处理任务队列
         /// </summary>
         private async Task ProcessJobsAsync(CancellationToken cancellationToken)
@@ -172,81 +198,99 @@ namespace zfile
                     {
                         try
                         {
-							// 更新当前处理文件名
-							_currentProgress.CurrentFile = Path.GetFileName(job.FilePaths[0]);
-							ReportProgress();
-							for (var idx = 0; idx < job.FilePaths.Count; idx++)
-							{
-								long size = 0;
-								string imageKey = null;
-								var jobFilePath = job.FilePaths[idx];
-								if (job.Type[idx] == JobType.DirSize)
-									size = EverythingWrapper.CalculateDirectorySize(jobFilePath);
-								else
-								{
-									var key = Path.GetExtension(jobFilePath);
-									imageKey = key;
-									// 尝试生成缩略图
-									var thumb = _thumbnailManager.CreatePreview(jobFilePath, out string md5key);
-									if (thumb != null)
-									{
-										Debug.Print("thumb generated: {0}, {1}", jobFilePath, md5key);
-										imageKey = md5key;
-										// 在UI线程上更新ImageList
-										await Task.Run(() =>
-										{
-											try
-											{
-												if (job.View?.InvokeRequired == true)
-												{
-													job.View.Invoke(new Action(() =>
-													{
-														if (!job.View.LargeImageList.Images.ContainsKey(md5key))
-															job.View.LargeImageList.Images.Add(md5key, thumb);
-													}));
-												}
-												else
-												{
-													if (!job.View.LargeImageList.Images.ContainsKey(md5key))
-														job.View.LargeImageList.Images.Add(md5key, thumb);
-												}
-											}
-											catch (Exception ex)
-											{
-												Debug.Print($"更新ImageList异常: {ex.Message}");
-											}
-										});
-									}
-									else
-									{
-										// 如果没有缩略图，使用大图标
-										if (!_iconManager.HasIconKey(key, true))
-										{
-											var icol = IconManager.GetIconByFileNameEx("FILE", jobFilePath, true);
-											if (icol != null)
-												_iconManager.AddIcon(key, icol, true);
-										}
-									}
-							
-								}
-								// 添加到待更新列表
-								lock (_currentProgress.ItemsToUpdate)
-								{
-									_currentProgress.ItemsToUpdate.Add((job.View, imageKey, jobFilePath, job.Items[idx], size));
-								}
-								// 更新完成计数
-								_currentProgress.CompletedJobs++;
-								_batchCounter++;
+                            // 更新当前处理文件名
+                            _currentProgress.CurrentFile = Path.GetFileName(job.FilePaths[0]);
+                            ReportProgress();
+                            for (var idx = 0; idx < job.FilePaths.Count; idx++)
+                            {
+                                long size = 0;
+                                string imageKey = null;
+                                var jobFilePath = job.FilePaths[idx];
+                                if (job.Type[idx] == JobType.DirSize)
+                                {
+                                    // 检查缓存中是否已有该文件夹的大小
+                                    if (HasDirSizeCache(jobFilePath))
+                                    {
+                                        size = GetDirSizeFromCache(jobFilePath);
+                                    }
+                                    else
+                                    {
+                                        // 计算文件夹大小并添加到缓存
+                                        size = EverythingWrapper.CalculateDirectorySize(jobFilePath);
+                                        if (size > 0 && !string.IsNullOrEmpty(jobFilePath))
+                                        {
+                                            lock (_dirsizeCache)
+                                            {
+                                                _dirsizeCache[jobFilePath] = size;
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    var key = Path.GetExtension(jobFilePath);
+                                    imageKey = key;
+                                    // 尝试生成缩略图
+                                    var thumb = _thumbnailManager.CreatePreview(jobFilePath, out string md5key);
+                                    if (thumb != null)
+                                    {
+                                        Debug.Print("thumb generated: {0}, {1}", jobFilePath, md5key);
+                                        imageKey = md5key;
+                                        // 在UI线程上更新ImageList
+                                        await Task.Run(() =>
+                                        {
+                                            try
+                                            {
+                                                if (job.View?.InvokeRequired == true)
+                                                {
+                                                    job.View.Invoke(new Action(() =>
+                                                    {
+                                                        if (!job.View.LargeImageList.Images.ContainsKey(md5key))
+                                                            job.View.LargeImageList.Images.Add(md5key, thumb);
+                                                    }));
+                                                }
+                                                else
+                                                {
+                                                    if (!job.View.LargeImageList.Images.ContainsKey(md5key))
+                                                        job.View.LargeImageList.Images.Add(md5key, thumb);
+                                                }
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                Debug.Print($"更新ImageList异常: {ex.Message}");
+                                            }
+                                        });
+                                    }
+                                    else
+                                    {
+                                        // 如果没有缩略图，使用大图标
+                                        if (!_iconManager.HasIconKey(key, true))
+                                        {
+                                            var icol = IconManager.GetIconByFileNameEx("FILE", jobFilePath, true);
+                                            if (icol != null)
+                                                _iconManager.AddIcon(key, icol, true);
+                                        }
+                                    }
 
-								// 批量更新UI
-								if (_batchCounter >= BatchUpdateThreshold)
-								{
-									await UpdateUIAsync();
-									_batchCounter = 0;
-								}
-							}
-							
-					
+                                }
+                                // 添加到待更新列表
+                                lock (_currentProgress.ItemsToUpdate)
+                                {
+                                    _currentProgress.ItemsToUpdate.Add((job.View, imageKey, jobFilePath, job.Items[idx], size));
+                                }
+                                // 更新完成计数
+                                _currentProgress.CompletedJobs++;
+                                _batchCounter++;
+
+                                // 批量更新UI
+                                if (_batchCounter >= BatchUpdateThreshold)
+                                {
+                                    await UpdateUIAsync();
+                                    _batchCounter = 0;
+                                }
+                            }
+
+
                         }
                         catch (Exception ex)
                         {
@@ -258,7 +302,7 @@ namespace zfile
 
                 // 处理完成后，执行最后一次UI更新
                 await UpdateUIAsync();
-                
+
                 // 标记任务完成
                 _currentProgress.CurrentFile = null;
                 ReportProgress();
@@ -279,14 +323,14 @@ namespace zfile
         private async Task UpdateUIAsync()
         {
             List<(ListView Item, string ImageKey, string filepath, ListViewItem, long)> itemsToUpdate;
-            
+
             // 获取并清空待更新项
             lock (_currentProgress.ItemsToUpdate)
             {
                 if (_currentProgress.ItemsToUpdate.Count == 0)
                     return;
-                    
-                itemsToUpdate = new List<(ListView, string, string, ListViewItem,long)>(_currentProgress.ItemsToUpdate);
+
+                itemsToUpdate = new List<(ListView, string, string, ListViewItem, long)>(_currentProgress.ItemsToUpdate);
                 _currentProgress.ItemsToUpdate.Clear();
             }
 
@@ -298,7 +342,7 @@ namespace zfile
             foreach (var group in groupedItems)
             {
                 var listView = group.Key;
-                
+
                 try
                 {
                     if (listView.InvokeRequired)
@@ -342,23 +386,23 @@ namespace zfile
                 return;
 
             var listView = items[0].v;
-            
+
             try
             {
                 listView.BeginUpdate();
-                
+
                 foreach (var (v, imageKey, filepath, i, dirsize) in items)
                 {
-					if (v != null && !string.IsNullOrEmpty(imageKey))
-						i.ImageKey = imageKey;
-					else
-					{
-						i.SubItems[MainForm.LVCOL_SIZE].Text = FileSystemManager.FormatFileSize(dirsize, true);
-						//i.SubItems[5].Text = dirsize.ToString();
-						if (i.Tag is LvItemTag tag && tag.File != null)
-							tag.File.Size = dirsize;
-					}
-				}
+                    if (v != null && !string.IsNullOrEmpty(imageKey))
+                        i.ImageKey = imageKey;
+                    else
+                    {
+                        i.SubItems[MainForm.LVCOL_SIZE].Text = FileSystemManager.FormatFileSize(dirsize, true);
+                        //i.SubItems[5].Text = dirsize.ToString();
+                        if (i.Tag is LvItemTag tag && tag.File != null)
+                            tag.File.Size = dirsize;
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -397,10 +441,10 @@ namespace zfile
             try
             {
                 _cancellationTokenSource.Cancel();
-                
+
                 // 清空队列
                 while (_jobQueue.TryDequeue(out _)) { }
-                
+
                 // 重置进度
                 _currentProgress = new IconProgress();
                 ReportProgress();

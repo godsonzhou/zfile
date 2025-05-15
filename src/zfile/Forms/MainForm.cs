@@ -163,7 +163,10 @@ namespace zfile
 						if (CurrentPath.Equals(result.CurrentPath))
 							Debug.Print("WARNING: SET CURRENTPATH IS NOT NEEDED!");
 						else
+						{
+							Debug.Print($"change CURRENTPATH : {result.CurrentPath} -> {CurrentPath}");
 							result.CurrentPath = CurrentPath;
+						}
 					}
 					else
 						throw new KeyNotFoundException($"Key {key} not found in FileSourceDict.");
@@ -343,7 +346,7 @@ namespace zfile
 			ftproot = 2,
 			full = 3
 		}
-		private IFileSource UpdateFilesource(string path, out bool filesourceChanged, out IFileSource? oldfs)
+		private IFileSource UpdateFilesourceAndCurrentPath(string path, out bool filesourceChanged, out IFileSource? oldfs)
 		{
 			// get the current filesource
 			oldfs = CurrentFullpath.GetFileSource(LRflag);
@@ -361,6 +364,8 @@ namespace zfile
 			}
 			else
 				Debug.Print($"WARNING: Update Filesource is not necessary!");
+			// 更新当前路径
+			CurrentFullpath[LRflag] = path;
 			return fileSource;
 		}
 		// 导航到指定路径
@@ -368,7 +373,7 @@ namespace zfile
 		{
 			Debug.Print($"Navigate to path : {path}");
 			//first change currentfilesource according to the path
-			var fs = UpdateFilesource(path, out var flag, out var oldfs);
+			var fs = UpdateFilesourceAndCurrentPath(path, out var flag, out var oldfs);
 
 			bool isarch = false;
 			if (CurrentFullpath.GetFileSource(LRflag) is WcxArchiveFileSource wcxfs)
@@ -1349,7 +1354,8 @@ namespace zfile
 					// 如果path是文件夹，则加载子目录
 					var treeView = sender as TreeView;
 					var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
-					CurrentFullpath[LRflag] = path;
+					//CurrentFullpath[LRflag] = path;	//bugfix:LRFLAG IS UPDATED IN TREEVIEW_AFTERSELECT, SO HERE LRFLAG MAY BE INCORRECT, USE SENDER.NAME INSTEAD
+					//CurrentFullpath[treeView.Name] = path; //bugfix: 不进行filesource更新直接赋值, 可能导致C:\的filesource的fullpath变成d:\path\
 					SelectedNode = e.Node;
 					// 更新监视器
 					watcher.Path = path;
@@ -1366,7 +1372,7 @@ namespace zfile
 			if (e.Node.Nodes.Count == 1 && e.Node.FirstNode.Text == "...")  //点击+号时，加载子目录
 				LoadSubDirectories(e.Node);
 		}
-
+		public bool Update
 		public void TreeView_AfterSelect(object? sender, TreeViewEventArgs e)
 		{
 			if (e.Node?.Tag == null) return;
@@ -1389,11 +1395,11 @@ namespace zfile
 						return;
 
 					var oldpath = CurrentFullpath[LRflag];  //before update the filesource, save current path to oldpath
-					var fileSource = UpdateFilesource(path, out var fschanged, out var oldfs);
-					if (string.IsNullOrEmpty(fileSource.CurrentPath))
-						CurrentFullpath[LRflag] = path;
+					var fileSource = UpdateFilesourceAndCurrentPath(path, out var fschanged, out var oldfs);
+					//if (string.IsNullOrEmpty(fileSource.CurrentPath))
+					//CurrentFullpath[LRflag] = path;
 
-					var driveChanged = UpdatePathTextAndDriveComboBox(e.Node, path, isleft);    //盘符改变时在combobox事件中刷新
+					var driveChanged = !oldpath.Substring(0, 2).Equals(path.Substring(0, 2));
 					SelectedNode = e.Node;
 
 					//if (ftpNodeSelect(e.Node))
@@ -1403,7 +1409,7 @@ namespace zfile
 						// 处理FTP节点双击事件
 						fTPMGR.HandleFtpNodeDoubleClick(e.Node);
 						//SelectedNode = e.Node;
-						//UpdatePathTextAndDriveComboBox(eNode, CurrentFullpath[LRflag], isleft);//TODO: BUGFIX: IF ENODE IS LEFT , LRFLAG IS R, SOME THING ERROR
+						UpdatePathTextAndDriveComboBox(e.Node, CurrentFullpath[LRflag], isleft);//TODO: BUGFIX: IF ENODE IS LEFT , LRFLAG IS R, SOME THING ERROR
 						uiManager.SetArgs();
 						return;
 					}
@@ -1411,27 +1417,25 @@ namespace zfile
 
 					if (fschanged || path != oldpath)
 						RecordDirectoryHistory(path, oldfs);   // 记录目录历史, 并更新filesource的currentpath
+
 					if (!driveChanged)
 					{
 						//如果盘符改变了，则不刷新treeview&listview, 因为在盘符改变时，会触发事件，在事件中会刷新(refreshpanel)
 
 						// 检查节点是否已经被加载过子目录
 						bool isNodeLoaded = false;
-						if (e.Node.Tag is ShellItem sItem && sItem.SubNodeChanged == NODE_LOADED_KEY)
-						{
+						if (e.Node.Tag is ShellItem sItem && sItem.SubNodeState == NODE_LOADED_KEY)
 							isNodeLoaded = true;
-						}
 
 						// 只有当节点没有被标记为已加载时才加载子目录
 						if (!isNodeLoaded)
-						{
 							LoadSubDirectories(e.Node, activeListView); //盘符不变时在这里刷新TREEVIEW/LISTVIEW
-						}
 
 						// 无论如何都需要刷新ListView
 						LoadListViewByFileSourceSync(fileSource is WcxArchiveFileSource wcxfs ? Helper.ExtractDirLevel(wcxfs.ArchivePath, path, true) : path, activeListView, e.Node);
 					}
 					uiManager.UpdateLastVisitedPath(path);
+					UpdatePathTextAndDriveComboBox(e.Node, path, isleft);    //盘符改变时在combobox事件中刷新//必须在loadsubdir之后，因为需要loadsubdir中调用pathtextbox.setchildren
 					//SelectedNode = e.Node;
 					if (Directory.Exists(path))
 					{
@@ -2121,7 +2125,7 @@ namespace zfile
 				node.Nodes.RemoveAt(0);
 
 			// 标记节点已经加载过子目录
-			sItem.SubNodeChanged = NODE_LOADED_KEY;
+			sItem.SubNodeState = NODE_LOADED_KEY;
 			// 保存现有节点的引用，以便后续比较
 			Dictionary<string, TreeNode> existingNodes = new Dictionary<string, TreeNode>();
 			foreach (TreeNode existingNode in node.Nodes)
@@ -2482,9 +2486,22 @@ namespace zfile
 						//if is dir, calc dir size
 						if ((item.SubItems[LVCOL_SIZE].Text.Equals("0 B")) && showFolderSize)
 						{
-							itemsForJob.Add(itemFullName);
-							lvitemsForJob.Add(item);
-							jobtypelist.Add(BackgroundIconManager.JobType.DirSize);
+							// 检查缓存中是否已有该文件夹的大小
+							if (itemFullName != null && _backgroundIconManager.HasDirSizeCache(itemFullName))
+							{
+								// 从缓存获取文件夹大小并更新UI
+								long cachedSize = _backgroundIconManager.GetDirSizeFromCache(itemFullName);
+								item.SubItems[LVCOL_SIZE].Text = FileSystemManager.FormatFileSize(cachedSize, true);
+								if (file != null)
+									file.Size = cachedSize;
+							}
+							else if (itemFullName != null)
+							{
+								// 如果缓存中没有，添加到任务队列
+								itemsForJob.Add(itemFullName);
+								lvitemsForJob.Add(item);
+								jobtypelist.Add(BackgroundIconManager.JobType.DirSize);
+							}
 						}
 					}
 					else
@@ -3636,7 +3653,7 @@ namespace zfile
 				if (affectedNode != null && affectedNode.Tag is ShellItem shellItem)
 				{
 					// 清除节点的加载标记，以便下次访问时重新加载子目录
-					shellItem.SubNodeChanged = "";
+					shellItem.SubNodeState = "";
 
 					// 如果变化是创建或删除目录，则刷新TreeView
 					if (e.ChangeType == WatcherChangeTypes.Created || e.ChangeType == WatcherChangeTypes.Deleted)

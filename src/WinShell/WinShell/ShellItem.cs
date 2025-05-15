@@ -16,6 +16,7 @@ namespace WinShell
 		public bool IsVirtual = false;
 		public string Name;
 		public string IconKey;
+		public string SubNodeChanged;
 		public ShellItem(IntPtr PIDL, IShellFolder ShellFolder, IShellFolder ParentShellFolder)
 		{
 			this.PIDL = PIDL;

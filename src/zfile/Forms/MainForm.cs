@@ -347,7 +347,7 @@ namespace zfile
 		{
 			// get the current filesource
 			oldfs = CurrentFullpath.GetFileSource(LRflag);
-			// 使用 FileSourceManager 获取合适的 FileSource, 
+			// 使用 FileSourceManager 获取合适的 FileSource,
 			IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, isleft);
 			filesourceChanged = (oldfs != fileSource);
 			if (filesourceChanged)
@@ -1396,7 +1396,7 @@ namespace zfile
 					var driveChanged = UpdatePathTextAndDriveComboBox(e.Node, path, isleft);    //盘符改变时在combobox事件中刷新
 					SelectedNode = e.Node;
 
-					//if (ftpNodeSelect(e.Node)) 
+					//if (ftpNodeSelect(e.Node))
 					// 检查是否是FTP节点
 					if (e.Node.Tag is FtpNodeTag ftpTag)
 					{
@@ -1414,8 +1414,21 @@ namespace zfile
 					if (!driveChanged)
 					{
 						//如果盘符改变了，则不刷新treeview&listview, 因为在盘符改变时，会触发事件，在事件中会刷新(refreshpanel)
-						LoadSubDirectories(e.Node, activeListView); //盘符不变时在这里刷新TREEVIEW/LISTVIEW
-																	// 使用 FileSource 架构加载文件列表
+
+						// 检查节点是否已经被加载过子目录
+						bool isNodeLoaded = false;
+						if (e.Node.Tag is ShellItem sItem && sItem.SubNodeChanged == NODE_LOADED_KEY)
+						{
+							isNodeLoaded = true;
+						}
+
+						// 只有当节点没有被标记为已加载时才加载子目录
+						if (!isNodeLoaded)
+						{
+							LoadSubDirectories(e.Node, activeListView); //盘符不变时在这里刷新TREEVIEW/LISTVIEW
+						}
+
+						// 无论如何都需要刷新ListView
 						LoadListViewByFileSourceSync(fileSource is WcxArchiveFileSource wcxfs ? Helper.ExtractDirLevel(wcxfs.ArchivePath, path, true) : path, activeListView, e.Node);
 					}
 					uiManager.UpdateLastVisitedPath(path);
@@ -2106,6 +2119,9 @@ namespace zfile
 			if (root == null) return null;
 			if (node.Nodes.Count == 1 && node.Nodes[0].Text.Equals("..."))
 				node.Nodes.RemoveAt(0);
+
+			// 标记节点已经加载过子目录
+			sItem.SubNodeChanged = NODE_LOADED_KEY;
 			// 保存现有节点的引用，以便后续比较
 			Dictionary<string, TreeNode> existingNodes = new Dictionary<string, TreeNode>();
 			foreach (TreeNode existingNode in node.Nodes)
@@ -3590,11 +3606,58 @@ namespace zfile
 		//	return wcxModule.DeleteFiles(archivePath, fileList) == 0; // archivepath should be full path and name of the the archive.
 		//}
 
+		// 用于标记节点是否已经加载过子目录的键
+		private const string NODE_LOADED_KEY = "SubDirsLoaded";
+
 		private void Watcher_Changed(object sender, FileSystemEventArgs e)
 		{
 			Control.CheckForIllegalCrossThreadCalls = false;//设置该属性 为false
-			var selectedDrive = uiManager.LeftDriveComboBox.SelectedItem?.ToString();
-			var listView = selectedDrive != null && watcher.Path.StartsWith(selectedDrive) ? uiManager.LeftList : uiManager.RightList;
+
+			try
+			{
+				// 确定哪个面板正在显示变化的目录
+				var selectedDrive = uiManager.LeftDriveComboBox.SelectedItem?.ToString();
+				var isLeftPanel = selectedDrive != null && watcher.Path.StartsWith(selectedDrive);
+				var treeView = isLeftPanel ? uiManager.LeftTree : uiManager.RightTree;
+				var listView = isLeftPanel ? uiManager.LeftList : uiManager.RightList;
+
+				// 找到对应的节点
+				TreeNode? affectedNode = null;
+				if (treeView.SelectedNode != null && treeView.SelectedNode.Tag is ShellItem sItem)
+				{
+					string nodePath = sItem.parsepath;
+					if (string.Equals(nodePath, watcher.Path, StringComparison.OrdinalIgnoreCase))
+					{
+						affectedNode = treeView.SelectedNode;
+					}
+				}
+
+				// 如果找到了受影响的节点，清除其加载标记
+				if (affectedNode != null && affectedNode.Tag is ShellItem shellItem)
+				{
+					// 清除节点的加载标记，以便下次访问时重新加载子目录
+					shellItem.SubNodeChanged = "";
+
+					// 如果变化是创建或删除目录，则刷新TreeView
+					if (e.ChangeType == WatcherChangeTypes.Created || e.ChangeType == WatcherChangeTypes.Deleted)
+					{
+						if (Directory.Exists(e.FullPath) || e.ChangeType == WatcherChangeTypes.Deleted)
+						{
+							// 在UI线程上执行刷新操作
+							this.BeginInvoke(new Action(() =>
+							{
+								LoadSubDirectories(affectedNode, listView);
+								// 刷新ListView
+								LoadListViewByFileSourceSync(watcher.Path, listView, affectedNode);
+							}));
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Debug.Print($"Watcher_Changed error: {ex.Message}");
+			}
 		}
 		//public string GetListItemPath(ListViewItem item)
 		//{

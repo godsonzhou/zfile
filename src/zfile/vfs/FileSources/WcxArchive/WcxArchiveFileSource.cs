@@ -32,8 +32,9 @@ namespace zfile
         /// 获取压缩文件的完整路径
         /// </summary>
         public string ArchivePath => ArchiveFileName;
+		public override string CurrentFullPath { get => ArchivePath + CurrentPath; set => CurrentPath = Helper.ExtractDirLevel(ArchivePath, value, true); }
 
-        public WcxArchiveFileSource(IFileSource archiveFileSource, string archiveFileName, string wcxPluginFileName, int wcxPluginCapabilities)
+		public WcxArchiveFileSource(IFileSource archiveFileSource, string archiveFileName, string wcxPluginFileName, int wcxPluginCapabilities)
             : base(archiveFileSource, archiveFileName)
         {
             _moduleFileName = wcxPluginFileName;

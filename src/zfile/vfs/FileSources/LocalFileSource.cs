@@ -6,5 +6,6 @@ namespace zfile
 
 	public abstract class LocalFileSource : RealFileSource, ILocalFileSource
 	{
+	
 	}
 }

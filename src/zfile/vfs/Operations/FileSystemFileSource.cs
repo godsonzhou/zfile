@@ -20,7 +20,6 @@ namespace zfile
     public class FileSystemFileSource : LocalFileSource, IFileSystemFileSource
     {
         private Description description;
-		private string _rootpath;
 
         public FileSystemFileSource()
         {
@@ -41,7 +40,10 @@ namespace zfile
             OperationsClasses[FileSourceOperationTypes.SetFileProperty] = typeof(FileSystemSetFilePropertyOperation);
             OperationsClasses[FileSourceOperationTypes.Execute] = typeof(FileSystemExecuteOperation);
         }
-
+		public FileSystemFileSource(String rootpath) 
+		{
+			_rootpath = rootpath;
+		}
         ~FileSystemFileSource()
         {
             description?.Dispose();

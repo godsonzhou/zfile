@@ -2,6 +2,7 @@ using FluentFTP;
 using System.Diagnostics;
 using System.Text;
 using static OpenQA.Selenium.BiDi.Modules.BrowsingContext.Locator;
+using static System.Net.WebRequestMethods;
 namespace zfile
 {
 	/// <summary>
@@ -130,7 +131,12 @@ namespace zfile
 			return path.StartsWith("ftp://", StringComparison.OrdinalIgnoreCase) ||
 				   path.StartsWith("ftps://", StringComparison.OrdinalIgnoreCase);
 		}
-
+	
+		public override string CurrentFullPath
+		{
+			get => $"ftp://{Host}{CurrentPath}"; 
+			set => CurrentPath = value.Replace($"ftp://{Host}", string.Empty, StringComparison.OrdinalIgnoreCase); 
+		}
 		public override void Initialize()
 		{
 			// 初始化FTP连接已在构造函数中完成

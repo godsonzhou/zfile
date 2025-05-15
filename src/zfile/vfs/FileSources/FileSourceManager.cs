@@ -127,6 +127,31 @@ namespace zfile
 				Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} from cache : {fileSource.GetRootDir()}");
 				return fileSource;
 			}
+			// 检查是否是压缩文件内部路径
+			// 遍历所有已存在的文件源，查找是否有WcxArchiveFileSource包含当前路径
+			var archiveFileSource = GetFileSources(isLeftPanel).FirstOrDefault(fs =>
+				fs is WcxArchiveFileSource wcxArchiveFileSource &&
+				fullpath.StartsWith(wcxArchiveFileSource.ArchivePath, StringComparison.OrdinalIgnoreCase));
+			if (archiveFileSource != null)
+			{
+				// 添加到缓存
+				panelCache[fullpath] = archiveFileSource;
+				Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} from wcxarchive : {fileSource?.GetRootDir()}");
+				return archiveFileSource;
+			}
+
+			// Check for archive file
+			if (IsArchiveFile(fullpath))
+			{
+				// 为压缩文件创建新的FileSystemFileSource作为基础文件源
+				var dirPath = Path.GetDirectoryName(fullpath) ?? "C:\\";
+				var baseFileSource = GetFileSourceForFullPath(dirPath, isLeftPanel);
+				var archiveSource = WcxArchiveFileSource.CreateByArchiveName(baseFileSource, fullpath);
+				Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} from fs.archivefile : {archiveSource.GetRootDir()}");
+				// 添加到缓存
+				panelCache[fullpath] = archiveSource;
+				return archiveSource;
+			}
 
 			// Check for existing file source first
 			var existingFileSource = GetFileSources(isLeftPanel).FirstOrDefault(fs =>
@@ -172,35 +197,9 @@ namespace zfile
 				panelCache[fullpath] = shellfilesource;
 				return shellfilesource;
 			}
-			if (!fullpath.Contains(":"))
-                throw new Exception("路径中不能为相对路径");
-
-            // 检查是否是压缩文件内部路径
-            // 遍历所有已存在的文件源，查找是否有WcxArchiveFileSource包含当前路径
-            var archiveFileSource = GetFileSources(isLeftPanel).FirstOrDefault(fs =>
-                fs is WcxArchiveFileSource wcxArchiveFileSource &&
-                fullpath.StartsWith(wcxArchiveFileSource.ArchivePath, StringComparison.OrdinalIgnoreCase));
-            if (archiveFileSource != null)
-            {
-                // 添加到缓存
-                panelCache[fullpath] = archiveFileSource;
-                Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} from wcxarchive : {fileSource?.GetRootDir()}");
-                return archiveFileSource;
-            }
-
-            // Check for archive file
-            if (IsArchiveFile(fullpath))
-            {
-                // 为压缩文件创建新的FileSystemFileSource作为基础文件源
-                var dirPath = Path.GetDirectoryName(fullpath) ?? "C:\\";
-                var baseFileSource = GetFileSourceForFullPath(dirPath, isLeftPanel);
-                var archiveSource = WcxArchiveFileSource.CreateByArchiveName(baseFileSource, fullpath);
-                Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} from fs.archivefile : {archiveSource.GetRootDir()}");
-                // 添加到缓存
-                panelCache[fullpath] = archiveSource;
-                return archiveSource;
-            }
-
+			//if (!fullpath.Contains(":"))
+   //             throw new Exception("路径中不能为相对路径");
+   
             // Check for FTP path
             if (_ftpManager != null && _ftpManager.IsFtpPath(fullpath))
             {
@@ -214,8 +213,8 @@ namespace zfile
                 }
 
                 // 如果无法获取FTP源，则返回默认的文件系统源
-                var defaultFs = new FileSystemFileSource();
-                defaultFs.SetRootPath("C:\\");
+                var defaultFs = new FileSystemFileSource("C:");
+                //defaultFs.SetRootPath("C:\\");
                 return defaultFs;
             }
 
@@ -234,8 +233,8 @@ namespace zfile
             }
 
             // 创建新的FileSystemFileSource
-            var fileSystemSource = new FileSystemFileSource();
-            fileSystemSource.SetRootPath(drive);
+            var fileSystemSource = new FileSystemFileSource(drive);
+            //fileSystemSource.SetRootPath(drive);
             fileSystemSource.CurrentPath = fullpath;
 
             // 添加到缓存

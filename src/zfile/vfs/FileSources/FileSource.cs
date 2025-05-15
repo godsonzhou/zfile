@@ -344,8 +344,15 @@ namespace zfile
 		/// <param name="path">The path</param>
 		/// <returns>True if the path is at the root, false otherwise</returns>
 		bool IsPathAtRoot(string path);
+
+		string CurrentFullPath { get; set; }
+
 		string CurrentPath { get; set; }
+
 		char PathSep { get; }
+
+		string RootPath { get; }	
+
 		/// <summary>
 		/// Gets the parent directory of the specified path
 		/// </summary>
@@ -469,7 +476,7 @@ namespace zfile
 	/// <summary>
 	/// Base class for file sources
 	/// </summary>
-	public abstract partial class FileSource : IFileSource
+	public abstract class FileSource : IFileSource
 	{
 		private int _refCount;
 		private readonly List<IFileSource> _children = new List<IFileSource>();
@@ -532,7 +539,25 @@ namespace zfile
 		/// Gets or sets the parent file source of this file source
 		/// </summary>
 		public virtual IFileSource ParentFileSource { get; set; }
+
+		// currentpath 是不包括ROOTPATH的相对路径
 		public virtual string CurrentPath { get; set; }
+
+		// CurrentFullPath 是包含rootpath的完整路径
+		public virtual string CurrentFullPath { 
+			get { return GetRootDir() + CurrentPath; } 
+			set { 
+				//if the value is full path, save its relative part to currentpath, otherwise save it directly
+				if (string.IsNullOrEmpty(value) && value.StartsWith(GetRootDir()))
+					CurrentPath = value.Replace(GetRootDir(), string.Empty, StringComparison.OrdinalIgnoreCase);
+				else
+					CurrentPath = value;
+			} 
+		}
+
+		protected string _rootpath;
+
+		public virtual string RootPath { get => _rootpath ; }
 
 		/// <summary>
 		/// Creates a new instance of the FileSource class
@@ -541,6 +566,10 @@ namespace zfile
 		{
 			_refCount = 1;
 			FileSourceManager.Instance.Add(this);
+		}
+		public FileSource(string rootpath)
+		{
+			_rootpath = rootpath;
 		}
 
 		/// <summary>

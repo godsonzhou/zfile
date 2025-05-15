@@ -197,7 +197,7 @@ namespace zfile
         public bool RemoveFromQueue()
         {
             bool result = Queue.Remove(this);
-			Debug.Print($"remove from queue : {this.handle}, {this.operation._Thread.Thread.ManagedThreadId} {result}");
+			Debug.Print($"remove from queue : handle={this.handle}, threadId={this.operation._Thread.Thread.ManagedThreadId} path={this.operation.TargetPath} OK={result}");
             if (Queue.Count == 0)
             {
                 OperationsManager.Instance.RemoveQueue(Queue);

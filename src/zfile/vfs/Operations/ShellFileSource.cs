@@ -39,7 +39,7 @@ namespace zfile
 			OperationsClasses[FileSourceOperationTypes.CalcStatistics] = typeof(ShellCalcStatisticsOperation);
 			OperationsClasses[FileSourceOperationTypes.SetFileProperty] = typeof(ShellSetFilePropertyOperation);
 			//_rootPath = w32.GetDisplayName(_desktopFolder, _drives, SHGDN.INFOLDER);    //此电脑
-			_rootPath = "桌面";
+			_rootPath = "\\\\桌面\\";
 		}
 
 		~ShellFileSource()
@@ -54,7 +54,7 @@ namespace zfile
 
 		public static new bool IsSupportedPath(string path)
 		{
-			return path.StartsWith(Path.DirectorySeparatorChar + Path.DirectorySeparatorChar +
+			return path.StartsWith(Path.DirectorySeparatorChar + 
 								 Path.DirectorySeparatorChar + RootName);
 		}
 
@@ -341,11 +341,12 @@ namespace zfile
 
 		public override string GetRootDir(string path)
 		{
-			return Path.DirectorySeparatorChar.ToString() +
-				   Path.DirectorySeparatorChar.ToString() +
-				   //Path.DirectorySeparatorChar.ToString() +
-				   _rootPath +
-				   Path.DirectorySeparatorChar.ToString();
+			//return Path.DirectorySeparatorChar.ToString() +
+			//	   Path.DirectorySeparatorChar.ToString() +
+			//	   //Path.DirectorySeparatorChar.ToString() +
+			//	   _rootPath +
+			//	   Path.DirectorySeparatorChar.ToString();
+			return $"{_rootPath}";
 		}
 
 		public override FileSourceProperties Properties => FileSourceProperties.Virtual;

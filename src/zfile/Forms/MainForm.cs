@@ -164,7 +164,7 @@ namespace zfile
 						else if (result is FtpFileSource ftp)
 							CurrentPath = value.Replace($"ftp://{ftp.Host}", string.Empty, StringComparison.OrdinalIgnoreCase);
 						else if (result is ShellFileSource shell)
-							CurrentPath = value.Replace(shell.GetRootDir(), "");
+							CurrentPath = (value.Replace(shell.GetRootDir(), ""));
 						else if (result is WslFileSource wsl)
 							CurrentPath = value.Replace(wsl.GetRootDir(), "");
 						else if (result is RecycleBinFileSource trash)
@@ -1477,7 +1477,7 @@ namespace zfile
 		private bool UpdatePathTextAndDriveComboBox(TreeNode eNode, string path, bool isleft)
 		{
 			if (!eNode.TreeView.Name.Equals(isleft ? "L" : "R")) return false;
-			var driveId = eNode.Text.Substring(0, 2);
+			var driveId = eNode.Text[1] == ':' ? eNode.Text.Substring(0, 2) : "";
 			bool driveChanged = false;
 			if (isleft)
 			{
@@ -1485,8 +1485,8 @@ namespace zfile
 					uiManager.LeftPathTextBox.UpdateDrives(driveId);
 				else
 					uiManager.LeftPathTextBox.SetAddress(eNode);    // 调用leftpathtextbox的setaddress方法来更新路径
-
-				driveChanged = SetDriveComboByValue(uiManager.LeftDriveComboBox, eNode.FullPath);
+				if(driveId.Length > 0) 
+					driveChanged = SetDriveComboByValue(uiManager.LeftDriveComboBox, driveId);
 			}
 			else
 			{
@@ -1494,20 +1494,19 @@ namespace zfile
 					uiManager.RightPathTextBox.UpdateDrives(driveId);
 				else
 					uiManager.RightPathTextBox.SetAddress(eNode);
-
-				driveChanged = SetDriveComboByValue(uiManager.RightDriveComboBox, eNode.FullPath);
+				if(driveId.Length > 0)
+					driveChanged = SetDriveComboByValue(uiManager.RightDriveComboBox, driveId);
 			}
 
 			uiManager.BookmarkManager.UpdateActiveBookmark(path, selectedNode, isleft);
 			return driveChanged;
 		}
-		private static bool SetDriveComboByValue(ComboBox cb, string value)
+		private static bool SetDriveComboByValue(ComboBox cb, string driveId)
 		{
 			var driveChanged = false;
-			//var olddrive = cb.SelectedItem?.ToString();
-			foreach (var i in cb.Items)
+			foreach (var i in cb.Items) //i looks like c:\
 			{
-				if (value.Contains(i.ToString().Substring(0, 2)))
+				if (driveId.Equals(i.ToString()[..2], StringComparison.OrdinalIgnoreCase))
 				{
 					if (cb.SelectedItem?.ToString() != i.ToString())
 					{

@@ -127,6 +127,18 @@ namespace zfile
 				Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} from cache : {fileSource.GetRootDir()}");
 				return fileSource;
 			}
+
+			// Check for existing file source first
+			var existingFileSource = GetFileSources(isLeftPanel).FirstOrDefault(fs =>
+				fs is not WcxArchiveFileSource &&
+				fullpath.StartsWith(fs.GetRootDir(), StringComparison.OrdinalIgnoreCase));
+			if (existingFileSource != null)
+			{
+				// 添加到缓存
+				panelCache[fullpath] = existingFileSource;
+				return existingFileSource;
+			}
+
 			// Check for WSL path
 			if (fullpath.StartsWith("\\\\桌面\\Linux") || fullpath.StartsWith("\\\\wsl.localhost"))
 			{
@@ -153,6 +165,7 @@ namespace zfile
 				panelCache[fullpath] = controlPanelSource;
 				return controlPanelSource;
 			}
+
 			if (fullpath.StartsWith("\\\\桌面"))
 			{
 				var shellfilesource = new ShellFileSource();
@@ -186,17 +199,6 @@ namespace zfile
                 // 添加到缓存
                 panelCache[fullpath] = archiveSource;
                 return archiveSource;
-            }
-
-            // Check for existing file source first
-            var existingFileSource = GetFileSources(isLeftPanel).FirstOrDefault(fs =>
-                fs is not WcxArchiveFileSource &&
-                fullpath.StartsWith(fs.GetRootDir(), StringComparison.OrdinalIgnoreCase));
-            if (existingFileSource != null)
-            {
-                // 添加到缓存
-                panelCache[fullpath] = existingFileSource;
-                return existingFileSource;
             }
 
             // Check for FTP path

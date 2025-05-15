@@ -343,7 +343,7 @@ namespace zfile
 		{
 			return Path.DirectorySeparatorChar.ToString() +
 				   Path.DirectorySeparatorChar.ToString() +
-				   Path.DirectorySeparatorChar.ToString() +
+				   //Path.DirectorySeparatorChar.ToString() +
 				   _rootPath +
 				   Path.DirectorySeparatorChar.ToString();
 		}

@@ -127,14 +127,15 @@ namespace zfile
 				Debug.Print($"FileSourceManager: GetFileSourceForPath({fullpath}) {lr} from cache : {fileSource.GetRootDir()}");
 				return fileSource;
 			}
-			if (fullpath == "Linux" || fullpath.StartsWith("\\\\wsl.localhost"))
+			// Check for WSL path
+			if (fullpath.StartsWith("\\\\桌面\\Linux") || fullpath.StartsWith("\\\\wsl.localhost"))
 			{
 				var wslfilesource = new WslFileSource();
 				panelCache[fullpath] = wslfilesource;
 				return wslfilesource;
 			}
 			// Check for recycle bin
-			if (fullpath == "回收站" || (Resources.VfsRecycleBin != null && fullpath.Contains(Resources.VfsRecycleBin)))
+			if (fullpath.StartsWith("\\\\桌面\\回收站") || (Resources.VfsRecycleBin != null && fullpath.Contains(Resources.VfsRecycleBin)))
 			{
 				var recycleBinSource = new RecycleBinFileSource();
 
@@ -144,7 +145,7 @@ namespace zfile
 			}
 
 			// Check for control panel
-			if (fullpath == "控制面板" || fullpath.StartsWith("controlpanel://"))
+			if (fullpath.StartsWith("\\\\桌面\\控制面板") || fullpath.StartsWith("controlpanel://"))
 			{
 				var controlPanelSource = new ControlPanelFileSource();
 
@@ -152,7 +153,7 @@ namespace zfile
 				panelCache[fullpath] = controlPanelSource;
 				return controlPanelSource;
 			}
-			if (fullpath.Equals("桌面") || fullpath.Equals("此电脑"))
+			if (fullpath.StartsWith("\\\\桌面"))
 			{
 				var shellfilesource = new ShellFileSource();
 				panelCache[fullpath] = shellfilesource;

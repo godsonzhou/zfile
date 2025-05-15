@@ -58,8 +58,11 @@ namespace zfile
 
             base.Dispose(disposing);
         }
-
-        public override Uri Uri => new("controlpanel://");
+		public override string GetRootDir()
+		{
+			return "\\\\控制面板\\";
+		}
+		public override Uri Uri => new("controlpanel://");
 
         public override string FileSystem => "ControlPanel";
 

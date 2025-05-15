@@ -144,6 +144,8 @@ namespace zfile
 							return wcx.ArchivePath + value?.CurrentPath;
 						else if (value is FtpFileSource ftp)
 							return $"ftp://{ftp.Host}{ftp.CurrentPath}";
+						else if (value is ShellFileSource shell)
+							return shell.GetRootDir() + shell.CurrentPath;
 						else
 							return value?.CurrentPath ?? string.Empty;
 					}
@@ -154,12 +156,24 @@ namespace zfile
 					if (FileSourceDict.TryGetValue(key, out IFileSource? result))
 					{
 						string CurrentPath;
-						if (result is WcxArchiveFileSource wcx && value.StartsWith(wcx.ArchivePath))
+
+						if (result is FileSystemFileSource filesys)
+							CurrentPath = value;
+						else if (result is WcxArchiveFileSource wcx && value.StartsWith(wcx.ArchivePath))
 							CurrentPath = Helper.ExtractDirLevel(wcx.ArchivePath, value, true);
 						else if (result is FtpFileSource ftp)
 							CurrentPath = value.Replace($"ftp://{ftp.Host}", string.Empty, StringComparison.OrdinalIgnoreCase);
+						else if (result is ShellFileSource shell)
+							CurrentPath = value.Replace(shell.GetRootDir(), "");
+						else if (result is WslFileSource wsl)
+							CurrentPath = value.Replace(wsl.GetRootDir(), "");
+						else if (result is RecycleBinFileSource trash)
+							CurrentPath = value.Replace(trash.GetRootDir(), "");
+						else if (result is ControlPanelFileSource controlpanel)
+							CurrentPath = value.Replace(controlpanel.GetRootDir(), "");
 						else
-							CurrentPath = value;
+							throw new Exception("unsupport filesouce while set current full path");
+
 						if (CurrentPath.Equals(result.CurrentPath))
 							Debug.Print("WARNING: SET CURRENTPATH IS NOT NEEDED!");
 						else

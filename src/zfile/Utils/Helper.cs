@@ -950,20 +950,31 @@ namespace zfile
 		public static string getFSpathbyTree(TreeNode Node)
 		{
 			if (Node.Parent == null)
-				return "桌面";
+				return "\\\\桌面\\";
 			
 			if (Node.Parent.Tag is ShellItem && Node.Tag is ShellItem item) {
 				var parentfolder = ((ShellItem)Node.Parent.Tag).ShellFolder;    //获取父节点的ishellfoler
 				var pidl = ((ShellItem)Node.Tag).PIDL;  //获取c:\\节点的pidl
 				var parsepath = item.parsepath;
-				var name = w32.GetNameByPIDL(pidl);
+				//var name = w32.GetNameByPIDL(pidl);
 				var path = w32.GetPathByIShell(parentfolder, pidl);
-				if (path.Equals("Linux"))
+		
+				if (parsepath.StartsWith("::{"))
 				{
-					//var wslpaths = GetWslInstancePaths();
-					return "\\\\wsl.localhost\\";
-				}
-				return w32.GetPathByIShell(parentfolder, pidl); //取得实际path
+					if (path.Equals("Linux"))
+						//var wslpaths = GetWslInstancePaths();
+						return "\\\\wsl.localhost\\";
+					if (path.Equals("控制面板"))
+						return "controlpanel:\\";
+					//if (path.Equals("网络"))
+					//	return "network:\\";
+					if ( path.Equals("回收站"))
+						return "recyclebin:\\";
+
+					return $"\\\\{Node.FullPath}";
+				} 
+				else
+					return path; // w32.GetPathByIShell(parentfolder, pidl); //取得实际path
 			}
 			if(Node.Tag is FtpNodeTag ftpnode)
 			{

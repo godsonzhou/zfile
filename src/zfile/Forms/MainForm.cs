@@ -1352,8 +1352,8 @@ namespace zfile
 				{
 					//Debug.Print("TreeView_NodeMouseClick：{0}", path);
 					// 如果path是文件夹，则加载子目录
-					var treeView = sender as TreeView;
-					var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
+					//var treeView = sender as TreeView;
+					//var listView = treeView == uiManager.LeftTree ? uiManager.LeftList : uiManager.RightList;
 					//CurrentFullpath[LRflag] = path;	//bugfix:LRFLAG IS UPDATED IN TREEVIEW_AFTERSELECT, SO HERE LRFLAG MAY BE INCORRECT, USE SENDER.NAME INSTEAD
 					//CurrentFullpath[treeView.Name] = path; //bugfix: 不进行filesource更新直接赋值, 可能导致C:\的filesource的fullpath变成d:\path\
 					SelectedNode = e.Node;
@@ -1372,7 +1372,7 @@ namespace zfile
 			if (e.Node.Nodes.Count == 1 && e.Node.FirstNode.Text == "...")  //点击+号时，加载子目录
 				LoadSubDirectories(e.Node);
 		}
-		public bool Update
+		
 		public void TreeView_AfterSelect(object? sender, TreeViewEventArgs e)
 		{
 			if (e.Node?.Tag == null) return;
@@ -1399,7 +1399,7 @@ namespace zfile
 					//if (string.IsNullOrEmpty(fileSource.CurrentPath))
 					//CurrentFullpath[LRflag] = path;
 
-					var driveChanged = !oldpath.Substring(0, 2).Equals(path.Substring(0, 2));
+					var driveChanged = CheckDriveChange(path, oldpath);
 					SelectedNode = e.Node;
 
 					//if (ftpNodeSelect(e.Node))
@@ -1428,7 +1428,7 @@ namespace zfile
 							isNodeLoaded = true;
 
 						// 只有当节点没有被标记为已加载时才加载子目录
-						if (!isNodeLoaded)
+						if (!isNodeLoaded || fileSource is ShellFileSource) // shellfilesource should always loadsubdir
 							LoadSubDirectories(e.Node, activeListView); //盘符不变时在这里刷新TREEVIEW/LISTVIEW
 
 						// 无论如何都需要刷新ListView
@@ -1449,6 +1449,16 @@ namespace zfile
 			{
 				Debug.Print($"TreeView_AfterSelect加载目录失败: {ex.Message}");
 			}
+		}
+		public static bool CheckDriveChange(string path1, string path2)
+		{
+			if (!Directory.Exists(path1) || !Directory.Exists(path2))
+				return false;
+
+			string drive1 = Path.GetPathRoot(path1);
+			string drive2 = Path.GetPathRoot(path2);
+
+			return !string.Equals(drive1, drive2, StringComparison.OrdinalIgnoreCase);
 		}
 		private bool UpdatePathTextAndDriveComboBox(TreeNode eNode, string path, bool isleft)
 		{

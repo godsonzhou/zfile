@@ -1363,7 +1363,7 @@ namespace zfile
 		}
 		public void TreeView_BeforeExpand(object sender, TreeViewCancelEventArgs e)
 		{
-			if (e.Node.Nodes.Count == 1 && e.Node.FirstNode.Text == "...")
+			if (e.Node.Nodes.Count == 1 && e.Node.FirstNode.Text == "...")  //点击+号时，加载子目录
 				LoadSubDirectories(e.Node);
 		}
 
@@ -1381,38 +1381,50 @@ namespace zfile
 					e.Node.BackColor = SystemColors.Highlight;
 					e.Node.ForeColor = SystemColors.HighlightText;
 					treeView.Refresh(); // 强制重绘
+
 					uiManager.isleft = treeView == uiManager.LeftTree;
 					// 使用 FileSourceManager 获取合适的 FileSource
 					var path = Helper.getFSpathbyTree(e.Node);
-					var oldpath = CurrentFullpath[LRflag];
+					if (string.IsNullOrEmpty(path))
+						return;
+
+					var oldpath = CurrentFullpath[LRflag];	//before update the filesource, save current path to oldpath
 					var fileSource = UpdateFilesource(path, out var fschanged, out var oldfs);
 					if (string.IsNullOrEmpty(fileSource.CurrentPath))
 						CurrentFullpath[LRflag] = path;
 
-					if (ftpNodeSelect(e.Node)) return;
-
-					LoadSubDirectories(e.Node, activeListView);
-					e.Node.Expand();
-					if (string.IsNullOrEmpty(path)) return;
-
-					//if (string.IsNullOrEmpty(CurrentFullpath[LRflag]))//BUGFIX: FOR WCXARCHIVEFILESOURCE, EVEN THE CURRENTPATH IS NULL, THE CURRENTFULLPATH[] IS NOT NULL, SO THIS CHECK ALWAYS RETURN FALSE, SO CHANGE TO USE FILESOURCE.CURRENTPATH DIRECTLY
-			
-					//if (!CurrentFullpath[LRflag].Equals(path))
-					if(fschanged || path != oldpath)
-						RecordDirectoryHistory(path, oldfs);   // 记录目录历史
-
-					// 使用 FileSource 架构加载文件列表
-					LoadListViewByFileSourceSync(fileSource is WcxArchiveFileSource wcxfs ? Helper.ExtractDirLevel(wcxfs.ArchivePath, path, true) : path, activeListView, e.Node);
-
-					//uiManager.lastVisitedPaths[path.Substring(0,2)] = path;
-					uiManager.UpdateLastVisitedPath(path);
+					var driveChanged = UpdatePathTextAndDriveComboBox(e.Node, path, isleft);
 					SelectedNode = e.Node;
+
+					//if (ftpNodeSelect(e.Node)) 
+					// 检查是否是FTP节点
+					if (e.Node.Tag is FtpNodeTag ftpTag)
+					{
+						// 处理FTP节点双击事件
+						fTPMGR.HandleFtpNodeDoubleClick(e.Node);
+						//SelectedNode = e.Node;
+						//UpdatePathTextAndDriveComboBox(eNode, CurrentFullpath[LRflag], isleft);//TODO: BUGFIX: IF ENODE IS LEFT , LRFLAG IS R, SOME THING ERROR
+						uiManager.SetArgs();
+						return;
+					}
+					e.Node.Expand();
+
+					if (fschanged || path != oldpath)
+						RecordDirectoryHistory(path, oldfs);   // 记录目录历史, 并更新filesource的currentpath
+					if (!driveChanged)
+					{
+						//如果盘符改变了，则不刷新treeview&listview, 因为在盘符改变时，会触发事件，在事件中会刷新(refreshpanel)
+						LoadSubDirectories(e.Node, activeListView);
+						// 使用 FileSource 架构加载文件列表
+						LoadListViewByFileSourceSync(fileSource is WcxArchiveFileSource wcxfs ? Helper.ExtractDirLevel(wcxfs.ArchivePath, path, true) : path, activeListView, e.Node);
+					}
+					uiManager.UpdateLastVisitedPath(path);
+					//SelectedNode = e.Node;
 					if (Directory.Exists(path))
 					{
 						watcher.Path = path;
 						watcher.EnableRaisingEvents = true;
 					}
-					UpdatePathTextAndDriveComboBox(e.Node, path, isleft);
 				}
 				uiManager.SetArgs();
 			}
@@ -1421,11 +1433,11 @@ namespace zfile
 				Debug.Print($"TreeView_AfterSelect加载目录失败: {ex.Message}");
 			}
 		}
-		private void UpdatePathTextAndDriveComboBox(TreeNode eNode, string path, bool isleft)
+		private bool UpdatePathTextAndDriveComboBox(TreeNode eNode, string path, bool isleft)
 		{
-			if (!eNode.TreeView.Name.Equals(isleft ? "L" : "R")) return;
+			if (!eNode.TreeView.Name.Equals(isleft ? "L" : "R")) return false;
 			var driveId = eNode.Text.Substring(0, 2);
-
+			bool driveChanged = false;
 			if (isleft)
 			{
 				if (ShengAddressBarStrip.FtpDrives.Contains(driveId)) //if ftp node clicked, update the pathtextbox
@@ -1433,7 +1445,7 @@ namespace zfile
 				else
 					uiManager.LeftPathTextBox.SetAddress(eNode);    // 调用leftpathtextbox的setaddress方法来更新路径
 
-				SetDriveComboByValue(uiManager.LeftDriveComboBox, eNode.FullPath);
+				driveChanged = SetDriveComboByValue(uiManager.LeftDriveComboBox, eNode.FullPath);
 			}
 			else
 			{
@@ -1442,21 +1454,29 @@ namespace zfile
 				else
 					uiManager.RightPathTextBox.SetAddress(eNode);
 
-				SetDriveComboByValue(uiManager.RightDriveComboBox, eNode.FullPath);
+				driveChanged = SetDriveComboByValue(uiManager.RightDriveComboBox, eNode.FullPath);
 			}
 
 			uiManager.BookmarkManager.UpdateActiveBookmark(path, selectedNode, isleft);
+			return driveChanged;
 		}
-		private void SetDriveComboByValue(ComboBox cb, string value)
+		private static bool SetDriveComboByValue(ComboBox cb, string value)
 		{
+			var driveChanged = false;
+			//var olddrive = cb.SelectedItem?.ToString();
 			foreach (var i in cb.Items)
 			{
 				if (value.Contains(i.ToString().Substring(0, 2)))
 				{
-					cb.SelectedItem = i;
-					return;
+					if (cb.SelectedItem?.ToString() != i.ToString())
+					{
+						driveChanged = true;
+						cb.SelectedItem = i;
+					}
+					break;
 				}
 			}
+			return driveChanged;
 		}
 
 		private void ClearTreeViewHighlight(TreeView treeView)
@@ -2070,7 +2090,7 @@ namespace zfile
 		}
 		public List<TreeNode>? LoadSubDirectories(TreeNode node, MyListView? lv = null)
 		{
-			Debug.Print($"load sub dirs");
+			Debug.Print($"load sub dirs for treenode : {node.FullPath}");
 			// 创建一个新的节点集合，用于存储需要保留的节点
 			List<TreeNode> nodesToKeep = new List<TreeNode>();
 			if (lv != null)
@@ -4250,20 +4270,20 @@ namespace zfile
 
 			return result;
 		}
-		private bool ftpNodeSelect(TreeNode eNode)
-		{
-			// 检查是否是FTP节点
-			if (eNode.Tag is FtpNodeTag ftpTag)
-			{
-				// 处理FTP节点双击事件
-				fTPMGR.HandleFtpNodeDoubleClick(eNode);
-				SelectedNode = eNode;
-				UpdatePathTextAndDriveComboBox(eNode, CurrentFullpath[LRflag], isleft);//TODO: BUGFIX: IF ENODE IS LEFT , LRFLAG IS R, SOME THING ERROR
-				uiManager.SetArgs();
-				return true;
-			}
-			return false;
-		}
+		//private bool ftpNodeSelect(TreeNode eNode)
+		//{
+		//	//// 检查是否是FTP节点
+		//	//if (eNode.Tag is FtpNodeTag ftpTag)
+		//	//{
+		//	//	// 处理FTP节点双击事件
+		//	//	fTPMGR.HandleFtpNodeDoubleClick(eNode);
+		//	//	SelectedNode = eNode;
+		//	//	//UpdatePathTextAndDriveComboBox(eNode, CurrentFullpath[LRflag], isleft);//TODO: BUGFIX: IF ENODE IS LEFT , LRFLAG IS R, SOME THING ERROR
+		//	//	uiManager.SetArgs();
+		//	//	return true;
+		//	//}
+		//	//return false;
+		//}
 		//private void HandleRegistryContextMenuItems(string path)
 		//{
 		//	string[] registryPaths = new[]

@@ -68,7 +68,10 @@ namespace WinShell
 						}
 					}
 				}
-			} catch { Debug.Print("exception in getchildpidls"); }
+			} 
+			catch { 
+				Debug.Print("exception in getchildpidls"); 
+			}
 			return pidls.ToArray();
 		}
 		public bool IsDir

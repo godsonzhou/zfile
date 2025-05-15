@@ -843,18 +843,18 @@ namespace zfile
 			_operationItem = OperationsManager.Instance.GetItemByHandle(handle);
 
 			if (_operationItem == null)
-				throw new ArgumentException("Invalid operation handle", nameof(handle));
-
-			_queueIdentifier = _operationItem.Queue.Identifier;
-			_userInterface = new FileSourceOperationMessageBoxesUI();
-			_stopOperationOnClose = true;
-
-			InitializeComponent();
-			InitializeTimer();
-
-			if (!InitializeOperation())
+				CloseDialog();  //throw new ArgumentException("Invalid operation handle", nameof(handle));
+			else
 			{
-				CloseDialog();
+				_queueIdentifier = _operationItem.Queue.Identifier;
+				_userInterface = new FileSourceOperationMessageBoxesUI();
+				_stopOperationOnClose = true;
+
+				InitializeComponent();
+				InitializeTimer();
+
+				if (!InitializeOperation())
+					CloseDialog();
 			}
 		}
 

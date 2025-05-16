@@ -2299,7 +2299,6 @@ namespace zfile
 		// 处理ListView滚动事件
 		public void ListView_Scroll(object sender, EventArgs e)
 		{
-			//Debug.Print("ListView_Scroll detected!!");
 			if (sender is ListView listView)
 			{
 				// 获取当前视图模式
@@ -2335,7 +2334,6 @@ namespace zfile
 					var file = (item.Tag as LvItemTag)?.File;
 					var itemFullName = file?.FullPath;  //item.SubItems[1].Text;
 					var isdir = (file?.IsDirectory) ?? false;
-					//if (item.SubItems[LVCOL_TYPE].Text.Equals("<DIR>"))
 					if (isdir)
 					{
 						//if is dir, calc dir size
@@ -2387,27 +2385,13 @@ namespace zfile
 
 			// 确定当前面板
 			bool isLeftPanel = listView == uiManager.LeftList;
-
-			// 使用 FileSourceManager 获取合适的 FileSource
-			//IFileSource? fileSource;
-			//if (Path.IsPathFullyQualified(path))
-			//	fileSource = _fileSourceManager.GetFileSourceForFullPath(path, isLeftPanel);
-			//else
 			var fileSource = CurrentFullpath.GetFileSource(listView.Name);
-
-			// 更新当前面板的 FileSource
-			//if (isLeftPanel)
-			//	LeftFileSource = fileSource;
-			//else
-			//	RightFileSource = fileSource;
 			if (fileSource is ShellFileSource)  //如果是虚拟节点（由shellfilesource处理的节点），由于在loadsubdirectories中已经生成，所以无需再处理
 				return;
+
 			Debug.Print($"load listview by filesource [{listView.Name}]: {path}");
 			try
 			{
-				// 更新当前路径
-				//CurrentFullpath[isLeftPanel ? "L" : "R"] = path;	//读取数据时不更新currentfullpath
-
 				// 创建列表操作
 				string operationPath = path;
 
@@ -2424,15 +2408,10 @@ namespace zfile
 						operationPath = Helper.ExtractDirLevel(archivePath, path);
 
 						// 确保路径格式正确（去掉前导斜杠）
-						//operationPath = Helper.ExcludeFrontPathDelimiter(operationPath);
 						if (operationPath.Equals(string.Empty))
 							operationPath = fileSource.GetRootDir();
 						//Debug.Print($"WcxArchiveFileSource: 将绝对路径 {path} 转换为相对路径 {operationPath}");
 					}
-				}
-				else if (fileSource is ControlPanelFileSource ctrlpnl)
-				{
-					//operationPath = parentnode.FullPath;
 				}
 
 				var listOperation = fileSource?.CreateListOperation(operationPath);
@@ -2444,7 +2423,7 @@ namespace zfile
 
 				// 执行列表操作
 				_operationsManager.AddOperation(listOperation);
-				_operationsManager.GetItemByOperation(listOperation)?.OperationThread.WaitFor();    // 等待操作完成
+				listOperation._Thread.WaitFor();    // 等待操作完成
 
 				// 获取文件列表结果
 				if (listOperation is not FileSourceListOperation fileListOperation)
@@ -2472,7 +2451,6 @@ namespace zfile
 					if (lvItem != null)
 					{
 						var f = SetIconForListViewItem(lvItem, listView, subkey);
-						//lvItem.Tag = parentnode;
 						listView.Items.Add(lvItem);
 					}
 				}
@@ -2613,7 +2591,6 @@ namespace zfile
 				if (File.Exists(filePath))
 					await PreviewFileAsync(filePath, previewPanel);
 			}
-			//Debug.Print("selection index changed");
 			uiManager.SetArgs();
 		}
 

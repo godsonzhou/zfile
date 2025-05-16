@@ -32,16 +32,13 @@ namespace zfile
 			this.ftpManager = ftpManager;
 			//this.asyncFtpManager = asyncFtpManager;
 
-			// ���������
 			mainPanel = new Panel
 			{
 				Dock = DockStyle.Bottom,
 				Height = 25
 			};
-			//mainPanel.Hide(); // Ĭ������
 			InitializeControls();// ��ʼ���ؼ�
 
-			// ���ӵ�������
 			parentForm.Controls.Add(mainPanel);
 			UpdateStatus(false);
 		}
@@ -53,10 +50,8 @@ namespace zfile
 			{
 				Size = new Size(16, 16),
 				Location = new Point(2, 2),
-				//Image = Properties.Resources.StatusOffline // ��Ҫ������Ӧ����Դ
 			};
 
-			// ����ģʽ�л���ť
 			transferModeButton = new Button
 			{
 				Text = "Binary",
@@ -65,7 +60,6 @@ namespace zfile
 			};
 			transferModeButton.Click += TransferModeButton_Click;
 
-			// �Ͽ����Ӱ�ť
 			disconnectButton = new Button
 			{
 				Text = "Disconnect",
@@ -74,7 +68,6 @@ namespace zfile
 			};
 			disconnectButton.Click += DisconnectButton_Click;
 
-			// ���������
 			commandInput = new TextBox
 			{
 				Location = new Point(160, 2),
@@ -82,7 +75,6 @@ namespace zfile
 			};
 			commandInput.KeyPress += CommandInput_KeyPress;
 
-			// �ظ��б�
 			replyList = new ListView
 			{
 				Location = new Point(560, 2),
@@ -92,21 +84,11 @@ namespace zfile
 			};
 			replyList.Columns.Add("Time", 100);
 			replyList.Columns.Add("Response");
-			// ���ر�����
 			replyList.HeaderStyle = ColumnHeaderStyle.None;
 
 			replyList.SelectedIndexChanged += ReplayList_SelectedIndexChanged;
 
-			// �ظ�����
-			//replayDetail = new RichTextBox
-			//{
-			//	Location = new Point(750, 2),
-			//	Width = 300,
-			//	Height = 25,
-			//	ReadOnly = true
-			//};
-
-			// ���ӿؼ������
+			
 			mainPanel.Controls.AddRange(new Control[] {
 				statusLight,
 				transferModeButton,
@@ -346,7 +328,6 @@ namespace zfile
 			{
 				if (disposing)
 				{
-					// �����й���Դ
 					statusLight.Dispose();
 					transferModeButton.Dispose();
 					disconnectButton.Dispose();

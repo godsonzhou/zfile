@@ -142,11 +142,6 @@ namespace zfile
 			// 初始化FTP连接已在构造函数中完成
 		}
 
-		//protected override void Finalize()
-		//{
-		//	// 断开FTP连接
-		//	_client?.Disconnect();
-		//}
 		protected override void Dispose(bool disposing)
 		{
 			if (disposing)
@@ -183,9 +178,6 @@ namespace zfile
 						// 创建ListViewItem
 						var listItem = new ListViewItem(item.Name);
 
-						// 添加子项
-						//listItem.SubItems.Add(item.FullName); // 完整路径作为第二列
-
 						// 根据类型设置不同的显示
 						if (item.Type == FtpObjectType.Directory)
 						{
@@ -198,7 +190,6 @@ namespace zfile
 							listItem.SubItems.Add(Path.GetExtension(item.Name).TrimStart('.')); // 扩展名
 						}
 						listItem.SubItems.Add(item.Modified.ToString()); // 修改时间
-						//listItem.SubItems.Add(item.Size.ToString()); //real size
 
 						// 添加FTP文件属性列
 						string attrStr = GetFtpAttributesString(item);
@@ -278,37 +269,7 @@ namespace zfile
 			}
 			return true;
 		}
-		//public CancellationTokenSource DownloadFileAsync(string remotePath)
-		//{
-		//	try
-		//	{
-		//		var cts = new CancellationTokenSource();
-		//		// 创建临时目录
-		//		string tempDir = Path.Combine(Path.GetTempPath(), "FtpTemp");
-		//		if (!Directory.Exists(tempDir))
-		//			Directory.CreateDirectory(tempDir);
-
-		//		// 生成临时文件路径
-		//		string fileName = Path.GetFileName(remotePath);
-		//		string localPath = Path.Combine(tempDir, fileName);
-
-		//		await _client.DownloadFileAsync(
-		//			localPath: localPath,
-		//			remotePath: remotePath,
-		//			existsMode: FtpRemoteExists.Resume,
-		//			cancellationToken: cts.Token
-		//		);
-		//		Debug.Print("下载完成！");
-		//	}
-		//	catch (OperationCanceledException)
-		//	{
-		//		Debug.Print("下载已取消，可稍后恢复。");
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		Debug.Print($"下载失败: {ex.Message}");
-		//	}
-		//}
+	
 		/// <summary>
 		/// 上传文件到FTP服务器
 		/// </summary>

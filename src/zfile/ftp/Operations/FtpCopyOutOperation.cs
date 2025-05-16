@@ -9,7 +9,7 @@ namespace zfile
     public class FtpCopyOutOperation : FileSourceCopyOutOperation
     {
         private readonly FtpFileSource _ftpFileSource;
-        private FileSourceCopyOperationStatistics _statistics;
+        //private FileSourceCopyOperationStatistics _statistics;
 
         /// <summary>
         /// 创建FTP复制出操作

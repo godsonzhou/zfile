@@ -33,7 +33,6 @@ namespace zfile
 				if (disposing)
 				{
 					// 取消事件订阅
-
 				}
 				// 释放图标缓存
 				ClearCache();

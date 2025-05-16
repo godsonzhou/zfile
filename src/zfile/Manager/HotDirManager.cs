@@ -8,7 +8,6 @@ namespace zfile
         private const string CONFIG_SECTION = "HotDirs";
         public Dictionary<string, string> HotDirs => hotDirs;
 
-
         public HotDirManager(MainForm form)
         {
             this.form = form;

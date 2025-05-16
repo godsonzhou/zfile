@@ -49,26 +49,6 @@ namespace zfile
 		}
 		public static void CopyFilesAndDirectories(string[] sourcePaths, string destinationDirectory)
 		{
-			//           foreach (var file in sourceFiles)
-			//           {
-			//if (Directory.Exists(file)) {
-			//	Helper.CopyFilesAndDirectories(file, targetPath);
-			//}
-			//else
-			//{
-			//	var fileName = Path.GetFileName(file);
-			//	if (isSamePath) fileName = "copy of " + fileName;
-			//	var targetFile = Path.Combine(targetPath, fileName);
-			//	if (!File.Exists(targetFile))
-			//		File.Copy(file, targetFile, true);
-			//	else
-			//	{
-			//		var result = MessageBox.Show("file already exist, overwrite it ?", "warning");
-			//		if (result == DialogResult.OK)
-			//			File.Copy(file, targetFile, true);
-			//	}
-			//}
-			//           }
 			foreach (string sourcePath in sourcePaths)
 			{
 				if (File.Exists(sourcePath))
@@ -153,13 +133,6 @@ namespace zfile
 				}
 				else if (File.Exists(path))
 				{
-					// 创建 FileInfo 对象
-					// FileInfo fileInfo = new FileInfo(path);
-					// // 去除只读属性
-					// if (fileInfo.IsReadOnly)
-					// 	fileInfo.IsReadOnly = false;
-					//fileInfo.Delete();
-
 					// 去除只读属性
 					FileAttributes attributes = File.GetAttributes(path);
 					if ((attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)

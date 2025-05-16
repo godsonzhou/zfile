@@ -24,7 +24,6 @@ namespace zfile
 	public class ToolbarManager : IDisposable
 	{
 		public MainForm form;
-		//private UIControlManager uiControlManager;
 
 		private ToolStrip dynamicToolStrip;
 		public ToolStrip DynamicToolStrip => dynamicToolStrip;

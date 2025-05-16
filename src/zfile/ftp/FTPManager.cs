@@ -536,7 +536,6 @@ namespace zfile
 					listView.EndUpdate();
 
 					// 更新当前目录
-					//form.CurrentFullpath[listView.Name] = $"ftp://{source.Host}{path}";
 					form.CurrentFullpath[listView.Name] = path;
 				}
 			}
@@ -1758,10 +1757,6 @@ namespace zfile
 		}
 		#endregion
 
-		#region 辅助类
-
-
-		#endregion
 		public void SaveToCfgloader()
 		{
 			// 保存配置到cfgloader
@@ -1888,7 +1883,6 @@ namespace zfile
 							string localFilePath = Path.Combine(localPath, fileName);
 
 							// 下载文件
-							//_currentFtpSource.Client.DownloadFile(localFilePath, remotePath);
 							ActiveClient.DownloadFile(localFilePath, remotePath);
 
 							// 从列表中移除已下载文件

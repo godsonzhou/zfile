@@ -10,7 +10,6 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
-//using Microsoft.VisualStudio.Threading;
 
 public class ThumbnailGenerator
 {

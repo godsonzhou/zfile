@@ -2691,11 +2691,9 @@ namespace zfile
 
 					itemData = [
 						file.Name,
-						//file.FullPath,
 						showFolderSize && EverythingWrapper.IsEverythingServiceRunning() ? FileSystemManager.FormatFileSize(file.Size, true) : "",
 						"<DIR>",
 						file.ModificationTime.ToString("yyyy-MM-dd HH:mm"),
-						//file.Size.ToString(),
 						attrStr
 					];
 				}
@@ -2708,11 +2706,9 @@ namespace zfile
 					itemData = new[]
 					{
 						file.Name,
-						//file.FullPath,
 						FileSystemManager.FormatFileSize(file.Size, true),
 						extension,
 						file.ModificationTime.ToString("yyyy-MM-dd HH:mm"),
-						//file.Size.ToString(),
 						attrStr
 					};
 				}
@@ -2727,22 +2723,6 @@ namespace zfile
 				return null;
 			}
 		}
-
-		// 原始的文件系统加载方法 (保留以便兼容)
-		//private void LoadListViewByFilesystem(string path, ListView listView, TreeNode parentnode)
-		//{
-		//	// 使用 FileSourceManager 获取合适的 FileSource
-		//	IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, isleft);
-
-		//	// 更新当前面板的 FileSource
-		//	if (listView == uiManager.LeftList)
-		//		LeftFileSource = fileSource;
-		//	else
-		//		RightFileSource = fileSource;
-
-		//	// 使用 FileSource 架构加载文件列表
-		//	LoadListViewByFileSourceSync(path, listView, parentnode);
-		//}
 
 		// 将文件属性转换为RAHSC格式的字符串
 		private string GetFileAttributesString(FileAttributes attributes)
@@ -2763,58 +2743,6 @@ namespace zfile
 
 			return sb.ToString();
 		}
-
-		//private ListViewItem? CreateListViewItem(FileSystemInfo item, bool showFolderSize)
-		//{
-		//	try
-		//	{
-		//		string[] itemData;
-		//		if (item is DirectoryInfo)
-		//		{
-		//			//var size = showFolderSize ? EverythingWrapper.CalculateDirectorySize(item.FullName) : 0;
-		//			var size = 0;
-		//			// 获取目录属性并格式化为RAHSC格式
-		//			string attrStr = GetFileAttributesString(item.Attributes);
-
-		//			itemData = new[]
-		//			{
-		//				item.Name,
-		//				item.FullName,
-		//				showFolderSize && EverythingWrapper.IsEverythingServiceRunning() ? FileSystemManager.FormatFileSize(size, true) : "",
-		//				"<DIR>",
-		//				item.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),
-		//				size.ToString(),
-		//				attrStr
-		//			};
-		//		}
-		//		else if (item is FileInfo fileInfo)
-		//		{
-		//			// 获取文件属性并格式化为RAHSC格式
-		//			string attrStr = GetFileAttributesString(item.Attributes);
-
-		//			itemData = new[]
-		//			{
-		//				item.Name,
-		//				item.FullName,	//真实完整路径
-		//                      FileSystemManager.FormatFileSize(fileInfo.Length, true),
-		//				fileInfo.Extension.ToUpperInvariant(),
-		//				item.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),
-		//				fileInfo.Length.ToString(),
-		//				attrStr
-		//			};
-		//		}
-		//		else
-		//			return null;
-
-		//		var i = new ListViewItem(itemData);
-		//		return i;
-		//	}
-		//	catch
-		//	{
-		//		Debug.Print("exception in createlistview item");
-		//		return null;
-		//	}
-		//}
 
 		// 预览文件内容
 		private async Task PreviewFileAsync(string filePath, TextBox previewPanel)

@@ -150,7 +150,7 @@ namespace zfile
 		public void HandleFtpListItemDoubleClick(string connectionName, ListViewItem item, ListView listView)
 		{
 			bool isDirectory = item.SubItems[MainForm.LVCOL_TYPE].Text == "<DIR>";
-			string path = item.SubItems[1].Text;
+			string path = (item.Tag as LvItemTag)?.File?.FullPath ?? "";	//SubItems[1].Text;
 
 			if (isDirectory)
 				NavigateToPath(connectionName, path, listView);

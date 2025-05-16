@@ -642,7 +642,8 @@ namespace zfile
 		{
 			if (owner.IsActiveFtpPanel(out var ftpnode))
 			{
-				string? parentPath = Path.GetDirectoryName(ftpnode?.Path).Replace('\\', '/');
+				var currentpath = Path.GetDirectoryName(ftpnode?.Path);
+				string? parentPath = currentpath?.Replace('\\', '/');
 				// 记录当前目录到历史
 				//owner.RecordDirectoryHistory(parentPath);
 				// 导航到父目录
@@ -651,7 +652,7 @@ namespace zfile
 			else if (owner.CurrentFullpath.GetFileSource(owner.LRflag) is WcxArchiveFileSource wcxfs)
 			{
 				string? parentpath;
-				if (!wcxfs.IsPathAtRoot(wcxfs.CurrentFullPath)) //CurrentPath.Equals("\\")
+				if (!string.IsNullOrEmpty(Helper.ExcludeTrailingPathDelimiter(wcxfs.CurrentPath)))//IsPathAtRoot(wcxfs.CurrentFullPath)) //CurrentPath.Equals("\\")
 					parentpath = wcxfs.ArchivePath + Path.GetDirectoryName(wcxfs.CurrentPath);
 				else
 					parentpath = Path.GetDirectoryName(wcxfs.ArchivePath);

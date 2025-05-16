@@ -405,7 +405,8 @@ namespace zfile
 			//scope : thispc, desktop, full
 			if (string.IsNullOrEmpty(path))
 				return;
-			if (!Directory.Exists(path))    //如果路径不存在，可能是虚拟节点，扩展搜索范围到桌面，
+			//if (!Directory.Exists(path))    //如果路径不存在，可能是虚拟节点，扩展搜索范围到桌面，
+			if (path.StartsWith("\\\\"))
 				scope = TreeSearchScope.desktop;
 			//if (scope == TreeSearchScope.thispc && !isarch)	//bugfix: 这里无法在虚拟节点中导航，比如此电脑
 			//	return;
@@ -417,7 +418,7 @@ namespace zfile
 				TreeSearchScope.ftproot => isactive ? activeFtpRoot.Nodes : unactiveFtpRoot.Nodes
 			};
 
-			var node = FindTreeNode(searchtarget, path);
+			var node = FindTreeNode(searchtarget, Helper.ExcludeTrailingPathDelimiter(path));
 			if (node != null)
 			{
 				if (isactive)
@@ -4104,7 +4105,7 @@ namespace zfile
 				{
 					operation = sourceFileSource.CreateMoveOperation(fileEntries, targetPath);
 					_operationsManager.AddOperation(operation);
-					//operation.Execute();
+					operation._Thread.WaitFor();	//waiting for operation to finish
 					// 刷新面板
 					RefreshPanel(activeListView);
 					RefreshPanel(unactiveListView);

@@ -347,7 +347,8 @@ namespace Sheng.Winform.Controls
                 }
 
                 //create the managed icon
-                this.icon = (Icon)System.Drawing.Icon.FromHandle(shinfo.hIcon).Clone();
+				if(shinfo.hIcon!=IntPtr.Zero)
+					this.icon = (Icon)System.Drawing.Icon.FromHandle(shinfo.hIcon).Clone();
                 this.szDisplayName = shinfo.szDisplayName;
 
                 //dispose of the old icon

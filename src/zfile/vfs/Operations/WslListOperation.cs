@@ -20,8 +20,9 @@ namespace zfile
             {
                 var desktopFolder = GetDesktopFolder();
                 var path = System.IO.Path.Combine(Path, "");
-                var networkPidl = ParseDisplayName(desktopFolder, path);
-                try
+                //var networkPidl = ParseDisplayName(desktopFolder, path);
+                API.SHParseDisplayName(path, IntPtr.Zero, out var networkPidl, 0, out _);
+				try
                 {
                     var folder = BindToObject(desktopFolder, networkPidl);
                     var enumIdList = EnumObjects(folder);
@@ -31,10 +32,10 @@ namespace zfile
                         try
                         {
                             CheckOperationState();
-
-                            var file = WinNetFileSource.CreateFile(Path);
+							var name = GetDisplayName(folder, pidl, (uint)(SHGDN.FORPARSING | SHGDN.FORADDRESSBAR));
+							var file = WinNetFileSource.CreateFile(Path);
                             file.Attributes = FileAttributes.Directory;
-                            file.FullPath = GetDisplayName(folder, pidl, (uint)(SHGDN.FORPARSING | SHGDN.FORADDRESSBAR));
+							file.FullPath = name;
 
                             Files.Add(file);
                         }
@@ -59,7 +60,7 @@ namespace zfile
         protected override void MainExecute()
         {
             Files.Clear();
-            if (_winNetFileSource.IsNetworkPath(Path))
+            if (_winNetFileSource.IsNetworkPath(Helper.ExcludeTrailingPathDelimiter(Path)))
                 LinuxEnum();
             else
                 base.MainExecute();
@@ -74,7 +75,7 @@ namespace zfile
         private static IntPtr ParseDisplayName(IShellFolder folder, string path)
         {
             // Implementation of ParseDisplayName
-			if (folder == null)
+			if (folder != null)
 			{
 				uint attr = 0;
 				folder.ParseDisplayName(IntPtr.Zero, IntPtr.Zero, path, out var _, out var _, ref attr);

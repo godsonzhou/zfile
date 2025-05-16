@@ -436,6 +436,15 @@ public class FileEntry : IDisposable, IFileEntry
 				}
 				else
 				{
+					if (value.StartsWith("\\\\"))
+					{
+						//if the path is virtual path, we should process it in another way
+						var arr = value.Split('\\');
+						Name = arr[^1];
+						Path = value.Replace(Name, "");
+						return;
+					}
+					//normal process
 					string extractedName = System.IO.Path.GetFileName(value);
 					Path = value.Substring(0, value.Length - extractedName.Length);
 					Name = extractedName;

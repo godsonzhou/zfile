@@ -481,6 +481,14 @@ namespace WinShell
 	}
 	public class API
 	{
+		[DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+		public static extern HRESULT SHParseDisplayName(
+			[MarshalAs(UnmanagedType.LPWStr)] string name,
+			IntPtr bindingContext,
+			out IntPtr pidl,
+			uint sfgaoIn,
+			out uint sfgaoOut);
+
 		// 引入 SHGetImageList 函数
 		[DllImport("shell32.dll", CharSet = CharSet.Auto)]
 		public static extern int SHGetImageList(SHIL iImageList, ref Guid riid, ref IImageList ppv);

@@ -2424,8 +2424,17 @@ namespace zfile
 				}
 				else
 				{
-					var itemFullName = (lvItem.Tag as LvItemTag)?.File?.FullPath;   //lvItem.SubItems[1].Text;
-					var key = Path.GetExtension(itemFullName);
+					//try to load from lvitem.tag.file.tag.iconkey
+					var tag = (lvItem.Tag as LvItemTag);
+					var file = tag?.File;
+					var shellitem = file?.Tag as ShellItem;
+					var key = shellitem?.IconKey;
+					var itemFullName = file?.FullPath;
+
+					if (key == null && shellitem != null)
+						GetIconBy(shellitem, out key, shellitem.PIDL);
+					if(string.IsNullOrEmpty(key))
+						key = Path.GetExtension(itemFullName);
 
 					// 设置默认图标
 					if (subkey == "s")
@@ -2552,11 +2561,11 @@ namespace zfile
 			bool isLeftPanel = listView == uiManager.LeftList;
 
 			// 使用 FileSourceManager 获取合适的 FileSource
-			IFileSource? fileSource;
+			//IFileSource? fileSource;
 			//if (Path.IsPathFullyQualified(path))
 			//	fileSource = _fileSourceManager.GetFileSourceForFullPath(path, isLeftPanel);
 			//else
-			fileSource = CurrentFullpath.GetFileSource(listView.Name);
+			var fileSource = CurrentFullpath.GetFileSource(listView.Name);
 
 			// 更新当前面板的 FileSource
 			//if (isLeftPanel)
@@ -2595,10 +2604,10 @@ namespace zfile
 				}
 				else if (fileSource is ControlPanelFileSource ctrlpnl)
 				{
-					operationPath = parentnode.FullPath;
+					//operationPath = parentnode.FullPath;
 				}
 
-					var listOperation = fileSource?.CreateListOperation(operationPath);
+				var listOperation = fileSource?.CreateListOperation(operationPath);
 				if (listOperation == null)
 				{
 					Debug.Print($"无法为路径 {operationPath} 创建列表操作");

@@ -965,7 +965,7 @@ namespace zfile
 						//var wslpaths = GetWslInstancePaths();
 						return "\\\\wsl.localhost\\";
 					if (path.Equals("控制面板"))
-						return "controlpanel:\\";
+						return "\\\\控制面板\\";
 					//if (path.Equals("网络"))
 					//	return "network:\\";
 					//if ( path.Equals("回收站"))

@@ -356,7 +356,7 @@ namespace zfile
 		/// <returns>目录创建操作</returns>
 		public override FileSourceCreateDirectoryOperation CreateCreateDirectoryOperation(string basePath, string directoryPath)
 		{
-			return new FtpCreateDirectoryOperation(this, basePath, directoryPath);
+			return new FtpCreateDirectoryOperation(this, GetRelativePath(basePath), directoryPath);
 		}
 
 		/// <summary>

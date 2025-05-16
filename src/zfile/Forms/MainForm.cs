@@ -3196,7 +3196,7 @@ namespace zfile
 					if (operation != null)
 					{
 						_operationsManager.AddOperation(operation);
-						//operation.Execute();
+						operation._Thread.WaitFor();
 					}
 					else
 					{

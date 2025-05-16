@@ -30,10 +30,10 @@ namespace zfile
             try
             {
                 // 构建完整路径
-                string fullPath = Path.Combine(BasePath, DirectoryPath).Replace('\\', '/');
-                
-                // 创建目录
-                bool success = _ftpFileSource.CreateDirectory(fullPath);
+                string fullPath = Path.Combine(BasePath, DirectoryPath);
+				fullPath = fullPath.Replace('\\', '/');
+				// 创建目录
+				bool success = _ftpFileSource.CreateDirectory(fullPath);
                 
                 if (!success)
                 {

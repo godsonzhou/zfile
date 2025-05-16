@@ -52,5 +52,6 @@ namespace zfile
 		Stream OpenRead();
 		Stream OpenRead(long offset, long size);
 		FileProperty ReleaseProperty(FilePropertiesTypes propType);
+		object? Tag { get; set; }
 	}
 }

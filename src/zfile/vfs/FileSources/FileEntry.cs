@@ -324,6 +324,7 @@ public class FileEntry : IDisposable, IFileEntry
 	private FilePropertiesTypes _supportedProperties;
 	private bool _disposed = false;
 
+	public object? Tag { get; set; } = null;
 	public Dictionary<FilePropertiesTypes, FileProperty> Properties => _properties;
 	public virtual char PathSeparator => System.IO.Path.DirectorySeparatorChar;
 

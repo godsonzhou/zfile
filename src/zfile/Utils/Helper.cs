@@ -968,8 +968,8 @@ namespace zfile
 						return "controlpanel:\\";
 					//if (path.Equals("网络"))
 					//	return "network:\\";
-					if ( path.Equals("回收站"))
-						return "recyclebin:\\";
+					//if ( path.Equals("回收站"))
+					//	return "recyclebin:\\";
 
 					return $"\\\\{Node.FullPath}";
 				} 

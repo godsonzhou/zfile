@@ -182,7 +182,7 @@ namespace zfile
 			}
 
 			// Check for control panel
-			if (fullpath.StartsWith("\\\\桌面\\控制面板") || fullpath.StartsWith("controlpanel://"))
+			if (fullpath.StartsWith("\\\\桌面\\控制面板") || fullpath.StartsWith("controlpanel:"))
 			{
 				var controlPanelSource = new ControlPanelFileSource();
 

@@ -92,24 +92,29 @@ namespace zfile
             {
                 Files = new FileEntries();
 
-                // 添加上级目录项
-                Files.Add(new FileEntry
-                {
-                    Name = "..",
-                    IsDirectory = true,
-                    Size = 0,
-                    Attributes = FileAttributes.Directory,
-                    CreationTime = DateTime.Now,
-                    ModificationTime = DateTime.Now,
-                    LastAccessTime = DateTime.Now
-                });
+				// 添加上级目录项
+				//Files.Add(new FileEntry
+				//{
+				//    Name = "..",
+				//    IsDirectory = true,
+				//    Size = 0,
+				//    Attributes = FileAttributes.Directory,
+				//    CreationTime = DateTime.Now,
+				//    ModificationTime = DateTime.Now,
+				//    LastAccessTime = DateTime.Now
+				//});
 
-                // 获取控制面板文件夹
-                IShellFolder controlPanelFolder = _fileSource.GetControlPanelFolder();
+				// 获取控制面板文件夹
+				//IShellFolder controlPanelFolder = _fileSource.GetControlPanelFolder();
+				//var currentpath = Path; // _fileSource.CurrentFullPath;
+				var node = MainForm.Instance.FindTreeNode(MainForm.Instance.activeTreeview.Nodes, Path); //根据当前路径查找树节点，获取到shellitem
+
+				var sitem = node.Tag as ShellItem;
+				var root = sitem?.ShellFolder;
 
                 // 枚举控制面板项目
                 var flags = SHCONTF.FOLDERS;
-                controlPanelFolder.EnumObjects(IntPtr.Zero, flags, out IntPtr enumPtr);
+                root.EnumObjects(IntPtr.Zero, flags, out IntPtr enumPtr);
 
                 if (enumPtr != IntPtr.Zero)
                 {
@@ -122,13 +127,22 @@ namespace zfile
 							//IntPtr pszname = Marshal.AllocHGlobal(260);
 							// 获取项目名称
 							//controlPanelFolder.GetDisplayNameOf(pidl, SHGDN.INFOLDER, pszname);
-							string? name = w32.GetDisplayName(controlPanelFolder, pidl, SHGDN.INFOLDER); //Marshal.PtrToStringAuto(pszname);
-							// 获取项目属性
-							SFGAO attributes = 0;
-                            controlPanelFolder.GetAttributesOf(1, new IntPtr[] { pidl }, ref attributes);
+							//string? name = w32.GetDisplayName(controlPanelFolder, pidl, SHGDN.INFOLDER); //Marshal.PtrToStringAuto(pszname);
+							//// 获取项目属性
+							//SFGAO attributes = 0;
+							//                     controlPanelFolder.GetAttributesOf(1, new IntPtr[] { pidl }, ref attributes);
+							root.BindToObject(pidl, IntPtr.Zero, ref Guids.IID_IShellFolder, out IShellFolder iSub); //获取子节点的ishellfolder接口
+							string name;
+							string path = w32.GetPathByIShell(root, pidl);   //子节点path -> 此电脑\\迅雷下载, c:\\
+																				//Debug.Print(path);
+							var pathPart = path.Split('\\');
+							name = !pathPart[^1].Equals(string.Empty) ? pathPart[^1] : pathPart[^2];
+							IntPtr pidlClone = API.ILClone(pidl);
 
-                            // 创建文件条目
-                            var fileEntry = new FileEntry
+							var subItem = new ShellItem(pidlClone, iSub, root); //子节点的tag存放
+							var attributes = subItem.GetAttributes();
+							// 创建文件条目
+							var fileEntry = new FileEntry
                             {
                                 Name = name,
                                 IsDirectory = (attributes & SFGAO.FOLDER) != 0,
@@ -139,11 +153,8 @@ namespace zfile
                                 LastAccessTime = DateTime.Now
                             };
 
-                            // 保存PIDL作为自定义数据，用于后续执行操作
-                            IntPtr pidlClone = API.ILClone(pidl);
-                            fileEntry.FileType = pidlClone.ToString(); // 使用FileType属性存储PIDL指针
-
-                            Files.Add(fileEntry);
+							fileEntry.Tag = subItem; // 使用Tag属性存储ShellItem对象
+							Files.Add(fileEntry);
                         }
                         finally
                         {

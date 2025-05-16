@@ -1474,7 +1474,8 @@ namespace zfile
 		private bool UpdatePathTextAndDriveComboBox(TreeNode eNode, string path, bool isleft)
 		{
 			if (!eNode.TreeView.Name.Equals(isleft ? "L" : "R")) return false;
-			var driveId = eNode.Text[1] == ':' ? eNode.Text.Substring(0, 2) : "";
+			var driveId = path[1] == ':' ? path.Substring(0, 2) : "";
+
 			bool driveChanged = false;
 			if (isleft)
 			{
@@ -2037,7 +2038,7 @@ namespace zfile
 		//	}
 		//	return false;
 		//}
-		public bool getIconByShellItemPIDL1(ref ShellItem subItem, out string iconKey, bool islarge = false)
+		private bool getIconByShellItemPIDL1(ref ShellItem subItem, out string iconKey, bool islarge = false)
 		{
 			iconKey = string.Empty;
 			//iCtrlPanel.EnumObjects(0, SHCONTF.NONFOLDERS | SHCONTF.INCLUDEHIDDEN | SHCONTF.FOLDERS, out pEnumList);
@@ -2123,6 +2124,19 @@ namespace zfile
 			}
 			iconKey = string.Empty;
 			return false;
+		}
+		private void GetIconBy(ShellItem? subItem, out string iconkey, nint pidlSub)
+		{
+			if (!getIconByShellItem(ref subItem, out iconkey))
+				if (!getIconBySysImageList(ref subItem, out iconkey))
+					if (!getIconByShellItemPIDL1(ref subItem, out iconkey))
+					{
+						var icon = IconManager.ExtractIconFromPIDL(iCtrlPanel, pidlSub);
+						if (icon != null)
+							iconManager.AddIcon(pidlSub.ToString(), icon, false);
+						else
+							getIconByIconLocation(ref subItem, out iconkey);
+					}
 		}
 		public List<TreeNode>? LoadSubDirectories(TreeNode node, MyListView? lv = null)
 		{
@@ -2211,16 +2225,7 @@ namespace zfile
 						string iconkey;
 						if (subItem.IsVirtual || (subItem.GetAttributes() & SFGAO.FILESYSTEM) == 0)
 						{
-							if (!getIconByShellItem(ref subItem, out iconkey))
-								if (!getIconBySysImageList(ref subItem, out iconkey))
-									if (!getIconByShellItemPIDL1(ref subItem, out iconkey))
-									{
-										var icon = IconManager.ExtractIconFromPIDL(iCtrlPanel, pidlSub);
-										if (icon != null)
-											iconManager.AddIcon(pidlSub.ToString(), icon, false);
-										else
-											getIconByIconLocation(ref subItem, out iconkey);
-									}
+							GetIconBy(subItem, out iconkey, pidlSub);
 							if (!string.IsNullOrEmpty(iconkey))
 								iconManager.LoadIconFromCacheByKey(iconkey, node.TreeView.ImageList);
 
@@ -2588,8 +2593,12 @@ namespace zfile
 						//Debug.Print($"WcxArchiveFileSource: 将绝对路径 {path} 转换为相对路径 {operationPath}");
 					}
 				}
+				else if (fileSource is ControlPanelFileSource ctrlpnl)
+				{
+					operationPath = parentnode.FullPath;
+				}
 
-				var listOperation = fileSource?.CreateListOperation(operationPath);
+					var listOperation = fileSource?.CreateListOperation(operationPath);
 				if (listOperation == null)
 				{
 					Debug.Print($"无法为路径 {operationPath} 创建列表操作");
@@ -3218,15 +3227,6 @@ namespace zfile
 			if (listView == null) return;
 			var node = listView == uiManager.LeftList ? uiManager.LeftTree.SelectedNode : uiManager.RightTree.SelectedNode;
 			LoadSubDirectories(node, listView);
-
-			// 使用 FileSourceManager 获取合适的 FileSource
-			//IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, listView.Name.Equals("L"));
-
-			//// 更新当前面板的 FileSource
-			//if (listView == uiManager.LeftList)
-			//	LeftFileSource = fileSource;
-			//else
-			//	RightFileSource = fileSource;
 
 			// 使用 FileSource 架构加载文件列表
 			LoadListViewByFileSourceSync(path, listView, node);

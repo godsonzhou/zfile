@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace zfile;
+
 public class StringHashListUtf8
 {
     private Dictionary<string, object> _dictionary;
@@ -545,7 +546,47 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
 
     private DateTime WcxFileTimeToFileTime(int fileTime)
     {
-        throw new NotImplementedException();
+        // This method converts WCX file time (DOS format) to DateTime
+        // Implementation based on the Pascal version in dcdatetimeutils.pas
+        // For Windows platform, we use DosFileTimeToDateTime
+
+        try
+        {
+            // Extract date and time components from DOS format
+            int fileDate = (fileTime >> 16) & 0xFFFF;
+            int fileTimeValue = fileTime & 0xFFFF;
+
+            // Extract year, month, day from date
+            int year = ((fileDate >> 9) & 0x7F) + 1980;
+
+            int month = (fileDate >> 5) & 0x0F;
+            if (month < 1) month = 1;
+            if (month > 12) month = 12;
+
+            int day = fileDate & 0x1F;
+            if (day < 1) day = 1;
+            // Check for valid day in month (simplified)
+            int daysInMonth = DateTime.DaysInMonth(year, month);
+            if (day > daysInMonth) day = daysInMonth;
+
+            // Extract hour, minute, second from time
+            int hour = (fileTimeValue >> 11) & 0x1F;
+            if (hour > 23) hour = 23;
+
+            int minute = (fileTimeValue >> 5) & 0x3F;
+            if (minute > 59) minute = 59;
+
+            int second = (fileTimeValue & 0x1F) << 1; // Multiply by 2
+            if (second > 59) second = 59;
+
+            // Create DateTime from components
+            return new DateTime(year, month, day, hour, minute, second);
+        }
+        catch
+        {
+            // Return minimum date on error
+            return DateTime.MinValue;
+        }
     }
 
     private void QuestionActionHandler(FileSourceOperationUIResponse action)

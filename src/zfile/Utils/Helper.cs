@@ -978,7 +978,7 @@ namespace zfile
 			}
 			if(Node.Tag is FtpNodeTag ftpnode)
 			{
-				return Node.Text.Substring(0,2);
+				return MainForm.Instance.fTPMGR.GetFtpFileSourceByConnectionName(ftpnode.ConnectionName).CurrentFullPath;// Node.Text.Substring(0,2);
 			}
 			return string.Empty;
 		}

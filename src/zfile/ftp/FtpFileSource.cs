@@ -50,6 +50,7 @@ namespace zfile
 		{
 			_operationsClasses = [];
 			InitializeOperationsClasses();
+			_rootpath = PathSep.ToString();
 		}
 
 		public FtpFileSource(string connectionName, FtpClient client)
@@ -135,7 +136,7 @@ namespace zfile
 		public override string CurrentFullPath
 		{
 			get => $"ftp://{Host}{CurrentPath}"; 
-			set => CurrentPath = value.Replace($"ftp://{Host}", string.Empty, StringComparison.OrdinalIgnoreCase); 
+			set => CurrentPath = Helper.IncludeTrailingPathDelimiter(value.Replace($"ftp://{Host}", string.Empty, StringComparison.OrdinalIgnoreCase), '/'); 
 		}
 		public override void Initialize()
 		{

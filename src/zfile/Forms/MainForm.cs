@@ -149,10 +149,10 @@ namespace zfile
 					if (FileSourceDict.TryGetValue(key, out IFileSource? result))
 					{
 						if (value.Equals(result.CurrentFullPath))
-							Debug.Print("WARNING: SET CURRENTPATH IS NOT NEEDED!");
+							Debug.Print("WARNING: SET CURRENTFULLPATH IS NOT NEEDED!");
 						else
 						{
-							Debug.Print($"change CURRENTPATH : {result.CurrentPath} -> {value}");
+							Debug.Print($"change CURRENTFULLPATH : {result.CurrentFullPath} -> {value}");
 							result.CurrentFullPath = value;
 						}
 					}
@@ -385,8 +385,8 @@ namespace zfile
 				{
 					if (recordHistory)
 						RecordDirectoryHistory(path, oldpath);    //传入老filesource以确保跨filesource时的正确地将老路径记录到历史中
-					else
-						CurrentFullpath[LRflag] = path; // 直接更新当前目录，不记录历史
+					//else
+					//	CurrentFullpath[LRflag] = path; // 直接更新当前目录，不记录历史//already ran in previous updatefilesourceandcurrentpath, do not needed do again
 
 					activeTreeview.SelectedNode = node;
 					//RefreshPanel(activeListView);////////////////////////////////////////////whhen change selectedNode, the afterselect event will be executed and the refreshpanel operation also be run at that time, so here refreshpanel seem to be unnecessary.
@@ -1334,7 +1334,7 @@ namespace zfile
 
 					var fileSource = UpdateFilesourceAndCurrentPath(path, out var fschanged, out var oldfs, out var oldpath);
 
-					var driveChanged = CheckDriveChange(path, oldpath);
+					//var driveChanged = CheckDriveChange(path, oldpath);
 					SelectedNode = e.Node;
 
 					// 检查是否是FTP节点
@@ -1349,24 +1349,24 @@ namespace zfile
 					}
 					e.Node.Expand();
 
-					if (fschanged || path != oldpath)
+					if (fschanged || Helper.IncludeTrailingPathDelimiter(path) != oldpath)
 						RecordDirectoryHistory(path, oldpath);   // 记录目录历史, 并更新filesource的currentpath
 
-					if (!driveChanged)
-					{
-						//如果盘符改变了，则不刷新treeview&listview, 因为在盘符改变时，会触发事件，在事件中会刷新(refreshpanel)
-						// 检查节点是否已经被加载过子目录
-						bool isNodeLoaded = false;
-						if (e.Node.Tag is ShellItem sItem && sItem.SubNodeState == NODE_LOADED_KEY)
-							isNodeLoaded = true;
+					//if (!driveChanged)
+					//{
+					//如果盘符改变了，则不刷新treeview&listview, 因为在盘符改变时，会触发事件，在事件中会刷新(refreshpanel)
+					// 检查节点是否已经被加载过子目录
+					bool isNodeLoaded = false;
+					if (e.Node.Tag is ShellItem sItem && sItem.SubNodeState == NODE_LOADED_KEY)
+						isNodeLoaded = true;
 
-						// 只有当节点没有被标记为已加载时才加载子目录
-						if (!isNodeLoaded || fileSource is ShellFileSource) // shellfilesource should always loadsubdir
-							LoadSubDirectories(e.Node, activeListView); //盘符不变时在这里刷新TREEVIEW/LISTVIEW
+					// 只有当节点没有被标记为已加载时才加载子目录
+					if (!isNodeLoaded || fileSource is ShellFileSource) // shellfilesource should always loadsubdir
+						LoadSubDirectories(e.Node, activeListView); //盘符不变时在这里刷新TREEVIEW/LISTVIEW
 
-						// 无论如何都需要刷新ListView
-						LoadListViewByFileSource(path, activeListView, e.Node);
-					}
+					// 无论如何都需要刷新ListView
+					LoadListViewByFileSource(path, activeListView, e.Node);
+					//}
 					uiManager.UpdateLastVisitedPath(path);
 					UpdatePathTextAndDriveComboBox(e.Node, path, isleft);    //盘符改变时在combobox事件中刷新//必须在loadsubdir之后，因为需要loadsubdir中调用pathtextbox.setchildren
 					if (Directory.Exists(path))
@@ -1382,16 +1382,16 @@ namespace zfile
 				Debug.Print($"TreeView_AfterSelect加载目录失败: {ex.Message}");
 			}
 		}
-		public static bool CheckDriveChange(string path1, string path2)
-		{
-			if (!Directory.Exists(path1) || !Directory.Exists(path2))
-				return false;
+		//public static bool CheckDriveChange(string path1, string path2)
+		//{
+		//	if (!Directory.Exists(path1) || !Directory.Exists(path2))
+		//		return false;
 
-			var drive1 = Path.GetPathRoot(path1);
-			var drive2 = Path.GetPathRoot(path2);
+		//	var drive1 = Path.GetPathRoot(path1);
+		//	var drive2 = Path.GetPathRoot(path2);
 
-			return !string.Equals(drive1, drive2, StringComparison.OrdinalIgnoreCase);
-		}
+		//	return !string.Equals(drive1, drive2, StringComparison.OrdinalIgnoreCase);
+		//}
 		private bool UpdatePathTextAndDriveComboBox(TreeNode eNode, string path, bool isleft)
 		{
 			if (!eNode.TreeView.Name.Equals(isleft ? "L" : "R")) return false;
@@ -2242,6 +2242,7 @@ namespace zfile
 			else
 			{
 				backStack.Push(oldpath); //同一个filesource下，压入currentpath，不同filesource下，压入老filesource.currentpath
+				Debug.Print($"backstack.push: {oldpath}");
 				forwardStack.Clear(); // 清除前进历史
 			}
 		}

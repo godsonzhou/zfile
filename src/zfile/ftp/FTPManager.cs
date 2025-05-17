@@ -150,10 +150,10 @@ namespace zfile
 		public void HandleFtpListItemDoubleClick(string connectionName, ListViewItem item, ListView listView)
 		{
 			bool isDirectory = item.SubItems[MainForm.LVCOL_TYPE].Text == "<DIR>";
-			string path = (item.Tag as LvItemTag)?.File?.FullPath ?? "";	//SubItems[1].Text;
-
+			string path = (item.Tag as LvItemTag)?.File?.FullPath ?? "";    //SubItems[1].Text;
+			FtpFileEntry ftpfile = new FtpFileEntry(path);	//convert '\\'  of path to '/'  by using ftpfileentry
 			if (isDirectory)
-				NavigateToPath(connectionName, path, listView);
+				NavigateToPath(connectionName, ftpfile.Path, listView);
 			else
 			{
 				// 如果是文件，查看文件
@@ -164,17 +164,15 @@ namespace zfile
 
 		public void NavigateToPath(string connectionName, string path, ListView listView, bool recordHistory = true)
 		{
+			var oldpath = form.CurrentFullpath[listView.Name];	//save old path before path update
 			// 如果是目录，进入该目录
-			LoadFtpDirectory(connectionName, path, listView);
+			LoadFtpDirectory(connectionName, path, listView);	//update currentfullpath here
 
 			// 更新当前FTP节点的路径
 			if (_ftpNodes.TryGetValue(connectionName, out TreeNode? node) && node.Tag is FtpNodeTag tag)
 			{
 				if (recordHistory)
-				{
-					var fs = form.CurrentFullpath.GetFileSource(listView.Name);
-					form.RecordDirectoryHistory(path, form.CurrentFullpath[listView.Name]);
-				}
+					form.RecordDirectoryHistory(path, oldpath);
 				tag.Path = path;
 
 				// 更新活动书签

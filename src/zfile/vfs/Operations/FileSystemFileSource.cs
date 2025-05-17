@@ -42,7 +42,8 @@ namespace zfile
         }
 		public FileSystemFileSource(String rootpath) 
 		{
-			_rootpath = rootpath;
+			//_rootpath = rootpath;
+			SetRootPath(rootpath);
 		}
         ~FileSystemFileSource()
         {
@@ -345,7 +346,7 @@ namespace zfile
 		{
 			if (string.IsNullOrEmpty(path))
 				return;
-			_rootpath = path;
+			_rootpath = Helper.ExcludeTrailingPathDelimiter(path);
 		}
 
 		public override string GetRootDir(string path)

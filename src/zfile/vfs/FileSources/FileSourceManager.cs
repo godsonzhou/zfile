@@ -99,7 +99,7 @@ namespace zfile
         /// <returns>True if the path is an archive file</returns>
         public bool IsArchiveFile(string path)
         {
-            if (string.IsNullOrEmpty(path) || !File.Exists(path))
+            if (string.IsNullOrEmpty(path) || !File.Exists(Helper.ExcludeTrailingPathDelimiter(path)))
                 return false;
 
             string ext = Path.GetExtension(path).ToLower();

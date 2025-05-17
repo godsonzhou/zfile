@@ -660,7 +660,7 @@ namespace zfile
 			}
 			else
 			{
-				string? parentPath = Path.GetDirectoryName(owner.CurrentFullpath[owner.LRflag]);
+				string? parentPath = Path.GetDirectoryName(Helper.ExcludeTrailingPathDelimiter(owner.CurrentFullpath[owner.LRflag]));
 				if (!string.IsNullOrEmpty(parentPath))
 				{
 					// 导航到父目录

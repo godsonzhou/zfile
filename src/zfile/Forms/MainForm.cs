@@ -152,7 +152,7 @@ namespace zfile
 							Debug.Print("WARNING: SET CURRENTPATH IS NOT NEEDED!");
 						else
 						{
-							//Debug.Print($"change CURRENTPATH : {result.CurrentPath} -> {CurrentPath}");
+							Debug.Print($"change CURRENTPATH : {result.CurrentPath} -> {value}");
 							result.CurrentFullPath = value;
 						}
 					}
@@ -336,7 +336,7 @@ namespace zfile
 			filesourceChanged = (oldfs != fileSource);
 			if (filesourceChanged)
 			{
-				Debug.Print($"file source update {oldfs}{oldfs.RootPath} -> {fileSource}{fileSource.RootPath}");
+				Debug.Print($"file source update {oldfs}({oldfs.RootPath}) -> {fileSource}({fileSource.RootPath})");
 				// 更新当前活动面板的 FileSource
 				if (uiManager.isleft)
 					LeftFileSource = fileSource;
@@ -345,6 +345,7 @@ namespace zfile
 			}
 			else
 				Debug.Print($"WARNING: Update Filesource is not necessary!");
+
 			// 更新当前路径
 			CurrentFullpath[LRflag] = path;
 			return fileSource;
@@ -352,14 +353,16 @@ namespace zfile
 		// 导航到指定路径
 		public void NavigateToPath(string path, bool recordHistory = true, TreeSearchScope scope = TreeSearchScope.thispc, bool isactive = true)
 		{
+			path = Helper.IncludeTrailingPathDelimiter(path);
+			if (path.Equals(CurrentFullpath[LRflag]))
+				return;
 			Debug.Print($"Navigate to path : {path}");
 			//first change currentfilesource according to the path
 			var fs = UpdateFilesourceAndCurrentPath(path, out _, out var oldfs, out var oldpath);
-
-			if (CurrentFullpath.GetFileSource(LRflag) is WcxArchiveFileSource wcxfs)
+			if (fs is WcxArchiveFileSource wcxfs)
 			{
 				if (!path.StartsWith(wcxfs.ArchivePath))
-					path = wcxfs.ArchivePath + path;
+					path = wcxfs.ArchivePath + path;	//if the new path is wcxfs path, 将其转化为操作系统的绝对路径，eg. d:\tmp\test.7z\
 			}
 			if (string.IsNullOrEmpty(path))
 				return;
@@ -386,12 +389,12 @@ namespace zfile
 						CurrentFullpath[LRflag] = path; // 直接更新当前目录，不记录历史
 
 					activeTreeview.SelectedNode = node;
-					RefreshPanel(activeListView);
+					//RefreshPanel(activeListView);////////////////////////////////////////////whhen change selectedNode, the afterselect event will be executed and the refreshpanel operation also be run at that time, so here refreshpanel seem to be unnecessary.
 				}
 				else
 				{
 					unactiveTreeview.SelectedNode = node;
-					RefreshPanel(unactiveListView);
+					//RefreshPanel(unactiveListView);
 				}
 			}
 			// 更新最后访问路径
@@ -1384,8 +1387,8 @@ namespace zfile
 			if (!Directory.Exists(path1) || !Directory.Exists(path2))
 				return false;
 
-			string drive1 = Path.GetPathRoot(path1);
-			string drive2 = Path.GetPathRoot(path2);
+			var drive1 = Path.GetPathRoot(path1);
+			var drive2 = Path.GetPathRoot(path2);
 
 			return !string.Equals(drive1, drive2, StringComparison.OrdinalIgnoreCase);
 		}
@@ -3400,8 +3403,8 @@ namespace zfile
 				if (targetPath != null)
 				{
 					// 使用 FileSourceManager 获取源和目标 FileSource
-					var sourceFileSource = CurrentFullpath.GetFileSource(LRflag);	//_fileSourceManager.GetFileSourceForFullPath(srcPath, isleft);/////////////////////////////////////todo: use fullpath.getfilesource is faster 
-					var targetFileSource = _fileSourceManager.GetFileSourceForFullPath(targetPath, !isleft);	//if pastefromclipboard, the targetpath is not unactive, so calc it is necessary
+					var sourceFileSource = CurrentFullpath.GetFileSource(LRflag);   //fullpath.getfilesource is faster , about 2ms
+					var targetFileSource = _fileSourceManager.GetFileSourceForFullPath(targetPath, !isleft);    //if pastefromclipboard, the targetpath is not unactive, so calc it is necessary, slower, about 21ms, 10x times slower than the previous method
 
 					// 创建文件条目列表
 					var fileEntries = new FileEntries();

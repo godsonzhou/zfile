@@ -1022,7 +1022,7 @@ namespace zfile
 		{
 			return dateTime - DateTime.MinValue;
 		}
-		internal static string? IncludeTrailingPathDelimiter(string? aTargetPath, char sep = '\\')
+		internal static string IncludeTrailingPathDelimiter(string? aTargetPath, char sep = '\\')
 		{
 			return aTargetPath?.TrimEnd(sep) + sep;
 		}

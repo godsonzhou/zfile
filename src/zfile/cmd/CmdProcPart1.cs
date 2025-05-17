@@ -285,7 +285,7 @@ namespace zfile
 		}
 		private void do_cm_gotodrive(string drive)
 		{
-			owner.NavigateToPath(drive);
+			owner.NavigateToPath(drive.ToUpper());
 		}
 		private void cm_gotodrivec()
 		{

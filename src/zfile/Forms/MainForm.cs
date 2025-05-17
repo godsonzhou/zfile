@@ -1360,7 +1360,7 @@ namespace zfile
 							LoadSubDirectories(e.Node, activeListView); //盘符不变时在这里刷新TREEVIEW/LISTVIEW
 
 						// 无论如何都需要刷新ListView
-						LoadListViewByFileSourceSync(fileSource is WcxArchiveFileSource wcxfs ? Helper.ExtractDirLevel(wcxfs.ArchivePath, path, true) : path, activeListView, e.Node);
+						LoadListViewByFileSource(path, activeListView, e.Node);
 					}
 					uiManager.UpdateLastVisitedPath(path);
 					UpdatePathTextAndDriveComboBox(e.Node, path, isleft);    //盘符改变时在combobox事件中刷新//必须在loadsubdir之后，因为需要loadsubdir中调用pathtextbox.setchildren
@@ -2379,7 +2379,7 @@ namespace zfile
 
 		}
 		// 加载文件列表 - 使用 FileSource 架构（异步版本）
-		public void LoadListViewByFileSourceSync(string path, ListView listView, TreeNode parentnode)
+		public void LoadListViewByFileSource(string path, ListView listView, TreeNode parentnode)
 		{
 			if (string.IsNullOrEmpty(path)) return;
 
@@ -2393,31 +2393,10 @@ namespace zfile
 			try
 			{
 				// 创建列表操作
-				string operationPath = path;
-
-				// 如果是WcxArchiveFileSource，需要处理路径
-				if (fileSource is WcxArchiveFileSource wcxArchiveFileSource && Path.IsPathFullyQualified(path))
-				{
-					// 获取压缩文件的路径
-					string archivePath = wcxArchiveFileSource.ArchivePath;
-
-					// 如果当前路径包含压缩文件路径，则提取相对路径
-					if (path.StartsWith(archivePath, StringComparison.OrdinalIgnoreCase))
-					{
-						// 使用Helper.ExtractDirLevel获取相对路径
-						operationPath = Helper.ExtractDirLevel(archivePath, path);
-
-						// 确保路径格式正确（去掉前导斜杠）
-						if (operationPath.Equals(string.Empty))
-							operationPath = fileSource.GetRootDir();
-						//Debug.Print($"WcxArchiveFileSource: 将绝对路径 {path} 转换为相对路径 {operationPath}");
-					}
-				}
-
-				var listOperation = fileSource?.CreateListOperation(operationPath);
+				var listOperation = fileSource?.CreateListOperation(path);
 				if (listOperation == null)
 				{
-					Debug.Print($"无法为路径 {operationPath} 创建列表操作");
+					Debug.Print($"无法为路径 {path} 创建列表操作");
 					return;
 				}
 
@@ -2971,7 +2950,7 @@ namespace zfile
 			LoadSubDirectories(node, listView);
 
 			// 使用 FileSource 架构加载文件列表
-			LoadListViewByFileSourceSync(path, listView, node);
+			LoadListViewByFileSource(path, listView, node);
 		}
 		public void RefreshPanel(TreeView treeView)
 		{
@@ -3012,7 +2991,7 @@ namespace zfile
 						Debug.Print("unnecessary filesource assignment in refreshpanel");
 
 					// 使用 FileSource 架构刷新左面板
-					LoadListViewByFileSourceSync(path, uiManager.LeftList, uiManager.LeftTree.SelectedNode);
+					LoadListViewByFileSource(path, uiManager.LeftList, uiManager.LeftTree.SelectedNode);
 				}
 				else if (IsFtpPanel(out var ftpnode, "L") && ftpnode != null)
 				{
@@ -3035,7 +3014,7 @@ namespace zfile
 					RightFileSource = CurrentFullpath.GetFileSource("R");///////////////////////////////////
 
 					// 使用 FileSource 架构刷新右面板
-					LoadListViewByFileSourceSync(path, uiManager.RightList, uiManager.RightTree.SelectedNode);
+					LoadListViewByFileSource(path, uiManager.RightList, uiManager.RightTree.SelectedNode);
 				}
 				else if (IsFtpPanel(out var ftpnode, "R") && ftpnode != null)
 				{
@@ -3289,7 +3268,7 @@ namespace zfile
 							{
 								LoadSubDirectories(affectedNode, listView);
 								// 刷新ListView
-								LoadListViewByFileSourceSync(watcher.Path, listView, affectedNode);
+								LoadListViewByFileSource(watcher.Path, listView, affectedNode);
 							}));
 						}
 					}

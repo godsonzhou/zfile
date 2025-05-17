@@ -3,7 +3,6 @@ namespace zfile
 	public class WcxArchiveListOperation : FileSourceListOperation
 	{
 		private IWcxArchiveFileSource _wcxArchiveFileSource;
-		//private bool _flatView;
 
 		public WcxArchiveListOperation(IFileSource fileSource, string path) : base(fileSource, path)
 		{

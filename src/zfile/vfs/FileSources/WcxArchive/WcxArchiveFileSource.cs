@@ -381,7 +381,9 @@ namespace zfile
 
         public override FileSourceOperation CreateListOperation(string targetPath)
         {
-            return new WcxArchiveListOperation(this, targetPath);
+			if(targetPath.StartsWith(ArchiveFileName, StringComparison.OrdinalIgnoreCase))
+				targetPath = Helper.ExtractDirLevel(ArchiveFileName, targetPath, true); //将目标路径转换为相对路径
+			return new WcxArchiveListOperation(this, targetPath);
         }
 
         public override FileSourceOperation CreateCopyInOperation(IFileSource sourceFileSource, FileEntries sourceFiles, string targetPath)

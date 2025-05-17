@@ -254,7 +254,9 @@ namespace zfile
 		private Dictionary<Keys, string> hotkeyMappings;
 	
 		public string LRflag => uiManager.isleft ? "L" : "R";
+		public string RLflag => uiManager.isleft ? "R" : "L";
 		public bool isleft => uiManager.isleft;
+		public bool isright => !uiManager.isleft;
 		public MyListView activeListView { get => uiManager.activeListView; }
 		public MyListView unactiveListView { get => uiManager.unactiveListView; }
 		public TreeView activeTreeview { get => uiManager.activeTreeview; }
@@ -2410,7 +2412,7 @@ namespace zfile
 					Debug.Print($"操作不是 FileSourceListOperation 类型");
 					return;
 				}
-				var files = fileListOperation.Files;
+				var files = fileListOperation.Files;	//files include '.' '..' , for wcx: fileentry.fullpath = "\\aaa\\test.txt", is wcx internal usage
 				if (files == null)
 				{
 					Debug.Print($"列表操作未返回文件列表");
@@ -3377,14 +3379,14 @@ namespace zfile
 				if (listView == null || listView.SelectedItems.Count <= 0) return false;
 
 				// 获取文件列表
-				List<FileEntry> fileList = new List<FileEntry>();
+				List<FileEntry> fileList = [];
 				foreach (ListViewItem item in listView.SelectedItems)
 				{
 					var fileEntry = GetListItemPath(item);
 					if (fileEntry != null)
 						fileList.Add(fileEntry);
 				}
-				sourceFiles = fileList.ToArray();
+				sourceFiles = [..fileList];
 				srcPath = uiManager.srcDir;//todo: need add wcx virtual folder to shengfilesystemnode's child, 然后才能从srcdir获取到正确的srcpath
 
 				// 如果没有指定目标路径，则使用非活动面板的路径作为目标
@@ -3398,8 +3400,8 @@ namespace zfile
 				if (targetPath != null)
 				{
 					// 使用 FileSourceManager 获取源和目标 FileSource
-					IFileSource sourceFileSource = _fileSourceManager.GetFileSourceForFullPath(srcPath, isleft);
-					IFileSource targetFileSource = _fileSourceManager.GetFileSourceForFullPath(targetPath, !isleft);
+					var sourceFileSource = CurrentFullpath.GetFileSource(LRflag);	//_fileSourceManager.GetFileSourceForFullPath(srcPath, isleft);/////////////////////////////////////todo: use fullpath.getfilesource is faster 
+					var targetFileSource = _fileSourceManager.GetFileSourceForFullPath(targetPath, !isleft);	//if pastefromclipboard, the targetpath is not unactive, so calc it is necessary
 
 					// 创建文件条目列表
 					var fileEntries = new FileEntries();

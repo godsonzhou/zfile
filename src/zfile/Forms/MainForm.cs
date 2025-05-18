@@ -179,11 +179,11 @@ namespace zfile
 			}
 		}
 		const int ILD_TRANSPARENT = 0x00000001;
-		public const int LVCOL_NAME = 0;
-		public const int LVCOL_SIZE = 1;
-		public const int LVCOL_TYPE = 2;
-		public const int LVCOL_DATE = 3;
-		public const int LVCOL_ATTR = 4;
+		public static int LVCOL_NAME = 0;
+		public static int LVCOL_SIZE = 1;
+		public static int LVCOL_TYPE = 2;
+		public static int LVCOL_DATE = 3;
+		public static int LVCOL_ATTR = 4;
 		public static MainForm Instance { get; private set; } = null!;
 		public static IntPtr _Handle { get; set; }
 		public static int MainThreadId { get; set; } = 0;
@@ -2457,12 +2457,12 @@ namespace zfile
 				showFolderSize = configLoader.FindConfigValue("Configuration", "EverythingForSize").Equals("1");
 
 				// 应用视图管理器设置 - 根据文件夹内容自动切换视图模式
-				var viewname = viewMgr.ApplyViewToListView(listView, path, fileSource);
+				var viewname = viewMgr.ApplyViewToListView(listView, path, fileSource);//todo: 当计算统计信息时有重复的listoperation操作，待优化
 
 				// 添加所有项目到 ListView
 				foreach (var file in files)
 				{
-					var lvItem = CreateListViewItemFromFileEntry(file, showFolderSize, parentnode, viewname);
+					var lvItem = CreateListViewItemFromFileEntry(file, showFolderSize, parentnode, viewname);//todo: 在显示自定义视图时，需要启用wdx插件获取额外的信息
 					if (lvItem != null)
 					{
 						var f = SetIconForListViewItem(lvItem, listView, subkey);
@@ -2509,7 +2509,8 @@ namespace zfile
 					viewid = int.Parse(viewname);
 				}
 
-				if (viewid <= 5) {
+				if (viewid <= 5)
+				{
 					// 如果默认视图也不存在，使用硬编码的默认列
 					string attrStr = GetFileAttributesString(file.Attributes);
 					string[] defaultData;
@@ -2539,12 +2540,12 @@ namespace zfile
 					var defaultItem = new ListViewItem(defaultData);
 					defaultItem.Tag = new LvItemTag(file, node);
 					return defaultItem;
-				} 
+				}
 				else
 				{
 					// 获取当前视图模式的列定义
 					var colDefs = viewMgr.colDefDict.Values.ToArray()[viewid - 6];
-						
+
 					// 根据列定义创建数据数组
 					string[] itemData = new string[colDefs.Count];
 
@@ -2557,31 +2558,37 @@ namespace zfile
 						// 根据列内容定义获取对应的数据
 						if (content.Equals("文件名", StringComparison.OrdinalIgnoreCase))
 						{
+							LVCOL_NAME = i;
 							itemData[i] = file.Name;
 						}
 						else if (content.Equals("扩展名", StringComparison.OrdinalIgnoreCase))
 						{
+							LVCOL_TYPE = i;
 							itemData[i] = file.IsDirectory ? "<DIR>" : Path.GetExtension(file.Name).ToUpperInvariant();
 						}
-						else if (content.Contains("大小", StringComparison.OrdinalIgnoreCase))
+						else if (content.Contains("size", StringComparison.OrdinalIgnoreCase))
 						{
+							LVCOL_SIZE = i;
 							if (file.IsDirectory)
 								itemData[i] = showFolderSize && EverythingWrapper.IsEverythingServiceRunning() ? FileSystemManager.FormatFileSize(file.Size, true) : "";
 							else
 								itemData[i] = FileSystemManager.FormatFileSize(file.Size, true);
 						}
-						else if (content.Contains("日期", StringComparison.OrdinalIgnoreCase) || content.Contains("时间", StringComparison.OrdinalIgnoreCase))
+						else if (content.Contains("writedate", StringComparison.OrdinalIgnoreCase) || content.Contains("时间", StringComparison.OrdinalIgnoreCase))
 						{
+							LVCOL_DATE = i;
 							itemData[i] = file.ModificationTime.ToString("yyyy-MM-dd HH:mm");
 						}
-						else if (content.Contains("属性", StringComparison.OrdinalIgnoreCase))
+						else if (content.Contains("[=tc.attributestr]", StringComparison.OrdinalIgnoreCase))
 						{
+							LVCOL_ATTR = i;
 							itemData[i] = GetFileAttributesString(file.Attributes);
 						}
 						else
 						{
-							// 默认为空字符串
+							// 默认为空字符串//宽度//位深度//拍摄日期//照相机型号//"[=shelldetails.类型]"
 							itemData[i] = "";
+							Debug.Print($"列：{content} 未定义");
 						}
 					}
 
@@ -2686,10 +2693,14 @@ namespace zfile
 		{
 			private readonly int column;
 			private readonly SortOrder order;
+			private readonly ListView? listView;
+
 			public ListViewItemComparer(int column, SortOrder order)
 			{
 				this.column = column;
 				this.order = order;
+				// 获取当前活动的ListView
+				this.listView = Application.OpenForms.OfType<MainForm>().FirstOrDefault()?.activeListView;
 			}
 
 			public int Compare(object? x, object? y)
@@ -2699,42 +2710,63 @@ namespace zfile
 
 				int result;
 
-				// 根据列类型进行比较
-				switch (column)
+				// 获取列标题（如果可用）
+				string columnHeader = "";
+				if (listView != null && column < listView.Columns.Count)
 				{
-					case 1: // 名称列
-						result = string.Compare(item1.SubItems[column].Text,
-											 item2.SubItems[column].Text);
-						break;
+					columnHeader = listView.Columns[column].Text;
+				}
 
-					case 2: // 大小列
-						var size1 = item1.SubItems[column].Text;
-						var size2 = item2.SubItems[column].Text;
-						if (size1 == "<DIR>" && size2 == "<DIR>")
-							result = 0;
-						else if (size1 == "<DIR>")
-							result = -1;
-						else if (size2 == "<DIR>")
-							result = 1;
-						else
-							result = CompareFileSize(size1, size2);
-						break;
+				// 获取要比较的文本
+				string text1 = item1.SubItems[column].Text;
+				string text2 = item2.SubItems[column].Text;
 
-					case 4: // 日期列
+				// 根据列内容类型进行比较
+				if (text1 == "<DIR>" || text2 == "<DIR>" || columnHeader.Contains("扩展名"))
+				{
+					// 处理目录和扩展名列
+					if (text1 == "<DIR>" && text2 == "<DIR>")
+						result = 0;
+					else if (text1 == "<DIR>")
+						result = -1;
+					else if (text2 == "<DIR>")
+						result = 1;
+					else
+						result = string.Compare(text1, text2);
+				}
+				else if (columnHeader.Contains("大小") ||
+						(text1.Contains(" B") || text1.Contains(" KB") || text1.Contains(" MB") ||
+						 text1.Contains(" GB") || text1.Contains(" TB")))
+				{
+					// 处理文件大小列
+					result = CompareFileSize(text1, text2);
+				}
+				else if (columnHeader.Contains("日期") || columnHeader.Contains("时间") ||
+						 DateTime.TryParse(text1, out _) && DateTime.TryParse(text2, out _))
+				{
+					// 处理日期时间列
+					try
+					{
 						result = DateTime.Compare(
-							DateTime.Parse(item1.SubItems[column].Text),
-							DateTime.Parse(item2.SubItems[column].Text));
-						break;
-
-					default: // 其他列
-						result = string.Compare(item1.SubItems[column].Text,
-											 item2.SubItems[column].Text);
-						break;
+							DateTime.Parse(text1),
+							DateTime.Parse(text2));
+					}
+					catch
+					{
+						// 如果日期解析失败，回退到字符串比较
+						result = string.Compare(text1, text2);
+					}
+				}
+				else
+				{
+					// 默认使用字符串比较
+					result = string.Compare(text1, text2);
 				}
 
 				// 根据排序顺序返回结果
 				return order == SortOrder.Ascending ? result : -result;
 			}
+
 			private int CompareFileSize(string size1, string size2)
 			{
 				try
@@ -2751,21 +2783,32 @@ namespace zfile
 
 			private double ParseFileSize(string size)
 			{
-				var parts = size.Split(' ');
-				if (parts.Length != 2) return 0;
-
-				var value = double.Parse(parts[0]);
-				var unit = parts[1].ToUpper();
-
-				return unit switch
+				try
 				{
-					"B" => value,
-					"KB" => value * 1024,
-					"MB" => value * 1024 * 1024,
-					"GB" => value * 1024 * 1024 * 1024,
-					"TB" => value * 1024 * 1024 * 1024 * 1024,
-					_ => 0
-				};
+					var parts = size.Split(' ');
+					if (parts.Length != 2) return 0;
+
+					if (double.TryParse(parts[0], out var value))
+					{
+						var unit = parts[1].ToUpper();
+
+						return unit switch
+						{
+							"B" => value,
+							"KB" => value * 1024,
+							"MB" => value * 1024 * 1024,
+							"GB" => value * 1024 * 1024 * 1024,
+							"TB" => value * 1024 * 1024 * 1024 * 1024,
+							_ => 0
+						};
+					}
+				}
+				catch
+				{
+					// 解析失败，返回0
+				}
+
+				return 0;
 			}
 		}
 

@@ -168,7 +168,7 @@ namespace zfile
 				}
 				return null;
 			}
-	
+
 			private void UpdateFileSourceDict(string key, IFileSource? fileSource)
 			{
 				if (FileSourceDict.ContainsKey(key))
@@ -252,7 +252,7 @@ namespace zfile
 
 		private readonly BackgroundIconManager _backgroundIconManager;
 		private Dictionary<Keys, string> hotkeyMappings;
-	
+
 		public string LRflag => uiManager.isleft ? "L" : "R";
 		public string RLflag => uiManager.isleft ? "R" : "L";
 		public bool isleft => uiManager.isleft;
@@ -365,7 +365,7 @@ namespace zfile
 			if (fs is WcxArchiveFileSource wcxfs)
 			{
 				if (!path.StartsWith(wcxfs.ArchivePath))
-					path = wcxfs.ArchivePath + path;	//if the new path is wcxfs path, 将其转化为操作系统的绝对路径，eg. d:\tmp\test.7z\
+					path = wcxfs.ArchivePath + path;    //if the new path is wcxfs path, 将其转化为操作系统的绝对路径，eg. d:\tmp\test.7z\
 			}
 			if (string.IsNullOrEmpty(path))
 				return;
@@ -383,7 +383,7 @@ namespace zfile
 				TreeSearchScope.ftproot => isactive ? activeFtpRoot.Nodes : unactiveFtpRoot.Nodes
 			};
 
-			var node = FindTreeNode(searchtarget, path, searchftp);  
+			var node = FindTreeNode(searchtarget, path, searchftp);
 			if (node != null)
 			{
 				if (isactive)
@@ -910,7 +910,7 @@ namespace zfile
 				//hotkeyMappings = optionsForm.commandHotkeys.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
 			}
 		}
-	
+
 		public void ContextMenuStrip_Opening(object sender, System.ComponentModel.CancelEventArgs e)
 		{
 			// 在这里可以添加自定义的菜单项
@@ -971,7 +971,7 @@ namespace zfile
 						}
 						finally
 						{
-		
+
 						}
 
 						// Refresh view
@@ -1107,7 +1107,7 @@ namespace zfile
 					}
 					finally
 					{
-		
+
 					}
 				}
 				catch (Exception ex)
@@ -1302,7 +1302,7 @@ namespace zfile
 		public void TreeView_NodeMouseClick(object? sender, TreeNodeMouseClickEventArgs e)
 		{
 			if (e.Node?.Tag == null) return;
-		
+
 			string path = e.Node.Text ?? string.Empty;
 			if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
 			{
@@ -1317,7 +1317,7 @@ namespace zfile
 			if (e.Node.Nodes.Count == 1 && e.Node.FirstNode.Text == "...")  //点击+号时，加载子目录
 				LoadSubDirectories(e.Node);
 		}
-		
+
 		public void TreeView_AfterSelect(object? sender, TreeViewEventArgs e)
 		{
 			if (e.Node?.Tag == null) return;
@@ -1411,7 +1411,7 @@ namespace zfile
 					uiManager.LeftPathTextBox.UpdateDrives(driveId);
 				else
 					uiManager.LeftPathTextBox.SetAddress(eNode);    // 调用leftpathtextbox的setaddress方法来更新路径
-				if(driveId.Length > 0) 
+				if (driveId.Length > 0)
 					driveChanged = SetDriveComboByValue(uiManager.LeftDriveComboBox, driveId);
 			}
 			else
@@ -1420,7 +1420,7 @@ namespace zfile
 					uiManager.RightPathTextBox.UpdateDrives(driveId);
 				else
 					uiManager.RightPathTextBox.SetAddress(eNode);
-				if(driveId.Length > 0)
+				if (driveId.Length > 0)
 					driveChanged = SetDriveComboByValue(uiManager.RightDriveComboBox, driveId);
 			}
 
@@ -1595,8 +1595,8 @@ namespace zfile
 							showCtxMenuOnRecyclebin();
 							return;
 						}
-						string iPath = (item.Tag as LvItemTag)?.File?.FullPath ?? "";		//item.SubItems[1].Text;
-						// Get corresponding TreeNode for this path
+						string iPath = (item.Tag as LvItemTag)?.File?.FullPath ?? "";       //item.SubItems[1].Text;
+																							// Get corresponding TreeNode for this path
 						TreeNode? targetNode = FindTreeNode(node.Nodes, item.Text);
 						if (targetNode != null)
 							ShowContextMenuOnTreeview(targetNode, e.Location);
@@ -1656,7 +1656,7 @@ namespace zfile
 					{
 						// 如果是文件，查看文件
 						//if (fTPMGR._ftpSources.TryGetValue(connectionName, out FtpFileSource? source))
-							fTPMGR.ViewFtpFile((FtpFileSource)fileSource, path);
+						fTPMGR.ViewFtpFile((FtpFileSource)fileSource, path);
 					}
 					return;
 				}
@@ -1783,11 +1783,11 @@ namespace zfile
 			var deepSearch = path.Contains('\\');
 			if (!deepSearch)
 			{
-				if (searchftp) 
-				{ 
-					foreach(TreeNode node in nodes)
+				if (searchftp)
+				{
+					foreach (TreeNode node in nodes)
 					{
-						if(node.Tag is FtpNodeTag tag)
+						if (node.Tag is FtpNodeTag tag)
 						{
 							var ftpsrc = fTPMGR.GetFtpFileSourceByConnectionName(tag.ConnectionName);
 							if (path.StartsWith($"ftp://{ftpsrc?.Host}"))
@@ -1906,11 +1906,11 @@ namespace zfile
 			}
 			return false;
 		}
-	
+
 		private bool getIconByShellItemPIDL1(ref ShellItem subItem, out string iconKey, bool islarge = false)
 		{
 			iconKey = string.Empty;
-	
+
 			var pidAbsolute = API.ILCombine(CtrlPanel_PIDL, subItem.PIDL);
 			var shellInfo = new SHFILEINFO();
 			API.SHGetFileInfoPIDL(pidAbsolute, 0, ref shellInfo, Marshal.SizeOf(typeof(SHFILEINFO)), SHGFI.PIDL | SHGFI.DISPLAYNAME | SHGFI.ICON | SHGFI.SMALLICON);
@@ -2062,7 +2062,7 @@ namespace zfile
 						root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out IShellFolder iSub); //获取子节点的ishellfolder接口
 						string name;
 						string path = w32.GetPathByIShell(root, pidlSub);   //子节点path -> 此电脑\\迅雷下载, c:\\
-						
+
 						//Debug.Print(path);
 						var pathPart = path.Split('\\');
 						name = !pathPart[^1].Equals(string.Empty) ? pathPart[^1] : pathPart[^2];
@@ -2268,7 +2268,7 @@ namespace zfile
 			//	backStack.Push(oldpath);
 			//else
 			backStack.Push(oldpath); //同一个filesource下，压入currentpath，不同filesource下，压入老filesource.currentpath
-			
+
 			Debug.Print($"backstack.push: {oldpath}");
 			forwardStack.Clear(); // 清除前进历史
 		}
@@ -2293,7 +2293,7 @@ namespace zfile
 
 					if (key == null && shellitem != null)
 						GetIconBy(shellitem, out key, shellitem.PIDL);
-					if(string.IsNullOrEmpty(key))
+					if (string.IsNullOrEmpty(key))
 						key = Path.GetExtension(itemFullName);
 
 					// 设置默认图标
@@ -2442,7 +2442,7 @@ namespace zfile
 					Debug.Print($"操作不是 FileSourceListOperation 类型");
 					return;
 				}
-				var files = fileListOperation.Files;	//files include '.' '..' , for wcx: fileentry.fullpath = "\\aaa\\test.txt", is wcx internal usage
+				var files = fileListOperation.Files;    //files include '.' '..' , for wcx: fileentry.fullpath = "\\aaa\\test.txt", is wcx internal usage
 				if (files == null)
 				{
 					Debug.Print($"列表操作未返回文件列表");
@@ -2455,10 +2455,13 @@ namespace zfile
 				var subkey = (listView.View == View.Tile ? "l" : "s");
 				showFolderSize = configLoader.FindConfigValue("Configuration", "EverythingForSize").Equals("1");
 
+				// 应用视图管理器设置 - 根据文件夹内容自动切换视图模式
+				var viewname = viewMgr.ApplyViewToListView(listView, path, fileSource);
+
 				// 添加所有项目到 ListView
 				foreach (var file in files)
 				{
-					var lvItem = CreateListViewItemFromFileEntry(file, showFolderSize, parentnode);
+					var lvItem = CreateListViewItemFromFileEntry(file, showFolderSize, parentnode, viewname);
 					if (lvItem != null)
 					{
 						var f = SetIconForListViewItem(lvItem, listView, subkey);
@@ -2495,7 +2498,7 @@ namespace zfile
 		}
 
 		// 创建 ListViewItem (从 FileEntry)
-		private ListViewItem? CreateListViewItemFromFileEntry(FileEntry file, bool showFolderSize, TreeNode node)
+		private ListViewItem? CreateListViewItemFromFileEntry(FileEntry file, bool showFolderSize, TreeNode node, string viewname)
 		{
 			try
 			{
@@ -3298,6 +3301,9 @@ namespace zfile
 								LoadSubDirectories(affectedNode, listView);
 								// 刷新ListView
 								LoadListViewByFileSource(watcher.Path, listView, affectedNode);
+
+								// 清除文件夹统计缓存，以便重新计算
+								FolderStatistics.ClearCache();
 							}));
 						}
 					}
@@ -3308,7 +3314,7 @@ namespace zfile
 				Debug.Print($"Watcher_Changed error: {ex.Message}");
 			}
 		}
-	
+
 		public FileEntry? GetListItemPath(ListViewItem item)
 		{
 			//if (item.Tag is ArchNodeTag archNode)
@@ -3413,7 +3419,7 @@ namespace zfile
 					if (fileEntry != null)
 						fileList.Add(fileEntry);
 				}
-				sourceFiles = [..fileList];
+				sourceFiles = [.. fileList];
 				srcPath = uiManager.srcDir;//todo: need add wcx virtual folder to shengfilesystemnode's child, 然后才能从srcdir获取到正确的srcpath
 
 				// 如果没有指定目标路径，则使用非活动面板的路径作为目标
@@ -3702,8 +3708,8 @@ namespace zfile
 				{
 					operation = sourceFileSource.CreateMoveOperation(fileEntries, targetPath);
 					_operationsManager.AddOperation(operation);
-					operation._Thread.WaitFor();	//waiting for operation to finish
-					// 刷新面板
+					operation._Thread.WaitFor();    //waiting for operation to finish
+													// 刷新面板
 					RefreshPanel(activeListView);
 					RefreshPanel(unactiveListView);
 					return;
@@ -3969,7 +3975,7 @@ namespace zfile
 
 			return result;
 		}
-	
+
 		//private void HandleRegistryContextMenuItems(string path)
 		//{
 		//	string[] registryPaths = new[]
@@ -4013,6 +4019,18 @@ namespace zfile
 			//var wih = new WindowInteropHelper(wnd); //该类支持获取hWnd
 			//IntPtr hWnd = wih.Handle;    //获取窗口句柄
 			//var result = ShellExecute(hWnd, "open", "需要打开的路径如C:\\Users\\Desktop\\xx.exe", null, null, (int)ShowWindowCommands.SW_SHOW);
+		}
+
+		public void cm_options()
+		{
+			var optionsForm = new OptionsForm(this, "");
+			optionsForm.ShowDialog();
+		}
+
+		public void cm_testviewmgr()
+		{
+			var testForm = new TestViewMgrForm(this);
+			testForm.Show();
 		}
 		public bool IsActiveFtpPanel(out FtpNodeTag? ftpnode, TreeView? treeview = null)
 		{

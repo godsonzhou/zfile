@@ -1,0 +1,101 @@
+POPUP "文件(&F)"
+  MENUITEM "新建标签页(&N)", "cm_NewTab"
+  MENUITEM "复制(&C)...", "cm_Copy"
+  MENUITEM "移动(&M)...", "cm_renmov"
+  MENUITEM "重命名(&R)...", "cm_RenameOnly"
+  MENUITEM "创建目录(&K)...", "cm_mkdir"
+  MENUITEM "删除(&D)...", "cm_Delete"
+  MENUITEM "属性(&P)...", "cm_FileProperties"
+  SEPARATOR
+  MENUITEM "打包(&A)...", "cm_PackFiles"
+  MENUITEM "解包(&X)...", "cm_ExtractFiles"
+  SEPARATOR
+  MENUITEM "查看(&V)", "cm_List"
+  MENUITEM "编辑(&E)", "cm_Edit"
+  SEPARATOR
+  MENUITEM "查找文件(&S)...", "cm_Search"
+  MENUITEM "快速查看(&Q)", "cm_QuickView"
+  MENUITEM "同步目录(&Y)...", "cm_SyncDirs"
+  SEPARATOR
+  MENUITEM "创建链接(&L)...", "cm_CreateShortcut"
+  MENUITEM "打印(&P)...", "cm_PrintFile"
+  SEPARATOR
+  MENUITEM "分割文件(&I)...", "cm_SplitFile"
+  MENUITEM "合并文件(&B)...", "cm_CombineFile"
+  SEPARATOR
+  MENUITEM "退出(&X)", "cm_Exit"
+END_POPUP
+
+POPUP "标记(&M)"
+  MENUITEM "选择组(&G)...", "cm_MarkPlus"
+  MENUITEM "取消选择组(&N)...", "cm_MarkMinus"
+  MENUITEM "选择全部(&A)", "cm_MarkAll"
+  MENUITEM "取消全部选择(&U)", "cm_MarkUnmarkAll"
+  MENUITEM "反向选择(&I)", "cm_MarkInvert"
+  SEPARATOR
+  MENUITEM "选择同类型文件(&S)", "cm_MarkSameExt"
+  MENUITEM "取消选择同类型文件(&D)", "cm_UnmarkSameExt"
+  SEPARATOR
+  MENUITEM "保存选择(&V)", "cm_SaveSelection"
+  MENUITEM "恢复选择(&R)", "cm_RestoreSelection"
+  SEPARATOR
+  MENUITEM "比较目录(&C)", "cm_CompareDirectories"
+END_POPUP
+
+POPUP "命令(&C)"
+  MENUITEM "目录热键列表(&H)...", "cm_DirectoryHotList"
+  MENUITEM "打开命令行(&O)", "cm_RunTerm"
+  SEPARATOR
+  MENUITEM "交换面板(&S)", "cm_Exchange"
+  MENUITEM "目标等于源(&T)", "cm_TargetEqualSource"
+  SEPARATOR
+  MENUITEM "搜索内容(&F)...", "cm_SearchFor"
+  MENUITEM "多重重命名(&M)...", "cm_MultiRename"
+  SEPARATOR
+  MENUITEM "显示系统菜单(&S)", "cm_ShowSystemMenu"
+END_POPUP
+
+POPUP "网络(&N)"
+  MENUITEM "网络连接(&N)...", "cm_NetConnect"
+  MENUITEM "映射网络驱动器(&M)...", "cm_NetManage"
+  MENUITEM "断开网络驱动器(&D)...", "cm_NetDisconnect"
+  SEPARATOR
+  MENUITEM "FTP连接(&F)...", "cm_FtpConnect"
+  MENUITEM "FTP新建连接(&N)...", "cm_FtpNew"
+  MENUITEM "断开FTP连接(&I)", "cm_FtpDisconnect"
+END_POPUP
+
+POPUP "显示(&V)"
+  MENUITEM "简要(&B)", "cm_BriefView"
+  MENUITEM "详细(&F)", "cm_FullView"
+  MENUITEM "缩略图(&T)", "cm_ThumbnailsView"
+  SEPARATOR
+  MENUITEM "名称(&N)", "cm_SortByName"
+  MENUITEM "扩展名(&E)", "cm_SortByExt"
+  MENUITEM "时间(&T)", "cm_SortByDate"
+  MENUITEM "大小(&S)", "cm_SortBySize"
+  SEPARATOR
+  MENUITEM "反向排序(&R)", "cm_ReverseOrder"
+  SEPARATOR
+  MENUITEM "刷新(&R)", "cm_Refresh"
+  SEPARATOR
+  MENUITEM "测试视图管理器(&V)", "cm_testviewmgr"
+END_POPUP
+
+POPUP "配置(&O)"
+  MENUITEM "选项(&O)...", "cm_options"
+  MENUITEM "按钮栏(&B)...", "cm_ConfigToolbars"
+  MENUITEM "编辑文件类型(&F)...", "cm_EditFileTypes"
+  SEPARATOR
+  MENUITEM "保存设置(&S)", "cm_SaveConfig"
+END_POPUP
+
+POPUP "帮助(&H)"
+  MENUITEM "索引(&I)", "cm_HelpIndex"
+  MENUITEM "键盘(&K)", "cm_Keyboard"
+  MENUITEM "访问主页(&V)", "cm_VisitHomePage"
+  SEPARATOR
+  MENUITEM "关于(&A)...", "cm_About"
+END_POPUP
+
+STARTMENU

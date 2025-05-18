@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -34,10 +36,17 @@ namespace zfile
 	public class ViewMgr
 	{
 		private MainForm form;
-		private List<ColDef> colDefs = new ();
+		private List<ColDef> colDefs = new();
 		public Dictionary<string, List<ColDef>> colDefDict = new();
-		public Dictionary<string, ViewMode> viewModes = new ();
-		public Dictionary<string, ViewSwitchRule> viewSwitchRules = new ();
+		public Dictionary<string, ViewMode> viewModes = new();
+		public Dictionary<string, ViewSwitchRule> viewSwitchRules = new();
+
+		// Default view mode to use when no rules match
+		private string defaultViewMode = "默认";
+
+		// Currently applied view modes for left and right panels
+		private string currentLeftViewMode = "默认";
+		private string currentRightViewMode = "默认";
 
 		public ViewMgr(MainForm form)
 		{
@@ -46,7 +55,7 @@ namespace zfile
 			ParseViewModeCfg();
 			ParseViewSwitchRule();
 		}
-	
+
 		public string GetColDef(string viewMode)
 		{
 			if (colDefDict.ContainsKey(viewMode))
@@ -59,6 +68,291 @@ namespace zfile
 			}
 			return "";
 		}
+
+		/// <summary>
+		/// Apply view settings to a ListView based on folder statistics and rules
+		/// </summary>
+		public string ApplyViewToListView(ListView listView, string folderPath, IFileSource fileSource)
+		{
+			try
+			{
+				bool isLeftPanel = listView == form.activeListView;
+
+				// Get folder statistics
+				var stats = FolderStatistics.GetFolderStats(folderPath, fileSource);
+
+				// Determine which view mode to use based on rules
+				string viewModeName = DetermineViewMode(stats, folderPath);
+
+				// Update current view mode
+				if (isLeftPanel)
+					currentLeftViewMode = viewModeName;
+				else
+					currentRightViewMode = viewModeName;
+
+				// Apply column configuration from the selected view mode
+				ApplyColumnConfiguration(listView, viewModeName);
+
+				Debug.Print($"Applied view mode '{viewModeName}' to {(isLeftPanel ? "left" : "right")} panel for path: {folderPath}");
+				return viewModeName;
+			}
+			catch (Exception ex)
+			{
+				Debug.Print($"Error applying view to ListView: {ex.Message}");
+			}
+			return defaultViewMode;
+		}
+
+		/// <summary>
+		/// Determine which view mode to use based on folder statistics and rules
+		/// </summary>
+		private string DetermineViewMode(FolderStatistics.FolderStats stats, string folderPath)
+		{
+			// Default to the default view mode
+			string selectedViewMode = defaultViewMode;
+
+			// Check each rule in priority order (lower index = higher priority)
+			foreach (var ruleEntry in viewSwitchRules.OrderBy(r => int.Parse(r.Key)))
+			{
+				var rule = ruleEntry.Value;
+				if (EvaluateRule(rule.rules, stats, folderPath))
+				{
+					selectedViewMode = rule.mode;
+					break;
+				}
+			}
+
+			// If the selected view mode doesn't exist in our definitions, fall back to default
+			if (!viewModes.Values.Any(vm => vm.Name == selectedViewMode))
+				selectedViewMode = defaultViewMode;
+
+			return selectedViewMode;
+		}
+
+		/// <summary>
+		/// Evaluate a rule against folder statistics
+		/// </summary>
+		private bool EvaluateRule(string ruleString, FolderStatistics.FolderStats stats, string folderPath)
+		{
+			// Split the rule into sub-rules
+			string[] subRules = ruleString.Split('|');
+			if (subRules.Length == 0)
+				return false;
+
+			// The first sub-rule is evaluated independently
+			bool result = EvaluateSubRule(subRules[0], stats, folderPath);
+
+			// Evaluate additional sub-rules with logical operators
+			for (int i = 1; i < subRules.Length; i++)
+			{
+				// Even indices are operators (AND/OR), odd indices are sub-rules
+				if (i % 2 == 0)
+				{
+					// This is a sub-rule
+					bool subResult = EvaluateSubRule(subRules[i], stats, folderPath);
+
+					// Apply the previous operator
+					string op = subRules[i - 1];
+					if (op == "且")
+						result = result && subResult;
+					else // "或"
+						result = result || subResult;
+				}
+			}
+
+			return result;
+		}
+
+		/// <summary>
+		/// Evaluate a single sub-rule against folder statistics
+		/// </summary>
+		private bool EvaluateSubRule(string subRule, FolderStatistics.FolderStats stats, string folderPath)
+		{
+			if (string.IsNullOrEmpty(subRule) || subRule.Length < 2)
+				return false;
+
+			// Extract rule type and value
+			char ruleType = subRule[0];
+			string ruleValue = subRule.Substring(1);
+
+			// Evaluate based on rule type
+			switch (ruleType)
+			{
+				case '+': // Exact match for file extensions
+					return MatchFilePatterns(folderPath, ruleValue, true);
+
+				case '-': // Exclude file extensions
+					return !MatchFilePatterns(folderPath, ruleValue, true);
+
+				case '%': // At least half match
+					return MatchFilePatterns(folderPath, ruleValue, false, 0.5);
+
+				case '2': // At least one match
+					return MatchFilePatterns(folderPath, ruleValue, false, 0.01);
+
+				case 'D': // Is directory/folder
+					return stats.TotalFolders > 0;
+
+				case 'L': // Contains drive letter
+					return Path.GetPathRoot(folderPath)?.Length > 0;
+
+				case 'U': // Network path
+					return stats.IsNetworkPath;
+
+				case 'V': // Virtual folder
+					return stats.IsVirtualFolder;
+
+				case 'F': // FTP connection
+					return stats.IsFtpFolder;
+
+				case 'A': // Archive file
+					return stats.IsArchiveFolder;
+
+				case 'P': // File system plugin
+					return stats.IsPluginFolder;
+
+				case 'S': // Search result
+					return stats.IsSearchResult;
+
+				default:
+					return false;
+			}
+		}
+
+		/// <summary>
+		/// Match file patterns against files in a folder
+		/// </summary>
+		private bool MatchFilePatterns(string folderPath, string patterns, bool exactMatch, double threshold = 1.0)
+		{
+			try
+			{
+				if (!Directory.Exists(folderPath))
+					return false;
+
+				string[] patternList = patterns.Split(',');
+
+				// Get all files in the directory
+				string[] files = Directory.GetFiles(folderPath);
+				if (files.Length == 0)
+					return false;
+
+				int matchCount = 0;
+
+				foreach (string file in files)
+				{
+					string extension = Path.GetExtension(file).ToLowerInvariant();
+
+					foreach (string pattern in patternList)
+					{
+						string cleanPattern = pattern.Trim().ToLowerInvariant();
+
+						// Handle wildcard patterns
+						if (cleanPattern.Contains("*"))
+						{
+							if (IsWildcardMatch(Path.GetFileName(file).ToLowerInvariant(), cleanPattern))
+							{
+								matchCount++;
+								break; // Count each file only once
+							}
+						}
+						// Handle extension matching
+						else if (cleanPattern.StartsWith(".") && extension.Equals(cleanPattern, StringComparison.OrdinalIgnoreCase))
+						{
+							matchCount++;
+							break; // Count each file only once
+						}
+					}
+				}
+
+				// Calculate match ratio
+				double matchRatio = (double)matchCount / files.Length;
+
+				// For exact match, all files must match
+				if (exactMatch)
+					return matchRatio >= 0.99;
+
+				// For partial match, compare against threshold
+				return matchRatio >= threshold;
+			}
+			catch (Exception ex)
+			{
+				Debug.Print($"Error matching file patterns: {ex.Message}");
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// Check if a filename matches a wildcard pattern
+		/// </summary>
+		private bool IsWildcardMatch(string filename, string pattern)
+		{
+			// Convert wildcard pattern to regex
+			string regexPattern = "^" + Regex.Escape(pattern)
+				.Replace("\\*", ".*")
+				.Replace("\\?", ".") + "$";
+
+			return Regex.IsMatch(filename, regexPattern, RegexOptions.IgnoreCase);
+		}
+
+		/// <summary>
+		/// Apply column configuration to a ListView based on view mode
+		/// </summary>
+		private void ApplyColumnConfiguration(ListView listView, string viewModeName)
+		{
+			if (!colDefDict.ContainsKey(viewModeName))
+			{
+				Debug.Print($"View mode '{viewModeName}' not found in column definitions");
+				return;
+			}
+
+			try
+			{
+				// Get column definitions for the view mode
+				var columns = colDefDict[viewModeName];
+
+				// Begin updating the ListView
+				listView.BeginUpdate();
+
+				// Clear existing columns
+				listView.Columns.Clear();
+
+				// Add columns based on definitions
+				foreach (var colDef in columns)
+				{
+					// Create column with header and width
+					ColumnHeader column = new ColumnHeader
+					{
+						Text = colDef.header,
+						Width = colDef.width
+					};
+
+					// Set alignment based on content
+					if (colDef.content.Contains("->]") || colDef.content.Contains("=tc.大小"))
+						column.TextAlign = HorizontalAlignment.Right;
+					else
+						column.TextAlign = HorizontalAlignment.Left;
+
+					// Add column to ListView
+					listView.Columns.Add(column);
+				}
+
+				// Finish updating
+				listView.EndUpdate();
+			}
+			catch (Exception ex)
+			{
+				Debug.Print($"Error applying column configuration: {ex.Message}");
+			}
+		}
+
+		/// <summary>
+		/// Get the current view mode for a panel
+		/// </summary>
+		public string GetCurrentViewMode(bool isLeftPanel)
+		{
+			return isLeftPanel ? currentLeftViewMode : currentRightViewMode;
+		}
+
 		public void ParseViewSwitchRule()
 		{
 			var section = form.configLoader.GetConfigSection("ViewModeSwitch");
@@ -155,12 +449,13 @@ namespace zfile
 		}
 		private List<ColDef> parseColDef(string headers, string widths, string contents)
 		{
-			var result = new List<ColDef> ();
-			var h = ("文件名\n扩展名\n"+headers).Replace("\\n","\n").Split('\n');
+			var result = new List<ColDef>();
+			var h = ("文件名\n扩展名\n" + headers).Replace("\\n", "\n").Split('\n');
 			var w = widths.Split(',').Select(int.Parse).ToArray();
-			var c = ("文件名\n扩展名\n" + contents).Replace("\\n","\n").Split('\n');
-;
-			for (int i = 0; i < w.Count(); i++) {
+			var c = ("文件名\n扩展名\n" + contents).Replace("\\n", "\n").Split('\n');
+			;
+			for (int i = 0; i < w.Count(); i++)
+			{
 				result.Add(new ColDef
 				{
 					header = h[i],
@@ -170,5 +465,5 @@ namespace zfile
 			}
 			return result;
 		}
-	} 
+	}
 }

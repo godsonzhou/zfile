@@ -4061,5 +4061,10 @@ namespace zfile
 		}
 		[DllImport("kernel32.dll", EntryPoint = "SetProcessWorkingSetSize")]
 		public static extern int SetProcessWorkingSetSize(IntPtr process, int minSize, int maxSize);
+
+		internal void cm_switchviewmode()
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

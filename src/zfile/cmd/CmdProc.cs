@@ -159,7 +159,9 @@ namespace zfile
 					case 302:   //cm_srclong
 						owner.SetViewMode(View.Details);
 						break;
-
+					case 303:   //cm_switchviewmode
+						owner.cm_switchviewmode();
+						break;
 					case 321: // cm_srcbyname
 						do_cm_srcbyname();
 						break;

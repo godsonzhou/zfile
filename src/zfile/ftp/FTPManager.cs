@@ -144,40 +144,24 @@ namespace zfile
 			}
 		}
 
-		/// <summary>
-		/// 处理FTP列表项双击事件
-		/// </summary>
-		public void HandleFtpListItemDoubleClick(string connectionName, ListViewItem item, ListView listView)
+		public void NavigateToPath(string connectionName, string newpath, ListView listView, bool recordHistory = true)
 		{
-			bool isDirectory = item.SubItems[MainForm.LVCOL_TYPE].Text == "<DIR>";
-			string path = (item.Tag as LvItemTag)?.File?.FullPath ?? "";    //SubItems[1].Text;
-			FtpFileEntry ftpfile = new FtpFileEntry(path);	//convert '\\'  of path to '/'  by using ftpfileentry
-			if (isDirectory)
-				NavigateToPath(connectionName, ftpfile.Path, listView);
-			else
-			{
-				// 如果是文件，查看文件
-				if (_ftpSources.TryGetValue(connectionName, out FtpFileSource? source))
-					ViewFtpFile(source, path);
-			}
-		}
-
-		public void NavigateToPath(string connectionName, string path, ListView listView, bool recordHistory = true)
-		{
-			var oldpath = form.CurrentFullpath[listView.Name];	//save old path before path update
+			//var oldfullpath = form.CurrentFullpath[listView.Name];	//save old path before path update
 			// 如果是目录，进入该目录
-			LoadFtpDirectory(connectionName, path, listView);	//update currentfullpath here
+			LoadFtpDirectory(connectionName, newpath, listView);	//update currentfullpath here
 
 			// 更新当前FTP节点的路径
 			if (_ftpNodes.TryGetValue(connectionName, out TreeNode? node) && node.Tag is FtpNodeTag tag)
 			{
+				//var ftpfs = GetFtpFileSourceByConnectionName(connectionName);
 				if (recordHistory)
-					form.RecordDirectoryHistory(path, oldpath);
-				tag.Path = path;
+					form.RecordDirectoryHistory($"{newpath}", tag.Path);//bugfix: path is relative, and oldpath is fulllpath, 应该统一为完整路径
+				
+				tag.Path = newpath;
 
 				// 更新活动书签
 				bool isLeft = listView.Name == "L";
-				form.uiManager.BookmarkManager.UpdateActiveBookmark($"ftp://{connectionName}{path}", node, isLeft);
+				form.uiManager.BookmarkManager.UpdateActiveBookmark($"ftp://{connectionName}{newpath}", node, isLeft);
 			}
 		}
 		/// <summary>

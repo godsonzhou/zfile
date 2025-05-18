@@ -353,7 +353,10 @@ namespace zfile
 		// 导航到指定路径
 		public void NavigateToPath(string path, bool recordHistory = true, TreeSearchScope scope = TreeSearchScope.thispc, bool isactive = true)
 		{
-			path = Helper.IncludeTrailingPathDelimiter(path);
+			var searchftp = path.StartsWith("ftp://");
+				
+			//ftp filesystem filesource uniprocess here
+			path = Helper.IncludeTrailingPathDelimiter(path, searchftp ? '/' : '\\');
 			if (path.Equals(CurrentFullpath[LRflag]))
 				return;
 			Debug.Print($"Navigate to path : {path}");
@@ -369,7 +372,9 @@ namespace zfile
 			//如果路径不存在，可能是虚拟节点，扩展搜索范围到桌面，
 			if (path.StartsWith("\\\\"))
 				scope = TreeSearchScope.desktop;
-		
+			else if (searchftp)
+				scope = TreeSearchScope.ftproot;
+
 			var searchtarget = scope switch
 			{
 				TreeSearchScope.thispc => isactive ? activeThispc.Nodes : unactiveThispc.Nodes,
@@ -378,7 +383,7 @@ namespace zfile
 				TreeSearchScope.ftproot => isactive ? activeFtpRoot.Nodes : unactiveFtpRoot.Nodes
 			};
 
-			var node = FindTreeNode(searchtarget, Helper.ExcludeTrailingPathDelimiter(path));
+			var node = FindTreeNode(searchtarget, Helper.ExcludeTrailingPathDelimiter(path), searchftp);   //search normal
 			if (node != null)
 			{
 				if (isactive)
@@ -1621,6 +1626,17 @@ namespace zfile
 			if (listView.SelectedItems.Count == 0) return;
 
 			ListViewItem selectedItem = listView.SelectedItems[0];
+			var oldpath = CurrentFullpath[LRflag];
+			var file = (selectedItem.Tag as LvItemTag)?.File;
+			var path = file?.FullPath;
+			var fileSource = CurrentFullpath.GetFileSource(LRflag);
+			if (selectedItem.SubItems[0].Text.Equals(".."))
+			{
+				cmdProcessor.cm_gotoparent();
+				return;
+			}
+			if (selectedItem.SubItems[0].Text.Equals("."))
+				return;
 
 			// 检查是否是FTP路径
 			if (CurrentFullpath[LRflag].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
@@ -1630,22 +1646,20 @@ namespace zfile
 				if (!string.IsNullOrEmpty(connectionName))
 				{
 					// 处理FTP列表项双击事件
-					fTPMGR.HandleFtpListItemDoubleClick(connectionName, selectedItem, listView);
+					//fTPMGR.HandleFtpListItemDoubleClick(connectionName, selectedItem, listView);
+					FtpFileEntry ftpfile = new FtpFileEntry(path);  //convert '\\'  of path to '/'  by using ftpfileentry
+					if (file.IsDirectory)
+						fTPMGR.NavigateToPath(connectionName, ftpfile.Path, listView);
+					else
+					{
+						// 如果是文件，查看文件
+						//if (fTPMGR._ftpSources.TryGetValue(connectionName, out FtpFileSource? source))
+							fTPMGR.ViewFtpFile((FtpFileSource)fileSource, path);
+					}
 					return;
 				}
 			}
 
-			if (selectedItem.SubItems[0].Text.Equals(".."))
-			{
-				cmdProcessor.cm_gotoparent();
-				return;
-			}
-			else if (selectedItem.SubItems[0].Text.Equals("."))
-				return;
-
-			var oldpath = CurrentFullpath[LRflag];
-			var path = (selectedItem.Tag as LvItemTag)?.File?.FullPath;
-			var fileSource = CurrentFullpath.GetFileSource(LRflag);
 			var isarchive = false;
 			var isinarchive = false;
 			if ((fileSource is WcxArchiveFileSource))
@@ -1762,17 +1776,33 @@ namespace zfile
 			}
 			return null;
 		}
-		public TreeNode? FindTreeNode(TreeNodeCollection nodes, string path)
+		public TreeNode? FindTreeNode(TreeNodeCollection nodes, string path, bool searchftp = false)
 		{
-			var deepSearch = path.Contains("\\");
+			var deepSearch = path.Contains('\\');
 			if (!deepSearch)
 			{
-				foreach (TreeNode node in nodes)
+				if (searchftp) 
+				{ 
+					foreach(TreeNode node in nodes)
+					{
+						if(node.Tag is FtpNodeTag tag)
+						{
+							var ftpsrc = fTPMGR.GetFtpFileSourceByConnectionName(tag.ConnectionName);
+							if (path.Equals($"ftp://{ftpsrc?.Host}{tag.Path}"))
+								return node;
+						}
+					}
+				}
+				else
 				{
-					//node.fullpath=桌面\此电脑\system (C:)\aDrive, path=c:\\
-					if (path.Equals(node.Text, StringComparison.OrdinalIgnoreCase)) return node;
-					//	var p = w32.GetPathByIShell(pf, pidl);      ////子节点path -> 此电脑\\迅雷下载, c:\\
-					//var n = w32.GetNameByIShell(pf, pidl);    //子节点name -> 迅雷下载, system (c:)
+					//normal search
+					foreach (TreeNode node in nodes)
+					{
+						//node.fullpath=桌面\此电脑\system (C:)\aDrive, path=c:\\
+						if (path.Equals(node.Text, StringComparison.OrdinalIgnoreCase)) return node;
+						//	var p = w32.GetPathByIShell(pf, pidl);      ////子节点path -> 此电脑\\迅雷下载, c:\\
+						//var n = w32.GetNameByIShell(pf, pidl);    //子节点name -> 迅雷下载, system (c:)
+					}
 				}
 			}
 			else
@@ -2232,19 +2262,13 @@ namespace zfile
 		public void RecordDirectoryHistory(string newPath, string oldpath)
 		{
 			if (string.IsNullOrEmpty(oldpath) || oldpath.Equals(newPath)) return;
-
-			if (IsActiveFtpPanel(out var ftpnode))
-			{
-				backStack.Push(oldpath);
-				forwardStack.Clear();
-				ftpnode.Path = newPath;
-			}
-			else
-			{
-				backStack.Push(oldpath); //同一个filesource下，压入currentpath，不同filesource下，压入老filesource.currentpath
-				Debug.Print($"backstack.push: {oldpath}");
-				forwardStack.Clear(); // 清除前进历史
-			}
+			//if (IsActiveFtpPanel(out var ftpnode))
+			//	backStack.Push(oldpath);
+			//else
+			backStack.Push(oldpath); //同一个filesource下，压入currentpath，不同filesource下，压入老filesource.currentpath
+			
+			Debug.Print($"backstack.push: {oldpath}");
+			forwardStack.Clear(); // 清除前进历史
 		}
 		private string? SetIconForListViewItem(ListViewItem lvItem, ListView listView, string subkey)
 		{

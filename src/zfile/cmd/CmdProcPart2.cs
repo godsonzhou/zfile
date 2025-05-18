@@ -598,13 +598,13 @@ namespace zfile
 		{
 			if (owner.backStack.Count > 0)
 			{
-				if (owner.IsActiveFtpPanel(out var ftpnode))
-				{
-					owner.forwardStack.Push(ftpnode.Path);
-					string previousPath = owner.backStack.Pop();
-					owner.fTPMGR.NavigateToPath(ftpnode.ConnectionName, previousPath, owner.activeListView, false);
-				}
-				else
+				//if (owner.IsActiveFtpPanel(out var ftpnode))
+				//{
+				//	owner.forwardStack.Push(ftpnode.Path);
+				//	string previousPath = owner.backStack.Pop();
+				//	owner.fTPMGR.NavigateToPath(ftpnode.ConnectionName, previousPath, owner.activeListView, false);
+				//}
+				//else
 				{
 					// 将当前目录存入前进栈
 					owner.forwardStack.Push(owner.CurrentFullpath[owner.LRflag]);
@@ -620,13 +620,13 @@ namespace zfile
 		{
 			if (owner.forwardStack.Count > 0)
 			{
-				if (owner.IsActiveFtpPanel(out var ftpnode))
-				{
-					owner.backStack.Push(ftpnode.Path);
-					string nextpath = owner.forwardStack.Pop();
-					owner.fTPMGR.NavigateToPath(ftpnode.ConnectionName, nextpath, owner.activeListView, false);
-				}
-				else
+				//if (owner.IsActiveFtpPanel(out var ftpnode))
+				//{
+				//	owner.backStack.Push(ftpnode.Path);
+				//	string nextpath = owner.forwardStack.Pop();
+				//	owner.fTPMGR.NavigateToPath(ftpnode.ConnectionName, nextpath, owner.activeListView, false);
+				//}
+				//else
 				{
 					// 将当前目录存入后退栈
 					owner.backStack.Push(owner.CurrentFullpath[owner.LRflag]);
@@ -640,16 +640,16 @@ namespace zfile
 
 		public void cm_gotoparent()
 		{
-			if (owner.IsActiveFtpPanel(out var ftpnode))
-			{
-				var currentpath = Path.GetDirectoryName(ftpnode?.Path);
-				string? parentPath = currentpath?.Replace('\\', '/');
-				// 记录当前目录到历史
-				//owner.RecordDirectoryHistory(parentPath);
-				// 导航到父目录
-				owner.fTPMGR.NavigateToPath(ftpnode.ConnectionName, parentPath ?? string.Empty, owner.activeListView);
-			}
-			else if (owner.CurrentFullpath.GetFileSource(owner.LRflag) is WcxArchiveFileSource wcxfs)
+			//if (owner.IsActiveFtpPanel(out var ftpnode))
+			//{
+			//	var currentpath = Path.GetDirectoryName(Helper.ExcludeTrailingPathDelimiter(ftpnode?.Path, '/'));
+			//	string? parentPath = currentpath?.Replace('\\', '/');
+			//	// 记录当前目录到历史
+			//	//owner.RecordDirectoryHistory(parentPath);
+			//	// 导航到父目录
+			//	owner.fTPMGR.NavigateToPath(ftpnode.ConnectionName, parentPath ?? string.Empty, owner.activeListView);
+			//}
+			if (owner.CurrentFullpath.GetFileSource(owner.LRflag) is WcxArchiveFileSource wcxfs)
 			{
 				string? parentpath;
 				if (!string.IsNullOrEmpty(Helper.ExcludeTrailingPathDelimiter(wcxfs.CurrentPath)))//IsPathAtRoot(wcxfs.CurrentFullPath)) //CurrentPath.Equals("\\")

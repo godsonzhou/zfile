@@ -136,7 +136,7 @@ namespace zfile
 		public override string CurrentFullPath
 		{
 			get => $"ftp://{Host}{CurrentPath}"; 
-			set => CurrentPath = Helper.IncludeTrailingPathDelimiter(value.Replace($"ftp://{Host}", string.Empty, StringComparison.OrdinalIgnoreCase), '/'); 
+			set => CurrentPath = Helper.IncludeTrailingPathDelimiter(GetRelativePath(value), '/'); 
 		}
 		public override void Initialize()
 		{
@@ -330,7 +330,7 @@ namespace zfile
 		{
 			return new FtpListOperation(this, GetRelativePath(path));
 		}
-		private string GetRelativePath(string targetPath)
+		public string GetRelativePath(string targetPath)
 		{
 			return (targetPath.StartsWith("ftp://")) ? targetPath.Replace($"ftp://{_ftpHost}", string.Empty) : targetPath;
 		}
@@ -489,6 +489,10 @@ namespace zfile
 				".exe" => "executable",
 				_ => "file"
 			};
+		}
+		public override string GetRootDir()
+		{
+			return $"ftp://{Host}/";
 		}
 	}
 }

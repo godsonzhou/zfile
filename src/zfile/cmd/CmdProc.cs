@@ -159,7 +159,7 @@ namespace zfile
 					case 302:   //cm_srclong
 						owner.SetViewMode(View.Details);
 						break;
-					case 303:   //cm_switchviewmode
+					case 303:   //cm_switchviewmode//todo: 先用个303暂时，等确定了具体编号再改
 						owner.cm_switchviewmode();
 						break;
 					case 321: // cm_srcbyname

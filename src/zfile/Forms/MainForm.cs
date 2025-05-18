@@ -3,6 +3,7 @@ using Sheng.Winform.Controls;
 using System.Collections;
 using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -2502,39 +2503,92 @@ namespace zfile
 		{
 			try
 			{
-				string[] itemData;
-				if (file.IsDirectory)
+				int viewid = 0;
+				if (!viewname.Equals("默认"))
 				{
-					// 目录项
-					string attrStr = GetFileAttributesString(file.Attributes);
-
-					itemData = [
-						file.Name,
-						showFolderSize && EverythingWrapper.IsEverythingServiceRunning() ? FileSystemManager.FormatFileSize(file.Size, true) : "",
-						"<DIR>",
-						file.ModificationTime.ToString("yyyy-MM-dd HH:mm"),
-						attrStr
-					];
+					viewid = int.Parse(viewname);
 				}
+
+				if (viewid <= 5) {
+					// 如果默认视图也不存在，使用硬编码的默认列
+					string attrStr = GetFileAttributesString(file.Attributes);
+					string[] defaultData;
+
+					if (file.IsDirectory)
+					{
+						defaultData = [
+							file.Name,
+							showFolderSize && EverythingWrapper.IsEverythingServiceRunning() ? FileSystemManager.FormatFileSize(file.Size, true) : "",
+							"<DIR>",
+							file.ModificationTime.ToString("yyyy-MM-dd HH:mm"),
+							attrStr
+						];
+					}
+					else
+					{
+						string extension = Path.GetExtension(file.Name).ToUpperInvariant();
+						defaultData = [
+							file.Name,
+							FileSystemManager.FormatFileSize(file.Size, true),
+							extension,
+							file.ModificationTime.ToString("yyyy-MM-dd HH:mm"),
+							attrStr
+						];
+					}
+
+					var defaultItem = new ListViewItem(defaultData);
+					defaultItem.Tag = new LvItemTag(file, node);
+					return defaultItem;
+				} 
 				else
 				{
-					// 文件项
-					string attrStr = GetFileAttributesString(file.Attributes);
-					string extension = Path.GetExtension(file.Name).ToUpperInvariant();
+					// 获取当前视图模式的列定义
+					var colDefs = viewMgr.colDefDict.Values.ToArray()[viewid - 6];
+						
+					// 根据列定义创建数据数组
+					string[] itemData = new string[colDefs.Count];
 
-					itemData = new[]
+					// 填充数据
+					for (int i = 0; i < colDefs.Count; i++)
 					{
-						file.Name,
-						FileSystemManager.FormatFileSize(file.Size, true),
-						extension,
-						file.ModificationTime.ToString("yyyy-MM-dd HH:mm"),
-						attrStr
-					};
-				}
+						var colDef = colDefs[i];
+						string content = colDef.content.Trim();
 
-				var ret = new ListViewItem(itemData);
-				ret.Tag = new LvItemTag(file, node);
-				return ret;
+						// 根据列内容定义获取对应的数据
+						if (content.Equals("文件名", StringComparison.OrdinalIgnoreCase))
+						{
+							itemData[i] = file.Name;
+						}
+						else if (content.Equals("扩展名", StringComparison.OrdinalIgnoreCase))
+						{
+							itemData[i] = file.IsDirectory ? "<DIR>" : Path.GetExtension(file.Name).ToUpperInvariant();
+						}
+						else if (content.Contains("大小", StringComparison.OrdinalIgnoreCase))
+						{
+							if (file.IsDirectory)
+								itemData[i] = showFolderSize && EverythingWrapper.IsEverythingServiceRunning() ? FileSystemManager.FormatFileSize(file.Size, true) : "";
+							else
+								itemData[i] = FileSystemManager.FormatFileSize(file.Size, true);
+						}
+						else if (content.Contains("日期", StringComparison.OrdinalIgnoreCase) || content.Contains("时间", StringComparison.OrdinalIgnoreCase))
+						{
+							itemData[i] = file.ModificationTime.ToString("yyyy-MM-dd HH:mm");
+						}
+						else if (content.Contains("属性", StringComparison.OrdinalIgnoreCase))
+						{
+							itemData[i] = GetFileAttributesString(file.Attributes);
+						}
+						else
+						{
+							// 默认为空字符串
+							itemData[i] = "";
+						}
+					}
+
+					var ret = new ListViewItem(itemData);
+					ret.Tag = new LvItemTag(file, node);
+					return ret;
+				}
 			}
 			catch (Exception ex)
 			{
@@ -3096,6 +3150,177 @@ namespace zfile
 			activeListView.View = viewMode;
 			if (needupdate)
 				RefreshActivePanel();//update imagekey
+		}
+
+		/// <summary>
+		/// 切换视图模式 - 实现cm_switchviewmode命令
+		/// </summary>
+		public void cm_switchviewmode()
+		{
+			// 创建视图模式选择对话框
+			using var form = new Form
+			{
+				Text = "选择视图模式",
+				Size = new Size(400, 500),
+				StartPosition = FormStartPosition.CenterParent,
+				FormBorderStyle = FormBorderStyle.FixedDialog,
+				MaximizeBox = false,
+				MinimizeBox = false
+			};
+
+			// 创建TabControl用于分类显示不同类型的视图
+			var tabControl = new TabControl
+			{
+				Dock = DockStyle.Fill,
+				Padding = new Point(10, 10)
+			};
+
+			// 系统视图选项卡
+			var systemTab = new TabPage("系统视图");
+			var systemListView = new ListView
+			{
+				Dock = DockStyle.Fill,
+				View = View.Details,
+				FullRowSelect = true,
+				HideSelection = false
+			};
+			systemListView.Columns.Add("视图名称", 150);
+			systemListView.Columns.Add("描述", 200);
+
+			// 添加系统视图选项
+			var systemViews = new[]
+			{
+				new { Name = "详细信息", View = View.Details, Description = "显示文件的详细信息（名称、大小、类型等）" },
+				new { Name = "列表", View = View.List, Description = "以简单列表形式显示文件" },
+				new { Name = "平铺", View = View.Tile, Description = "以平铺方式显示文件图标和信息" },
+				new { Name = "大图标", View = View.LargeIcon, Description = "显示大图标" },
+				new { Name = "小图标", View = View.SmallIcon, Description = "显示小图标" }
+			};
+
+			foreach (var view in systemViews)
+			{
+				var item = new ListViewItem(view.Name);
+				item.SubItems.Add(view.Description);
+				item.Tag = view.View;
+				systemListView.Items.Add(item);
+			}
+
+			// 自定义视图选项卡
+			var customTab = new TabPage("自定义视图");
+			var customListView = new ListView
+			{
+				Dock = DockStyle.Fill,
+				View = View.Details,
+				FullRowSelect = true,
+				HideSelection = false
+			};
+			customListView.Columns.Add("视图名称", 150);
+			customListView.Columns.Add("列配置", 200);
+
+			// 添加自定义视图选项
+			foreach (var viewMode in viewMgr.colDefDict)
+			{
+				var item = new ListViewItem(viewMode.Key);
+				item.SubItems.Add(viewMgr.GetColDef(viewMode.Key));
+				item.Tag = viewMode.Key;
+				customListView.Items.Add(item);
+			}
+
+			// 添加控件到选项卡
+			systemTab.Controls.Add(systemListView);
+			customTab.Controls.Add(customListView);
+
+			// 添加选项卡到TabControl
+			tabControl.TabPages.Add(systemTab);
+			tabControl.TabPages.Add(customTab);
+
+			// 添加按钮面板
+			var buttonPanel = new Panel
+			{
+				Dock = DockStyle.Bottom,
+				Height = 50
+			};
+
+			var okButton = new Button
+			{
+				Text = "确定",
+				DialogResult = DialogResult.OK,
+				Location = new Point(form.Width - 180, 15),
+				Width = 75
+			};
+
+			var cancelButton = new Button
+			{
+				Text = "取消",
+				DialogResult = DialogResult.Cancel,
+				Location = new Point(form.Width - 90, 15),
+				Width = 75
+			};
+
+			buttonPanel.Controls.Add(okButton);
+			buttonPanel.Controls.Add(cancelButton);
+
+			// 添加控件到表单
+			form.Controls.Add(tabControl);
+			form.Controls.Add(buttonPanel);
+			form.AcceptButton = okButton;
+			form.CancelButton = cancelButton;
+
+			// 显示对话框并处理结果
+			if (form.ShowDialog() == DialogResult.OK)
+			{
+				// 根据选择的选项卡应用不同的视图
+				if (tabControl.SelectedTab == systemTab && systemListView.SelectedItems.Count > 0 && systemListView.SelectedItems[0].Tag != null)
+				{
+					// 应用系统视图
+					if (systemListView.SelectedItems[0].Tag is View selectedView)
+					{
+						SetViewMode(selectedView);
+					}
+				}
+				else if (tabControl.SelectedTab == customTab && customListView.SelectedItems.Count > 0 && customListView.SelectedItems[0].Tag != null)
+				{
+					// 应用自定义视图
+					string? selectedViewName = customListView.SelectedItems[0].Tag as string;
+					if (selectedViewName == null) return;
+
+					// 设置为详细信息视图以显示列
+					activeListView.View = View.Details;
+
+					// 应用自定义视图配置
+					var path = CurrentFullpath[LRflag];
+					var fileSource = CurrentFullpath.GetFileSource(LRflag);
+
+					// 清除现有列并应用新视图
+					activeListView.BeginUpdate();
+					activeListView.Columns.Clear();
+
+					// 手动应用列配置
+					if (viewMgr.colDefDict.TryGetValue(selectedViewName, out var colDefs) && colDefs != null)
+					{
+						foreach (var colDef in colDefs)
+						{
+							var column = new ColumnHeader
+							{
+								Text = colDef.header,
+								Width = colDef.width
+							};
+
+							// 设置对齐方式
+							if (colDef.content.Contains("->]") || colDef.content.Contains("=tc.大小"))
+								column.TextAlign = HorizontalAlignment.Right;
+							else
+								column.TextAlign = HorizontalAlignment.Left;
+
+							activeListView.Columns.Add(column);
+						}
+					}
+
+					// 刷新列表视图以应用新的视图
+					RefreshActivePanel();
+					activeListView.EndUpdate();
+				}
+			}
 		}
 		public bool IsArchiveFile(string filePath)
 		{
@@ -4061,10 +4286,5 @@ namespace zfile
 		}
 		[DllImport("kernel32.dll", EntryPoint = "SetProcessWorkingSetSize")]
 		public static extern int SetProcessWorkingSetSize(IntPtr process, int minSize, int maxSize);
-
-		internal void cm_switchviewmode()
-		{
-			throw new NotImplementedException();
-		}
 	}
 }

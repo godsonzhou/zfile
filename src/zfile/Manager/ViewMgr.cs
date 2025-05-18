@@ -121,11 +121,13 @@ namespace zfile
 					break;
 				}
 			}
-
+	
 			// If the selected view mode doesn't exist in our definitions, fall back to default
-			if (!viewModes.Values.Any(vm => vm.Name == selectedViewMode))
-				selectedViewMode = defaultViewMode;
+			//if (!viewModes.Values.Any(vm => vm.Name == selectedViewMode))
+			//	selectedViewMode = defaultViewMode;
 
+			if (selectedViewMode != defaultViewMode)
+				return viewModes[selectedViewMode].Options.Split('|')[0]; //{[3, {ViewMode(name='图片', icon='', options='10|-1|0||32896|-1|-1|-1|-1')}]} //10-6=4 is 列视图编号
 			return selectedViewMode;
 		}
 
@@ -229,7 +231,7 @@ namespace zfile
 				if (!Directory.Exists(folderPath))
 					return false;
 
-				string[] patternList = patterns.Split(',');
+				string[] patternList = patterns.Split(' ');
 
 				// Get all files in the directory
 				string[] files = Directory.GetFiles(folderPath);
@@ -299,49 +301,74 @@ namespace zfile
 		/// </summary>
 		private void ApplyColumnConfiguration(ListView listView, string viewModeName)
 		{
-			if (!colDefDict.ContainsKey(viewModeName))
-			{
-				Debug.Print($"View mode '{viewModeName}' not found in column definitions");
+			if (viewModeName.Equals(defaultViewMode))
 				return;
-			}
-
-			try
+			var viewmodeid = int.Parse(viewModeName);
+			if (viewmodeid < 5) 
 			{
-				// Get column definitions for the view mode
-				var columns = colDefDict[viewModeName];
-
-				// Begin updating the ListView
-				listView.BeginUpdate();
-
-				// Clear existing columns
+				// Apply default view mode
+				listView.View = (View)viewmodeid;
 				listView.Columns.Clear();
-
-				// Add columns based on definitions
-				foreach (var colDef in columns)
+				listView.Columns.Add("文件名", 200);
+				listView.Columns.Add("扩展名", 100);
+				listView.Columns.Add("大小", 100);
+				listView.Columns.Add("修改时间", 150);
+				listView.Columns.Add("属性", 150);
+			}
+			else if (viewmodeid == 5)
+			{
+				//do nothing, 5 is seperator line
+			}
+			else 
+			{
+				// >= 6, apply custom view mode
+				viewmodeid -= 6;
+				viewModeName = (viewmodeid).ToString(); //
+				var coldefvalues = colDefDict.Values.ToArray();
+				if (viewmodeid >= coldefvalues.Length )
 				{
-					// Create column with header and width
-					ColumnHeader column = new ColumnHeader
-					{
-						Text = colDef.header,
-						Width = colDef.width
-					};
-
-					// Set alignment based on content
-					if (colDef.content.Contains("->]") || colDef.content.Contains("=tc.大小"))
-						column.TextAlign = HorizontalAlignment.Right;
-					else
-						column.TextAlign = HorizontalAlignment.Left;
-
-					// Add column to ListView
-					listView.Columns.Add(column);
+					Debug.Print($"View mode '{viewModeName}' not found in column definitions");
+					return;
 				}
 
-				// Finish updating
-				listView.EndUpdate();
-			}
-			catch (Exception ex)
-			{
-				Debug.Print($"Error applying column configuration: {ex.Message}");
+				try
+				{
+					// Get column definitions for the view mode
+					var columns = coldefvalues[viewmodeid];
+
+					// Begin updating the ListView
+					listView.BeginUpdate();
+
+					// Clear existing columns
+					listView.Columns.Clear();
+
+					// Add columns based on definitions
+					foreach (var colDef in columns)
+					{
+						// Create column with header and width
+						ColumnHeader column = new ColumnHeader
+						{
+							Text = colDef.header,
+							Width = colDef.width
+						};
+
+						// Set alignment based on content
+						if (colDef.content.Contains("->]") || colDef.content.Contains("=tc.大小"))
+							column.TextAlign = HorizontalAlignment.Right;
+						else
+							column.TextAlign = HorizontalAlignment.Left;
+
+						// Add column to ListView
+						listView.Columns.Add(column);
+					}
+
+					// Finish updating
+					listView.EndUpdate();
+				}
+				catch (Exception ex)
+				{
+					Debug.Print($"Error applying column configuration: {ex.Message}");
+				}
 			}
 		}
 

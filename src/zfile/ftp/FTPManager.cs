@@ -143,19 +143,21 @@ namespace zfile
 				listView.Refresh();
 			}
 		}
-
+		public void RecordDirectoryHistory(string newpath, string oldpath, string ftpprefix = "")
+		{
+			form.RecordDirectoryHistory(ftpprefix + newpath, ftpprefix + oldpath);
+		}
 		public void NavigateToPath(string connectionName, string newpath, ListView listView, bool recordHistory = true)
 		{
 			//var oldfullpath = form.CurrentFullpath[listView.Name];	//save old path before path update
-			// 如果是目录，进入该目录
-			LoadFtpDirectory(connectionName, newpath, listView);	//update currentfullpath here
-
 			// 更新当前FTP节点的路径
 			if (_ftpNodes.TryGetValue(connectionName, out TreeNode? node) && node.Tag is FtpNodeTag tag)
 			{
-				//var ftpfs = GetFtpFileSourceByConnectionName(connectionName);
+				// 如果是目录，进入该目录
+				var ftpfs = GetFtpFileSourceByConnectionName(connectionName);
+				LoadFtpDirectory(connectionName, newpath, listView);    //update currentfullpath here
 				if (recordHistory)
-					form.RecordDirectoryHistory($"{newpath}", tag.Path);//bugfix: path is relative, and oldpath is fulllpath, 应该统一为完整路径
+					RecordDirectoryHistory($"{newpath}", tag.Path, $"ftp://{ftpfs?.Host}");//bugfix: path is relative, and oldpath is fulllpath, 应该统一为完整路径
 				
 				tag.Path = newpath;
 

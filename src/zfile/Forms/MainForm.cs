@@ -354,9 +354,9 @@ namespace zfile
 		public void NavigateToPath(string path, bool recordHistory = true, TreeSearchScope scope = TreeSearchScope.thispc, bool isactive = true)
 		{
 			var searchftp = path.StartsWith("ftp://");
-				
+			var pathsep = searchftp ? '/' : '\\';
 			//ftp filesystem filesource uniprocess here
-			path = Helper.IncludeTrailingPathDelimiter(path, searchftp ? '/' : '\\');
+			path = Helper.IncludeTrailingPathDelimiter(path, pathsep);
 			if (path.Equals(CurrentFullpath[LRflag]))
 				return;
 			Debug.Print($"Navigate to path : {path}");
@@ -383,17 +383,19 @@ namespace zfile
 				TreeSearchScope.ftproot => isactive ? activeFtpRoot.Nodes : unactiveFtpRoot.Nodes
 			};
 
-			var node = FindTreeNode(searchtarget, Helper.ExcludeTrailingPathDelimiter(path), searchftp);   //search normal
+			var node = FindTreeNode(searchtarget, path, searchftp);  
 			if (node != null)
 			{
 				if (isactive)
 				{
 					if (recordHistory)
 						RecordDirectoryHistory(path, oldpath);    //传入老filesource以确保跨filesource时的正确地将老路径记录到历史中
-					//else
-					//	CurrentFullpath[LRflag] = path; // 直接更新当前目录，不记录历史//already ran in previous updatefilesourceandcurrentpath, do not needed do again
-
-					activeTreeview.SelectedNode = node;
+																  //else
+																  //	CurrentFullpath[LRflag] = path; // 直接更新当前目录，不记录历史//already ran in previous updatefilesourceandcurrentpath, do not needed do again
+					if (activeTreeview.SelectedNode != node)
+						activeTreeview.SelectedNode = node;     //trigger afterselect event
+					else if (searchftp)
+						fTPMGR.NavigateToPath((node.Tag as FtpNodeTag)?.ConnectionName ?? "", fs.CurrentPath, activeListView);
 					//RefreshPanel(activeListView);////////////////////////////////////////////whhen change selectedNode, the afterselect event will be executed and the refreshpanel operation also be run at that time, so here refreshpanel seem to be unnecessary.
 				}
 				else
@@ -1788,7 +1790,7 @@ namespace zfile
 						if(node.Tag is FtpNodeTag tag)
 						{
 							var ftpsrc = fTPMGR.GetFtpFileSourceByConnectionName(tag.ConnectionName);
-							if (path.Equals($"ftp://{ftpsrc?.Host}{tag.Path}"))
+							if (path.StartsWith($"ftp://{ftpsrc?.Host}"))
 								return node;
 						}
 					}

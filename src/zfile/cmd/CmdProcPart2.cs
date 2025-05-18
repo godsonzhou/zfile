@@ -637,36 +637,57 @@ namespace zfile
 				}
 			}
 		}
+		private string GetParentUri(string url)
+		{
+			//url = "ftp://abc.com/test/subdir/";
+			Uri uri = new Uri(url);
 
+			// 获取本地路径部分
+			string localPath = uri.LocalPath;
+
+			// 确保路径不以斜杠结尾（如果不是根目录）
+			//if (localPath.EndsWith("/") && localPath.Length > 1)
+			localPath = localPath.TrimEnd('/');
+
+			// 手动查找最后一个斜杠位置
+			int lastSlashIndex = localPath.LastIndexOf('/');
+			string parentPath = localPath.Substring(0, lastSlashIndex);
+
+			// 如果结果为空，说明是根目录
+			if (string.IsNullOrEmpty(parentPath))
+				parentPath = "/";
+
+			// 构建父级URL
+			string parentUrl = new UriBuilder(uri)
+			{
+				Path = parentPath,
+				Query = "",
+				Fragment = ""
+			}.Uri.ToString();
+			return parentUrl;
+		}
 		public void cm_gotoparent()
 		{
+			string? parentpath = null;
 			//if (owner.IsActiveFtpPanel(out var ftpnode))
+			if(owner.CurrentFullpath.GetFileSource(owner.LRflag) is FtpFileSource fs)
+			{
+				parentpath = GetParentUri(owner.CurrentFullpath[owner.LRflag]);
+				//parentpath = Helper.ExcludeTrailingPathDelimiter(owner.CurrentFullpath[owner.LRflag], '/');
+				//parentpath = parentpath.Replace("\\", "/");
+				//owner.fTPMGR.NavigateToPath(ftpnode.ConnectionName, parentPath ?? string.Empty, owner.activeListView);
+			}
+			//else if (owner.CurrentFullpath.GetFileSource(owner.LRflag) is WcxArchiveFileSource wcxfs)
 			//{
-			//	var currentpath = Path.GetDirectoryName(Helper.ExcludeTrailingPathDelimiter(ftpnode?.Path, '/'));
-			//	string? parentPath = currentpath?.Replace('\\', '/');
-			//	// 记录当前目录到历史
-			//	//owner.RecordDirectoryHistory(parentPath);
-			//	// 导航到父目录
-			//	owner.fTPMGR.NavigateToPath(ftpnode.ConnectionName, parentPath ?? string.Empty, owner.activeListView);
+			//	//if (!string.IsNullOrEmpty(Helper.ExcludeTrailingPathDelimiter(wcxfs.CurrentPath)))//IsPathAtRoot(wcxfs.CurrentFullPath)) //CurrentPath.Equals("\\")
+			//		//parentpath = wcxfs.ArchivePath + Path.GetDirectoryName(wcxfs.CurrentPath);
+			//	//else
+			//	parentpath = Path.GetDirectoryName(wcxfs.ArchivePath);
 			//}
-			if (owner.CurrentFullpath.GetFileSource(owner.LRflag) is WcxArchiveFileSource wcxfs)
-			{
-				string? parentpath;
-				if (!string.IsNullOrEmpty(Helper.ExcludeTrailingPathDelimiter(wcxfs.CurrentPath)))//IsPathAtRoot(wcxfs.CurrentFullPath)) //CurrentPath.Equals("\\")
-					parentpath = wcxfs.ArchivePath + Path.GetDirectoryName(wcxfs.CurrentPath);
-				else
-					parentpath = Path.GetDirectoryName(wcxfs.ArchivePath);
-				owner.NavigateToPath(parentpath);
-			}
 			else
-			{
-				string? parentPath = Path.GetDirectoryName(Helper.ExcludeTrailingPathDelimiter(owner.CurrentFullpath[owner.LRflag]));
-				if (!string.IsNullOrEmpty(parentPath))
-				{
-					// 导航到父目录
-					owner.NavigateToPath(parentPath);
-				}
-			}
+				parentpath = Path.GetDirectoryName(Helper.ExcludeTrailingPathDelimiter(owner.CurrentFullpath[owner.LRflag]));
+			if (!string.IsNullOrEmpty(parentpath))
+				owner.NavigateToPath(parentpath);
 		}
 
 		// 搜索文件

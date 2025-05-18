@@ -2755,7 +2755,7 @@ namespace zfile
 		{
 			cm_list();
 		}
-		private List<FileEntry> GetFileListByViewOrParam(string param, bool needftpdownload = true)
+		private List<FileEntry> GetFileListByViewOrParam(string param, bool isViaTemp = true)
 		{
 			if (!string.IsNullOrWhiteSpace(param))
 			{
@@ -2781,20 +2781,17 @@ namespace zfile
 			}
 
 			// 检查是否是FTP路径，并且是需要下载的操作（cm_edit或cm_list）
-			bool isFtpPath = CurrentFullpath[LRflag].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase);
-
-			if (isFtpPath && needftpdownload)
+			var filesource = CurrentFullpath.GetFileSource(LRflag);
+			if ((filesource is FtpFileSource || filesource is WcxArchiveFileSource) && isViaTemp)
 			{
 				// 从当前目录中提取连接名称
-				string connectionName = ExtractFtpConnectionName(CurrentFullpath[LRflag]);
-				if (!string.IsNullOrEmpty(connectionName) && fTPMGR.ftpSources.TryGetValue(connectionName, out FtpFileSource ftpSource))
+				//string connectionName = ExtractFtpConnectionName(CurrentFullpath[LRflag]);
+				//if (!string.IsNullOrEmpty(connectionName) && fTPMGR.ftpSources.TryGetValue(connectionName, out var ftpSource))
 				{
 					// 使用FtpCopyOutOperation下载文件到临时目录
-					var tempFiles = DownloadFtpFilesToTemp(ftpSource, originalFiles);
+					var tempFiles = DownloadFilesToTemp(filesource, originalFiles);
 					if (tempFiles.Count > 0)
-					{
 						return tempFiles;
-					}
 				}
 			}
 
@@ -2808,7 +2805,7 @@ namespace zfile
 		/// <param name="ftpSource">FTP文件源</param>
 		/// <param name="sourceFiles">源文件列表</param>
 		/// <returns>临时文件列表</returns>
-		private List<FileEntry> DownloadFtpFilesToTemp(FtpFileSource ftpSource, List<FileEntry> sourceFiles)
+		private List<FileEntry> DownloadFilesToTemp(IFileSource? ftpSource, List<FileEntry> sourceFiles)
 		{
 			try
 			{
@@ -2817,12 +2814,12 @@ namespace zfile
 				string tempPath = tempFileSource.FileSystemRoot;
 
 				// 创建文件条目列表
-				var fileEntries = FileSourceUtil.FileEntryListToFtpFileEntries(sourceFiles);
+				var fileEntries = FileSourceUtil.FileEntryListToFileEntries(sourceFiles, ftpSource is FtpFileSource);
 				if (fileEntries.Count == 0)
 					return [];
 
 				// 创建FTP复制出操作
-				var copyOutOperation = ftpSource.CreateCopyOutOperation(
+				var copyOutOperation = ftpSource?.CreateCopyOutOperation(
 					tempFileSource,
 					fileEntries,
 					tempPath);

@@ -7,15 +7,16 @@ namespace zfile
     /// </summary>
     public static class FileSourceUtil
     {
-		public static FileEntries FileEntryListToFtpFileEntries(List<FileEntry> sourceFiles)
+		public static FileEntries FileEntryListToFileEntries(List<FileEntry> sourceFiles, bool isFtpFilesource = true)
 		{
 			var fileEntries = new FileEntries();
 			foreach (var file in sourceFiles)
 			{
-				//if (!file.IsDirectory) // 只处理文件，不处理目录
+				FileEntry f;
+				if (isFtpFilesource) 
 				{
 					// 将FileEntry转换为FtpFileEntry
-					var ftpFile = new FtpFileEntry(file.Path, file.Name)
+					f = new FtpFileEntry(file.Path, file.Name)
 					{
 						// 复制原始文件的属性
 						Size = file.Size,
@@ -24,16 +25,19 @@ namespace zfile
 					};
 					// 如果有其他需要复制的属性，可以在这里添加
 					if (file.SupportedProperties.HasFlag(FilePropertiesTypes.CompressedSize))
-						ftpFile.CompressedSize = file.CompressedSize;
+						f.CompressedSize = file.CompressedSize;
 
 					if (file.SupportedProperties.HasFlag(FilePropertiesTypes.CreationTime))
-						ftpFile.CreationTime = file.CreationTime;
+						f.CreationTime = file.CreationTime;
 
 					if (file.SupportedProperties.HasFlag(FilePropertiesTypes.LastAccessTime))
-						ftpFile.LastAccessTime = file.LastAccessTime;
+						f.LastAccessTime = file.LastAccessTime;
 
-					fileEntries.Add(ftpFile);
 				}
+				else
+					f = file;
+				
+				fileEntries.Add(f);
 			}
 			return fileEntries;
 		}

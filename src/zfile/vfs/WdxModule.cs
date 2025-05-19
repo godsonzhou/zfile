@@ -157,7 +157,6 @@ namespace zfile
             _translations = new Dictionary<string, string>();
         }
 
-
         public bool LoadModule()
         {
             if (IsLoaded) return true;
@@ -171,7 +170,7 @@ namespace zfile
                 _contentGetSupportedField = GetFunction<ContentGetSupportedField>("ContentGetSupportedField");
                 _contentSetDefaultParams = GetFunction<ContentSetDefaultParams>("ContentSetDefaultParams");
 
-                if (_contentGetSupportedField == null || _contentSetDefaultParams == null)
+                if (_contentGetSupportedField == null) // || _contentSetDefaultParams == null)
                 {
                     UnloadModule();
                     return false;
@@ -237,17 +236,14 @@ namespace zfile
                     //     UnloadModule();
                     //     return false;
                     // }
-                    IntPtr pDps = Marshal.AllocHGlobal(Marshal.SizeOf<ContentDefaultParamStruct>());
-                    Marshal.StructureToPtr(defaultParams, pDps, false);
-
                     if (_contentSetDefaultParams != null)
                     {
-                        _contentSetDefaultParams(pDps);
-                    }
-
-                    Marshal.FreeHGlobal(pDps);
-                    //return true;
-                }
+						IntPtr pDps = Marshal.AllocHGlobal(Marshal.SizeOf<ContentDefaultParamStruct>());
+						Marshal.StructureToPtr(defaultParams, pDps, false);
+						_contentSetDefaultParams(pDps);
+						Marshal.FreeHGlobal(pDps);
+					}
+				}
                 catch (Exception ex)
                 {
                     UnloadModule();
@@ -537,45 +533,49 @@ namespace zfile
                     var part1 = parts[1].Trim();
                     var path = part1.Split(',')[^1];
                     path = path.Replace("%COMMANDER_PATH%", Constants.ZfileBinPath);
-                    if (File.Exists(path))
-                    {
-                        var name = Path.GetFileNameWithoutExtension(path);
-                        //try to find module in wcxmodulelist by name
-                        var module = FindModuleByName(name);
-                        if (module == null)
-                        {
-                            module = new WdxModule(name, path);
-                            if (module.LoadModule())
-                            {
-                                if (!module.DetectStrings.Contains(detectstring))
-                                {
-                                    module.DetectStrings.Add(detectstring);
-                                }
-                                if (AddModule(module))
-                                    _exts[parts[0].Trim()] = module;
-                                //}
-                                //WcxModule wcxModule = WcxPlugins.LoadModule(plugin);
-                                //if (wcxModule != null)
-                                //{
-                                //int flags = module.PluginCapabilities;
-                                //foreach (string ext in detectstring.Split(','))
-                                //{
-                                //	//var result = Add(ext, flags, path);
-                                //	//FileName[result] = name; // GetPluginFilenameToSave(plugin);
-                                //}
-                            }
-                        }
-                        else
-                        {
-                            if (!module.DetectStrings.Contains(detectstring))
-                            {
-                                module.DetectStrings.Add(detectstring);
-                                _exts[parts[0].Trim()] = module;
-                                //var result = Add(detectstring, module.PluginCapabilities, path);
-                                //FileName[result] = name;
-                            }
-                        }
-                    }
+					if (File.Exists(path))
+					{
+						var name = Path.GetFileNameWithoutExtension(path);
+						//try to find module in wcxmodulelist by name
+						var module = FindModuleByName(name);
+						if (module == null)
+						{
+							module = new WdxModule(name, path);
+							if (module.LoadModule())
+							{
+								if (!module.DetectStrings.Contains(detectstring))
+								{
+									module.DetectStrings.Add(detectstring);
+								}
+								if (AddModule(module))
+									_exts[parts[0].Trim()] = module;
+								//}
+								//WcxModule wcxModule = WcxPlugins.LoadModule(plugin);
+								//if (wcxModule != null)
+								//{
+								//int flags = module.PluginCapabilities;
+								//foreach (string ext in detectstring.Split(','))
+								//{
+								//	//var result = Add(ext, flags, path);
+								//	//FileName[result] = name; // GetPluginFilenameToSave(plugin);
+								//}
+							}
+							else
+								Debug.Print($"LOAD MODULE : {path} FAILED");
+						}
+						else
+						{
+							if (!module.DetectStrings.Contains(detectstring))
+							{
+								module.DetectStrings.Add(detectstring);
+								_exts[parts[0].Trim()] = module;
+								//var result = Add(detectstring, module.PluginCapabilities, path);
+								//FileName[result] = name;
+							}
+						}
+					}
+					else
+						Debug.Print($"FILE NOT FOUND : {path}");
                 }
             }
             //先按照配置读取插件（优先级高），然后按照目录读取插件

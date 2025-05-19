@@ -397,7 +397,7 @@ namespace zfile
         /// <summary>
         /// 本地方法调用
         /// </summary>
-        protected static class NativeMethods
+        public static class NativeMethods
         {
             [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
             public static extern IntPtr LoadLibrary(string lpFileName);

@@ -2584,55 +2584,80 @@ namespace zfile
 							LVCOL_ATTR = i;
 							itemData[i] = GetFileAttributesString(file.Attributes);
 						}
-						else if (content.StartsWith("[=") && content.EndsWith("]"))
+						else if (content.Contains("[=") && content.Contains("]"))
 						{
-							// 处理WDX插件内容格式: [=插件名称.WDXFIELD]
-							string wdxContent = content.Substring(2, content.Length - 3); // 去掉 [= 和 ]
-							string[] parts = wdxContent.Split('.');
+							// 处理复杂格式的内容，如 [=shelldetails.width] x [=shelldetails.height]
+							string result = content;
+							int startIndex = 0;
 
-							if (parts.Length == 2)
+							while (true)
 							{
-								string pluginName = parts[0];
-								string fieldName = parts[1];
+								// 查找下一个 [= 开始的位置
+								int tagStart = result.IndexOf("[=", startIndex);
+								if (tagStart == -1) break;
 
-								// 查找对应的WDX插件
-								var wdxModule = WdxPlugins.ModuleList.FindModuleByName(pluginName);
-								if (wdxModule != null)
+								// 查找对应的 ] 结束位置
+								int tagEnd = result.IndexOf("]", tagStart);
+								if (tagEnd == -1) break;
+
+								// 提取 [=xxx] 标签内容
+								string tag = result.Substring(tagStart, tagEnd - tagStart + 1);
+								string wdxContent = tag.Substring(2, tag.Length - 3); // 去掉 [= 和 ]
+								string[] parts = wdxContent.Split('.');
+
+								string replacement = "";
+								if (parts.Length == 2)
 								{
-									// 查找字段索引
-									int fieldIndex = -1;
-									for (int j = 0; j < wdxModule.Fields.Count; j++)
-									{
-										if (wdxModule.Fields[j].Name.Equals(fieldName, StringComparison.OrdinalIgnoreCase))
-										{
-											fieldIndex = j;
-											break;
-										}
-									}
+									string pluginName = parts[0];
+									string fieldName = parts[1];
 
-									if (fieldIndex >= 0)
+									// 查找对应的WDX插件
+									var wdxModule = WdxPlugins.ModuleList.FindModuleByName(pluginName);
+									if (wdxModule != null)
 									{
-										// 获取字段值
-										string fieldValue = wdxModule.GetValue(file.FullPath, fieldIndex);
-										itemData[i] = fieldValue;
+										// 查找字段索引
+										int fieldIndex = -1;
+										for (int j = 0; j < wdxModule.Fields.Count; j++)
+										{
+											if (wdxModule.Fields[j].Name.Equals(fieldName, StringComparison.OrdinalIgnoreCase))
+											{
+												fieldIndex = j;
+												break;
+											}
+										}
+
+										if (fieldIndex >= 0)
+										{
+											// 获取字段值
+											replacement = wdxModule.GetValue(file.FullPath, fieldIndex);
+										}
+										else
+										{
+											Debug.Print($"WDX字段未找到: {fieldName} 在插件 {pluginName} 中");
+										}
 									}
 									else
 									{
-										itemData[i] = "";
-										Debug.Print($"WDX字段未找到: {fieldName} 在插件 {pluginName} 中");
+										Debug.Print($"WDX插件未找到: {pluginName}");
 									}
 								}
 								else
 								{
-									itemData[i] = "";
-									Debug.Print($"WDX插件未找到: {pluginName}");
+									Debug.Print($"WDX格式错误: {tag}，应为 [=插件名称.字段名]");
 								}
+
+								// 替换标签为实际值
+								result = result.Remove(tagStart, tagEnd - tagStart + 1).Insert(tagStart, replacement);
+
+								// 更新下一次搜索的起始位置
+								startIndex = tagStart + replacement.Length;
+
+								// 如果起始位置已经超出字符串长度，退出循环
+								if (startIndex >= result.Length)
+									break;
 							}
-							else
-							{
-								itemData[i] = "";
-								Debug.Print($"WDX格式错误: {content}，应为 [=插件名称.字段名]");
-							}
+
+							itemData[i] = result;
 						}
 						else
 						{

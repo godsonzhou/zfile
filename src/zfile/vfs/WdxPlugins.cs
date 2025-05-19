@@ -10,7 +10,12 @@ namespace zfile
     /// </summary>
     public static class WdxPlugins
     {
-        private static WdxModuleList _moduleList = new WdxModuleList(Path.Combine(Constants.ZfileCfgPath, "wdx.xml"));
+        internal static WdxModuleList _moduleList = new WdxModuleList(Path.Combine(Constants.ZfileCfgPath, "wdx.xml"));
+
+        /// <summary>
+        /// Gets the WDX module list
+        /// </summary>
+        public static WdxModuleList ModuleList => _moduleList;
 
         /// <summary>
         /// Gets the number of registered WDX plugins

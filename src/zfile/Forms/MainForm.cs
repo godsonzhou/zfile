@@ -494,7 +494,7 @@ namespace zfile
 				uiManager.RightStatusStrip
 			);
 			// 初始化插件模块
-			WdxModuleList wdxModuleList = new WdxModuleList("");
+			// WdxModuleList is already initialized in WdxPlugins static constructor
 			WfxModuleList wfxModuleList = new WfxModuleList("");
 			wcxModuleList = new WcxModuleList();
 			wcxModuleList.LoadConfiguration();
@@ -2583,6 +2583,56 @@ namespace zfile
 						{
 							LVCOL_ATTR = i;
 							itemData[i] = GetFileAttributesString(file.Attributes);
+						}
+						else if (content.StartsWith("[=") && content.EndsWith("]"))
+						{
+							// 处理WDX插件内容格式: [=插件名称.WDXFIELD]
+							string wdxContent = content.Substring(2, content.Length - 3); // 去掉 [= 和 ]
+							string[] parts = wdxContent.Split('.');
+
+							if (parts.Length == 2)
+							{
+								string pluginName = parts[0];
+								string fieldName = parts[1];
+
+								// 查找对应的WDX插件
+								var wdxModule = WdxPlugins.ModuleList.FindModuleByName(pluginName);
+								if (wdxModule != null)
+								{
+									// 查找字段索引
+									int fieldIndex = -1;
+									for (int j = 0; j < wdxModule.Fields.Count; j++)
+									{
+										if (wdxModule.Fields[j].Name.Equals(fieldName, StringComparison.OrdinalIgnoreCase))
+										{
+											fieldIndex = j;
+											break;
+										}
+									}
+
+									if (fieldIndex >= 0)
+									{
+										// 获取字段值
+										string fieldValue = wdxModule.GetValue(file.FullPath, fieldIndex);
+										itemData[i] = fieldValue;
+									}
+									else
+									{
+										itemData[i] = "";
+										Debug.Print($"WDX字段未找到: {fieldName} 在插件 {pluginName} 中");
+									}
+								}
+								else
+								{
+									itemData[i] = "";
+									Debug.Print($"WDX插件未找到: {pluginName}");
+								}
+							}
+							else
+							{
+								itemData[i] = "";
+								Debug.Print($"WDX格式错误: {content}，应为 [=插件名称.字段名]");
+							}
 						}
 						else
 						{

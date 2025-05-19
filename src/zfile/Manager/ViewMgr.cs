@@ -353,7 +353,7 @@ namespace zfile
 						};
 
 						// Set alignment based on content
-						if (colDef.content.Contains("->]") || colDef.content.Contains("=tc.大小"))
+						if (colDef.content.Contains("->") || colDef.content.Contains("=tc.size", StringComparison.OrdinalIgnoreCase))
 							column.TextAlign = HorizontalAlignment.Right;
 						else
 							column.TextAlign = HorizontalAlignment.Left;

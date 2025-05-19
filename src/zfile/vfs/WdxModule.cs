@@ -31,24 +31,24 @@ namespace zfile
     //[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public class WdxField
     {
-		//[MarshalAs(UnmanagedType.LPWStr)]
-		public string Name;           // 字段名称
         //[MarshalAs(UnmanagedType.LPWStr)]
-		public string Description;    // 字段描述
+        public string Name;           // 字段名称
+                                      //[MarshalAs(UnmanagedType.LPWStr)]
+        public string Description;    // 字段描述
         public int Type;             // 字段类型
         public string[] Units;       // 单位列表
         public int DefaultUnitIndex; // 默认单位索引
-		public int GetUnitIndex(string unit)
-		{
-			for (int i = 0; i < Units.Length; i++)
-			{
-				if (Units[i].Equals(unit, StringComparison.OrdinalIgnoreCase))
-					return i;
-			}
-			return -1;
-		}
+        public int GetUnitIndex(string unit)
+        {
+            for (int i = 0; i < Units.Length; i++)
+            {
+                if (Units[i].Equals(unit, StringComparison.OrdinalIgnoreCase))
+                    return i;
+            }
+            return -1;
+        }
 
-	}
+    }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
     public struct ContentDefaultParamStruct
@@ -56,23 +56,24 @@ namespace zfile
         public int Size;
         public int PluginInterfaceVersionLow;
         public int PluginInterfaceVersionHi;
-		//[MarshalAs(UnmanagedType.LPStr)]
-		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
-		public string DefaultIniName;
+        [MarshalAs(UnmanagedType.LPStr)]
+        // [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+        public string DefaultIniName;
     }
-	#endregion
+    #endregion
 
-	#region WDX函数委托
-	// 必需的函数
-	//[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-	public delegate int ContentGetSupportedField(int FieldIndex, out IntPtr FieldName, out int Units, out IntPtr UnitName);
+    #region WDX函数委托
+    // 必需的函数
+    //[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+    public delegate int ContentGetSupportedField(int FieldIndex, out IntPtr FieldName, out int Units, out IntPtr UnitName);
     public delegate int ContentGetValue(string FileName, int FieldIndex, int UnitIndex, int MaxLen, out IntPtr FieldValue, int Flags);
 
-	// Unicode版本
-	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-	public delegate int ContentGetValueW([MarshalAs(UnmanagedType.LPWStr)] string FileName, int FieldIndex, int UnitIndex, int MaxLen, out IntPtr FieldValue, int Flags);
-	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-	public delegate int ContentSetDefaultParams(ref ContentDefaultParamStruct dps);
+    // Unicode版本
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+    public delegate int ContentGetValueW([MarshalAs(UnmanagedType.LPWStr)] string FileName, int FieldIndex, int UnitIndex, int MaxLen, out IntPtr FieldValue, int Flags);
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+    // public delegate int ContentSetDefaultParams(ref ContentDefaultParamStruct dps);
+    public delegate void ContentSetDefaultParams(IntPtr dps);
 
     // 可选函数
     public delegate void ContentPluginUnloading();
@@ -86,13 +87,13 @@ namespace zfile
     public delegate int ContentEditValue(IntPtr Handle, int FieldIndex, int UnitIndex, int FieldType, StringBuilder FieldValue, int MaxLen, int Flags, string LangIdentifier);
     public delegate void ContentSendStateInformation(int State, string Path);
 
-	// 新增Unicode版本的可选函数
-	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-	public delegate void ContentStopGetValueW([MarshalAs(UnmanagedType.LPWStr)] string FileName);
-	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-	public delegate int ContentSetValueW([MarshalAs(UnmanagedType.LPWStr)] string FileName, int FieldIndex, int UnitIndex, int FieldType, IntPtr FieldValue, int Flags);
-	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-	public delegate void ContentSendStateInformationW(int State, [MarshalAs(UnmanagedType.LPWStr)] string Path);
+    // 新增Unicode版本的可选函数
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+    public delegate void ContentStopGetValueW([MarshalAs(UnmanagedType.LPWStr)] string FileName);
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+    public delegate int ContentSetValueW([MarshalAs(UnmanagedType.LPWStr)] string FileName, int FieldIndex, int UnitIndex, int FieldType, IntPtr FieldValue, int Flags);
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+    public delegate void ContentSendStateInformationW(int State, [MarshalAs(UnmanagedType.LPWStr)] string Path);
     #endregion
 
     public class WdxModule : IDisposable
@@ -101,8 +102,8 @@ namespace zfile
         private IntPtr _moduleHandle;
         private string _modulePath;
         private string _pluginName;
-		public string Name => _pluginName;
-		private bool _isUnicode;
+        public string Name => _pluginName;
+        private bool _isUnicode;
         private List<WdxField> _fields;
         private Dictionary<string, string> _translations;
 
@@ -137,27 +138,27 @@ namespace zfile
         public bool IsUnicode => _isUnicode;
         public IReadOnlyList<WdxField> Fields => _fields.AsReadOnly();
         public string FileName { get => _modulePath; set => _modulePath = value; }
-		public List<string> DetectStrings;
-		#endregion
+        public List<string> DetectStrings = [];
+        #endregion
 
-		#region 构造函数和初始化
-		public WdxModule(string modulePath)
+        #region 构造函数和初始化
+        public WdxModule(string modulePath)
         {
             _modulePath = modulePath;
             _pluginName = Path.GetFileNameWithoutExtension(modulePath);
             _fields = new List<WdxField>();
             _translations = new Dictionary<string, string>();
         }
-		public WdxModule(string pluginName, string modulePath)
-		{
-			_modulePath = modulePath;
-			_pluginName = pluginName;
-			_fields = new List<WdxField>();
-			_translations = new Dictionary<string, string>();
-		}
+        public WdxModule(string pluginName, string modulePath)
+        {
+            _modulePath = modulePath;
+            _pluginName = pluginName;
+            _fields = new List<WdxField>();
+            _translations = new Dictionary<string, string>();
+        }
 
 
-		public bool LoadModule()
+        public bool LoadModule()
         {
             if (IsLoaded) return true;
 
@@ -218,24 +219,43 @@ namespace zfile
                     Size = Marshal.SizeOf<ContentDefaultParamStruct>(),
                     PluginInterfaceVersionLow = 1,
                     PluginInterfaceVersionHi = 2,
-                    DefaultIniName = "wdx.ini"
+                    DefaultIniName = Path.Combine(Constants.ZfileCfgPath, "wdx.ini")
                 };
-				try
-				{
-					if (_contentSetDefaultParams(ref defaultParams) != WdxConstants.WDX_SUCCESS)
-					{
-						UnloadModule();
-						return false;
-					}
-				}
-				catch (Exception ex)
-				{
-					UnloadModule();
-					return false;
-				}
-				// 加载支持的字段
-				LoadSupportedFields();
-				Debug.Print($"{_modulePath} loaded completed.");
+                try
+                {
+                    // if (_contentSetDefaultParams(ref defaultParams) != WdxConstants.WDX_SUCCESS)
+                    // IntPtr pDps = Marshal.AllocHGlobal(defaultParams.Size);
+                    // Marshal.StructureToPtr(defaultParams, pDps, false);
+
+                    // int result = _contentSetDefaultParams != null ?
+                    //     _contentSetDefaultParams(ref defaultParams) : WdxConstants.WDX_ERROR;
+
+                    // Marshal.FreeHGlobal(pDps);
+
+                    // if (result != WdxConstants.WDX_SUCCESS)
+                    // {
+                    //     UnloadModule();
+                    //     return false;
+                    // }
+                    IntPtr pDps = Marshal.AllocHGlobal(Marshal.SizeOf<ContentDefaultParamStruct>());
+                    Marshal.StructureToPtr(defaultParams, pDps, false);
+
+                    if (_contentSetDefaultParams != null)
+                    {
+                        _contentSetDefaultParams(pDps);
+                    }
+
+                    Marshal.FreeHGlobal(pDps);
+                    //return true;
+                }
+                catch (Exception ex)
+                {
+                    UnloadModule();
+                    return false;
+                }
+                // 加载支持的字段
+                LoadSupportedFields();
+                Debug.Print($"{_modulePath} loaded completed.");
                 return true;
             }
             catch
@@ -247,14 +267,14 @@ namespace zfile
 
         private T GetFunction<T>(string functionName) where T : Delegate
         {
-			//IntPtr procAddress = NativeLibrary.GetExport(_moduleHandle, functionName);
-			//return procAddress != IntPtr.Zero ? Marshal.GetDelegateForFunctionPointer<T>(procAddress) : null;
-			IntPtr procAddress = DcxModule.NativeMethods.GetProcAddress(_moduleHandle, functionName);
-			if (procAddress == IntPtr.Zero)
-				return null;
-			//return Marshal.GetDelegateForFunctionPointer<T>(procAddress);
-			return Marshal.GetDelegateForFunctionPointer(procAddress, typeof(T)) as T;
-		}
+            //IntPtr procAddress = NativeLibrary.GetExport(_moduleHandle, functionName);
+            //return procAddress != IntPtr.Zero ? Marshal.GetDelegateForFunctionPointer<T>(procAddress) : null;
+            IntPtr procAddress = DcxModule.NativeMethods.GetProcAddress(_moduleHandle, functionName);
+            if (procAddress == IntPtr.Zero)
+                return null;
+            //return Marshal.GetDelegateForFunctionPointer<T>(procAddress);
+            return Marshal.GetDelegateForFunctionPointer(procAddress, typeof(T)) as T;
+        }
 
         private void LoadSupportedFields()
         {
@@ -263,8 +283,8 @@ namespace zfile
 
             while (true)
             {
-				string fieldName = null;
-				IntPtr fieldNamePtr, unitNamePtr;
+                string fieldName = null;
+                IntPtr fieldNamePtr, unitNamePtr;
                 int units;
 
                 int result = _contentGetSupportedField(fieldIndex, out fieldNamePtr, out units, out unitNamePtr);
@@ -490,148 +510,148 @@ namespace zfile
     }
 
     public class WdxModuleList : StringList, IDisposable
-	{
+    {
         public List<WdxModule> _modules = new List<WdxModule>();
         private string _configPath;
-		public List<string> _cfg = [];
-		public Dictionary<string, WdxModule> _exts = [];
-		bool isConfigChanged;
+        public List<string> _cfg = [];
+        public Dictionary<string, WdxModule> _exts = [];
+        bool isConfigChanged;
 
-		public WdxModuleList(string configPath)
+        public WdxModuleList(string configPath)
         {
             _configPath = configPath;
             LoadConfiguration();
         }
 
-		public WdxModule? FindModuleByName(string name)
-		{
-			return _modules.FirstOrDefault(m => m.Name != null && m.Name.Equals(name));
-		}
-		public void LoadConfiguration()
+        public WdxModule? FindModuleByName(string name)
         {
-			_modules.Clear();
-			_exts.Clear();
-			_cfg = Helper.ReadSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ContentPlugins");
-			foreach (var line in _cfg)
-			{
-				var parts = line.Split('=');
-				if (parts.Length == 2)
-				{
-					var detectstring = parts[0].Trim().ToLower();
-					var part1 = parts[1].Trim();
-					var path = part1.Split(',')[^1];
-					path = path.Replace("%COMMANDER_PATH%", Constants.ZfileBinPath);
-					if (File.Exists(path))
-					{
-						var name = Path.GetFileNameWithoutExtension(path);
-						//try to find module in wcxmodulelist by name
-						var module = FindModuleByName(name);
-						if (module == null)
-						{
-							module = new WdxModule(name, path);
-							if (module.LoadModule())
-							{
-								if (!module.DetectStrings.Contains(detectstring))
-								{
-									module.DetectStrings.Add(detectstring);
-								}
-								if (AddModule(module))
-									_exts[parts[0].Trim()] = module;
-								//}
-								//WcxModule wcxModule = WcxPlugins.LoadModule(plugin);
-								//if (wcxModule != null)
-								//{
-								//int flags = module.PluginCapabilities;
-								//foreach (string ext in detectstring.Split(','))
-								//{
-								//	//var result = Add(ext, flags, path);
-								//	//FileName[result] = name; // GetPluginFilenameToSave(plugin);
-								//}
-							}
-						}
-						else
-						{
-							if (!module.DetectStrings.Contains(detectstring))
-							{
-								module.DetectStrings.Add(detectstring);
-								_exts[parts[0].Trim()] = module;
-								//var result = Add(detectstring, module.PluginCapabilities, path);
-								//FileName[result] = name;
-							}
-						}
-					}
-				}
-			}
-			//先按照配置读取插件（优先级高），然后按照目录读取插件
-			//LoadModulesFromDirectory(Constants.ZfileBinPath + "Plugins\\wdx\\");
-		}
-		public int GetAFlags(int index)
-		{
-			string currentPlugin = ValueFromIndex(index);
-			int commaPos = currentPlugin.IndexOf(',');
-			if (commaPos >= 0)
-			{
-				return int.Parse(currentPlugin[..commaPos]);
-			}
-			return 0;
-		}
-		public void SetAFileName(int index, string value)
-		{
-			SetValueFromIndex(index, GetAFlags(index) + "," + value);
-		}
-		public string GetAFileName(int index)
-		{
-			string currentPlugin = ValueFromIndex(index);
-			int commaPos = currentPlugin.IndexOf(',');
-			if (commaPos >= 0)
-			{
-				return currentPlugin[(commaPos + 1)..];
-			}
-			return string.Empty;
-		}
-		public string[] FileName
-		{
-			get
-			{
-				string[] result = new string[Count];
-				for (int i = 0; i < Count; i++)
-				{
-					result[i] = GetAFileName(i);
-				}
-				return result;
-			}
-			set
-			{
-				if (value != null && value.Length == Count)
-				{
-					for (int i = 0; i < Count; i++)
-					{
-						SetAFileName(i, value[i]);
-					}
-				}
-			}
-		}
-		public int Add(string ext, int flags, string fileName)
-		{
-			return AddObject(ext + "=" + flags + "," + fileName, true);
-		}
-		public void SaveConfiguration()
+            return _modules.FirstOrDefault(m => m.Name != null && m.Name.Equals(name));
+        }
+        public void LoadConfiguration()
         {
-			if (!isConfigChanged) return;
-			Helper.WriteSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ContentPlugins", _cfg);
-			LoadConfiguration();
-			isConfigChanged = false;
-		}
-		public bool AddModule(WdxModule module)
-		{
-			if (module.Name != null && !_modules.Any(m => m.Name != null && m.Name.Equals(module.Name, StringComparison.OrdinalIgnoreCase)))
-			{
-				_modules.Add(module);
-				return true;
-			}
-			return false;
-		}
-		public void AddModule(string modulePath)
+            _modules.Clear();
+            _exts.Clear();
+            _cfg = Helper.ReadSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ContentPlugins");
+            foreach (var line in _cfg)
+            {
+                var parts = line.Split('=');
+                if (parts.Length == 2)
+                {
+                    var detectstring = parts[0].Trim().ToLower();
+                    var part1 = parts[1].Trim();
+                    var path = part1.Split(',')[^1];
+                    path = path.Replace("%COMMANDER_PATH%", Constants.ZfileBinPath);
+                    if (File.Exists(path))
+                    {
+                        var name = Path.GetFileNameWithoutExtension(path);
+                        //try to find module in wcxmodulelist by name
+                        var module = FindModuleByName(name);
+                        if (module == null)
+                        {
+                            module = new WdxModule(name, path);
+                            if (module.LoadModule())
+                            {
+                                if (!module.DetectStrings.Contains(detectstring))
+                                {
+                                    module.DetectStrings.Add(detectstring);
+                                }
+                                if (AddModule(module))
+                                    _exts[parts[0].Trim()] = module;
+                                //}
+                                //WcxModule wcxModule = WcxPlugins.LoadModule(plugin);
+                                //if (wcxModule != null)
+                                //{
+                                //int flags = module.PluginCapabilities;
+                                //foreach (string ext in detectstring.Split(','))
+                                //{
+                                //	//var result = Add(ext, flags, path);
+                                //	//FileName[result] = name; // GetPluginFilenameToSave(plugin);
+                                //}
+                            }
+                        }
+                        else
+                        {
+                            if (!module.DetectStrings.Contains(detectstring))
+                            {
+                                module.DetectStrings.Add(detectstring);
+                                _exts[parts[0].Trim()] = module;
+                                //var result = Add(detectstring, module.PluginCapabilities, path);
+                                //FileName[result] = name;
+                            }
+                        }
+                    }
+                }
+            }
+            //先按照配置读取插件（优先级高），然后按照目录读取插件
+            //LoadModulesFromDirectory(Constants.ZfileBinPath + "Plugins\\wdx\\");
+        }
+        public int GetAFlags(int index)
+        {
+            string currentPlugin = ValueFromIndex(index);
+            int commaPos = currentPlugin.IndexOf(',');
+            if (commaPos >= 0)
+            {
+                return int.Parse(currentPlugin[..commaPos]);
+            }
+            return 0;
+        }
+        public void SetAFileName(int index, string value)
+        {
+            SetValueFromIndex(index, GetAFlags(index) + "," + value);
+        }
+        public string GetAFileName(int index)
+        {
+            string currentPlugin = ValueFromIndex(index);
+            int commaPos = currentPlugin.IndexOf(',');
+            if (commaPos >= 0)
+            {
+                return currentPlugin[(commaPos + 1)..];
+            }
+            return string.Empty;
+        }
+        public string[] FileName
+        {
+            get
+            {
+                string[] result = new string[Count];
+                for (int i = 0; i < Count; i++)
+                {
+                    result[i] = GetAFileName(i);
+                }
+                return result;
+            }
+            set
+            {
+                if (value != null && value.Length == Count)
+                {
+                    for (int i = 0; i < Count; i++)
+                    {
+                        SetAFileName(i, value[i]);
+                    }
+                }
+            }
+        }
+        public int Add(string ext, int flags, string fileName)
+        {
+            return AddObject(ext + "=" + flags + "," + fileName, true);
+        }
+        public void SaveConfiguration()
+        {
+            if (!isConfigChanged) return;
+            Helper.WriteSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ContentPlugins", _cfg);
+            LoadConfiguration();
+            isConfigChanged = false;
+        }
+        public bool AddModule(WdxModule module)
+        {
+            if (module.Name != null && !_modules.Any(m => m.Name != null && m.Name.Equals(module.Name, StringComparison.OrdinalIgnoreCase)))
+            {
+                _modules.Add(module);
+                return true;
+            }
+            return false;
+        }
+        public void AddModule(string modulePath)
         {
             if (_modules.Any(m => m.ModulePath.Equals(modulePath, StringComparison.OrdinalIgnoreCase)))
                 return;

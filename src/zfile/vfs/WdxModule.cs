@@ -21,7 +21,7 @@ namespace zfile
         public const int FT_MULTIPLECHOICE = 9;  // 多选项
         public const int FT_FULLTEXT = 10;       // 全文本
         public const int FT_NOSUCHFIELD = -1;    // 无此字段
-
+        public const int WDX_NOMOREFIELDS = 0;   // 没有更多字段
         // 返回值常量
         public const int WDX_SUCCESS = 0;
         public const int WDX_ERROR = 1;
@@ -64,8 +64,8 @@ namespace zfile
 
     #region WDX函数委托
     // 必需的函数
-    //[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-    public delegate int ContentGetSupportedField(int FieldIndex, out IntPtr FieldName, out int Units, out IntPtr UnitName);
+    [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+    public delegate int ContentGetSupportedField(int FieldIndex, StringBuilder FieldName, StringBuilder UnitName, int MaxLen);
     public delegate int ContentGetValue(string FileName, int FieldIndex, int UnitIndex, int MaxLen, out IntPtr FieldValue, int Flags);
 
     // Unicode版本
@@ -280,36 +280,32 @@ namespace zfile
         {
             _fields.Clear();
             int fieldIndex = 0;
+            const int MAX_LEN = 256;
+
+            StringBuilder fieldNameBuffer = new StringBuilder(MAX_LEN);
+            StringBuilder unitNameBuffer = new StringBuilder(MAX_LEN);
 
             while (true)
             {
-                string fieldName = null;
-                IntPtr fieldNamePtr, unitNamePtr;
-                int units;
+                fieldNameBuffer.Clear();
+                unitNameBuffer.Clear();
 
-                int result = _contentGetSupportedField(fieldIndex, out fieldNamePtr, out units, out unitNamePtr);
-                if (result == WdxConstants.WDX_NOTFOUND) break;
+                int result = _contentGetSupportedField(fieldIndex, fieldNameBuffer, unitNameBuffer, MAX_LEN);
+                if (result <= WdxConstants.WDX_NOMOREFIELDS) break;
+
+                string fieldName = fieldNameBuffer.ToString();
+                string unitName = unitNameBuffer.ToString();
+
+                // 解析单位列表
+                string[] units = string.IsNullOrEmpty(unitName) ? new string[0] : unitName.Split('|');
 
                 var field = new WdxField
                 {
-                    Name = Marshal.PtrToStringAnsi(fieldNamePtr),
+                    Name = fieldName,
                     Type = result,
-                    Units = new string[units],
+                    Units = units,
                     DefaultUnitIndex = 0
                 };
-
-                // 加载单位列表
-                if (units > 0)
-                {
-                    for (int i = 0; i < units; i++)
-                    {
-                        result = _contentGetSupportedField(fieldIndex, out _, out _, out unitNamePtr);
-                        if (result != WdxConstants.WDX_ERROR)
-                        {
-                            field.Units[i] = Marshal.PtrToStringAnsi(unitNamePtr);
-                        }
-                    }
-                }
 
                 _fields.Add(field);
                 fieldIndex++;

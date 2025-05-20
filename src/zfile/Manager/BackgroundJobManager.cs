@@ -6,7 +6,7 @@ namespace zfile
     /// <summary>
     /// 后台图标管理器，负责在后台线程中生成图标并更新UI
     /// </summary>
-    public class BackgroundIconManager : IDisposable
+    public class BackgroundJobManager : IDisposable
     {
         // 任务队列
         private readonly ConcurrentQueue<IconJob> _jobQueue = new ConcurrentQueue<IconJob>();
@@ -103,7 +103,7 @@ namespace zfile
         /// <param name="thumbnailManager">缩略图管理器</param>
         /// <param name="iconManager">图标管理器</param>
         /// <param name="progressCallback">进度回调</param>
-        public BackgroundIconManager(ThumbnailManager thumbnailManager, IconManager iconManager)
+        public BackgroundJobManager(ThumbnailManager thumbnailManager, IconManager iconManager)
         {
             _thumbnailManager = thumbnailManager ?? throw new ArgumentNullException(nameof(thumbnailManager));
             _iconManager = iconManager ?? throw new ArgumentNullException(nameof(iconManager));

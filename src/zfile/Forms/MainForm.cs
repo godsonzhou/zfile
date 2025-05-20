@@ -214,7 +214,7 @@ namespace zfile
 		public readonly UIControlManager uiManager;
 		public readonly ThumbnailManager thumbnailManager = new("d:\\temp\\cache", new Size(64, 64));
 
-		private readonly BackgroundIconManager _backgroundIconManager;
+		private readonly BackgroundJobManager _backgroundIconManager;
 		private Dictionary<Keys, string> hotkeyMappings;
 
 		public string LRflag => uiManager.isleft ? "L" : "R";
@@ -419,7 +419,7 @@ namespace zfile
 			idmManager = new IdmManager(this);
 			InitializeComponent();
 			this.Size = new Size(1920, 1080);
-			_backgroundIconManager = new BackgroundIconManager(thumbnailManager, iconManager);
+			_backgroundIconManager = new BackgroundJobManager(thumbnailManager, iconManager);
 
 			// 初始化COM组件
 			InitializeCOMComponents();
@@ -2313,7 +2313,7 @@ namespace zfile
 
 			var itemsForJob = new List<string>();
 			var lvitemsForJob = new List<ListViewItem>();
-			var jobtypelist = new List<BackgroundIconManager.JobType>();
+			var jobtypelist = new List<BackgroundJobManager.JobType>();
 			// 获取可见区域
 			var visibleRect = listView.ClientRectangle;
 
@@ -2349,7 +2349,7 @@ namespace zfile
 								// 如果缓存中没有，添加到任务队列
 								itemsForJob.Add(itemFullName);
 								lvitemsForJob.Add(item);
-								jobtypelist.Add(BackgroundIconManager.JobType.DirSize);
+								jobtypelist.Add(BackgroundJobManager.JobType.DirSize);
 							}
 						}
 					}
@@ -2363,7 +2363,7 @@ namespace zfile
 						{
 							itemsForJob.Add(itemFullName);
 							lvitemsForJob.Add(item);
-							jobtypelist.Add(BackgroundIconManager.JobType.Thumbnail);
+							jobtypelist.Add(BackgroundJobManager.JobType.Thumbnail);
 						}
 					}
 				}
@@ -2371,7 +2371,10 @@ namespace zfile
 
 			// 如果有需要处理的项目，加入缩略图生成队列
 			if (itemsForJob.Count > 0)
+			{
 				_backgroundIconManager.EnqueueJob(listView, itemsForJob, lvitemsForJob, jobtypelist);
+				Debug.Print($"{itemsForJob.Count} items enqueued in background...");
+			}
 
 		}
 		// 加载文件列表 - 使用 FileSource 架构（异步版本）

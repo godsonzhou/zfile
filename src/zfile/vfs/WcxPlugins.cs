@@ -82,15 +82,5 @@ namespace zfile
             }
             return -1;
         }
-
-        /// <summary>
-        /// Initializes the WCX plugins
-        /// </summary>
-   //     static WcxPlugins()
-   //     {
-			////if (_moduleList == null)
-			////	_moduleList = new WcxModuleList("static");
-   //         //_moduleList.LoadConfiguration();
-   //     }
     }
 }

@@ -302,8 +302,8 @@ namespace zfile
 		private string? oldname;
 		public WcxModuleList? wcxModuleList { get => WcxPlugins._moduleList; set => WcxPlugins._moduleList = value; }
 		public static WlxModuleList? wlxModuleList;
-		private Dictionary<string, IntPtr> openArchives = new Dictionary<string, IntPtr>();
-		private Dictionary<string, string> archivePaths = new Dictionary<string, string>();
+		private Dictionary<string, IntPtr> openArchives = [];
+		private Dictionary<string, string> archivePaths = [];
 		// 添加目录历史导航相关的字段
 		public Stack<string> backStack = new();    // 后退历史
 		public Stack<string> forwardStack = new(); // 前进历史

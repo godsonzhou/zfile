@@ -238,13 +238,11 @@ namespace zfile
 　　		  char:代表无符号的16位整数，数值范围从0～65535。 Char类型的可能值对应于统一字符编码标准(Unicode)的字符集
 		 */
 		[MarshalAs(UnmanagedType.LPWStr)]
-		//public IntPtr ArcName;
 		public string ArcName;
 		public int OpenMode;  // 4 bytes
 		public int OpenResult;
 		[MarshalAs(UnmanagedType.LPWStr)]
 		public string CmtBuf;
-		//public StringBuilder CmtBuf;
 		public int CmtBufSize;
 		public int CmtSize;
 		public int CmtState;
@@ -345,8 +343,6 @@ namespace zfile
 		public uint UnpSizeLow;
 		public uint UnpSizeHigh;
 
-		//public ulong PackSize;
-		//public ulong UnpSize;
 		public int HostOS;
 		public int FileCRC;
 		public int FileTime;
@@ -516,9 +512,7 @@ namespace zfile
 		~WcxModule()
 		{
 			if (_extensionFinalize != null)
-			{
 				_extensionFinalize(IntPtr.Zero);
-			}
 			UnloadModule();
 		}
 		public int ChangeVolProc(ref string arcName, int mode)
@@ -548,22 +542,7 @@ namespace zfile
 				return 0;
 			return result;
 		}
-		// 设置进度回调示例
-		//private static int ProcessDataCallback(string fileName, int size)
-		//{
-		//	// 更新进度显示
-		//	return 0; // 返回0继续操作
-		//}
-
-		//public void SetCallbacks(IntPtr handle)
-		//{
-		//	var procDelegate = new TProcessDataProc(ProcessDataCallback);
-		//	IntPtr pProc = Marshal.GetFunctionPointerForDelegate(procDelegate);
-		//	SetProcessDataProc(handle, pProc);
-
-		//	// 需要保持委托引用防止被GC回收
-		//	GC.KeepAlive(procDelegate);
-		//}
+	
 		public void SetDefaultParam()
 		{
 			if (_packSetDefaultParams == null)
@@ -659,9 +638,7 @@ namespace zfile
 					Marshal.WriteByte(output, bytes.Length, 0); // 添加结束符
 				}
 				else
-				{
 					Marshal.WriteByte(output, 0, 0); // 写入空字符
-				}
 			}
 			return original.Length;
 		}
@@ -790,19 +767,13 @@ namespace zfile
 
 				// 设置默认参数
 				if (_packSetDefaultParams != null)
-				{
 					SetDefaultParam();
-				}
 
 				// 获取后台标志
 				if (_getBackgroundFlags != null)
-				{
 					BackgroundFlags = _getBackgroundFlags.Invoke();
-				}
 				else
-				{
 					BackgroundFlags = 0;
-				}
 
 				// Extension API 初始化
 				if (_extensionInitialize != null)
@@ -858,14 +829,6 @@ namespace zfile
 			_pkSetCryptCallbackW = null;
 			_getBackgroundFlags = null;
 		}
-
-		//private T? GetDelegate<T>(string procName) where T : class
-		//{
-		//	IntPtr procAddress = NativeMethods.GetProcAddress(_moduleHandle, procName);
-		//	if (procAddress == IntPtr.Zero)
-		//		return null;
-		//	return Marshal.GetDelegateForFunctionPointer(procAddress, typeof(T)) as T;
-		//}
 
 		public IntPtr OpenArchiveHandle(string archiveName, int openMode, out int openResult)
 		{
@@ -953,21 +916,6 @@ namespace zfile
 				var ansiHeader = new THeaderData();
 				if (_readHeader(arcHandle, ref ansiHeader) == 0)
 				{
-					//// 转换ANSI到Unicode
-					//headerData.ArcName = ansiHeader.ArcName;// Encoding.Default.GetString(ansiHeader.ArcName).TrimEnd('\0');
-					//headerData.FileName = ansiHeader.FileName;// Encoding.Default.GetString(ansiHeader.FileName).TrimEnd('\0');
-					//headerData.Flags = ansiHeader.Flags;
-					//headerData.PackSizeHigh = 0;
-					//headerData.PackSizeLow = (uint)ansiHeader.PackSize;
-					//headerData.UnpSizeHigh = 0;
-					//headerData.UnpSizeLow = (uint)ansiHeader.UnpSize;
-					//headerData.HostOS = ansiHeader.HostOS;
-					//headerData.FileCRC = ansiHeader.FileCRC;
-					//headerData.FileTime = ansiHeader.FileTime;
-					//headerData.UnpVer = ansiHeader.UnpVer;
-					//headerData.Method = ansiHeader.Method;
-					//headerData.FileAttr = ansiHeader.FileAttr;
-					//return true;
 					headerData = new WcxHeader(ansiHeader);
 					return true;
 				}
@@ -985,9 +933,7 @@ namespace zfile
 				return _processFileW(arcHandle, operation, destPath, destName);
 			}
 			else if (_processFile != null)
-			{
 				return _processFile(arcHandle, operation, destPath, destName);
-			}
 
 			return -1;
 		}
@@ -1024,9 +970,7 @@ namespace zfile
 				return _packFilesW(packedFile, subPath, srcPath, addList, flags);
 			}
 			else if (_packFiles != null)
-			{
 				return _packFiles(packedFile, subPath, srcPath, addList, flags);
-			}
 
 			return -1;
 		}
@@ -1034,13 +978,9 @@ namespace zfile
 		public int DeleteFiles(string packedFile, string deleteList)
 		{
 			if (_deleteFilesW != null)
-			{
 				return _deleteFilesW(packedFile, deleteList);
-			}
 			else if (_deleteFiles != null)
-			{
 				return _deleteFiles(packedFile, deleteList);
-			}
 
 			return -1;
 		}
@@ -1053,37 +993,10 @@ namespace zfile
 		public void WcxSetChangeVolProc(IntPtr arcHandle, IntPtr changeVolProc, IntPtr changeVolProcW)
 		{
 			if (_setChangeVolProcW != null)
-			{
 				_setChangeVolProcW(arcHandle, changeVolProcW);
-			}
 			else if (_setChangeVolProc != null)
-			{
 				_setChangeVolProc(arcHandle, changeVolProc);
-			}
 		}
-		//public void SetChangeVolProc(IntPtr arcHandle, IntPtr changeVolProc)
-		//{
-		//	if (_setChangeVolProcW != null)
-		//	{
-		//		_setChangeVolProcW(arcHandle, changeVolProc);
-		//	}
-		//	else if (_setChangeVolProc != null)
-		//	{
-		//		_setChangeVolProc(arcHandle, changeVolProc);
-		//	}
-		//}
-
-		//public void SetProcessDataProc(IntPtr arcHandle, IntPtr processDataProc)
-		//{
-		//	if (_setProcessDataProcW != null)
-		//	{
-		//		_setProcessDataProcW(arcHandle, processDataProc);
-		//	}
-		//	else if (_setProcessDataProc != null)
-		//	{
-		//		_setProcessDataProc(arcHandle, processDataProc);
-		//	}
-		//}
 
 		/// <summary>
 		/// 设置进程数据回调，同时设置ANSI和Unicode版本的回调
@@ -1094,26 +1007,18 @@ namespace zfile
 		public void WcxSetProcessDataProc(IntPtr arcHandle, IntPtr processDataProcA, IntPtr processDataProcW)
 		{
 			if (_setProcessDataProcW != null)
-			{
 				_setProcessDataProcW(arcHandle, processDataProcW);
-			}
 			if (_setProcessDataProc != null)
-			{
 				_setProcessDataProc(arcHandle, processDataProcA);
-			}
 		}
 
 		public bool CanYouHandleThisFile(string fileName)
 		{
 			fileName = fileName.ToUpper();
 			if (_canYouHandleThisFileW != null)
-			{
 				return _canYouHandleThisFileW(fileName);
-			}
 			else if (_canYouHandleThisFile != null)
-			{
 				return _canYouHandleThisFile(fileName);
-			}
 
 			return false;
 		}
@@ -1121,26 +1026,18 @@ namespace zfile
 		{
 			fileName = fileName.ToUpper();
 			if (_startMemPackW != null)
-			{
 				return _startMemPackW(options, fileName);
-			}
 			else if (_startMemPack != null)
-			{
 				return _startMemPack(options, fileName);
-			}
 
 			return IntPtr.Zero;
 		}
 		public void SetCryptCallback(IntPtr cryptProc, int cryptoNr, int flags)
 		{
 			if (_pkSetCryptCallbackW != null)
-			{
 				_pkSetCryptCallbackW(cryptProc, cryptoNr, flags);
-			}
 			else if (_pkSetCryptCallback != null)
-			{
 				_pkSetCryptCallback(cryptProc, cryptoNr, flags);
-			}
 		}
 
 		public int GetPackerCaps()
@@ -1199,24 +1096,11 @@ namespace zfile
 		internal void VFSConfigure(nint handle)
 		{
 			if (_configurePacker != null)
-			{
 				_configurePacker(handle, ModuleHandle);
-			}
 		}
 
 		public bool IsUnicode => _isUnicode;
 
-		//private static class NativeMethods
-		//{
-		//	[DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-		//	public static extern IntPtr LoadLibrary(string lpFileName);
-
-		//	[DllImport("kernel32.dll", SetLastError = true)]
-		//	public static extern bool FreeLibrary(IntPtr hModule);
-
-		//	[DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
-		//	public static extern IntPtr GetProcAddress(IntPtr hModule, string lpProcName);
-		//}
 	}
 
 	public class WcxModuleList : StringList
@@ -1257,9 +1141,7 @@ namespace zfile
 			string currentPlugin = ValueFromIndex(index);
 			int commaPos = currentPlugin.IndexOf(',');
 			if (commaPos >= 0)
-			{
 				return currentPlugin[(commaPos + 1)..];
-			}
 			return string.Empty;
 		}
 
@@ -1283,9 +1165,7 @@ namespace zfile
 			string currentPlugin = ValueFromIndex(index);
 			int commaPos = currentPlugin.IndexOf(',');
 			if (commaPos >= 0)
-			{
 				return int.Parse(currentPlugin[..commaPos]);
-			}
 			return 0;
 		}
 
@@ -1328,9 +1208,7 @@ namespace zfile
 			{
 				var result = new List<string>();
 				for (int i = 0; i < Count; i++)
-				{
 					result.Add(GetAExt(i));
-				}
 				return result;
 			}
 			set
@@ -1338,9 +1216,7 @@ namespace zfile
 				if (value != null && value.Count == Count)
 				{
 					for (int i = 0; i < Count; i++)
-					{
 						SetExt(i, value[i]);
-					}
 				}
 			}
 		}
@@ -1354,9 +1230,7 @@ namespace zfile
 			{
 				string[] result = new string[Count];
 				for (int i = 0; i < Count; i++)
-				{
 					result[i] = GetAFileName(i);
-				}
 				return result;
 			}
 			set
@@ -1364,9 +1238,7 @@ namespace zfile
 				if (value != null && value.Length == Count)
 				{
 					for (int i = 0; i < Count; i++)
-					{
 						SetAFileName(i, value[i]);
-					}
 				}
 			}
 		}
@@ -1380,9 +1252,7 @@ namespace zfile
 			{
 				int[] result = new int[Count];
 				for (int i = 0; i < Count; i++)
-				{
 					result[i] = GetAFlags(i);
-				}
 				return result;
 			}
 			set
@@ -1390,9 +1260,7 @@ namespace zfile
 				if (value != null && value.Length == Count)
 				{
 					for (int i = 0; i < Count; i++)
-					{
 						SetAFlags(i, value[i]);
-					}
 				}
 			}
 		}
@@ -1406,9 +1274,7 @@ namespace zfile
 			{
 				bool[] result = new bool[Count];
 				for (int i = 0; i < Count; i++)
-				{
 					result[i] = GetAEnabled(i);
-				}
 				return result;
 			}
 			set
@@ -1416,9 +1282,7 @@ namespace zfile
 				if (value != null && value.Length == Count)
 				{
 					for (int i = 0; i < Count; i++)
-					{
 						SetAEnabled(i, value[i]);
-					}
 				}
 			}
 		}
@@ -1461,22 +1325,44 @@ namespace zfile
 		/// </summary>
 		/// <param name="file">The file to load</param>
 		/// <returns>The loaded module, or null if loading failed</returns>
-		public WcxModule? LoadModule(string file)
+		public WcxModule? LoadModule(string path, string detectstring)
 		{
-			var name = Path.GetFileNameWithoutExtension(file);
-			var module = FindModuleByName(name);
-			if (module == null)
+			if (File.Exists(path))
 			{
-				module = new WcxModule(name, file);
-				if (module.LoadModule() && module.Name != null)
+				var name = Path.GetFileNameWithoutExtension(path);
+				//try to find module in wcxmodulelist by name
+				var module = FindModuleByName(name);
+				if (module == null)
 				{
-					if (AddModule(module))
+					module = new WcxModule(name, path);
+					if (module.LoadModule())
 					{
-						_exts[module.Name.ToLower()] = module;
+						if (!module.DetectStrings.Contains(detectstring))
+							module.DetectStrings.Add(detectstring);
+						if (AddModule(module))
+							_exts[module.Name.ToLower().Trim()] = module;
+
+						int flags = module.PluginCapabilities;
+						foreach (string ext in detectstring.Split(','))
+						{
+							var result = Add(ext, flags, path);
+							FileName[result] = name;
+						}
 					}
 				}
+				else
+				{
+					if (!module.DetectStrings.Contains(detectstring))
+					{
+						module.DetectStrings.Add(detectstring);
+						_exts[module.Name.ToLower().Trim()] = module;
+						var result = Add(detectstring, module.PluginCapabilities, path);
+						FileName[result] = name;
+					}
+				}
+				return module;
 			}
-			return module;
+			return null;
 		}
 		/// <summary>
 		/// Loads all WCX modules from a directory and its subdirectories
@@ -1490,16 +1376,7 @@ namespace zfile
 			foreach (var subdir in subdirs)
 			{
 				foreach (var file in Directory.GetFiles(subdir, "*.wcx*"))
-				{
-					try
-					{
-						LoadModule(file);
-					}
-					catch
-					{
-						// 加载失败的模块直接跳过
-					}
-				}
+					LoadModule(file, null);
 			}
 		}
 		public void SaveConfiguration()
@@ -1534,45 +1411,7 @@ namespace zfile
 					var part1 = parts[1].Trim();
 					var path = part1.Split(',')[^1];
 					path = path.Replace("%COMMANDER_PATH%", Constants.ZfileBinPath);
-					if (File.Exists(path))
-					{
-						var name = Path.GetFileNameWithoutExtension(path);
-						//try to find module in wcxmodulelist by name
-						var module = FindModuleByName(name);
-						if (module == null)
-						{
-							module = new WcxModule(name, path);
-							if (module.LoadModule())
-							{
-								if (!module.DetectStrings.Contains(detectstring))
-								{
-									module.DetectStrings.Add(detectstring);
-								}
-								if (AddModule(module))
-									_exts[parts[0].Trim()] = module;
-							//}
-							//WcxModule wcxModule = WcxPlugins.LoadModule(plugin);
-							//if (wcxModule != null)
-							//{
-								int flags = module.PluginCapabilities;
-								foreach (string ext in detectstring.Split(','))
-								{
-									var result = Add(ext, flags, path);
-									FileName[result] = name; // GetPluginFilenameToSave(plugin);
-								}
-							}
-						}
-						else
-						{
-							if (!module.DetectStrings.Contains(detectstring))
-							{
-								module.DetectStrings.Add(detectstring);
-								_exts[parts[0].Trim()] = module;
-								var result = Add(detectstring, module.PluginCapabilities, path);
-								FileName[result] = name;
-							}
-						}
-					}
+					LoadModule(path, detectstring);
 				}
 			}
 			//先按照配置读取插件（优先级高），然后按照目录读取插件
@@ -1603,9 +1442,7 @@ namespace zfile
 			for (int i = 0; i < Count; i++)
 			{
 				if (GetAEnabled(i) && string.Equals(GetAExt(i), name, StringComparison.OrdinalIgnoreCase))
-				{
 					return i;
-				}
 			}
 			return -1;
 		}
@@ -1622,9 +1459,7 @@ namespace zfile
 			{
 				if (string.Equals(GetAFileName(i), fileName, StringComparison.OrdinalIgnoreCase) &&
 					string.Equals(GetAExt(i), ext, StringComparison.OrdinalIgnoreCase))
-				{
 					return i;
-				}
 			}
 			return -1;
 		}
@@ -1647,15 +1482,6 @@ namespace zfile
 			// No need to initialize headerData as it will be filled by ReadHeader
 			if (module.ReadHeader(arcHandle, out var headerData))
 			{
-				// Convert THeaderDataExW to WcxHeader
-				//header.FileName = headerData.FileName;
-				//header.FileAttr = (FileAttributes)headerData.FileAttr;
-				//header.PackSize = (long)((ulong)headerData.PackSizeHigh << 32 | headerData.PackSizeLow);
-				//header.UnpSize = (long)((ulong)headerData.UnpSizeHigh << 32 | headerData.UnpSizeLow);
-				//header.FileTime = headerData.FileTime;
-				//header.CRC = headerData.FileCRC;
-				//header.Method = headerData.Method;
-				//header.Flags = headerData.Flags;
 				header = headerData;
 				return 0; // Success
 			}

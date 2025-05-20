@@ -637,7 +637,7 @@ namespace zfile
 				return str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower();
 			}
 		}
-		public static Dictionary<string, string> ParseConfig(List<string> config)
+		public static Dictionary<string, string> ParseConfig(List<string> config, string plugin_type = "wlx")
 		{
 			/*
 			 * [ListerPlugins]
@@ -672,7 +672,7 @@ namespace zfile
 			// 首先解析路径和检测规则
 			foreach (string line in config)
 			{
-				Match pathMatch = Regex.Match(line, @"^(\d+)=.*\\([^\\]+)\.wlx(?:64)?$");
+				Match pathMatch = Regex.Match(line, @"^(\d+)=.*\\([^\\]+)\." + plugin_type +"(?:64)?$");	//plugin_type is wdx or wlx
 				if (pathMatch.Success)
 				{
 					int index = int.Parse(pathMatch.Groups[1].Value);

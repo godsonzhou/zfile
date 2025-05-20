@@ -505,11 +505,12 @@ namespace zfile
     {
         public List<WdxModule> _modules = new List<WdxModule>();
         private string _configPath;
-        public List<string> _cfg = [];
         public Dictionary<string, WdxModule> _exts = [];
         bool isConfigChanged;
+		private List<string> _config;
+		public Dictionary<string, string> _configDict;
 
-        public WdxModuleList(string configPath)
+		public WdxModuleList(string configPath)
         {
             _configPath = configPath;
             LoadConfiguration();
@@ -519,69 +520,76 @@ namespace zfile
         {
             return _modules.FirstOrDefault(m => m.Name != null && m.Name.Equals(name));
         }
-        public void LoadConfiguration()
-        {
-            _modules.Clear();
-            _exts.Clear();
-            _cfg = Helper.ReadSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ContentPlugins");
-            foreach (var line in _cfg)
-            {
-                var parts = line.Split('=');
-                if (parts.Length == 2)
-                {
-                    var detectstring = parts[0].Trim().ToLower();
-                    var part1 = parts[1].Trim();
-                    var path = part1.Split(',')[^1];
-                    path = path.Replace("%COMMANDER_PATH%", Constants.ZfileBinPath);
-					if (File.Exists(path))
-					{
-						var name = Path.GetFileNameWithoutExtension(path);
-						//try to find module in wcxmodulelist by name
-						var module = FindModuleByName(name);
-						if (module == null)
-						{
-							module = new WdxModule(name, path);
-							if (module.LoadModule())
-							{
-								if (!module.DetectStrings.Contains(detectstring))
-								{
-									module.DetectStrings.Add(detectstring);
-								}
-								if (AddModule(module))
-									_exts[parts[0].Trim()] = module;
-								//}
-								//WcxModule wcxModule = WcxPlugins.LoadModule(plugin);
-								//if (wcxModule != null)
-								//{
-								//int flags = module.PluginCapabilities;
-								//foreach (string ext in detectstring.Split(','))
-								//{
-								//	//var result = Add(ext, flags, path);
-								//	//FileName[result] = name; // GetPluginFilenameToSave(plugin);
-								//}
-							}
-							else
-								Debug.Print($"LOAD MODULE : {path} FAILED");
-						}
-						else
-						{
-							if (!module.DetectStrings.Contains(detectstring))
-							{
-								module.DetectStrings.Add(detectstring);
-								_exts[parts[0].Trim()] = module;
-								//var result = Add(detectstring, module.PluginCapabilities, path);
-								//FileName[result] = name;
-							}
-						}
-					}
-					else
-						Debug.Print($"FILE NOT FOUND : {path}");
-                }
-            }
-            //先按照配置读取插件（优先级高），然后按照目录读取插件
-            //LoadModulesFromDirectory(Constants.ZfileBinPath + "Plugins\\wdx\\");
-        }
-        public int GetAFlags(int index)
+		//   public void LoadConfiguration()
+		//   {
+		//       _modules.Clear();
+		//       _exts.Clear();
+		//       _cfg = Helper.ReadSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ContentPlugins");
+		//       foreach (var line in _cfg)
+		//       {
+		//           var parts = line.Split('=');
+		//           if (parts.Length == 2)
+		//           {
+		//               var detectstring = parts[0].Trim().ToLower();
+		//               var part1 = parts[1].Trim();
+		//               var path = part1.Split(',')[^1];
+		//               path = path.Replace("%COMMANDER_PATH%", Constants.ZfileBinPath);
+		//if (File.Exists(path))
+		//{
+		//	var name = Path.GetFileNameWithoutExtension(path);
+		//	//try to find module in wcxmodulelist by name
+		//	var module = FindModuleByName(name);
+		//	if (module == null)
+		//	{
+		//		module = new WdxModule(name, path);
+		//		if (module.LoadModule())
+		//		{
+		//			if (!module.DetectStrings.Contains(detectstring))
+		//			{
+		//				module.DetectStrings.Add(detectstring);
+		//			}
+		//			if (AddModule(module))
+		//				_exts[parts[0].Trim()] = module;
+		//			//}
+		//			//WcxModule wcxModule = WcxPlugins.LoadModule(plugin);
+		//			//if (wcxModule != null)
+		//			//{
+		//			//int flags = module.PluginCapabilities;
+		//			//foreach (string ext in detectstring.Split(','))
+		//			//{
+		//			//	//var result = Add(ext, flags, path);
+		//			//	//FileName[result] = name; // GetPluginFilenameToSave(plugin);
+		//			//}
+		//		}
+		//		else
+		//			Debug.Print($"LOAD MODULE : {path} FAILED");
+		//	}
+		//	else
+		//	{
+		//		if (!module.DetectStrings.Contains(detectstring))
+		//		{
+		//			module.DetectStrings.Add(detectstring);
+		//			_exts[parts[0].Trim()] = module;
+		//			//var result = Add(detectstring, module.PluginCapabilities, path);
+		//			//FileName[result] = name;
+		//		}
+		//	}
+		//}
+		//else
+		//	Debug.Print($"FILE NOT FOUND : {path}");
+		//           }
+		//       }
+		//       //先按照配置读取插件（优先级高），然后按照目录读取插件
+		//       //LoadModulesFromDirectory(Constants.ZfileBinPath + "Plugins\\wdx\\");
+		//   }
+		public void LoadConfiguration()
+		{
+			Debug.Print("load wdx module list configuration");
+			_modules.Clear();
+			_config = Helper.ReadSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ContentPlugins");
+			_configDict = Helper.ParseConfig(_config, "wdx");
+		}
+		public int GetAFlags(int index)
         {
             string currentPlugin = ValueFromIndex(index);
             int commaPos = currentPlugin.IndexOf(',');
@@ -631,14 +639,56 @@ namespace zfile
         {
             return AddObject(ext + "=" + flags + "," + fileName, true);
         }
-        public void SaveConfiguration()
-        {
-            if (!isConfigChanged) return;
-            Helper.WriteSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ContentPlugins", _cfg);
-            LoadConfiguration();
-            isConfigChanged = false;
-        }
-        public bool AddModule(WdxModule module)
+        //public void SaveConfiguration()
+        //{
+        //    if (!isConfigChanged) return;
+        //    Helper.WriteSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ContentPlugins", _config);
+        //    LoadConfiguration();
+        //    isConfigChanged = false;
+        //}
+		public void SaveConfiguration()
+		{
+			if (!isConfigChanged) return;
+			List<string> configContent = new();
+			foreach (var pair in _configDict)
+			{
+				if (!configContent.Contains(pair.Key))
+					configContent.Append(pair.Key + "=" + pair.Value + Environment.NewLine);
+				else
+				{
+					configContent[configContent.IndexOf(pair.Key)] += $",{pair.Value}";
+				}
+			}
+			Helper.WriteSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ContentPlugins", configContent);
+			LoadConfiguration();
+			isConfigChanged = false;
+		}
+		private bool IsModuleSupported(WlxModule module, string fileName)
+		{
+			if (string.IsNullOrEmpty(module.DetectString))
+			{
+				//return false;
+				if (_configDict.TryGetValue(module.Name.ToUpper(), out string val))
+					return isModuleSupport(val, fileName);
+				else
+					return true;
+			}
+
+			return isModuleSupport(module.DetectString, fileName);
+		}
+		private bool isModuleSupport(string DetectString, string filename)
+		{
+			var p = new Dictionary<string, string>();
+			var ext = Path.GetExtension(filename).ToLower().Trim('.');
+			DetectString = DetectString.ToLower().Replace('"', '\'').Replace("[", $"'{ext.Reverse()}'["); //replace " with '
+			var evaluator = new ExpressionEvaluatorClaude();
+			p["ext"] = $"'{ext}'";
+			p["size"] = "1";
+			p["multimedia"] = ".true."; //temp ignore multimedia &
+			p["force"] = ".false."; // temp ignore force |
+			return (bool)evaluator.EvalExpr(DetectString, p);
+		}
+		public bool AddModule(WdxModule module)
         {
             if (module.Name != null && !_modules.Any(m => m.Name != null && m.Name.Equals(module.Name, StringComparison.OrdinalIgnoreCase)))
             {

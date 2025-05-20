@@ -10,7 +10,7 @@ namespace zfile
     /// </summary>
     public static class WdxPlugins
     {
-        internal static WdxModuleList _moduleList = new WdxModuleList(Path.Combine(Constants.ZfileCfgPath, "wdx.xml"));
+        internal static WdxModuleList _moduleList = new WdxModuleList(Path.Combine(Constants.ZfileCfgPath, "wincmd.ini"));
 
         /// <summary>
         /// Gets the WDX module list
@@ -71,14 +71,6 @@ namespace zfile
                 return module;
             }
             return null;
-        }
-
-        /// <summary>
-        /// Initializes the WDX plugins
-        /// </summary>
-        static WdxPlugins()
-        {
-            _moduleList.LoadConfiguration();
         }
     }
 }

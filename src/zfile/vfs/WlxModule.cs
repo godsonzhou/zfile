@@ -325,7 +325,7 @@ namespace zfile
 	{
 		private List<string> _config;
 		public Dictionary<string, string> _configDict;
-		public List<WlxModule> _modules = new List<WlxModule>();
+		public List<WlxModule> _modules = [];
 
 		public List<WlxModule> Modules { get { return _modules; } }
 		public bool isConfigChanged = false;
@@ -335,6 +335,7 @@ namespace zfile
 		}
 		public void LoadConfiguration()
 		{
+			Debug.Print("load configuration for wlxmodulelist ");	//检查是否重复初始化
 			_modules.Clear();
 			_config = Helper.ReadSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ListerPlugins");
 			_configDict = Helper.ParseConfig(_config);
@@ -376,6 +377,7 @@ namespace zfile
 
 		public WlxModule FindModuleForFile(string fileName, ref int tryModuleIdx)
 		{
+			// 应该按照configdict的配置次序依次查找， 而不是_modules的次序（文件系统的顺序）
 			var i = 0;
 			foreach (var module in _modules)
 			{
@@ -392,14 +394,12 @@ namespace zfile
 			}
 			tryModuleIdx = i;
 			return null;
-			//return _modules.FirstOrDefault(m => IsModuleSupported(m, fileName));//TODO BUGFIX: 应该按照configdict的配置次序依次查找， 而不是_modules的次序（文件系统的顺序）
 		}
 
 		private bool IsModuleSupported(WlxModule module, string fileName)
 		{
 			if (string.IsNullOrEmpty(module.DetectString))
 			{
-				//return false;
 				if (_configDict.TryGetValue(module.Name.ToUpper(), out string val))
 					return isModuleSupport(val, fileName);
 				else
@@ -420,36 +420,7 @@ namespace zfile
 			p["force"] = ".false."; // temp ignore force |
 			return (bool)evaluator.EvalExpr(DetectString, p);
 		}
-		private bool isModuleSupportBak(string DetectString, string fileName)
-		{
-			DetectString = DetectString.ToLower();
-			var isMultimedia = (DetectString.Contains("multimedia", StringComparison.OrdinalIgnoreCase));
-			// 删除MULTIMEDIA FORCE ( ) & 空格
-			DetectString = DetectString.Replace("multimedia", "").Replace("force", "").Replace("(", "").Replace(")", "").Replace("&", "").Replace(" ", "");
-			// 解析检测字符串
-			var detectParts = DetectString.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
-			var fileExt = Path.GetExtension(fileName).ToLower().Trim('.');
-			foreach (var part in detectParts)
-			{
-				if (part.StartsWith("ext="))
-				{
-					var extensions = part.Substring(4).Split(',');
-					//if necessary, remove the leading " and trailing " for each extensions item
-					extensions = Helper.RemoveQuotes(extensions);
-					if (extensions.Any(ext => fileExt.Equals(ext, StringComparison.OrdinalIgnoreCase)))
-						return true;
-				}
-				// 可以添加其他检测规则的支持
-			}
-			//TODO BUGFIX: 遇到MULTIMEDIA|特殊处理
-			if (isMultimedia)
-			{
-				var mexts = "avi,mpg,mpeg,mp3,mp4,flv,wmv,rm,rmvb,3gp,ogg,webm,flac,wav,ape,alac,aac,ac3,amr,ape,au,awb,caf,dts,flac,m4a,mka,mlp,mp2,mpa,mpc,ofr,ofs,oga".Split(',');
-				if (mexts.Any(ext => fileExt.Equals(ext, StringComparison.OrdinalIgnoreCase)))
-					return true;
-			}
-			return false;
-		}
+	
 		public void LoadModulesFromDirectory(string directory)
 		{
 			if (!Directory.Exists(directory)) return;

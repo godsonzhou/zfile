@@ -5,7 +5,7 @@ namespace zfile
     /// </summary>
     public static class WcxPlugins
     {
-        private static WcxModuleList _moduleList = new WcxModuleList();
+        public static WcxModuleList _moduleList;
 
         /// <summary>
         /// Gets the number of registered WCX plugins
@@ -86,9 +86,11 @@ namespace zfile
         /// <summary>
         /// Initializes the WCX plugins
         /// </summary>
-        static WcxPlugins()
-        {
-            _moduleList.LoadConfiguration();
-        }
+   //     static WcxPlugins()
+   //     {
+			////if (_moduleList == null)
+			////	_moduleList = new WcxModuleList("static");
+   //         //_moduleList.LoadConfiguration();
+   //     }
     }
 }

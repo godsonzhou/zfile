@@ -208,7 +208,7 @@ namespace zfile.Forms
                 if (archiveType.EndsWith('*'))
                     archiveType = archiveType.TrimEnd('*');
 
-                var wcxModule = MainForm.wcxModuleList?.GetModuleByExt(archiveType);
+                var wcxModule = WcxPlugins._moduleList?.GetModuleByExt(archiveType);
                 if (wcxModule != null)
                 {
                     // 调用WCX插件的配置界面

@@ -1033,7 +1033,7 @@ namespace zfile
 		private static void SetPackDialogOptions(PackOptionDialog dialog, string archiveType, bool hasFolder)
 		{
 			// 获取WCX插件
-			var wcxModule = MainForm.wcxModuleList?.GetModuleByExt(archiveType);
+			var wcxModule = WcxPlugins._moduleList?.GetModuleByExt(archiveType);
 			if (wcxModule == null) return;
 
 			// 获取插件能力

@@ -300,7 +300,7 @@ namespace zfile
 		private FileEntry[] draggedItems;
 		private TreeNode rightClickBegin;
 		private string? oldname;
-		public static WcxModuleList? wcxModuleList;
+		public WcxModuleList? wcxModuleList { get => WcxPlugins._moduleList; set => WcxPlugins._moduleList = value; }
 		public static WlxModuleList? wlxModuleList;
 		private Dictionary<string, IntPtr> openArchives = new Dictionary<string, IntPtr>();
 		private Dictionary<string, string> archivePaths = new Dictionary<string, string>();
@@ -496,8 +496,8 @@ namespace zfile
 			// 初始化插件模块
 			// WdxModuleList is already initialized in WdxPlugins static constructor
 			WfxModuleList wfxModuleList = new WfxModuleList("");
-			wcxModuleList = new WcxModuleList();
-			wcxModuleList.LoadConfiguration();
+			wcxModuleList = new WcxModuleList(DateTime.Now.ToString());
+			//wcxModuleList.LoadConfiguration();
 			wlxModuleList = new WlxModuleList();
 
 			// 初始化 VFS 模块

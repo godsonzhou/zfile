@@ -17,6 +17,7 @@ namespace WinShell
 		public string Name;
 		public string IconKey;
 		public string SubNodeState;
+		public IntPtr[] ChildPIDLs;
 		public ShellItem(IntPtr PIDL, IShellFolder ShellFolder, IShellFolder ParentShellFolder)
 		{
 			this.PIDL = PIDL;
@@ -36,10 +37,13 @@ namespace WinShell
 			if (!_disposed)
 			{
 				Debug.Print($"// 释放{Name} {parsepath} 以及其子PIDL列表");
-				foreach (var pidl in GetChildPIDLs())
+				if (ChildPIDLs != null)
 				{
-					API.ILFree(pidl);
-					Debug.Print($"// 释放子PIDL {pidl}");
+					foreach (var pidl in ChildPIDLs)
+					{
+						API.ILFree(pidl);
+						Debug.Print($"// 释放子PIDL {pidl}");
+					}
 				}
 				API.ILFree(PIDL);
 				Debug.Print($"// 释放PIDL {PIDL}");
@@ -50,31 +54,31 @@ namespace WinShell
 		}
 
 		~ShellItem() => Dispose(false);
-		public IntPtr[] GetChildPIDLs(SHCONTF shcontf = SHCONTF.FOLDERS)
-		{
-			List<IntPtr> pidls = new List<IntPtr>();
-			try
-			{
-				if (ShellFolder != null)
-				{
-					if (ShellFolder.EnumObjects(IntPtr.Zero, shcontf, out IntPtr pEnumIDList) == w32.S_OK)
-					{
-						if (pEnumIDList != IntPtr.Zero)
-						{
-							var e = (IEnumIDList)Marshal.GetObjectForIUnknown(pEnumIDList);
-							while (e.Next(1, out IntPtr pidlSub, out uint celtFetched) == 0 && celtFetched == w32.S_FALSE) //获取子节点的pidl
-							{
-								pidls.Add(pidlSub);
-							}
-						}
-					}
-				}
-			} 
-			catch { 
-				Debug.Print("exception in getchildpidls"); 
-			}
-			return pidls.ToArray();
-		}
+		//public IntPtr[] GetChildPIDLs(SHCONTF shcontf = SHCONTF.FOLDERS)
+		//{
+		//	List<IntPtr> pidls = new List<IntPtr>();
+		//	try
+		//	{
+		//		if (ShellFolder != null)
+		//		{
+		//			if (ShellFolder.EnumObjects(IntPtr.Zero, shcontf, out IntPtr pEnumIDList) == w32.S_OK)
+		//			{
+		//				if (pEnumIDList != IntPtr.Zero)
+		//				{
+		//					var e = (IEnumIDList)Marshal.GetObjectForIUnknown(pEnumIDList);
+		//					while (e.Next(1, out IntPtr pidlSub, out uint celtFetched) == 0 && celtFetched == w32.S_FALSE) //获取子节点的pidl
+		//					{
+		//						pidls.Add(pidlSub);
+		//					}
+		//				}
+		//			}
+		//		}
+		//	} 
+		//	catch { 
+		//		Debug.Print("exception in getchildpidls"); 
+		//	}
+		//	return pidls.ToArray();
+		//}
 		public bool IsDir
 		{
 			get
@@ -85,7 +89,7 @@ namespace WinShell
 		}
 		public int ChildCount()
 		{
-			return GetChildPIDLs().Length;
+			return ChildPIDLs.Length;
 		}
 		public bool IsChildrenExist(bool includefile = false)
 		{

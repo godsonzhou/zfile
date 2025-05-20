@@ -99,7 +99,7 @@ namespace zfile
 			Size = new Size(1024, 768);
             //this.commandHotkeys = commandHotkeys;
             this.mainForm = mainForm;
-			this.wcxModuleList = MainForm.wcxModuleList;
+			this.wcxModuleList = WcxPlugins._moduleList;
 			// 初始化ToolTip
 			toolTip = new ToolTip
 			{
@@ -372,7 +372,7 @@ namespace zfile
 		private void UpdateWcxConfiguration(DataGridView grid)
 		{
 			// 清除现有配置
-			MainForm.wcxModuleList._cfg.Clear();
+			WcxPlugins._moduleList._cfg.Clear();
 
 			// 从grid重建配置
 			foreach (DataGridViewRow row in grid.Rows)
@@ -380,14 +380,14 @@ namespace zfile
 				string ext = row.Cells["Extension"].Value?.ToString() ?? "";
 				string pluginName = row.Cells["PluginName"].Value?.ToString() ?? "";
 
-				var module = MainForm.wcxModuleList.FindModuleByName(pluginName);
+				var module = WcxPlugins._moduleList.FindModuleByName(pluginName);
 				if (module != null)
 				{
 					//MainForm.wcxModuleList._configDict[ext] = module.Name;
-					MainForm.wcxModuleList._cfg.Add($"{ext}=0,{module.FilePath}");
+					WcxPlugins._moduleList._cfg.Add($"{ext}=0,{module.FilePath}");
 				}
 			}
-			MainForm.wcxModuleList.isConfigChanged = true;
+			WcxPlugins._moduleList.isConfigChanged = true;
 		}
 		// 重写FormClosing事件，防止有冲突时关闭窗口
 		protected override void OnFormClosing(FormClosingEventArgs e)
@@ -809,7 +809,7 @@ namespace zfile
 			mainForm.keyManager.SaveKeyMappingToConfigFile();
 			// 保存WLX配置
 			MainForm.wlxModuleList.SaveConfiguration();
-			MainForm.wcxModuleList.SaveConfiguration();
+			WcxPlugins._moduleList.SaveConfiguration();
 			// save font
 			updateFont();
 			UpdateBasicSettings();

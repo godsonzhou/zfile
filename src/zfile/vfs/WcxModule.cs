@@ -1225,7 +1225,7 @@ namespace zfile
 		public List<string> _cfg = new List<string>();
 		public Dictionary<string, WcxModule> _exts = new Dictionary<string, WcxModule>();
 		public bool isConfigChanged = false;
-
+		public string Identifier;
 		/// <summary>
 		/// Gets the extension at the specified index
 		/// </summary>
@@ -1426,8 +1426,9 @@ namespace zfile
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public WcxModuleList()
+		public WcxModuleList(string identifier)
 		{
+			Identifier = identifier;
 			LoadConfiguration();
 		}
 		public WcxModule? FindModuleByName(string name)
@@ -1510,6 +1511,7 @@ namespace zfile
 		}
 		public void LoadConfiguration()
 		{
+			Debug.Print($"wcx module list {Identifier} load configuration...");
 			/* [PackerPlugins]
 			lst=21,%COMMANDER_PATH%\Plugins\Wcx\DiskDir\DiskDir.wcx64
 			ico=327,%COMMANDER_PATH%\Plugins\Wlx\Imagine\Imagine.wcx64

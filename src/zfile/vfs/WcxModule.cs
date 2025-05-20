@@ -515,6 +515,71 @@ namespace zfile
 				_extensionFinalize(IntPtr.Zero);
 			UnloadModule();
 		}
+		/// <summary>
+		/// Reads a header from a WCX archive
+		/// </summary>
+		/// <param name="module">The WCX module</param>
+		/// <param name="arcHandle">The archive handle</param>
+		/// <param name="header">The header to fill</param>
+		/// <returns>0 on success, non-zero on failure</returns>
+		public int ReadWCXHeader(IntPtr arcHandle, ref WcxHeader header)
+		{
+			// No need to initialize headerData as it will be filled by ReadHeader
+			if (ReadHeader(arcHandle, out var headerData))
+			{
+				header = headerData;
+				return 0; // Success
+			}
+			return -1; // Error
+		}
+
+		/// <summary>
+		/// Converts a DOS file time to a DateTime
+		/// </summary>
+		/// <param name="fileTime">The DOS file time</param>
+		/// <returns>The corresponding DateTime</returns>
+		public static DateTime FileTimeToDateTime(int fileTime)
+		{
+			try
+			{
+				// Convert DOS time format to DateTime
+				int year = ((fileTime >> 25) & 0x7F) + 1980;
+				int month = (fileTime >> 21) & 0x0F;
+				int day = (fileTime >> 16) & 0x1F;
+				int hour = (fileTime >> 11) & 0x1F;
+				int minute = (fileTime >> 5) & 0x3F;
+				int second = (fileTime & 0x1F) * 2;
+
+				return new DateTime(year, month, day, hour, minute, second);
+			}
+			catch
+			{
+				return DateTime.MinValue;
+			}
+		}
+
+		/// <summary>
+		/// Sets the crypt callback for a WCX module
+		/// </summary>
+		/// <param name="module">The WCX module</param>
+		/// <param name="cryptoNr">The crypto number</param>
+		/// <param name="flags">The flags</param>
+		/// <param name="cryptProcA">The ANSI crypt callback</param>
+		/// <param name="cryptProcW">The Unicode crypt callback</param>
+		public void SetCryptCallback(int cryptoNr, int flags,
+			CryptProcDelegate cryptProcA, CryptProcDelegate cryptProcW)
+		{
+			if (IsUnicode && cryptProcW != null)
+			{
+				IntPtr pProc = Marshal.GetFunctionPointerForDelegate(cryptProcW);
+				SetCryptCallback(pProc, cryptoNr, flags);
+			}
+			else if (cryptProcA != null)
+			{
+				IntPtr pProc = Marshal.GetFunctionPointerForDelegate(cryptProcA);
+				SetCryptCallback(pProc, cryptoNr, flags);
+			}
+		}
 		public int ChangeVolProc(ref string arcName, int mode)
 		{
 			switch ((ChangeVolProcFlags)mode)
@@ -1325,7 +1390,7 @@ namespace zfile
 		/// </summary>
 		/// <param name="file">The file to load</param>
 		/// <returns>The loaded module, or null if loading failed</returns>
-		public WcxModule? LoadModule(string path, string detectstring)
+		public WcxModule? LoadModule(string path, string? detectstring = null)
 		{
 			if (File.Exists(path))
 			{
@@ -1337,22 +1402,24 @@ namespace zfile
 					module = new WcxModule(name, path);
 					if (module.LoadModule())
 					{
-						if (!module.DetectStrings.Contains(detectstring))
+						if (!string.IsNullOrEmpty(detectstring) && !module.DetectStrings.Contains(detectstring))
 							module.DetectStrings.Add(detectstring);
 						if (AddModule(module))
 							_exts[module.Name.ToLower().Trim()] = module;
-
 						int flags = module.PluginCapabilities;
-						foreach (string ext in detectstring.Split(','))
+						if (!string.IsNullOrEmpty(detectstring))
 						{
-							var result = Add(ext, flags, path);
-							FileName[result] = name;
+							foreach (string ext in detectstring.Split(','))
+							{
+								var result = Add(ext, flags, path);
+								FileName[result] = name;
+							}
 						}
 					}
 				}
 				else
 				{
-					if (!module.DetectStrings.Contains(detectstring))
+					if (!string.IsNullOrEmpty(detectstring) && !module.DetectStrings.Contains(detectstring))
 					{
 						module.DetectStrings.Add(detectstring);
 						_exts[module.Name.ToLower().Trim()] = module;
@@ -1376,7 +1443,7 @@ namespace zfile
 			foreach (var subdir in subdirs)
 			{
 				foreach (var file in Directory.GetFiles(subdir, "*.wcx*"))
-					LoadModule(file, null);
+					LoadModule(file);
 			}
 		}
 		public void SaveConfiguration()
@@ -1462,78 +1529,6 @@ namespace zfile
 					return i;
 			}
 			return -1;
-		}
-	}
-
-	/// <summary>
-	/// Extension methods for WcxModule
-	/// </summary>
-	public static class WcxModuleExtensions
-	{
-		/// <summary>
-		/// Reads a header from a WCX archive
-		/// </summary>
-		/// <param name="module">The WCX module</param>
-		/// <param name="arcHandle">The archive handle</param>
-		/// <param name="header">The header to fill</param>
-		/// <returns>0 on success, non-zero on failure</returns>
-		public static int ReadWCXHeader(this WcxModule module, IntPtr arcHandle, ref WcxHeader header)
-		{
-			// No need to initialize headerData as it will be filled by ReadHeader
-			if (module.ReadHeader(arcHandle, out var headerData))
-			{
-				header = headerData;
-				return 0; // Success
-			}
-			return -1; // Error
-		}
-
-		/// <summary>
-		/// Converts a DOS file time to a DateTime
-		/// </summary>
-		/// <param name="fileTime">The DOS file time</param>
-		/// <returns>The corresponding DateTime</returns>
-		public static DateTime FileTimeToDateTime(int fileTime)
-		{
-			try
-			{
-				// Convert DOS time format to DateTime
-				int year = ((fileTime >> 25) & 0x7F) + 1980;
-				int month = (fileTime >> 21) & 0x0F;
-				int day = (fileTime >> 16) & 0x1F;
-				int hour = (fileTime >> 11) & 0x1F;
-				int minute = (fileTime >> 5) & 0x3F;
-				int second = (fileTime & 0x1F) * 2;
-
-				return new DateTime(year, month, day, hour, minute, second);
-			}
-			catch
-			{
-				return DateTime.MinValue;
-			}
-		}
-
-		/// <summary>
-		/// Sets the crypt callback for a WCX module
-		/// </summary>
-		/// <param name="module">The WCX module</param>
-		/// <param name="cryptoNr">The crypto number</param>
-		/// <param name="flags">The flags</param>
-		/// <param name="cryptProcA">The ANSI crypt callback</param>
-		/// <param name="cryptProcW">The Unicode crypt callback</param>
-		public static void SetCryptCallback(this WcxModule module, int cryptoNr, int flags,
-			CryptProcDelegate cryptProcA, CryptProcDelegate cryptProcW)
-		{
-			if (module.IsUnicode && cryptProcW != null)
-			{
-				IntPtr pProc = Marshal.GetFunctionPointerForDelegate(cryptProcW);
-				module.SetCryptCallback(pProc, cryptoNr, flags);
-			}
-			else if (cryptProcA != null)
-			{
-				IntPtr pProc = Marshal.GetFunctionPointerForDelegate(cryptProcA);
-				module.SetCryptCallback(pProc, cryptoNr, flags);
-			}
 		}
 	}
 }

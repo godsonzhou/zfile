@@ -1170,9 +1170,9 @@ namespace zfile
 
 	public class WcxModuleList : StringList
 	{
-		public List<WcxModule> _modules = new List<WcxModule>();
-		public List<string> _cfg = new List<string>();
-		public Dictionary<string, WcxModule> _exts = new Dictionary<string, WcxModule>();
+		public List<WcxModule> _modules = [];
+		public List<string> _cfg = [];
+		public Dictionary<string, WcxModule> _exts = [];
 		public bool isConfigChanged = false;
 		public string Identifier;
 		/// <summary>
@@ -1403,16 +1403,16 @@ namespace zfile
 					module = new WcxModule(filename, path);//todo: 传入的参数不是路径？？？
 					if (module.LoadModule())
 					{
-						var modulename = module.Name.ToLower().Trim();
+						//var modulename = module.Name.ToLower().Trim();
 						if (!string.IsNullOrEmpty(detectstring) && !module.DetectStrings.Contains(detectstring))
 							module.DetectStrings.Add(detectstring);
 							
 						if (AddModule(module))
-							_exts[modulename] = module;
+							_exts[detectstring] = module;
 
 						int flags = module.PluginCapabilities;
 						//if (!string.IsNullOrEmpty(detectstring))
-						{
+						{	
 							foreach (string ext in detectstring.Split(','))
 							{
 								var result = Add(ext, flags, path);

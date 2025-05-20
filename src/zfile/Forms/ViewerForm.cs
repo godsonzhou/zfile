@@ -48,7 +48,7 @@ namespace zfile.Forms
 		private MenuStrip _menuStrip;
 		private Timer _animationTimer;
 		private Timer _screenshotTimer;
-		private bool isPluginLoaded;
+		//private bool isPluginLoaded;
 
 		public string FileName
 		{
@@ -178,7 +178,7 @@ namespace zfile.Forms
 			//_pluginList = new WlxModuleList();
 			string pluginPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins\\wlx");
 			_pluginList.LoadModulesFromDirectory(pluginPath);
-			isPluginLoaded = true;
+			//isPluginLoaded = true;
 			return _pluginList;
 		}
 

@@ -199,43 +199,6 @@ namespace zfile
 		private readonly VfsModuleManager _vfsModuleManager = new VfsModuleManager();
 		private readonly FileSourceManager _fileSourceManager = FileSourceManager.Instance;
 
-		// Method to update thumbnail progress asynchronously
-		//private async Task UpdateThumbnailProgressAsync(int current, int total, bool isLeft)
-		//{
-		//	await Task.Run(() =>
-		//	{
-		//		var statusStrip = isLeft ? uiManager.LeftStatusStrip : uiManager.RightStatusStrip;
-		//		var progressBar = statusStrip.Items[$"thumbnailProgress{(isLeft ? 'L' : 'R')}"] as ToolStripProgressBar;
-		//		var statusLabel = statusStrip.Items[$"thumbnailStatus{(isLeft ? 'L' : 'R')}"] as ToolStripStatusLabel;
-
-		//		if (progressBar != null && statusLabel != null)
-		//		{
-		//			if (current == 0 && total == 0)
-		//			{
-		//				progressBar.Visible = false;
-		//				statusLabel.Visible = false;
-		//				return;
-		//			}
-
-		//			if (!progressBar.Visible)
-		//			{
-		//				progressBar.Visible = true;
-		//				statusLabel.Visible = true;
-		//			}
-
-		//			progressBar.Maximum = total;
-		//			progressBar.Value = current;
-		//			statusLabel.Text = $"Generating thumbnails: {current}/{total}";
-
-		//			if (current >= total)
-		//			{
-		//				progressBar.Visible = false;
-		//				statusLabel.Visible = false;
-		//			}
-		//		}
-		//	});
-		//}
-
 		public readonly LLM_Helper lLM_Helper;
 		public readonly MCPClientManager mcpClientMgr;
 		public readonly CFGLOADER configLoader;

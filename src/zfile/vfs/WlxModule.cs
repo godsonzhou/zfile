@@ -329,6 +329,7 @@ namespace zfile
 
 		public List<WlxModule> Modules { get { return _modules; } }
 		public bool isConfigChanged = false;
+		public bool ModuleLoaded = false;
 		public WlxModuleList()
 		{
 			LoadConfiguration();
@@ -423,13 +424,14 @@ namespace zfile
 	
 		public void LoadModulesFromDirectory(string directory)
 		{
+			if (ModuleLoaded) return;
 			if (!Directory.Exists(directory)) return;
 
 			//读取pluginpath目录下所有子目录的plugins
 			var subdirs = Directory.GetDirectories(directory, "*", SearchOption.AllDirectories);
 			foreach (var subdir in subdirs)
 			{
-				foreach (var file in Directory.GetFiles(subdir, "*.wlx*"))
+				foreach (var file in Directory.GetFiles(subdir, "*.wlx64"))
 				{
 					try
 					{
@@ -449,6 +451,7 @@ namespace zfile
 					}
 				}
 			}
+			ModuleLoaded = true;
 		}
 
 		public void Dispose()

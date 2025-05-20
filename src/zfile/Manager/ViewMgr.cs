@@ -72,7 +72,7 @@ namespace zfile
 		/// <summary>
 		/// Apply view settings to a ListView based on folder statistics and rules
 		/// </summary>
-		public string ApplyViewToListView(ListView listView, string folderPath, IFileSource fileSource)
+		public string ApplyViewToListView(ListView listView, string folderPath, IFileSource fileSource, out FileEntries files)
 		{
 			try
 			{
@@ -80,7 +80,7 @@ namespace zfile
 
 				// Get folder statistics
 				var stats = FolderStatistics.GetFolderStats(folderPath, fileSource);
-
+				files = stats.files;
 				// Determine which view mode to use based on rules
 				string viewModeName = DetermineViewMode(stats, folderPath);
 
@@ -100,6 +100,7 @@ namespace zfile
 			{
 				Debug.Print($"Error applying view to ListView: {ex.Message}");
 			}
+			files = new();
 			return defaultViewMode;
 		}
 

@@ -2425,31 +2425,6 @@ namespace zfile
 			Debug.Print($"load listview by filesource [{listView.Name}]: {path}");
 			try
 			{
-				// 创建列表操作
-				var listOperation = fileSource?.CreateListOperation(path);
-				if (listOperation == null)
-				{
-					Debug.Print($"无法为路径 {path} 创建列表操作");
-					return;
-				}
-
-				// 执行列表操作
-				_operationsManager.AddOperation(listOperation);
-				listOperation._Thread.WaitFor();    // 等待操作完成
-
-				// 获取文件列表结果
-				if (listOperation is not FileSourceListOperation fileListOperation)
-				{
-					Debug.Print($"操作不是 FileSourceListOperation 类型");
-					return;
-				}
-				var files = fileListOperation.Files;    //files include '.' '..' , for wcx: fileentry.fullpath = "\\aaa\\test.txt", is wcx internal usage
-				if (files == null)
-				{
-					Debug.Print($"列表操作未返回文件列表");
-					return;
-				}
-
 				// 更新 ListView
 				listView.BeginUpdate();
 				listView.Items.Clear();
@@ -2457,7 +2432,7 @@ namespace zfile
 				showFolderSize = configLoader.FindConfigValue("Configuration", "EverythingForSize").Equals("1");
 
 				// 应用视图管理器设置 - 根据文件夹内容自动切换视图模式
-				var viewname = viewMgr.ApplyViewToListView(listView, path, fileSource);//todo: 当计算统计信息时有重复的listoperation操作，待优化
+				var viewname = viewMgr.ApplyViewToListView(listView, path, fileSource, out var files);
 
 				// 添加所有项目到 ListView
 				foreach (var file in files)

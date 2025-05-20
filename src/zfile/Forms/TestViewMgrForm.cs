@@ -169,7 +169,7 @@ namespace zfile
                 DisplayFolderStats(stats);
 
                 // 应用视图管理器设置
-                mainForm.viewMgr.ApplyViewToListView(testListView, path, fileSource);
+                mainForm.viewMgr.ApplyViewToListView(testListView, path, fileSource, out _);
 
                 // 获取当前应用的视图模式
                 string viewMode = mainForm.viewMgr.GetCurrentViewMode(true);

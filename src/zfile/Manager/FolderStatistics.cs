@@ -25,6 +25,7 @@ namespace zfile
         /// </summary>
         public class FolderStats
         {
+			public FileEntries files { get; set; }
             // Basic counts
             public int TotalFiles { get; set; }
             public int TotalFolders { get; set; }
@@ -78,9 +79,9 @@ namespace zfile
         /// <summary>
         /// Get statistics for a folder, using cached data if available and not expired
         /// </summary>
-        public static FolderStats GetFolderStats(string folderPath, IFileSource fileSource, bool forceRefresh = false)
+        public static FolderStats  GetFolderStats(string folderPath, IFileSource fileSource, bool forceRefresh = false)
         {
-            if (string.IsNullOrEmpty(folderPath))
+			if (string.IsNullOrEmpty(folderPath))
                 return new FolderStats();
                 
             // Normalize path for cache lookup
@@ -97,9 +98,9 @@ namespace zfile
                         return cachedStats;
                     }
                 }
-                
-                // Calculate new stats
-                FolderStats stats = CalculateFolderStats(folderPath, fileSource);
+
+				// Calculate new stats
+				var stats = CalculateFolderStats(folderPath, fileSource);
                 
                 // Update cache
                 _statsCache[normalizedPath] = stats;
@@ -131,7 +132,7 @@ namespace zfile
         {
             FolderStats stats = new FolderStats();
             Dictionary<string, int> extensionCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            
+			//FileEntries files = new ();
             try
             {
                 // Set special folder flags based on file source type
@@ -150,6 +151,7 @@ namespace zfile
                     
                     if (listOperation is FileSourceListOperation fileListOperation && fileListOperation.Files != null)
                     {
+						stats.files = fileListOperation.Files;
                         foreach (var file in fileListOperation.Files)
                         {
                             // Skip . and .. entries

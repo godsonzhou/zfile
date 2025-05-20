@@ -384,7 +384,7 @@ namespace zfile
 				if (module != null)
 				{
 					//MainForm.wcxModuleList._configDict[ext] = module.Name;
-					WcxPlugins._moduleList._cfg.Add($"{ext}=0,{module.FilePath}");
+					WcxPlugins._moduleList._cfg.Add($"{ext}={module.PluginCapabilities},{module.FilePath}");
 				}
 			}
 			WcxPlugins._moduleList.isConfigChanged = true;

@@ -1390,7 +1390,7 @@ namespace zfile
 		/// </summary>
 		/// <param name="file">The file to load</param>
 		/// <returns>The loaded module, or null if loading failed</returns>
-		public WcxModule? LoadModule(string path, string? detectstring = null)
+		public WcxModule? LoadModule(string path, string? detectstring = "")
 		{
 			if (File.Exists(path))
 			{
@@ -1400,7 +1400,7 @@ namespace zfile
 
 				if (module == null)
 				{
-					module = new WcxModule(filename, path);
+					module = new WcxModule(filename, path);//todo: 传入的参数不是路径？？？
 					if (module.LoadModule())
 					{
 						var modulename = module.Name.ToLower().Trim();
@@ -1411,7 +1411,7 @@ namespace zfile
 							_exts[modulename] = module;
 
 						int flags = module.PluginCapabilities;
-						if (string.IsNullOrEmpty(detectstring))
+						//if (!string.IsNullOrEmpty(detectstring))
 						{
 							foreach (string ext in detectstring.Split(','))
 							{
@@ -1426,7 +1426,7 @@ namespace zfile
 					if (!string.IsNullOrEmpty(detectstring) && !module.DetectStrings.Contains(detectstring))
 					{
 						module.DetectStrings.Add(detectstring);
-						_exts[module.Name.ToLower().Trim()] = module;
+						_exts[detectstring] = module;
 						var result = Add(detectstring, module.PluginCapabilities, path);
 						FileName[result] = filename;
 					}
@@ -1439,17 +1439,17 @@ namespace zfile
 		/// Loads all WCX modules from a directory and its subdirectories
 		/// </summary>
 		/// <param name="directory">The directory to load modules from</param>
-		//private void LoadModulesFromDirectory(string directory)
-		//{
-		//	if (!Directory.Exists(directory)) return;
+		private void LoadModulesFromDirectory(string directory)
+		{
+			if (!Directory.Exists(directory)) return;
 
-		//	var subdirs = Directory.GetDirectories(directory, "*", SearchOption.AllDirectories);
-		//	foreach (var subdir in subdirs)
-		//	{
-		//		foreach (var file in Directory.GetFiles(subdir, "*.wcx*"))
-		//			LoadModule(file);
-		//	}
-		//}
+			var subdirs = Directory.GetDirectories(directory, "*", SearchOption.AllDirectories);
+			foreach (var subdir in subdirs)
+			{
+				foreach (var file in Directory.GetFiles(subdir, "*.wcx*"))
+					LoadModule(file);
+			}
+		}
 		public void SaveConfiguration()
 		{
 			if (!isConfigChanged) return;
@@ -1486,7 +1486,7 @@ namespace zfile
 				}
 			}
 			//先按照配置读取插件（优先级高），然后按照目录读取插件
-			//LoadModulesFromDirectory(Constants.ZfileBinPath + "Plugins\\wcx\\");
+			LoadModulesFromDirectory(Constants.ZfileBinPath + "Plugins\\wcx\\");
 		}
 		public WcxModule? GetModuleByExt(string ext)
 		{

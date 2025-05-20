@@ -95,7 +95,7 @@ namespace zfile
 
             try
             {
-                file.ModificationTime = WcxModuleExtensions.FileTimeToDateTime(header.FileTime);
+                file.ModificationTime = WcxModule.FileTimeToDateTime(header.FileTime);
             }
             catch (Exception) { }
 

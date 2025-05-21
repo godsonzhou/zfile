@@ -1063,12 +1063,10 @@ namespace zfile
 			listView.Sorting = SortOrder.Ascending;
 			listView.Columns.Clear();
 			listView.Columns.Add("名称", 250); // 新增图标列
-			//listView.Columns.Add("名称", 0); // 隐藏名称列
-			listView.Columns.Add("大小", 100);
-			listView.Columns.Add("类型", 80);
-			listView.Columns.Add("修改日期", 150);
-			//listView.Columns.Add("大小", 0); // hide
-			listView.Columns.Add("属性", 80); // 新增属性列，显示RAHSC或L777格式
+			listView.Columns.Add("大小", 80);
+			listView.Columns.Add("类型", 60);
+			listView.Columns.Add("修改日期", 130);
+			listView.Columns.Add("属性", 60); // 新增属性列，显示RAHSC或L777格式
 			listView.AllowDrop = true;
 			listView.ItemDrag += form.ListView_ItemDrag;
 			listView.DragOver += form.ListView_DragOver;

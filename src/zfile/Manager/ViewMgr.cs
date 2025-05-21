@@ -42,11 +42,11 @@ namespace zfile
 		public Dictionary<string, ViewSwitchRule> viewSwitchRules = new();
 
 		// Default view mode to use when no rules match
-		private string defaultViewMode = "默认";
+		private string defaultViewMode = "0";	// 0 means default
 
 		// Currently applied view modes for left and right panels
-		private string currentLeftViewMode = "默认";
-		private string currentRightViewMode = "默认";
+		private string currentLeftViewMode = "0";
+		private string currentRightViewMode = "0";
 
 		public ViewMgr(MainForm form)
 		{
@@ -303,11 +303,11 @@ namespace zfile
 				// Apply default view mode
 				listView.View = (View)viewmodeid;
 				listView.Columns.Clear();
-				listView.Columns.Add("文件名", 200);
-				listView.Columns.Add("大小", 100);
-				listView.Columns.Add("扩展名", 100);
-				listView.Columns.Add("修改时间", 150);
-				listView.Columns.Add("属性", 150);
+				listView.Columns.Add("名称", 250);
+				listView.Columns.Add("大小", 80);
+				listView.Columns.Add("类型", 60);
+				listView.Columns.Add("修改时间", 130);
+				listView.Columns.Add("属性", 60);
 			}
 			else if (viewmodeid == 5)
 			{
@@ -343,7 +343,7 @@ namespace zfile
 						ColumnHeader column = new ColumnHeader
 						{
 							Text = colDef.header,
-							Width = colDef.width
+							Width = Math.Abs(colDef.width)
 						};
 
 						// Set alignment based on content

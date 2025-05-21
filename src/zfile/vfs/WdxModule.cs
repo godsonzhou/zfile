@@ -26,6 +26,10 @@ namespace zfile
         public const int WDX_SUCCESS = 0;
         public const int WDX_ERROR = 1;
         public const int WDX_NOTFOUND = -1;
+
+        // 特殊字段类型常量（用于全文处理）
+        public const int FT_FIELDEMPTY = 0;      // 字段为空
+        public const int FT_FULLTEXTW = 11;      // Unicode全文本
     }
 
     //[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
@@ -138,7 +142,22 @@ namespace zfile
         public bool IsUnicode => _isUnicode;
         public IReadOnlyList<WdxField> Fields => _fields.AsReadOnly();
         public string FileName { get => _modulePath; set => _modulePath = value; }
-        public string DetectString;
+        public string? DetectString;
+
+        /// <summary>
+        /// 获取字段索引
+        /// </summary>
+        /// <param name="fieldName">字段名称</param>
+        /// <returns>字段索引，如果未找到则返回-1</returns>
+        private int GetFieldIndex(string fieldName)
+        {
+            for (int i = 0; i < _fields.Count; i++)
+            {
+                if (_fields[i].Name.Equals(fieldName, StringComparison.OrdinalIgnoreCase))
+                    return i;
+            }
+            return -1;
+        }
         #endregion
 
         #region 构造函数和初始化
@@ -160,8 +179,8 @@ namespace zfile
         public bool LoadModule()
         {
             if (IsLoaded) return true;
-			if (!File.Exists(_modulePath))
-				return false;
+            if (!File.Exists(_modulePath))
+                return false;
 
             try
             {
@@ -245,14 +264,14 @@ namespace zfile
                         _contentSetDefaultParams(pDps);
                         Marshal.FreeHGlobal(pDps);
                     }
-					StringBuilder detectstring = new();
-					if (_contentGetDetectString != null)
-					{
-						var str = GetDetectString();
-						if(!string.IsNullOrEmpty(str))
-							DetectString = str;
-					}
-				}
+                    StringBuilder detectstring = new();
+                    if (_contentGetDetectString != null)
+                    {
+                        var str = GetDetectString();
+                        if (!string.IsNullOrEmpty(str))
+                            DetectString = str;
+                    }
+                }
                 catch (Exception ex)
                 {
                     UnloadModule();
@@ -353,6 +372,94 @@ namespace zfile
             }
         }
 
+        /// <summary>
+        /// 通过字段索引和单位索引获取值的变体类型
+        /// 对应 Pascal 的 CallContentGetValueV(FileName, FieldIndex, UnitIndex, flags)
+        /// </summary>
+        public object? GetValueV(string fileName, int fieldIndex, int unitIndex = 0, int flag = 0)
+        {
+            if (!IsLoaded || fieldIndex < 0 || fieldIndex >= _fields.Count)
+                return null;
+
+            try
+            {
+                const int bufferSize = 2048;
+                StringBuilder valuePtr = new(bufferSize);
+                int result;
+
+                if (_isUnicode)
+                {
+                    result = _contentGetValueW(fileName, fieldIndex, unitIndex, valuePtr, bufferSize, flag);
+                }
+                else
+                {
+                    result = _contentGetValue(fileName, fieldIndex, unitIndex, valuePtr, bufferSize, flag);
+                }
+
+                if (result <= 0)
+                    return null;
+
+                // 根据字段类型处理返回值
+                WdxField field = _fields[fieldIndex];
+                string value = valuePtr.ToString();
+
+                switch (field.Type)
+                {
+                    case WdxConstants.FT_NUMERIC_32:
+                        if (int.TryParse(value, out int intValue))
+                            return intValue;
+                        return 0;
+                    case WdxConstants.FT_NUMERIC_64:
+                        if (long.TryParse(value, out long longValue))
+                            return longValue;
+                        return 0L;
+                    case WdxConstants.FT_NUMERIC_FLOATING:
+                        if (double.TryParse(value, out double doubleValue))
+                            return doubleValue;
+                        return 0.0;
+                    case WdxConstants.FT_BOOLEAN:
+                        if (int.TryParse(value, out int boolValue))
+                            return boolValue != 0;
+                        return false;
+                    case WdxConstants.FT_DATE:
+                    case WdxConstants.FT_TIME:
+                    case WdxConstants.FT_DATETIME:
+                        if (long.TryParse(value, out long fileTime))
+                            return DateTime.FromFileTime(fileTime);
+                        return DateTime.MinValue;
+                    case WdxConstants.FT_STRING:
+                    case WdxConstants.FT_FULLTEXT:
+                    case WdxConstants.FT_MULTIPLECHOICE:
+                        return value;
+                    default:
+                        return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.Print($"GetValueV error: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 通过字段名和单位名获取值的变体类型
+        /// 对应 Pascal 的 CallContentGetValueV(FileName, FieldName, UnitName, flags)
+        /// </summary>
+        public object? GetValueV(string fileName, string fieldName, string unitName, int flag = 0)
+        {
+            int fieldIndex = GetFieldIndex(fieldName);
+            if (fieldIndex == -1)
+                return null;
+
+            int unitIndex = _fields[fieldIndex].GetUnitIndex(unitName);
+            return GetValueV(fileName, fieldIndex, unitIndex, flag);
+        }
+
+        /// <summary>
+        /// 通过字段索引和单位索引获取字符串值
+        /// 对应 Pascal 的 CallContentGetValue(FileName, FieldIndex, UnitIndex, flags)
+        /// </summary>
         public string GetValue(string fileName, int fieldIndex, int unitIndex = 0, int flag = 0)
         {
             if (!IsLoaded || fieldIndex < 0 || fieldIndex >= _fields.Count)
@@ -360,30 +467,128 @@ namespace zfile
 
             try
             {
-                StringBuilder valuePtr = new StringBuilder(2048);
+                const int bufferSize = 2048;
+                StringBuilder valuePtr = new(bufferSize);
                 int result;
 
                 if (_isUnicode)
                 {
-                    result = _contentGetValueW(fileName, fieldIndex, unitIndex, valuePtr, 2048, flag);
+                    result = _contentGetValueW(fileName, fieldIndex, unitIndex, valuePtr, bufferSize, flag);
                 }
                 else
                 {
-                    result = _contentGetValue(fileName, fieldIndex, unitIndex, valuePtr, 2048, flag);
+                    result = _contentGetValue(fileName, fieldIndex, unitIndex, valuePtr, bufferSize, flag);
                 }
 
-                if (result == WdxConstants.WDX_SUCCESS)
+                // 检查返回值是否为有效字段类型（大于0）而不是只检查WDX_SUCCESS
+                if (result > 0)
                 {
-                    //return _isUnicode ? Marshal.PtrToStringUni(valuePtr) : Marshal.PtrToStringAnsi(valuePtr);
-					return valuePtr.ToString();
+                    // 根据字段类型处理返回值
+                    WdxField field = _fields[fieldIndex];
+                    string value = valuePtr.ToString();
+
+                    switch (field.Type)
+                    {
+                        case WdxConstants.FT_STRING:
+                        case WdxConstants.FT_FULLTEXT:
+                        case WdxConstants.FT_MULTIPLECHOICE:
+                            return value;
+                        case WdxConstants.FT_NUMERIC_32:
+                            if (int.TryParse(value, out int intValue))
+                                return intValue.ToString();
+                            return "0";
+                        case WdxConstants.FT_NUMERIC_64:
+                            if (long.TryParse(value, out long longValue))
+                                return longValue.ToString();
+                            return "0";
+                        case WdxConstants.FT_NUMERIC_FLOATING:
+                            if (double.TryParse(value, out double doubleValue))
+                                return doubleValue.ToString();
+                            return "0.0";
+                        case WdxConstants.FT_BOOLEAN:
+                            if (int.TryParse(value, out int boolValue))
+                                return boolValue != 0 ? "True" : "False";
+                            return "False";
+                        case WdxConstants.FT_DATE:
+                        case WdxConstants.FT_TIME:
+                        case WdxConstants.FT_DATETIME:
+                            if (long.TryParse(value, out long fileTime))
+                                return DateTime.FromFileTime(fileTime).ToString();
+                            return DateTime.MinValue.ToString();
+                        default:
+                            return value;
+                    }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // 处理异常
+                Debug.Print($"GetValue error: {ex.Message}");
             }
 
             return string.Empty;
+        }
+
+        /// <summary>
+        /// 通过字段名和单位名获取字符串值
+        /// 对应 Pascal 的 CallContentGetValue(FileName, FieldName, UnitName, flags)
+        /// </summary>
+        public string GetValue(string fileName, string fieldName, string unitName, int flag = 0)
+        {
+            int fieldIndex = GetFieldIndex(fieldName);
+            if (fieldIndex == -1)
+                return string.Empty;
+
+            int unitIndex = _fields[fieldIndex].GetUnitIndex(unitName);
+            return GetValue(fileName, fieldIndex, unitIndex, flag);
+        }
+
+        /// <summary>
+        /// 特殊版本，用于处理全文字段，会更新 UnitIndex
+        /// 对应 Pascal 的 CallContentGetValue(FileName, FieldIndex, var UnitIndex)
+        /// </summary>
+        public string GetValue(string fileName, int fieldIndex, ref int unitIndex)
+        {
+            if (!IsLoaded || fieldIndex < 0 || fieldIndex >= _fields.Count)
+                return string.Empty;
+
+            try
+            {
+                const int bufferSize = 2048;
+                StringBuilder valuePtr = new(bufferSize);
+                int result;
+
+                if (_isUnicode)
+                {
+                    result = _contentGetValueW(fileName, fieldIndex, unitIndex, valuePtr, bufferSize, 0);
+                }
+                else
+                {
+                    result = _contentGetValue(fileName, fieldIndex, unitIndex, valuePtr, bufferSize, 0);
+                }
+
+                string value = valuePtr.ToString();
+
+                switch (result)
+                {
+                    case WdxConstants.FT_FIELDEMPTY:
+                        return string.Empty;
+                    case WdxConstants.FT_FULLTEXT:
+                        // 在 Pascal 中，这里会增加 UnitIndex
+                        unitIndex += value.Length;
+                        return value;
+                    case WdxConstants.FT_FULLTEXTW:
+                        // 在 Pascal 中，这里会增加 UnitIndex * sizeof(WideChar)
+                        unitIndex += value.Length * 2; // Unicode 字符在 C# 中是 2 字节
+                        return value;
+                    default:
+                        return string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.Print($"GetValue error: {ex.Message}");
+                return string.Empty;
+            }
         }
 
         public void StopGetValue(string fileName)
@@ -596,20 +801,20 @@ namespace zfile
             _modules.Clear();
             _config = Helper.ReadSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ContentPlugins");
             _configDict = Helper.ParseConfig(_config, "wdx");
-	
-			foreach (var line in _config)
-			{
-				var parts = line.Split('=');
-				if (parts.Length == 2)
-				{
-					var detectstring = parts[0].Trim().ToLower();
-					var part1 = parts[1].Trim();
-					var path = part1.Split(',')[^1];
-					path = path.Replace("%COMMANDER_PATH%", Constants.ZfileBinPath);
-					AddModule(path);
-				}
-			}
-		}
+
+            foreach (var line in _config)
+            {
+                var parts = line.Split('=');
+                if (parts.Length == 2)
+                {
+                    var detectstring = parts[0].Trim().ToLower();
+                    var part1 = parts[1].Trim();
+                    var path = part1.Split(',')[^1];
+                    path = path.Replace("%COMMANDER_PATH%", Constants.ZfileBinPath);
+                    AddModule(path);
+                }
+            }
+        }
         public int GetAFlags(int index)
         {
             string currentPlugin = ValueFromIndex(index);
@@ -707,8 +912,8 @@ namespace zfile
             p["size"] = "1";
             p["multimedia"] = ".true."; //temp ignore multimedia &
             p["force"] = ".false."; // temp ignore force |
-			if (string.IsNullOrEmpty(DetectString))
-				return true;
+            if (string.IsNullOrEmpty(DetectString))
+                return true;
             return (bool)evaluator.EvalExpr(DetectString, p);
         }
         public bool AddModule(WdxModule module)

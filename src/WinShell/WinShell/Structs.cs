@@ -3,7 +3,7 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
+//using System.Runtime.InteropServices.ComTypes;
 namespace WinShell
 {
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]

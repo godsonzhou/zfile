@@ -1973,72 +1973,101 @@ namespace zfile
 							getIconByIconLocation(ref subItem, out iconkey, islarge);
 					}
 		}
-		public void Set_SIIGBF_IGNORECRYPTED_flag(string folderPath)
+		public IShellFolder? Set_SIIGBF_IGNORECRYPTED_flag(ShellItem item)
 		{
-			// 获取桌面文件夹
-			API.SHGetDesktopFolder(out IShellFolder desktopFolder);
+			if (item == null) return null;
+			var folderPath = item.parsepath;
+			if (string.IsNullOrEmpty(folderPath))
+				return null;
 
-			// 解析路径获取IShellFolder
-			Guid iidIShellFolder = typeof(IShellFolder).GUID;
-			API.SHCreateItemFromParsingName(folderPath, null, ref iidIShellFolder, out object shellFolderObj);
-			IShellFolder shellFolder = (IShellFolder)shellFolderObj;
-
-			// 创建绑定上下文并设置SIIGBF_IGNORECRYPTED标志
-			IBindCtx bindCtx = null;
-			API.CreateBindCtx(0, out bindCtx);
-
-			// 设置忽略加密标志
-			if (bindCtx != null)
+			try
 			{
-				IntPtr pcb = IntPtr.Zero;
+				// 获取桌面文件夹
+				//API.SHGetDesktopFolder(out IShellFolder desktopFolder);
+				//var desktopFolder = iDeskTop;
+				//if (desktopFolder == null)
+				//	return null;
+
+				var parentFolder = item.ParentShellFolder;
+				if (parentFolder == null)
+					return null;
+				// 解析路径获取PIDL
+				IntPtr pidl = item.PIDL;
+				//uint pchEaten = 0;
+				//uint pdwAttributes = 0;
+				//int hr = parentFolder.ParseDisplayName(IntPtr.Zero, IntPtr.Zero, folderPath, out pchEaten, out pidl, ref pdwAttributes);
+				//if (hr != 0 || pidl == IntPtr.Zero)
+					//return null;
+
 				try
 				{
-					// 设置SIIGBF_IGNORECRYPTED标志
-					byte[] flags = BitConverter.GetBytes(SIIGBF_IGNORECRYPTED);
-					pcb = Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(IntPtr)));
-					Marshal.WriteIntPtr(pcb, IntPtr.Zero);
+					// 创建绑定上下文
+					IBindCtx bindCtx = null;
+					var hr = API.CreateBindCtx(0, out bindCtx);
+					if (hr != 0 || bindCtx == null)
+						return null;
 
-					// 这里设置BIND_OPTS3结构
-					BIND_OPTS3 bindOpts = new BIND_OPTS3();
-					bindOpts.cbStruct = Marshal.SizeOf(bindOpts);
-					bindOpts.grfMode = 0;
-					bindOpts.dwTickCountDeadline = 0;
-					bindOpts.dwBindVerb = 0;
-					bindOpts.szCustomVerb = null;
-					bindOpts.grfFlags = 0;
-					bindOpts.dwTrackFlags = 0;
-					bindOpts.dwClassContext = 0;
-					bindOpts.locale = System.Globalization.CultureInfo.CurrentCulture.LCID;
-					bindOpts.pbcReserved = IntPtr.Zero;
+					try
+					{
+						// 创建并设置BIND_OPTS3结构体
+						var bindOpts = new BIND_OPTS3
+						{
+							cbStruct = Marshal.SizeOf(typeof(BIND_OPTS3)),
+							grfFlags = (int)SIIGBF_IGNORECRYPTED, // 设置SIIGBF_IGNORECRYPTED标志
+							grfMode = 0,
+							dwTickCountDeadline = 0,
+							dwBindVerb = 0,
+							szCustomVerb = null,
+							dwTrackFlags = 0,
+							dwClassContext = 0,
+							locale = System.Globalization.CultureInfo.CurrentCulture.LCID,
+							pbcReserved = IntPtr.Zero
+						};
 
-					IntPtr pBindOpts = Marshal.AllocCoTaskMem(Marshal.SizeOf(bindOpts));
-					Marshal.StructureToPtr(bindOpts, pBindOpts, false);
+						// 设置绑定选项
+						hr = bindCtx.SetBindOptions(ref bindOpts);
+						if (hr != 0)
+							return null;
 
-					bindCtx.SetBindOptions(ref pBindOpts);
-					Marshal.FreeCoTaskMem(pBindOpts);
+						// 使用设置了SIIGBF_IGNORECRYPTED标志的bindCtx绑定到对象
+						Guid iidIShellFolder = typeof(IShellFolder).GUID;
+						IShellFolder shellFolder;
+						// 将bindCtx转换为IntPtr
+						IntPtr pbc = Marshal.GetIUnknownForObject(bindCtx);
+						try
+						{
+							hr = parentFolder.BindToObject(pidl, pbc, ref iidIShellFolder, out shellFolder);
+							if (hr != 0 || shellFolder == null)
+								return null;
+						}
+						finally
+						{
+							if (pbc != IntPtr.Zero)
+								Marshal.Release(pbc);
+						}
+
+						// 返回IShellFolder对象
+						return shellFolder;
+					}
+					finally
+					{
+						// 释放bindCtx
+						if (bindCtx != null)
+							Marshal.ReleaseComObject(bindCtx);
+					}
 				}
 				finally
 				{
-					if (pcb != IntPtr.Zero)
-						Marshal.FreeCoTaskMem(pcb);
+					// 释放PIDL
+					if (pidl != IntPtr.Zero)
+						Marshal.FreeCoTaskMem(pidl);
 				}
 			}
-
-			// 使用修改后的bindCtx进行枚举
-			//IntPtr enumPtr;
-			//if (shellFolder.EnumObjects(IntPtr.Zero, SHCONTF.FOLDERS | SHCONTF.NONFOLDERS, out var enumIDList) == 0)
-			//{
-			//	// 处理枚举结果
-			//	// ...
-			//}
-
-			// 释放资源
-			//if (bindCtx != null)
-			//	Marshal.ReleaseComObject(bindCtx);
-			//if (shellFolder != null)
-			//	Marshal.ReleaseComObject(shellFolder);
-			//if (desktopFolder != null)
-			//	Marshal.ReleaseComObject(desktopFolder);
+			catch (Exception ex)
+			{
+				Debug.Print($"Set_SIIGBF_IGNORECRYPTED_flag error: {ex.Message}");
+				return null;
+			}
 		}
 		public List<TreeNode>? LoadSubDirectories(TreeNode node, MyListView? lv = null)
 		{
@@ -2086,9 +2115,12 @@ namespace zfile
 					if ((showhiddensystem & 2) != 0)
 						shcontf |= SHCONTF.INCLUDEHIDDEN;
 				}
-				Set_SIIGBF_IGNORECRYPTED_flag(sItem.parsepath); //设置忽略加密标志
-				if (root.EnumObjects(this.Handle, shcontf, out nint EnumPtr) == w32.S_OK)    // 循环查找子项 
-					// todo:遇到加密的压缩文件时会跳出窗口“Windows无法打开文件夹。当前不支持加密存档(D：\tmp\welcome.7z)。”，但是又可以打开压缩文件，也可以正常读取压缩文件的内容。如何消除这个弹窗？？？
+				// 设置忽略加密标志并获取新的IShellFolder
+				IShellFolder newRoot = Set_SIIGBF_IGNORECRYPTED_flag(sItem);
+				if (newRoot != null)
+					root = newRoot;
+				if (root.EnumObjects(this.Handle, shcontf, out nint EnumPtr) == w32.S_OK)    // 循环查找子项
+																							 // todo:遇到加密的压缩文件时会跳出窗口“Windows无法打开文件夹。当前不支持加密存档(D：\tmp\welcome.7z)。”，但是又可以打开压缩文件，也可以正常读取压缩文件的内容。如何消除这个弹窗？？？
 				{
 					if (EnumPtr == IntPtr.Zero)  //如果node=程序和功能,则EnumPtr=0，直接返回
 						return null;
@@ -2181,7 +2213,7 @@ namespace zfile
 							if (lv.View == View.Tile)
 							{
 								//getIconByShellItem(ref subItem, out ico, true);	//bugfix: 在tile视图下，控制面板的subitem.iconkey被重新赋值为空的问题, 用此方法无法获取控制面板的iconkey, 在之前的程序中iconkey已经通过geticonby方法获取到了，这里就无需在执行一遍，先注释了再说
-								GetIconBy(subItem, out ico, pidlSub, true);	//calculate the large icon key here.
+								GetIconBy(subItem, out ico, pidlSub, true); //calculate the large icon key here.
 								iconManager.LoadIconFromCacheByKey(ico, lv.LargeImageList, true);
 							}
 							else

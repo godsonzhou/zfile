@@ -76,17 +76,15 @@ namespace zfile
 		{
 			try
 			{
-				//bool isLeftPanel = listView.Name.Equals("L");
-
 				// Get folder statistics
 				var stats = FolderStatistics.GetFolderStats(folderPath, fileSource);
 				files = stats.files;
+
 				// Determine which view mode to use based on rules
 				string viewModeName = DetermineViewMode(stats, folderPath);
 
 				// Apply column configuration from the selected view mode
 				ApplyColumnConfiguration(listView, viewModeName);
-
 		
 				Debug.Print($"Applied view mode '{viewModeName}' to {(listView.Name)} panel for path: {folderPath}");
 				return viewModeName;

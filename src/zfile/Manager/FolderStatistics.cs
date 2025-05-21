@@ -92,10 +92,10 @@ namespace zfile
                 // Check if we have cached stats that are still valid
                 if (!forceRefresh && _statsCache.TryGetValue(normalizedPath, out FolderStats? cachedStats))
                 {
-                    // Use cached stats if they're less than 3 seconds old
-                    if ((DateTime.Now - cachedStats.LastUpdated).TotalSeconds < 3)
+                    // Use cached stats if they're less than 1 seconds old
+                    if ((DateTime.Now - cachedStats.LastUpdated).TotalSeconds < 1)
                     {
-						Debug.Print("list operation run repeatedly in 3s, Cache used!!!!!!!!!!!!!!!!!!!!");
+						Debug.Print("list operation run repeatedly in 1s, Cache used!!!!!!!!!!!!!!!!!!!!");
                         return cachedStats;
                     }
                 }

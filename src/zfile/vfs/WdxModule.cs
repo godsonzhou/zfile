@@ -66,11 +66,11 @@ namespace zfile
     // 必需的函数
     [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
     public delegate int ContentGetSupportedField(int FieldIndex, StringBuilder FieldName, StringBuilder UnitName, int MaxLen);
-    public delegate int ContentGetValue(string FileName, int FieldIndex, int UnitIndex, out IntPtr FieldValue, int MaxLen, int Flags);
+    public delegate int ContentGetValue(string FileName, int FieldIndex, int UnitIndex, StringBuilder FieldValue, int MaxLen, int Flags);
 
     // Unicode版本
     [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-    public delegate int ContentGetValueW([MarshalAs(UnmanagedType.LPWStr)] string FileName, int FieldIndex, int UnitIndex, out IntPtr FieldValue, int MaxLen, int Flags);
+    public delegate int ContentGetValueW([MarshalAs(UnmanagedType.LPWStr)] string FileName, int FieldIndex, int UnitIndex, StringBuilder FieldValue, int MaxLen, int Flags);
     [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
     // public delegate int ContentSetDefaultParams(ref ContentDefaultParamStruct dps);
     public delegate void ContentSetDefaultParams(IntPtr dps);
@@ -360,23 +360,22 @@ namespace zfile
 
             try
             {
-                IntPtr valuePtr;
+                StringBuilder valuePtr = new StringBuilder(2048);
                 int result;
 
                 if (_isUnicode)
                 {
-                    result = _contentGetValueW(fileName, fieldIndex, unitIndex, out valuePtr, 2048, flag);
+                    result = _contentGetValueW(fileName, fieldIndex, unitIndex, valuePtr, 2048, flag);
                 }
                 else
                 {
-                    result = _contentGetValue(fileName, fieldIndex, unitIndex, out valuePtr, 2048, flag);
+                    result = _contentGetValue(fileName, fieldIndex, unitIndex, valuePtr, 2048, flag);
                 }
 
                 if (result == WdxConstants.WDX_SUCCESS)
                 {
-                    return _isUnicode ?
-                        Marshal.PtrToStringUni(valuePtr) :
-                        Marshal.PtrToStringAnsi(valuePtr);
+                    //return _isUnicode ? Marshal.PtrToStringUni(valuePtr) : Marshal.PtrToStringAnsi(valuePtr);
+					return valuePtr.ToString();
                 }
             }
             catch

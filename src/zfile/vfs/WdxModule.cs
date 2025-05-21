@@ -66,11 +66,11 @@ namespace zfile
     // 必需的函数
     [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
     public delegate int ContentGetSupportedField(int FieldIndex, StringBuilder FieldName, StringBuilder UnitName, int MaxLen);
-    public delegate int ContentGetValue(string FileName, int FieldIndex, int UnitIndex, int MaxLen, out IntPtr FieldValue, int Flags);
+    public delegate int ContentGetValue(string FileName, int FieldIndex, int UnitIndex, out IntPtr FieldValue, int MaxLen, int Flags);
 
     // Unicode版本
     [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-    public delegate int ContentGetValueW([MarshalAs(UnmanagedType.LPWStr)] string FileName, int FieldIndex, int UnitIndex, int MaxLen, out IntPtr FieldValue, int Flags);
+    public delegate int ContentGetValueW([MarshalAs(UnmanagedType.LPWStr)] string FileName, int FieldIndex, int UnitIndex, out IntPtr FieldValue, int MaxLen, int Flags);
     [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
     // public delegate int ContentSetDefaultParams(ref ContentDefaultParamStruct dps);
     public delegate void ContentSetDefaultParams(IntPtr dps);
@@ -138,7 +138,7 @@ namespace zfile
         public bool IsUnicode => _isUnicode;
         public IReadOnlyList<WdxField> Fields => _fields.AsReadOnly();
         public string FileName { get => _modulePath; set => _modulePath = value; }
-        public List<string> DetectStrings = [];
+        public string DetectString;
         #endregion
 
         #region 构造函数和初始化
@@ -160,6 +160,8 @@ namespace zfile
         public bool LoadModule()
         {
             if (IsLoaded) return true;
+			if (!File.Exists(_modulePath))
+				return false;
 
             try
             {
@@ -243,7 +245,14 @@ namespace zfile
                         _contentSetDefaultParams(pDps);
                         Marshal.FreeHGlobal(pDps);
                     }
-                }
+					StringBuilder detectstring = new();
+					if (_contentGetDetectString != null)
+					{
+						var str = GetDetectString();
+						if(!string.IsNullOrEmpty(str))
+							DetectString = str;
+					}
+				}
                 catch (Exception ex)
                 {
                     UnloadModule();
@@ -344,7 +353,7 @@ namespace zfile
             }
         }
 
-        public string GetValue(string fileName, int fieldIndex, int unitIndex = 0)
+        public string GetValue(string fileName, int fieldIndex, int unitIndex = 0, int flag = 0)
         {
             if (!IsLoaded || fieldIndex < 0 || fieldIndex >= _fields.Count)
                 return string.Empty;
@@ -356,11 +365,11 @@ namespace zfile
 
                 if (_isUnicode)
                 {
-                    result = _contentGetValueW(fileName, fieldIndex, unitIndex, 2048, out valuePtr, 0);
+                    result = _contentGetValueW(fileName, fieldIndex, unitIndex, out valuePtr, 2048, flag);
                 }
                 else
                 {
-                    result = _contentGetValue(fileName, fieldIndex, unitIndex, 2048, out valuePtr, 0);
+                    result = _contentGetValue(fileName, fieldIndex, unitIndex, out valuePtr, 2048, flag);
                 }
 
                 if (result == WdxConstants.WDX_SUCCESS)
@@ -518,7 +527,7 @@ namespace zfile
 
         public WdxModule? FindModuleByName(string name)
         {
-            return _modules.FirstOrDefault(m => m.Name != null && m.Name.Equals(name));
+            return _modules.FirstOrDefault(m => m.Name != null && m.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
         }
         //   public void LoadConfiguration()
         //   {
@@ -588,7 +597,20 @@ namespace zfile
             _modules.Clear();
             _config = Helper.ReadSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ContentPlugins");
             _configDict = Helper.ParseConfig(_config, "wdx");
-        }
+	
+			foreach (var line in _config)
+			{
+				var parts = line.Split('=');
+				if (parts.Length == 2)
+				{
+					var detectstring = parts[0].Trim().ToLower();
+					var part1 = parts[1].Trim();
+					var path = part1.Split(',')[^1];
+					path = path.Replace("%COMMANDER_PATH%", Constants.ZfileBinPath);
+					AddModule(path);
+				}
+			}
+		}
         public int GetAFlags(int index)
         {
             string currentPlugin = ValueFromIndex(index);
@@ -663,7 +685,7 @@ namespace zfile
             LoadConfiguration();
             isConfigChanged = false;
         }
-        private bool IsModuleSupported(WlxModule module, string fileName)
+        public bool IsModuleSupported(WdxModule module, string fileName)
         {
             if (string.IsNullOrEmpty(module.DetectString))
             {
@@ -686,6 +708,8 @@ namespace zfile
             p["size"] = "1";
             p["multimedia"] = ".true."; //temp ignore multimedia &
             p["force"] = ".false."; // temp ignore force |
+			if (string.IsNullOrEmpty(DetectString))
+				return true;
             return (bool)evaluator.EvalExpr(DetectString, p);
         }
         public bool AddModule(WdxModule module)
@@ -706,7 +730,7 @@ namespace zfile
             if (module.LoadModule())
             {
                 _modules.Add(module);
-                SaveConfiguration();
+                //SaveConfiguration();
             }
         }
 
@@ -718,7 +742,7 @@ namespace zfile
             {
                 module.Dispose();
                 _modules.Remove(module);
-                SaveConfiguration();
+                //SaveConfiguration();
             }
         }
 

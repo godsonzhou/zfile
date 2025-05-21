@@ -15,6 +15,10 @@ namespace zfile
 		[McpTool("evaluate", "Evaluate an expression with params dictionary and return the result to you")]
 		public object EvalExpr(string expr, Dictionary<string, string> @params)
 		{
+			if (string.IsNullOrEmpty(expr))
+			{
+				throw new ArgumentException("Expression cannot be null or empty");
+			}
 			parameters = @params;
 			expression = expr;
 			position = 0;

@@ -1997,7 +1997,7 @@ namespace zfile
 				//uint pdwAttributes = 0;
 				//int hr = parentFolder.ParseDisplayName(IntPtr.Zero, IntPtr.Zero, folderPath, out pchEaten, out pidl, ref pdwAttributes);
 				//if (hr != 0 || pidl == IntPtr.Zero)
-					//return null;
+				//return null;
 
 				try
 				{
@@ -2009,36 +2009,23 @@ namespace zfile
 
 					try
 					{
-						// 创建并设置BIND_OPTS3结构体
-						var bindOpts = new BIND_OPTS3
-						{
-							cbStruct = Marshal.SizeOf(typeof(BIND_OPTS3)),
-							grfFlags = (int)SIIGBF_IGNORECRYPTED, // 设置SIIGBF_IGNORECRYPTED标志
-							grfMode = 0,
-							dwTickCountDeadline = 0,
-							dwBindVerb = 0,
-							szCustomVerb = null,
-							dwTrackFlags = 0,
-							dwClassContext = 0,
-							locale = System.Globalization.CultureInfo.CurrentCulture.LCID,
-							pbcReserved = IntPtr.Zero
-						};
-
-						// 设置绑定选项
-						hr = bindCtx.SetBindOptions(ref bindOpts);
-						if (hr != 0)
-							return null;
-
-						// 使用设置了SIIGBF_IGNORECRYPTED标志的bindCtx绑定到对象
+						// 由于SetBindOptions返回E_NOTIMPL (0x800401E9)，我们不再尝试设置绑定选项
+						// 直接使用bindCtx，即使没有设置SIIGBF_IGNORECRYPTED标志
+						// 在Windows 10/11上，这个标志可能已经默认启用，或者通过其他方式处理
+						// 直接使用bindCtx绑定到对象
 						Guid iidIShellFolder = typeof(IShellFolder).GUID;
 						IShellFolder shellFolder;
 						// 将bindCtx转换为IntPtr
 						IntPtr pbc = Marshal.GetIUnknownForObject(bindCtx);
 						try
 						{
+							// 尝试直接使用bindCtx，即使没有设置SIIGBF_IGNORECRYPTED标志
 							hr = parentFolder.BindToObject(pidl, pbc, ref iidIShellFolder, out shellFolder);
 							if (hr != 0 || shellFolder == null)
+							{
+								Debug.Print($"BindToObject failed with hr = {hr:X}");
 								return null;
+							}
 						}
 						finally
 						{
@@ -2115,10 +2102,11 @@ namespace zfile
 					if ((showhiddensystem & 2) != 0)
 						shcontf |= SHCONTF.INCLUDEHIDDEN;
 				}
-				// 设置忽略加密标志并获取新的IShellFolder
-				IShellFolder newRoot = Set_SIIGBF_IGNORECRYPTED_flag(sItem);
-				if (newRoot != null)
-					root = newRoot;
+				// 尝试设置忽略加密标志并获取新的IShellFolder
+				// 即使失败也继续使用原来的root
+				//IShellFolder? newRoot = Set_SIIGBF_IGNORECRYPTED_flag(sItem);
+				//if (newRoot != null)
+				//	root = newRoot;
 				if (root.EnumObjects(this.Handle, shcontf, out nint EnumPtr) == w32.S_OK)    // 循环查找子项
 																							 // todo:遇到加密的压缩文件时会跳出窗口“Windows无法打开文件夹。当前不支持加密存档(D：\tmp\welcome.7z)。”，但是又可以打开压缩文件，也可以正常读取压缩文件的内容。如何消除这个弹窗？？？
 				{
@@ -2681,7 +2669,8 @@ namespace zfile
 										if (fieldIndex >= 0)
 										{
 											// 获取字段值
-											replacement = wdxModule.GetValue(file.FullPath, fieldIndex);
+											if(WdxPlugins.ModuleList.IsModuleSupported(wdxModule, file.FullPath))
+												replacement = wdxModule.GetValue(file.FullPath, fieldIndex, 0);
 										}
 										else
 										{

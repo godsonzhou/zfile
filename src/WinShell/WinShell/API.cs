@@ -7,9 +7,9 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using Microsoft.Win32.SafeHandles;
 using System.IO;
+using System.Runtime.InteropServices.ComTypes;
 namespace WinShell
 {
-
 	public static class ContextMenuHandler
 	{
 		//static void Main1(string[] args)
@@ -481,6 +481,16 @@ namespace WinShell
 	}
 	public class API
 	{
+		[DllImport("ole32.dll")]
+		public static extern int CreateBindCtx(int reserved, out IBindCtx ppbc);
+		// 添加必要的COM导入
+		[DllImport("shell32.dll")]
+		public static extern int SHCreateItemFromParsingName(
+			[MarshalAs(UnmanagedType.LPWStr)] string pszPath,
+			IBindCtx pbc,
+			ref Guid riid,
+			[MarshalAs(UnmanagedType.Interface)] out object ppv);
+
 		[DllImport("shell32.dll", CharSet = CharSet.Unicode)]
 		public static extern HRESULT SHParseDisplayName(
 			[MarshalAs(UnmanagedType.LPWStr)] string name,

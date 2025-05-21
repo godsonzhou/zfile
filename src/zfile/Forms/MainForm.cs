@@ -178,12 +178,17 @@ namespace zfile
 				}
 			}
 		}
+
+		// 新增标志定义
+		private const uint SIIGBF_IGNORECRYPTED = 0x00000080;
 		const int ILD_TRANSPARENT = 0x00000001;
+
 		public static int LVCOL_NAME = 0;
 		public static int LVCOL_SIZE = 1;
 		public static int LVCOL_TYPE = 2;
 		public static int LVCOL_DATE = 3;
 		public static int LVCOL_ATTR = 4;
+
 		public static MainForm Instance { get; private set; } = null!;
 		public static IntPtr _Handle { get; set; }
 		public static int MainThreadId { get; set; } = 0;
@@ -1968,6 +1973,73 @@ namespace zfile
 							getIconByIconLocation(ref subItem, out iconkey, islarge);
 					}
 		}
+		public void Set_SIIGBF_IGNORECRYPTED_flag(string folderPath)
+		{
+			// 获取桌面文件夹
+			API.SHGetDesktopFolder(out IShellFolder desktopFolder);
+
+			// 解析路径获取IShellFolder
+			Guid iidIShellFolder = typeof(IShellFolder).GUID;
+			API.SHCreateItemFromParsingName(folderPath, null, ref iidIShellFolder, out object shellFolderObj);
+			IShellFolder shellFolder = (IShellFolder)shellFolderObj;
+
+			// 创建绑定上下文并设置SIIGBF_IGNORECRYPTED标志
+			IBindCtx bindCtx = null;
+			API.CreateBindCtx(0, out bindCtx);
+
+			// 设置忽略加密标志
+			if (bindCtx != null)
+			{
+				IntPtr pcb = IntPtr.Zero;
+				try
+				{
+					// 设置SIIGBF_IGNORECRYPTED标志
+					byte[] flags = BitConverter.GetBytes(SIIGBF_IGNORECRYPTED);
+					pcb = Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(IntPtr)));
+					Marshal.WriteIntPtr(pcb, IntPtr.Zero);
+
+					// 这里设置BIND_OPTS3结构
+					BIND_OPTS3 bindOpts = new BIND_OPTS3();
+					bindOpts.cbStruct = Marshal.SizeOf(bindOpts);
+					bindOpts.grfMode = 0;
+					bindOpts.dwTickCountDeadline = 0;
+					bindOpts.dwBindVerb = 0;
+					bindOpts.szCustomVerb = null;
+					bindOpts.grfFlags = 0;
+					bindOpts.dwTrackFlags = 0;
+					bindOpts.dwClassContext = 0;
+					bindOpts.locale = System.Globalization.CultureInfo.CurrentCulture.LCID;
+					bindOpts.pbcReserved = IntPtr.Zero;
+
+					IntPtr pBindOpts = Marshal.AllocCoTaskMem(Marshal.SizeOf(bindOpts));
+					Marshal.StructureToPtr(bindOpts, pBindOpts, false);
+
+					bindCtx.SetBindOptions(ref pBindOpts);
+					Marshal.FreeCoTaskMem(pBindOpts);
+				}
+				finally
+				{
+					if (pcb != IntPtr.Zero)
+						Marshal.FreeCoTaskMem(pcb);
+				}
+			}
+
+			// 使用修改后的bindCtx进行枚举
+			//IntPtr enumPtr;
+			//if (shellFolder.EnumObjects(IntPtr.Zero, SHCONTF.FOLDERS | SHCONTF.NONFOLDERS, out var enumIDList) == 0)
+			//{
+			//	// 处理枚举结果
+			//	// ...
+			//}
+
+			// 释放资源
+			//if (bindCtx != null)
+			//	Marshal.ReleaseComObject(bindCtx);
+			//if (shellFolder != null)
+			//	Marshal.ReleaseComObject(shellFolder);
+			//if (desktopFolder != null)
+			//	Marshal.ReleaseComObject(desktopFolder);
+		}
 		public List<TreeNode>? LoadSubDirectories(TreeNode node, MyListView? lv = null)
 		{
 			Debug.Print($"load sub dirs for treenode : {node.FullPath}");
@@ -2014,8 +2086,9 @@ namespace zfile
 					if ((showhiddensystem & 2) != 0)
 						shcontf |= SHCONTF.INCLUDEHIDDEN;
 				}
-
-				if (root.EnumObjects(this.Handle, shcontf, out nint EnumPtr) == w32.S_OK)    // 循环查找子项
+				Set_SIIGBF_IGNORECRYPTED_flag(sItem.parsepath); //设置忽略加密标志
+				if (root.EnumObjects(this.Handle, shcontf, out nint EnumPtr) == w32.S_OK)    // 循环查找子项 
+					// todo:遇到加密的压缩文件时会跳出窗口“Windows无法打开文件夹。当前不支持加密存档(D：\tmp\welcome.7z)。”，但是又可以打开压缩文件，也可以正常读取压缩文件的内容。如何消除这个弹窗？？？
 				{
 					if (EnumPtr == IntPtr.Zero)  //如果node=程序和功能,则EnumPtr=0，直接返回
 						return null;

@@ -1,10 +1,47 @@
 ﻿using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 
 namespace WinShell
 {
+	// IBindCtx接口定义
+	[ComImport]
+	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+	[Guid("0000000E-0000-0000-C000-000000000046")]
+	public interface IBindCtx
+	{
+		[PreserveSig]
+		int GetBindOptions(ref BIND_OPTS3 pbindopts);
+
+		[PreserveSig]
+		int SetBindOptions([In] ref BIND_OPTS3 pbindopts);
+
+		[PreserveSig]
+		int GetRunningObjectTable(out IRunningObjectTable pprot);
+
+		[PreserveSig]
+		int RegisterObjectBound([MarshalAs(UnmanagedType.Interface)] object punk);
+
+		[PreserveSig]
+		int RevokeObjectBound([MarshalAs(UnmanagedType.Interface)] object punk);
+
+		[PreserveSig]
+		int ReleaseBoundObjects();
+
+		[PreserveSig]
+		int SetObjectParam([MarshalAs(UnmanagedType.LPWStr)] string pszKey, [MarshalAs(UnmanagedType.Interface)] object punk);
+
+		[PreserveSig]
+		int GetObjectParam([MarshalAs(UnmanagedType.LPWStr)] string pszKey, [MarshalAs(UnmanagedType.Interface)] out object punk);
+
+		[PreserveSig]
+		int EnumObjectParam(out IEnumString ppenum);
+
+		[PreserveSig]
+		int RevokeObjectParam([MarshalAs(UnmanagedType.LPWStr)] string pszKey);
+	}
 	[ComImport]
 	[Guid("B63EA76D-1F85-456F-A19C-48159EFA858B")]
 	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]

@@ -3,9 +3,30 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 namespace WinShell
 {
-    [StructLayout(LayoutKind.Sequential)]
+	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+	public class BIND_OPTS3 : BIND_OPTS2
+	{
+		public int dwTrackFlags;
+		public int dwClassContext;
+		public int locale;
+		public IntPtr pbcReserved;
+	}
+
+	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+	public class BIND_OPTS2
+	{
+		public int cbStruct;
+		public int grfFlags;
+		public int grfMode;
+		public int dwTickCountDeadline;
+		public int dwBindVerb;
+		[MarshalAs(UnmanagedType.LPWStr)]
+		public string szCustomVerb;
+	}
+	[StructLayout(LayoutKind.Sequential)]
     public struct PropertyKey
     {
         public Guid fmtid;

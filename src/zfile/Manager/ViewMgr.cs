@@ -84,15 +84,10 @@ namespace zfile
 				// Determine which view mode to use based on rules
 				string viewModeName = DetermineViewMode(stats, folderPath);
 
-				// Update current view mode
-				if (listView.Name.Equals("L"))
-					currentLeftViewMode = viewModeName;
-				else
-					currentRightViewMode = viewModeName;
-
 				// Apply column configuration from the selected view mode
 				ApplyColumnConfiguration(listView, viewModeName);
 
+		
 				Debug.Print($"Applied view mode '{viewModeName}' to {(listView.Name)} panel for path: {folderPath}");
 				return viewModeName;
 			}
@@ -302,7 +297,7 @@ namespace zfile
 		/// </summary>
 		private void ApplyColumnConfiguration(ListView listView, string viewModeName)
 		{
-			if (viewModeName.Equals(defaultViewMode))
+			if (viewModeName.Equals(listView.Name.Equals("L") ? currentLeftViewMode : currentRightViewMode))
 				return;
 			var viewmodeid = int.Parse(viewModeName);
 			if (viewmodeid < 5) 
@@ -311,8 +306,8 @@ namespace zfile
 				listView.View = (View)viewmodeid;
 				listView.Columns.Clear();
 				listView.Columns.Add("文件名", 200);
-				listView.Columns.Add("扩展名", 100);
 				listView.Columns.Add("大小", 100);
+				listView.Columns.Add("扩展名", 100);
 				listView.Columns.Add("修改时间", 150);
 				listView.Columns.Add("属性", 150);
 			}
@@ -371,6 +366,11 @@ namespace zfile
 					Debug.Print($"Error applying column configuration: {ex.Message}");
 				}
 			}
+			// Update current view mode
+			if (listView.Name.Equals("L"))
+				currentLeftViewMode = viewModeName;
+			else
+				currentRightViewMode = viewModeName;
 		}
 
 		/// <summary>

@@ -76,7 +76,7 @@ namespace zfile
 		{
 			try
 			{
-				bool isLeftPanel = listView == form.activeListView;
+				//bool isLeftPanel = listView.Name.Equals("L");
 
 				// Get folder statistics
 				var stats = FolderStatistics.GetFolderStats(folderPath, fileSource);
@@ -85,7 +85,7 @@ namespace zfile
 				string viewModeName = DetermineViewMode(stats, folderPath);
 
 				// Update current view mode
-				if (isLeftPanel)
+				if (listView.Name.Equals("L"))
 					currentLeftViewMode = viewModeName;
 				else
 					currentRightViewMode = viewModeName;
@@ -93,7 +93,7 @@ namespace zfile
 				// Apply column configuration from the selected view mode
 				ApplyColumnConfiguration(listView, viewModeName);
 
-				Debug.Print($"Applied view mode '{viewModeName}' to {(isLeftPanel ? "left" : "right")} panel for path: {folderPath}");
+				Debug.Print($"Applied view mode '{viewModeName}' to {(listView.Name)} panel for path: {folderPath}");
 				return viewModeName;
 			}
 			catch (Exception ex)

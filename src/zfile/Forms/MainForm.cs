@@ -1863,7 +1863,7 @@ namespace zfile
 				subItem.IconKey = iconKey;
 				using (Icon? icon = (Icon.FromHandle(shellInfo.hIcon).Clone() as Icon))
 				{
-					iconManager.AddIcon(iconKey, icon, islarge);
+					iconManager.CacheIcon(iconKey, icon, islarge);
 				}
 				API.DestroyIcon(shellInfo.hIcon);
 				return true;
@@ -1877,7 +1877,7 @@ namespace zfile
 
 			var pidAbsolute = API.ILCombine(CtrlPanel_PIDL, subItem.PIDL);
 			var shellInfo = new SHFILEINFO();
-			API.SHGetFileInfoPIDL(pidAbsolute, 0, ref shellInfo, Marshal.SizeOf(typeof(SHFILEINFO)), SHGFI.PIDL | SHGFI.DISPLAYNAME | SHGFI.ICON | SHGFI.SMALLICON);
+			API.SHGetFileInfoPIDL(pidAbsolute, 0, ref shellInfo, Marshal.SizeOf(typeof(SHFILEINFO)), SHGFI.PIDL | SHGFI.DISPLAYNAME | SHGFI.ICON | (islarge ? SHGFI.LARGEICON : SHGFI.SMALLICON));
 			// SHGetFileInfo can get name and icon
 			//Do something to save item name and icon
 			if (shellInfo.hIcon != IntPtr.Zero)
@@ -1887,7 +1887,7 @@ namespace zfile
 				subItem.IconKey = iconKey;
 				using (Icon icon = Icon.FromHandle(shellInfo.hIcon))
 				{
-					iconManager.AddIcon(iconKey, icon, islarge);
+					iconManager.CacheIcon(iconKey, icon, islarge);
 				}
 				API.DestroyIcon(shellInfo.hIcon);
 				return true;
@@ -1920,7 +1920,7 @@ namespace zfile
 						{
 							using (Icon icon = Icon.FromHandle(hIcon))
 							{
-								iconManager.AddIcon(iconKey, icon, islarge);
+								iconManager.CacheIcon(iconKey, icon, islarge);
 							}
 						}
 						finally
@@ -1948,24 +1948,24 @@ namespace zfile
 				if (!iconManager.HasIconKey(iconKey, islarge))
 				{
 					var icon = IconManager.ExtractIconFromFile(shellInfo.szTypeName, shellInfo.iIcon);
-					iconManager.AddIcon(iconKey, icon, islarge);
+					iconManager.CacheIcon(iconKey, icon, islarge);
 				}
 				return true;
 			}
 			iconKey = string.Empty;
 			return false;
 		}
-		private void GetIconBy(ShellItem? subItem, out string iconkey, nint pidlSub)
+		private void GetIconBy(ShellItem? subItem, out string iconkey, nint pidlSub, bool islarge = false)
 		{
-			if (!getIconByShellItem(ref subItem, out iconkey))
-				if (!getIconBySysImageList(ref subItem, out iconkey))
-					if (!getIconByShellItemPIDL1(ref subItem, out iconkey))
+			if (!getIconByShellItem(ref subItem, out iconkey, islarge))
+				if (!getIconBySysImageList(ref subItem, out iconkey, islarge))
+					if (!getIconByShellItemPIDL1(ref subItem, out iconkey, islarge))
 					{
 						var icon = IconManager.ExtractIconFromPIDL(iCtrlPanel, pidlSub);
 						if (icon != null)
-							iconManager.AddIcon(pidlSub.ToString(), icon, false);
+							iconManager.CacheIcon(pidlSub.ToString(), icon, islarge);
 						else
-							getIconByIconLocation(ref subItem, out iconkey);
+							getIconByIconLocation(ref subItem, out iconkey, islarge);
 					}
 		}
 		public List<TreeNode>? LoadSubDirectories(TreeNode node, MyListView? lv = null)
@@ -2104,16 +2104,22 @@ namespace zfile
 						{
 							string[] s = ["", "", name.Contains(':') ? "本地磁盘" : "<CLS>", ""];
 							var i = new ListViewItem(s);
-							var ico = IconManager.GetIconKey(subItem);
+							string ico;
 							if (lv.View == View.Tile)
 							{
-								getIconByShellItem(ref subItem, out ico, true);
+								//getIconByShellItem(ref subItem, out ico, true);	//bugfix: 在tile视图下，控制面板的subitem.iconkey被重新赋值为空的问题, 用此方法无法获取控制面板的iconkey, 在之前的程序中iconkey已经通过geticonby方法获取到了，这里就无需在执行一遍，先注释了再说
+								GetIconBy(subItem, out ico, pidlSub, true);	//calculate the large icon key here.
 								iconManager.LoadIconFromCacheByKey(ico, lv.LargeImageList, true);
 							}
-							iconManager.LoadIconFromCacheByKey(ico, lv.SmallImageList);
+							else
+							{
+								ico = IconManager.GetIconKey(subItem); //small icon key is already calculated before, so use it directly
+								iconManager.LoadIconFromCacheByKey(ico, lv.SmallImageList);
+							}
 							i.ImageKey = ico;
 							i.Text = name;
-							i.Tag = new LvItemTag(null, node);   //tag存放父节点
+							//i.Tag = new LvItemTag(new FileEntry(node.FullPath, name), node);   //tag存放父节点//bugfix: 在tile视图下，缩略图没有显示的问题
+							i.Tag = new LvItemTag(null, node);   //tag存放父节点//bugfix: 在tile视图下，缩略图没有显示的问题
 							lv.Items.Add(i);
 						}
 					}
@@ -2267,7 +2273,7 @@ namespace zfile
 						{
 							var ico = IconManager.GetIconByFileNameEx("FILE", itemFullName);
 							if (ico != null)
-								iconManager.AddIcon(key, ico, false);
+								iconManager.CacheIcon(key, ico, false);
 						}
 						iconManager.LoadIconFromCacheByKey(key, listView.SmallImageList);
 						lvItem.ImageKey = key;
@@ -2279,7 +2285,7 @@ namespace zfile
 						{
 							var icol = IconManager.GetIconByFileNameEx("FILE", itemFullName, true);
 							if (icol != null)
-								iconManager.AddIcon(key, icol, true);
+								iconManager.CacheIcon(key, icol, true);
 						}
 						iconManager.LoadIconFromCacheByKey(key, listView.LargeImageList, true);
 						lvItem.ImageKey = key;

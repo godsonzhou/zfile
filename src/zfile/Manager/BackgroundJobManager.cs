@@ -268,7 +268,7 @@ namespace zfile
                                         {
                                             var icol = IconManager.GetIconByFileNameEx("FILE", jobFilePath, true);
                                             if (icol != null)
-                                                _iconManager.AddIcon(key, icol, true);
+                                                _iconManager.CacheIcon(key, icol, true);
                                         }
                                     }
 

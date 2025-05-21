@@ -58,9 +58,9 @@ namespace zfile
 			// 标准化图标尺寸
 			var targetSize = islarge ? largesize : smallsize;
 
-			AddIcon("drive", ResizeIcon(ConvertImageToIcon(ImageList.Images[27]), targetSize), islarge);
-			AddIcon("folder", ResizeIcon(ConvertImageToIcon(ImageList.Images[3]), targetSize), islarge);
-			AddIcon("桌面",	ResizeIcon(ConvertImageToIcon(ImageList.Images[174]), targetSize), islarge);
+			CacheIcon("drive", ResizeIcon(ConvertImageToIcon(ImageList.Images[27]), targetSize), islarge);
+			CacheIcon("folder", ResizeIcon(ConvertImageToIcon(ImageList.Images[3]), targetSize), islarge);
+			CacheIcon("桌面",	ResizeIcon(ConvertImageToIcon(ImageList.Images[174]), targetSize), islarge);
 			//var idx = 0;
 			//foreach (Image image in imageList.Images) 
 			//{
@@ -84,7 +84,7 @@ namespace zfile
 			iconCache.Clear();
 		}
 
-		public void AddIcon(string key, Icon icon, bool islarge)
+		public void CacheIcon(string key, Icon icon, bool islarge)
 		{
 			if (icon == null) return;
 

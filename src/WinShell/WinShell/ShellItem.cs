@@ -15,7 +15,8 @@ namespace WinShell
 		public string parsepath = string.Empty;
 		public bool IsVirtual = false;
 		public string Name;
-		public string IconKey;
+		public string IconKey;	//small
+		//public string IconKey1;	//large 
 		public string SubNodeState;
 		public IntPtr[] ChildPIDLs;
 		public ShellItem(IntPtr PIDL, IShellFolder ShellFolder, IShellFolder ParentShellFolder)

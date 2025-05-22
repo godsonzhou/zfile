@@ -589,6 +589,17 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
         }
     }
 
+    /// <summary>
+    /// Converts WCX file time to DateTime
+    /// This is equivalent to WcxFileTimeToDateTime in Pascal
+    /// </summary>
+    /// <param name="wcxTime">WCX file time in DOS format</param>
+    /// <returns>Converted DateTime</returns>
+    private DateTime FileTimeToDateTime(int wcxTime)
+    {
+        return WcxFileTimeToFileTime(wcxTime);
+    }
+
     private void QuestionActionHandler(FileSourceOperationUIResponse action)
     {
         if (action == FileSourceOperationUIResponse.CompareAction)
@@ -857,10 +868,57 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
     }
 
     // WCX callback methods would be implemented here
-    private static int ProcessDataProc(WcxArchiveCopyOutOperation? _, string? __, int ___, IntPtr ____)
+    private static int ProcessDataProc(WcxArchiveCopyOutOperation? wcxCopyOutOperation, string? fileName, int size, IntPtr updateName)
     {
-        // Implementation of process data callback - just return success
-        return 1;
+        //DCDebug('Working (' + IntToStr(GetCurrentThreadId) + ') ' + FileName + ' Size = ' + IntToStr(Size));
+
+        int result = 1;
+
+        if (wcxCopyOutOperation != null)
+        {
+            if (wcxCopyOutOperation.State == FileSourceOperationState.Stopping)  // Cancel operation
+                return 0;
+
+            var statistics = wcxCopyOutOperation._statistics;
+
+            // Update file name
+            if (updateName != IntPtr.Zero)
+            {
+                statistics.CurrentFileFrom = fileName ?? "";
+            }
+
+            // Get the number of bytes processed since the previous call
+            if (size > 0)
+            {
+                statistics.CurrentFileDoneBytes += size;
+                if (statistics.CurrentFileDoneBytes > statistics.CurrentFileTotalBytes)
+                    statistics.CurrentFileDoneBytes = statistics.CurrentFileTotalBytes;
+                statistics.DoneBytes += size;
+            }
+            // Get progress percent value to directly set progress bar
+            else if (size < 0)
+            {
+                // Total operation percent
+                if (size >= -100 && size <= -1)
+                {
+                    if (statistics.TotalBytes == 0) statistics.TotalBytes = 100;
+                    statistics.DoneBytes = statistics.TotalBytes * (-size) / 100;
+                }
+                // Current file percent
+                else if (size >= -1100 && size <= -1000)
+                {
+                    if (statistics.CurrentFileTotalBytes == 0) statistics.CurrentFileTotalBytes = 100;
+                    statistics.CurrentFileDoneBytes = statistics.CurrentFileTotalBytes * ((-size) - 1000) / 100;
+                }
+            }
+
+            //DCDebug('CurrentDone  = ' + IntToStr(CurrentFileDoneBytes) + ' Done  = ' + IntToStr(DoneBytes));
+            //DCDebug('CurrentTotal = ' + IntToStr(CurrentFileTotalBytes) + ' Total = ' + IntToStr(TotalBytes));
+            wcxCopyOutOperation.UpdateStatistics(wcxCopyOutOperation._statistics);
+            if (!wcxCopyOutOperation.AppProcessMessages(true)) return 0;
+        }
+
+        return result;
     }
 
     private static int ProcessDataProcAG(IntPtr fileName, int size)

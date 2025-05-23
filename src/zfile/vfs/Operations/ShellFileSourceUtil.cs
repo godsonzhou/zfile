@@ -251,7 +251,7 @@ namespace zfile
 
         public int UpdateProgress(uint iWorkTotal, uint iWorkSoFar)
         {
-            if (copyStatistics != null)
+            if (!copyStatistics.Equals(default(FileSourceCopyOperationStatistics)))
             {
                 copyStatistics.TotalBytes = iWorkTotal;
                 copyStatistics.DoneBytes = iWorkSoFar;

@@ -3,7 +3,7 @@ namespace zfile
     /// <summary>
     /// Statistics for copy operation
     /// </summary>
-    public class FileSourceCopyOperationStatistics
+    public struct FileSourceCopyOperationStatistics
     {
         public string? CurrentFileFrom;
         public string? CurrentFileTo;
@@ -57,16 +57,4 @@ namespace zfile
         CopyInto,
         Delete
     }
-
-    /// <summary>
-    /// Set property error option for operations
-    /// </summary>
-    //public enum FileSourceOperationOptionSetPropertyError
-    //{
-    //    None,
-    //    DontSet,
-    //    IgnoreErrors,
-    //    Skip,
-    //    Abort
-    //}
 }

@@ -1194,7 +1194,7 @@ namespace zfile
 			lblCurrentOperationText.Text = operation.Description + (operation.State).ToString();
 
 			// Get statistics based on operation type
-			FileSourceCopyOperationStatistics? statistics = null;
+			FileSourceCopyOperationStatistics statistics = new();
 
 			// Try to get statistics from different operation types
 			if (operation is FileSourceCopyOperation copyOperation)
@@ -1207,7 +1207,7 @@ namespace zfile
 			}
 
 			// Update UI with statistics if available
-			if (statistics != null)
+			if (!statistics.Equals(default(FileSourceCopyOperationStatistics)))
 			{
 				lblFileNameFrom.Text = statistics.CurrentFileFrom;
 				lblFileNameTo.Text = statistics.CurrentFileTo;

@@ -431,7 +431,7 @@ namespace zfile
 				return 0; // 取消操作
 
 			var statistics = operation._statistics;
-			if (statistics != null)
+			if (!statistics.Equals(default(FileSourceCopyOperationStatistics)))
 			{
 				statistics.CurrentFileFrom = fileName ?? string.Empty;
 

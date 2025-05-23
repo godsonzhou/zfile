@@ -1529,6 +1529,7 @@ namespace zfile
 
 			// Create new dialog
 			var dialog = new FileOperationDialog(handle);
+			dialog.Name = handle.ToString();
 			_activeDialogs[handle] = dialog;
 
 			// Show minimized if requested

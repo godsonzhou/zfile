@@ -1008,6 +1008,11 @@ namespace zfile
 			{
 				double speed = (double)(doneBytes2 - doneBytes1) / (now - startTime).TotalSeconds;
 				double remainingSeconds = (totalBytes - doneBytes2) / speed;
+				if (remainingSeconds < 0)
+				{
+					remainingSeconds = 0;
+					Debug.Print("remaining seconds < 0, fixed");
+				}
 				result = TimeSpan.FromSeconds(remainingSeconds);
 				bytesPerSecond = (long)speed;
 			}

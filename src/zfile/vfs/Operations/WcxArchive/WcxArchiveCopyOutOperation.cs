@@ -1,8 +1,5 @@
-using System;
-using System.IO;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
-
 namespace zfile;
 
 public class StringHashListUtf8
@@ -870,7 +867,7 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
     // WCX callback methods would be implemented here
     private static int ProcessDataProc(WcxArchiveCopyOutOperation? wcxCopyOutOperation, string? fileName, int size, IntPtr updateName)
     {
-        //DCDebug('Working (' + IntToStr(GetCurrentThreadId) + ') ' + FileName + ' Size = ' + IntToStr(Size));
+        Debug.Print($"Working ({Thread.CurrentThread}) file:{fileName} size:{size}");
 
         int result = 1;
 

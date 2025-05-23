@@ -515,7 +515,8 @@ namespace zfile
         protected void UpdateStartTime(DateTime newStartTime)
         {
             _startTime = newStartTime;
-        }
+			UpdateStatisticsAtStartTime();
+		}
         protected virtual FileSourceOperationTypes GetID()
         {
             return OperationType;

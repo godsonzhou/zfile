@@ -94,7 +94,7 @@ public class MaskList
 public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
 {
     private IWcxArchiveFileSource _wcxArchiveFileSource;
-    private FileSourceCopyOperationStatistics _statistics;
+    //private FileSourceCopyOperationStatistics _statistics;
     private bool _renamingFiles;
     private string _renameNameMask, _renameExtMask;
     private bool _extractWithoutPath;

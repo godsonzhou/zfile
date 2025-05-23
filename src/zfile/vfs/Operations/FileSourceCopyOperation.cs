@@ -7,7 +7,7 @@ namespace zfile
     {
         protected FileSourceCopyOperationStatistics _statistics;
         private FileSourceCopyOperationStatistics _statisticsAtStartTime;
-        private readonly object _statisticsLock = new object();
+        private readonly object _statisticsLock = new ();
         private IFileSource _sourceFileSource;
         private IFileSource _targetFileSource;
         private FileEntries _sourceFiles;
@@ -187,7 +187,7 @@ namespace zfile
             {
                 // Check if the value by which we calculate progress and remaining time has changed
                 if (_statistics.DoneBytes != newStatistics.DoneBytes)
-                {
+				{
                     newStatistics.RemainingTime = Helper.EstimateRemainingTime(
                         _statisticsAtStartTime.DoneBytes,
                         newStatistics.DoneBytes,

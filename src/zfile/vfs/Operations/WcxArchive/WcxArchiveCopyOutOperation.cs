@@ -867,8 +867,7 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
     // WCX callback methods would be implemented here
     private static int ProcessDataProc(WcxArchiveCopyOutOperation? wcxCopyOutOperation, string? fileName, int size, IntPtr updateName)
     {
-        Debug.Print($"CALLBACK(ProcessDataProc) > WorkingThread:({Thread.CurrentThread}), file:{fileName}, size:{size}");
-
+        //Debug.Print($"CALLBACK(ProcessDataProc) > WorkingThread:({Thread.CurrentThread}), file:{fileName}, size:{size}");
         int result = 1;
 
         if (wcxCopyOutOperation != null)

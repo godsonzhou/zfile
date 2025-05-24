@@ -69,7 +69,7 @@ namespace zfile
 		private int _operationHandle;
 		private OperationsManagerItem? _operationItem;
 		private int _queueIdentifier;
-		private System.Windows.Forms.Timer? _updateTimer;
+		private System.Timers.Timer? _updateTimer;
 		private FileSourceOperationUI? _userInterface;
 		private static readonly Dictionary<int, FileOperationDialog> _activeDialogs = new();
 		private bool _stopOperationOnClose = true;
@@ -1116,18 +1116,25 @@ namespace zfile
 		private void InitializeTimer()
 		{
 			Debug.Print("InitializeTimer()");
-			_updateTimer = new System.Windows.Forms.Timer
+			//_updateTimer = new System.Windows.Forms.Timer   //尝试用 System.Timers.Timer 替换 WinForms Timer
+			//System.Windows.Forms.Timer 依赖UI线程消息泵，System.Timers.Timer 可以在后台线程触发，便于验证UI线程是否被阻塞。
+			_updateTimer = new System.Timers.Timer   //尝试用 System.Timers.Timer 替换 WinForms Timer
+
 			{
 				Interval = 100 // Update 10 times per second
 			};
-			_updateTimer.Tick += UpdateTimer_Tick;
+			_updateTimer.Elapsed += UpdateTimer_Tick;
 			_updateTimer.Start();
 		}
 
 		private void UpdateTimer_Tick(object? sender, EventArgs e)
 		{
+			//Debug.Print($"主线程ID:{MainForm.MainThreadId}, 当前线程ID:{Thread.CurrentThread.ManagedThreadId}");
 			//UpdateControls();
-			OnUpdateTimer();
+			if (this.InvokeRequired)
+				this.BeginInvoke(new Action(() => OnUpdateTimer()));
+			else
+				OnUpdateTimer();
 		}
 		private void OnUpdateTimer()
 		{

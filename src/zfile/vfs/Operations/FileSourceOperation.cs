@@ -1,4 +1,5 @@
 using ICSharpCode.TextEditor.Actions;
+using System.Diagnostics;
 using System.Threading;
 namespace zfile
 {
@@ -1022,6 +1023,22 @@ namespace zfile
 			begin
 				WidgetSet.AppProcessMessages;
 			end;*/
+
+			// 关键：如果在线程中应该让出CPU，允许UI线程处理消息
+			// 如果在主线程中，直接调用application.doevents()
+			if(_thread.Thread.ManagedThreadId != MainForm.MainThreadId)
+			{
+				// 在非主线程中，使用sleep(0)来让出CPU
+				// 允许UI线程处理消息
+				System.Threading.Thread.Sleep(0);
+				//Debug.Print("AppProcessMessages: Sleep(0)");
+			}
+			else
+			{
+				// 在主线程中，直接调用application.doevents()
+				System.Windows.Forms.Application.DoEvents();
+			}
+
 			try
 			{
 				if (checkstate)

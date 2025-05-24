@@ -3152,7 +3152,11 @@ namespace zfile
 					if (operation != null)
 					{
 						_operationsManager.AddOperation(operation);
-						operation._Thread.WaitFor();
+						//operation._Thread.WaitFor();
+						operation._Thread.OnTerminated += (s, e) =>
+						{
+							this.Invoke(new Action(() => { RefreshPanel(activeListView); }));
+						};
 					}
 					else
 					{
@@ -3173,10 +3177,11 @@ namespace zfile
 							var newFolderPath = Path.Combine(path, dir);
 							FileSystemManager.CreateDirectory(newFolderPath);
 						}
+						RefreshPanel(activeListView);
 					}
 				}
 
-				RefreshPanel(activeListView);
+				//RefreshPanel(activeListView);
 			}
 			catch (Exception ex)
 			{

@@ -825,10 +825,10 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
     private void SetProcessDataProc(IntPtr arcData)
     {
         // 创建符合TProcessDataProc签名的委托
-        TProcessDataProc procAG = (_, mode) => ProcessDataProcAG(IntPtr.Zero, mode);
-        TProcessDataProc procWG = (_, mode) => ProcessDataProcWG(IntPtr.Zero, mode);
-        TProcessDataProc procAT = (_, mode) => ProcessDataProcAT(IntPtr.Zero, mode);
-        TProcessDataProc procWT = (_, mode) => ProcessDataProcWT(IntPtr.Zero, mode);
+        TProcessDataProc procAG = (arcname, mode) => ProcessDataProcAG(arcname, mode);
+        TProcessDataProcW procWG = (arcname, mode) => ProcessDataProcWG(arcname, mode);
+        TProcessDataProc procAT = (arcname, mode) => ProcessDataProcAT(arcname, mode);
+        TProcessDataProcW procWT = (arcname, mode) => ProcessDataProcWT(arcname, mode);
 
         // 获取委托的函数指针
         IntPtr procAGPtr = Marshal.GetFunctionPointerForDelegate(procAG);
@@ -867,7 +867,7 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
     // WCX callback methods would be implemented here
     private static int ProcessDataProc(WcxArchiveCopyOutOperation? wcxCopyOutOperation, string? fileName, int size, IntPtr updateName)
     {
-        Debug.Print($"Working ({Thread.CurrentThread}) file:{fileName} size:{size}");
+        Debug.Print($"CALLBACK(ProcessDataProc) > WorkingThread:({Thread.CurrentThread}), file:{fileName}, size:{size}");
 
         int result = 1;
 
@@ -909,32 +909,34 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
                 }
             }
 
-            //DCDebug('CurrentDone  = ' + IntToStr(CurrentFileDoneBytes) + ' Done  = ' + IntToStr(DoneBytes));
-            //DCDebug('CurrentTotal = ' + IntToStr(CurrentFileTotalBytes) + ' Total = ' + IntToStr(TotalBytes));
-            wcxCopyOutOperation.UpdateStatistics(wcxCopyOutOperation._statistics);
-            if (!wcxCopyOutOperation.AppProcessMessages(true)) return 0;
+			//DCDebug('CurrentDone  = ' + IntToStr(CurrentFileDoneBytes) + ' Done  = ' + IntToStr(DoneBytes));
+			//DCDebug('CurrentTotal = ' + IntToStr(CurrentFileTotalBytes) + ' Total = ' + IntToStr(TotalBytes));
+			//wcxCopyOutOperation.UpdateStatistics(wcxCopyOutOperation._statistics);  //bugfix: 看上去应该用_statistics而不是wcxCopyOutOperation._statistics来更新
+			wcxCopyOutOperation.UpdateStatistics(statistics);  //bugfix: 看上去应该用statistics而不是wcxCopyOutOperation._statistics来更新
+
+			if (!wcxCopyOutOperation.AppProcessMessages(true)) return 0;
         }
 
         return result;
     }
 
-    private static int ProcessDataProcAG(IntPtr fileName, int size)
+    private static int ProcessDataProcAG(string fileName, int size)
     {
-        return ProcessDataProc(_wcxCopyOutOperationG, Marshal.PtrToStringAnsi(fileName), size, fileName);
+        return ProcessDataProc(_wcxCopyOutOperationG, fileName, size, IntPtr.Zero);
     }
 
-    private static int ProcessDataProcWG(IntPtr fileName, int size)
+    private static int ProcessDataProcWG(string fileName, int size)
     {
-        return ProcessDataProc(_wcxCopyOutOperationG, Marshal.PtrToStringUni(fileName), size, fileName);
+        return ProcessDataProc(_wcxCopyOutOperationG, fileName, size, IntPtr.Zero);
     }
 
-    private static int ProcessDataProcAT(IntPtr fileName, int size)
+    private static int ProcessDataProcAT(string fileName, int size)
     {
-        return ProcessDataProc(_wcxCopyOutOperationT, Marshal.PtrToStringAnsi(fileName), size, fileName);
+        return ProcessDataProc(_wcxCopyOutOperationT, fileName, size, IntPtr.Zero);
     }
 
-    private static int ProcessDataProcWT(IntPtr fileName, int size)
+    private static int ProcessDataProcWT(string fileName, int size)
     {
-        return ProcessDataProc(_wcxCopyOutOperationT, Marshal.PtrToStringUni(fileName), size, fileName);
+        return ProcessDataProc(_wcxCopyOutOperationT, fileName, size, IntPtr.Zero);
     }
 }

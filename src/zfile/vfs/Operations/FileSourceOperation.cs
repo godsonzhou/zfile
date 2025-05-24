@@ -1,3 +1,4 @@
+using ICSharpCode.TextEditor.Actions;
 using System.Threading;
 namespace zfile
 {
@@ -1015,6 +1016,12 @@ namespace zfile
         /// </summary>
         protected bool AppProcessMessages(bool checkstate = false)
         {
+			//in pascal version like :
+			/*  
+			 *  if GetCurrentThreadId = MainThreadID then
+			begin
+				WidgetSet.AppProcessMessages;
+			end;*/
 			try
 			{
 				if (checkstate)

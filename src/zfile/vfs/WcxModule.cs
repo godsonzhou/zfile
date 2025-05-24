@@ -916,7 +916,7 @@ namespace zfile
 
 				// 获取结构体的大小
 				int size = Marshal.SizeOf(typeof(TOpenArchiveDataW));
-				Debug.Print($"archiveDataW占用的内存大小: {size} 字节");
+				//Debug.Print($"archiveDataW占用的内存大小: {size} 字节");
 				try
 				{
 					result = _openArchiveW(ref archiveDataW);

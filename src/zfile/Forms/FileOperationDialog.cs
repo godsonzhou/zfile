@@ -117,7 +117,7 @@ namespace zfile
 		private void CloseDialog()
 		{
 			_stopOperationOnClose = false;
-			Debug.Print("Closing file operation dialog...");
+			Debug.Print($"Closing file operation dialog ({_operationHandle})");
 			Close();
 		}
 
@@ -1115,6 +1115,7 @@ namespace zfile
 
 		private void InitializeTimer()
 		{
+			Debug.Print("InitializeTimer()");
 			_updateTimer = new System.Windows.Forms.Timer
 			{
 				Interval = 100 // Update 10 times per second
@@ -1133,6 +1134,7 @@ namespace zfile
 			if (_operationItem != null && _operationItem.Queue?.Identifier != _queueIdentifier)
 			{
 				var queue = OperationsManager.Instance.GetQueueByIdentifier(_queueIdentifier);
+
 				FinalizeOperation();
 				if (queue != null && queue.IsFree)
 				{
@@ -1144,6 +1146,7 @@ namespace zfile
 					_queueIdentifier = _operationItem.Queue?.Identifier ?? 0;
 					_operationHandle = _operationItem.Handle;
 				}
+				Debug.Print($"OnUpdateTimer() - queueIdentifier:{_queueIdentifier}, operationHandle:{_operationHandle}");
 				if (!InitializeOperation())
 				{
 					CloseDialog();

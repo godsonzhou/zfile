@@ -3045,7 +3045,7 @@ namespace zfile
 					// 添加操作到管理器并执行
 					_operationsManager.AddOperation(copyOutOperation);
 					var opitem = _operationsManager.GetItemByOperation(copyOutOperation);
-					opitem?.OperationThread.WaitFor();
+					opitem?.OperationThread.WaitFor();	
 
 					Debug.Print($"now check the copyout operation result{copyOutOperation.Result}");
 
@@ -3837,10 +3837,14 @@ namespace zfile
 						return CopyViaTemporaryDirectory(sourceFileSource, targetFileSource, fileEntries, targetPath);
 
 					_operationsManager.AddOperation(operation);
-					operation._Thread.WaitFor();
-
+					//operation._Thread.WaitFor();    //bugfix: 会导致主线程（UI线程）被阻塞，UI无法响应消息泵，进度条和界面都不会刷新，直到操作完成。
+					operation._Thread.OnTerminated += (s, e) =>
+					{
+						// 这里用Invoke保证在UI线程刷新
+						this.Invoke(new Action(() => RefreshPanel(targetlist)));
+					};
 					// 刷新目标面板
-					RefreshPanel(targetlist);
+					//RefreshPanel(targetlist);
 					return true;
 				}
 
@@ -4092,10 +4096,20 @@ namespace zfile
 				{
 					operation = sourceFileSource.CreateMoveOperation(fileEntries, targetPath);
 					_operationsManager.AddOperation(operation);
-					operation._Thread.WaitFor();    //waiting for operation to finish
-													// 刷新面板
-					RefreshPanel(activeListView);
-					RefreshPanel(unactiveListView);
+					//operation._Thread.WaitFor();    //waiting for operation to finish
+					operation._Thread.OnTerminated += (s, e) =>
+					{
+						// 这里用Invoke保证在UI线程刷新
+						this.Invoke(new Action(() =>
+						{
+							// 刷新面板
+							RefreshPanel(activeListView);
+							RefreshPanel(unactiveListView);
+						}));
+					};
+					//// 刷新面板
+					//RefreshPanel(activeListView);
+					//RefreshPanel(unactiveListView);
 					return;
 				}
 				else
@@ -4119,11 +4133,21 @@ namespace zfile
 					if (operation != null)
 					{
 						_operationsManager.AddOperation(operation);
-						operation._Thread.WaitFor();
+						//operation._Thread.WaitFor();
+						operation._Thread.OnTerminated += (s, e) =>
+						{
+							// 这里用Invoke保证在UI线程刷新
+							this.Invoke(new Action(() =>
+							{
+								// 刷新面板
+								RefreshPanel(activeListView);
+								RefreshPanel(unactiveListView);
+							}));
+						};
 
-						// 刷新面板
-						RefreshPanel(activeListView);
-						RefreshPanel(unactiveListView);
+						//// 刷新面板
+						//RefreshPanel(activeListView);
+						//RefreshPanel(unactiveListView);
 						return;
 					}
 				}
@@ -4223,12 +4247,22 @@ namespace zfile
 					if (operation != null)
 					{
 						_operationsManager.AddOperation(operation);
-						operation._Thread.WaitFor();
+						//operation._Thread.WaitFor();
+						operation._Thread.OnTerminated += (s, e) =>
+						{
+							this.Invoke(new Action(() =>
+							{
+								// 刷新面板
+								RefreshPanel(activeListView);
+								if (!string.IsNullOrEmpty(param))
+									RefreshPanel(unactiveListView);
+							}));
+						};
 
 						// 刷新面板
-						RefreshPanel(activeListView);
-						if (!string.IsNullOrEmpty(param))
-							RefreshPanel(unactiveListView);
+						//RefreshPanel(activeListView);
+						//if (!string.IsNullOrEmpty(param))
+						//	RefreshPanel(unactiveListView);
 						return;
 					}
 

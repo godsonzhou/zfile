@@ -1130,7 +1130,9 @@ namespace zfile
 		private void UpdateTimer_Tick(object? sender, EventArgs e)
 		{
 			//Debug.Print($"主线程ID:{MainForm.MainThreadId}, 当前线程ID:{Thread.CurrentThread.ManagedThreadId}");
-			//UpdateControls();
+			/*•	System.Timers.Timer.Elapsed 事件在线程池线程上触发，不能直接操作UI控件，必须用 Invoke 或 BeginInvoke 切回UI线程。
+			•	OnUpdateTimer() 里如有UI操作，必须保证在UI线程执行。
+			 */
 			if (this.InvokeRequired)
 				this.BeginInvoke(new Action(() => OnUpdateTimer()));
 			else

@@ -13,7 +13,6 @@ using Keys = System.Windows.Forms.Keys;
 
 namespace zfile
 {
-
 	public partial class MainForm : Form
 	{
 		public class lrflag
@@ -183,12 +182,28 @@ namespace zfile
 		private const uint SIIGBF_IGNORECRYPTED = 0x00000080;
 		const int ILD_TRANSPARENT = 0x00000001;
 
-		public static int LVCOL_NAME = 0;
-		public static int LVCOL_SIZE = 1;
-		public static int LVCOL_TYPE = 2;
-		public static int LVCOL_DATE = 3;
-		public static int LVCOL_ATTR = 4;
-
+		//public static int LVCOL_NAME = 0;
+		//public static int LVCOL_SIZE = 1;
+		//public static int LVCOL_TYPE = 2;
+		//public static int LVCOL_DATE = 3;
+		//public static int LVCOL_ATTR = 4;
+		public struct LvCol
+		{
+			public int NAME;
+			public int SIZE;
+			public int TYPE;
+			public int DATE;
+			public int ATTR;
+			public LvCol()
+			{
+				NAME = 0;
+				SIZE = 1;
+				TYPE = 2;
+				DATE = 3;
+				ATTR = 4;
+			}
+		}
+		public static Dictionary<string, LvCol> LVCOL = [];
 		public static MainForm Instance { get; private set; } = null!;
 		public static IntPtr _Handle { get; set; }
 		public static int MainThreadId { get; set; } = 0;
@@ -487,6 +502,9 @@ namespace zfile
 			ClearMemory();
 			_operationsManager.AddEventListener(OperationManagerNotify);
 			MainThreadId = Thread.CurrentThread.ManagedThreadId;
+
+			LVCOL.Add("L", new LvCol());
+			LVCOL.Add("R", new LvCol());
 		}
 
 		private void OperationManagerNotify(object? sender, OperationEventArgs e)
@@ -781,7 +799,7 @@ namespace zfile
 				if (targetItem != null)
 				{
 					targetPath = GetListItemPath(targetItem)?.FullPath;
-					return targetItem.SubItems[LVCOL_TYPE].Text.Equals("<DIR>"); //IN ftp panel, if target is a dir then return true, otherwise return false
+					return targetItem.SubItems[LVCOL[listView.Name].TYPE].Text.Equals("<DIR>"); //IN ftp panel, if target is a dir then return true, otherwise return false
 				}
 				else
 				{
@@ -1479,7 +1497,7 @@ namespace zfile
 			var listView = sender as ListView;
 			if (listView?.SelectedItems.Count == 0) return;
 			var item = listView?.SelectedItems[0];
-			if (item?.SubItems[LVCOL_TYPE].Text == "本地磁盘")
+			if (item?.SubItems[LVCOL[listView.Name].TYPE].Text == "本地磁盘")
 			{
 				MessageBox.Show("不能重命名本地磁盘");
 				e = null;
@@ -1668,7 +1686,7 @@ namespace zfile
 			}
 			// 获取关联的TreeView
 			var treeView = listView == uiManager.LeftList ? uiManager.LeftTree : uiManager.RightTree;
-			if (selectedItem.SubItems[LVCOL_TYPE].Text.Equals("<DIR>") || selectedItem.SubItems[LVCOL_TYPE].Text == "本地磁盘")
+			if (selectedItem.SubItems[LVCOL[listView.Name].TYPE].Text.Equals("<DIR>") || selectedItem.SubItems[LVCOL[listView.Name].TYPE].Text == "本地磁盘")
 			{
 				// 查找并选择对应的TreeNode
 				treeView.SelectedNode.Expand();
@@ -2339,7 +2357,7 @@ namespace zfile
 		{
 			if (lvItem != null)
 			{
-				if (lvItem.SubItems[MainForm.LVCOL_TYPE].Text.Equals("<DIR>"))
+				if (lvItem.SubItems[MainForm.LVCOL[listView.Name].TYPE].Text.Equals("<DIR>"))
 				{
 					iconManager.LoadIconFromCacheByKey("folder", listView.SmallImageList);
 					iconManager.LoadIconFromCacheByKey("folder", listView.LargeImageList, true);
@@ -2432,14 +2450,14 @@ namespace zfile
 					if (isdir)
 					{
 						//if is dir, calc dir size
-						if ((item.SubItems[LVCOL_SIZE].Text.Equals("0 B")) && showFolderSize)
+						if ((item.SubItems[LVCOL[listView.Name].SIZE].Text.Equals("0 B")) && showFolderSize)
 						{
 							// 检查缓存中是否已有该文件夹的大小
 							if (itemFullName != null && _backgroundIconManager.HasDirSizeCache(itemFullName))
 							{
 								// 从缓存获取文件夹大小并更新UI
 								long cachedSize = _backgroundIconManager.GetDirSizeFromCache(itemFullName);
-								item.SubItems[LVCOL_SIZE].Text = FileSystemManager.FormatFileSize(cachedSize, true);
+								item.SubItems[LVCOL[listView.Name].SIZE].Text = FileSystemManager.FormatFileSize(cachedSize, true);
 								if (file != null)
 									file.Size = cachedSize;
 							}
@@ -2487,7 +2505,7 @@ namespace zfile
 			if (fileSource is ShellFileSource)  //如果是虚拟节点（由shellfilesource处理的节点），由于在loadsubdirectories中已经生成，所以无需再处理
 				return;
 
-			Debug.Print($"load listview by filesource [{listView.Name}]: {path}");
+			Debug.Print($"load listview by filesource [{listView.Name}/{listView.View}]: {path}");
 			try
 			{
 				// 更新 ListView
@@ -2502,7 +2520,7 @@ namespace zfile
 				// 添加所有项目到 ListView
 				foreach (var file in files)
 				{
-					var lvItem = CreateListViewItemFromFileEntry(file, showFolderSize, parentnode, viewname);//todo: 在显示自定义视图时，需要启用wdx插件获取额外的信息
+					var lvItem = CreateListViewItemFromFileEntry(file, showFolderSize, parentnode, viewname, listView.Name);//todo: 在显示自定义视图时，需要启用wdx插件获取额外的信息
 					if (lvItem != null)
 					{
 						var f = SetIconForListViewItem(lvItem, listView, subkey);
@@ -2539,16 +2557,11 @@ namespace zfile
 		}
 
 		// 创建 ListViewItem (从 FileEntry)
-		private ListViewItem? CreateListViewItemFromFileEntry(FileEntry file, bool showFolderSize, TreeNode node, string viewname)
+		private ListViewItem? CreateListViewItemFromFileEntry(FileEntry file, bool showFolderSize, TreeNode node, string viewname, string lr)
 		{
 			try
 			{
-				int viewid = 0;
-				if (!viewname.Equals("默认"))
-				{
-					viewid = int.Parse(viewname);
-				}
-
+				int viewid = int.Parse(viewname);
 				if (viewid <= 5)
 				{
 					// 如果默认视图也不存在，使用硬编码的默认列
@@ -2594,21 +2607,21 @@ namespace zfile
 					{
 						var colDef = colDefs[i];
 						string content = colDef.content.Trim();
-
+						var lvcol = LVCOL[lr];
 						// 根据列内容定义获取对应的数据
 						if (content.Equals("文件名", StringComparison.OrdinalIgnoreCase))
 						{
-							LVCOL_NAME = i;
+							lvcol.NAME = i;
 							itemData[i] = file.Name;
 						}
 						else if (content.Equals("扩展名", StringComparison.OrdinalIgnoreCase))
 						{
-							LVCOL_TYPE = i;
+							lvcol.TYPE = i;
 							itemData[i] = file.IsDirectory ? "<DIR>" : Path.GetExtension(file.Name).ToUpperInvariant();
 						}
 						else if (content.Contains("size", StringComparison.OrdinalIgnoreCase))
 						{
-							LVCOL_SIZE = i;
+							lvcol.SIZE = i;
 							if (file.IsDirectory)
 								itemData[i] = showFolderSize && EverythingWrapper.IsEverythingServiceRunning() ? FileSystemManager.FormatFileSize(file.Size, true) : "";
 							else
@@ -2616,12 +2629,12 @@ namespace zfile
 						}
 						else if (content.Contains("writedate", StringComparison.OrdinalIgnoreCase) || content.Contains("时间", StringComparison.OrdinalIgnoreCase))
 						{
-							LVCOL_DATE = i;
+							lvcol.DATE = i;
 							itemData[i] = file.ModificationTime.ToString("yyyy-MM-dd HH:mm");
 						}
 						else if (content.Contains("[=tc.attributestr]", StringComparison.OrdinalIgnoreCase))
 						{
-							LVCOL_ATTR = i;
+							lvcol.ATTR = i;
 							itemData[i] = GetFileAttributesString(file.Attributes);
 						}
 						else if (content.Contains("[=") && content.Contains("]"))

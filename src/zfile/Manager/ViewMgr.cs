@@ -301,7 +301,7 @@ namespace zfile
 			if (viewmodeid < 5) 
 			{
 				// Apply default view mode
-				listView.View = (View)viewmodeid;
+				listView.View = (View)viewmodeid;	//default is 0, largeicon mode
 				listView.Columns.Clear();
 				listView.Columns.Add("名称", 250);
 				listView.Columns.Add("大小", 80);

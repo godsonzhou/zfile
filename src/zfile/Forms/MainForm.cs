@@ -2353,14 +2353,16 @@ namespace zfile
 			Debug.Print($"backstack.push: {oldpath}");
 			forwardStack.Clear(); // 清除前进历史
 		}
-		private string? SetIconForListViewItem(ListViewItem lvItem, ListView listView, string subkey)
+		private void SetIconForListViewItem(ListViewItem lvItem, ListView listView, bool islarge)
 		{
 			if (lvItem != null)
 			{
+				var imageList = islarge ? listView.LargeImageList : listView.SmallImageList;
 				if (lvItem.SubItems[MainForm.LVCOL[listView.Name]._TYPE].Text.Equals("<DIR>"))
 				{
-					iconManager.LoadIconFromCacheByKey("folder", listView.SmallImageList);
-					iconManager.LoadIconFromCacheByKey("folder", listView.LargeImageList, true);
+					//iconManager.LoadIconFromCacheByKey("folder", listView.SmallImageList);
+					//iconManager.LoadIconFromCacheByKey("folder", listView.LargeImageList, true);
+					iconManager.LoadIconFromCacheByKey("folder", imageList, islarge);
 					lvItem.ImageKey = "folder";
 				}
 				else
@@ -2378,35 +2380,43 @@ namespace zfile
 						key = Path.GetExtension(itemFullName);
 
 					// 设置默认图标
-					if (subkey == "s")
-					{
-						if (!iconManager.HasIconKey(key, false))
-						{
-							var ico = IconManager.GetIconByFileNameEx("FILE", itemFullName);
-							if (ico != null)
-								iconManager.CacheIcon(key, ico, false);
-						}
-						iconManager.LoadIconFromCacheByKey(key, listView.SmallImageList);
-						lvItem.ImageKey = key;
-					}
-					else
-					{
-						// 先设置默认图标
-						if (!iconManager.HasIconKey(key, true))
-						{
-							var icol = IconManager.GetIconByFileNameEx("FILE", itemFullName, true);
-							if (icol != null)
-								iconManager.CacheIcon(key, icol, true);
-						}
-						iconManager.LoadIconFromCacheByKey(key, listView.LargeImageList, true);
-						lvItem.ImageKey = key;
+					//if (subkey == "s")
+					//{
+					//	if (!iconManager.HasIconKey(key, false))
+					//	{
+					//		var ico = IconManager.GetIconByFileNameEx("FILE", itemFullName);
+					//		if (ico != null)
+					//			iconManager.CacheIcon(key, ico, false);
+					//	}
+					//	iconManager.LoadIconFromCacheByKey(key, listView.SmallImageList);
+					//	lvItem.ImageKey = key;
+					//}
+					//else
+					//{
+					//	// 先设置默认图标
+					//	if (!iconManager.HasIconKey(key, true))
+					//	{
+					//		var icol = IconManager.GetIconByFileNameEx("FILE", itemFullName, true);
+					//		if (icol != null)
+					//			iconManager.CacheIcon(key, icol, true);
+					//	}
+					//	iconManager.LoadIconFromCacheByKey(key, listView.LargeImageList, true);
+					//	lvItem.ImageKey = key;
 
-						// 返回文件路径，用于后续生成缩略图
-						return itemFullName;
+					//	// 返回文件路径，用于后续生成缩略图
+					//	return itemFullName;
+					//}
+					if (!iconManager.HasIconKey(key, islarge))
+					{
+						var icol = IconManager.GetIconByFileNameEx("FILE", itemFullName, islarge);
+						if (icol != null)
+							iconManager.CacheIcon(key, icol, islarge);
 					}
+					iconManager.LoadIconFromCacheByKey(key, imageList, islarge);
+					lvItem.ImageKey = key;
 				}
 			}
-			return null;
+			//return null;
 		}
 
 		// 处理ListView滚动事件
@@ -2511,7 +2521,7 @@ namespace zfile
 				// 更新 ListView
 				listView.BeginUpdate();
 				listView.Items.Clear();
-				var subkey = (listView.View == View.Tile ? "l" : "s");
+				var subkey = (listView.View == View.Tile || listView.View == View.LargeIcon ? "l" : "s");
 				showFolderSize = configLoader.FindConfigValue("Configuration", "EverythingForSize").Equals("1");
 
 				// 应用视图管理器设置 - 根据文件夹内容自动切换视图模式
@@ -2523,7 +2533,7 @@ namespace zfile
 					var lvItem = CreateListViewItemFromFileEntry(file, showFolderSize, parentnode, viewname, listView.Name);//todo: 在显示自定义视图时，需要启用wdx插件获取额外的信息
 					if (lvItem != null)
 					{
-						var f = SetIconForListViewItem(lvItem, listView, subkey);
+						SetIconForListViewItem(lvItem, listView, subkey.Equals("l"));
 						listView.Items.Add(lvItem);
 					}
 				}
@@ -2603,12 +2613,12 @@ namespace zfile
 					// 根据列定义创建数据数组
 					string[] itemData = new string[colDefs.Count];
 
+					var lvcol = LVCOL[lr];
 					// 填充数据
 					for (int i = 0; i < colDefs.Count; i++)
 					{
 						var colDef = colDefs[i];
 						string content = colDef.content.Trim();
-						var lvcol = LVCOL[lr];
 						// 根据列内容定义获取对应的数据
 						if (content.Equals("文件名", StringComparison.OrdinalIgnoreCase))
 						{

@@ -510,7 +510,7 @@ namespace zfile
 						if (!form.iconManager.HasIconKey(item.ImageKey, false))
 						{
 							// 使用默认图标
-							item.ImageKey = item.SubItems[MainForm.LVCOL_TYPE].Text == "<DIR>" ? "folder" : "file";
+							item.ImageKey = item.SubItems[MainForm.LVCOL[listView.Name]._TYPE].Text == "<DIR>" ? "folder" : "file";
 						}
 
 						// 添加到ListView
@@ -539,7 +539,7 @@ namespace zfile
 		{
 			if (_ftpSources.TryGetValue(connectionName, out FtpFileSource? source))
 			{
-				bool isDirectory = item.SubItems[MainForm.LVCOL_TYPE].Text == "<DIR>";
+				bool isDirectory = item.SubItems[MainForm.LVCOL[item.ListView.Name]._TYPE].Text == "<DIR>";
 				string path = (item.Tag as LvItemTag)?.File?.FullPath ?? "";
 
 				// 创建右键菜单

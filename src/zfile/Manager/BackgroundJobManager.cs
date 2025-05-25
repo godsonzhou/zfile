@@ -397,7 +397,7 @@ namespace zfile
                         i.ImageKey = imageKey;
                     else
                     {
-                        i.SubItems[MainForm.LVCOL_SIZE].Text = FileSystemManager.FormatFileSize(dirsize, true);
+                        i.SubItems[MainForm.LVCOL[listView.Name]._SIZE].Text = FileSystemManager.FormatFileSize(dirsize, true);
                         //i.SubItems[5].Text = dirsize.ToString();
                         if (i.Tag is LvItemTag tag && tag.File != null)
                             tag.File.Size = dirsize;

@@ -1174,13 +1174,13 @@ namespace zfile
 				if (item.SubItems.Count >= 3) // 确保有足够的子项
 				{
 					// 检查是否是文件夹
-					bool isFolder = item.SubItems[MainForm.LVCOL_TYPE].Text.Equals("<DIR>", StringComparison.OrdinalIgnoreCase);
+					bool isFolder = item.SubItems[MainForm.LVCOL[item.ListView.Name]._TYPE].Text.Equals("<DIR>", StringComparison.OrdinalIgnoreCase);
 					if (isFolder)
 						folderCount++;
 					else
 						fileCount++;
 					// 解析文件大小
-					if (long.TryParse(item.SubItems[MainForm.LVCOL_SIZE]?.Text.Replace(",", ""), out long size))
+					if (long.TryParse(item.SubItems[MainForm.LVCOL[item.ListView.Name]._SIZE]?.Text.Replace(",", ""), out long size))
 						totalSize += size;
 				}
 			}
@@ -1335,7 +1335,7 @@ namespace zfile
 				var selectedItems = activeListView.SelectedItems;
 				foreach (ListViewItem item in selectedItems)
 				{
-					if (item.SubItems[MainForm.LVCOL_TYPE].Text == "<DIR>")
+					if (item.SubItems[MainForm.LVCOL[activeListView.Name]._TYPE].Text == "<DIR>")
 					{
 						var fullPath = Path.Combine(srcDir, item.Text);
 						hotDirManager.AddFolder(fullPath);

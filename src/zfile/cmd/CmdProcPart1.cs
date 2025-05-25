@@ -42,7 +42,7 @@ namespace zfile
 			if (owner.activeListView.SelectedItems.Count > 0)
 			{
 				var selectedItem = owner.activeListView.SelectedItems[0];
-				bool isDirectory = selectedItem.SubItems[MainForm.LVCOL_TYPE].Text == "<DIR>";
+				bool isDirectory = selectedItem.SubItems[MainForm.LVCOL[owner.activeListView.Name]._TYPE].Text == "<DIR>";
 				string path = (selectedItem.Tag as LvItemTag)?.File?.FullPath ?? "";	//selectedItem.SubItems[1].Text;
 
 				// 获取当前连接名称
@@ -236,7 +236,7 @@ namespace zfile
 
 		private void cm_gotofirstfile()
 		{
-			var firstfile = owner.activeListView.Items.Cast<ListViewItem>().FirstOrDefault(item => !item.SubItems[MainForm.LVCOL_TYPE].Text.Equals("<DIR>"));
+			var firstfile = owner.activeListView.Items.Cast<ListViewItem>().FirstOrDefault(item => !item.SubItems[MainForm.LVCOL[owner.activeListView.Name]._TYPE].Text.Equals("<DIR>"));
 			//firstfile.Selected = true;
 			var idx = owner.activeListView.Items.IndexOf(firstfile);
 			owner.activeListView.EnsureVisible(idx);

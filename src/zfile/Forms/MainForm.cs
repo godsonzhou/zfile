@@ -3236,7 +3236,13 @@ namespace zfile
 			if (listView == null) return;
 			RefreshPanel(listView == uiManager.LeftList ? RefreshPanelMode.Left : RefreshPanelMode.Right);
 		}
-
+		public void RefreshPanel(string _lrflag)
+		{
+			if ("L".Equals(_lrflag))
+				RefreshPanel(true);
+			else if ("R".Equals(_lrflag))
+				RefreshPanel(false);
+		}
 		public void RefreshActivePanel()
 		{
 			RefreshPanel(isleft);
@@ -3864,14 +3870,14 @@ namespace zfile
 					// 特殊情况：如果源和目标都是WcxArchiveFileSource，需要通过临时文件系统进行复制
 					if (operation == null)
 						return CopyViaTemporaryDirectory(sourceFileSource, targetFileSource, fileEntries, targetPath);
-
+					operation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation)sender, state, targetlist));
 					_operationsManager.AddOperation(operation);
 					//operation._Thread.WaitFor();    //bugfix: 会导致主线程（UI线程）被阻塞，UI无法响应消息泵，进度条和界面都不会刷新，直到操作完成。
-					operation._Thread.OnTerminated += (s, e) =>
-					{
-						// 这里用Invoke保证在UI线程刷新
-						this.Invoke(new Action(() => RefreshPanel(targetlist)));
-					};
+					//operation._Thread.OnTerminated += (s, e) =>
+					//{
+					//	// 这里用Invoke保证在UI线程刷新
+					//	this.Invoke(new Action(() => RefreshPanel(targetlist)));
+					//};
 					// 刷新目标面板
 					//RefreshPanel(targetlist);
 					return true;
@@ -4211,7 +4217,27 @@ namespace zfile
 				MessageBox.Show($"移动文件失败: {ex.Message}", "错误");
 			}
 		}
-
+		private void RefreshPanelOnFileSourceOperationStateChangedNotify(FileSourceOperation operation, FileSourceOperationState state, ListView? listview = null, RefreshPanelMode mode = RefreshPanelMode.Source)
+		{
+			this.Invoke(new Action(() =>
+			{
+				if (listview != null) { RefreshPanel(listview); }	//若传入listview, 则按照listview刷新
+				else
+				{
+					// 否则按照mode刷新面板
+					if (mode.HasFlag(RefreshPanelMode.Left))
+						RefreshPanel(true);
+					if (mode.HasFlag(RefreshPanelMode.Right))
+						RefreshPanel(false);
+					// 刷新活动和非活动面板
+					if (mode.HasFlag(RefreshPanelMode.Source))
+						RefreshPanel(activeListView);
+					//if (!string.IsNullOrEmpty(param))
+					if (mode.HasFlag(RefreshPanelMode.Target))
+						RefreshPanel(unactiveListView);
+				}
+			}));
+		}
 		// 删除选中的文件
 		public void cm_delete(string? param = null, bool needConfirm = true)
 		{
@@ -4275,19 +4301,19 @@ namespace zfile
 					var operation = fileSource.CreateDeleteOperation(fileEntries);
 					if (operation != null)
 					{
+						operation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation)sender, state));
 						_operationsManager.AddOperation(operation);
 						//operation._Thread.WaitFor();
-						operation._Thread.OnTerminated += (s, e) =>
-						{
-							this.Invoke(new Action(() =>
-							{
-								// 刷新面板
-								RefreshPanel(activeListView);
-								if (!string.IsNullOrEmpty(param))
-									RefreshPanel(unactiveListView);
-							}));
-						};
-
+						//operation._Thread.OnTerminated += (s, e) =>
+						//{
+						//	this.Invoke(new Action(() =>
+						//	{
+						//		// 刷新面板
+						//		RefreshPanel(activeListView);
+						//		if (!string.IsNullOrEmpty(param))
+						//			RefreshPanel(unactiveListView);
+						//	}));
+						//};
 						// 刷新面板
 						//RefreshPanel(activeListView);
 						//if (!string.IsNullOrEmpty(param))

@@ -48,7 +48,9 @@ namespace WinShell
 		None = 0,
 		Left = 1,
 		Right = 2,
-		Both = 3
+		Both = 3,
+		Source = 4,		//active
+		Target = 8		//unactive
 	}
 	public enum ReadDirContentsMode 
 	{ 

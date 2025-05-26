@@ -829,7 +829,8 @@ namespace zfile
 
 				//get packer caps
 				PluginCapabilities = _getPackerCaps?.Invoke() ?? 0;
-
+				if (_pkSetCryptCallback != null || _pkSetCryptCallbackW != null)
+					Debug.Print($"wcxmodule:{Name} cap:{PluginCapabilities:X}");
 				// 设置默认参数
 				if (_packSetDefaultParams != null)
 					SetDefaultParam();

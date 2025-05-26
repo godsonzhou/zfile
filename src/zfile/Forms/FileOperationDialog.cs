@@ -544,7 +544,8 @@ namespace zfile
 			}
 
 			UpdatePauseStartButton(item);
-
+			if (item.Queue == null)
+				return;
 			// Update window caption
 			string newCaption;
 			if (item.Queue.IsFree)

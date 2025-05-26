@@ -3066,10 +3066,11 @@ namespace zfile
 
 				if (copyOutOperation != null)
 				{
+					//copyOutOperation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => getTempFileFromFileEntries(fileEntries, tempPath));
 					// 添加操作到管理器并执行
 					_operationsManager.AddOperation(copyOutOperation);
 					var opitem = _operationsManager.GetItemByOperation(copyOutOperation);
-					opitem?.OperationThread.WaitFor();	
+					opitem?.OperationThread.WaitFor();
 
 					Debug.Print($"now check the copyout operation result{copyOutOperation.Result}");
 
@@ -3175,12 +3176,13 @@ namespace zfile
 					var operation = fileSource.CreateCreateDirectoryOperation(path, dir);
 					if (operation != null)
 					{
+						operation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation)sender, state, activeListView));
 						_operationsManager.AddOperation(operation);
 						//operation._Thread.WaitFor();
-						operation._Thread.OnTerminated += (s, e) =>
-						{
-							this.Invoke(new Action(() => { RefreshPanel(activeListView); }));
-						};
+						//operation._Thread.OnTerminated += (s, e) =>
+						//{
+						//	this.Invoke(new Action(() => { RefreshPanel(activeListView); }));
+						//};
 					}
 					else
 					{
@@ -4086,6 +4088,32 @@ namespace zfile
 				return false;
 			}
 		}
+		private void deleteFiles(IFileSource sourceFileSource, FileEntries fileEntries)
+		{
+			// 复制成功后删除源文件
+			var operation = sourceFileSource.CreateDeleteOperation(fileEntries);
+			if (operation != null)
+			{
+				operation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation)sender, state, mode: RefreshPanelMode.Both));
+				_operationsManager.AddOperation(operation);
+				//operation._Thread.WaitFor();
+				//operation._Thread.OnTerminated += (s, e) =>
+				//{
+				//	// 这里用Invoke保证在UI线程刷新
+				//	this.Invoke(new Action(() =>
+				//	{
+				//		// 刷新面板
+				//		RefreshPanel(activeListView);
+				//		RefreshPanel(unactiveListView);
+				//	}));
+				//};
+
+				//// 刷新面板
+				//RefreshPanel(activeListView);
+				//RefreshPanel(unactiveListView);
+				//return;
+			}
+		}
 		// 移动选中的文件
 		public void cm_renmov(string? param = null, string? targetPath = null)
 		{
@@ -4130,18 +4158,19 @@ namespace zfile
 				if (sourceFileSource.GetType() == targetFileSource.GetType())
 				{
 					operation = sourceFileSource.CreateMoveOperation(fileEntries, targetPath);
+					operation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation)sender, state, mode: RefreshPanelMode.Both));
 					_operationsManager.AddOperation(operation);
 					//operation._Thread.WaitFor();    //waiting for operation to finish
-					operation._Thread.OnTerminated += (s, e) =>
-					{
-						// 这里用Invoke保证在UI线程刷新
-						this.Invoke(new Action(() =>
-						{
-							// 刷新面板
-							RefreshPanel(activeListView);
-							RefreshPanel(unactiveListView);
-						}));
-					};
+					//operation._Thread.OnTerminated += (s, e) =>
+					//{
+					//	// 这里用Invoke保证在UI线程刷新
+					//	this.Invoke(new Action(() =>
+					//	{
+					//		// 刷新面板
+					//		RefreshPanel(activeListView);
+					//		RefreshPanel(unactiveListView);
+					//	}));
+					//};
 					//// 刷新面板
 					//RefreshPanel(activeListView);
 					//RefreshPanel(unactiveListView);
@@ -4154,36 +4183,13 @@ namespace zfile
 					var copyOperation = FileSourceManager.CreateCopyOperation(sourceFileSource, targetFileSource, fileEntries, targetPath);
 					if (copyOperation != null)
 					{
+						copyOperation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => deleteFiles(sourceFileSource, fileEntries));	 //copyoperation完成后执行删除文件操作
 						_operationsManager.AddOperation(copyOperation);
-						copyOperation._Thread.WaitFor();
-
-						// 复制成功后删除源文件
-						operation = sourceFileSource.CreateDeleteOperation(fileEntries);
+						//copyOperation._Thread.WaitFor();
 					}
 					else
 					{
 						operation = null;
-					}
-
-					if (operation != null)
-					{
-						_operationsManager.AddOperation(operation);
-						//operation._Thread.WaitFor();
-						operation._Thread.OnTerminated += (s, e) =>
-						{
-							// 这里用Invoke保证在UI线程刷新
-							this.Invoke(new Action(() =>
-							{
-								// 刷新面板
-								RefreshPanel(activeListView);
-								RefreshPanel(unactiveListView);
-							}));
-						};
-
-						//// 刷新面板
-						//RefreshPanel(activeListView);
-						//RefreshPanel(unactiveListView);
-						return;
 					}
 				}
 
@@ -4370,7 +4376,39 @@ namespace zfile
 			// 启用编辑模式
 			selectedItem.BeginEdit();
 		}
+		private void copyinFiles(FileSourceOperation? copyOutOperation, FileEntries sourceFiles, string tempPath, ITempFileSystemFileSource tempFileSource, IFileSource targetFileSource, string targetPath)
+		{
+			// 检查操作是否成功完成
+			//if (copyOutOperation.Result == FileSourceOperationResult.Finished)
+			//{
+			// 创建临时文件系统中的文件列表
+			var tempFiles = new FileEntries(tempPath);
 
+			// 获取临时目录中的所有文件
+			foreach (var file in sourceFiles)
+			{
+				string tempFilePath = Path.Combine(tempPath, file.Name);
+				if (File.Exists(tempFilePath) || Directory.Exists(tempFilePath))
+				{
+					var tempFile = FileSystemFileSource.CreateFileFromFile(tempFilePath);
+					tempFiles.Add(tempFile);
+				}
+			}
+
+			// 第二步：从临时文件系统复制到目标压缩文件
+			var copyInOperation = targetFileSource.CreateCopyInOperation(tempFileSource, tempFiles, targetPath);
+			if (copyInOperation != null)
+			{
+				copyInOperation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation)sender, state, mode: RefreshPanelMode.Both));
+				// 添加操作到管理器并执行
+				_operationsManager.AddOperation(copyInOperation);
+				//copyInOperation._Thread.WaitFor();
+
+				// 操作成功
+				//result = (copyInOperation.Result == FileSourceOperationResult.Finished);
+			}
+			//}
+		}
 		/// <summary>
 		/// 通过临时文件系统复制文件，用于在两个压缩文件之间复制文件
 		/// </summary>
@@ -4401,40 +4439,10 @@ namespace zfile
 
 				if (copyOutOperation != null)
 				{
+					copyOutOperation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => copyinFiles(copyOutOperation, sourceFiles, tempPath, tempFileSource, targetFileSource, targetPath));
 					// 添加操作到管理器并执行
 					_operationsManager.AddOperation(copyOutOperation);
-					copyOutOperation._Thread.WaitFor();
-
-					// 检查操作是否成功完成
-					if (copyOutOperation.Result == FileSourceOperationResult.Finished)
-					{
-						// 创建临时文件系统中的文件列表
-						var tempFiles = new FileEntries(tempPath);
-
-						// 获取临时目录中的所有文件
-						foreach (var file in sourceFiles)
-						{
-							string tempFilePath = Path.Combine(tempPath, file.Name);
-							if (File.Exists(tempFilePath) || Directory.Exists(tempFilePath))
-							{
-								var tempFile = FileSystemFileSource.CreateFileFromFile(tempFilePath);
-								tempFiles.Add(tempFile);
-							}
-						}
-
-						// 第二步：从临时文件系统复制到目标压缩文件
-						var copyInOperation = targetFileSource.CreateCopyInOperation(tempFileSource, tempFiles, targetPath);
-
-						if (copyInOperation != null)
-						{
-							// 添加操作到管理器并执行
-							_operationsManager.AddOperation(copyInOperation);
-							copyInOperation._Thread.WaitFor();
-
-							// 操作成功
-							result = (copyInOperation.Result == FileSourceOperationResult.Finished);
-						}
-					}
+					//copyOutOperation._Thread.WaitFor();
 				}
 			}
 			catch (Exception ex)
@@ -4443,9 +4451,8 @@ namespace zfile
 			}
 
 			// 刷新目标面板
-			RefreshPanel(activeListView);
-			RefreshPanel(unactiveListView);
-
+			//RefreshPanel(activeListView);
+			//RefreshPanel(unactiveListView);
 			return result;
 		}
 

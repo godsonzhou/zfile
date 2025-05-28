@@ -711,60 +711,81 @@ namespace zfile
 		/// <summary>
 		/// 输入框回调
 		/// </summary>
-		private static bool InputBox(string caption, string prompt, bool maskInput, IntPtr value, int valueMaxLen)
-		{
-			// 简化实现，返回失败
-			return false;
-		}
+		//private static bool InputBox(string caption, string prompt, bool maskInput, StringBuilder value, int valueMaxLen)
+		//{
+		//	// 简化实现，返回失败
+		//	//return false;
+		//	var resultstring = Microsoft.VisualBasic.Interaction.InputBox(prompt, caption);
+		//	//convert the resultstring to intptr with length
+		//	if (resultstring != null)
+		//	{
+		//		//int length = Math.Min(resultstring.Length, valueMaxLen - 1);
+		//		//if (length > 0)
+		//		//{
+		//		//	byte[] bytes = Encoding.UTF8.GetBytes(resultstring[..length]);
+		//		//	Marshal.Copy(bytes, 0, value, bytes.Length);
+		//		//	Marshal.WriteByte(value, bytes.Length, 0); // 添加结束符
+		//		//}
+		//		//else
+		//		//	Marshal.WriteByte(value, 0, 0); // 写入空字符
+		//		if(resultstring.Length > valueMaxLen - 1)
+		//			resultstring = resultstring.Substring(0, valueMaxLen - 1); // 截断到最大长度
+		//																	   //value = Marshal.StringToHGlobalAnsi(resultstring);
+		//		value = new StringBuilder(resultstring);
+		//		return true;
+		//	}
+		//	return false;
+		//}
 
 		/// <summary>
 		/// 消息框回调
 		/// </summary>
-		private static int MessageBox(string text, string caption, int flags)
-		{
-			// 简化实现，返回确认
-			return 1;
-		}
+		//private static int MessageBox(string text, string caption, int flags)
+		//{
+		//	// 简化实现，返回确认
+		//	//return 1;
+		//	return (int)System.Windows.Forms.MessageBox.Show(text, caption, (MessageBoxButtons)flags, MessageBoxIcon.Information);
+		//}
 
 		/// <summary>
 		/// LFM 对话框回调
 		/// </summary>
-		private static bool DialogBoxLFM(IntPtr lfmData, uint dataSize, TDlgProc dlgProc)
-		{
-			// 简化实现，返回失败
-			return false;
-		}
+		//private static bool DialogBoxLFM(IntPtr lfmData, uint dataSize, TDlgProc dlgProc)
+		//{
+		//	// 简化实现，返回失败
+		//	return false;
+		//}
 
-		/// <summary>
-		/// LRS 对话框回调
-		/// </summary>
-		private static bool DialogBoxLRS(IntPtr lrsData, uint dataSize, TDlgProc dlgProc)
-		{
-			// 简化实现，返回失败
-			return false;
-		}
+		///// <summary>
+		///// LRS 对话框回调
+		///// </summary>
+		//private static bool DialogBoxLRS(IntPtr lrsData, uint dataSize, TDlgProc dlgProc)
+		//{
+		//	// 简化实现，返回失败
+		//	return false;
+		//}
 
-		/// <summary>
-		/// LFM 文件对话框回调
-		/// </summary>
-		private static bool DialogBoxLFMFile(string lfmFileName, TDlgProc dlgProc)
-		{
-			// 简化实现，返回失败
-			return false;
-		}
+		///// <summary>
+		///// LFM 文件对话框回调
+		///// </summary>
+		//private static bool DialogBoxLFMFile(string lfmFileName, TDlgProc dlgProc)
+		//{
+		//	// 简化实现，返回失败
+		//	return false;
+		//}
 
-		/// <summary>
-		/// 对话框消息发送回调
-		/// </summary>
-		private static int SendDlgMsg(IntPtr pDlg, string dlgItemName, int msg, int wParam, int lParam)
-		{
-			// 简化实现，返回0
-			return 0;
-		}
+		///// <summary>
+		///// 对话框消息发送回调
+		///// </summary>
+		//private static int SendDlgMsg(IntPtr pDlg, string dlgItemName, int msg, int wParam, int lParam)
+		//{
+		//	// 简化实现，返回0
+		//	return 0;
+		//}
 
 		#endregion
 
-		public bool LoadModule()
+		public override bool LoadModule()
 		{
 			try
 			{

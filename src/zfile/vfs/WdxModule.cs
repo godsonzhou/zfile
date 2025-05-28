@@ -100,7 +100,7 @@ namespace zfile
     public delegate void ContentSendStateInformationW(int State, [MarshalAs(UnmanagedType.LPWStr)] string Path);
     #endregion
 
-    public class WdxModule : IDisposable
+    public class WdxModule : DcxModule, IDisposable
     {
         #region 字段
         private IntPtr _moduleHandle;
@@ -112,27 +112,27 @@ namespace zfile
         private Dictionary<string, string> _translations;
 
         // 必需的函数指针
-        private ContentGetSupportedField _contentGetSupportedField;
-        private ContentGetValue _contentGetValue;
-        private ContentGetValueW _contentGetValueW;
-        private ContentSetDefaultParams _contentSetDefaultParams;
+        private ContentGetSupportedField? _contentGetSupportedField;
+        private ContentGetValue? _contentGetValue;
+        private ContentGetValueW? _contentGetValueW;
+        private ContentSetDefaultParams? _contentSetDefaultParams;
 
         // 可选的函数指针
-        private ContentPluginUnloading _contentPluginUnloading;
-        private ContentStopGetValue _contentStopGetValue;
-        private ContentGetDefaultSortOrder _contentGetDefaultSortOrder;
-        private ContentSetValue _contentSetValue;
+        private ContentPluginUnloading? _contentPluginUnloading;
+        private ContentStopGetValue? _contentStopGetValue;
+        private ContentGetDefaultSortOrder? _contentGetDefaultSortOrder;
+        private ContentSetValue? _contentSetValue;
 
         // 新增可选函数指针
-        private ContentGetDetectString _contentGetDetectString;
-        private ContentGetSupportedFieldFlags _contentGetSupportedFieldFlags;
-        private ContentEditValue _contentEditValue;
-        private ContentSendStateInformation _contentSendStateInformation;
+        private ContentGetDetectString? _contentGetDetectString;
+        private ContentGetSupportedFieldFlags? _contentGetSupportedFieldFlags;
+        private ContentEditValue? _contentEditValue;
+        private ContentSendStateInformation? _contentSendStateInformation;
 
         // 新增Unicode版本的可选函数指针
-        private ContentStopGetValueW _contentStopGetValueW;
-        private ContentSetValueW _contentSetValueW;
-        private ContentSendStateInformationW _contentSendStateInformationW;
+        private ContentStopGetValueW? _contentStopGetValueW;
+        private ContentSetValueW? _contentSetValueW;
+        private ContentSendStateInformationW? _contentSendStateInformationW;
         #endregion
 
         #region 属性
@@ -176,7 +176,7 @@ namespace zfile
             _translations = new Dictionary<string, string>();
         }
 
-        public bool LoadModule()
+        public override bool LoadModule()
         {
             if (IsLoaded) return true;
             if (!File.Exists(_modulePath))
@@ -188,8 +188,8 @@ namespace zfile
                 if (_moduleHandle == IntPtr.Zero) return false;
 
                 // 加载必需的函数
-                _contentGetSupportedField = GetFunction<ContentGetSupportedField>("ContentGetSupportedField");
-                _contentSetDefaultParams = GetFunction<ContentSetDefaultParams>("ContentSetDefaultParams");
+                _contentGetSupportedField = GetDelegate<ContentGetSupportedField>("ContentGetSupportedField");
+                _contentSetDefaultParams = GetDelegate<ContentSetDefaultParams>("ContentSetDefaultParams");
 
                 if (_contentGetSupportedField == null) // || _contentSetDefaultParams == null)
                 {
@@ -198,14 +198,14 @@ namespace zfile
                 }
 
                 // 尝试加载Unicode版本函数
-                _contentGetValueW = GetFunction<ContentGetValueW>("ContentGetValueW");
+                _contentGetValueW = GetDelegate<ContentGetValueW>("ContentGetValueW");
                 if (_contentGetValueW != null)
                 {
                     _isUnicode = true;
                 }
                 else
                 {
-                    _contentGetValue = GetFunction<ContentGetValue>("ContentGetValue");
+                    _contentGetValue = GetDelegate<ContentGetValue>("ContentGetValue");
                     if (_contentGetValue == null)
                     {
                         UnloadModule();
@@ -214,23 +214,23 @@ namespace zfile
                 }
 
                 // 加载可选函数
-                _contentPluginUnloading = GetFunction<ContentPluginUnloading>("ContentPluginUnloading");
-                _contentStopGetValue = GetFunction<ContentStopGetValue>("ContentStopGetValue");
-                _contentGetDefaultSortOrder = GetFunction<ContentGetDefaultSortOrder>("ContentGetDefaultSortOrder");
-                _contentSetValue = GetFunction<ContentSetValue>("ContentSetValue");
+                _contentPluginUnloading = GetDelegate<ContentPluginUnloading>("ContentPluginUnloading");
+                _contentStopGetValue = GetDelegate<ContentStopGetValue>("ContentStopGetValue");
+                _contentGetDefaultSortOrder = GetDelegate<ContentGetDefaultSortOrder>("ContentGetDefaultSortOrder");
+                _contentSetValue = GetDelegate<ContentSetValue>("ContentSetValue");
 
                 // 加载新增可选函数
-                _contentGetDetectString = GetFunction<ContentGetDetectString>("ContentGetDetectString");
-                _contentGetSupportedFieldFlags = GetFunction<ContentGetSupportedFieldFlags>("ContentGetSupportedFieldFlags");
-                _contentEditValue = GetFunction<ContentEditValue>("ContentEditValue");
-                _contentSendStateInformation = GetFunction<ContentSendStateInformation>("ContentSendStateInformation");
+                _contentGetDetectString = GetDelegate<ContentGetDetectString>("ContentGetDetectString");
+                _contentGetSupportedFieldFlags = GetDelegate<ContentGetSupportedFieldFlags>("ContentGetSupportedFieldFlags");
+                _contentEditValue = GetDelegate<ContentEditValue>("ContentEditValue");
+                _contentSendStateInformation = GetDelegate<ContentSendStateInformation>("ContentSendStateInformation");
 
                 // 加载新增Unicode版本的可选函数
                 if (_isUnicode)
                 {
-                    _contentStopGetValueW = GetFunction<ContentStopGetValueW>("ContentStopGetValueW");
-                    _contentSetValueW = GetFunction<ContentSetValueW>("ContentSetValueW");
-                    _contentSendStateInformationW = GetFunction<ContentSendStateInformationW>("ContentSendStateInformationW");
+                    _contentStopGetValueW = GetDelegate<ContentStopGetValueW>("ContentStopGetValueW");
+                    _contentSetValueW = GetDelegate<ContentSetValueW>("ContentSetValueW");
+                    _contentSendStateInformationW = GetDelegate<ContentSendStateInformationW>("ContentSendStateInformationW");
                 }
 
                 // 初始化插件
@@ -289,16 +289,16 @@ namespace zfile
             }
         }
 
-        private T GetFunction<T>(string functionName) where T : Delegate
-        {
-            //IntPtr procAddress = NativeLibrary.GetExport(_moduleHandle, functionName);
-            //return procAddress != IntPtr.Zero ? Marshal.GetDelegateForFunctionPointer<T>(procAddress) : null;
-            IntPtr procAddress = DcxModule.NativeMethods.GetProcAddress(_moduleHandle, functionName);
-            if (procAddress == IntPtr.Zero)
-                return null;
-            //return Marshal.GetDelegateForFunctionPointer<T>(procAddress);
-            return Marshal.GetDelegateForFunctionPointer(procAddress, typeof(T)) as T;
-        }
+        //private T? GetDelegate<T>(string functionName) where T : Delegate
+        //{
+        //    //IntPtr procAddress = NativeLibrary.GetExport(_moduleHandle, functionName);
+        //    //return procAddress != IntPtr.Zero ? Marshal.GetDelegateForFunctionPointer<T>(procAddress) : null;
+        //    IntPtr procAddress = DcxModule.NativeMethods.GetProcAddress(_moduleHandle, functionName);
+        //    if (procAddress == IntPtr.Zero)
+        //        return null;
+        //    //return Marshal.GetDelegateForFunctionPointer<T>(procAddress);
+        //    return Marshal.GetDelegateForFunctionPointer(procAddress, typeof(T)) as T;
+        //}
 
         private void LoadSupportedFields()
         {
@@ -555,13 +555,13 @@ namespace zfile
             {
                 const int bufferSize = 2048;
                 StringBuilder valuePtr = new(bufferSize);
-                int result;
+                int result = 0;
 
-                if (_isUnicode)
+                if (_isUnicode && _contentGetValueW != null)
                 {
                     result = _contentGetValueW(fileName, fieldIndex, unitIndex, valuePtr, bufferSize, 0);
                 }
-                else
+                else if (_contentGetValue != null)
                 {
                     result = _contentGetValue(fileName, fieldIndex, unitIndex, valuePtr, bufferSize, 0);
                 }
@@ -611,24 +611,24 @@ namespace zfile
 
         public bool SetValue(string fileName, int fieldIndex, int unitIndex, string value, IntPtr vptr, int vallen)
         {
-            if (_contentSetValue == null) return false;
 
             try
             {
                 if (_isUnicode)
                 {
-                    return _contentSetValueW(fileName, fieldIndex, unitIndex, vallen, vptr, 0) == WdxConstants.WDX_SUCCESS;
+					if (_contentSetValueW == null) return false;
+					return _contentSetValueW(fileName, fieldIndex, unitIndex, vallen, vptr, 0) == WdxConstants.WDX_SUCCESS;
                 }
                 else
                 {
-                    return _contentSetValue(fileName, fieldIndex, unitIndex, value, 0) == WdxConstants.WDX_SUCCESS;
+					if (_contentSetValue == null) return false;
+					return _contentSetValue(fileName, fieldIndex, unitIndex, value, 0) == WdxConstants.WDX_SUCCESS;
                 }
             }
             catch
             {
                 return false;
             }
-
         }
 
         public void LoadTranslations(string languageFile)
@@ -667,7 +667,7 @@ namespace zfile
         #endregion
 
         #region 资源释放
-        public void UnloadModule()
+        public override void UnloadModule()
         {
             if (_moduleHandle != IntPtr.Zero)
             {
@@ -701,11 +701,11 @@ namespace zfile
             _fields.Clear();
         }
 
-        public void Dispose()
-        {
-            UnloadModule();
-            GC.SuppressFinalize(this);
-        }
+        //public void Dispose()
+        //{
+        //    UnloadModule();
+        //    GC.SuppressFinalize(this);
+        //}
 
         ~WdxModule()
         {
@@ -950,7 +950,7 @@ namespace zfile
             }
         }
 
-        public WdxModule FindModule(string pluginName)
+        public WdxModule? FindModule(string pluginName)
         {
             return _modules.FirstOrDefault(m =>
                 m.PluginName.Equals(pluginName, StringComparison.OrdinalIgnoreCase));

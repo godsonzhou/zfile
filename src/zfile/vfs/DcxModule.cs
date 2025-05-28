@@ -11,7 +11,7 @@ namespace zfile
 	public delegate int TDlgProc(IntPtr pDlg, string dlgItemName, int msg, int wParam, int lParam);
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-	public delegate bool TInputBoxProc(string caption, string prompt, bool maskInput, IntPtr value, int valueMaxLen);
+	public delegate bool TInputBoxProc(string caption, string prompt, bool maskInput, StringBuilder value, int valueMaxLen);
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	public delegate int TMessageBoxProc(string text, string caption, int flags);
@@ -170,7 +170,7 @@ namespace zfile
         /// <summary>
         /// 加载模块
         /// </summary>
-        public bool LoadModule()
+        public virtual bool LoadModule()
         {
             try
             {
@@ -186,7 +186,7 @@ namespace zfile
         /// <summary>
         /// 卸载模块
         /// </summary>
-        public void UnloadModule()
+        public virtual void UnloadModule()
         {
             if (ModuleHandle != IntPtr.Zero)
             {
@@ -329,26 +329,47 @@ namespace zfile
         /// <summary>
         /// 输入框回调
         /// </summary>
-        protected static bool InputBox(string caption, string prompt, bool maskInput, IntPtr value, int valueMaxLen)
+        protected static bool InputBox(string caption, string prompt, bool maskInput, StringBuilder value, int valueMaxLen)
         {
-            // 在实际实现中，这里需要显示输入对话框
-            // 由于C#中不能直接修改字符串参数，实际使用时需要使用Marshal类进行内存操作
-            return false;
-        }
+			// 在实际实现中，这里需要显示输入对话框
+			// 由于C#中不能直接修改字符串参数，实际使用时需要使用Marshal类进行内存操作
+			//return false;
+			var resultstring = Microsoft.VisualBasic.Interaction.InputBox(prompt, caption);
+			//convert the resultstring to intptr with length
+			if (resultstring != null)
+			{
+				//int length = Math.Min(resultstring.Length, valueMaxLen - 1);
+				//if (length > 0)
+				//{
+				//	byte[] bytes = Encoding.UTF8.GetBytes(resultstring[..length]);
+				//	Marshal.Copy(bytes, 0, value, bytes.Length);
+				//	Marshal.WriteByte(value, bytes.Length, 0); // 添加结束符
+				//}
+				//else
+				//	Marshal.WriteByte(value, 0, 0); // 写入空字符
+				if (resultstring.Length > valueMaxLen - 1)
+					resultstring = resultstring.Substring(0, valueMaxLen - 1); // 截断到最大长度
+																			   //value = Marshal.StringToHGlobalAnsi(resultstring);
+				value = new StringBuilder(resultstring);
+				return true;
+			}
+			return false;
+		}
 
         /// <summary>
         /// 消息框回调
         /// </summary>
         protected static int MessageBox(string text, string caption, int flags)
         {
-            // 在实际实现中，这里需要显示消息对话框
-            return 0;
-        }
+			// 在实际实现中，这里需要显示消息对话框
+			//return 0;
+			return (int)System.Windows.Forms.MessageBox.Show(text, caption, (MessageBoxButtons)flags, MessageBoxIcon.Information);
+		}
 
-        /// <summary>
-        /// LFM 对话框回调
-        /// </summary>
-        protected static bool DialogBoxLFM(IntPtr lfmData, uint dataSize, TDlgProc dlgProc)
+		/// <summary>
+		/// LFM 对话框回调
+		/// </summary>
+		protected static bool DialogBoxLFM(IntPtr lfmData, uint dataSize, TDlgProc dlgProc)
         {
             // 在实际实现中，这里需要显示 LFM 对话框
             return false;

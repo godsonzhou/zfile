@@ -198,66 +198,66 @@ namespace zfile
         /// <summary>
         /// 初始化扩展，对应 Pascal 的 InitializeExtension
         /// </summary>
-        public void InitializeExtension(IntPtr startupInfoPtr)
-        {
-            // 获取结构体引用
-            TExtensionStartupInfo startupInfo = new TExtensionStartupInfo();
+        //public void InitializeExtension(IntPtr startupInfoPtr)
+        //{
+        //    // 获取结构体引用
+        //    TExtensionStartupInfo startupInfo = new TExtensionStartupInfo();
 
-            // 加载语言文件
-            string fileName = ModulePath;
-            string path = Path.Combine(Path.GetDirectoryName(fileName), "language");
-            string language = Path.GetExtension(Path.GetFileNameWithoutExtension(GetPOFileName()));
-            fileName = Path.Combine(path, Path.GetFileNameWithoutExtension(fileName) + language + ".po");
+        //    // 加载语言文件
+        //    string fileName = ModulePath;
+        //    string path = Path.Combine(Path.GetDirectoryName(fileName), "language");
+        //    string language = Path.GetExtension(Path.GetFileNameWithoutExtension(GetPOFileName()));
+        //    fileName = Path.Combine(path, Path.GetFileNameWithoutExtension(fileName) + language + ".po");
             
-            if (File.Exists(fileName))
-            {
-                // 在实际实现中，这里需要加载 PO 文件
-                // FPOFile = LoadPOFile(fileName);
-            }
+        //    if (File.Exists(fileName))
+        //    {
+        //        // 在实际实现中，这里需要加载 PO 文件
+        //        // FPOFile = LoadPOFile(fileName);
+        //    }
 
-            // 设置结构体字段
-            startupInfo.StructSize = (uint)Marshal.SizeOf(typeof(TExtensionStartupInfo));
+        //    // 设置结构体字段
+        //    startupInfo.StructSize = (uint)Marshal.SizeOf(typeof(TExtensionStartupInfo));
             
-            // 设置插件目录
-            string pluginDir = Path.GetDirectoryName(ModulePath);
-            startupInfo.PluginDir = Encoding.UTF8.GetBytes(pluginDir + new string('\0', MAX_PATH - pluginDir.Length));
+        //    // 设置插件目录
+        //    string pluginDir = Path.GetDirectoryName(ModulePath);
+        //    startupInfo.PluginDir = Encoding.UTF8.GetBytes(pluginDir + new string('\0', MAX_PATH - pluginDir.Length));
             
-            // 设置配置目录
-            string configDir = GetConfigDir();
-            startupInfo.PluginConfDir = Encoding.UTF8.GetBytes(configDir + new string('\0', MAX_PATH - configDir.Length));
+        //    // 设置配置目录
+        //    string configDir = GetConfigDir();
+        //    startupInfo.PluginConfDir = Encoding.UTF8.GetBytes(configDir + new string('\0', MAX_PATH - configDir.Length));
             
-            // 创建委托并保存引用
-            _inputBoxDelegate = new TInputBoxProc(InputBox);
-            _messageBoxDelegate = new TMessageBoxProc(MessageBox);
-            _dialogBoxLFMDelegate = new TDialogBoxLFMProc(DialogBoxLFM);
-            _dialogBoxLRSDelegate = new TDialogBoxLRSProc(DialogBoxLRS);
-            _dialogBoxLFMFileDelegate = new TDialogBoxLFMFileProc(DialogBoxLFMFile);
-            _sendDlgMsgDelegate = new TDlgProc(SendDlgMsg);
-            _translateStringDelegate = new TTranslateStringProc(Translate);
+        //    // 创建委托并保存引用
+        //    _inputBoxDelegate = new TInputBoxProc(InputBox);
+        //    _messageBoxDelegate = new TMessageBoxProc(MessageBox);
+        //    _dialogBoxLFMDelegate = new TDialogBoxLFMProc(DialogBoxLFM);
+        //    _dialogBoxLRSDelegate = new TDialogBoxLRSProc(DialogBoxLRS);
+        //    _dialogBoxLFMFileDelegate = new TDialogBoxLFMFileProc(DialogBoxLFMFile);
+        //    _sendDlgMsgDelegate = new TDlgProc(SendDlgMsg);
+        //    _translateStringDelegate = new TTranslateStringProc(Translate);
             
-            // 设置回调函数
-            startupInfo.InputBox = Marshal.GetFunctionPointerForDelegate(_inputBoxDelegate);
-            startupInfo.MessageBox = Marshal.GetFunctionPointerForDelegate(_messageBoxDelegate);
-            startupInfo.DialogBoxLFM = Marshal.GetFunctionPointerForDelegate(_dialogBoxLFMDelegate);
-            startupInfo.DialogBoxLRS = Marshal.GetFunctionPointerForDelegate(_dialogBoxLRSDelegate);
-            startupInfo.DialogBoxLFMFile = Marshal.GetFunctionPointerForDelegate(_dialogBoxLFMFileDelegate);
-            startupInfo.SendDlgMsg = Marshal.GetFunctionPointerForDelegate(_sendDlgMsgDelegate);
+        //    // 设置回调函数
+        //    startupInfo.InputBox = Marshal.GetFunctionPointerForDelegate(_inputBoxDelegate);
+        //    startupInfo.MessageBox = Marshal.GetFunctionPointerForDelegate(_messageBoxDelegate);
+        //    startupInfo.DialogBoxLFM = Marshal.GetFunctionPointerForDelegate(_dialogBoxLFMDelegate);
+        //    startupInfo.DialogBoxLRS = Marshal.GetFunctionPointerForDelegate(_dialogBoxLRSDelegate);
+        //    startupInfo.DialogBoxLFMFile = Marshal.GetFunctionPointerForDelegate(_dialogBoxLFMFileDelegate);
+        //    startupInfo.SendDlgMsg = Marshal.GetFunctionPointerForDelegate(_sendDlgMsgDelegate);
             
-            // 设置翻译相关
-            if (FPOFile != null)
-            {
-                _poFileHandle = GCHandle.Alloc(FPOFile);
-                startupInfo.Translation = GCHandle.ToIntPtr(_poFileHandle);
-            }
-            else
-            {
-                startupInfo.Translation = IntPtr.Zero;
-            }
-            startupInfo.TranslateString = Marshal.GetFunctionPointerForDelegate(_translateStringDelegate);
+        //    // 设置翻译相关
+        //    if (FPOFile != null)
+        //    {
+        //        _poFileHandle = GCHandle.Alloc(FPOFile);
+        //        startupInfo.Translation = GCHandle.ToIntPtr(_poFileHandle);
+        //    }
+        //    else
+        //    {
+        //        startupInfo.Translation = IntPtr.Zero;
+        //    }
+        //    startupInfo.TranslateString = Marshal.GetFunctionPointerForDelegate(_translateStringDelegate);
             
-            // 将结构体复制到非托管内存
-            Marshal.StructureToPtr(startupInfo, startupInfoPtr, false);
-        }
+        //    // 将结构体复制到非托管内存
+        //    Marshal.StructureToPtr(startupInfo, startupInfoPtr, false);
+        //}
 
         /// <summary>
         /// 获取 PO 文件名

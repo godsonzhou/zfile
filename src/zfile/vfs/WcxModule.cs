@@ -879,7 +879,7 @@ namespace zfile
 			}
 		}
 
-		public void UnloadModule()
+		public override void UnloadModule()
 		{
 			if (ModuleHandle != IntPtr.Zero)
 			{

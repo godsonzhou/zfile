@@ -1313,7 +1313,7 @@ namespace zfile
 			{
 				if (sender is TreeView treeView)
 				{
-					_backgroundIconManager.CancelCurrentTasks();
+					//_backgroundIconManager.CancelCurrentTasks();
 					// 清除所有节点的高亮状态
 					ClearTreeViewHighlight(treeView);
 					e.Node.BackColor = SystemColors.Highlight;

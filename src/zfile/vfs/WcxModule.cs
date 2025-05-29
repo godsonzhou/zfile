@@ -627,86 +627,39 @@ namespace zfile
 			Marshal.FreeHGlobal(pDps);
 		}
 		// 保存委托的引用，防止被GC回收
-		private static TInputBoxProc? _inputBoxDelegate;
-		private static TMessageBoxProc? _messageBoxDelegate;
-		private static TDialogBoxLFMProc? _dialogBoxLFMDelegate;
-		private static TDialogBoxLRSProc? _dialogBoxLRSDelegate;
-		private static TDialogBoxLFMFileProc? _dialogBoxLFMFileDelegate;
-		private static TDlgProc? _sendDlgMsgDelegate;
-		private static TTranslateStringProc? _translateStringDelegate;
+		//private static TInputBoxProc? _inputBoxDelegate;
+		//private static TMessageBoxProc? _messageBoxDelegate;
+		//private static TDialogBoxLFMProc? _dialogBoxLFMDelegate;
+		//private static TDialogBoxLRSProc? _dialogBoxLRSDelegate;
+		//private static TDialogBoxLFMFileProc? _dialogBoxLFMFileDelegate;
+		//private static TDlgProc? _sendDlgMsgDelegate;
+		//private static TTranslateStringProc? _translateStringDelegate;
 
-		/// <summary>
-		/// 初始化扩展启动信息结构
-		/// </summary>
-		/// <returns>初始化后的启动信息结构指针</returns>
-		private static IntPtr InitializeExtensionStartupInfo(string modulepath)
-		{
-			// 创建结构体
-			TExtensionStartupInfo startupInfo = new();
 
-			// 设置结构体大小
-			startupInfo.StructSize = (uint)Marshal.SizeOf(typeof(TExtensionStartupInfo));
-
-			// 设置插件目录
-			const int MAX_PATH = 16384;
-			string? pluginDir = Path.GetDirectoryName(modulepath);
-			startupInfo.PluginDir = Encoding.UTF8.GetBytes(pluginDir + new string('\0', MAX_PATH - pluginDir.Length));
-
-			// 设置配置目录
-			string configDir = pluginDir; // Constants.ZfileCfgPath;
-			startupInfo.PluginConfDir = Encoding.UTF8.GetBytes(configDir + new string('\0', MAX_PATH - configDir.Length));
-
-			// 创建委托并保存引用
-			_inputBoxDelegate = new TInputBoxProc(InputBox);
-			_messageBoxDelegate = new TMessageBoxProc(MessageBox);
-			_dialogBoxLFMDelegate = new TDialogBoxLFMProc(DialogBoxLFM);
-			_dialogBoxLRSDelegate = new TDialogBoxLRSProc(DialogBoxLRS);
-			_dialogBoxLFMFileDelegate = new TDialogBoxLFMFileProc(DialogBoxLFMFile);
-			_sendDlgMsgDelegate = new TDlgProc(SendDlgMsg);
-			_translateStringDelegate = new TTranslateStringProc(Translate);
-
-			// 设置回调函数
-			startupInfo.InputBox = Marshal.GetFunctionPointerForDelegate(_inputBoxDelegate);
-			startupInfo.MessageBox = Marshal.GetFunctionPointerForDelegate(_messageBoxDelegate);
-			startupInfo.DialogBoxLFM = Marshal.GetFunctionPointerForDelegate(_dialogBoxLFMDelegate);
-			startupInfo.DialogBoxLRS = Marshal.GetFunctionPointerForDelegate(_dialogBoxLRSDelegate);
-			startupInfo.DialogBoxLFMFile = Marshal.GetFunctionPointerForDelegate(_dialogBoxLFMFileDelegate);
-			startupInfo.SendDlgMsg = Marshal.GetFunctionPointerForDelegate(_sendDlgMsgDelegate);
-
-			// 设置翻译相关
-			startupInfo.Translation = IntPtr.Zero; // 暂时不实现翻译功能
-			startupInfo.TranslateString = Marshal.GetFunctionPointerForDelegate(_translateStringDelegate);
-
-			// 分配非托管内存并复制结构体
-			IntPtr pStartupInfo = Marshal.AllocHGlobal(Marshal.SizeOf(startupInfo));
-			Marshal.StructureToPtr(startupInfo, pStartupInfo, false);
-
-			return pStartupInfo;
-		}
 
 		#region 回调函数实现
 
 		/// <summary>
 		/// 翻译字符串
 		/// </summary>
-		private static int Translate(IntPtr translation, string identifier, string original, IntPtr output, int outLen)
-		{
-			// 如果没有翻译对象，将输出设为空字符串
-			if (output != IntPtr.Zero && outLen > 0)
-			{
-				// 返回原始文本
-				int copyLen = Math.Min(original.Length, outLen - 1);
-				if (copyLen > 0)
-				{
-					byte[] bytes = Encoding.UTF8.GetBytes(original[..copyLen]);
-					Marshal.Copy(bytes, 0, output, bytes.Length);
-					Marshal.WriteByte(output, bytes.Length, 0); // 添加结束符
-				}
-				else
-					Marshal.WriteByte(output, 0, 0); // 写入空字符
-			}
-			return original.Length;
-		}
+		//private static int Translate(IntPtr translation, string identifier, string original, IntPtr output, int outLen)
+		//{
+		//	// 如果没有翻译对象，将输出设为空字符串
+		//	if (output != IntPtr.Zero && outLen > 0)
+		//	{
+		//		// 返回原始文本
+		//		int copyLen = Math.Min(original.Length, outLen - 1);
+		//		if (copyLen > 0)
+		//		{
+		//			byte[] bytes = Encoding.UTF8.GetBytes(original[..copyLen]);
+		//			Marshal.Copy(bytes, 0, output, bytes.Length);
+		//			Marshal.WriteByte(output, bytes.Length, 0); // 添加结束符
+		//		}
+		//		else
+		//			Marshal.WriteByte(output, 0, 0); // 写入空字符
+		//	}
+		//	return original.Length;
+		//}
 
 		/// <summary>
 		/// 输入框回调
@@ -866,7 +819,7 @@ namespace zfile
 				if (_extensionInitialize != null)
 				{
 					// 创建并初始化 StartupInfo 结构
-					var startupInfo = InitializeExtensionStartupInfo(ModulePath);
+					var startupInfo = InitializeExtension(ModulePath);
 					_extensionInitialize.Invoke(startupInfo);
 				}
 

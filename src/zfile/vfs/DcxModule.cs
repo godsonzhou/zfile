@@ -397,7 +397,8 @@ namespace zfile
 				if (resultstring.Length > valueMaxLen - 1)
 					resultstring = resultstring.Substring(0, valueMaxLen - 1); // 截断到最大长度
 																			   //value = Marshal.StringToHGlobalAnsi(resultstring);
-				value = new StringBuilder(resultstring);
+				value.Clear(); // 清空现有内容
+				value.Append(resultstring); // 追加新内容
 				return true;
 			}
 			return false;

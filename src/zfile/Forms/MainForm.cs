@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using WinShell;
 using zfile.Forms;
 using Keys = System.Windows.Forms.Keys;
+using System.Windows.Automation;
 
 namespace zfile
 {
@@ -1990,6 +1991,161 @@ namespace zfile
 						else
 							getIconByIconLocation(ref subItem, out iconkey, islarge);
 					}
+		}
+
+		/// <summary>
+		/// 使用UIA (User Interface Automation) 库来获取控制面板的节点结构和图标
+		/// </summary>
+		/// <param name="islarge">是否获取大图标</param>
+		/// <returns>控制面板节点信息列表</returns>
+		private List<ControlPanelNodeInfo> GetControlPanelNodesWithUIA(bool islarge = false)
+		{
+			var nodeInfoList = new List<ControlPanelNodeInfo>();
+			
+			try
+			{
+				// 获取控制面板窗口
+				var controlPanelCondition = new PropertyCondition(AutomationElement.ClassNameProperty, "CabinetWClass");
+				var controlPanelWindow = AutomationElement.RootElement.FindFirst(TreeScope.Children, controlPanelCondition);
+				
+				if (controlPanelWindow == null)
+				{
+					// 如果控制面板窗口未打开，尝试启动控制面板
+					Process.Start("control.exe");
+					System.Threading.Thread.Sleep(2000); // 等待控制面板启动
+					controlPanelWindow = AutomationElement.RootElement.FindFirst(TreeScope.Children, controlPanelCondition);
+				}
+				
+				if (controlPanelWindow != null)
+				{
+					// 查找控制面板中的所有项目
+					var itemCondition = new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.ListItem);
+					var items = controlPanelWindow.FindAll(TreeScope.Descendants, itemCondition);
+					
+					foreach (AutomationElement item in items)
+					{
+						try
+						{
+							var nodeInfo = new ControlPanelNodeInfo
+							{
+								Name = item.Current.Name,
+								AutomationId = item.Current.AutomationId,
+								ClassName = item.Current.ClassName,
+								BoundingRectangle = item.Current.BoundingRectangle
+							};
+							
+							// 尝试获取图标
+							var iconKey = GetIconFromUIAElement(item, islarge);
+							if (!string.IsNullOrEmpty(iconKey))
+							{
+								nodeInfo.IconKey = iconKey;
+							}
+							
+							// 查找子节点
+							var childCondition = new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.ListItem);
+							var childItems = item.FindAll(TreeScope.Children, childCondition);
+							
+							foreach (AutomationElement childItem in childItems)
+							{
+								try
+								{
+									var childNodeInfo = new ControlPanelNodeInfo
+									{
+										Name = childItem.Current.Name,
+										AutomationId = childItem.Current.AutomationId,
+										ClassName = childItem.Current.ClassName,
+										BoundingRectangle = childItem.Current.BoundingRectangle,
+										ParentName = nodeInfo.Name
+									};
+									
+									var childIconKey = GetIconFromUIAElement(childItem, islarge);
+									if (!string.IsNullOrEmpty(childIconKey))
+									{
+										childNodeInfo.IconKey = childIconKey;
+									}
+									
+									nodeInfo.ChildNodes.Add(childNodeInfo);
+								}
+								catch (Exception ex)
+								{
+									Debug.WriteLine($"获取控制面板子节点信息时出错: {ex.Message}");
+								}
+							}
+							
+							nodeInfoList.Add(nodeInfo);
+						}
+						catch (Exception ex)
+						{
+							Debug.WriteLine($"获取控制面板节点信息时出错: {ex.Message}");
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"使用UIA获取控制面板节点时出错: {ex.Message}");
+			}
+			
+			return nodeInfoList;
+		}
+		
+		/// <summary>
+		/// 从UIA元素获取图标
+		/// </summary>
+		/// <param name="element">UIA自动化元素</param>
+		/// <param name="islarge">是否获取大图标</param>
+		/// <returns>图标键值</returns>
+		private string GetIconFromUIAElement(AutomationElement element, bool islarge = false)
+		{
+			try
+			{
+				// 尝试通过元素的图像模式获取图标
+				if (element.TryGetCurrentPattern(ImagePattern.Pattern, out object imagePatternObj))
+				{
+					var imagePattern = imagePatternObj as ImagePattern;
+					// 这里可以进一步处理图像信息
+				}
+				
+				// 尝试通过元素的名称和自动化ID生成图标键
+				var iconKey = $"uia_{element.Current.AutomationId}_{element.Current.Name}".ToLower();
+				iconKey = iconKey.Replace(" ", "_").Replace("(", "").Replace(")", "");
+				
+				// 尝试通过窗口句柄获取图标
+				if (element.Current.NativeWindowHandle != 0)
+				{
+					var hWnd = new IntPtr(element.Current.NativeWindowHandle);
+					var hIcon = API.SendMessage(hWnd, 0x007F, islarge ? 1 : 0, 0); // WM_GETICON
+					
+					if (hIcon != IntPtr.Zero)
+					{
+						var icon = Icon.FromHandle(hIcon);
+						iconManager.CacheIcon(iconKey, icon, islarge);
+						return iconKey;
+					}
+				}
+				
+				// 如果无法获取图标，返回默认图标键
+				return iconKey;
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"从UIA元素获取图标时出错: {ex.Message}");
+				return string.Empty;
+			}
+		}
+		
+		/// <summary>
+		/// 控制面板节点信息类
+		/// </summary>
+		public class ControlPanelNodeInfo
+		{
+			public string Name { get; set; } = string.Empty;
+			public string AutomationId { get; set; } = string.Empty;
+			public string ClassName { get; set; } = string.Empty;
+			public string IconKey { get; set; } = string.Empty;
+			public string ParentName { get; set; } = string.Empty;
+			public System.Windows.Rect BoundingRectangle { get; set; }
+			public List<ControlPanelNodeInfo> ChildNodes { get; set; } = new List<ControlPanelNodeInfo>();
 		}
 		public IShellFolder? Set_SIIGBF_IGNORECRYPTED_flag(ShellItem item)
 		{

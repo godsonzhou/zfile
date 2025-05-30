@@ -581,7 +581,7 @@ namespace zfile
 			//UpdateState(_desiredState);
 			//if curent threadid <> mainthreadid, then wait indefinitely
 			//else wait 100ms
-			if (Thread.CurrentThread.ManagedThreadId != _thread.Thread.ManagedThreadId)//TODO: NEED CONFIRM
+			if (Thread.CurrentThread.ManagedThreadId != MainForm.MainThreadId)//TODO: NEED CONFIRM
 				_pauseEvent.WaitOne();
 			else
 				while(_pauseEvent.WaitOne(100))

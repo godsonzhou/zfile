@@ -1120,7 +1120,6 @@ namespace zfile
 			//_updateTimer = new System.Windows.Forms.Timer   //尝试用 System.Timers.Timer 替换 WinForms Timer
 			//System.Windows.Forms.Timer 依赖UI线程消息泵，System.Timers.Timer 可以在后台线程触发，便于验证UI线程是否被阻塞。
 			_updateTimer = new System.Timers.Timer   //尝试用 System.Timers.Timer 替换 WinForms Timer
-
 			{
 				Interval = 100 // Update 10 times per second
 			};

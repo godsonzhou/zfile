@@ -3177,7 +3177,7 @@ namespace zfile
 					if (operation != null)
 					{
 						operation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation)sender, state, activeListView));
-						_operationsManager.AddOperation(operation);
+						_operationsManager.AddOperation(operation, false);
 						//operation._Thread.WaitFor();
 						//operation._Thread.OnTerminated += (s, e) =>
 						//{

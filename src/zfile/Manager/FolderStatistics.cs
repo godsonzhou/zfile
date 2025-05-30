@@ -147,7 +147,7 @@ namespace zfile
                 var listOperation = fileSource.CreateListOperation(folderPath);
                 if (listOperation != null)
                 {
-                    OperationsManager.Instance.AddOperation(listOperation);
+                    OperationsManager.Instance.AddOperation(listOperation, false);
                     listOperation._Thread.WaitFor();
                     
                     if (listOperation is FileSourceListOperation fileListOperation && fileListOperation.Files != null)

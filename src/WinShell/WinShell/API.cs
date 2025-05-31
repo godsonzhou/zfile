@@ -481,6 +481,9 @@ namespace WinShell
 	}
 	public class API
 	{
+		[DllImport("user32.dll", CharSet = CharSet.Auto)]
+		public static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, int wParam, int lParam);
+
 		[DllImport("ole32.dll")]
 		public static extern int CreateBindCtx(int reserved, out IBindCtx ppbc);
 		// 添加必要的COM导入

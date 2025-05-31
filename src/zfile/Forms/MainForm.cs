@@ -506,6 +506,7 @@ namespace zfile
 
 			LVCOL.Add("L", new LvCol());
 			LVCOL.Add("R", new LvCol());
+			//GetControlPanelNodesWithUIA();
 		}
 
 		private void OperationManagerNotify(object? sender, OperationEventArgs e)
@@ -1981,11 +1982,12 @@ namespace zfile
 		}
 		private void GetIconBy(ShellItem? subItem, out string iconkey, nint pidlSub, bool islarge = false)
 		{
-			if (!getIconByShellItem(ref subItem, out iconkey, islarge))
-				if (!getIconBySysImageList(ref subItem, out iconkey, islarge))
-					if (!getIconByShellItemPIDL1(ref subItem, out iconkey, islarge))
+			//iconkey = "";
+			//if (!getIconByShellItem(ref subItem, out iconkey, islarge))
+			//	if (!getIconBySysImageList(ref subItem, out iconkey, islarge))
+			//		if (!getIconByShellItemPIDL1(ref subItem, out iconkey, islarge))
 					{
-						var icon = IconManager.ExtractIconFromPIDL(iCtrlPanel, pidlSub);
+						var icon = IconManager.ExtractIconFromPIDL(subItem.ParentShellFolder, pidlSub, out iconkey);
 						if (icon != null)
 							iconManager.CacheIcon(pidlSub.ToString(), icon, islarge);
 						else
@@ -2100,11 +2102,11 @@ namespace zfile
 			try
 			{
 				// 尝试通过元素的图像模式获取图标
-				if (element.TryGetCurrentPattern(ImagePattern.Pattern, out object imagePatternObj))
-				{
-					var imagePattern = imagePatternObj as ImagePattern;
-					// 这里可以进一步处理图像信息
-				}
+				//if (element.TryGetCurrentPattern(ImagePattern.Pattern, out object imagePatternObj))
+				//{
+				//	var imagePattern = imagePatternObj as ImagePattern;
+				//	// 这里可以进一步处理图像信息
+				//}
 				
 				// 尝试通过元素的名称和自动化ID生成图标键
 				var iconKey = $"uia_{element.Current.AutomationId}_{element.Current.Name}".ToLower();

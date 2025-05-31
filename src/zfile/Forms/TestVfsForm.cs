@@ -254,7 +254,7 @@ namespace zfile
                                         };
 
                                         // 设置图标
-                                        Icon? icon = IconManager.ExtractIconFromPIDL(subFolder, childPidl);
+                                        Icon? icon = IconManager.ExtractIconFromPIDL(subFolder, childPidl, out _);
                                         if (icon != null)
                                         {
                                             // 添加图标到ImageList
@@ -348,7 +348,7 @@ namespace zfile
                             };
 
                             // 设置图标
-                            Icon? icon = IconManager.ExtractIconFromPIDL(controlPanelFolder, pidl);
+                            Icon? icon = IconManager.ExtractIconFromPIDL(controlPanelFolder, pidl, out _);
                             if (icon != null)
                             {
                                 // 添加图标到ImageList

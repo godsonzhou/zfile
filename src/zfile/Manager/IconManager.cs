@@ -475,8 +475,9 @@ namespace zfile
 			}
 			return null;
 		}
-		public static Icon? ExtractIconFromPIDL(IShellFolder folder, IntPtr pidl)
+		public static Icon? ExtractIconFromPIDL(IShellFolder folder, IntPtr pidl, out string iconkey)
 		{
+			iconkey = string.Empty;
 			try
 			{
 				if (folder == null || pidl == IntPtr.Zero)
@@ -485,10 +486,11 @@ namespace zfile
 				//Guid iExtractIconGuid = new Guid("000214EB-0000-0000-C000-000000000046");
 				// 获取节点的IExtractIcon接口
 				Guid iExtractIconGuid = typeof(IExtractIcon).GUID;
+				IntPtr[] pidls = new IntPtr[] { pidl };
 				//IntPtr pExtractIcon;
-				folder.GetUIObjectOf(IntPtr.Zero, 1, [ pidl ], iExtractIconGuid, out nint pExtractIcon);
+				var hr = folder.GetUIObjectOf(IntPtr.Zero, 1, pidls, ref iExtractIconGuid, out nint pExtractIcon);
 
-				if (pExtractIcon != IntPtr.Zero)
+				if (hr == 0 && pExtractIcon != IntPtr.Zero)
 				{
 					IExtractIcon extractIcon = (IExtractIcon)Marshal.GetObjectForIUnknown(pExtractIcon);
 					StringBuilder iconPath = new (260);
@@ -497,10 +499,11 @@ namespace zfile
 					extractIcon.GetIconLocation(0, iconPath, iconPath.Capacity, out int iconIndex, out uint flags);
 
 					//IntPtr hIcon;
-					extractIcon.Extract(iconPath.ToString(), iconIndex, out nint hIcon, out _, 0x00010000);
+					extractIcon.Extract(iconPath.ToString(), iconIndex, out nint hIcon, out var hIconSmall, 0x00010000);
 
 					if (hIcon != IntPtr.Zero)
 					{
+						iconkey = $"{(hIcon != 0 ? hIcon : hIconSmall)}_{iconIndex}";
 						Icon icon = (Icon)Icon.FromHandle(hIcon).Clone();
 						API.DestroyIcon(hIcon);
 						return icon;

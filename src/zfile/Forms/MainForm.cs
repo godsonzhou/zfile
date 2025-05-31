@@ -1106,6 +1106,74 @@ namespace zfile
 				}
 			}
 		}
+		private void ShowCtxMenuOnWcxListview(FileEntry? file)
+		{
+			var menu = new ContextMenuStrip();
+			if (!file.IsDirectory) 
+			{
+				menu.Items.Add("查看", null, MenuItemWcxView_Click);
+				menu.Items.Add("编辑", null, MenuItemWcxEdit_Click);
+				menu.Items.Add(new ToolStripSeparator());
+			}
+			menu.Items.Add("打开", null, MenuItemWcxOpen_Click);
+			menu.Items.Add("改名", null, MenuItemWcxRename_Click);
+			menu.Items.Add("复制", null, MenuItemWcxCopy_Click);
+			menu.Items.Add("移动", null, MenuItemWcxMove_Click);
+			menu.Items.Add("删除", null, MenuItemWcxDelete_Click);
+			menu.Items.Add("属性", null, MenuItemWcxProperty_Click);
+			menu.Show(Cursor.Position);
+		}
+
+		private void MenuItemWcxEdit_Click(object? sender, EventArgs e)
+		{
+			//throw new NotImplementedException();
+			if (sender is ListViewItem lvitem)
+			{
+
+			}
+			cm_edit();
+		}
+
+		private void MenuItemWcxRename_Click(object? sender, EventArgs e)
+		{
+			//throw new NotImplementedException();
+			cm_renameonly();
+		}
+
+		private void MenuItemWcxMove_Click(object? sender, EventArgs e)
+		{
+			//throw new NotImplementedException();
+			cm_renmov();
+		}
+
+		private void MenuItemWcxProperty_Click(object? sender, EventArgs e)
+		{
+			//throw new NotImplementedException();
+		}
+
+		private void MenuItemWcxDelete_Click(object? sender, EventArgs e)
+		{
+			//throw new NotImplementedException();
+			cm_delete();
+		}
+
+		private void MenuItemWcxCopy_Click(object? sender, EventArgs e)
+		{
+			//throw new NotImplementedException();
+			cm_copy();
+		}
+
+		private void MenuItemWcxView_Click(object? sender, EventArgs e)
+		{
+			//throw new NotImplementedException();
+			cm_list();
+		}
+
+		private void MenuItemWcxOpen_Click(object? sender, EventArgs e)
+		{
+			//throw new NotImplementedException();
+			
+		}
 
 		private void ShowCtxMenuOnListview(string path, Point location)
 		{
@@ -1561,7 +1629,7 @@ namespace zfile
 				if (item != null)
 				{
 					listView.FocusedItem = item;
-
+					uiManager.isleft = listView.Name.Equals("L");	//bugfix: 点击右键时强制更新LRFLAG, 否则可能导致实际操作的面板和LRFLAG指定的面板不一致
 					// 检查是否是FTP路径
 					if (CurrentFullpath[LRflag].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
 					{
@@ -1585,7 +1653,8 @@ namespace zfile
 							showCtxMenuOnRecyclebin();
 							return;
 						}
-						string iPath = (item.Tag as LvItemTag)?.File?.FullPath ?? "";       //item.SubItems[1].Text;
+						var file = (item.Tag as LvItemTag)?.File;
+						string iPath = file?.FullPath ?? "";       //item.SubItems[1].Text;
 																							// Get corresponding TreeNode for this path
 						TreeNode? targetNode = FindTreeNode(node.Nodes, item.Text);
 						if (targetNode != null)
@@ -1593,6 +1662,11 @@ namespace zfile
 						else
 						{
 							// If no corresponding node found, use path to show context menu
+							if (CurrentFullpath.GetFileSource(LRflag) is WcxArchiveFileSource)
+							{
+								ShowCtxMenuOnWcxListview(file);
+								return;
+							}
 							ShowCtxMenuOnListview(iPath, e.Location);
 						}
 					}

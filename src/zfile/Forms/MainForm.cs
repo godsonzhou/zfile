@@ -1592,28 +1592,67 @@ namespace zfile
 				if (item != null) item.Text = oldName;
 				return;
 			}
-			string oldPath = Path.Combine(CurrentFullpath[LRflag], oldName);
-			string newPath = Path.Combine(CurrentFullpath[LRflag], newName);
-			if (oldPath == newPath) return;
-			if (File.Exists(newPath) || Directory.Exists(newPath))
+
+			// 检查是否是FTP文件源
+			var itemTag = item?.Tag as LvItemTag;
+			//if (itemTag?.FileSource is FtpFileSource ftpSource)
+			if(CurrentFullpath.GetFileSource(listView.Name) is FtpFileSource ftpSource)
 			{
-				MessageBox.Show("文件已存在");
-				if (item != null) item.Text = oldName;
-				return;
+				// 处理FTP文件重命名
+				string oldPath = itemTag.File.FullPath;
+				string parentPath = Path.GetDirectoryName(oldPath).Replace("\\", "/");
+				if (!parentPath.EndsWith("/"))
+					parentPath += "/";
+				string newPath = parentPath + newName;
+
+				if (oldPath == newPath) return;
+
+				try
+				{
+					// 调用FtpFileSource的Rename方法进行重命名
+					if (ftpSource.Rename(oldPath, newPath))
+					{
+						// 刷新FTP目录
+						fTPMGR.LoadFtpDirectory(ftpSource.ConnectionName, parentPath, listView);
+					}
+					else
+					{
+						if (item != null) item.Text = oldName;
+					}
+				}
+				catch (Exception ex)
+				{
+					MessageBox.Show($"重命名失败: {ex.Message}", "错误");
+					if (item != null) item.Text = oldName;
+				}
 			}
-			try
+			else
 			{
-				if (File.Exists(oldPath))
-					File.Move(oldPath, newPath);
-				else
-					Directory.Move(oldPath, newPath);
+				// 处理本地文件重命名
+				string oldPath = Path.Combine(CurrentFullpath[LRflag], oldName);
+				string newPath = Path.Combine(CurrentFullpath[LRflag], newName);
+				if (oldPath == newPath) return;
+				if (File.Exists(newPath) || Directory.Exists(newPath))
+				{
+					MessageBox.Show("文件已存在");
+					if (item != null) item.Text = oldName;
+					return;
+				}
+				try
+				{
+					if (File.Exists(oldPath))
+						File.Move(oldPath, newPath);
+					else
+						Directory.Move(oldPath, newPath);
+				}
+				catch (Exception ex)
+				{
+					MessageBox.Show($"重命名失败: {ex.Message}", "错误");
+					if (item != null) item.Text = oldName;
+				}
+				RefreshPanel(listView);
 			}
-			catch (Exception ex)
-			{
-				MessageBox.Show($"重命名失败: {ex.Message}", "错误");
-				if (item != null) item.Text = oldName;
-			}
-			RefreshPanel(listView);
+
 		}
 
 		public void ListView_MouseUp(object? sender, MouseEventArgs e)

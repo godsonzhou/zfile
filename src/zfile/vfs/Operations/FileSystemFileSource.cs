@@ -269,9 +269,7 @@ namespace zfile
             return fileSource as IFileSystemFileSource;
         }
 
-        public FileSourceOperationTypes GetOperationsTypes()
-        {
-            return FileSourceOperationTypes.List |
+        public override FileSourceOperationTypes OperationsTypes => FileSourceOperationTypes.List |
                    FileSourceOperationTypes.Copy |
                    FileSourceOperationTypes.CopyIn |
                    FileSourceOperationTypes.CopyOut |
@@ -285,7 +283,7 @@ namespace zfile
                    FileSourceOperationTypes.CalcStatistics |
                    FileSourceOperationTypes.SetFileProperty |
                    FileSourceOperationTypes.Execute;
-        }
+        
 
         public virtual FileSourceProperties GetProperties()
         {

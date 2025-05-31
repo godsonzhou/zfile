@@ -105,22 +105,25 @@ namespace zfile
             return file;
         }
 
-        public FileSourceOperationTypes GetOperationTypes()
-        {
-            var result = FileSourceOperationTypes.List | FileSourceOperationTypes.CopyOut |
-                        FileSourceOperationTypes.TestArchive | FileSourceOperationTypes.Execute |
-                        FileSourceOperationTypes.CalcStatistics;
+        public override FileSourceOperationTypes OperationsTypes
+		{
+			get
+			{
+				var result = FileSourceOperationTypes.List | FileSourceOperationTypes.CopyOut |
+							FileSourceOperationTypes.TestArchive | FileSourceOperationTypes.Execute |
+							FileSourceOperationTypes.CalcStatistics;
 
-            if (((_pluginCapabilities & (int)PackerCaps.PK_CAPS_NEW) != 0 || (_pluginCapabilities & (int)PackerCaps.PK_CAPS_MODIFY) != 0) &&
-                (_wcxModule._packFiles != null || _wcxModule._packFilesW != null))
-                result |= FileSourceOperationTypes.CopyIn;
+				if (((_pluginCapabilities & (int)PackerCaps.PK_CAPS_NEW) != 0 || (_pluginCapabilities & (int)PackerCaps.PK_CAPS_MODIFY) != 0) &&
+					(_wcxModule._packFiles != null || _wcxModule._packFilesW != null))
+					result |= FileSourceOperationTypes.CopyIn;
 
-            if ((_pluginCapabilities & (int)PackerCaps.PK_CAPS_DELETE) != 0 &&
-                (_wcxModule._deleteFiles != null || _wcxModule._deleteFilesW != null))
-                result |= FileSourceOperationTypes.Delete;
+				if ((_pluginCapabilities & (int)PackerCaps.PK_CAPS_DELETE) != 0 &&
+					(_wcxModule._deleteFiles != null || _wcxModule._deleteFilesW != null))
+					result |= FileSourceOperationTypes.Delete;
 
-            return result;
-        }
+				return result;
+			}
+		}
 
         public FileSourceProperties GetProperties()
         {

@@ -1,5 +1,7 @@
+using Microsoft.Extensions.Logging;
 using Sheng.Winform.Controls;
 using System.Diagnostics;
+using System.Diagnostics.Eventing.Reader;
 using System.Text;
 using WinShell;
 using zfile.Forms;
@@ -1145,12 +1147,42 @@ namespace zfile
 			// 添加事件处理
 			LeftList.ItemSelectionChanged += (s, e) => UpdateStatusBar(LeftList, LeftStatusStrip);
 			RightList.ItemSelectionChanged += (s, e) => UpdateStatusBar(RightList, RightStatusStrip);
-
+			LeftList.KeyDown += ListView1_KeyDown;
+			RightList.KeyDown += ListView1_KeyDown;
 			// 更新初始状态
 			UpdateStatusBar(LeftList, LeftStatusStrip);
 			UpdateStatusBar(RightList, RightStatusStrip);
 		}
-
+		private void ListView1_KeyDown(object? sender, KeyEventArgs e)
+		{
+			var listView1 = sender as ListView;
+			if (e.KeyCode != Keys.Up && e.KeyCode != Keys.Down)
+				return;
+			// 检查是否按下了向上键
+			var isUp = e.KeyCode == Keys.Up;
+			var count = listView1.Items.Count - 1;
+			var wallIdx = (isUp ? 0 : count);
+			var tobIdx = count - wallIdx;
+			var currentIndex = tobIdx;
+			if (listView1.SelectedItems.Count != 0)
+			{
+				// 确保有选中项
+				currentIndex = listView1.SelectedIndices[0];// 获取当前选中项的索引
+				//Debug.Print(currentIndex.ToString());
+				// 取消当前选中项
+				listView1.SelectedItems[0].Selected = false;
+				// 如果不是第一项，则选中上一项
+				if (currentIndex != wallIdx)
+					currentIndex += isUp ? -1 : 1;
+				else
+					currentIndex = tobIdx;
+			}
+			listView1.Items[currentIndex].Selected = true;
+			// 确保选中项可见
+			listView1.Items[currentIndex].EnsureVisible();      
+			// 标记事件已处理
+			e.Handled = true;
+		}
 		public void UpdateStatusBar(ListView listView, StatusStrip statusStrip)
 		{
 			var totalStats = CalculateStats(listView.Items.Cast<ListViewItem>());
@@ -1611,6 +1643,11 @@ namespace zfile
 					//	leftBookmarkPanel.MouseDoubleClick -= BookmarkPanel_MouseDoubleClick;
 					//if (rightBookmarkPanel != null)
 					//	rightBookmarkPanel.MouseDoubleClick -= BookmarkPanel_MouseDoubleClick;
+					LeftList.ItemSelectionChanged -= (s, e) => UpdateStatusBar(LeftList, LeftStatusStrip);
+					RightList.ItemSelectionChanged -= (s, e) => UpdateStatusBar(RightList, RightStatusStrip);
+					LeftList.KeyDown -= ListView1_KeyDown;
+					RightList.KeyDown -= ListView1_KeyDown;
+
 					UnregisterTreeViewEvents(LeftTree);
 					UnregisterTreeViewEvents(RightTree);
 					UnregisterListViewEvents(LeftList);

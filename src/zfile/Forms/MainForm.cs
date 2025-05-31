@@ -686,7 +686,8 @@ namespace zfile
 				cmdProcessor.ExecCmd(cmd);
 			else if (hotkeyMappings.TryGetValue(e.KeyData, out string cmdName))
 				cmdProcessor.ExecCmd(cmdName);
-			e.Handled = true;
+			if(e.KeyCode != Keys.Down && e.KeyCode != Keys.Up)	//the up and down keypress event should be processed by listview, so do not set its state to handled
+				e.Handled = true;
 		}
 		public void ListView_ItemDrag(object? sender, ItemDragEventArgs e)
 		{

@@ -19,21 +19,21 @@
 			if (m.Msg == WM_HSCROLL)
 			{
 				//OnHScroll(this, new EventArgs());
-				if (HScroll != null)
-					HScroll(this, new EventArgs());
+				//if (HScroll != null)
+				HScroll?.Invoke(this, new EventArgs());
 			}
 			else if (m.Msg == WM_VSCROLL)
 			{
 				//OnVScroll(this, new EventArgs());
-				if (VScroll != null)
-					VScroll(this, new EventArgs());
+				//if (VScroll != null)
+				VScroll?.Invoke(this, new EventArgs());
 				//Debug.Print("vscroll event trigger");
 			}
 			else if (m.Msg == WM_MOUSEWHEEL)
 			{
 				//OnMouseWheel(this, new EventArgs());
-				if (MouseWheel != null)
-					MouseWheel(this, new EventArgs());
+				//if (MouseWheel != null)
+				MouseWheel?.Invoke(this, new EventArgs());
 			}
 			base.WndProc(ref m);
 		}

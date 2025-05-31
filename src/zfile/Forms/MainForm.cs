@@ -3336,40 +3336,95 @@ namespace zfile
 				// 使用 FileSourceManager 获取合适的 FileSource
 				IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, isleft);
 
+				// 检查文件源是否支持创建目录操作
+				var operationTypes = fileSource.OperationsTypes;
+				bool bMakeViaCopy = false;
+
+				// 如果不支持创建目录操作，但支持复制操作，则通过复制来创建目录
+				if ((operationTypes & FileSourceOperationTypes.CreateDirectory) == 0)
+				{
+					if ((operationTypes & FileSourceOperationTypes.CopyIn) != 0)
+						bMakeViaCopy = true;
+					else
+					{
+						MessageBox.Show("当前文件源不支持创建目录操作", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+						return;
+					}
+				}
+
 				// 使用 FileSource 架构创建目录
 				foreach (var dir in dirs)
 				{
-					var operation = fileSource.CreateCreateDirectoryOperation(path, dir);
-					if (operation != null)
+					if (bMakeViaCopy)
 					{
-						operation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation)sender, state, activeListView));
-						_operationsManager.AddOperation(operation, false);
-						//operation._Thread.WaitFor();
-						//operation._Thread.OnTerminated += (s, e) =>
-						//{
-						//	this.Invoke(new Action(() => { RefreshPanel(activeListView); }));
-						//};
-					}
-					else
-					{
-						// 如果无法创建操作，使用传统方法
-						if (fTPMGR.IsFtpPath(path))
+						// 通过CopyInOperation间接创建文件夹（适用于WcxArchiveFileSource）
+						// 创建临时目录
+						ITempFileSystemFileSource tempFileSource = new TempFileSystemFileSource();
+						string tempDirectory = tempFileSource.FileSystemRoot;
+
+						// 在临时目录中创建所需的文件夹结构
+						string tempFolderPath = Path.Combine(tempDirectory, dir);
+						if (!Directory.CreateDirectory(tempFolderPath).Exists)
 						{
-							// FTP创建文件夹
-							var ftpSource = fTPMGR.GetFtpSource(path);
-							if (ftpSource != null)
-							{
-								string newFolderPath = Path.Combine(path, dir).Replace("\\", "/");
-								ftpSource.CreateDirectory(newFolderPath);
-							}
+							MessageBox.Show($"创建临时文件夹失败: {tempFolderPath}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+							continue;
+						}
+
+						// 创建文件列表，准备复制到目标
+						var files = new FileEntries(tempDirectory);
+						// 只添加第一级目录，因为CopyInOperation会递归处理
+						string firstLevelDir = dir.Split(Path.DirectorySeparatorChar)[0];
+						string firstLevelPath = Path.Combine(tempDirectory, firstLevelDir);
+						files.Add(FileSystemFileSource.CreateFileFromFile(firstLevelPath));
+
+						// 创建复制操作
+						var operation = fileSource.CreateCopyInOperation(
+							new FileSystemFileSource(), 
+							files, 
+							path);
+
+						if (operation != null)
+						{
+							operation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, 
+								(sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation)sender, state, activeListView));
+							_operationsManager.AddOperation(operation, false);
 						}
 						else
 						{
-							// 本地创建文件夹
-							var newFolderPath = Path.Combine(path, dir);
-							FileSystemManager.CreateDirectory(newFolderPath);
+							MessageBox.Show($"无法创建复制操作来创建文件夹: {dir}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
 						}
-						RefreshPanel(activeListView);
+					}
+					else
+					{
+						// 直接创建目录
+						var operation = fileSource.CreateCreateDirectoryOperation(path, dir);
+						if (operation != null)
+						{
+							operation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, 
+								(sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation)sender, state, activeListView));
+							_operationsManager.AddOperation(operation, false);
+						}
+						else
+						{
+							// 如果无法创建操作，使用传统方法
+							if (fTPMGR.IsFtpPath(path))
+							{
+								// FTP创建文件夹
+								var ftpSource = fTPMGR.GetFtpSource(path);
+								if (ftpSource != null)
+								{
+									string newFolderPath = Path.Combine(path, dir).Replace("\\", "/");
+									ftpSource.CreateDirectory(newFolderPath);
+								}
+							}
+							else
+							{
+								// 本地创建文件夹
+								var newFolderPath = Path.Combine(path, dir);
+								FileSystemManager.CreateDirectory(newFolderPath);
+							}
+							RefreshPanel(activeListView);
+						}
 					}
 				}
 

@@ -10,77 +10,77 @@ namespace zfile
 		/// <summary>
 		/// List operation
 		/// </summary>
-		List,
+		List = 1,
 
 		/// <summary>
 		/// Copy operation
 		/// </summary>
-		Copy,
+		Copy = 2,
 
 		/// <summary>
 		/// Copy in operation
 		/// </summary>
-		CopyIn,
+		CopyIn = 4,
 
 		/// <summary>
 		/// Copy out operation
 		/// </summary>
-		CopyOut,
+		CopyOut = 8,
 
 		/// <summary>
 		/// Move operation
 		/// </summary>
-		Move,
+		Move = 16,
 
 		/// <summary>
 		/// Delete operation
 		/// </summary>
-		Delete,
+		Delete = 32,
 
 		/// <summary>
 		/// Wipe operation
 		/// </summary>
-		Wipe,
+		Wipe = 64,
 
 		/// <summary>
 		/// Create directory operation
 		/// </summary>
-		CreateDirectory,
+		CreateDirectory = 128,
 
 		/// <summary>
 		/// Execute operation
 		/// </summary>
-		Execute,
+		Execute = 256,
 
 		/// <summary>
 		/// Calculate checksum operation
 		/// </summary>
-		CalcChecksum,
+		CalcChecksum = 512,
 
 		/// <summary>
 		/// Calculate statistics operation
 		/// </summary>
-		CalcStatistics,
+		CalcStatistics = 1024,
 
 		/// <summary>
 		/// Set file property operation
 		/// </summary>
-		SetFileProperty,
+		SetFileProperty = 2048,
 
 		/// <summary>
 		/// Split operation
 		/// </summary>
-		Split,
+		Split = 4096,
 
 		/// <summary>
 		/// Combine operation
 		/// </summary>
-		Combine,
+		Combine = 8192,
 
 		/// <summary>
 		/// Test archive operation
 		/// </summary>
-		TestArchive
+		TestArchive = 16384
 
 		//the following may be used in the future
 		//CreateHardLink,

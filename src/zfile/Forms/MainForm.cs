@@ -11,6 +11,7 @@ using WinShell;
 using zfile.Forms;
 using Keys = System.Windows.Forms.Keys;
 using System.Windows.Automation;
+//using System.Windows.Controls;
 
 namespace zfile
 {
@@ -1964,7 +1965,7 @@ namespace zfile
 			var shellInfo = new SHFILEINFO();
 			//使用shgfi.iconlocation获取图标文件名和图标索引
 			var result = API.SHGetFileInfo(subItem.parsepath, 0, ref shellInfo, Marshal.SizeOf(typeof(SHFILEINFO)), (islarge ? SHGFI.LARGEICON : SHGFI.SMALLICON | SHGFI.ICONLOCATION | SHGFI.ATTRIBUTES));
-			Debug.Print($"Virtual 3folder：result={result} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}, location:{shellInfo.szDisplayName}");
+			//Debug.Print($"Virtual 3folder：result={result} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}, location:{shellInfo.szDisplayName}");
 			if (shellInfo.szDisplayName != string.Empty)
 			{
 				iconKey = ($"{shellInfo.szTypeName}_{shellInfo.iIcon}").ToLower();
@@ -1980,12 +1981,19 @@ namespace zfile
 			iconKey = string.Empty;
 			return false;
 		}
+
 		private void GetIconBy(ShellItem? subItem, out string iconkey, nint pidlSub, bool islarge = false)
 		{
-			//iconkey = "";
-			//if (!getIconByShellItem(ref subItem, out iconkey, islarge))
-			//	if (!getIconBySysImageList(ref subItem, out iconkey, islarge))
-			//		if (!getIconByShellItemPIDL1(ref subItem, out iconkey, islarge))
+			if (subItem.parsepath.StartsWith("::{26EE0668-A00A-44D7-9371-BEB064C98683}\\") && subItem.parsepath.Count(c => c == '\\') == 1)
+			{
+				//处理控制面板的下层folder节点, 因为在initiconcache时已经加载，所以可从iconcache中直接读取,直接返回parsepath作为iconkey即可，仅包含一个"\"排除更下层的孙子节点
+				iconkey = subItem.parsepath;
+				subItem.IconKey = iconkey;
+				return;
+			}
+			if (!getIconByShellItem(ref subItem, out iconkey, islarge))
+				if (!getIconBySysImageList(ref subItem, out iconkey, islarge))
+					if (!getIconByShellItemPIDL1(ref subItem, out iconkey, islarge))
 					{
 						var icon = IconManager.ExtractIconFromPIDL(subItem.ParentShellFolder, pidlSub, out iconkey);
 						if (icon != null)
@@ -2293,12 +2301,12 @@ namespace zfile
 					while (Enum.Next(1, out nint pidlSub, out uint celtFetched) == 0 && celtFetched == w32.S_FALSE) //获取子节点的pidl
 					{
 						root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out IShellFolder iSub); //获取子节点的ishellfolder接口
-						string name;
+						//string name;
 						string path = w32.GetPathByIShell(root, pidlSub);   //子节点path -> 此电脑\\迅雷下载, c:\\
 
 						//Debug.Print(path);
 						var pathPart = path.Split('\\');
-						name = !pathPart[^1].Equals(string.Empty) ? pathPart[^1] : pathPart[^2];
+						var name = !pathPart[^1].Equals(string.Empty) ? pathPart[^1] : pathPart[^2];
 						var subItem = new ShellItem(pidlSub, iSub, root); //子节点的tag存放pidl和ishellfolder接口
 
 						//if (subItem.parsepath.Equals("::{26EE0668-A00A-44D7-9371-BEB064C98683}"))//控制面板

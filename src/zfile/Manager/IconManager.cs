@@ -60,7 +60,18 @@ namespace zfile
 
 			CacheIcon("drive", ResizeIcon(ConvertImageToIcon(ImageList.Images[27]), targetSize), islarge);
 			CacheIcon("folder", ResizeIcon(ConvertImageToIcon(ImageList.Images[3]), targetSize), islarge);
-			CacheIcon("桌面",	ResizeIcon(ConvertImageToIcon(ImageList.Images[174]), targetSize), islarge);
+			CacheIcon("桌面",	ResizeIcon(ConvertImageToIcon(ImageList.Images[105]), targetSize), islarge);
+
+			CacheIcon("::{26EE0668-A00A-44D7-9371-BEB064C98683}\\0", ResizeIcon(ConvertImageToIcon(ImageList.Images[22]), targetSize), islarge);//0 所有控制面板项
+			CacheIcon("::{26EE0668-A00A-44D7-9371-BEB064C98683}\\1", ResizeIcon(ConvertImageToIcon(ImageList.Images[186]), targetSize), islarge);//1 外观和个性化
+			CacheIcon("::{26EE0668-A00A-44D7-9371-BEB064C98683}\\2", ResizeIcon(ConvertImageToIcon(ImageList.Images[185]), targetSize), islarge);//2 硬件和声音
+			CacheIcon("::{26EE0668-A00A-44D7-9371-BEB064C98683}\\3", ResizeIcon(ConvertImageToIcon(ImageList.Images[114]), targetSize), islarge);//3 parsepath	"网络和Internet"	
+			CacheIcon("::{26EE0668-A00A-44D7-9371-BEB064C98683}\\5", ResizeIcon(ConvertImageToIcon(ImageList.Images[184]), targetSize), islarge);//5 系统和安全
+			CacheIcon("::{26EE0668-A00A-44D7-9371-BEB064C98683}\\6", ResizeIcon(ConvertImageToIcon(ImageList.Images[138]), targetSize), islarge);//6 时钟和区域
+			CacheIcon("::{26EE0668-A00A-44D7-9371-BEB064C98683}\\7", ResizeIcon(ConvertImageToIcon(ImageList.Images[81]), targetSize), islarge);//7 轻松使用
+			CacheIcon("::{26EE0668-A00A-44D7-9371-BEB064C98683}\\8", ResizeIcon(ConvertImageToIcon(ImageList.Images[82]), targetSize), islarge);//8 程序
+			CacheIcon("::{26EE0668-A00A-44D7-9371-BEB064C98683}\\9", ResizeIcon(ConvertImageToIcon(ImageList.Images[83]), targetSize), islarge);//9 用户账户
+
 			//var idx = 0;
 			//foreach (Image image in imageList.Images) 
 			//{

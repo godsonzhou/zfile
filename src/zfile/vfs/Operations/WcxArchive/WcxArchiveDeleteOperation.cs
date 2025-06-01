@@ -49,7 +49,7 @@ namespace zfile
 				// 在这里我们只关心size参数，因为实际的文件名在统计信息中已经有了
 				return ProcessDataProc(arcName ?? string.Empty, mode);
 			};
-			TProcessDataProc procW = (string arcName, int mode) =>
+			TProcessDataProcW procW = (string arcName, int mode) =>
 			{
 				return ProcessDataProc(arcName ?? string.Empty, mode);
 			};

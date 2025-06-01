@@ -4453,7 +4453,7 @@ namespace zfile
 		public void cm_renmov(string? param = null, string? targetPath = null)
 		{
 			string srcpath;
-			var sourceFiles = GetFileListByViewOrParam(param);
+			var sourceFiles = GetFileListByViewOrParam(param, false);   //bugfix: 因为需要删除源文件，所以不能使用GetFileListByViewOrParam(param, true)，否则会导致源文件为temprary file, 不能删除源文件
 			if (sourceFiles.Count == 0) return;
 
 			if (!string.IsNullOrEmpty(param)) // when use clipboard, the targetpath is actpanel dir, so use srcdir, and the srcpath is determined by the filenames in the clipboard, so use the first sourcefile dir, TODO: the sourcefiles with many directories
@@ -4489,8 +4489,17 @@ namespace zfile
 				// 创建移动操作
 				FileSourceOperation? operation;
 
-				// 如果源和目标是同一个 FileSource，使用 CreateMoveOperation
-				if (sourceFileSource.GetType() == targetFileSource.GetType())
+				// 如果源和目标是同一个 FileSource，使用 CreateMoveOperation, filesystem/ftp 支持move operation, archive does not support move operation, so use copy and delete
+				//if (sourceFileSource.GetType() == targetFileSource.GetType())
+				//如果filesource支持moveoperation, 优先使用。（比如ftp.move, filesystem.move)
+				bool usemoveop = false;
+
+				if (sourceFileSource == targetFileSource && sourceFileSource is FtpFileSource)
+					usemoveop = true;
+				else if (sourceFileSource.GetType() == typeof(FileSystemFileSource) && targetFileSource.GetType() == typeof(FileSystemFileSource))
+					usemoveop = true;
+			
+				if(usemoveop)
 				{
 					operation = sourceFileSource.CreateMoveOperation(fileEntries, targetPath);
 					operation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation)sender, state, mode: RefreshPanelMode.Both));

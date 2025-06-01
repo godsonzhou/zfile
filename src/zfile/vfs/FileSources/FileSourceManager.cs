@@ -249,12 +249,13 @@ namespace zfile
         /// <param name="sourceFiles">Files to copy</param>
         /// <param name="targetPath">Target path</param>
         /// <returns>A file source operation for copying</returns>
-        public static FileSourceOperation CreateCopyOperation(
+        public static FileSourceOperation? CreateCopyOperation(
             IFileSource sourceFileSource,
             IFileSource targetFileSource,
             FileEntries sourceFiles,
             string targetPath)
         {
+			//至少有一个filesystem文件源，否则需要使用tempfs进行中转，返回null
 			// Special case: If both source and target are not filesystem filesource, we need to use a temp filesystem
 			if (sourceFileSource is not FileSystemFileSource && targetFileSource is not FileSystemFileSource)
 				// This will be handled by the caller using CopyViaTemporaryDirectory method
@@ -262,16 +263,10 @@ namespace zfile
 			// If source and target are the same type, use regular copy
 			else if (sourceFileSource.GetType() == targetFileSource.GetType())
 				return sourceFileSource.CreateCopyOperation(sourceFiles, targetPath);
-			else if (sourceFileSource is FtpFileSource)
-				return sourceFileSource.CreateCopyOutOperation(targetFileSource, sourceFiles, targetPath);
-			else if (targetFileSource is FtpFileSource)
-				return targetFileSource.CreateCopyInOperation(sourceFileSource, sourceFiles, targetPath);
-			// If target is an archive, use copy in
-			else if (targetFileSource is IArchiveFileSource arc)
-				return targetFileSource.CreateCopyInOperation(sourceFileSource, sourceFiles, targetPath);
-			// If source is an archive, use copy out
-			else if (sourceFileSource is IArchiveFileSource)
-				return sourceFileSource.CreateCopyOutOperation(targetFileSource, sourceFiles, targetPath);
+			else if (sourceFileSource is FtpFileSource || sourceFileSource is IArchiveFileSource)
+				return sourceFileSource.CreateCopyOutOperation(targetFileSource, sourceFiles, targetPath);  // If source is an archive/ftp, use copy out
+			else if (targetFileSource is FtpFileSource || targetFileSource is IArchiveFileSource)
+				return targetFileSource.CreateCopyInOperation(sourceFileSource, sourceFiles, targetPath);       // If target is an archive/ftp, use copy in
 			// Otherwise try to use target's copy in
 			else
 				return targetFileSource.CreateCopyInOperation(sourceFileSource, sourceFiles, targetPath);

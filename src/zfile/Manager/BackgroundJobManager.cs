@@ -41,11 +41,12 @@ namespace zfile
 
         // 缓存dirsize
         private Dictionary<string, long> _dirsizeCache = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+		private List<string> UnsupportedExts = new();
 
-        /// <summary>
-        /// 图标任务进度信息
-        /// </summary>
-        public class IconProgress
+		/// <summary>
+		/// 图标任务进度信息
+		/// </summary>
+		public class IconProgress
         {
             /// <summary>
             /// 总任务数
@@ -182,6 +183,12 @@ namespace zfile
             return _dirsizeCache[directoryPath];
         }
 
+		public bool CanProcess(string? ext)
+		{
+			if (!string.IsNullOrEmpty(ext))
+				return !UnsupportedExts.Contains(ext);
+			return false;
+		}
         /// <summary>
         /// 异步处理任务队列
         /// </summary>
@@ -263,6 +270,8 @@ namespace zfile
                                     }
                                     else
                                     {
+										if(!UnsupportedExts.Contains(key))
+											UnsupportedExts.Add(key);
                                         // 如果没有缩略图，使用大图标
                                         if (!_iconManager.HasIconKey(key, true))
                                         {

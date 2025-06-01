@@ -8,7 +8,7 @@ namespace zfile
             Files = new FileEntries();
         }
 
-        private new void FlatView(string path)
+        private void _FlatView(string path)
         {
             try
             {
@@ -23,7 +23,7 @@ namespace zfile
 
                     if (Directory.Exists(file))
                     {
-                        FlatView(System.IO.Path.Combine(file, System.IO.Path.DirectorySeparatorChar.ToString()));
+                        _FlatView(Helper.IncludeTrailingPathDelimiter(file));
                     }
                     else
                     {
@@ -44,7 +44,7 @@ namespace zfile
 
             if (_flatView)
             {
-                FlatView(Path);
+                _FlatView(Path);
                 return;
             }
 

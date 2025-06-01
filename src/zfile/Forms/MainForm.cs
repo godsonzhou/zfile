@@ -2765,7 +2765,7 @@ namespace zfile
 						// 检查是否是文件（不是文件夹）
 						//&& item.ImageKey.StartsWith('.') if already generate thumbnail, the imagekey should be like kewkjr51643k67jakjt, otherwise imagekey should be .avi, so if imagekey start with ., indicate the item's thumbnail has not be generated yet, otherwise skip the item.
 						// 检查是否已经有缩略图
-						if (!string.IsNullOrEmpty(itemFullName) && subkey == "l" &&
+						if (_backgroundIconManager.CanProcess(Path.GetExtension(itemFullName)) && !string.IsNullOrEmpty(itemFullName) && subkey == "l" &&
 							(item.ImageKey == Path.GetExtension(itemFullName) || string.IsNullOrEmpty(item.ImageKey)))
 						{
 							itemsForJob.Add(itemFullName);

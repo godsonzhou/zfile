@@ -144,9 +144,11 @@ namespace zfile
                 stats.IsPluginFolder = fileSource is WfxPluginFileSource;
                 
                 // Get file list from file source
-                var listOperation = fileSource.CreateListOperation(folderPath);
+                var listOperation = fileSource.CreateListOperation(folderPath) as FileSourceListOperation;
                 if (listOperation != null)
                 {
+					//add dirbranch mode support here
+					listOperation.FlatView = MainForm.Instance.fsManager.isDirBranchMode;
                     OperationsManager.Instance.AddOperation(listOperation, false);
                     listOperation._Thread.WaitFor();
                     

@@ -42,11 +42,11 @@ namespace zfile
 		public Dictionary<string, ViewSwitchRule> viewSwitchRules = new();
 
 		// Default view mode to use when no rules match
-		private string defaultViewMode = "0";	// 0 means default
+		private string defaultViewMode = "1";	// 0 means default
 
 		// Currently applied view modes for left and right panels
-		private string currentLeftViewMode = "0";
-		private string currentRightViewMode = "0";
+		private string currentLeftViewMode = "1";
+		private string currentRightViewMode = "1";
 
 		public ViewMgr(MainForm form)
 		{

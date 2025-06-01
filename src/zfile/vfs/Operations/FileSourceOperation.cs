@@ -458,7 +458,7 @@ namespace zfile
             StateChanged?.Invoke(this, newState);
 
             // Then notify all registered listeners
-            List<EventHandler<FileSourceOperationState>> functionsToCall = new List<EventHandler<FileSourceOperationState>>();
+            List<EventHandler<FileSourceOperationState>> functionsToCall = new ();
 
             lock (_eventsLock)
             {

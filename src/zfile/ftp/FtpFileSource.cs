@@ -332,7 +332,11 @@ namespace zfile
 		}
 		public string GetRelativePath(string targetPath)
 		{
-			return (targetPath.StartsWith("ftp://")) ? targetPath.Replace($"ftp://{_ftpHost}", string.Empty) : targetPath;
+			if (targetPath.StartsWith("ftp://"))
+				return targetPath.Replace($"ftp://{_ftpHost}", string.Empty);   //去掉ftp://和主机名部分，
+			if (targetPath.Length > 2 && targetPath[1].Equals(':')) //处理虚拟盘符的情况（比如"F:*" 去除虚拟盘符）
+				return targetPath.Substring(2);
+			return targetPath;
 		}
 		/// <summary>
 		/// 创建复制入操作

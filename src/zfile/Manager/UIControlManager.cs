@@ -77,8 +77,18 @@ namespace zfile
 		public FtpController ftpController;
 		public ToolStrip toolStrip;
 		private bool isToolStripHidden;
-
-		public bool isleft { get; set; } = true;
+		private bool _isleft = true;
+		public bool isleft { 
+			get => _isleft; 
+			set  { 
+				if (_isleft != value) { 
+					_isleft = value;
+					//当激活的面板发生变化时更新缩略图按钮状态
+					if (ToolbarManager.cm_srcthumbs_Button != null)
+						ToolbarManager.cm_srcthumbs_Button.CheckState = activeListView.View == View.Tile ? CheckState.Checked : CheckState.Unchecked;
+				} 
+			} 
+		}
 		public string? leftDir => /*LeftTree.SelectedNode?.Tag is FtpNodeTag ftpnode ? form.fTPMGR.Connection_RegisteredDrive_map[ftpnode.ConnectionName] + ftpnode.Path :  */Helper.IncludeTrailingPathDelimiter(LeftPathTextBox?.CurrentNode?.UniqueID);
 		public string? rightDir => RightTree.SelectedNode?.Tag is FtpNodeTag ftpnode ? form.fTPMGR.Connection_RegisteredDrive_map[ftpnode.ConnectionName] + ftpnode.Path: Helper.IncludeTrailingPathDelimiter(RightPathTextBox?.CurrentNode?.UniqueID);
 		public string leftfiles => string.Join("|", LeftList.SelectedItems.Cast<ListViewItem>()?.Select(item => item.SubItems[0].Text));

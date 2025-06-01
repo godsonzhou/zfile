@@ -1393,6 +1393,10 @@ namespace zfile
 					treeView.Refresh(); // 强制重绘
 
 					uiManager.isleft = treeView == uiManager.LeftTree;
+					//当激活的面板发生变化时更新缩略图按钮状态
+					//if (ToolbarManager.cm_srcthumbs_Button != null)
+					//	ToolbarManager.cm_srcthumbs_Button.CheckState = activeListView.View == View.Tile ? CheckState.Checked : CheckState.Unchecked;
+
 					// 使用 FileSourceManager 获取合适的 FileSource
 					var path = Helper.getFSpathbyTree(e.Node);
 					if (string.IsNullOrEmpty(path))

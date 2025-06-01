@@ -439,6 +439,7 @@ namespace zfile
 		private void cm_DirBranch()
 		{
 			owner.fsManager.isDirBranchMode = !owner.fsManager.isDirBranchMode;
+			ToolbarManager.cm_dirbranch_button.Checked = owner.fsManager.isDirBranchMode;
 			owner.RefreshActivePanel();
 		}
 		// 全选

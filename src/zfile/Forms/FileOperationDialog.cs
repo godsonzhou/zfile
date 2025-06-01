@@ -1140,6 +1140,7 @@ namespace zfile
 		}
 		private void OnUpdateTimer()
 		{
+			var _operationItem = OperationsManager.Instance.GetItemByHandle(_operationHandle);
 			if (_operationItem != null && _operationItem.Queue?.Identifier != _queueIdentifier)
 			{
 				var queue = OperationsManager.Instance.GetQueueByIdentifier(_queueIdentifier);
@@ -1182,7 +1183,7 @@ namespace zfile
 			else // operation was destroyed
 			{
 				var queue = OperationsManager.Instance.GetQueueByIdentifier(_queueIdentifier);
-				if (queue != null || queue.IsFree)
+				if (queue == null || queue.IsFree)
 				{
 					CloseDialog();
 				}

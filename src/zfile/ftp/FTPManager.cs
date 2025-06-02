@@ -140,7 +140,8 @@ namespace zfile
 					listView = form.GetListViewByName(node.TreeView.Name);
 				// 加载FTP目录内容
 				LoadFtpDirectory(tag.ConnectionName, tag.Path, listView);
-				listView.Refresh();
+				//listView.Refresh();	//bugfix: reset view mode to default
+				form.viewMgr.ApplyColumnConfiguration(listView, ((int)listView.View).ToString());
 			}
 		}
 		public void RecordDirectoryHistory(string newpath, string oldpath, string ftpprefix = "")

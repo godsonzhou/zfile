@@ -81,7 +81,8 @@ namespace zfile
 				files = stats.files;
 
 				// Determine which view mode to use based on rules
-				string viewModeName = DetermineViewMode(stats, folderPath);
+				//bugfix: 当filesource is not filesystemfilesource, do not support custome view mode
+				var viewModeName = (fileSource is not FileSystemFileSource) ? ((int)listView.View).ToString() : DetermineViewMode(stats, folderPath);
 
 				// Apply column configuration from the selected view mode
 				ApplyColumnConfiguration(listView, viewModeName);
@@ -293,10 +294,15 @@ namespace zfile
 		/// <summary>
 		/// Apply column configuration to a ListView based on view mode
 		/// </summary>
-		private void ApplyColumnConfiguration(ListView listView, string viewModeName)
+		public void ApplyColumnConfiguration(ListView listView, string viewModeName)
 		{
 			if (viewModeName.Equals(listView.Name.Equals("L") ? currentLeftViewMode : currentRightViewMode))
 				return;
+			// Update current view mode
+			if (listView.Name.Equals("L"))
+				currentLeftViewMode = viewModeName;
+			else
+				currentRightViewMode = viewModeName;
 			var viewmodeid = int.Parse(viewModeName);
 			if (viewmodeid < 5) 
 			{
@@ -364,11 +370,6 @@ namespace zfile
 					Debug.Print($"Error applying column configuration: {ex.Message}");
 				}
 			}
-			// Update current view mode
-			if (listView.Name.Equals("L"))
-				currentLeftViewMode = viewModeName;
-			else
-				currentRightViewMode = viewModeName;
 		}
 
 		/// <summary>

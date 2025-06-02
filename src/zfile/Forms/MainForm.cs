@@ -2788,9 +2788,7 @@ namespace zfile
 
 			// 如果点击的是同一列，切换排序顺序
 			if (e.Column == sortColumn)
-			{
 				sortOrder = sortOrder == SortOrder.Ascending ? SortOrder.Descending : SortOrder.Ascending;
-			}
 			else
 			{
 				sortColumn = e.Column;
@@ -2895,32 +2893,24 @@ namespace zfile
 			}
 
 			private double ParseFileSize(string size)
-			{
-				try
-				{
-					var parts = size.Split(' ');
-					if (parts.Length != 2) return 0;
+			{			
+				var parts = size.Split(' ');
+				if (parts.Length != 2) return 0;
 
-					if (double.TryParse(parts[0], out var value))
+				if (double.TryParse(parts[0], out var value))
+				{
+					var unit = parts[1].ToUpper();
+
+					return unit switch
 					{
-						var unit = parts[1].ToUpper();
-
-						return unit switch
-						{
-							"B" => value,
-							"KB" => value * 1024,
-							"MB" => value * 1024 * 1024,
-							"GB" => value * 1024 * 1024 * 1024,
-							"TB" => value * 1024 * 1024 * 1024 * 1024,
-							_ => 0
-						};
-					}
+						"B" => value,
+						"KB" => value * 1024,
+						"MB" => value * 1024 * 1024,
+						"GB" => value * 1024 * 1024 * 1024,
+						"TB" => value * 1024 * 1024 * 1024 * 1024,
+						_ => 0
+					};
 				}
-				catch
-				{
-					// 解析失败，返回0
-				}
-
 				return 0;
 			}
 		}
@@ -3186,9 +3176,7 @@ namespace zfile
 							_operationsManager.AddOperation(operation, false);
 						}
 						else
-						{
 							MessageBox.Show($"无法创建复制操作来创建文件夹: {dir}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-						}
 					}
 					else
 					{
@@ -3291,13 +3279,9 @@ namespace zfile
 					LoadListViewByFileSource(path, uiManager.LeftList, uiManager.LeftTree.SelectedNode);
 				}
 				else if (IsFtpPanel(out var ftpnode, "L") && ftpnode != null)
-				{
 					RefreshTreeViewAndListView(uiManager.LeftList, ftpnode.Path);
-				}
 				else if (uiManager.LeftTree.SelectedNode?.Tag is ShellItem shellItem)
-				{
 					RefreshTreeViewAndListView(uiManager.LeftList, shellItem.parsepath);
-				}
 			}
 
 			if (mode.HasFlag(RefreshPanelMode.Right))
@@ -3629,8 +3613,6 @@ namespace zfile
 			if (wcxModule == null || !openArchives.ContainsKey(archivePath)) return false;
 
 			IntPtr handle = openArchives[archivePath];
-			//THeaderDataExW headerData = new THeaderDataExW();
-			//WcxHeader headerData;
 			while (wcxModule.ReadHeader(handle, out var headerData))
 			{
 				if (headerData.FileName == fileName)
@@ -3700,7 +3682,7 @@ namespace zfile
 		private void Watcher_Changed(object sender, FileSystemEventArgs e)
 		{
 			Control.CheckForIllegalCrossThreadCalls = false;//设置该属性 为false
-
+			Debug.Print("Watcher_changed triggered");
 			try
 			{
 				// 确定哪个面板正在显示变化的目录

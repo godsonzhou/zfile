@@ -139,499 +139,495 @@ namespace zfile
 		public void ExecCmdByID(int cmdId, string param = "")
 		{
 			//var cmdItem = cmdTable.GetByCmdId(cmdId);
-
-			//if (cmdItem != null)
+			
+			// 在这里添加处理命令的逻辑
+			switch (cmdId)
 			{
-				//Console.WriteLine($"Processing command: {cmdItem}");
-				// 在这里添加处理命令的逻辑
-				switch (cmdId)
-				{
-					case 269:   //cm_srcthumbs
-						if(!owner.uiManager.isThumbs)
-							owner.SetViewMode(View.Tile);
-						else
-							owner.SetViewMode(View.Details);
-						owner.uiManager.isThumbs = !owner.uiManager.isThumbs;
-						break;
-					case 301:   //cm_srcshort
-						owner.SetViewMode(View.List);
-						break;
-					case 302:   //cm_srclong
+				case 269:   //cm_srcthumbs
+					if(!owner.uiManager.isThumbs)
+						owner.SetViewMode(View.Tile);
+					else
 						owner.SetViewMode(View.Details);
-						break;
-					case 303:   //cm_switchviewmode//todo: 先用个303暂时，等确定了具体编号再改
-						owner.cm_switchviewmode();
-						break;
-					case 321: // cm_srcbyname
-						do_cm_srcbyname();
-						break;
-					case 322: // cm_srcbyext
-						do_cm_srcbyext();
-						break;
-					case 323: // cm_srcbysize
-						do_cm_srcbysize();
-						break;
-					case 324: // cm_srcbydatetime
-						do_cm_srcbydatetime();
-						break;
-					case 325: // cm_srcunsorted
-						do_cm_srcunsorted();
-						break;
-					case 330: // cm_srcnegorder
-						do_cm_srcnegorder();
-						break;
-					case 483: // cm_CustomColumnConfig
-						owner.OpenOptions("自定义视图");
-						break;
-					case 490:   //cm_config
-						owner.OpenOptions(param);
-						break;
-					case 492: // cm_FontConfig
-						owner.OpenOptions("字体设置");
-						break;
-					case 498: // 命令ID = 498, Name = cm_buttonconfig
-						owner.uiManager.toolbarManager.EditToolbar();
-						break;
-					case 583: // cm_buttonconfig2
-						owner.uiManager.vtoolbarManager.EditToolbar();
-						break;
-					case 500:   //cm_cdtree
-						ShowDirectoryTreeSearch();
-						break;
+					owner.uiManager.isThumbs = !owner.uiManager.isThumbs;
+					break;
+				case 301:   //cm_srcshort
+					owner.SetViewMode(View.List);
+					break;
+				case 302:   //cm_srclong
+					owner.SetViewMode(View.Details);
+					break;
+				case 303:   //cm_switchviewmode//todo: 先用个303暂时，等确定了具体编号再改
+					owner.cm_switchviewmode();
+					break;
+				case 321: // cm_srcbyname
+					do_cm_srcbyname();
+					break;
+				case 322: // cm_srcbyext
+					do_cm_srcbyext();
+					break;
+				case 323: // cm_srcbysize
+					do_cm_srcbysize();
+					break;
+				case 324: // cm_srcbydatetime
+					do_cm_srcbydatetime();
+					break;
+				case 325: // cm_srcunsorted
+					do_cm_srcunsorted();
+					break;
+				case 330: // cm_srcnegorder
+					do_cm_srcnegorder();
+					break;
+				case 483: // cm_CustomColumnConfig
+					owner.OpenOptions("自定义视图");
+					break;
+				case 490:   //cm_config
+					owner.OpenOptions(param);
+					break;
+				case 492: // cm_FontConfig
+					owner.OpenOptions("字体设置");
+					break;
+				case 498: // 命令ID = 498, Name = cm_buttonconfig
+					owner.uiManager.toolbarManager.EditToolbar();
+					break;
+				case 583: // cm_buttonconfig2
+					owner.uiManager.vtoolbarManager.EditToolbar();
+					break;
+				case 500:   //cm_cdtree
+					ShowDirectoryTreeSearch();
+					break;
 
-					case 501: // cm_searchfor
-						cm_searchfor();
-						break;
-					case 508: // cm_packfiles
-							  //PackFiles();
-						cm_packfiles();
-						break;
-					case 509: // cm_unpackfiles
-						UnpackFiles();
-						break;
-					case 511: // cm_executedos
-						cm_executedos();
-						break;
-					case 512: // cm_netConnect
-						do_cm_netConnect();
-						break;
-					case 513: // cm_netDisconnect
-						do_cm_netDisconnect();
-						break;
+				case 501: // cm_searchfor
+					cm_searchfor();
+					break;
+				case 508: // cm_packfiles
+							//PackFiles();
+					cm_packfiles();
+					break;
+				case 509: // cm_unpackfiles
+					UnpackFiles();
+					break;
+				case 511: // cm_executedos
+					cm_executedos();
+					break;
+				case 512: // cm_netConnect
+					do_cm_netConnect();
+					break;
+				case 513: // cm_netDisconnect
+					do_cm_netDisconnect();
+					break;
 
-					case 523: // cm_SelectAll
-						do_cm_SelectAll();
-						break;
-					case 524: // cm_ClearAll  
-						do_cm_ClearAll();
-						break;
-					case 525: // cm_InvertSelection
-						do_cm_InvertSelection();
-						break;
-					case 526: // cm_directoryhotlist
-						do_cm_directoryhotlist();
-						break;
-					case 527: // cm_SelectByExt
-						do_cm_SelectByExt();
-						break;
-					case 529: // cm_RestoreSelection  
-						do_cm_RestoreSelection();
-						break;
-					case 530: // cm_SaveSelection
-						do_cm_SaveSelection();
-						break;
+				case 523: // cm_SelectAll
+					do_cm_SelectAll();
+					break;
+				case 524: // cm_ClearAll  
+					do_cm_ClearAll();
+					break;
+				case 525: // cm_InvertSelection
+					do_cm_InvertSelection();
+					break;
+				case 526: // cm_directoryhotlist
+					do_cm_directoryhotlist();
+					break;
+				case 527: // cm_SelectByExt
+					do_cm_SelectByExt();
+					break;
+				case 529: // cm_RestoreSelection  
+					do_cm_RestoreSelection();
+					break;
+				case 530: // cm_SaveSelection
+					do_cm_SaveSelection();
+					break;
 
-					case 532: // cm_matchsrc
-						do_cm_matchsrc();
-						break;
-					case 533: // 命令ID=533,Name=cm_comparedirs
-						do_cm_comparedirs();
-						break;
-					case 534: // 命令ID=534，Name=cm_dirmatch
-						do_cm_dirmatch();
-						break;
-					case 536: // cm_CompareDirsWithSubdirs
-						do_cm_CompareDirsWithSubdirs(param);
-						break;
-					case 540: // cm_rereadsource
-						do_cm_rereadsource();
-						break;
-					case 545: // cm_searchstandalone
-						cm_searchstandalone();
-						break;
-					case 550: // cm_ftpconnect
-						ShowFtpConnectionManager();
-						break;
-					case 551: //命令ID=551，Name=cm_ftpnew
-						do_cm_ftpnew();
-						break;
-					case 552: //命令ID=552,Name=cm_ftpdisconnect
-						do_cm_ftpdisconnect();
-						break;
-					case 553: //命令ID=553，Name=cm_ftphiddenfiles 显示隐藏文件
-						do_cm_ftphiddenfiles();
-						break;
-					case 554: // cm_ftpabort
-						do_cm_ftpabort();
-						break;
-					case 555: // cm_ftpresumedownload
-						do_cm_ftpresumedownload();
-						break;
-					case 556: // cm_ftpselecttransfermode
-						do_cm_ftpselectransfermode();
-						break;
-					case 557: // cm_ftpaddtolist
-						do_cm_ftpaddtolist();
-						break;
-					case 558: // cm_ftpdownloadlist
-						do_cm_ftpdownloadlist();
-						break;
+				case 532: // cm_matchsrc
+					do_cm_matchsrc();
+					break;
+				case 533: // 命令ID=533,Name=cm_comparedirs
+					do_cm_comparedirs();
+					break;
+				case 534: // 命令ID=534，Name=cm_dirmatch
+					do_cm_dirmatch();
+					break;
+				case 536: // cm_CompareDirsWithSubdirs
+					do_cm_CompareDirsWithSubdirs(param);
+					break;
+				case 540: // cm_rereadsource
+					do_cm_rereadsource();
+					break;
+				case 545: // cm_searchstandalone
+					cm_searchstandalone();
+					break;
+				case 550: // cm_ftpconnect
+					ShowFtpConnectionManager();
+					break;
+				case 551: //命令ID=551，Name=cm_ftpnew
+					do_cm_ftpnew();
+					break;
+				case 552: //命令ID=552,Name=cm_ftpdisconnect
+					do_cm_ftpdisconnect();
+					break;
+				case 553: //命令ID=553，Name=cm_ftphiddenfiles 显示隐藏文件
+					do_cm_ftphiddenfiles();
+					break;
+				case 554: // cm_ftpabort
+					do_cm_ftpabort();
+					break;
+				case 555: // cm_ftpresumedownload
+					do_cm_ftpresumedownload();
+					break;
+				case 556: // cm_ftpselecttransfermode
+					do_cm_ftpselectransfermode();
+					break;
+				case 557: // cm_ftpaddtolist
+					do_cm_ftpaddtolist();
+					break;
+				case 558: // cm_ftpdownloadlist
+					do_cm_ftpdownloadlist();
+					break;
 
-					case 560: // cm_split
-						do_cm_split(param);
-						break;
-					case 561: // cm_combine
-						do_cm_combine(param);
-						break;
-					case 562: // cm_encode
-						do_cm_encode(param);
-						break;
-					case 563: // cm_decode
-						do_cm_decode(param);
-						break;
-					case 564:   // cm_crccreate
-						do_cm_crccreate(param);
-						break;
-					case 565:   // cm_crccheck
-						do_cm_crccheck(param);
-						break;
+				case 560: // cm_split
+					do_cm_split(param);
+					break;
+				case 561: // cm_combine
+					do_cm_combine(param);
+					break;
+				case 562: // cm_encode
+					do_cm_encode(param);
+					break;
+				case 563: // cm_decode
+					do_cm_decode(param);
+					break;
+				case 564:   // cm_crccreate
+					do_cm_crccreate(param);
+					break;
+				case 565:   // cm_crccheck
+					do_cm_crccheck(param);
+					break;
 
-					case 570:
-						do_cm_gotopreviousdir();
-						break;
-					case 571:
-						do_cm_gotonextdir();
-						break;
-					case 572: // 命令ID=572,Name=cm_directoryhistory
-						do_cm_directoryhistory();
-						break;
-					case 580:
-						do_cm_configsavesettings();
-						break;
-					case 581:
-						do_cm_configchangeinifiles();
-						break;
-					case 630:
-						do_cm_register();
-						break;
-					case 690: // cm_about
-						MessageBox.Show("Zfile v0.1.3.14 \r\n Author: zhou yaping \r\n Email: zhouyaping822@gmail.com");
-						break;
-					case 700: // cm_ChangeStartMenu
-						owner.uiManager.EditMenu(0);//set to 1 to change mainmenu
-						break;
-					case 903: //cm_list
-						owner.cm_list(param);
-						break;
-					case 904: //cm_edit
-						owner.cm_edit(param);
-						break;
-					case 905: // cm_copy
-						owner.cm_copy(param);
-						break;
-					case 906: // cm_renmov
-						owner.cm_renmov();
-						break;
-					case 907: // cm_mkdir
-						owner.cm_mkdir(param);
-						break;
-					case 908: // cm_delete
-						owner.cm_delete(param);
-						break;
-					case 1002: // cm_renameonly
-						owner.cm_renameonly();
-						break;
-					case 1003: // cm_properties
-						cm_properties();
-						break;
+				case 570:
+					do_cm_gotopreviousdir();
+					break;
+				case 571:
+					do_cm_gotonextdir();
+					break;
+				case 572: // 命令ID=572,Name=cm_directoryhistory
+					do_cm_directoryhistory();
+					break;
+				case 580:
+					do_cm_configsavesettings();
+					break;
+				case 581:
+					do_cm_configchangeinifiles();
+					break;
+				case 630:
+					do_cm_register();
+					break;
+				case 690: // cm_about
+					MessageBox.Show("Zfile v0.1.3.14 \r\n Author: zhou yaping \r\n Email: zhouyaping822@gmail.com");
+					break;
+				case 700: // cm_ChangeStartMenu
+					owner.uiManager.EditMenu(0);//set to 1 to change mainmenu
+					break;
+				case 903: //cm_list
+					owner.cm_list(param);
+					break;
+				case 904: //cm_edit
+					owner.cm_edit(param);
+					break;
+				case 905: // cm_copy
+					owner.cm_copy(param);
+					break;
+				case 906: // cm_renmov
+					owner.cm_renmov();
+					break;
+				case 907: // cm_mkdir
+					owner.cm_mkdir(param);
+					break;
+				case 908: // cm_delete
+					owner.cm_delete(param);
+					break;
+				case 1002: // cm_renameonly
+					owner.cm_renameonly();
+					break;
+				case 1003: // cm_properties
+					cm_properties();
+					break;
 
-					case 2001:
-						cm_gotoroot();
-						break;
-					case 2002:
-						cm_gotoparent();
-						break;
-					case 2004:
-						cm_clearcommand();
-						break;
-					case 2005:
-						cm_nextcommand();
-						break;
-					case 2006:
-						cm_prevcommand();
-						break;
+				case 2001:
+					cm_gotoroot();
+					break;
+				case 2002:
+					cm_gotoparent();
+					break;
+				case 2004:
+					cm_clearcommand();
+					break;
+				case 2005:
+					cm_nextcommand();
+					break;
+				case 2006:
+					cm_prevcommand();
+					break;
 
-					case 2007: // cm_CutToClipboard
-						cm_CutToClipboard();
-						break;
-					case 2008: // 命令ID = 2008,Name = cm_copytoclipboard
-						cm_copytoclipboard();
-						break;
-					case 2009: //cm_PasteFromClipboard
-						cm_PasteFromClipboard();
-						break;
+				case 2007: // cm_CutToClipboard
+					cm_CutToClipboard();
+					break;
+				case 2008: // 命令ID = 2008,Name = cm_copytoclipboard
+					cm_copytoclipboard();
+					break;
+				case 2009: //cm_PasteFromClipboard
+					cm_PasteFromClipboard();
+					break;
 
-					case 2011: //命令ID=2011,Name=cmswitchhidsy
-						cm_switchhidsys();
-						break;
+				case 2011: //命令ID=2011,Name=cmswitchhidsy
+					cm_switchhidsys();
+					break;
 
-					case 2017: // cm_CopyNamesToClip
-						cm_CopyNamesToClip();
-						break;
-					case 2018: // cm_CopyFullNamesToClip 
-						cm_CopyFullNamesToClip();
-						break;
-					case 2019: // 命令ID = 2019, Name = cm_addpathtocmdline
-						cm_addpathtocmdline();
-						break;
+				case 2017: // cm_CopyNamesToClip
+					cm_CopyNamesToClip();
+					break;
+				case 2018: // cm_CopyFullNamesToClip 
+					cm_CopyFullNamesToClip();
+					break;
+				case 2019: // 命令ID = 2019, Name = cm_addpathtocmdline
+					cm_addpathtocmdline();
+					break;
 
-					case 2020: // cm_filesync
-						cm_filesync();
-						break;
-					case 2022: // cm_comparefilesbycontent
-						cm_comparefilesbycontent(param);
-						break;
-					case 2026:
-						cm_DirBranch();
-						break;
-					case 2031: // 命令ID=2031，Name = cmsaveselectiontofile
-						cm_saveselectiontofile();
-						break;
-					case 2032:
-						cm_loadselectionfromfile();
-						break;
-					case 2036: // cm_CopyDetailsToClip
-						cm_CopyDetailsToClip();
-						break;
-					case 2037: // cm_CopyFullDetailsToClip
-						cm_CopyFullDetailsToClip();
-						break;
+				case 2020: // cm_filesync
+					cm_filesync();
+					break;
+				case 2022: // cm_comparefilesbycontent
+					cm_comparefilesbycontent(param);
+					break;
+				case 2026:
+					cm_DirBranch();
+					break;
+				case 2031: // 命令ID=2031，Name = cmsaveselectiontofile
+					cm_saveselectiontofile();
+					break;
+				case 2032:
+					cm_loadselectionfromfile();
+					break;
+				case 2036: // cm_CopyDetailsToClip
+					cm_CopyDetailsToClip();
+					break;
+				case 2037: // cm_CopyFullDetailsToClip
+					cm_CopyFullDetailsToClip();
+					break;
 
-					case 2050: // 命令ID=2050,Name = cm_gotofirstfile
-						cm_gotofirstfile();
-						break;
-					case 2053:
-						cm_gotoprevornextselected(false);
-						break;
-					case 2054: //命令ID=2054,Name = cmgotoprevselected
-						cm_gotoprevornextselected();
-						break;
-					case 2061:
-						cm_gotodrivea();
-						break;
-					case 2062:
-						cm_gotodriveb();
-						break;
-					case 2063:
-						cm_gotodrivec();
-						break;
-					case 2064:
-						cm_gotodrived();
-						break;
-					case 2065:
-						cm_gotodrivee();
-						break;
-					case 2066:
-						cm_gotodrivef();
-						break;
-					case 2067:
-						cm_gotodriveg();
-						break;
-					case 2068:
-						cm_gotodriveh();
-						break;
-					case 2086:
-						cm_gotodrivez();
-						break;
+				case 2050: // 命令ID=2050,Name = cm_gotofirstfile
+					cm_gotofirstfile();
+					break;
+				case 2053:
+					cm_gotoprevornextselected(false);
+					break;
+				case 2054: //命令ID=2054,Name = cmgotoprevselected
+					cm_gotoprevornextselected();
+					break;
+				case 2061:
+					cm_gotodrivea();
+					break;
+				case 2062:
+					cm_gotodriveb();
+					break;
+				case 2063:
+					cm_gotodrivec();
+					break;
+				case 2064:
+					cm_gotodrived();
+					break;
+				case 2065:
+					cm_gotodrivee();
+					break;
+				case 2066:
+					cm_gotodrivef();
+					break;
+				case 2067:
+					cm_gotodriveg();
+					break;
+				case 2068:
+					cm_gotodriveh();
+					break;
+				case 2086:
+					cm_gotodrivez();
+					break;
 
-					case 2121:
-						cm_opendesktop();
-						break;
-					case 2122:
-						cm_opendrives();
-						break;
-					case 2123:
-						cm_opencontrols();
-						break;
-					case 2124:
-						cm_openfonts();
-						break;
-					case 2125:
-						cm_opennetwork();
-						break;
-					case 2127:
-						cm_openrecycled();
-						break;
+				case 2121:
+					cm_opendesktop();
+					break;
+				case 2122:
+					cm_opendrives();
+					break;
+				case 2123:
+					cm_opencontrols();
+					break;
+				case 2124:
+					cm_openfonts();
+					break;
+				case 2125:
+					cm_opennetwork();
+					break;
+				case 2127:
+					cm_openrecycled();
+					break;
 
-					case 2400: // cm_multirename
-						cm_multirename();
-						break;
-					case 2901:
-						cm_visbuttonbar();
-						break;
-					case 2902: //命令ID=2902,Name=cmvisdrivebuttons
-						cm_visdrivebuttons();
-						break;
-					case 2906:
-						cm_visdrivecombo();
-						break;
-					case 2909:
-						cm_visstatusbar();
-						break;
+				case 2400: // cm_multirename
+					cm_multirename();
+					break;
+				case 2901:
+					cm_visbuttonbar();
+					break;
+				case 2902: //命令ID=2902,Name=cmvisdrivebuttons
+					cm_visdrivebuttons();
+					break;
+				case 2906:
+					cm_visdrivecombo();
+					break;
+				case 2909:
+					cm_visstatusbar();
+					break;
 
-					case 2910:
-						cm_viscmdline();
-						break;
-					case 2911: // 命令ID=2911,Name=cm_viskeybuttons
-						cm_viskeybuttons();
-						break;
-					case 2916: // 命令ID=2916,Name=cm_visdirtabs
-						cm_visdirtabs();
-						break;
-					case 2917: // 命令ID=2917，Name=cmswitchoverlayicons
-						cm_switchoverlayicons();
-						break;
+				case 2910:
+					cm_viscmdline();
+					break;
+				case 2911: // 命令ID=2911,Name=cm_viskeybuttons
+					cm_viskeybuttons();
+					break;
+				case 2916: // 命令ID=2916,Name=cm_visdirtabs
+					cm_visdirtabs();
+					break;
+				case 2917: // 命令ID=2917，Name=cmswitchoverlayicons
+					cm_switchoverlayicons();
+					break;
 
-					case 2924:  //命令ID=2924,Name=cm_commandbrowser尚未实现
-						cm_commandbrowser();
-						break;
-					case 2944:
-						cm_visbuttonbar2();
-						break;
+				case 2924:  //命令ID=2924,Name=cm_commandbrowser尚未实现
+					cm_commandbrowser();
+					break;
+				case 2944:
+					cm_visbuttonbar2();
+					break;
 
-					case 2950:
-						owner.ThemeToggle();
-						break;
+				case 2950:
+					owner.ThemeToggle();
+					break;
 
-					case 3001:  //add new bookmark
-						owner.AddCurrentPathToBookmarks();
-						break;
-					case 3005: // 命令ID=3005，Name=cm switchtonexttab
-						owner.uiManager.BookmarkManager.SwitchToPrevOrNextTab(false);
-						break;
-					case 3006: // 命令ID=3006，Name=cm switchtoprevioustab
-						owner.uiManager.BookmarkManager.SwitchToPrevOrNextTab(true);
-						break;
-					case 3007: // 命令ID=3007,Name =cm_closecurrenttab
-						owner.uiManager.BookmarkManager.cm_CloseCurrentTab();
-						break;
-					case 3008: // 命令ID=3008,Name=cm_closealltabs
-						owner.uiManager.BookmarkManager.cm_CloseAllTabs();
-						break;
-					case 3009: // 命令ID=3009,Name=cm_dirtabsshowmenu
-						cm_dirtabsshowmenu();
-						break;
-					case 3010: // 命令ID=3010Name=cm_togglelockcurrenttab
-						owner.uiManager.BookmarkManager.ToggleCurrentBookmarkLock(owner.uiManager.isleft);
-						break;
-					case 3012:  //lock the bookmark
-						owner.uiManager.BookmarkManager.ToggleCurrentBookmarkLock(owner.uiManager.isleft);
-						break;
+				case 3001:  //add new bookmark
+					owner.AddCurrentPathToBookmarks();
+					break;
+				case 3005: // 命令ID=3005，Name=cm switchtonexttab
+					owner.uiManager.BookmarkManager.SwitchToPrevOrNextTab(false);
+					break;
+				case 3006: // 命令ID=3006，Name=cm switchtoprevioustab
+					owner.uiManager.BookmarkManager.SwitchToPrevOrNextTab(true);
+					break;
+				case 3007: // 命令ID=3007,Name =cm_closecurrenttab
+					owner.uiManager.BookmarkManager.cm_CloseCurrentTab();
+					break;
+				case 3008: // 命令ID=3008,Name=cm_closealltabs
+					owner.uiManager.BookmarkManager.cm_CloseAllTabs();
+					break;
+				case 3009: // 命令ID=3009,Name=cm_dirtabsshowmenu
+					cm_dirtabsshowmenu();
+					break;
+				case 3010: // 命令ID=3010Name=cm_togglelockcurrenttab
+					owner.uiManager.BookmarkManager.ToggleCurrentBookmarkLock(owner.uiManager.isleft);
+					break;
+				case 3012:  //lock the bookmark
+					owner.uiManager.BookmarkManager.ToggleCurrentBookmarkLock(owner.uiManager.isleft);
+					break;
 
-					case 3026: // cm_listExternal
-						cm_listExternal(param);
-						break;
-					case 4001: // 命令ID = 4001, Name = cm_focusleft
-						owner.uiManager.LeftList.Focus();
-						break;
-					case 4002: // cm_focusright
-						owner.uiManager.RightList.Focus();
-						break;
-					case 4003:
-						cm_focuscmdline();
-						break;
+				case 3026: // cm_listExternal
+					cm_listExternal(param);
+					break;
+				case 4001: // 命令ID = 4001, Name = cm_focusleft
+					owner.uiManager.LeftList.Focus();
+					break;
+				case 4002: // cm_focusright
+					owner.uiManager.RightList.Focus();
+					break;
+				case 4003:
+					cm_focuscmdline();
+					break;
 
-					case 5001: // 命令ID=5001,Name =cm_srcactivatetab1
-					case 5002:
-					case 5003:
-					case 5004:
-					case 5005:
-					case 5006:
-					case 5007:
-					case 5008:
-					case 5009:// 命令ID=5009,Name =cm_srcactivatetab9
-						owner.uiManager.BookmarkManager.SwitchToNthTab(cmdId - 5000);
-						break;
-					case 5101: //命令ID = 5101, Name = cm_trgactivatetab1
-					case 5102:
-					case 5103:
-					case 5104:
-					case 5105:
-					case 5106:
-					case 5107:
-					case 5108:
-					case 5109:
-						owner.uiManager.BookmarkManager.SwitchToNthTab(cmdId - 5100, true);
-						break;
+				case 5001: // 命令ID=5001,Name =cm_srcactivatetab1
+				case 5002:
+				case 5003:
+				case 5004:
+				case 5005:
+				case 5006:
+				case 5007:
+				case 5008:
+				case 5009:// 命令ID=5009,Name =cm_srcactivatetab9
+					owner.uiManager.BookmarkManager.SwitchToNthTab(cmdId - 5000);
+					break;
+				case 5101: //命令ID = 5101, Name = cm_trgactivatetab1
+				case 5102:
+				case 5103:
+				case 5104:
+				case 5105:
+				case 5106:
+				case 5107:
+				case 5108:
+				case 5109:
+					owner.uiManager.BookmarkManager.SwitchToNthTab(cmdId - 5100, true);
+					break;
 
-					case 11434: //命令ID=11434,Name=cm_ollama
-						cm_llm_helper(param);
-						break;
-					case 11435: //网络爬虫
-						cm_netCrawler(param);
-						break;
-					case 11436: //动态网页爬虫，利用chromedriver和selenium
-						cm_ChromeCrawler(param);
-						break;
-					case 11437: // API caller
-						var parameters = param.Split(' ');
-						var paramcount = param.Length;
-						string url = "http://v.juhe.cn/toutiao/index", key = "de73e15a67f8b359d4ec409ae3e63aed", par = "type=keji";
+				case 11434: //命令ID=11434,Name=cm_ollama
+					cm_llm_helper(param);
+					break;
+				case 11435: //网络爬虫
+					cm_netCrawler(param);
+					break;
+				case 11436: //动态网页爬虫，利用chromedriver和selenium
+					cm_ChromeCrawler(param);
+					break;
+				case 11437: // API caller
+					var parameters = param.Split(' ');
+					var paramcount = param.Length;
+					string url = "http://v.juhe.cn/toutiao/index", key = "de73e15a67f8b359d4ec409ae3e63aed", par = "type=keji";
 						
-						if(paramcount> 0) url = parameters[0];
-						if(paramcount> 1) key = parameters[1];
-						if(paramcount> 2) par = parameters[2];
-						cm_apicallerDlg(url, key, par);   
-						break;
+					if(paramcount> 0) url = parameters[0];
+					if(paramcount> 1) key = parameters[1];
+					if(paramcount> 2) par = parameters[2];
+					cm_apicallerDlg(url, key, par);   
+					break;
 
-					case 11438: // mcp client
-						cm_mcpConfigUI(param); //param is mcp client config file in which various mcp server is defined
-						break;
-					case 11439: // mcp client with mcpsharp
-						var lst = Task.Run(async () => { await cm_GetInfoFromMcpServer(param); });
+				case 11438: // mcp client
+					cm_mcpConfigUI(param); //param is mcp client config file in which various mcp server is defined
+					break;
+				case 11439: // mcp client with mcpsharp
+					var lst = Task.Run(async () => { await cm_GetInfoFromMcpServer(param); });
 
-						break;
-					case 11440: // launch mcp server
-						Task.Run(async () => { await cm_StartMcpServer(param); } ); // param is servername
-						break;
-					case 11441:
-						cm_QueryMcpServer(param);
-						break;
-					case 11442:
-						cm_evaluateExpr(param);
-						break;
-					case 11443:
-						cm_evaluateExprDlg(param);
-						break;
-					case 11444:
-						cm_idm(param);
-						break;
-					case 24340:
-						MainForm.ExitApp();
-						break;
-					case 34567:
-						var licensegen = new LicenseGeneratorForm();
-						licensegen.ShowDialog();
-						break;
+					break;
+				case 11440: // launch mcp server
+					Task.Run(async () => { await cm_StartMcpServer(param); } ); // param is servername
+					break;
+				case 11441:
+					cm_QueryMcpServer(param);
+					break;
+				case 11442:
+					cm_evaluateExpr(param);
+					break;
+				case 11443:
+					cm_evaluateExprDlg(param);
+					break;
+				case 11444:
+					cm_idm(param);
+					break;
+				case 24340:
+					MainForm.ExitApp();
+					break;
+				case 34567:
+					var licensegen = new LicenseGeneratorForm();
+					licensegen.ShowDialog();
+					break;
 
-					default:
-						var cmdItem = cmdTable.GetByCmdId(cmdId);
-						if (cmdItem != null)
-							MessageBox.Show($"命令ID = {cmdId}, Name = {cmdItem?.CmdName} 尚未实现", "提示");
-						else
-							MessageBox.Show($"命令ID = {cmdId} 尚未实现", "提示");
-						break;
-				}
+				default:
+					var cmdItem = cmdTable.GetByCmdId(cmdId);
+					if (cmdItem != null)
+						MessageBox.Show($"命令ID = {cmdId}, Name = {cmdItem?.CmdName} 尚未实现", "提示");
+					else
+						MessageBox.Show($"命令ID = {cmdId} 尚未实现", "提示");
+					break;
 			}
 		}
 		private void cm_idm(string param)

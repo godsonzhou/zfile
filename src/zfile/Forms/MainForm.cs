@@ -2627,12 +2627,10 @@ namespace zfile
 		public void RecordDirectoryHistory(string newPath, string oldpath)
 		{
 			if (string.IsNullOrEmpty(oldpath) || oldpath.Equals(newPath)) return;
-			//if (IsActiveFtpPanel(out var ftpnode))
-			//	backStack.Push(oldpath);
-			//else
+	
 			backStack.Push(oldpath); //同一个filesource下，压入currentpath，不同filesource下，压入老filesource.currentpath
 
-			Debug.Print($"backstack.push: {oldpath}");
+			//Debug.Print($"backstack.push: {oldpath}");
 			forwardStack.Clear(); // 清除前进历史
 		}
 		private void SetIconForListViewItem(ListViewItem lvItem, ListView listView, bool islarge)
@@ -2642,8 +2640,6 @@ namespace zfile
 				var imageList = islarge ? listView.LargeImageList : listView.SmallImageList;
 				if (lvItem.SubItems[MainForm.LVCOL[listView.Name]._TYPE].Text.Equals("<DIR>"))
 				{
-					//iconManager.LoadIconFromCacheByKey("folder", listView.SmallImageList);
-					//iconManager.LoadIconFromCacheByKey("folder", listView.LargeImageList, true);
 					iconManager.LoadIconFromCacheByKey("folder", imageList, islarge);
 					lvItem.ImageKey = "folder";
 				}
@@ -2660,34 +2656,7 @@ namespace zfile
 						GetIconBy(shellitem, out key, shellitem.PIDL);
 					if (string.IsNullOrEmpty(key))
 						key = Path.GetExtension(itemFullName);
-
-					// 设置默认图标
-					//if (subkey == "s")
-					//{
-					//	if (!iconManager.HasIconKey(key, false))
-					//	{
-					//		var ico = IconManager.GetIconByFileNameEx("FILE", itemFullName);
-					//		if (ico != null)
-					//			iconManager.CacheIcon(key, ico, false);
-					//	}
-					//	iconManager.LoadIconFromCacheByKey(key, listView.SmallImageList);
-					//	lvItem.ImageKey = key;
-					//}
-					//else
-					//{
-					//	// 先设置默认图标
-					//	if (!iconManager.HasIconKey(key, true))
-					//	{
-					//		var icol = IconManager.GetIconByFileNameEx("FILE", itemFullName, true);
-					//		if (icol != null)
-					//			iconManager.CacheIcon(key, icol, true);
-					//	}
-					//	iconManager.LoadIconFromCacheByKey(key, listView.LargeImageList, true);
-					//	lvItem.ImageKey = key;
-
-					//	// 返回文件路径，用于后续生成缩略图
-					//	return itemFullName;
-					//}
+			
 					if (!iconManager.HasIconKey(key, islarge))
 					{
 						var icol = IconManager.GetIconByFileNameEx("FILE", itemFullName, islarge);
@@ -2698,17 +2667,14 @@ namespace zfile
 					lvItem.ImageKey = key;
 				}
 			}
-			//return null;
 		}
 
 		// 处理ListView滚动事件
 		public void ListView_Scroll(object? sender, EventArgs e)
 		{
 			if (sender is ListView listView)
-			{
 				// 处理可见项的缩略图
 				ProcessVisibleItemsForThumbnails(listView);
-			}
 		}
 
 		// 获取ListView中当前可见的项目并处理缩略图
@@ -2737,7 +2703,7 @@ namespace zfile
 				if (isYin && isYin1) // (itemRect.IntersectsWith(visibleRect))// temp set to true
 				{
 					var file = (item.Tag as LvItemTag)?.File;
-					var itemFullName = file?.FullPath;  //item.SubItems[1].Text;
+					var itemFullName = file?.FullPath;
 					var isdir = (file?.IsDirectory) ?? false;
 					if (isdir)
 					{
@@ -3284,9 +3250,7 @@ namespace zfile
 			{
 				var ret = se.PrepareParameter(param, new string[] { }, "");
 				if (ret != null && ret.Count > 0)
-				{
 					return ret.Select(x => new FileEntry(x)).ToList();
-				}
 			}
 
 			List<FileEntry> result = new();
@@ -3298,25 +3262,18 @@ namespace zfile
 			{
 				var fileEntry = GetListItemPath(item);
 				if (fileEntry != null)
-				{
 					originalFiles.Add(fileEntry);
-				}
 			}
 
 			// 检查是否是FTP路径，并且是需要下载的操作（cm_edit或cm_list）
 			var filesource = CurrentFullpath.GetFileSource(LRflag);
 			if ((filesource is FtpFileSource || filesource is WcxArchiveFileSource) && isViaTemp)
 			{
-				// 从当前目录中提取连接名称
-				//string connectionName = ExtractFtpConnectionName(CurrentFullpath[LRflag]);
-				//if (!string.IsNullOrEmpty(connectionName) && fTPMGR.ftpSources.TryGetValue(connectionName, out var ftpSource))
-				{
-					// 使用FtpCopyOutOperation下载文件到临时目录
-					var tempFiles = DownloadFilesToTemp(filesource, originalFiles);
-					if (tempFiles.Count > 0)
-						return tempFiles;
-				}
-			}
+				// 使用FtpCopyOutOperation下载文件到临时目录
+				var tempFiles = DownloadFilesToTemp(filesource, originalFiles);
+				if (tempFiles.Count > 0)
+					return tempFiles;
+		}
 
 			// 非FTP路径或FTP处理失败，或者是不需要下载的操作（cm_copy, cm_renmov, cm_delete），使用原来的逻辑
 			return originalFiles;
@@ -3355,13 +3312,11 @@ namespace zfile
 					var opitem = _operationsManager.GetItemByOperation(copyOutOperation);
 					opitem?.OperationThread.WaitFor();
 
-					Debug.Print($"now check the copyout operation result{copyOutOperation.Result}");
-
 					// 检查操作是否成功完成
 					if (copyOutOperation.Result == FileSourceOperationResult.Finished)
 					{
 						// 获取临时目录中的所有文件
-						List<FileEntry> tempFiles = new List<FileEntry>();
+						List<FileEntry> tempFiles = [];
 						foreach (var file in fileEntries)
 						{
 							string tempFilePath = Path.Combine(tempPath, file.Name);
@@ -3544,8 +3499,6 @@ namespace zfile
 						}
 					}
 				}
-
-				//RefreshPanel(activeListView);
 			}
 			catch (Exception ex)
 			{

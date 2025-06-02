@@ -2716,10 +2716,9 @@ namespace zfile
 		{
 			// 获取当前视图模式
 			var subkey = (listView.View == View.Tile ? "l" : "s");
-			if (!subkey.Equals("l"))
-				return;
+		
 			// 如果不是大图标或平铺模式，不需要生成缩略图
-			if (listView.Items.Count == 0) return;
+			if (!subkey.Equals("l") || listView.Items.Count == 0) return;
 
 			var itemsForJob = new List<string>();
 			var lvitemsForJob = new List<ListViewItem>();

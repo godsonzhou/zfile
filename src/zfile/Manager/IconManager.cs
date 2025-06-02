@@ -224,7 +224,7 @@ namespace zfile
 		public static string GetIconKey(ShellItem item)
 		{
 			if(item==null) return string.Empty;
-			if (item.IsVirtual || !item.GetAttributes().HasFlag(SFGAO.FILESYSTEM))
+			if (item.IsVirtual || !item.attr.HasFlag(SFGAO.FILESYSTEM))
 				return item.IconKey;
 			else
 			{

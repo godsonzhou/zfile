@@ -19,6 +19,7 @@ namespace WinShell
 		//public string IconKey1;	//large 
 		public string SubNodeState;
 		public IntPtr[] ChildPIDLs;
+		public SFGAO attr;
 		public ShellItem(IntPtr PIDL, IShellFolder ShellFolder, IShellFolder ParentShellFolder)
 		{
 			this.PIDL = PIDL;
@@ -26,6 +27,7 @@ namespace WinShell
 			this.ParentShellFolder = ParentShellFolder;
 			IsVirtual = IsVirtualPath(ref parsepath);
 			Name = w32.GetNameByIShell(ParentShellFolder, PIDL);
+			attr = GetAttributes();
 		}
 		public void Dispose()
 		{
@@ -80,14 +82,14 @@ namespace WinShell
 		//	}
 		//	return pidls.ToArray();
 		//}
-		public bool IsDir
-		{
-			get
-			{
-				var attr = GetAttributes();
-				return (attr.HasFlag(SFGAO.FOLDER));
-			}
-		}
+		public bool IsDir => attr.HasFlag(SFGAO.FOLDER);
+		//{
+		//	get
+		//	{
+		//		//var attr = GetAttributes();
+		//		return (attr.HasFlag(SFGAO.FOLDER));
+		//	}
+		//}
 		public int ChildCount()
 		{
 			return ChildPIDLs.Length;

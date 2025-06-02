@@ -1393,9 +1393,6 @@ namespace zfile
 					treeView.Refresh(); // 强制重绘
 
 					uiManager.isleft = treeView == uiManager.LeftTree;
-					//当激活的面板发生变化时更新缩略图按钮状态
-					//if (ToolbarManager.cm_srcthumbs_Button != null)
-					//	ToolbarManager.cm_srcthumbs_Button.CheckState = activeListView.View == View.Tile ? CheckState.Checked : CheckState.Unchecked;
 
 					// 使用 FileSourceManager 获取合适的 FileSource
 					var path = Helper.getFSpathbyTree(e.Node);
@@ -1436,6 +1433,9 @@ namespace zfile
 
 					// 无论如何都需要刷新ListView
 					LoadListViewByFileSource(path, activeListView, e.Node);
+					//当激活的面板发生变化时更新缩略图按钮状态
+					if (ToolbarManager.cm_srcthumbs_Button != null)
+						ToolbarManager.cm_srcthumbs_Button.CheckState = activeListView.View == View.Tile ? CheckState.Checked : CheckState.Unchecked;
 					//}
 					uiManager.UpdateLastVisitedPath(path);
 					UpdatePathTextAndDriveComboBox(e.Node, path, isleft);    //盘符改变时在combobox事件中刷新//必须在loadsubdir之后，因为需要loadsubdir中调用pathtextbox.setchildren
@@ -2447,14 +2447,14 @@ namespace zfile
 
 						// 为虚拟文件夹或非文件系统项设置特定图标
 						string iconkey;
-						if (subItem.IsVirtual || (subItem.GetAttributes() & SFGAO.FILESYSTEM) == 0)
+						if (subItem.IsVirtual || (subItem.attr & SFGAO.FILESYSTEM) == 0)
 						{
 							GetIconBy(subItem, out iconkey, pidlSub);
 							if (!string.IsNullOrEmpty(iconkey))
 								iconManager.LoadIconFromCacheByKey(iconkey, node.TreeView.ImageList);
 
-							SFGAO subattr = subItem.GetAttributes();    // 如果是文件夹且不是虚拟文件夹，则添加"..."节点
-							if (subattr.HasFlag(SFGAO.FOLDER) && nodeSub.Nodes.Count == 0)
+							//SFGAO subattr = subItem.attr;    // 如果是文件夹且不是虚拟文件夹，则添加"..."节点
+							if (subItem.IsDir && nodeSub.Nodes.Count == 0)
 								nodeSub.Nodes.Add("...");
 						}
 						else

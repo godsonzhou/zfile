@@ -184,11 +184,6 @@ namespace zfile
 		private const uint SIIGBF_IGNORECRYPTED = 0x00000080;
 		const int ILD_TRANSPARENT = 0x00000001;
 
-		//public static int LVCOL_NAME = 0;
-		//public static int LVCOL_SIZE = 1;
-		//public static int LVCOL_TYPE = 2;
-		//public static int LVCOL_DATE = 3;
-		//public static int LVCOL_ATTR = 4;
 		public class LvCol
 		{
 			public int _NAME;
@@ -376,19 +371,14 @@ namespace zfile
 				{
 					if (recordHistory)
 						RecordDirectoryHistory(path, oldpath);    //传入老filesource以确保跨filesource时的正确地将老路径记录到历史中
-																  //else
-																  //	CurrentFullpath[LRflag] = path; // 直接更新当前目录，不记录历史//already ran in previous updatefilesourceandcurrentpath, do not needed do again
+												
 					if (activeTreeview.SelectedNode != node)
 						activeTreeview.SelectedNode = node;     //trigger afterselect event
 					else if (searchftp)
 						fTPMGR.NavigateToPath((node.Tag as FtpNodeTag)?.ConnectionName ?? "", fs.CurrentPath, activeListView);
-					//RefreshPanel(activeListView);////////////////////////////////////////////whhen change selectedNode, the afterselect event will be executed and the refreshpanel operation also be run at that time, so here refreshpanel seem to be unnecessary.
 				}
 				else
-				{
 					unactiveTreeview.SelectedNode = node;
-					//RefreshPanel(unactiveListView);
-				}
 			}
 			// 更新最后访问路径
 			if (isactive)
@@ -482,7 +472,6 @@ namespace zfile
 			// WdxModuleList is already initialized in WdxPlugins static constructor
 			WfxModuleList wfxModuleList = new WfxModuleList("");
 			wcxModuleList = new WcxModuleList(DateTime.Now.ToString());
-			//wcxModuleList.LoadConfiguration();
 			wlxModuleList = new WlxModuleList();
 
 			// 初始化 VFS 模块
@@ -507,7 +496,6 @@ namespace zfile
 
 			LVCOL.Add("L", new LvCol());
 			LVCOL.Add("R", new LvCol());
-			//GetControlPanelNodesWithUIA();
 		}
 
 		private void OperationManagerNotify(object? sender, OperationEventArgs e)
@@ -956,7 +944,6 @@ namespace zfile
 
 						}
 
-						// Refresh view
 						RefreshActivePanel();
 						MessageBox.Show("回收站已清空", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
 					}
@@ -1081,7 +1068,6 @@ namespace zfile
 
 						if (anyRestored)
 						{
-							// Refresh view
 							RefreshActivePanel();
 							MessageBox.Show("文件已成功还原", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
 						}
@@ -1380,7 +1366,6 @@ namespace zfile
 
 					var fileSource = UpdateFilesourceAndCurrentPath(path, out var fschanged, out var oldfs, out var oldpath);
 
-					//var driveChanged = CheckDriveChange(path, oldpath);
 					SelectedNode = e.Node;
 
 					// 检查是否是FTP节点
@@ -1388,7 +1373,6 @@ namespace zfile
 					{
 						// 处理FTP节点双击事件
 						fTPMGR.HandleFtpNodeDoubleClick(e.Node);
-						//SelectedNode = e.Node;
 						UpdatePathTextAndDriveComboBox(e.Node, CurrentFullpath[LRflag], isleft);//TODO: BUGFIX: IF ENODE IS LEFT , LRFLAG IS R, SOME THING ERROR
 						uiManager.SetArgs();
 						return;
@@ -1433,7 +1417,7 @@ namespace zfile
 		private bool UpdatePathTextAndDriveComboBox(TreeNode eNode, string path, bool isleft)
 		{
 			if (!eNode.TreeView.Name.Equals(isleft ? "L" : "R")) return false;
-			var driveId = path[1] == ':' ? path.Substring(0, 2) : "";
+			var driveId = path[1] == ':' ? path[..2] : "";
 
 			bool driveChanged = false;
 			if (isleft)
@@ -1659,8 +1643,8 @@ namespace zfile
 							return;
 						}
 						var file = (item.Tag as LvItemTag)?.File;
-						string iPath = file?.FullPath ?? "";       //item.SubItems[1].Text;
-																							// Get corresponding TreeNode for this path
+						string iPath = file?.FullPath ?? ""; 
+						// Get corresponding TreeNode for this path
 						TreeNode? targetNode = FindTreeNode(node.Nodes, item.Text);
 						if (targetNode != null)
 							ShowContextMenuOnTreeview(targetNode, e.Location);
@@ -1772,7 +1756,6 @@ namespace zfile
 				// 查找并选择对应的TreeNode
 				treeView.SelectedNode.Expand();
 				TreeNode? node = FindTreeNode(treeView.SelectedNode.Nodes, selectedItem.Text);
-				//TreeNode? node = (TreeNode)selectedItem.Tag;
 				if (node != null)
 				{
 					// 设置选中状态并高亮显示
@@ -2958,7 +2941,7 @@ namespace zfile
 		{
 			cm_list();
 		}
-		private List<FileEntry> GetFileListByViewOrParam(string param, bool isViaTemp = true)
+		private List<FileEntry> GetFileListByViewOrParam(string? param, bool isViaTemp = true)
 		{
 			if (!string.IsNullOrWhiteSpace(param))
 			{
@@ -3171,8 +3154,8 @@ namespace zfile
 
 						if (operation != null)
 						{
-							operation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, 
-								(sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation)sender, state, activeListView));
+							operation.AddStateChangedListener([ FileSourceOperationState.Stopped ], 
+								(sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation?)sender, state, activeListView));
 							_operationsManager.AddOperation(operation, false);
 						}
 						else
@@ -3184,8 +3167,8 @@ namespace zfile
 						var operation = fileSource.CreateCreateDirectoryOperation(path, dir);
 						if (operation != null)
 						{
-							operation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, 
-								(sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation)sender, state, activeListView));
+							operation.AddStateChangedListener([ FileSourceOperationState.Stopped ], 
+								(sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation?)sender, state, activeListView));
 							_operationsManager.AddOperation(operation, false);
 						}
 						else
@@ -3298,13 +3281,9 @@ namespace zfile
 					LoadListViewByFileSource(path, uiManager.RightList, uiManager.RightTree.SelectedNode);
 				}
 				else if (IsFtpPanel(out var ftpnode, "R") && ftpnode != null)
-				{
 					RefreshTreeViewAndListView(uiManager.RightList, ftpnode.Path);
-				}
 				else if (uiManager.RightTree.SelectedNode?.Tag is ShellItem shellItem)
-				{
 					RefreshTreeViewAndListView(uiManager.RightList, shellItem.parsepath);
-				}
 			}
 		}
 		public void TerminalButton_Click(object? sender, EventArgs e)
@@ -3853,7 +3832,7 @@ namespace zfile
 					// 特殊情况：如果源和目标都是WcxArchiveFileSource，需要通过临时文件系统进行复制
 					if (operation == null)
 						return CopyViaTemporaryDirectory(sourceFileSource, targetFileSource, fileEntries, targetPath);
-					operation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation)sender, state, targetlist));
+					operation.AddStateChangedListener([ FileSourceOperationState.Stopped ], (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation?)sender, state, targetlist));
 					_operationsManager.AddOperation(operation);
 				
 					return true;
@@ -4068,14 +4047,14 @@ namespace zfile
 			var operation = sourceFileSource.CreateDeleteOperation(fileEntries);
 			if (operation != null)
 			{
-				operation.AddStateChangedListener([ FileSourceOperationState.Stopped ], (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation)sender, state, mode: RefreshPanelMode.Both));
+				operation.AddStateChangedListener([ FileSourceOperationState.Stopped ], (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation?)sender, state, mode: RefreshPanelMode.Both));
 				_operationsManager.AddOperation(operation);
 			}
 		}
 		// 移动选中的文件
 		public void cm_renmov(string? param = null, string? targetPath = null)
 		{
-			string srcpath;
+			string? srcpath;
 			var sourceFiles = GetFileListByViewOrParam(param, false);   //bugfix: 因为需要删除源文件，所以不能使用GetFileListByViewOrParam(param, true)，否则会导致源文件为temprary file, 不能删除源文件
 			if (sourceFiles.Count == 0) return;
 
@@ -4125,7 +4104,7 @@ namespace zfile
 				if(usemoveop)
 				{
 					operation = sourceFileSource.CreateMoveOperation(fileEntries, targetPath);
-					operation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation)sender, state, mode: RefreshPanelMode.Both));
+					operation.AddStateChangedListener([ FileSourceOperationState.Stopped ], (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation?)sender, state, mode: RefreshPanelMode.Both));
 					_operationsManager.AddOperation(operation);
 			
 					return;
@@ -4137,7 +4116,7 @@ namespace zfile
 					var copyOperation = FileSourceManager.CreateCopyOperation(sourceFileSource, targetFileSource, fileEntries, targetPath);
 					if (copyOperation != null)
 					{
-						copyOperation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => deleteFiles(sourceFileSource, fileEntries));	 //copyoperation完成后执行删除文件操作
+						copyOperation.AddStateChangedListener([ FileSourceOperationState.Stopped ], (sender, state) => deleteFiles(sourceFileSource, fileEntries));	 //copyoperation完成后执行删除文件操作
 						_operationsManager.AddOperation(copyOperation);
 					}
 					else
@@ -4176,7 +4155,7 @@ namespace zfile
 				MessageBox.Show($"移动文件失败: {ex.Message}", "错误");
 			}
 		}
-		private void RefreshPanelOnFileSourceOperationStateChangedNotify(FileSourceOperation operation, FileSourceOperationState state, ListView? listview = null, RefreshPanelMode mode = RefreshPanelMode.Source)
+		private void RefreshPanelOnFileSourceOperationStateChangedNotify(FileSourceOperation? operation, FileSourceOperationState state, ListView? listview = null, RefreshPanelMode mode = RefreshPanelMode.Source)
 		{
 			this.Invoke(new Action(() =>
 			{
@@ -4259,7 +4238,7 @@ namespace zfile
 					var operation = fileSource.CreateDeleteOperation(fileEntries);
 					if (operation != null)
 					{
-						operation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation)sender, state));
+						operation.AddStateChangedListener([ FileSourceOperationState.Stopped ], (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation?)sender, state));
 						_operationsManager.AddOperation(operation);
 				
 						return;
@@ -4335,7 +4314,7 @@ namespace zfile
 			var copyInOperation = targetFileSource.CreateCopyInOperation(tempFileSource, tempFiles, targetPath);
 			if (copyInOperation != null)
 			{
-				copyInOperation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation)sender, state, mode: RefreshPanelMode.Both));
+				copyInOperation.AddStateChangedListener([ FileSourceOperationState.Stopped ], (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation?)sender, state, mode: RefreshPanelMode.Both));
 				// 添加操作到管理器并执行
 				_operationsManager.AddOperation(copyInOperation);
 

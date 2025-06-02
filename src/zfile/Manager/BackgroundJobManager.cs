@@ -280,7 +280,6 @@ namespace zfile
                                                 _iconManager.CacheIcon(key, icol, true);
                                         }
                                     }
-
                                 }
                                 // 添加到待更新列表
                                 lock (_currentProgress.ItemsToUpdate)
@@ -298,8 +297,6 @@ namespace zfile
                                     _batchCounter = 0;
                                 }
                             }
-
-
                         }
                         catch (Exception ex)
                         {

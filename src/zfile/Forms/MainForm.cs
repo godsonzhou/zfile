@@ -283,7 +283,7 @@ namespace zfile
 		public KeyMgr keyManager;
 		private IShellFolder iDeskTop, iCtrlPanel;
 		private FileEntry[] draggedItems;
-		private TreeNode rightClickBegin;
+		private TreeNode? rightClickBegin;
 		private string? oldname;
 		public WcxModuleList? wcxModuleList { get => WcxPlugins._moduleList; set => WcxPlugins._moduleList = value; }
 		public static WlxModuleList? wlxModuleList;
@@ -663,7 +663,7 @@ namespace zfile
 			//if (e.KeyCode == Keys.LWin || e.KeyCode == Keys.RWin)
 			//	winKeyPressed = isKeyDown;
 		}
-		private void Form1_KeyUp(object sender, KeyEventArgs e)
+		private void Form1_KeyUp(object? sender, KeyEventArgs e)
 		{
 			//UpdateSpeckeyState(e);
 			//var specKey = (winKeyPressed ? "#" : "") + (altKeyPressed ? "A" : "") + (ctrlKeyPressed ? "C" : "") + (shiftKeyPressed ? "S" : "");
@@ -683,7 +683,7 @@ namespace zfile
 			if (e.KeyCode != Keys.Down && e.KeyCode != Keys.Up) //the up and down keypress event should be processed by listview, so do not set its state to handled
 				e.Handled = true;
 		}
-		private void Form1_KeyDown(object sender, KeyEventArgs e)
+		private void Form1_KeyDown(object? sender, KeyEventArgs e)
 		{
 			//UpdateSpeckeyState(e, true);
 		}
@@ -909,24 +909,24 @@ namespace zfile
 		//{
 		//	void ActiveListViewChange(View view);
 		//}
-		public void TreeView_MouseDown(object sender, MouseEventArgs e)
+		public void TreeView_MouseDown(object? sender, MouseEventArgs e)
 		{
 			if (e.Button == MouseButtons.Right)
 			{
-				TreeView Tree1 = sender as TreeView;
-				rightClickBegin = Tree1.GetNodeAt(e.X, e.Y);
-				if (Tree1.SelectedNode != rightClickBegin)
+				var Tree1 = sender as TreeView;
+				rightClickBegin = Tree1?.GetNodeAt(e.X, e.Y);
+				if (Tree1 != null && Tree1.SelectedNode != rightClickBegin)
 					Tree1.SelectedNode = rightClickBegin;
 			}
 		}
 
-		public void TreeView_MouseUp(object sender, MouseEventArgs e)
+		public void TreeView_MouseUp(object? sender, MouseEventArgs e)
 		{
 			if (e.Button == MouseButtons.Right)
 			{
-				TreeView treeView = sender as TreeView;
-				TreeNode node = treeView.GetNodeAt(e.X, e.Y);
-				if (node != null && node == rightClickBegin)
+				var treeView = sender as TreeView;
+				var node = treeView?.GetNodeAt(e.X, e.Y);
+				if (treeView != null && node != null && node == rightClickBegin)
 				{
 					treeView.SelectedNode = node;
 					ShowContextMenuOnTreeview(node, e.Location);
@@ -934,7 +934,7 @@ namespace zfile
 			}
 		}
 
-		private void MenuItemEmptyRecycleBin_Click(object sender, EventArgs e)
+		private void MenuItemEmptyRecycleBin_Click(object? sender, EventArgs e)
 		{
 			if (CurrentFullpath.GetFileSource(LRflag) is RecycleBinFileSource)
 			{
@@ -1026,10 +1026,10 @@ namespace zfile
 								var file = tag.File;
 								// Get original path from link property
 								//string originalPath = file.LinkProperty.LinkTarget;
-								string originalPath = file.FullPath;
+								var originalPath = file?.FullPath;
 								if (string.IsNullOrEmpty(originalPath))
 								{
-									MessageBox.Show($"无法还原 {file.Name}，找不到原始路径", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+									MessageBox.Show($"无法还原 {file?.Name}，找不到原始路径", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 									continue;
 								}
 

@@ -183,6 +183,13 @@ namespace zfile
             return _dirsizeCache[directoryPath];
         }
 
+		public void AddUnsupportedExt(string ext)
+		{
+			if (!string.IsNullOrEmpty(ext) && !UnsupportedExts.Contains(ext))
+			{
+				UnsupportedExts.Add(ext);
+			}
+		}
 		public bool CanProcess(string? ext)
 		{
 			if (!string.IsNullOrEmpty(ext))
@@ -224,15 +231,15 @@ namespace zfile
                                     {
                                         // 计算文件夹大小并添加到缓存
                                         size = EverythingWrapper.CalculateDirectorySize(jobFilePath);
-										if (size > 0 && !string.IsNullOrEmpty(jobFilePath))
+										if (size >= 0 && !string.IsNullOrEmpty(jobFilePath))
 										{
 											lock (_dirsizeCache)
 											{
 												_dirsizeCache[jobFilePath] = size;
 											}
 										}
-										else if (!UnsupportedExts.Contains(jobFilePath))
-											UnsupportedExts.Add(jobFilePath);
+										//else if (!UnsupportedExts.Contains(jobFilePath))
+										//	UnsupportedExts.Add(jobFilePath);
                                     }
                                 }
                                 else

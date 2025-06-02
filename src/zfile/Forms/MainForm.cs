@@ -2262,7 +2262,9 @@ namespace zfile
 										nodeSub.Nodes.Add("...");
 								}
 							}
-							catch (UnauthorizedAccessException) { }
+							catch (UnauthorizedAccessException) {
+								_backgroundIconManager.AddUnsupportedExt(path);
+							}
 						}
 						nodeSub.ImageKey = iconkey;
 						nodeSub.SelectedImageKey = iconkey;

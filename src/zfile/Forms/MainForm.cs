@@ -1009,7 +1009,7 @@ namespace zfile
 			}
 			return false;
 		}
-		private void MenuItemRestore_Click(object sender, EventArgs e)
+		private void MenuItemRestore_Click(object? sender, EventArgs e)
 		{
 			if (CurrentFullpath.GetFileSource(LRflag) is RecycleBinFileSource && activeListView.SelectedItems.Count > 0)
 			{
@@ -1602,9 +1602,9 @@ namespace zfile
 			if(CurrentFullpath.GetFileSource(listView.Name) is FtpFileSource ftpSource)
 			{
 				// 处理FTP文件重命名
-				string oldPath = itemTag.File.FullPath;
-				string parentPath = Path.GetDirectoryName(oldPath).Replace("\\", "/");
-				if (!parentPath.EndsWith("/"))
+				var oldPath = itemTag?.File?.FullPath;
+				var parentPath = Path.GetDirectoryName(oldPath)?.Replace("\\", "/");
+				if (parentPath != null && !parentPath.EndsWith('/'))
 					parentPath += "/";
 				string newPath = parentPath + newName;
 
@@ -1921,7 +1921,7 @@ namespace zfile
 			return null;
 		}
 
-		public void ToolbarButton_DragEnter(object sender, DragEventArgs e)
+		public void ToolbarButton_DragEnter(object? sender, DragEventArgs e)
 		{
 			if (e.Data.GetDataPresent(DataFormats.FileDrop))
 			{
@@ -1936,7 +1936,7 @@ namespace zfile
 			e.Effect = DragDropEffects.None;
 		}
 
-		public void ToolbarButton_DragDrop(object sender, DragEventArgs e)
+		public void ToolbarButton_DragDrop(object? sender, DragEventArgs e)
 		{
 			if (e.Data.GetDataPresent(DataFormats.FileDrop))
 			{

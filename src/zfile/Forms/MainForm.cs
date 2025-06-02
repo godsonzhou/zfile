@@ -652,42 +652,40 @@ namespace zfile
 			this.KeyDown += new KeyEventHandler(Form1_KeyDown);
 			this.KeyUp += new KeyEventHandler(Form1_KeyUp);
 		}
+		private void UpdateSpeckeyState(KeyEventArgs e, bool isKeyDown = false)
+		{
+			//if (e.Shift || e.KeyCode == Keys.ShiftKey)
+			//	shiftKeyPressed = isKeyDown;
+			//if (e.Alt || e.KeyCode == Keys.Menu)
+			//	altKeyPressed = isKeyDown;
+			//if (e.Control || e.KeyCode == Keys.ControlKey)
+			//	ctrlKeyPressed = isKeyDown;
+			//if (e.KeyCode == Keys.LWin || e.KeyCode == Keys.RWin)
+			//	winKeyPressed = isKeyDown;
+		}
 		private void Form1_KeyUp(object sender, KeyEventArgs e)
 		{
-			if (e.Shift)
-				shiftKeyPressed = false;
-			if (e.Alt)
-				altKeyPressed = false;
-			if (e.Control)
-				ctrlKeyPressed = false;
-			if (e.KeyCode == Keys.LWin || e.KeyCode == Keys.RWin)
-				winKeyPressed = false;
-		}
-		private void Form1_KeyDown(object sender, KeyEventArgs e)
-		{
-			if (e.Shift)
-				shiftKeyPressed = true;
-			if (e.Alt)
-				altKeyPressed = true;
-			if (e.Control)
-				ctrlKeyPressed = true;
-			if (e.KeyCode == Keys.LWin || e.KeyCode == Keys.RWin)
-				winKeyPressed = true;
-
-			var specKey = (winKeyPressed ? "#" : "") + (altKeyPressed ? "A" : "") + (ctrlKeyPressed ? "C" : "") + (shiftKeyPressed ? "S" : "");
+			//UpdateSpeckeyState(e);
+			//var specKey = (winKeyPressed ? "#" : "") + (altKeyPressed ? "A" : "") + (ctrlKeyPressed ? "C" : "") + (shiftKeyPressed ? "S" : "");
+			var specKey = ((e.KeyCode == Keys.LWin || e.KeyCode == Keys.RWin) ? "#" : "") + (e.Alt ? "A" : "") + (e.Control ? "C" : "") + (e.Shift ? "S" : "");
 			var mainKey = Helper.ConvertKeyToString(e.KeyCode);
+			Debug.Print($"key {specKey} {mainKey} pressed");
 			if (mainKey.Equals(string.Empty))
 			{
-				e.Handled = true;
+				//e.Handled = true;
 				return;
 			}
 			var cmd = keyManager.GetCmdByKey(specKey.Length != 0 ? $"{specKey}+{mainKey}" : mainKey);
 			if (!cmd.Equals(string.Empty))
 				cmdProcessor.ExecCmd(cmd);
-			else if (hotkeyMappings.TryGetValue(e.KeyData, out string cmdName))
+			else if (hotkeyMappings.TryGetValue(e.KeyData, out var cmdName))
 				cmdProcessor.ExecCmd(cmdName);
-			if(e.KeyCode != Keys.Down && e.KeyCode != Keys.Up)	//the up and down keypress event should be processed by listview, so do not set its state to handled
+			if (e.KeyCode != Keys.Down && e.KeyCode != Keys.Up) //the up and down keypress event should be processed by listview, so do not set its state to handled
 				e.Handled = true;
+		}
+		private void Form1_KeyDown(object sender, KeyEventArgs e)
+		{
+			//UpdateSpeckeyState(e, true);
 		}
 		public void ListView_ItemDrag(object? sender, ItemDragEventArgs e)
 		{

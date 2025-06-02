@@ -2702,21 +2702,22 @@ namespace zfile
 		}
 
 		// 处理ListView滚动事件
-		public void ListView_Scroll(object sender, EventArgs e)
+		public void ListView_Scroll(object? sender, EventArgs e)
 		{
 			if (sender is ListView listView)
 			{
-				// 获取当前视图模式
-				var subkey = (listView.View == View.Tile ? "l" : "s");
-
 				// 处理可见项的缩略图
-				ProcessVisibleItemsForThumbnails(listView, subkey);
+				ProcessVisibleItemsForThumbnails(listView);
 			}
 		}
 
 		// 获取ListView中当前可见的项目并处理缩略图
-		private void ProcessVisibleItemsForThumbnails(ListView listView, string subkey)
+		private void ProcessVisibleItemsForThumbnails(ListView listView)
 		{
+			// 获取当前视图模式
+			var subkey = (listView.View == View.Tile ? "l" : "s");
+			if (!subkey.Equals("l"))
+				return;
 			// 如果不是大图标或平铺模式，不需要生成缩略图
 			if (listView.Items.Count == 0) return;
 
@@ -2824,14 +2825,15 @@ namespace zfile
 				listView.Refresh();
 
 				// 只为可见项生成缩略图
-				ProcessVisibleItemsForThumbnails(listView, subkey);
+				ProcessVisibleItemsForThumbnails(listView);
 
 				// 添加滚动事件处理程序（如果尚未添加）
 				if (listView.Tag == null && listView is MyListView myListView)
 				{
 					EventHandler scrollHandler = (s, e) =>
 					{
-						if (s != null) ListView_Scroll(s, e);
+						if (s != null) 
+							ListView_Scroll(s, e);
 					};
 					myListView.VScroll += scrollHandler;
 					myListView.MouseWheel += scrollHandler;

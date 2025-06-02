@@ -2391,7 +2391,7 @@ namespace zfile
 			var subkey = (listView.View == View.Tile ? "l" : "s");
 		
 			// 如果不是大图标或平铺模式，不需要生成缩略图
-			if (!subkey.Equals("l") || listView.Items.Count == 0) return;
+			if (listView.Items.Count == 0) return;
 
 			var itemsForJob = new List<string>();
 			var lvitemsForJob = new List<ListViewItem>();
@@ -2426,7 +2426,7 @@ namespace zfile
 								if (file != null)
 									file.Size = cachedSize;
 							}
-							else if (itemFullName != null)
+							else if (itemFullName != null && _backgroundIconManager.CanProcess(itemFullName))
 							{
 								// 如果缓存中没有，添加到任务队列
 								itemsForJob.Add(itemFullName);

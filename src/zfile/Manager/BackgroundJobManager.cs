@@ -224,13 +224,15 @@ namespace zfile
                                     {
                                         // 计算文件夹大小并添加到缓存
                                         size = EverythingWrapper.CalculateDirectorySize(jobFilePath);
-                                        if (size > 0 && !string.IsNullOrEmpty(jobFilePath))
-                                        {
-                                            lock (_dirsizeCache)
-                                            {
-                                                _dirsizeCache[jobFilePath] = size;
-                                            }
-                                        }
+										if (size > 0 && !string.IsNullOrEmpty(jobFilePath))
+										{
+											lock (_dirsizeCache)
+											{
+												_dirsizeCache[jobFilePath] = size;
+											}
+										}
+										else if (!UnsupportedExts.Contains(jobFilePath))
+											UnsupportedExts.Add(jobFilePath);
                                     }
                                 }
                                 else

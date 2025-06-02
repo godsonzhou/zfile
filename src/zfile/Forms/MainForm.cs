@@ -947,16 +947,9 @@ namespace zfile
 							// Empty recycle bin using Shell API
 							// Pass null for pszRootPath to empty all recycle bins
 							// Use SHERB.NOCONFIRMATION to suppress the confirmation dialog
-							int result = API.SHEmptyRecycleBin(
-								Handle,
-								null,
-								(uint)SHERB.NOCONFIRMATION
-							);
-
+							int result = API.SHEmptyRecycleBin(Handle, null, (uint)SHERB.NOCONFIRMATION);
 							if (result != 0)
-							{
 								Marshal.ThrowExceptionForHR(result);
-							}
 						}
 						finally
 						{
@@ -1125,7 +1118,6 @@ namespace zfile
 
 		private void MenuItemWcxEdit_Click(object? sender, EventArgs e)
 		{
-			//throw new NotImplementedException();
 			if (sender is ListViewItem lvitem)
 			{
 
@@ -1135,42 +1127,35 @@ namespace zfile
 
 		private void MenuItemWcxRename_Click(object? sender, EventArgs e)
 		{
-			//throw new NotImplementedException();
 			cm_renameonly();
 		}
 
 		private void MenuItemWcxMove_Click(object? sender, EventArgs e)
 		{
-			//throw new NotImplementedException();
 			cm_renmov();
 		}
 
 		private void MenuItemWcxProperty_Click(object? sender, EventArgs e)
 		{
-			//throw new NotImplementedException();
 		}
 
 		private void MenuItemWcxDelete_Click(object? sender, EventArgs e)
 		{
-			//throw new NotImplementedException();
 			cm_delete();
 		}
 
 		private void MenuItemWcxCopy_Click(object? sender, EventArgs e)
 		{
-			//throw new NotImplementedException();
 			cm_copy();
 		}
 
 		private void MenuItemWcxView_Click(object? sender, EventArgs e)
 		{
-			//throw new NotImplementedException();
 			cm_list();
 		}
 
 		private void MenuItemWcxOpen_Click(object? sender, EventArgs e)
 		{
-			//throw new NotImplementedException();
 			
 		}
 
@@ -1383,7 +1368,7 @@ namespace zfile
 			{
 				if (sender is TreeView treeView)
 				{
-					//_backgroundIconManager.CancelCurrentTasks();
+					//_backgroundIconManager.CancelCurrentTasks();//bugfix:会引发更新不完整的问题
 					// 清除所有节点的高亮状态
 					ClearTreeViewHighlight(treeView);
 					e.Node.BackColor = SystemColors.Highlight;
@@ -1417,8 +1402,6 @@ namespace zfile
 					if (fschanged || Helper.IncludeTrailingPathDelimiter(path) != oldpath)
 						RecordDirectoryHistory(path, oldpath);   // 记录目录历史, 并更新filesource的currentpath
 
-					//if (!driveChanged)
-					//{
 					//如果盘符改变了，则不刷新treeview&listview, 因为在盘符改变时，会触发事件，在事件中会刷新(refreshpanel)
 					// 检查节点是否已经被加载过子目录
 					bool isNodeLoaded = false;
@@ -1434,7 +1417,7 @@ namespace zfile
 					//当激活的面板发生变化时更新缩略图按钮状态
 					if (ToolbarManager.cm_srcthumbs_Button != null)
 						ToolbarManager.cm_srcthumbs_Button.CheckState = activeListView.View == View.Tile ? CheckState.Checked : CheckState.Unchecked;
-					//}
+					
 					uiManager.UpdateLastVisitedPath(path);
 					UpdatePathTextAndDriveComboBox(e.Node, path, isleft);    //盘符改变时在combobox事件中刷新//必须在loadsubdir之后，因为需要loadsubdir中调用pathtextbox.setchildren
 					if (Directory.Exists(path))
@@ -1450,16 +1433,7 @@ namespace zfile
 				Debug.Print($"TreeView_AfterSelect加载目录失败: {ex.Message}");
 			}
 		}
-		//public static bool CheckDriveChange(string path1, string path2)
-		//{
-		//	if (!Directory.Exists(path1) || !Directory.Exists(path2))
-		//		return false;
 
-		//	var drive1 = Path.GetPathRoot(path1);
-		//	var drive2 = Path.GetPathRoot(path2);
-
-		//	return !string.Equals(drive1, drive2, StringComparison.OrdinalIgnoreCase);
-		//}
 		private bool UpdatePathTextAndDriveComboBox(TreeNode eNode, string path, bool isleft)
 		{
 			if (!eNode.TreeView.Name.Equals(isleft ? "L" : "R")) return false;
@@ -1598,7 +1572,6 @@ namespace zfile
 
 			// 检查是否是FTP文件源
 			var itemTag = item?.Tag as LvItemTag;
-			//if (itemTag?.FileSource is FtpFileSource ftpSource)
 			if(CurrentFullpath.GetFileSource(listView.Name) is FtpFileSource ftpSource)
 			{
 				// 处理FTP文件重命名
@@ -1614,14 +1587,9 @@ namespace zfile
 				{
 					// 调用FtpFileSource的Rename方法进行重命名
 					if (ftpSource.Rename(oldPath, newPath))
-					{
-						// 刷新FTP目录
-						fTPMGR.LoadFtpDirectory(ftpSource.ConnectionName, parentPath, listView);
-					}
-					else
-					{
-						if (item != null) item.Text = oldName;
-					}
+						fTPMGR.LoadFtpDirectory(ftpSource.ConnectionName, parentPath, listView);    // 刷新FTP目录
+					else if (item != null) 
+						item.Text = oldName;
 				}
 				catch (Exception ex)
 				{
@@ -1655,7 +1623,6 @@ namespace zfile
 				}
 				RefreshPanel(listView);
 			}
-
 		}
 
 		public void ListView_MouseUp(object? sender, MouseEventArgs e)
@@ -1761,7 +1728,6 @@ namespace zfile
 					else
 					{
 						// 如果是文件，查看文件
-						//if (fTPMGR._ftpSources.TryGetValue(connectionName, out FtpFileSource? source))
 						fTPMGR.ViewFtpFile((FtpFileSource)fileSource, path);
 					}
 					return;
@@ -1876,10 +1842,7 @@ namespace zfile
 					node.Expand();
 					TreeNode? foundNode = FindTreeNodeByFullPath(node.Nodes, path.Substring(path.IndexOf('\\') + 1));
 					if (foundNode != null)
-					{
-						//Debug.Print("FindTreeNode -> foundNode: {0}", foundNode.Text);
 						return foundNode;
-					}
 				}
 			}
 			return null;
@@ -1926,12 +1889,8 @@ namespace zfile
 			if (e.Data.GetDataPresent(DataFormats.FileDrop))
 			{
 				var files = (string[])e.Data.GetData(DataFormats.FileDrop);
-				// 只允许可执行文件或目录
-				//if (files.Any(f => File.Exists(f) && (Path.GetExtension(f).Equals(".exe", StringComparison.OrdinalIgnoreCase) || Directory.Exists(f))))
-				{
-					e.Effect = DragDropEffects.Copy;
-					return;
-				}
+				e.Effect = DragDropEffects.Copy;
+				return;
 			}
 			e.Effect = DragDropEffects.None;
 		}
@@ -2081,7 +2040,6 @@ namespace zfile
 			var shellInfo = new SHFILEINFO();
 			//使用shgfi.iconlocation获取图标文件名和图标索引
 			var result = API.SHGetFileInfo(subItem.parsepath, 0, ref shellInfo, Marshal.SizeOf(typeof(SHFILEINFO)), (islarge ? SHGFI.LARGEICON : SHGFI.SMALLICON | SHGFI.ICONLOCATION | SHGFI.ATTRIBUTES));
-			//Debug.Print($"Virtual 3folder：result={result} name: {subItem.Name} Path: {subItem.parsepath}, Icon:{shellInfo.hIcon} Index: {shellInfo.iIcon}, location:{shellInfo.szDisplayName}");
 			if (shellInfo.szDisplayName != string.Empty)
 			{
 				iconKey = ($"{shellInfo.szTypeName}_{shellInfo.iIcon}").ToLower();
@@ -2118,147 +2076,6 @@ namespace zfile
 							getIconByIconLocation(ref subItem, out iconkey, islarge);
 					}
 		}
-
-		/// <summary>
-		/// 使用UIA (User Interface Automation) 库来获取控制面板的节点结构和图标
-		/// </summary>
-		/// <param name="islarge">是否获取大图标</param>
-		/// <returns>控制面板节点信息列表</returns>
-		private List<ControlPanelNodeInfo> GetControlPanelNodesWithUIA(bool islarge = false)
-		{
-			var nodeInfoList = new List<ControlPanelNodeInfo>();
-			
-			try
-			{
-				// 获取控制面板窗口
-				var controlPanelCondition = new PropertyCondition(AutomationElement.ClassNameProperty, "CabinetWClass");
-				var controlPanelWindow = AutomationElement.RootElement.FindFirst(TreeScope.Children, controlPanelCondition);
-				
-				if (controlPanelWindow == null)
-				{
-					// 如果控制面板窗口未打开，尝试启动控制面板
-					Process.Start("control.exe");
-					System.Threading.Thread.Sleep(2000); // 等待控制面板启动
-					controlPanelWindow = AutomationElement.RootElement.FindFirst(TreeScope.Children, controlPanelCondition);
-				}
-				
-				if (controlPanelWindow != null)
-				{
-					// 查找控制面板中的所有项目
-					var itemCondition = new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.ListItem);
-					var items = controlPanelWindow.FindAll(TreeScope.Descendants, itemCondition);
-					
-					foreach (AutomationElement item in items)
-					{
-						try
-						{
-							var nodeInfo = new ControlPanelNodeInfo
-							{
-								Name = item.Current.Name,
-								AutomationId = item.Current.AutomationId,
-								ClassName = item.Current.ClassName,
-								BoundingRectangle = item.Current.BoundingRectangle
-							};
-							
-							// 尝试获取图标
-							var iconKey = GetIconFromUIAElement(item, islarge);
-							if (!string.IsNullOrEmpty(iconKey))
-							{
-								nodeInfo.IconKey = iconKey;
-							}
-							
-							// 查找子节点
-							var childCondition = new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.ListItem);
-							var childItems = item.FindAll(TreeScope.Children, childCondition);
-							
-							foreach (AutomationElement childItem in childItems)
-							{
-								try
-								{
-									var childNodeInfo = new ControlPanelNodeInfo
-									{
-										Name = childItem.Current.Name,
-										AutomationId = childItem.Current.AutomationId,
-										ClassName = childItem.Current.ClassName,
-										BoundingRectangle = childItem.Current.BoundingRectangle,
-										ParentName = nodeInfo.Name
-									};
-									
-									var childIconKey = GetIconFromUIAElement(childItem, islarge);
-									if (!string.IsNullOrEmpty(childIconKey))
-									{
-										childNodeInfo.IconKey = childIconKey;
-									}
-									
-									nodeInfo.ChildNodes.Add(childNodeInfo);
-								}
-								catch (Exception ex)
-								{
-									Debug.WriteLine($"获取控制面板子节点信息时出错: {ex.Message}");
-								}
-							}
-							
-							nodeInfoList.Add(nodeInfo);
-						}
-						catch (Exception ex)
-						{
-							Debug.WriteLine($"获取控制面板节点信息时出错: {ex.Message}");
-						}
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				Debug.WriteLine($"使用UIA获取控制面板节点时出错: {ex.Message}");
-			}
-			
-			return nodeInfoList;
-		}
-		
-		/// <summary>
-		/// 从UIA元素获取图标
-		/// </summary>
-		/// <param name="element">UIA自动化元素</param>
-		/// <param name="islarge">是否获取大图标</param>
-		/// <returns>图标键值</returns>
-		private string GetIconFromUIAElement(AutomationElement element, bool islarge = false)
-		{
-			try
-			{
-				// 尝试通过元素的图像模式获取图标
-				//if (element.TryGetCurrentPattern(ImagePattern.Pattern, out object imagePatternObj))
-				//{
-				//	var imagePattern = imagePatternObj as ImagePattern;
-				//	// 这里可以进一步处理图像信息
-				//}
-				
-				// 尝试通过元素的名称和自动化ID生成图标键
-				var iconKey = $"uia_{element.Current.AutomationId}_{element.Current.Name}".ToLower();
-				iconKey = iconKey.Replace(" ", "_").Replace("(", "").Replace(")", "");
-				
-				// 尝试通过窗口句柄获取图标
-				if (element.Current.NativeWindowHandle != 0)
-				{
-					var hWnd = new IntPtr(element.Current.NativeWindowHandle);
-					var hIcon = API.SendMessage(hWnd, 0x007F, islarge ? 1 : 0, 0); // WM_GETICON
-					
-					if (hIcon != IntPtr.Zero)
-					{
-						var icon = Icon.FromHandle(hIcon);
-						iconManager.CacheIcon(iconKey, icon, islarge);
-						return iconKey;
-					}
-				}
-				
-				// 如果无法获取图标，返回默认图标键
-				return iconKey;
-			}
-			catch (Exception ex)
-			{
-				Debug.WriteLine($"从UIA元素获取图标时出错: {ex.Message}");
-				return string.Empty;
-			}
-		}
 		
 		/// <summary>
 		/// 控制面板节点信息类
@@ -2273,89 +2090,89 @@ namespace zfile
 			public System.Windows.Rect BoundingRectangle { get; set; }
 			public List<ControlPanelNodeInfo> ChildNodes { get; set; } = new List<ControlPanelNodeInfo>();
 		}
-		public IShellFolder? Set_SIIGBF_IGNORECRYPTED_flag(ShellItem item)
-		{
-			if (item == null) return null;
-			var folderPath = item.parsepath;
-			if (string.IsNullOrEmpty(folderPath))
-				return null;
+		//public IShellFolder? Set_SIIGBF_IGNORECRYPTED_flag(ShellItem item)
+		//{
+		//	if (item == null) return null;
+		//	var folderPath = item.parsepath;
+		//	if (string.IsNullOrEmpty(folderPath))
+		//		return null;
 
-			try
-			{
-				// 获取桌面文件夹
-				//API.SHGetDesktopFolder(out IShellFolder desktopFolder);
-				//var desktopFolder = iDeskTop;
-				//if (desktopFolder == null)
-				//	return null;
+		//	try
+		//	{
+		//		// 获取桌面文件夹
+		//		//API.SHGetDesktopFolder(out IShellFolder desktopFolder);
+		//		//var desktopFolder = iDeskTop;
+		//		//if (desktopFolder == null)
+		//		//	return null;
 
-				var parentFolder = item.ParentShellFolder;
-				if (parentFolder == null)
-					return null;
-				// 解析路径获取PIDL
-				IntPtr pidl = item.PIDL;
-				//uint pchEaten = 0;
-				//uint pdwAttributes = 0;
-				//int hr = parentFolder.ParseDisplayName(IntPtr.Zero, IntPtr.Zero, folderPath, out pchEaten, out pidl, ref pdwAttributes);
-				//if (hr != 0 || pidl == IntPtr.Zero)
-				//return null;
+		//		var parentFolder = item.ParentShellFolder;
+		//		if (parentFolder == null)
+		//			return null;
+		//		// 解析路径获取PIDL
+		//		IntPtr pidl = item.PIDL;
+		//		//uint pchEaten = 0;
+		//		//uint pdwAttributes = 0;
+		//		//int hr = parentFolder.ParseDisplayName(IntPtr.Zero, IntPtr.Zero, folderPath, out pchEaten, out pidl, ref pdwAttributes);
+		//		//if (hr != 0 || pidl == IntPtr.Zero)
+		//		//return null;
 
-				try
-				{
-					// 创建绑定上下文
-					IBindCtx bindCtx = null;
-					var hr = API.CreateBindCtx(0, out bindCtx);
-					if (hr != 0 || bindCtx == null)
-						return null;
+		//		try
+		//		{
+		//			// 创建绑定上下文
+		//			IBindCtx bindCtx = null;
+		//			var hr = API.CreateBindCtx(0, out bindCtx);
+		//			if (hr != 0 || bindCtx == null)
+		//				return null;
 
-					try
-					{
-						// 由于SetBindOptions返回E_NOTIMPL (0x800401E9)，我们不再尝试设置绑定选项
-						// 直接使用bindCtx，即使没有设置SIIGBF_IGNORECRYPTED标志
-						// 在Windows 10/11上，这个标志可能已经默认启用，或者通过其他方式处理
-						// 直接使用bindCtx绑定到对象
-						Guid iidIShellFolder = typeof(IShellFolder).GUID;
-						IShellFolder shellFolder;
-						// 将bindCtx转换为IntPtr
-						IntPtr pbc = Marshal.GetIUnknownForObject(bindCtx);
-						try
-						{
-							// 尝试直接使用bindCtx，即使没有设置SIIGBF_IGNORECRYPTED标志
-							hr = parentFolder.BindToObject(pidl, pbc, ref iidIShellFolder, out shellFolder);
-							if (hr != 0 || shellFolder == null)
-							{
-								Debug.Print($"BindToObject failed with hr = {hr:X}");
-								return null;
-							}
-						}
-						finally
-						{
-							if (pbc != IntPtr.Zero)
-								Marshal.Release(pbc);
-						}
+		//			try
+		//			{
+		//				// 由于SetBindOptions返回E_NOTIMPL (0x800401E9)，我们不再尝试设置绑定选项
+		//				// 直接使用bindCtx，即使没有设置SIIGBF_IGNORECRYPTED标志
+		//				// 在Windows 10/11上，这个标志可能已经默认启用，或者通过其他方式处理
+		//				// 直接使用bindCtx绑定到对象
+		//				Guid iidIShellFolder = typeof(IShellFolder).GUID;
+		//				IShellFolder shellFolder;
+		//				// 将bindCtx转换为IntPtr
+		//				IntPtr pbc = Marshal.GetIUnknownForObject(bindCtx);
+		//				try
+		//				{
+		//					// 尝试直接使用bindCtx，即使没有设置SIIGBF_IGNORECRYPTED标志
+		//					hr = parentFolder.BindToObject(pidl, pbc, ref iidIShellFolder, out shellFolder);
+		//					if (hr != 0 || shellFolder == null)
+		//					{
+		//						Debug.Print($"BindToObject failed with hr = {hr:X}");
+		//						return null;
+		//					}
+		//				}
+		//				finally
+		//				{
+		//					if (pbc != IntPtr.Zero)
+		//						Marshal.Release(pbc);
+		//				}
 
-						// 返回IShellFolder对象
-						return shellFolder;
-					}
-					finally
-					{
-						// 释放bindCtx
-						if (bindCtx != null)
-							Marshal.ReleaseComObject(bindCtx);
-					}
-				}
-				finally
-				{
-					// 释放PIDL
-					if (pidl != IntPtr.Zero)
-						Marshal.FreeCoTaskMem(pidl);
-				}
-			}
-			catch (Exception ex)
-			{
-				Debug.Print($"Set_SIIGBF_IGNORECRYPTED_flag error: {ex.Message}");
-				return null;
-			}
-		}
+		//				// 返回IShellFolder对象
+		//				return shellFolder;
+		//			}
+		//			finally
+		//			{
+		//				// 释放bindCtx
+		//				if (bindCtx != null)
+		//					Marshal.ReleaseComObject(bindCtx);
+		//			}
+		//		}
+		//		finally
+		//		{
+		//			// 释放PIDL
+		//			if (pidl != IntPtr.Zero)
+		//				Marshal.FreeCoTaskMem(pidl);
+		//		}
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		Debug.Print($"Set_SIIGBF_IGNORECRYPTED_flag error: {ex.Message}");
+		//		return null;
+		//	}
+		//}
 		public List<TreeNode>? LoadSubDirectories(TreeNode node, MyListView? lv = null)
 		{
 			Debug.Print($"load sub dirs for treenode : {node.FullPath}");
@@ -2417,16 +2234,11 @@ namespace zfile
 					while (Enum.Next(1, out nint pidlSub, out uint celtFetched) == 0 && celtFetched == w32.S_FALSE) //获取子节点的pidl
 					{
 						root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out IShellFolder iSub); //获取子节点的ishellfolder接口
-						//string name;
 						string path = w32.GetPathByIShell(root, pidlSub);   //子节点path -> 此电脑\\迅雷下载, c:\\
-
-						//Debug.Print(path);
 						var pathPart = path.Split('\\');
 						var name = !pathPart[^1].Equals(string.Empty) ? pathPart[^1] : pathPart[^2];
 						var subItem = new ShellItem(pidlSub, iSub, root); //子节点的tag存放pidl和ishellfolder接口
 
-						//if (subItem.parsepath.Equals("::{26EE0668-A00A-44D7-9371-BEB064C98683}"))//控制面板
-						//if (subItem.parsepath.Equals("::{645FF040-5081-101B-9F08-00AA002F954E}") )//回收站
 						// 使用路径作为唯一标识符，而不是PIDL的内存地址
 						string nodeKey = path;
 						newPidls.Add(nodeKey);
@@ -2471,10 +2283,7 @@ namespace zfile
 										nodeSub.Nodes.Add("...");
 								}
 							}
-							catch (UnauthorizedAccessException)
-							{
-								//Debug.Print($"unauthorized access exception while try to access {path}");
-							}
+							catch (UnauthorizedAccessException) { }
 						}
 						nodeSub.ImageKey = iconkey;
 						nodeSub.SelectedImageKey = iconkey;
@@ -2511,7 +2320,6 @@ namespace zfile
 							}
 							i.ImageKey = ico;
 							i.Text = name;
-							//i.Tag = new LvItemTag(new FileEntry(node.FullPath, name), node);   //tag存放父节点//bugfix: 在tile视图下，缩略图没有显示的问题
 							i.Tag = new LvItemTag(null, node);   //tag存放父节点//bugfix: 在tile视图下，缩略图没有显示的问题
 							lv.Items.Add(i);
 						}
@@ -2539,90 +2347,10 @@ namespace zfile
 			{
 				Debug.Print("exception raised in loadsubdir");
 			}
-			finally
-			{
-
-			}
-
+	
 			return nodesToKeep;
 		}
-
-		//private static bool IsChildrenExist(TreeNode node, bool includefile = false)
-		//{
-		//	ShellItem sItem = (ShellItem)node.Tag;
-		//	if (sItem != null)
-		//		return sItem.IsChildrenExist();
-		//	return false;
-		//}
-		//private static void LoadRecycleBinbak(ListView listview)
-		//{
-		//	int MAX_PATH = 260;
-		//	// 获取回收站中的文件和文件夹信息
-		//	SHQUERYRBINFO shQueryRBInfo = new SHQUERYRBINFO();
-		//	shQueryRBInfo.cbSize = Marshal.SizeOf(shQueryRBInfo);
-		//	API.SHQueryRecycleBin(null, ref shQueryRBInfo);
-
-		//	uint dwFlags = 0;
-		//	StringBuilder sbDisplayName = new(MAX_PATH);
-		//	StringBuilder sbOriginalPath = new(MAX_PATH);
-
-		//	while (API.SHEnumRecycleBin(null, 0, ref dwFlags, sbDisplayName, MAX_PATH, sbOriginalPath, MAX_PATH) == 0)
-		//	{
-		//		// 创建 ListViewItem 并添加到 ListView 中
-		//		ListViewItem item = new ListViewItem(sbDisplayName.ToString());
-		//		item.SubItems.Add(sbOriginalPath.ToString());
-		//		listview.Items.Add(item);
-		//	}
-		//}
-		//public void LoadRecycleBin(ListView listView)
-		//{
-		//	// 使用 FileSourceManager 获取回收站 FileSource
-		//	IFileSource recycleBinFileSource = _fileSourceManager.GetFileSourceForFullPath("回收站", isleft);
-
-		//	// 更新当前面板的 FileSource
-		//	if (listView == uiManager.LeftList)
-		//		LeftFileSource = recycleBinFileSource;
-		//	else
-		//		RightFileSource = recycleBinFileSource;
-
-		//	// 使用 FileSource 架构加载文件列表
-		//	LoadListViewByFileSourceSync("回收站", listView, null);
-		//}
-		//public IEnumerable<string> GetRecycleBinFilenames()
-		//{
-		//	// 使用 Shell API 获取回收站文件
-		//	var fileList = new List<string>();
-
-		//	// 使用直接方法获取回收站文件
-		//	string recycleBinPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "..\\$Recycle.Bin");
-
-		//	if (Directory.Exists(recycleBinPath))
-		//	{
-		//		// 获取所有用户的回收站目录
-		//		foreach (var userDir in Directory.GetDirectories(recycleBinPath))
-		//		{
-		//			// 获取每个用户回收站中的文件
-		//			try
-		//			{
-		//				foreach (var file in Directory.GetFiles(userDir, "*", SearchOption.AllDirectories))
-		//				{
-		//					// 过滤掉系统文件
-		//					if (!Path.GetFileName(file).StartsWith("$"))
-		//					{
-		//						fileList.Add(Path.GetFileName(file) ?? string.Empty);
-		//					}
-		//				}
-		//			}
-		//			catch
-		//			{
-		//				// 忽略访问错误
-		//			}
-		//		}
-		//	}
-
-		//	// 返回收集到的文件名
-		//	return fileList;
-		//}
+		
 		// 在目录变更时调用此方法记录历史
 		public void RecordDirectoryHistory(string newPath, string oldpath)
 		{

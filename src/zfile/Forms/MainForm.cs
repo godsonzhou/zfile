@@ -1008,7 +1008,7 @@ namespace zfile
 			{
 				try
 				{
-					try
+					//try
 					{
 						bool anyRestored = false;
 
@@ -1029,9 +1029,8 @@ namespace zfile
 								// Create directory for the file if it doesn't exist
 								string? directory = Path.GetDirectoryName(originalPath);
 								if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-								{
 									Directory.CreateDirectory(directory);
-								}
+								
 								Restore(originalPath);
 								//// Get the full path to the file in the recycle bin
 								//string recycleBinPath = file.LinkProperty.LinkTarget; //file.FullPath ?? string.Empty;
@@ -1087,10 +1086,7 @@ namespace zfile
 							MessageBox.Show("文件已成功还原", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
 						}
 					}
-					finally
-					{
-
-					}
+			
 				}
 				catch (Exception ex)
 				{
@@ -3719,9 +3715,7 @@ namespace zfile
 				{
 					string nodePath = sItem.parsepath;
 					if (string.Equals(nodePath, watcher.Path, StringComparison.OrdinalIgnoreCase))
-					{
 						affectedNode = treeView.SelectedNode;
-					}
 				}
 
 				// 如果找到了受影响的节点，清除其加载标记
@@ -3757,12 +3751,6 @@ namespace zfile
 
 		public FileEntry? GetListItemPath(ListViewItem item)
 		{
-			//if (item.Tag is ArchNodeTag archNode)
-			//	return Path.Combine(archNode.Path, item.Text);
-			//// 检查是否是FTP节点 // 对于FTP项，直接使用SubItems[1]中存储的完整路径 // 对于本地文件系统
-			//if (uiManager.activeTreeview.SelectedNode.Tag is FtpNodeTag)
-			//	//bugfix: 如果使用平铺模式，无法从树节点的路径获取到ITEM的真实完整路径，所以只能从ITEM.SUBITEM[1]中获取
-			//	return item.SubItems[1].Text;
 			var lvitemtag = item.Tag as LvItemTag;
 			if (lvitemtag?.File != null)
 				return lvitemtag.File;
@@ -3775,13 +3763,9 @@ namespace zfile
 				if (sender is ToolStrip toolStrip)
 				{
 					if (toolStrip == uiManager.toolbarManager.DynamicToolStrip)
-					{
 						uiManager.toolbarManager.EditToolbar();
-					}
 					else if (toolStrip == uiManager.vtoolbarManager.DynamicToolStrip)
-					{
 						uiManager.vtoolbarManager.EditToolbar();
-					}
 				}
 			}
 		}
@@ -3799,9 +3783,7 @@ namespace zfile
 					.ToList();
 
 				foreach (var path in oldestPaths)
-				{
 					pathAccessHistory.Remove(path);
-				}
 			}
 
 			return pathAccessHistory.Keys.ToList();
@@ -3827,9 +3809,7 @@ namespace zfile
 				foreach (var conn in connections)
 				{
 					if (conn.Host.Equals(host, StringComparison.OrdinalIgnoreCase))
-					{
 						return conn.Name;
-					}
 				}
 			}
 			return string.Empty;
@@ -4113,24 +4093,8 @@ namespace zfile
 			var operation = sourceFileSource.CreateDeleteOperation(fileEntries);
 			if (operation != null)
 			{
-				operation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation)sender, state, mode: RefreshPanelMode.Both));
+				operation.AddStateChangedListener([ FileSourceOperationState.Stopped ], (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation)sender, state, mode: RefreshPanelMode.Both));
 				_operationsManager.AddOperation(operation);
-				//operation._Thread.WaitFor();
-				//operation._Thread.OnTerminated += (s, e) =>
-				//{
-				//	// 这里用Invoke保证在UI线程刷新
-				//	this.Invoke(new Action(() =>
-				//	{
-				//		// 刷新面板
-				//		RefreshPanel(activeListView);
-				//		RefreshPanel(unactiveListView);
-				//	}));
-				//};
-
-				//// 刷新面板
-				//RefreshPanel(activeListView);
-				//RefreshPanel(unactiveListView);
-				//return;
 			}
 		}
 		// 移动选中的文件
@@ -4188,20 +4152,7 @@ namespace zfile
 					operation = sourceFileSource.CreateMoveOperation(fileEntries, targetPath);
 					operation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation)sender, state, mode: RefreshPanelMode.Both));
 					_operationsManager.AddOperation(operation);
-					//operation._Thread.WaitFor();    //waiting for operation to finish
-					//operation._Thread.OnTerminated += (s, e) =>
-					//{
-					//	// 这里用Invoke保证在UI线程刷新
-					//	this.Invoke(new Action(() =>
-					//	{
-					//		// 刷新面板
-					//		RefreshPanel(activeListView);
-					//		RefreshPanel(unactiveListView);
-					//	}));
-					//};
-					//// 刷新面板
-					//RefreshPanel(activeListView);
-					//RefreshPanel(unactiveListView);
+			
 					return;
 				}
 				else
@@ -4213,7 +4164,6 @@ namespace zfile
 					{
 						copyOperation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => deleteFiles(sourceFileSource, fileEntries));	 //copyoperation完成后执行删除文件操作
 						_operationsManager.AddOperation(copyOperation);
-						//copyOperation._Thread.WaitFor();
 					}
 					else
 					{
@@ -4266,7 +4216,6 @@ namespace zfile
 					// 刷新活动和非活动面板
 					if (mode.HasFlag(RefreshPanelMode.Source))
 						RefreshPanel(activeListView);
-					//if (!string.IsNullOrEmpty(param))
 					if (mode.HasFlag(RefreshPanelMode.Target))
 						RefreshPanel(unactiveListView);
 				}
@@ -4337,21 +4286,7 @@ namespace zfile
 					{
 						operation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation)sender, state));
 						_operationsManager.AddOperation(operation);
-						//operation._Thread.WaitFor();
-						//operation._Thread.OnTerminated += (s, e) =>
-						//{
-						//	this.Invoke(new Action(() =>
-						//	{
-						//		// 刷新面板
-						//		RefreshPanel(activeListView);
-						//		if (!string.IsNullOrEmpty(param))
-						//			RefreshPanel(unactiveListView);
-						//	}));
-						//};
-						// 刷新面板
-						//RefreshPanel(activeListView);
-						//if (!string.IsNullOrEmpty(param))
-						//	RefreshPanel(unactiveListView);
+				
 						return;
 					}
 
@@ -4406,9 +4341,7 @@ namespace zfile
 		}
 		private void copyinFiles(FileSourceOperation? copyOutOperation, FileEntries sourceFiles, string tempPath, ITempFileSystemFileSource tempFileSource, IFileSource targetFileSource, string targetPath)
 		{
-			// 检查操作是否成功完成
-			//if (copyOutOperation.Result == FileSourceOperationResult.Finished)
-			//{
+	
 			// 创建临时文件系统中的文件列表
 			var tempFiles = new FileEntries(tempPath);
 
@@ -4430,12 +4363,10 @@ namespace zfile
 				copyInOperation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation)sender, state, mode: RefreshPanelMode.Both));
 				// 添加操作到管理器并执行
 				_operationsManager.AddOperation(copyInOperation);
-				//copyInOperation._Thread.WaitFor();
 
 				// 操作成功
 				//result = (copyInOperation.Result == FileSourceOperationResult.Finished);
 			}
-			//}
 		}
 		/// <summary>
 		/// 通过临时文件系统复制文件，用于在两个压缩文件之间复制文件
@@ -4470,7 +4401,6 @@ namespace zfile
 					copyOutOperation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => copyinFiles(copyOutOperation, sourceFiles, tempPath, tempFileSource, targetFileSource, targetPath));
 					// 添加操作到管理器并执行
 					_operationsManager.AddOperation(copyOutOperation);
-					//copyOutOperation._Thread.WaitFor();
 				}
 			}
 			catch (Exception ex)
@@ -4478,9 +4408,6 @@ namespace zfile
 				MessageBox.Show($"复制文件失败: {ex.Message}", "错误");
 			}
 
-			// 刷新目标面板
-			//RefreshPanel(activeListView);
-			//RefreshPanel(unactiveListView);
 			return result;
 		}
 

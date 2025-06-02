@@ -2259,7 +2259,7 @@ namespace zfile
 							if (!string.IsNullOrEmpty(iconkey))
 								iconManager.LoadIconFromCacheByKey(iconkey, node.TreeView.ImageList);
 
-							//SFGAO subattr = subItem.attr;    // 如果是文件夹且不是虚拟文件夹，则添加"..."节点
+							// 如果是文件夹且不是虚拟文件夹，则添加"..."节点
 							if (subItem.IsDir && nodeSub.Nodes.Count == 0)
 								nodeSub.Nodes.Add("...");
 						}
@@ -3844,7 +3844,7 @@ namespace zfile
 
 				// 如果没有指定目标路径，则使用非活动面板的路径作为目标
 				if (string.IsNullOrEmpty(targetPath))
-					targetPath = CurrentFullpath[unactiveTreeview.Name]; //Helper.getFSpath(unactiveTreeview.SelectedNode.FullPath);
+					targetPath = CurrentFullpath[unactiveTreeview.Name]; 
 				targetlist = uiManager.unactiveListView;
 			}
 
@@ -3873,14 +3873,7 @@ namespace zfile
 						return CopyViaTemporaryDirectory(sourceFileSource, targetFileSource, fileEntries, targetPath);
 					operation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation)sender, state, targetlist));
 					_operationsManager.AddOperation(operation);
-					//operation._Thread.WaitFor();    //bugfix: 会导致主线程（UI线程）被阻塞，UI无法响应消息泵，进度条和界面都不会刷新，直到操作完成。
-					//operation._Thread.OnTerminated += (s, e) =>
-					//{
-					//	// 这里用Invoke保证在UI线程刷新
-					//	this.Invoke(new Action(() => RefreshPanel(targetlist)));
-					//};
-					// 刷新目标面板
-					//RefreshPanel(targetlist);
+				
 					return true;
 				}
 

@@ -2059,16 +2059,16 @@ namespace zfile
 		/// <summary>
 		/// 控制面板节点信息类
 		/// </summary>
-		public class ControlPanelNodeInfo
-		{
-			public string Name { get; set; } = string.Empty;
-			public string AutomationId { get; set; } = string.Empty;
-			public string ClassName { get; set; } = string.Empty;
-			public string IconKey { get; set; } = string.Empty;
-			public string ParentName { get; set; } = string.Empty;
-			public System.Windows.Rect BoundingRectangle { get; set; }
-			public List<ControlPanelNodeInfo> ChildNodes { get; set; } = new List<ControlPanelNodeInfo>();
-		}
+		//public class ControlPanelNodeInfo
+		//{
+		//	public string Name { get; set; } = string.Empty;
+		//	public string AutomationId { get; set; } = string.Empty;
+		//	public string ClassName { get; set; } = string.Empty;
+		//	public string IconKey { get; set; } = string.Empty;
+		//	public string ParentName { get; set; } = string.Empty;
+		//	public System.Windows.Rect BoundingRectangle { get; set; }
+		//	public List<ControlPanelNodeInfo> ChildNodes { get; set; } = new List<ControlPanelNodeInfo>();
+		//}
 		//public IShellFolder? Set_SIIGBF_IGNORECRYPTED_flag(ShellItem item)
 		//{
 		//	if (item == null) return null;

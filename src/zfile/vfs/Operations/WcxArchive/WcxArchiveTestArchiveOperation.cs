@@ -133,7 +133,7 @@ public class WcxArchiveTestArchiveOperation : FileSourceTestArchiveOperation
         {
             return ProcessDataProcAG(IntPtr.Zero, mode);
         };
-        TProcessDataProc procWG = (string arcName, int mode) =>
+        TProcessDataProcW procWG = (string arcName, int mode) =>
         {
             return ProcessDataProcWG(IntPtr.Zero, mode);
         };
@@ -141,7 +141,7 @@ public class WcxArchiveTestArchiveOperation : FileSourceTestArchiveOperation
         {
             return ProcessDataProcAT(IntPtr.Zero, mode);
         };
-        TProcessDataProc procWT = (string arcName, int mode) =>
+        TProcessDataProcW procWT = (string arcName, int mode) =>
         {
             return ProcessDataProcWT(IntPtr.Zero, mode);
         };

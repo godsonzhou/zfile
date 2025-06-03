@@ -200,7 +200,6 @@ namespace zfile
 					cm_searchfor();
 					break;
 				case 508: // cm_packfiles
-							//PackFiles();
 					cm_packfiles();
 					break;
 				case 509: // cm_unpackfiles
@@ -214,6 +213,9 @@ namespace zfile
 					break;
 				case 513: // cm_netDisconnect
 					do_cm_netDisconnect();
+					break;
+				case 518: // cm_testarchive
+					cm_testarchive();
 					break;
 
 				case 523: // cm_SelectAll
@@ -630,6 +632,89 @@ namespace zfile
 					break;
 			}
 		}
+
+		private void cm_testarchive()
+		{
+			// 获取当前选中的文件
+			var files = owner.GetFileListByViewOrParam(null);
+			if (files != null && files.Count > 0)
+			{
+				foreach (var file in files)
+				{
+					if (!owner.IsArchiveFile(file.FullPath))
+					{
+						MessageBox.Show($"{file.FullPath}不是有效的压缩文件", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+						continue;
+					}
+					var archiveFileSource = WcxArchiveFileSource.CreateByArchiveName(owner.CurrentFullpath.GetFileSource(owner.LRflag), file.FullPath);
+					var fileentries = new FileEntries();
+					fileentries.Add(file);
+					var testop = archiveFileSource.CreateTestArchiveOperation(fileentries);
+					if (testop != null)
+					{
+						// 执行操作
+						OperationsManager.Instance.AddOperation(testop);
+						//testop.Execute();
+						MessageBox.Show("压缩文件测试完成", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
+					}
+					else
+					{
+						MessageBox.Show($"无法创建测试压缩文件操作: {file.FullPath}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					}
+				}
+			}
+			//try
+			//{
+			//	// 获取当前活动面板的文件源
+			//	var fileSource = owner.CurrentFullpath.GetFileSource(owner.LRflag);
+
+				//	// 如果当前文件源是 WcxArchiveFileSource 类型
+				//	if (fileSource is WcxArchiveFileSource wcxArchiveFileSource)
+				//	{
+				//		// 获取当前选中的文件
+				//		var files = owner.GetFileListByViewOrParam(null);
+				//		if (files != null && files.Count > 0)
+				//		{
+				//			// 创建文件条目列表
+				//			var fileEntries = FileSourceUtil.FileEntryListToFileEntries(files);
+
+				//			// 创建测试压缩文件操作
+				//			var operation = wcxArchiveFileSource.CreateTestArchiveOperation(fileEntries);
+				//			if (operation != null)
+				//			{
+				//				// 执行操作
+				//				OperationsManager.Instance.AddOperation(operation);
+				//				//operation.Execute();
+
+				//				MessageBox.Show("压缩文件测试完成", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				//			}
+				//		}
+				//	}
+				//	// 如果当前文件源是文件系统类型
+				//	else if (fileSource is FileSystemFileSource)
+				//	{
+				//		// 获取当前选中的文件
+				//		var files = owner.GetFileListByViewOrParam(null);
+				//		if (files != null && files.Count > 0)
+				//		{
+				//			// 创建文件条目列表
+				//			var fileEntries = FileSourceUtil.FileEntryListToFileEntries(files);
+
+				//			// 调用 ArchiveFileSourceUtil.TestArchive 方法测试压缩文件
+				//			ArchiveFileSourceUtil.TestArchive(owner.uiManager.ActiveFileView, fileEntries, OperationsManager.FreeOperationsQueueId);
+				//		}
+				//	}
+				//	else
+				//	{
+				//		MessageBox.Show("当前文件源不支持测试压缩文件操作", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				//	}
+				//}
+				//catch (Exception ex)
+				//{
+				//	MessageBox.Show($"测试压缩文件出错: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				//}
+		}
+
 		private void cm_idm(string param)
 		{
 			owner.idmManager.ShowIdmManager();

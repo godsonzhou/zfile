@@ -2943,7 +2943,7 @@ namespace zfile
 		{
 			cm_list();
 		}
-		private List<FileEntry> GetFileListByViewOrParam(string? param, bool isViaTemp = true)
+		public List<FileEntry> GetFileListByViewOrParam(string? param, bool isViaTemp = true)
 		{
 			if (!string.IsNullOrWhiteSpace(param))
 			{

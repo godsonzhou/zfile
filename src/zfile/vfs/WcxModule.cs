@@ -402,7 +402,9 @@ namespace zfile
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
 	public delegate int TProcessFileW(IntPtr handle, ProcessMode operation, [MarshalAs(UnmanagedType.LPWStr)] string destPath, [MarshalAs(UnmanagedType.LPWStr)] string destName);
 	public delegate int TCloseArchive(IntPtr handle);
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	public delegate int TPackFiles(string packedFile, string subPath, string srcPath, string addList, int flags);
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
 	public delegate int TPackFilesW([MarshalAs(UnmanagedType.LPWStr)] string packedFile, [MarshalAs(UnmanagedType.LPWStr)] string subPath, [MarshalAs(UnmanagedType.LPWStr)] string srcPath, [MarshalAs(UnmanagedType.LPWStr)] string addList, int flags);
 	public delegate int TDeleteFiles(string packedFile, string deleteList);
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
@@ -1005,8 +1007,8 @@ namespace zfile
 		{
 			if (_packFilesW != null)
 			{
-				if (string.IsNullOrEmpty(subPath)) 
-					return _packFilesW(packedFile, null, srcPath, addList, flags);
+				//if (string.IsNullOrEmpty(subPath)) 
+				//	return _packFilesW(packedFile, null, srcPath, addList, flags);
 				return _packFilesW(packedFile, subPath, srcPath, addList, flags);
 			}
 			else if (_packFiles != null)

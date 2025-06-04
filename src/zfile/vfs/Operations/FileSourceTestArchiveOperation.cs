@@ -22,8 +22,8 @@ namespace zfile
     /// </summary>
     public abstract class FileSourceTestArchiveOperation : FileSourceOperation
     {
-        private FileSourceTestArchiveOperationStatistics statistics;
-        private FileSourceTestArchiveOperationStatistics statisticsAtStartTime;
+        protected FileSourceTestArchiveOperationStatistics statistics;
+        protected FileSourceTestArchiveOperationStatistics statisticsAtStartTime;
         private ReaderWriterLockSlim statisticsLock;
         private IFileSource sourceFileSource;
         private FileEntries sourceFiles;

@@ -7,7 +7,7 @@ namespace zfile;
 public class WcxArchiveTestArchiveOperation : FileSourceTestArchiveOperation
 {
     private IWcxArchiveFileSource _wcxArchiveFileSource;
-    private FileSourceTestArchiveOperationStatistics _statistics;
+    //private FileSourceTestArchiveOperationStatistics statistics;
     private long _currentFileSize;
 
     // Static variables for WCX callbacks
@@ -31,8 +31,8 @@ public class WcxArchiveTestArchiveOperation : FileSourceTestArchiveOperation
             _wcxTestArchiveOperationT = this;
 
         // Get initialized statistics; then we change only what is needed.
-        _statistics = RetrieveStatistics();
-        _statistics.ArchiveFile = _wcxArchiveFileSource.ArchiveFileName;
+        statistics = RetrieveStatistics();
+        statistics.ArchiveFile = _wcxArchiveFileSource.ArchiveFileName;
     }
 
     protected override void MainExecute()
@@ -66,14 +66,14 @@ public class WcxArchiveTestArchiveOperation : FileSourceTestArchiveOperation
                     CheckOperationState();
 
                     // Now check if the file is to be tested.
-                    if (!header.IsDirectory &&           // Omit directories (we handle them ourselves).
-                        MatchesFileEntries(files, header.FileName))    // Check if it's included in the FileEntries
+                    if (!header.IsDirectory) // &&           // Omit directories (we handle them ourselves).
+                    //    MatchesFileEntries(files, header.FileName))    // Check if it's included in the FileEntries
                     {
-                        _statistics.CurrentFile = header.FileName;
-                        _statistics.CurrentFileTotalBytes = header.UnpSize;
-                        _statistics.CurrentFileDoneBytes = 0;
+                        statistics.CurrentFile = header.FileName;
+                        statistics.CurrentFileTotalBytes = header.UnpSize;
+                        statistics.CurrentFileDoneBytes = 0;
 
-                        UpdateStatistics(_statistics);
+                        UpdateStatistics(statistics);
                         _currentFileSize = header.UnpSize;
 
                         int result = wcxModule.ProcessFile(arcHandle, ProcessMode.PK_TEST, "", "");
@@ -129,21 +129,21 @@ public class WcxArchiveTestArchiveOperation : FileSourceTestArchiveOperation
     private void SetProcessDataProc(IntPtr arcData)
     {
         // 创建符合TProcessDataProc签名的委托
-        TProcessDataProc procAG = (string arcName, int mode) =>
+        TProcessDataProc procAG = (string arcName, int size) =>
         {
-            return ProcessDataProcAG(IntPtr.Zero, mode);
+            return ProcessDataProcAG(arcName, size);
         };
-        TProcessDataProcW procWG = (string arcName, int mode) =>
+        TProcessDataProcW procWG = (string arcName, int size) =>
         {
-            return ProcessDataProcWG(IntPtr.Zero, mode);
+            return ProcessDataProcWG(arcName, size);
         };
-        TProcessDataProc procAT = (string arcName, int mode) =>
+        TProcessDataProc procAT = (string arcName, int size) =>
         {
-            return ProcessDataProcAT(IntPtr.Zero, mode);
+            return ProcessDataProcAT(arcName, size);
         };
-        TProcessDataProcW procWT = (string arcName, int mode) =>
+        TProcessDataProcW procWT = (string arcName, int size) =>
         {
-            return ProcessDataProcWT(IntPtr.Zero, mode);
+            return ProcessDataProcWT(arcName, size);
         };
 
         // 获取委托的函数指针
@@ -170,7 +170,7 @@ public class WcxArchiveTestArchiveOperation : FileSourceTestArchiveOperation
     }
 
     // WCX callback methods
-    private static int ProcessDataProc(WcxArchiveTestArchiveOperation operation, string fileName, int size, IntPtr updateName)
+    private static int ProcessDataProc(WcxArchiveTestArchiveOperation operation, string fileName, int size, string updateName)
     {
         // Implementation of process data callback
         int result = 1;
@@ -180,10 +180,10 @@ public class WcxArchiveTestArchiveOperation : FileSourceTestArchiveOperation
             if (operation.State == FileSourceOperationState.Stopping)  // Cancel operation
                 return 0;
 
-            var statistics = operation._statistics;
+            var statistics = operation.statistics;
 
             // Update file name
-            if (updateName != IntPtr.Zero)
+            if (string.IsNullOrEmpty(updateName))
             {
                 statistics.CurrentFile = fileName;
             }
@@ -219,23 +219,23 @@ public class WcxArchiveTestArchiveOperation : FileSourceTestArchiveOperation
         return result;
     }
 
-    private static int ProcessDataProcAG(IntPtr fileName, int size)
+    private static int ProcessDataProcAG(string fileName, int size)
     {
-        return ProcessDataProc(_wcxTestArchiveOperationG, System.Runtime.InteropServices.Marshal.PtrToStringAnsi(fileName), size, fileName);
+        return ProcessDataProc(_wcxTestArchiveOperationG, (fileName), size, fileName);
     }
 
-    private static int ProcessDataProcWG(IntPtr fileName, int size)
+    private static int ProcessDataProcWG(string fileName, int size)
     {
-        return ProcessDataProc(_wcxTestArchiveOperationG, System.Runtime.InteropServices.Marshal.PtrToStringUni(fileName), size, fileName);
+        return ProcessDataProc(_wcxTestArchiveOperationG, (fileName), size, fileName);
     }
 
-    private static int ProcessDataProcAT(IntPtr fileName, int size)
+    private static int ProcessDataProcAT(string fileName, int size)
     {
-        return ProcessDataProc(_wcxTestArchiveOperationT, System.Runtime.InteropServices.Marshal.PtrToStringAnsi(fileName), size, fileName);
+        return ProcessDataProc(_wcxTestArchiveOperationT, (fileName), size, fileName);
     }
 
-    private static int ProcessDataProcWT(IntPtr fileName, int size)
+    private static int ProcessDataProcWT(string fileName, int size)
     {
-        return ProcessDataProc(_wcxTestArchiveOperationT, System.Runtime.InteropServices.Marshal.PtrToStringUni(fileName), size, fileName);
+        return ProcessDataProc(_wcxTestArchiveOperationT, (fileName), size, fileName);
     }
 }

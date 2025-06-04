@@ -8,7 +8,7 @@ namespace zfile
 	public class WcxArchiveDeleteOperation : FileSourceDeleteOperation
 	{
 		private IWcxArchiveFileSource _wcxArchiveFileSource;
-		private FileSourceDeleteOperationStatistics _statistics;
+		//private FileSourceDeleteOperationStatistics _statistics;
 
 		// WCX interface cannot discern different operations (for reporting progress),
 		// so this static variable is used to store currently running operation.

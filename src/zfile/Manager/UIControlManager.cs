@@ -124,6 +124,8 @@ namespace zfile
 			LeftPathTextBox.SelectionChange += LeftPathTextBox_PathChanged;
 			RightPathTextBox.SelectionChange += RightPathTextBox_PathChanged;
 
+			LeftFileView = new FileView(LeftList);
+			RightFileView = new FileView(RightList);
 			SetArgs();
 		}
 		/*

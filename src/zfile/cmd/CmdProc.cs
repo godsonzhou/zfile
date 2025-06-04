@@ -655,7 +655,7 @@ namespace zfile
 						// 执行操作
 						OperationsManager.Instance.AddOperation(testop);
 						//testop.Execute();
-						MessageBox.Show("压缩文件测试完成", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
+						//MessageBox.Show("压缩文件测试完成", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
 					}
 					else
 					{

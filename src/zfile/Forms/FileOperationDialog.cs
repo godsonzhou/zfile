@@ -903,8 +903,8 @@ namespace zfile
 		{
 			// Form settings
 			this.Text = "File Operation";
-			this.ClientSize = new Size(500, 150);
-			this.MinimumSize = new Size(500, 150);
+			this.ClientSize = new Size(500, 200);
+			this.MinimumSize = new Size(500, 200);
 			this.StartPosition = FormStartPosition.CenterScreen;
 			this.ShowInTaskbar = true;
 			this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -988,8 +988,8 @@ namespace zfile
 			{
 				Dock = DockStyle.Top,
 				Height = 20,
-				Top = pbTotal.Bottom + 5,
-				Visible = false // 根据图片，这部分不显示
+				Top = 5,
+				//Visible = false // 根据图片，这部分不显示
 			};
 			pnlClient.Controls.Add(pnlFrom);
 
@@ -1006,9 +1006,10 @@ namespace zfile
 			// From filename
 			lblFileNameFrom = new Label
 			{
-				Dock = DockStyle.Fill,
+				Dock = DockStyle.Right,
 				AutoSize = true,
-				AutoEllipsis = true
+				AutoEllipsis = true,
+				Left = lblFrom.Width
 			};
 			pnlFrom.Controls.Add(lblFileNameFrom);
 
@@ -1018,7 +1019,7 @@ namespace zfile
 				Dock = DockStyle.Top,
 				Height = 20,
 				Top = pnlFrom.Bottom,
-				Visible = false // 根据图片，这部分不显示
+				//Visible = false // 根据图片，这部分不显示
 			};
 			pnlClient.Controls.Add(pnlTo);
 
@@ -1035,9 +1036,10 @@ namespace zfile
 			// To filename
 			lblFileNameTo = new Label
 			{
-				Dock = DockStyle.Fill,
+				Dock = DockStyle.Right,
 				AutoSize = true,
-				AutoEllipsis = true
+				AutoEllipsis = true,
+				Left = lblTo.Width
 			};
 			pnlTo.Controls.Add(lblFileNameTo);
 
@@ -1046,7 +1048,8 @@ namespace zfile
 			{
 				Dock = DockStyle.Top,
 				AutoSize = true,
-				Visible = false // 根据图片，这部分不显示
+				Top = lblTo.Bottom
+				//Visible = false // 根据图片，这部分不显示
 			};
 			pnlClient.Controls.Add(lblEstimated);
 

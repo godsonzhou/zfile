@@ -20,8 +20,8 @@ namespace zfile
     /// </summary>
     public abstract class FileSourceDeleteOperation : FileSourceOperation
     {
-        private FileSourceDeleteOperationStatistics _statistics;
-        private FileSourceDeleteOperationStatistics _statisticsAtStartTime;
+        protected FileSourceDeleteOperationStatistics _statistics;
+		protected FileSourceDeleteOperationStatistics _statisticsAtStartTime;
         private readonly object _statisticsLock = new ();
         //private IFileSource _fileSource;
         private FileEntries? _filesToDelete;

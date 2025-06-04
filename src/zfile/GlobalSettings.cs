@@ -204,6 +204,7 @@ namespace zfile
 		public static void Write(TOperationThread thread, string message, LogOption type, bool Reservedflag = true )
 		{
 			// 实现日志记录逻辑
+			Debug.Print(message);
 		}
 		public static void Write(string message, LogOption type, bool Reservedflag = true)
 		{

@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using zfile.Forms;
 using WinShell;
+using System.Runtime;
 
 namespace zfile
 {
@@ -154,6 +155,9 @@ namespace zfile
 						owner.SetViewMode(View.Details);
 					owner.uiManager.isThumbs = !owner.uiManager.isThumbs;
 					break;
+				case 270: // 命令ID = 270, Name = cm_srccustomviewmenu 
+					cm_srccustomviewmenu();
+					break;
 				case 301:   //cm_srcshort
 					owner.SetViewMode(View.List);
 					break;
@@ -180,6 +184,9 @@ namespace zfile
 					break;
 				case 330: // cm_srcnegorder
 					do_cm_srcnegorder();
+					break;
+				case 333: // 命令ID=333，Name=cmsrcviewmodelist
+					cm_srcviewmodelist();
 					break;
 				case 483: // cm_CustomColumnConfig
 					owner.OpenOptions("自定义视图");
@@ -641,6 +648,31 @@ namespace zfile
 						MessageBox.Show($"命令ID = {cmdId} 尚未实现", "提示");
 					break;
 			}
+		}
+
+		private void cm_srccustomviewmenu(string param = "")
+		{
+			if (string.IsNullOrEmpty(param))
+			{
+				var optionform = new OptionsForm(owner, "自定义视图");
+				optionform.ShowDialog();
+			}
+			else
+			{
+				var v = owner.viewMgr.GetViewModeByName(param);     //根据自定义列表名称获取视图模式
+				owner.LoadListViewByFileSource(owner.CurrentFullpath[owner.LRflag], owner.activeListView, owner.SelectedNode, v);
+			}
+		}
+
+		private void cm_srcviewmodelist(string param = "")
+		{
+			if (string.IsNullOrEmpty(param))
+			{
+				var optionform = new OptionsForm(owner, "视图模式");
+				optionform.ShowDialog();
+			}
+			else
+				owner.LoadListViewByFileSource(owner.CurrentFullpath[owner.LRflag], owner.activeListView, owner.SelectedNode, param);
 		}
 
 		private void cm_versioninfo()

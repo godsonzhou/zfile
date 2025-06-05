@@ -72,7 +72,7 @@ namespace zfile
 		/// <summary>
 		/// Apply view settings to a ListView based on folder statistics and rules
 		/// </summary>
-		public string ApplyViewToListView(ListView listView, string folderPath, IFileSource fileSource, out FileEntries files)
+		public string ApplyViewToListView(ListView listView, string folderPath, IFileSource fileSource, out FileEntries files, string viewModeName = "")
 		{
 			try
 			{
@@ -82,7 +82,8 @@ namespace zfile
 
 				// Determine which view mode to use based on rules
 				//bugfix: 当filesource is not filesystemfilesource, do not support custome view mode
-				var viewModeName = (fileSource is not FileSystemFileSource) ? ((int)listView.View).ToString() : DetermineViewMode(stats, folderPath);
+				if(string.IsNullOrEmpty(viewModeName))
+					viewModeName = (fileSource is not FileSystemFileSource) ? ((int)listView.View).ToString() : DetermineViewMode(stats, folderPath);
 
 				// Apply column configuration from the selected view mode
 				ApplyColumnConfiguration(listView, viewModeName);
@@ -491,6 +492,22 @@ namespace zfile
 				});
 			}
 			return result;
+		}
+
+		internal string GetViewModeByName(string param)
+		{
+			//foreach(var def in colDefDict)
+			//{
+			//	if (def.Value.Equals(param, StringComparison.OrdinalIgnoreCase))
+			//		return def.Key;
+			//}
+			//return colDefDict.FirstOrDefault(x => x.Value.Any(c => c.header.Equals(param, StringComparison.OrdinalIgnoreCase))).Key ?? "1"; //default to 1
+			foreach( var v in viewModes)
+			{
+				if (v.Key.Split('|')[0] == param)
+					return v.Value.ToString();
+			}
+			return "";
 		}
 	}
 }

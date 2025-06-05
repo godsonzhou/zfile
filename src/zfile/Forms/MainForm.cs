@@ -2463,7 +2463,7 @@ namespace zfile
 
 		}
 		// 加载文件列表 - 使用 FileSource 架构（异步版本）
-		public void LoadListViewByFileSource(string path, ListView listView, TreeNode parentnode)
+		public void LoadListViewByFileSource(string path, ListView listView, TreeNode parentnode, string viewModeName = "")
 		{
 			if (string.IsNullOrEmpty(path)) return;
 
@@ -2483,7 +2483,7 @@ namespace zfile
 				showFolderSize = configLoader.FindConfigValue("Configuration", "EverythingForSize").Equals("1");
 
 				// 应用视图管理器设置 - 根据文件夹内容自动切换视图模式
-				var viewname = viewMgr.ApplyViewToListView(listView, path, fileSource, out var files);
+				var viewname = viewMgr.ApplyViewToListView(listView, path, fileSource, out var files, viewModeName);
 
 				// 添加所有项目到 ListView
 				foreach (var file in files)

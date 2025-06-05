@@ -323,6 +323,7 @@ namespace zfile
 					LeftFileSource = fileSource;
 				else
 					RightFileSource = fileSource;
+				uiManager.ActiveFileView.ActiveFileSource = fileSource;
 			}
 			else
 				Debug.Print($"WARNING: Update Filesource is not necessary!");

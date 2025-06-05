@@ -396,7 +396,7 @@ namespace zfile
 			return new ShellCalcStatisticsOperation(this, files);
 		}
 
-		public override FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, FileProperty[] newProperties)
+		public override FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, FileProperties newProperties)
 		{
 			return new ShellSetFilePropertyOperation(this, targetFiles, newProperties);
 		}

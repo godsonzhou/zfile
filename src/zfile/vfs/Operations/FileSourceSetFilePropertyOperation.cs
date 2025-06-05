@@ -100,10 +100,10 @@ namespace zfile
         private FileSourceSetFilePropertyOperationStatistics _statistics;
         private FileSourceSetFilePropertyOperationStatistics _statisticsAtStartTime;
         private readonly object _statisticsLock = new object();
-        private IFileSource _fileSource;
+        //private IFileSource _fileSource;
         private FileEntries _targetFiles;
         private FileEntries _templateFiles;
-        private FileProperty[] _newProperties;
+        private FileProperties _newProperties;
         private bool _recursive;
         private bool _skipErrors;
         //private Thread _thread = Thread.CurrentThread;
@@ -141,7 +141,7 @@ namespace zfile
         /// <summary>
         /// Gets or sets the new properties
         /// </summary>
-        public FileProperty[] NewProperties
+        public FileProperties NewProperties
         {
             get => _newProperties;
             set => _newProperties = value;
@@ -189,7 +189,7 @@ namespace zfile
         /// <param name="aTargetFileSource">File source on which the operation will be executed</param>
         /// <param name="theTargetFiles">List of files which properties should be changed</param>
         /// <param name="theNewProperties">Describes the set of properties that should be set for each file of theTargetFiles</param>
-        protected FileSourceSetFilePropertyOperation(IFileSource aTargetFileSource, FileEntries theTargetFiles, FileProperty[] theNewProperties)
+        protected FileSourceSetFilePropertyOperation(IFileSource aTargetFileSource, FileEntries theTargetFiles, FileProperties theNewProperties)
             : base(aTargetFileSource)
         {
             _statistics = new FileSourceSetFilePropertyOperationStatistics
@@ -330,7 +330,7 @@ namespace zfile
                         if (aTemplateFile != null)
                             templateProperty = aTemplateFile.Properties[prop];
                         else if (_newProperties != null && (int)prop < _newProperties.Length)
-                            templateProperty = _newProperties[(int)prop];
+                            templateProperty = _newProperties[prop];
 
                         // Check if there is a new property to be set
                         if (templateProperty != null)

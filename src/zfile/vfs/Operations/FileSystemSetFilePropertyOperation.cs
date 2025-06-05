@@ -24,7 +24,7 @@ namespace zfile
         private FileEntry? currentFile;
         private string? currentTargetFilePath;
 
-        public FileSystemSetFilePropertyOperation(IFileSource targetFileSource, FileEntries targetFiles, FileProperty[] newProperties)
+        public FileSystemSetFilePropertyOperation(IFileSource targetFileSource, FileEntries targetFiles, FileProperties newProperties)
             : base(targetFileSource, targetFiles, newProperties)
         {
             symLinkOption = FileSourceOperationSymLinkOption.None;

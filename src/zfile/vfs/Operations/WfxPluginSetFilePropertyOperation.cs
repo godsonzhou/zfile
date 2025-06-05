@@ -13,7 +13,7 @@ namespace zfile
         private FileSourceSetFilePropertyOperationStatistics _statistics;
         private FileSourceOperationSymLinkOption _symLinkOption;
 
-        public WfxPluginSetFilePropertyOperation(IFileSource targetFileSource, FileEntries targetFiles, FileProperty[] newProperties)
+        public WfxPluginSetFilePropertyOperation(IFileSource targetFileSource, FileEntries targetFiles, FileProperties newProperties)
             : base(targetFileSource, targetFiles, newProperties)
         {
             _symLinkOption = FileSourceOperationSymLinkOption.None;

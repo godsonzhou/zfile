@@ -41,11 +41,11 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 	public string PluginName => _pluginName;
 	public int PluginNumber => _wfxModule.PluginNumber;
 	public StringList WfxOperationList => _wfxOperationList;
-	public string CurrentAddress
-	{
-		get => _currentAddress;
-		set => _currentAddress = value;
-	}
+	//public string CurrentAddress
+	//{
+	//	get => _currentAddress;
+	//	set => _currentAddress = value;
+	//}
 	public string RootDirectory
 	{
 		get => _rootDirectory;
@@ -587,7 +587,7 @@ public class WfxPluginFileSource : FileSource, IWfxPluginFileSource
 		return new WfxPluginExecuteOperation(this, executableFile, basePath, verb);
 	}
 
-	public override FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, FileProperty[] newProperties)
+	public override FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, FileProperties newProperties)
 	{
 		return new WfxPluginSetFilePropertyOperation(this, targetFiles, newProperties);
 	}

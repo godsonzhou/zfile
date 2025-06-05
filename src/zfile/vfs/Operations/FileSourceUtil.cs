@@ -414,8 +414,8 @@ namespace zfile
 
                 try
                 {
-                    FileSourceSetFilePropertyOperation operation = fileSource.CreateSetFilePropertyOperation(
-                        files, new FileProperty[] { newNameProperty }) as FileSourceSetFilePropertyOperation;
+                    FileSourceSetFilePropertyOperation? operation = fileSource.CreateSetFilePropertyOperation(
+                        files, new FileProperties(newNameProperty)) as FileSourceSetFilePropertyOperation;
 
                     if (operation != null)
                     {

@@ -289,7 +289,35 @@ public class FileVariantProperty : FileProperty
     }
     public override FilePropertiesTypes ID => FilePropertiesTypes.Variant;
 }
-
+public class FileProperties
+{
+	public Dictionary<FilePropertiesTypes, FileProperty> Properties { get; set; } = [];
+	public FileProperties() { }
+	public FileProperties(FileProperty property)
+	{
+		if (property != null)
+		{
+			Properties[property.ID] = property;
+		}
+	}
+	public FileProperty? this[FilePropertiesTypes type]
+	{
+		get
+		{
+			if (Properties.TryGetValue(type, out var property))
+				return property;
+			return null;
+		}
+		set
+		{
+			if (value == null)
+				Properties.Remove(type);
+			else
+				Properties[type] = value;
+		}
+	}
+	public int Length => Properties.Count;
+}
 public class FtpFileEntry : FileEntry
 {
 	public FtpFileEntry(string path) : base(path)

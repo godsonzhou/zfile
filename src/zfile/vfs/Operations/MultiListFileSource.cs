@@ -153,7 +153,7 @@ namespace zfile
             return _fileSource.CreateCalcStatisticsOperation(files);
         }
 
-        public override FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, FileProperty[] newProperties)
+        public override FileSourceOperation CreateSetFilePropertyOperation(FileEntries targetFiles, FileProperties newProperties)
         {
             return _fileSource.CreateSetFilePropertyOperation(targetFiles, newProperties);
         }

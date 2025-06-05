@@ -681,17 +681,17 @@ namespace zfile
 				}
 
 				// 准备文件属性
-				var fileProperties = new FileProperty[15];
+				var fileProperties = new FileProperties(); ;
 
 				// 复制支持的属性
 				if (activeFile.SupportedProperties.HasFlag(FilePropertiesTypes.Attributes))
-					fileProperties[(uint)FilePropertiesTypes.Attributes] = activeFile.Properties[FilePropertiesTypes.Attributes].Clone();
+					fileProperties[FilePropertiesTypes.Attributes] = activeFile.Properties[FilePropertiesTypes.Attributes].Clone();
 				if (activeFile.SupportedProperties.HasFlag(FilePropertiesTypes.ModificationTime))
-					fileProperties[(uint)FilePropertiesTypes.ModificationTime] = activeFile.Properties[FilePropertiesTypes.ModificationTime].Clone();
+					fileProperties[FilePropertiesTypes.ModificationTime] = activeFile.Properties[FilePropertiesTypes.ModificationTime].Clone();
 				if (activeFile.SupportedProperties.HasFlag(FilePropertiesTypes.CreationTime))
-					fileProperties[(uint)FilePropertiesTypes.CreationTime] = activeFile.Properties[FilePropertiesTypes.CreationTime].Clone();
+					fileProperties[FilePropertiesTypes.CreationTime] = activeFile.Properties[FilePropertiesTypes.CreationTime].Clone();
 				if (activeFile.SupportedProperties.HasFlag(FilePropertiesTypes.LastAccessTime))
-					fileProperties[(uint)FilePropertiesTypes.LastAccessTime] = activeFile.Properties[FilePropertiesTypes.LastAccessTime].Clone();
+					fileProperties[FilePropertiesTypes.LastAccessTime] = activeFile.Properties[FilePropertiesTypes.LastAccessTime].Clone();
 
 				// 创建设置文件属性操作
 				var operation = fileSource.CreateSetFilePropertyOperation(activeFiles, fileProperties) as FileSourceSetFilePropertyOperation;

@@ -10,7 +10,7 @@ namespace zfile
 
         private FileSourceSetFilePropertyOperationStatistics? statistics;
 
-        public ShellSetFilePropertyOperation(IFileSource targetFileSource, FileEntries targetFiles, FileProperty[] newProperties)
+        public ShellSetFilePropertyOperation(IFileSource targetFileSource, FileEntries targetFiles, FileProperties newProperties)
             : base(targetFileSource, targetFiles, newProperties)
         {
 

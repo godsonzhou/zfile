@@ -1018,7 +1018,7 @@ namespace zfile
 			{
 				Dock = DockStyle.Top,
 				Height = 20,
-				Top = pnlFrom.Bottom,
+				Top = pnlFrom.Bottom
 				//Visible = false // 根据图片，这部分不显示
 			};
 			pnlClient.Controls.Add(pnlTo);

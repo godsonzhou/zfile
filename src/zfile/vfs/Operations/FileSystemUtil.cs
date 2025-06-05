@@ -412,6 +412,38 @@ namespace zfile
 		{
 			return GetAttributesUAC(linkTarget, out attr);
 		}
+
+		/// <summary>
+		/// 获取文件的时间属性
+		/// </summary>
+		/// <param name="filePath">文件路径</param>
+		/// <param name="modificationTime">修改时间</param>
+		/// <param name="creationTime">创建时间</param>
+		/// <param name="lastAccessTime">最后访问时间</param>
+		/// <returns>是否成功获取文件时间</returns>
+		public static bool GetFileTimeEx(string filePath, out DateTime modificationTime, out DateTime creationTime, out DateTime lastAccessTime)
+		{
+			modificationTime = DateTime.MinValue;
+			creationTime = DateTime.MinValue;
+			lastAccessTime = DateTime.MinValue;
+
+			try
+			{
+				if (File.Exists(filePath) || Directory.Exists(filePath))
+				{
+					var fileInfo = new FileInfo(filePath);
+					modificationTime = fileInfo.LastWriteTime;
+					creationTime = fileInfo.CreationTime;
+					lastAccessTime = fileInfo.LastAccessTime;
+					return true;
+				}
+				return false;
+			}
+			catch
+			{
+				return false;
+			}
+		}
 	}
 
 	public delegate void UpdateStatisticsFunction(ref FileSourceCopyOperationStatistics newStatistics);

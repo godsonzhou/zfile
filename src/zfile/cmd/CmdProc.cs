@@ -7,6 +7,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
+using System.Windows.Forms;
 using zfile.Forms;
 
 namespace zfile
@@ -198,6 +199,9 @@ namespace zfile
 
 				case 501: // cm_searchfor
 					cm_searchfor();
+					break;
+				case 502: // cm_setattrib
+					cm_setattrib();
 					break;
 				case 508: // cm_packfiles
 					cm_packfiles();
@@ -630,6 +634,99 @@ namespace zfile
 					else
 						MessageBox.Show($"命令ID = {cmdId} 尚未实现", "提示");
 					break;
+			}
+		}
+
+		private void cm_setattrib()
+		{
+			try
+			{
+				// 获取当前选中的文件
+				var files = owner.GetFileListByViewOrParam(null);
+				if (files == null || files.Count == 0)
+					return;
+
+				var fileSource = owner.uiManager.ActiveFileView.ActiveFileSource;
+				if (!fileSource.OperationsTypes.HasFlag(FileSourceOperationTypes.SetFileProperty))
+				{
+					MessageBox.Show("当前文件源不支持设置文件属性操作", "提示");
+					return;
+				}
+
+				var activeFiles = new FileEntries();
+				foreach (var file in files)
+				{
+					if (file.SupportedProperties.HasFlag(FilePropertiesTypes.Attributes))
+					{
+						activeFiles.Add(file);
+					}
+				}
+				// 克隆活动文件以获取其属性
+				var activeFile = activeFiles[0];	//owner.GetFileListByViewOrParam();
+				//if (activeFile == null)
+				//	return;
+
+				// 如果是直接访问的文件系统，获取文件的时间属性
+				if (fileSource.Properties.HasFlag(FileSourceProperties.DirectAccess))
+				{
+					if (FileSystemUtil.GetFileTimeEx(activeFile.FullPath, out var modificationTime, out var creationTime, out var lastAccessTime))
+					{
+						if (activeFile.SupportedProperties.HasFlag(FilePropertiesTypes.ModificationTime))
+							activeFile.ModificationTime = modificationTime;
+						if (activeFile.SupportedProperties.HasFlag(FilePropertiesTypes.CreationTime))
+							activeFile.CreationTime = creationTime;
+						if (activeFile.SupportedProperties.HasFlag(FilePropertiesTypes.LastAccessTime))
+							activeFile.LastAccessTime = lastAccessTime;
+					}
+				}
+
+				// 准备文件属性
+				var fileProperties = new FileProperty[15];
+
+				// 复制支持的属性
+				if (activeFile.SupportedProperties.HasFlag(FilePropertiesTypes.Attributes))
+					fileProperties[(uint)FilePropertiesTypes.Attributes] = activeFile.Properties[FilePropertiesTypes.Attributes].Clone();
+				if (activeFile.SupportedProperties.HasFlag(FilePropertiesTypes.ModificationTime))
+					fileProperties[(uint)FilePropertiesTypes.ModificationTime] = activeFile.Properties[FilePropertiesTypes.ModificationTime].Clone();
+				if (activeFile.SupportedProperties.HasFlag(FilePropertiesTypes.CreationTime))
+					fileProperties[(uint)FilePropertiesTypes.CreationTime] = activeFile.Properties[FilePropertiesTypes.CreationTime].Clone();
+				if (activeFile.SupportedProperties.HasFlag(FilePropertiesTypes.LastAccessTime))
+					fileProperties[(uint)FilePropertiesTypes.LastAccessTime] = activeFile.Properties[FilePropertiesTypes.LastAccessTime].Clone();
+
+				// 创建设置文件属性操作
+				var operation = fileSource.CreateSetFilePropertyOperation(activeFiles, fileProperties) as FileSourceSetFilePropertyOperation;
+
+				if (operation != null)
+				{
+					// 检查是否支持任何属性
+					if (!operation.SupportedProperties.HasFlag(FilePropertiesTypes.ModificationTime) &&
+						!operation.SupportedProperties.HasFlag(FilePropertiesTypes.CreationTime) &&
+						!operation.SupportedProperties.HasFlag(FilePropertiesTypes.LastAccessTime) &&
+						!operation.SupportedProperties.HasFlag(FilePropertiesTypes.Attributes))
+					{
+						MessageBox.Show("当前文件源不支持设置文件属性", "提示");
+						operation.Dispose();
+						return;
+					}
+
+					// 显示设置文件属性对话框
+					if (SetFilePropertiesDialog.ShowDialog(operation))
+					{
+						// 添加操作到操作管理器
+						OperationsManager.Instance.AddOperation(operation);
+					}
+					else
+					{
+						operation.Dispose();
+					}
+				}
+
+				// 释放资源
+				activeFile.Dispose();
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"设置文件属性时出错: {ex.Message}", "错误");
 			}
 		}
 

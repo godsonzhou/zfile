@@ -7,8 +7,10 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using zfile.Forms;
+using WinShell;
 
 namespace zfile
 {
@@ -27,7 +29,8 @@ namespace zfile
 			emCmds = Helper.ReadConfigFromFile(Constants.ZfileCfgPath + "Wcmd_chn.ini");
 			this.owner = owner;
 		}
-		public void SaveEmCmdCfg() {
+		public void SaveEmCmdCfg()
+		{
 			Helper.WriteConfigToFile(Constants.ZfileCfgPath + "Wcmd_chn.ini", emCmds);
 		}
 
@@ -59,7 +62,7 @@ namespace zfile
 			cmdName = cmdName.Trim();
 			if (cmdName.Equals(string.Empty)) return;
 			//support cm_xx, em_xx, "xx, cmdid", regedit.exe, control.exe xxx.cpl, cmdid param, cd
-			if(cmdName.Equals("cd", StringComparison.OrdinalIgnoreCase))
+			if (cmdName.Equals("cd", StringComparison.OrdinalIgnoreCase))
 			{
 				owner.NavigateToPath(param);
 				return;
@@ -112,7 +115,7 @@ namespace zfile
 					try
 					{
 						var args = owner.se.PrepareParameter(param, null, "");
-						foreach(var arg in args) 
+						foreach (var arg in args)
 						{
 							// 使用 ProcessStartInfo 设置启动进程的详细信息
 							var startInfo = new ProcessStartInfo
@@ -140,12 +143,12 @@ namespace zfile
 		public void ExecCmdByID(int cmdId, string param = "")
 		{
 			//var cmdItem = cmdTable.GetByCmdId(cmdId);
-			
+
 			// 在这里添加处理命令的逻辑
 			switch (cmdId)
 			{
 				case 269:   //cm_srcthumbs
-					if(!owner.uiManager.isThumbs)
+					if (!owner.uiManager.isThumbs)
 						owner.SetViewMode(View.Tile);
 					else
 						owner.SetViewMode(View.Details);
@@ -593,11 +596,11 @@ namespace zfile
 					var parameters = param.Split(' ');
 					var paramcount = param.Length;
 					string url = "http://v.juhe.cn/toutiao/index", key = "de73e15a67f8b359d4ec409ae3e63aed", par = "type=keji";
-						
-					if(paramcount> 0) url = parameters[0];
-					if(paramcount> 1) key = parameters[1];
-					if(paramcount> 2) par = parameters[2];
-					cm_apicallerDlg(url, key, par);   
+
+					if (paramcount > 0) url = parameters[0];
+					if (paramcount > 1) key = parameters[1];
+					if (paramcount > 2) par = parameters[2];
+					cm_apicallerDlg(url, key, par);
 					break;
 
 				case 11438: // mcp client
@@ -608,7 +611,7 @@ namespace zfile
 
 					break;
 				case 11440: // launch mcp server
-					Task.Run(async () => { await cm_StartMcpServer(param); } ); // param is servername
+					Task.Run(async () => { await cm_StartMcpServer(param); }); // param is servername
 					break;
 				case 11441:
 					cm_QueryMcpServer(param);
@@ -642,51 +645,60 @@ namespace zfile
 
 		private void cm_versioninfo()
 		{
-			//same as cm_fileproperties in double commander
-			/*
-			 * procedure TMainCommands.cm_FileProperties(const Params: array of string);
-				var
-				  SelectedFiles: TFiles;
-				  Operation: TFileSourceExecuteOperation;
-				  aFile: TFile;
-				begin
-				  with frmMain do
-				  begin
-					if ActiveFrame.FileSource.IsClass(TFileSystemFileSource) then
-					  begin
-						SelectedFiles := ActiveFrame.CloneSelectedOrActiveFiles;
-						if Assigned(SelectedFiles) then
+			try
+			{
+				// 获取当前选中的文件
+				var files = owner.GetFileListByViewOrParam(null);
+				if (files == null || files.Count == 0)
+					return;
+				var fileEntries = new FileEntries();
+				foreach (var file in files)
+				{
+					if (file.SupportedProperties.HasFlag(FilePropertiesTypes.Attributes))
+					{
+						fileEntries.Add(file);
+					}
+				}
+				var activeFrame = owner.uiManager.ActiveFileView;
+				if (activeFrame.ActiveFileSource is IFileSystemFileSource fileSystemFileSource)
+				{
+					// 对于文件系统文件源，显示文件属性对话框
+					try
+					{
+						ShowFilePropertiesDialog(activeFrame.ActiveFileSource, fileEntries);
+					}
+					catch (Exception e)
+					{
+						ShowException(e);
+					}
+				}
+				else if (activeFrame.ActiveFileSource.OperationsTypes.HasFlag(FileSourceOperationTypes.Execute))
+				{
+					// 对于其他类型的文件源，使用Execute操作
+					var activeFile = fileEntries[0]; //activeFrame.GetActiveFile();
+					if (activeFile != null)
+					{
 						try
-						  if SelectedFiles.Count > 0 then
-						  try
-							ShowFilePropertiesDialog(ActiveFrame.FileSource, SelectedFiles);
-						  except
-							on e: EContextMenuException do
-							  ShowException(e);
-						  end;
+						{
+							var operation = activeFrame.ActiveFileSource.CreateExecuteOperation(
+								activeFile,
+								activeFrame.CurrentPath,
+								"properties") as FileSourceExecuteOperation;
+
+							if (operation != null)
+								operation.Execute();
+						}
 						finally
-						  FreeAndNil(SelectedFiles);
-						end;
-					  end
-					else if (fsoExecute in ActiveFrame.FileSource.GetOperationsTypes) then
-					  begin
-						aFile:= ActiveFrame.CloneActiveFile;
-						if Assigned(aFile) then
-						  try
-							Operation:= ActiveFrame.FileSource.CreateExecuteOperation(
-											aFile,
-											ActiveFrame.CurrentPath,
-											'properties') as TFileSourceExecuteOperation;
-							if Assigned(Operation) then
-							  Operation.Execute;
-						  finally
-							FreeAndNil(Operation);
-							FreeAndNil(aFile);
-						  end;
-					  end;
-				  end;
-				end;
-			 */
+						{
+							// 在PASCAL版本中有资源释放，C#中由GC处理
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"显示文件属性时出错: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
 		}
 
 		private void cm_setattrib()
@@ -714,9 +726,9 @@ namespace zfile
 					}
 				}
 				// 克隆活动文件以获取其属性
-				var activeFile = activeFiles[0];	//owner.GetFileListByViewOrParam();
-				//if (activeFile == null)
-				//	return;
+				var activeFile = activeFiles[0];    //owner.GetFileListByViewOrParam();
+													//if (activeFile == null)
+													//	return;
 
 				// 如果是直接访问的文件系统，获取文件的时间属性
 				if (fileSource.Properties.HasFlag(FileSourceProperties.DirectAccess))
@@ -817,51 +829,51 @@ namespace zfile
 			//	// 获取当前活动面板的文件源
 			//	var fileSource = owner.CurrentFullpath.GetFileSource(owner.LRflag);
 
-				//	// 如果当前文件源是 WcxArchiveFileSource 类型
-				//	if (fileSource is WcxArchiveFileSource wcxArchiveFileSource)
-				//	{
-				//		// 获取当前选中的文件
-				//		var files = owner.GetFileListByViewOrParam(null);
-				//		if (files != null && files.Count > 0)
-				//		{
-				//			// 创建文件条目列表
-				//			var fileEntries = FileSourceUtil.FileEntryListToFileEntries(files);
+			//	// 如果当前文件源是 WcxArchiveFileSource 类型
+			//	if (fileSource is WcxArchiveFileSource wcxArchiveFileSource)
+			//	{
+			//		// 获取当前选中的文件
+			//		var files = owner.GetFileListByViewOrParam(null);
+			//		if (files != null && files.Count > 0)
+			//		{
+			//			// 创建文件条目列表
+			//			var fileEntries = FileSourceUtil.FileEntryListToFileEntries(files);
 
-				//			// 创建测试压缩文件操作
-				//			var operation = wcxArchiveFileSource.CreateTestArchiveOperation(fileEntries);
-				//			if (operation != null)
-				//			{
-				//				// 执行操作
-				//				OperationsManager.Instance.AddOperation(operation);
-				//				//operation.Execute();
+			//			// 创建测试压缩文件操作
+			//			var operation = wcxArchiveFileSource.CreateTestArchiveOperation(fileEntries);
+			//			if (operation != null)
+			//			{
+			//				// 执行操作
+			//				OperationsManager.Instance.AddOperation(operation);
+			//				//operation.Execute();
 
-				//				MessageBox.Show("压缩文件测试完成", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
-				//			}
-				//		}
-				//	}
-				//	// 如果当前文件源是文件系统类型
-				//	else if (fileSource is FileSystemFileSource)
-				//	{
-				//		// 获取当前选中的文件
-				//		var files = owner.GetFileListByViewOrParam(null);
-				//		if (files != null && files.Count > 0)
-				//		{
-				//			// 创建文件条目列表
-				//			var fileEntries = FileSourceUtil.FileEntryListToFileEntries(files);
+			//				MessageBox.Show("压缩文件测试完成", "信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			//			}
+			//		}
+			//	}
+			//	// 如果当前文件源是文件系统类型
+			//	else if (fileSource is FileSystemFileSource)
+			//	{
+			//		// 获取当前选中的文件
+			//		var files = owner.GetFileListByViewOrParam(null);
+			//		if (files != null && files.Count > 0)
+			//		{
+			//			// 创建文件条目列表
+			//			var fileEntries = FileSourceUtil.FileEntryListToFileEntries(files);
 
-				//			// 调用 ArchiveFileSourceUtil.TestArchive 方法测试压缩文件
-				//			ArchiveFileSourceUtil.TestArchive(owner.uiManager.ActiveFileView, fileEntries, OperationsManager.FreeOperationsQueueId);
-				//		}
-				//	}
-				//	else
-				//	{
-				//		MessageBox.Show("当前文件源不支持测试压缩文件操作", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-				//	}
-				//}
-				//catch (Exception ex)
-				//{
-				//	MessageBox.Show($"测试压缩文件出错: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-				//}
+			//			// 调用 ArchiveFileSourceUtil.TestArchive 方法测试压缩文件
+			//			ArchiveFileSourceUtil.TestArchive(owner.uiManager.ActiveFileView, fileEntries, OperationsManager.FreeOperationsQueueId);
+			//		}
+			//	}
+			//	else
+			//	{
+			//		MessageBox.Show("当前文件源不支持测试压缩文件操作", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+			//	}
+			//}
+			//catch (Exception ex)
+			//{
+			//	MessageBox.Show($"测试压缩文件出错: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			//}
 		}
 
 		private void cm_idm(string param)
@@ -901,7 +913,7 @@ namespace zfile
 					try
 					{
 						object? data = action == ClipBoardAction.Copy ? new MemoryStream(new byte[] { 5, 0, 0, 0 }) : new MemoryStream(new byte[] { 2, 0, 0, 0 });  // 2 表示剪切操作; 5 = copy
-						// 使用 DataObject 设置所有数据
+																																									// 使用 DataObject 设置所有数据
 						dataObject.SetData(DataFormats.FileDrop, false, filePaths.Cast<string>().ToArray());
 						dataObject.SetData("Preferred DropEffect", false, data);
 
@@ -1011,7 +1023,7 @@ namespace zfile
 			MessageBox.Show($"表达式 {expr} 的计算结果为 {result}", "提示");
 			return result.ToString();
 		}
-		private void cm_searchstandalone() 
+		private void cm_searchstandalone()
 		{
 			cm_searchfor(true);
 		}
@@ -1161,15 +1173,15 @@ namespace zfile
 			MCPServer.Register<Calculator>();
 			MCPServer.Register<ExpressionEvaluatorClaude>();
 			//await MCPServer.StartAsync(param, "1.0.0");
-            try
-            {
-                _ = Task.Run(async () => await MCPServer.StartAsync(param, "1.0.0"));
-                Debug.Print($"MCP server {param} started successfully.");
-            }
-            catch (Exception ex)
-            {
-                Debug.Print($"Failed to start MCP server {param}: {ex.Message}");
-            }
+			try
+			{
+				_ = Task.Run(async () => await MCPServer.StartAsync(param, "1.0.0"));
+				Debug.Print($"MCP server {param} started successfully.");
+			}
+			catch (Exception ex)
+			{
+				Debug.Print($"Failed to start MCP server {param}: {ex.Message}");
+			}
 			//Debug.Print($"start mcp server {param}");
 		}
 		private void cm_mcpConfigUI(string mcp_settings_file)
@@ -1329,7 +1341,8 @@ namespace zfile
 		{
 			owner.uiManager.ftpController.SetFocusCmdline();
 		}
-		private void cm_apicallerDlg(string url, string key, string param){
+		private void cm_apicallerDlg(string url, string key, string param)
+		{
 			APICallerForm form = new APICallerForm(url, key, param);
 			form.Tag = this;
 			form.ShowDialog();
@@ -1419,7 +1432,7 @@ namespace zfile
 		}
 		private void cm_netCrawler(string param)
 		{
-			Task.Run(async () => { await netCrawler(param); } );
+			Task.Run(async () => { await netCrawler(param); });
 			Debug.Print("crawler run started...");
 		}
 		static async Task netCrawler(string url)
@@ -1636,6 +1649,62 @@ namespace zfile
 				Debug.Print($"获取文件列表时出错: {ex.Message}");
 			}
 		}
-	}
+
+
+		/// <summary>
+		/// 显示文件属性对话框
+		/// </summary>
+		/// <param name="fileSource">文件源</param>
+		/// <param name="files">文件列表</param>
+		private void ShowFilePropertiesDialog(IFileSource fileSource, FileEntries files)
+		{
+			if (fileSource is IFileSystemFileSource)
+			{
+				// 对于文件系统文件，使用Windows Shell显示属性对话框
+				foreach (var file in files)
+				{
+					string filePath = file.FullPath;
+					if (File.Exists(filePath) || Directory.Exists(filePath))
+					{
+						try
+						{
+							// 使用Shell32.dll显示属性对话框
+							var execInfo = new SHELLEXECUTEINFO
+							{
+								cbSize = Marshal.SizeOf(typeof(SHELLEXECUTEINFO)),
+								lpFile = filePath,
+								lpVerb = "properties",
+								fMask = 0x0000000C  // SEE_MASK_INVOKEIDLIST | SEE_MASK_FLAG_NO_UI
+							};
+							API.ShellExecuteEx(ref execInfo);
+						}
+						catch (Exception ex)
+						{
+							ShowException(ex);
+						}
+					}
+				}
+			}
+			else
+			{
+				// 对于非文件系统文件，使用自定义属性对话框
+				if (files.Count > 0)
+				{
+					// 这里可以实现自定义属性对话框
+					// 例如使用SetFilePropertiesDialog.ShowDialog
+					MessageBox.Show("暂不支持此类型文件的属性查看", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				}
+			}
+		}
+
+		/// <summary>
+		/// 显示异常信息
+		/// </summary>
+		/// <param name="ex">异常</param>
+		private void ShowException(Exception ex)
+		{
+			MessageBox.Show($"操作出错: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+		}
+	}		
 }
 

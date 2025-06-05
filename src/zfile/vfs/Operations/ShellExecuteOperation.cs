@@ -67,55 +67,55 @@ namespace zfile
                     fMask = 0x00000100 // SEE_MASK_IDLIST
                 };
 
-                if (ShellExecuteEx(ref execInfo))
+                if (API.ShellExecuteEx(ref execInfo))
                     ExecuteOperationResult = FileSourceExecuteOperationResult.Success;
                 else
                     ExecuteOperationResult = FileSourceExecuteOperationResult.Error;
             }
         }
 
-        [DllImport("shell32.dll", CharSet = CharSet.Auto)]
-        private static extern bool ShellExecuteEx(ref SHELLEXECUTEINFO lpExecInfo);
+        //[DllImport("shell32.dll", CharSet = CharSet.Auto)]
+        //private static extern bool ShellExecuteEx(ref SHELLEXECUTEINFO lpExecInfo);
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    public struct CMINVOKECOMMANDINFO
-    {
-        public int cbSize;
-        public int fMask;
-        public IntPtr hwnd;
-        public string lpVerb;
-        public string lpParameters;
-        public string lpDirectory;
-        public int nShow;
-        public int dwHotKey;
-        public IntPtr hIcon;
-    }
+    //[StructLayout(LayoutKind.Sequential)]
+    //public struct CMINVOKECOMMANDINFO
+    //{
+    //    public int cbSize;
+    //    public int fMask;
+    //    public IntPtr hwnd;
+    //    public string lpVerb;
+    //    public string lpParameters;
+    //    public string lpDirectory;
+    //    public int nShow;
+    //    public int dwHotKey;
+    //    public IntPtr hIcon;
+    //}
 
-    [StructLayout(LayoutKind.Sequential)]
-    public struct SHELLEXECUTEINFO
-    {
-        public int cbSize;
-        public int fMask;
-        public IntPtr hwnd;
-        [MarshalAs(UnmanagedType.LPWStr)]
-        public string lpVerb;
-        [MarshalAs(UnmanagedType.LPWStr)]
-        public string lpFile;
-        [MarshalAs(UnmanagedType.LPWStr)]
-        public string lpParameters;
-        [MarshalAs(UnmanagedType.LPWStr)]
-        public string lpDirectory;
-        public int nShow;
-        public IntPtr hInstApp;
-        public IntPtr lpIDList;
-        [MarshalAs(UnmanagedType.LPWStr)]
-        public string lpClass;
-        public IntPtr hkeyClass;
-        public int dwHotKey;
-        public IntPtr hIcon;
-        public IntPtr hProcess;
-    }
+    //[StructLayout(LayoutKind.Sequential)]
+    //public struct SHELLEXECUTEINFO
+    //{
+    //    public int cbSize;
+    //    public int fMask;
+    //    public IntPtr hwnd;
+    //    [MarshalAs(UnmanagedType.LPWStr)]
+    //    public string lpVerb;
+    //    [MarshalAs(UnmanagedType.LPWStr)]
+    //    public string lpFile;
+    //    [MarshalAs(UnmanagedType.LPWStr)]
+    //    public string lpParameters;
+    //    [MarshalAs(UnmanagedType.LPWStr)]
+    //    public string lpDirectory;
+    //    public int nShow;
+    //    public IntPtr hInstApp;
+    //    public IntPtr lpIDList;
+    //    [MarshalAs(UnmanagedType.LPWStr)]
+    //    public string lpClass;
+    //    public IntPtr hkeyClass;
+    //    public int dwHotKey;
+    //    public IntPtr hIcon;
+    //    public IntPtr hProcess;
+    //}
 
 
 }

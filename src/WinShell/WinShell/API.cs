@@ -653,7 +653,8 @@ namespace WinShell
 
 		//[DllImport("shell32.dll")]
 		//public static extern IntPtr ILClone(IntPtr pidl);
-
+		[DllImport("shell32.dll", CharSet = CharSet.Auto)]
+		public static extern bool ShellExecuteEx(ref SHELLEXECUTEINFO lpExecInfo);
 
 		[DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
 		public static extern SafeFindHandle FindFirstFileW(string lpFileName, out WIN32_FIND_DATA lpFindFileData);

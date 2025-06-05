@@ -146,8 +146,31 @@ namespace WinShell
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
         public string szTypeName;
     }
-
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+	public struct SHELLEXECUTEINFO
+	{
+		public int cbSize;
+		public int fMask;
+		public IntPtr hwnd;
+		[MarshalAs(UnmanagedType.LPTStr)]
+		public string lpVerb;
+		[MarshalAs(UnmanagedType.LPTStr)]
+		public string lpFile;
+		[MarshalAs(UnmanagedType.LPTStr)]
+		public string lpParameters;
+		[MarshalAs(UnmanagedType.LPTStr)]
+		public string lpDirectory;
+		public int nShow;
+		public IntPtr hInstApp;
+		public IntPtr lpIDList;
+		[MarshalAs(UnmanagedType.LPTStr)]
+		public string lpClass;
+		public IntPtr hkeyClass;
+		public int dwHotKey;
+		public IntPtr hIcon;
+		public IntPtr hProcess;
+	}
+	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
     public struct CMINVOKECOMMANDINFO
     {
         public int cbSize;				// sizeof(CMINVOKECOMMANDINFO)

@@ -645,47 +645,47 @@ namespace zfile
 			//same as cm_fileproperties in double commander
 			/*
 			 * procedure TMainCommands.cm_FileProperties(const Params: array of string);
-var
-  SelectedFiles: TFiles;
-  Operation: TFileSourceExecuteOperation;
-  aFile: TFile;
-begin
-  with frmMain do
-  begin
-    if ActiveFrame.FileSource.IsClass(TFileSystemFileSource) then
-      begin
-        SelectedFiles := ActiveFrame.CloneSelectedOrActiveFiles;
-        if Assigned(SelectedFiles) then
-        try
-          if SelectedFiles.Count > 0 then
-          try
-            ShowFilePropertiesDialog(ActiveFrame.FileSource, SelectedFiles);
-          except
-            on e: EContextMenuException do
-              ShowException(e);
-          end;
-        finally
-          FreeAndNil(SelectedFiles);
-        end;
-      end
-    else if (fsoExecute in ActiveFrame.FileSource.GetOperationsTypes) then
-      begin
-        aFile:= ActiveFrame.CloneActiveFile;
-        if Assigned(aFile) then
-          try
-            Operation:= ActiveFrame.FileSource.CreateExecuteOperation(
-                            aFile,
-                            ActiveFrame.CurrentPath,
-                            'properties') as TFileSourceExecuteOperation;
-            if Assigned(Operation) then
-              Operation.Execute;
-          finally
-            FreeAndNil(Operation);
-            FreeAndNil(aFile);
-          end;
-      end;
-  end;
-end;
+				var
+				  SelectedFiles: TFiles;
+				  Operation: TFileSourceExecuteOperation;
+				  aFile: TFile;
+				begin
+				  with frmMain do
+				  begin
+					if ActiveFrame.FileSource.IsClass(TFileSystemFileSource) then
+					  begin
+						SelectedFiles := ActiveFrame.CloneSelectedOrActiveFiles;
+						if Assigned(SelectedFiles) then
+						try
+						  if SelectedFiles.Count > 0 then
+						  try
+							ShowFilePropertiesDialog(ActiveFrame.FileSource, SelectedFiles);
+						  except
+							on e: EContextMenuException do
+							  ShowException(e);
+						  end;
+						finally
+						  FreeAndNil(SelectedFiles);
+						end;
+					  end
+					else if (fsoExecute in ActiveFrame.FileSource.GetOperationsTypes) then
+					  begin
+						aFile:= ActiveFrame.CloneActiveFile;
+						if Assigned(aFile) then
+						  try
+							Operation:= ActiveFrame.FileSource.CreateExecuteOperation(
+											aFile,
+											ActiveFrame.CurrentPath,
+											'properties') as TFileSourceExecuteOperation;
+							if Assigned(Operation) then
+							  Operation.Execute;
+						  finally
+							FreeAndNil(Operation);
+							FreeAndNil(aFile);
+						  end;
+					  end;
+				  end;
+				end;
 			 */
 		}
 

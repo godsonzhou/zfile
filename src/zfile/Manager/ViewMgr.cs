@@ -38,6 +38,7 @@ namespace zfile
 		private MainForm form;
 		private List<ColDef> colDefs = new();
 		public Dictionary<string, List<ColDef>> colDefDict = new();
+		public List<string> ColViewNames => colDefDict.Keys.ToList();
 		public Dictionary<string, ViewMode> viewModes = new();
 		public Dictionary<string, ViewSwitchRule> viewSwitchRules = new();
 
@@ -72,7 +73,7 @@ namespace zfile
 		/// <summary>
 		/// Apply view settings to a ListView based on folder statistics and rules
 		/// </summary>
-		public string ApplyViewToListView(ListView listView, string folderPath, IFileSource fileSource, out FileEntries files, string viewModeName = "")
+		public string ApplyViewToListView(ListView listView, string folderPath, IFileSource fileSource, out FileEntries files, string colViewId = "")
 		{
 			try
 			{
@@ -82,14 +83,14 @@ namespace zfile
 
 				// Determine which view mode to use based on rules
 				//bugfix: 当filesource is not filesystemfilesource, do not support custome view mode
-				if(string.IsNullOrEmpty(viewModeName))
-					viewModeName = (fileSource is not FileSystemFileSource) ? ((int)listView.View).ToString() : DetermineViewMode(stats, folderPath);
+				if(string.IsNullOrEmpty(colViewId))
+					colViewId = (fileSource is not FileSystemFileSource) ? ((int)listView.View).ToString() : DetermineViewMode(stats, folderPath);
 
 				// Apply column configuration from the selected view mode
-				ApplyColumnConfiguration(listView, viewModeName);
+				ApplyColumnConfiguration(listView, colViewId);
 		
-				Debug.Print($"Applied view mode '{viewModeName}' to {(listView.Name)} panel for path: {folderPath}");
-				return viewModeName;
+				Debug.Print($"Applied view mode '{colViewId}' to {(listView.Name)} panel for path: {folderPath}");
+				return colViewId;
 			}
 			catch (Exception ex)
 			{
@@ -295,16 +296,16 @@ namespace zfile
 		/// <summary>
 		/// Apply column configuration to a ListView based on view mode
 		/// </summary>
-		public void ApplyColumnConfiguration(ListView listView, string viewModeName)
+		public void ApplyColumnConfiguration(ListView listView, string colViewId)
 		{
-			if (viewModeName.Equals(listView.Name.Equals("L") ? currentLeftViewMode : currentRightViewMode))
+			if (colViewId.Equals(listView.Name.Equals("L") ? currentLeftViewMode : currentRightViewMode))
 				return;
 			// Update current view mode
 			if (listView.Name.Equals("L"))
-				currentLeftViewMode = viewModeName;
+				currentLeftViewMode = colViewId;
 			else
-				currentRightViewMode = viewModeName;
-			var viewmodeid = int.Parse(viewModeName);
+				currentRightViewMode = colViewId;
+			var viewmodeid = int.Parse(colViewId);
 			if (viewmodeid < 5) 
 			{
 				// Apply default view mode
@@ -324,11 +325,11 @@ namespace zfile
 			{
 				// >= 6, apply custom view mode
 				viewmodeid -= 6;
-				viewModeName = (viewmodeid).ToString(); //
+				colViewId = (viewmodeid).ToString(); //
 				var coldefvalues = colDefDict.Values.ToArray();
 				if (viewmodeid >= coldefvalues.Length )
 				{
-					Debug.Print($"View mode '{viewModeName}' not found in column definitions");
+					Debug.Print($"View mode '{colViewId}' not found in column definitions");
 					return;
 				}
 
@@ -493,19 +494,17 @@ namespace zfile
 			}
 			return result;
 		}
-
-		internal string GetViewModeByName(string param)
+		internal string GetColViewIdByViewMode(string viewmode)
 		{
-			//foreach(var def in colDefDict)
-			//{
-			//	if (def.Value.Equals(param, StringComparison.OrdinalIgnoreCase))
-			//		return def.Key;
-			//}
-			//return colDefDict.FirstOrDefault(x => x.Value.Any(c => c.header.Equals(param, StringComparison.OrdinalIgnoreCase))).Key ?? "1"; //default to 1
+			var item = viewModes[(viewmode)];
+			return item.Options.Split('|')[0];
+		}
+		internal string GetViewModeByColViewID(string param)
+		{
 			foreach( var v in viewModes)
 			{
-				if (v.Key.Split('|')[0] == param)
-					return v.Value.ToString();
+				if (v.Value.Options.Split('|')[0] == param)
+					return v.Key.ToString();
 			}
 			return "";
 		}
@@ -513,12 +512,13 @@ namespace zfile
 		{
 			//生成自定义列视图的菜单项
 			var menus = new List<MenuInfo>();
-			foreach(var v in viewModes)
+			for(var i = 0; i < ColViewNames.Count; i++)
 			{
-				var m = new MenuInfo(v.Value.Name);
-				//m.Menu = v.Value.Name;
+				var v = ColViewNames[i];
+				var m = new MenuInfo(v);
+				m.Menu = v;
 				m.Cmd = "cm_srccustomviewmenu";
-				m.Param = v.Key;
+				m.Param = (i+6).ToString(); //bugfix: should add 6 to index, because default view modes are 0-5
 				menus.Add(m);
 			}
 			// Add a separator for custom views

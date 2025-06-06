@@ -659,8 +659,8 @@ namespace zfile
 			}
 			else
 			{
-				var v = owner.viewMgr.GetViewModeByName(param);     //根据自定义列表名称获取视图模式
-				owner.LoadListViewByFileSource(owner.CurrentFullpath[owner.LRflag], owner.activeListView, owner.SelectedNode, v);
+				//var v = owner.viewMgr.GetViewModeByColViewID(param);     //根据自定义列表名称获取视图模式
+				owner.LoadListViewByFileSource(owner.CurrentFullpath[owner.LRflag], owner.activeListView, owner.SelectedNode, param);
 			}
 		}
 
@@ -672,7 +672,7 @@ namespace zfile
 				optionform.ShowDialog();
 			}
 			else
-				owner.LoadListViewByFileSource(owner.CurrentFullpath[owner.LRflag], owner.activeListView, owner.SelectedNode, param);
+				owner.LoadListViewByFileSource(owner.CurrentFullpath[owner.LRflag], owner.activeListView, owner.SelectedNode, owner.viewMgr.GetColViewIdByViewMode(param));
 		}
 
 		private void cm_versioninfo()

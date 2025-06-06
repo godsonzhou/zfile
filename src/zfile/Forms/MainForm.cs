@@ -2463,7 +2463,7 @@ namespace zfile
 
 		}
 		// 加载文件列表 - 使用 FileSource 架构（异步版本）
-		public void LoadListViewByFileSource(string path, ListView listView, TreeNode parentnode, string viewModeName = "")
+		public void LoadListViewByFileSource(string path, ListView listView, TreeNode parentnode, string colViewId = "")
 		{
 			if (string.IsNullOrEmpty(path)) return;
 
@@ -2473,7 +2473,7 @@ namespace zfile
 			if (fileSource is ShellFileSource)  //如果是虚拟节点（由shellfilesource处理的节点），由于在loadsubdirectories中已经生成，所以无需再处理
 				return;
 
-			Debug.Print($"load listview by filesource [{listView.Name}/{listView.View}]: {path}");
+			Debug.Print($"load listview by filesource [{listView.Name}/{colViewId}]: {path}");
 			try
 			{
 				// 更新 ListView
@@ -2483,7 +2483,7 @@ namespace zfile
 				showFolderSize = configLoader.FindConfigValue("Configuration", "EverythingForSize").Equals("1");
 
 				// 应用视图管理器设置 - 根据文件夹内容自动切换视图模式
-				var viewname = viewMgr.ApplyViewToListView(listView, path, fileSource, out var files, viewModeName);
+				var viewname = viewMgr.ApplyViewToListView(listView, path, fileSource, out var files, colViewId);
 
 				// 添加所有项目到 ListView
 				foreach (var file in files)
@@ -3338,7 +3338,7 @@ namespace zfile
 			using var form = new Form
 			{
 				Text = "选择视图模式",
-				Size = new Size(400, 500),
+				Size = new Size(600, 500),
 				StartPosition = FormStartPosition.CenterParent,
 				FormBorderStyle = FormBorderStyle.FixedDialog,
 				MaximizeBox = false,

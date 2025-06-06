@@ -2460,8 +2460,8 @@ namespace zfile
 				_backgroundIconManager.EnqueueJob(listView, itemsForJob, lvitemsForJob, jobtypelist);
 				Debug.Print($"{itemsForJob.Count} items enqueued in background...");
 			}
-
 		}
+
 		// 加载文件列表 - 使用 FileSource 架构（异步版本）
 		public void LoadListViewByFileSource(string path, ListView listView, TreeNode parentnode, string colViewId = "")
 		{

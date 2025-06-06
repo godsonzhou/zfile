@@ -499,15 +499,15 @@ namespace zfile
 			var item = viewModes[(viewmode)];
 			return item.Options.Split('|')[0];
 		}
-		internal string GetViewModeByColViewID(string param)
-		{
-			foreach( var v in viewModes)
-			{
-				if (v.Value.Options.Split('|')[0] == param)
-					return v.Key.ToString();
-			}
-			return "";
-		}
+		//internal string GetViewModeByColViewID(string param)
+		//{
+		//	foreach( var v in viewModes)
+		//	{
+		//		if (v.Value.Options.Split('|')[0] == param)
+		//			return v.Key.ToString();
+		//	}
+		//	return "";
+		//}
 		internal List<MenuInfo> GetMenuInfoFromCustomView()
 		{
 			//生成自定义列视图的菜单项

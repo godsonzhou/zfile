@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using zfile.Forms;
 using WinShell;
 using System.Runtime;
+using System.Xml.Linq;
 
 namespace zfile
 {
@@ -557,6 +558,10 @@ namespace zfile
 				case 3026: // cm_listExternal
 					cm_listExternal(param);
 					break;
+				case 3200: // 命令ID=3200，Name=cm_separatetreeoff
+					cm_separatetreeoff();
+					break;
+
 				case 4001: // 命令ID = 4001, Name = cm_focusleft
 					owner.uiManager.LeftList.Focus();
 					break;
@@ -648,6 +653,11 @@ namespace zfile
 						MessageBox.Show($"命令ID = {cmdId} 尚未实现", "提示");
 					break;
 			}
+		}
+
+		private void cm_separatetreeoff()
+		{
+			owner.uiManager.ToggleTreeview();
 		}
 
 		private void cm_srccustomviewmenu(string param = "")

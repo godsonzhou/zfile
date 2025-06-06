@@ -104,6 +104,8 @@ namespace zfile
 
 		public FileView ActiveFileView => isleft ? LeftFileView : RightFileView;
 
+		public bool separatetreeflag;
+
 		public Dictionary<string, string> args = new();
 		public Dictionary<string, string> lastVisitedPaths = new();
 		public Dictionary<string, MenuInfo> usermenuMap = new();
@@ -248,7 +250,17 @@ namespace zfile
 			args["%T%R"] = CombinePaths(targetDir, targetfiles);
 			args["%t%r"] = CombinePaths(GetShortPath(targetDir), GetShortFileName(targetfiles));
 		}
-
+		public void ToggleTreeview()
+		{
+			//owner.uiManager.separatetreeflag = !owner.uiManager.separatetreeflag;
+			LeftTree.Visible = !LeftTree.Visible;
+			RightTree.Visible = !RightTree.Visible;
+			//重新调整listview的宽度
+			LeftList.Width = LeftPanel.Width - (LeftTree.Visible ? LeftTree.Width : 0);
+			RightList.Width = RightPanel.Width - (RightTree.Visible ? RightTree.Width : 0);
+			LeftList.Parent?.Update();
+			RightList.Parent?.Update();
+		}
 		// 处理子字段语法：~开始位置,长度
 		public string ProcessSubfield(string value, string subfieldSpec)
 		{

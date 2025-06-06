@@ -3,6 +3,7 @@ using Sheng.Winform.Controls;
 using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
 using System.Text;
+using System.Windows.Forms;
 using WinShell;
 using zfile.Forms;
 namespace zfile
@@ -256,8 +257,8 @@ namespace zfile
 			LeftTree.Visible = !LeftTree.Visible;
 			RightTree.Visible = !RightTree.Visible;
 			//重新调整listview的宽度
-			LeftList.Width = LeftPanel.Width - (LeftTree.Visible ? LeftTree.Width : 0);
-			RightList.Width = RightPanel.Width - (RightTree.Visible ? RightTree.Width : 0);
+			LeftTreeListSplitter.SplitterDistance = LeftTree.Visible ? LeftPanel.Width / 3 : 0;
+			RightTreeListSplitter.SplitterDistance = RightTree.Visible ? RightPanel.Width / 3 : 0;
 			LeftList.Parent?.Update();
 			RightList.Parent?.Update();
 		}
@@ -636,15 +637,16 @@ namespace zfile
 			};
 			form.Controls.Add(containerPanel);
 
+			containerPanel.Controls.Add(MainContainer);
 			MainContainer.Dock = DockStyle.Fill;
 			MainContainer.Orientation = Orientation.Vertical;
 
-			//int halfWidth = (form.ClientSize.Width - MainContainer.SplitterWidth) / 2;
-			//MainContainer.SplitterDistance = halfWidth;
-			MainContainer.SplitterMoved += MainContainer_SplitterMoved;
+			int halfWidth = (MainContainer.Width) / 2;
+			MainContainer.SplitterDistance = halfWidth;
+			//Debug.Print($"{halfWidth} {MainContainer.SplitterDistance} {MainContainer.Panel1.Width} {MainContainer.Panel2.Width}");
+			//MainContainer.SplitterMoved += MainContainer_SplitterMoved;
 
-			containerPanel.Controls.Add(MainContainer);
-
+			//Debug.Print($"{halfWidth} {MainContainer.SplitterDistance} {MainContainer.Panel1.Width} {MainContainer.Panel2.Width}");
 			ConfigurePanel(LeftPanel, MainContainer.Panel1);
 			ConfigurePanel(RightPanel, MainContainer.Panel2);
 
@@ -652,21 +654,29 @@ namespace zfile
 			ConfigureUpperPanel(RightUpperPanel, RightDrivePanel, RightPanel.Panel1);
 		}
 
-		private void MainContainer_SplitterMoved(object? sender, SplitterEventArgs e)
+		private void HorizontalSplitContainer_SplitterMoved(object? sender, SplitterEventArgs e)
 		{
-			int halfWidth = (form.ClientSize.Width - MainContainer.SplitterWidth) / 2;
-			if (Math.Abs(MainContainer.SplitterDistance - halfWidth) > 5)
-			{
-				MainContainer.SplitterDistance = halfWidth;
-			}
+			//上下移动splitter时，左右面板保持同步
+			var c = sender as SplitContainer;
+			var dist = c.SplitterDistance;
+			LeftPanel.SplitterDistance = dist;
+			RightPanel.SplitterDistance = dist;
 		}
 
 		private void ConfigurePanel(SplitContainer panel, Control parent)
 		{
 			panel.Dock = DockStyle.Fill;
 			panel.Orientation = Orientation.Horizontal;
-			panel.SplitterDistance = (int)((parent.Width) * 0.5);
+			panel.SplitterDistance = (int)((panel.Height) * 0.7);	//preview panel use 30% height
+			panel.SplitterMoved += HorizontalSplitContainer_SplitterMoved;
 			parent.Controls.Add(panel);
+			// 处理父容器大小改变事件
+			form.SizeChanged += (s, e) =>
+			{
+				int desiredDistance = (int)(panel.Height * 0.7);
+				Debug.Print($"{panel.Height} {panel.SplitterDistance}");
+				panel.SplitterDistance = desiredDistance; //Math.Max(panel.Panel1MinSize, Math.Min(desiredDistance, panel.Height - panel.Panel2MinSize));
+			};
 		}
 
 		private void ConfigureUpperPanel(Panel upperPanel, Panel drivePanel, Control parent)
@@ -907,8 +917,8 @@ namespace zfile
 			splitter.Dock = DockStyle.Fill;
 			splitter.Orientation = Orientation.Vertical;
 			// 设置合理的最小尺寸
-			splitter.Panel1MinSize = 100;
-			splitter.Panel2MinSize = 100;
+			splitter.Panel1MinSize = 0;
+			splitter.Panel2MinSize = 0;
 			// 调用函数执行treeview绑定事件
 			ConfigureTreeView(treeView);
 			splitter.Panel1.Controls.Add(treeView);
@@ -1708,7 +1718,7 @@ namespace zfile
 					// 取消事件订阅
 					LeftPathTextBox.SelectionChange -= LeftPathTextBox_PathChanged;
 					RightPathTextBox.SelectionChange -= RightPathTextBox_PathChanged;
-					MainContainer.SplitterMoved -= MainContainer_SplitterMoved;
+					//MainContainer.SplitterMoved -= MainContainer_SplitterMoved;
 					LeftDriveComboBox.SelectedIndexChanged -= DriveComboBox_SelectedIndexChanged;
 					RightDriveComboBox.SelectedIndexChanged -= DriveComboBox_SelectedIndexChanged;
 

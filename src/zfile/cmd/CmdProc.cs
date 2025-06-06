@@ -168,6 +168,19 @@ namespace zfile
 				case 303:   //cm_switchviewmode//todo: 先用个303暂时，等确定了具体编号再改
 					owner.cm_switchviewmode();
 					break;
+				case 311: //命令ID=311,Name=cm_srcexecs
+					cm_srcexecs();
+					break;
+				case 312: // 命令ID=312,Name=cm_srcallfiles
+					cm_srcallfiles();
+					break;
+				case 313: // 命令ID=313，Name=cm_srcuserspec
+					cm_srcuserspec();
+					break;
+				case 314: // 命令ID=314，Name=cm_srcuserdef
+					cm_srcuserdef();
+					break;
+
 				case 321: // cm_srcbyname
 					do_cm_srcbyname();
 					break;
@@ -418,6 +431,10 @@ namespace zfile
 				case 2022: // cm_comparefilesbycontent
 					cm_comparefilesbycontent(param);
 					break;
+				case 2023: // 命令ID=2023，Name=cm_showonlyselected
+					cm_showonlyselected();
+					break;
+
 				case 2026:
 					cm_DirBranch();
 					break;
@@ -559,7 +576,12 @@ namespace zfile
 					cm_listExternal(param);
 					break;
 				case 3200: // 命令ID=3200，Name=cm_separatetreeoff
-					cm_separatetreeoff();
+						   //cm_separatetreeoff();
+					owner.uiManager.ToggleTreeview(0);
+					break;
+				case 3202: //命令ID=3202，Name=cmSeparatetree2
+					//cm_separatetree2();
+					owner.uiManager.ToggleTreeview(3);
 					break;
 
 				case 4001: // 命令ID = 4001, Name = cm_focusleft
@@ -655,9 +677,34 @@ namespace zfile
 			}
 		}
 
+		private void cm_showonlyselected()
+		{
+			throw new NotImplementedException();
+		}
+
+		private void cm_srcuserdef()
+		{
+			throw new NotImplementedException();
+		}
+
+		private void cm_srcuserspec()
+		{
+			throw new NotImplementedException();
+		}
+
+		private void cm_srcallfiles()
+		{
+			throw new NotImplementedException();
+		}
+
+		private void cm_srcexecs()
+		{
+			throw new NotImplementedException();
+		}
+
 		private void cm_separatetreeoff()
 		{
-			owner.uiManager.ToggleTreeview();
+			owner.uiManager.ToggleTreeview(0);
 		}
 
 		private void cm_srccustomviewmenu(string param = "")

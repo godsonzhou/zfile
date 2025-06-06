@@ -251,11 +251,23 @@ namespace zfile
 			args["%T%R"] = CombinePaths(targetDir, targetfiles);
 			args["%t%r"] = CombinePaths(GetShortPath(targetDir), GetShortFileName(targetfiles));
 		}
-		public void ToggleTreeview()
+		/// <summary>
+		/// mode -1表示切换两个树视图的可见性，1表示左侧树视图可见，2表示右侧树视图可见，3表示两个树视图都可见, 0 表示两个树视图都不可见
+		/// </summary>
+		/// <param name="mode"></param>
+		public void ToggleTreeview(int mode = -1)
 		{
-			//owner.uiManager.separatetreeflag = !owner.uiManager.separatetreeflag;
-			LeftTree.Visible = !LeftTree.Visible;
-			RightTree.Visible = !RightTree.Visible;
+			if (mode == -1)
+			{
+				//-1 means toggle both trees
+				LeftTree.Visible = !LeftTree.Visible;
+				RightTree.Visible = !RightTree.Visible;
+			}
+			else
+			{
+				LeftTree.Visible = (mode & 1) != 0;
+				RightTree.Visible = (mode & 2) != 0;
+			}
 			//重新调整listview的宽度
 			LeftTreeListSplitter.SplitterDistance = LeftTree.Visible ? LeftPanel.Width / 3 : 0;
 			RightTreeListSplitter.SplitterDistance = RightTree.Visible ? RightPanel.Width / 3 : 0;

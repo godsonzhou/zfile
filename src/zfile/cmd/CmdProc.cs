@@ -156,7 +156,7 @@ namespace zfile
 					owner.uiManager.isThumbs = !owner.uiManager.isThumbs;
 					break;
 				case 270: // 命令ID = 270, Name = cm_srccustomviewmenu 
-					cm_srccustomviewmenu();
+					cm_srccustomviewmenu(param);
 					break;
 				case 301:   //cm_srcshort
 					owner.SetViewMode(View.List);
@@ -186,7 +186,7 @@ namespace zfile
 					do_cm_srcnegorder();
 					break;
 				case 333: // 命令ID=333，Name=cmsrcviewmodelist
-					cm_srcviewmodelist();
+					cm_srcviewmodelist(param);
 					break;
 				case 483: // cm_CustomColumnConfig
 					owner.OpenOptions("自定义视图");

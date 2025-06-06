@@ -509,5 +509,49 @@ namespace zfile
 			}
 			return "";
 		}
+		internal List<MenuInfo> GetMenuInfoFromCustomView()
+		{
+			//生成自定义列视图的菜单项
+			var menus = new List<MenuInfo>();
+			foreach(var v in viewModes)
+			{
+				var m = new MenuInfo(v.Value.Name);
+				//m.Menu = v.Value.Name;
+				m.Cmd = "cm_srccustomviewmenu";
+				m.Param = v.Key;
+				menus.Add(m);
+			}
+			// Add a separator for custom views
+			menus.Add(new MenuInfo("-")); // Add a separator
+
+			// add a menu item for config
+			var configMenu = new MenuInfo("配置...");
+			configMenu.Menu = "配置...";
+			configMenu.Cmd = "cm_srccustomviewmenu";
+			menus.Add(configMenu);
+			return menus;
+		}
+		internal List<MenuInfo> GetMenuInfoFromViewModes()
+		{
+			var menus = new List<MenuInfo>();
+			foreach (var v in viewModes)
+			{
+				var m = new MenuInfo(v.Value.Name);
+				m.Menu = v.Value.Name;
+				m.Cmd = "cm_srcviewmodelist";
+				m.Param = v.Key;
+				menus.Add(m);
+			}
+			// Add a separator for custom views
+			menus.Add(new MenuInfo("-")); // Add a separator
+
+			// add a menu item for config
+			var configMenu = new MenuInfo("配置...");
+			configMenu.Menu = "配置...";
+			configMenu.Cmd = "cm_srcviewmodelist";
+			menus.Add(configMenu);
+
+			return menus;
+		}
 	}
 }

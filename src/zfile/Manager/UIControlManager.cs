@@ -1540,10 +1540,17 @@ namespace zfile
 										usermenuMap[menutxt] = emd;
 								}
 								menuItem.Tag = cmdid;
-								menuItem.Click += form.MenuItem_Click;
-								var iconidx = form.cmdicons_configloader.FindConfigValue("mappings", cmdid);
-								if (iconidx != null)
-									menuItem.Image = form.iconManager.LoadIcon($"wcmicon2.dll,{iconidx}");
+								if (cmdid == "270")
+									buildMenuForCm_srccustomviewmenu(menuItem);
+								else if (cmdid == "333")
+									buildMenuForCmSrcviewmodelist(menuItem);
+								else
+								{
+									menuItem.Click += form.MenuItem_Click;
+									var iconidx = form.cmdicons_configloader.FindConfigValue("mappings", cmdid);
+									if (iconidx != null)
+										menuItem.Image = form.iconManager.LoadIcon($"wcmicon2.dll,{iconidx}");
+								}
 								currentPopup.DropDownItems.Add(menuItem);
 							}
 						}
@@ -1611,6 +1618,44 @@ namespace zfile
 			catch (Exception ex)
 			{
 				MessageBox.Show($"加载菜单失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+
+		private void buildMenuForCmSrcviewmodelist(ToolStripMenuItem menuitem)
+		{
+			//为视图模型列表 cmdid=333创建子菜单
+			var ms = form.viewMgr.GetMenuInfoFromViewModes();
+			foreach (var m in ms)
+			{
+				if (m.Name.Equals("-"))
+				{
+					menuitem.DropDownItems.Add(new ToolStripSeparator());
+					continue;
+				}
+				var ddi = new ToolStripMenuItem(m.Menu);
+				usermenuMap[m.Menu] = m;
+				ddi.Click += form.MenuItem_Click;
+				ddi.Tag = m;
+				menuitem.DropDownItems.Add(ddi);
+			}
+		}
+
+		private void buildMenuForCm_srccustomviewmenu(ToolStripMenuItem menuitem)
+		{
+			//为自定义视图 cmdid=270创建子菜单
+			var ms = form.viewMgr.GetMenuInfoFromCustomView();
+			foreach (var m in ms)
+			{
+				if(m.Name.Equals("-"))
+				{
+					menuitem.DropDownItems.Add(new ToolStripSeparator());
+					continue;
+				}
+				var ddi = new ToolStripMenuItem(m.Menu);
+				usermenuMap[m.Menu] = m;
+				ddi.Click += form.MenuItem_Click;
+				ddi.Tag = m;
+				menuitem.DropDownItems.Add(ddi);
 			}
 		}
 

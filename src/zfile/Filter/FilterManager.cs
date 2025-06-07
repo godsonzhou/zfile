@@ -32,7 +32,7 @@ namespace zfile.Filter
         /// <summary>
         /// 当前活动的过滤器
         /// </summary>
-        public FileFilter CurrentFilter { get; private set; }
+        public FileFilter CurrentFilter { get; set; }
 
         /// <summary>
         /// 是否启用过滤

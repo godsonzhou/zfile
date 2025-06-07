@@ -251,6 +251,12 @@ namespace zfile
 				case 518: // cm_testarchive
 					cm_testarchive();
 					break;
+				case 521: // 命令ID=521，Name=cm_spreadselection
+					cm_spreadselection();
+					break;
+				case 522: // 命令ID=522,Name=cm_shrinkselection
+					cm_shrinkselection();
+					break;
 
 				case 523: // cm_SelectAll
 					do_cm_SelectAll();
@@ -678,6 +684,16 @@ namespace zfile
 						MessageBox.Show($"命令ID = {cmdId} 尚未实现", "提示");
 					break;
 			}
+		}
+
+		private void cm_shrinkselection()
+		{
+			throw new NotImplementedException();
+		}
+
+		private void cm_spreadselection()
+		{
+			throw new NotImplementedException();
 		}
 
 		private void cm_srcuserdef()

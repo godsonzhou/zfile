@@ -2486,13 +2486,6 @@ namespace zfile
 				// 应用视图管理器设置 - 根据文件夹内容自动切换视图模式
 				var viewname = viewMgr.ApplyViewToListView(listView, path, fileSource, out var files, colViewId);
 
-				// 应用过滤器
-				//var filteredFiles = files;
-				//if (FilterManager.Instance.IsFilterEnabled)
-				//{
-				//	filteredFiles = FilterManager.Instance.ApplyFilter(files);
-				//}
-
 				// 添加所有项目到 ListView
 				foreach (var file in files)
 				{

@@ -92,14 +92,30 @@ namespace zfile.Forms
             clearButton.Size = new Size(120, 30);
             clearButton.Click += ClearButton_Click;
 
-            // 添加控件到面板
-            templatesPanel.Controls.Add(titleLabel);
+			RadioButton andRadio = new RadioButton();
+			andRadio.Text = "并且";
+			andRadio.Location = new Point(250, 250);
+			andRadio.Size = new Size(120, 30);
+			andRadio.Checked = FilterManager.Instance.CurrentFilterAndOr;
+
+			RadioButton orRadio = new RadioButton();
+			orRadio.Text = "或者";
+			orRadio.Location = new Point(250, 280);
+			orRadio.Size = new Size(120, 30);
+			orRadio.Checked = !FilterManager.Instance.CurrentFilterAndOr;
+
+			andRadio.CheckedChanged += AndRadio_CheckedChanged;
+			
+			// 添加控件到面板
+			templatesPanel.Controls.Add(titleLabel);
             templatesPanel.Controls.Add(templatesListBox);
             templatesPanel.Controls.Add(selectedTitleLabel);
             templatesPanel.Controls.Add(selectedFiltersListBox);
             templatesPanel.Controls.Add(addButton);
             templatesPanel.Controls.Add(removeButton);
             templatesPanel.Controls.Add(clearButton);
+			templatesPanel.Controls.Add(andRadio);
+			templatesPanel.Controls.Add(orRadio);
 
 			var buttonOK = new Button() { Text = "确定" };
 			var buttonCancel = new Button() { Text = "取消"};
@@ -127,10 +143,15 @@ namespace zfile.Forms
             LoadSelectedFilters();
         }
 
-        /// <summary>
-        /// 加载已选择的过滤器列表
-        /// </summary>
-        private void LoadSelectedFilters()
+		private void AndRadio_CheckedChanged(object? sender, EventArgs e)
+		{
+			FilterManager.Instance.CurrentFilterAndOr = !FilterManager.Instance.CurrentFilterAndOr;
+		}
+
+		/// <summary>
+		/// 加载已选择的过滤器列表
+		/// </summary>
+		private void LoadSelectedFilters()
         {
             selectedFiltersListBox.Items.Clear();
             foreach (var name in FilterManager.Instance.CurrentFilterNames)

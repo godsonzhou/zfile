@@ -24,7 +24,7 @@ namespace zfile.Filter
 		/// 是否启用过滤
 		/// </summary>
 		public bool IsFilterEnabled { get; set; }
-
+		public bool CurrentFilterAndOr { get; set; } = false;
 		/// <summary>
 		/// 获取FilterManager的单例实例
 		/// </summary>
@@ -150,7 +150,7 @@ namespace zfile.Filter
         /// </summary>
         public FileEntries ApplyFilter(FileEntries files)
         {
-            if (!IsFilterEnabled) // || CurrentFilters.FilterMode == FilterMode.None)
+            if (!IsFilterEnabled || CurrentFilters.Count == 0)
                 return files;
 
             FileEntries result = new FileEntries();
@@ -158,12 +158,12 @@ namespace zfile.Filter
 
             foreach (var file in files)
             {
-				bool ismatch = false;
+				bool ismatch = CurrentFilterAndOr;
 				foreach (var filter in CurrentFilters)  //bugfix: 遍历所有过滤器，判断文件是否符合任意一个过滤器的条件
 				{
-					if (filter.MatchesFilter(file))
+					if (GetFlagByAndOr(filter.MatchesFilter(file)))
 					{
-						ismatch = true;
+						ismatch = !CurrentFilterAndOr;
 						break;
 					}
 				}
@@ -174,10 +174,15 @@ namespace zfile.Filter
 			return result;
         }
 
-        /// <summary>
-        /// 显示过滤器对话框
-        /// </summary>
-        public bool ShowFilterDialog(Form owner = null)
+		private bool GetFlagByAndOr(bool v)
+		{
+			return !CurrentFilterAndOr ? v : !v;
+		}
+
+		/// <summary>
+		/// 显示过滤器对话框
+		/// </summary>
+		public bool ShowFilterDialog(Form owner = null)
         {
             using (FilterDialog dialog = new FilterDialog(owner as MainForm))
             {
@@ -227,7 +232,7 @@ namespace zfile.Filter
 	
 			var result = createFilterBySearchTemplte(templateData);
 
-			MessageBox.Show($"已加载搜索模板: {templateName}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			//MessageBox.Show($"已加载搜索模板: {templateName}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
 			return result;
 		}
 

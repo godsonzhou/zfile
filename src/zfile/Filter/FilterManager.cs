@@ -198,27 +198,27 @@ namespace zfile.Filter
         /// <summary>
         /// 设置过滤器
         /// </summary>
-        public void SetFilter(List<FileFilter> filter, bool enabled)
+        public void SetFilter(List<FileFilter>? filter, bool enabled = true)
         {
             CurrentFilters = filter ?? new List<FileFilter>();
             IsFilterEnabled = enabled;
         }
 
-		public void LoadSearchTemplate(string templateName)
+		public List<FileFilter>? LoadSearchTemplate(string templateName)
 		{
 			if (string.IsNullOrEmpty(templateName))
 			{
 				MessageBox.Show("请先选择一个搜索模板", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
-				return;
+				return null;
 			}
 
 			var templateData = Filter.FilterManager.Instance.GetSearchTemplateFromCfg(templateName);
 			if (templateData.Count == 0)
 			{
 				MessageBox.Show("无法加载搜索模板", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-				return;
+				return null;
 			}
-
+			var result = new List<FileFilter>();
 			// 解析SearchFlags
 			string searchFlags = templateData.ContainsKey(templateName + "_SearchFlags") ?
 				templateData[templateName + "_SearchFlags"] : "";
@@ -241,8 +241,6 @@ namespace zfile.Filter
 				string[] flagParts = searchFlags.Split('|');
 				if (flagParts.Length > 1)
 				{
-					
-
 					// 如果有日期类型 (第6个参数)
 					if (flagParts.Length > 5 && !string.IsNullOrEmpty(flagParts[5]))
 					{
@@ -251,13 +249,24 @@ namespace zfile.Filter
 						{
 							// 1=修改日期, 2=创建日期, 3=访问日期
 							// 这里可以设置相应的UI控件，如果有的话
+							result = createFilterBySearchTemplte(templateData);
 						}
 					}
 				}
 			}
 
 			MessageBox.Show($"已加载搜索模板: {templateName}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			return result;
 		}
+
+		private List<FileFilter> createFilterBySearchTemplte(Dictionary<string, string> templateData)
+		{
+			var result = new List<FileFilter>();
+			// 创建一个新的FileFilter对象
+
+			return result;
+		}
+
 		/// <summary>
 		/// 获取过滤器状态描述
 		/// </summary>

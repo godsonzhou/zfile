@@ -4,7 +4,7 @@ namespace zfile.Forms
 {
     public partial class FilterDialog : Form
     {
-        private List<FileFilter> _filter = [];
+        private List<FileFilter>? _filter = [];
         private MainForm owner;
         private ListBox templatesListBox;
         private TextBox templateNameTextBox;
@@ -200,10 +200,7 @@ namespace zfile.Forms
         /// </summary>
         private void TemplatesListBox_DoubleClick(object? sender, EventArgs e)
         {
-            if (templatesListBox.SelectedItem != null)
-            {
-                Filter.FilterManager.Instance.LoadSearchTemplate(templatesListBox.SelectedItem.ToString());
-            }
+    
         }   
 
         /// <summary>
@@ -211,9 +208,11 @@ namespace zfile.Forms
         /// </summary>
         private void buttonOK_Click(object? sender, EventArgs e)
         {
-            // 更新FilterManager的当前过滤器
-            FilterManager.Instance.CurrentFilters = _filter;
+			if (templatesListBox.SelectedItem != null)
+				_filter = Filter.FilterManager.Instance.LoadSearchTemplate(templatesListBox.SelectedItem.ToString());
 
+			// 更新FilterManager的当前过滤器
+			FilterManager.Instance.SetFilter(_filter);
             // Set dialog result and close
             DialogResult = DialogResult.OK;
             Close();

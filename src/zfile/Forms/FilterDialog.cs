@@ -7,6 +7,7 @@ namespace zfile.Forms
         private List<FileFilter>? _filter = [];
         private MainForm owner;
         private ListBox templatesListBox;
+        private ListBox selectedFiltersListBox;
         private TextBox templateNameTextBox;
 		public List<FileFilter>? SelectedFilter => _filter;
         public FilterDialog(MainForm owner = null, FileFilter? filter = null)
@@ -45,35 +46,60 @@ namespace zfile.Forms
             templatesPanel.Location = new Point(12, 12);
             templatesPanel.Size = new Size(560, 400);
 
-            // 创建标题标签
+            // 创建可用过滤器标题标签
             Label titleLabel = new Label();
             titleLabel.Text = "可用过滤器模板";
             titleLabel.Location = new Point(10, 10);
             titleLabel.AutoSize = true;
             titleLabel.Font = new Font(titleLabel.Font, FontStyle.Bold);
 
-            // 创建模板列表框
+            // 创建可用过滤器列表框
             templatesListBox = new ListBox();
             templatesListBox.Location = new Point(10, 30);
             templatesListBox.Size = new Size(200, 350);
             templatesListBox.SelectedIndexChanged += TemplatesListBox_SelectedIndexChanged;
             templatesListBox.DoubleClick += TemplatesListBox_DoubleClick;
 
-            // 创建模板名称文本框
-            //Label nameLabel = new Label();
-            //nameLabel.Text = "模板名称:";
-            //nameLabel.Location = new Point(220, 30);
-            //nameLabel.AutoSize = true;
+            // 创建已选择过滤器标题标签
+            Label selectedTitleLabel = new Label();
+            selectedTitleLabel.Text = "已选择的过滤器";
+            selectedTitleLabel.Location = new Point(350, 10);
+            selectedTitleLabel.AutoSize = true;
+            selectedTitleLabel.Font = new Font(selectedTitleLabel.Font, FontStyle.Bold);
 
-            //templateNameTextBox = new TextBox();
-            //templateNameTextBox.Location = new Point(280, 30);
-            //templateNameTextBox.Size = new Size(150, 23);
+            // 创建已选择过滤器列表框
+            selectedFiltersListBox = new ListBox();
+            selectedFiltersListBox.Location = new Point(350, 30);
+            selectedFiltersListBox.Size = new Size(200, 350);
+            selectedFiltersListBox.DoubleClick += SelectedFiltersListBox_DoubleClick;
+
+            // 创建操作按钮
+            Button addButton = new Button();
+            addButton.Text = "添加到已选择 >";
+            addButton.Location = new Point(220, 100);
+            addButton.Size = new Size(120, 30);
+            addButton.Click += AddButton_Click;
+
+            Button removeButton = new Button();
+            removeButton.Text = "< 从已选择中移除";
+            removeButton.Location = new Point(220, 150);
+            removeButton.Size = new Size(120, 30);
+            removeButton.Click += RemoveButton_Click;
+
+            Button clearButton = new Button();
+            clearButton.Text = "清空已选择";
+            clearButton.Location = new Point(220, 200);
+            clearButton.Size = new Size(120, 30);
+            clearButton.Click += ClearButton_Click;
 
             // 添加控件到面板
             templatesPanel.Controls.Add(titleLabel);
             templatesPanel.Controls.Add(templatesListBox);
-            //templatesPanel.Controls.Add(nameLabel);
-            //templatesPanel.Controls.Add(templateNameTextBox);
+            templatesPanel.Controls.Add(selectedTitleLabel);
+            templatesPanel.Controls.Add(selectedFiltersListBox);
+            templatesPanel.Controls.Add(addButton);
+            templatesPanel.Controls.Add(removeButton);
+            templatesPanel.Controls.Add(clearButton);
 
 			var buttonOK = new Button() { Text = "确定" };
 			var buttonCancel = new Button() { Text = "取消"};
@@ -96,7 +122,77 @@ namespace zfile.Forms
 			this.Controls.Add(buttonPnl);
 
 			// 加载模板列表
-			Filter.FilterManager.Instance.LoadSearchTemplates(templatesListBox);
+			Filter.FilterManager.Instance.LoadSearchTemplates(templatesListBox, true);
+            // 加载已选择的过滤器列表
+            LoadSelectedFilters();
+        }
+
+        /// <summary>
+        /// 加载已选择的过滤器列表
+        /// </summary>
+        private void LoadSelectedFilters()
+        {
+            selectedFiltersListBox.Items.Clear();
+            foreach (var name in FilterManager.Instance.CurrentFilterNames)
+            {
+                selectedFiltersListBox.Items.Add(name);
+            }
+        }
+
+        /// <summary>
+        /// 添加按钮点击事件
+        /// </summary>
+        private void AddButton_Click(object? sender, EventArgs e)
+        {
+            if (templatesListBox.SelectedItem != null)
+            {
+                string selectedTemplate = templatesListBox.SelectedItem.ToString();
+                var filter = FilterManager.Instance.LoadSearchTemplate(selectedTemplate);
+                if (filter != null)
+                {
+                    // 添加到已选择列表
+                    selectedFiltersListBox.Items.Add(selectedTemplate);
+                    // 从可用列表中移除
+                    templatesListBox.Items.Remove(selectedTemplate);
+                    // 更新过滤器列表
+                    FilterManager.Instance.AddFilter(filter);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 移除按钮点击事件
+        /// </summary>
+        private void RemoveButton_Click(object? sender, EventArgs e)
+        {
+            if (selectedFiltersListBox.SelectedItem != null)
+            {
+                string selectedFilter = selectedFiltersListBox.SelectedItem.ToString();
+                // 创建一个临时过滤器用于移除
+                var tempFilter = new List<FileFilter> { new FileFilter(selectedFilter) };
+                // 从已选择列表中移除
+                selectedFiltersListBox.Items.Remove(selectedFilter);
+                // 添加到可用列表
+                templatesListBox.Items.Add(selectedFilter);
+                // 更新过滤器列表
+                FilterManager.Instance.RemoveFilter(tempFilter);
+            }
+        }
+
+        /// <summary>
+        /// 清空按钮点击事件
+        /// </summary>
+        private void ClearButton_Click(object? sender, EventArgs e)
+        {
+            // 清空已选择列表
+            while (selectedFiltersListBox.Items.Count > 0)
+            {
+                string filterName = selectedFiltersListBox.Items[0].ToString();
+                selectedFiltersListBox.Items.RemoveAt(0);
+                templatesListBox.Items.Add(filterName);
+            }
+            // 清空过滤器
+            FilterManager.Instance.ClearFilter();
         }
 
 		private void ButtonDefine_Click(object? sender, EventArgs e)
@@ -122,23 +218,32 @@ namespace zfile.Forms
         }
 
         /// <summary>
-        /// 模板列表双击事件处理
+        /// 可用过滤器列表双击事件处理
         /// </summary>
         private void TemplatesListBox_DoubleClick(object? sender, EventArgs e)
         {
-    
+            AddButton_Click(sender, e);
         }   
+
+        /// <summary>
+        /// 已选择过滤器列表双击事件处理
+        /// </summary>
+        private void SelectedFiltersListBox_DoubleClick(object? sender, EventArgs e)
+        {
+            RemoveButton_Click(sender, e);
+        }
 
         /// <summary>
         /// Handle OK button click event
         /// </summary>
         private void buttonOK_Click(object? sender, EventArgs e)
         {
-			if (templatesListBox.SelectedItem != null)
-				_filter = Filter.FilterManager.Instance.LoadSearchTemplate(templatesListBox.SelectedItem.ToString());
+            _filter = FilterManager.Instance.CurrentFilters;
+			//if (templatesListBox.SelectedItem != null)
+			//	_filter = Filter.FilterManager.Instance.LoadSearchTemplate(templatesListBox.SelectedItem.ToString());
 
-            // Set dialog result and close
-            DialogResult = DialogResult.OK;
+			// Set dialog result and close
+			DialogResult = DialogResult.OK;
             Close();
         }
     }

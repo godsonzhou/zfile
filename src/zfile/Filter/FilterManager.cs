@@ -177,7 +177,7 @@ namespace zfile.Filter
         /// <summary>
         /// 显示过滤器对话框
         /// </summary>
-        public List<FileFilter>? ShowFilterDialog(Form owner = null)
+        public bool ShowFilterDialog(Form owner = null)
         {
             using (FilterDialog dialog = new FilterDialog(owner as MainForm))
             {
@@ -185,11 +185,10 @@ namespace zfile.Filter
                 if (dialog.ShowDialog(owner) == DialogResult.OK)
                 {
                     IsFilterEnabled = true;
-					//return FilterManager.Instance.CurrentFilters;
-					return dialog.SelectedFilter;
+					return true;
                 }
 
-                return null;
+                return false;
             }
         }
 

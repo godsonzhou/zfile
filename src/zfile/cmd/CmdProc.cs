@@ -688,18 +688,18 @@ namespace zfile
 
 		private void cm_shrinkselection()
 		{
-			var filter = Filter.FilterManager.Instance.ShowFilterDialog(owner);
+			if(Filter.FilterManager.Instance.ShowFilterDialog(owner))
 			//为过滤器删除过滤条件
-			Filter.FilterManager.Instance.RemoveFilter(filter);
-			owner.RefreshActivePanel();
+			//Filter.FilterManager.Instance.RemoveFilter(filter);
+				owner.RefreshActivePanel();
 		}
 
 		private void cm_spreadselection()
 		{
 			//为过滤器添加过滤条件
-			var filter = Filter.FilterManager.Instance.ShowFilterDialog(owner);
-			Filter.FilterManager.Instance.AddFilter(filter);
-			owner.RefreshActivePanel();
+			if( Filter.FilterManager.Instance.ShowFilterDialog(owner))
+			//Filter.FilterManager.Instance.AddFilter(filter);
+				owner.RefreshActivePanel();
 		}
 
 		private void cm_srcuserdef()

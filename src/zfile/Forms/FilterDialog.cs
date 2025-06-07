@@ -10,12 +10,24 @@ namespace zfile.Forms
         private ListBox selectedFiltersListBox;
         private TextBox templateNameTextBox;
 		public List<FileFilter>? SelectedFilter => _filter;
+        
+        // 保存初始状态，用于取消时恢复
+        private List<FileFilter> _originalFilters = [];
+        private bool _originalFilterAndOr;
+        
         public FilterDialog(MainForm owner = null, FileFilter? filter = null)
         {
             InitializeComponent();
 
             this.owner = owner;
 
+            // 保存FilterManager的初始状态
+            _originalFilters = FilterManager.Instance.CurrentFilters.ToList();
+            _originalFilterAndOr = FilterManager.Instance.CurrentFilterAndOr;
+            
+            // 初始化本地状态
+            _currentAndOrState = FilterManager.Instance.CurrentFilterAndOr;
+            
             // Initialize filter object
             if (filter != null)
                 _filter.Add(filter);
@@ -96,13 +108,13 @@ namespace zfile.Forms
 			andRadio.Text = "并且";
 			andRadio.Location = new Point(250, 250);
 			andRadio.Size = new Size(120, 30);
-			andRadio.Checked = FilterManager.Instance.CurrentFilterAndOr;
+			andRadio.Checked = _currentAndOrState;
 
 			RadioButton orRadio = new RadioButton();
 			orRadio.Text = "或者";
 			orRadio.Location = new Point(250, 280);
 			orRadio.Size = new Size(120, 30);
-			orRadio.Checked = !FilterManager.Instance.CurrentFilterAndOr;
+			orRadio.Checked = !_currentAndOrState;
 
 			andRadio.CheckedChanged += AndRadio_CheckedChanged;
 			
@@ -143,9 +155,12 @@ namespace zfile.Forms
             LoadSelectedFilters();
         }
 
+		private bool _currentAndOrState;
+		
 		private void AndRadio_CheckedChanged(object? sender, EventArgs e)
 		{
-			FilterManager.Instance.CurrentFilterAndOr = !FilterManager.Instance.CurrentFilterAndOr;
+			// 只在本地保存状态，不直接修改FilterManager
+			_currentAndOrState = !_currentAndOrState;
 		}
 
 		/// <summary>
@@ -224,6 +239,12 @@ namespace zfile.Forms
 
 		private void ButtonCancel_Click(object? sender, EventArgs e)
 		{
+			// 恢复FilterManager的初始状态
+			FilterManager.Instance.SetFilter(_originalFilters);
+			FilterManager.Instance.CurrentFilterAndOr = _originalFilterAndOr;
+			
+			// 设置对话框结果并关闭
+			DialogResult = DialogResult.Cancel;
 			Close();
 		}
 
@@ -259,6 +280,10 @@ namespace zfile.Forms
         /// </summary>
         private void buttonOK_Click(object? sender, EventArgs e)
         {
+            // 应用本地状态到FilterManager
+            FilterManager.Instance.CurrentFilterAndOr = _currentAndOrState;
+            
+            // 获取当前过滤器
             _filter = FilterManager.Instance.CurrentFilters;
 			//if (templatesListBox.SelectedItem != null)
 			//	_filter = Filter.FilterManager.Instance.LoadSearchTemplate(templatesListBox.SelectedItem.ToString());

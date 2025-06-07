@@ -39,10 +39,11 @@ namespace zfile.Filter
     /// <summary>
     /// 文件过滤器类
     /// </summary>
-    public class FileFilter
+    public class FileFilter(string filtername)
     {
-        // 过滤模式
-        public FilterMode FilterMode { get; set; } = FilterMode.None;
+		public string Name { get; set; } = filtername;
+		// 过滤模式
+		public FilterMode FilterMode { get; set; } = FilterMode.None;
 
         // 名称过滤
         public string NamePattern { get; set; } = string.Empty;
@@ -259,7 +260,7 @@ namespace zfile.Filter
         /// </summary>
         public FileFilter Clone()
         {
-            return new FileFilter
+            return new FileFilter(Name)
             {
                 FilterMode = this.FilterMode,
                 NamePattern = this.NamePattern,

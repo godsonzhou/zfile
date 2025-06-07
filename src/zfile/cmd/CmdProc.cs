@@ -698,7 +698,6 @@ namespace zfile
 		{
 			//为过滤器添加过滤条件
 			var filter = Filter.FilterManager.Instance.ShowFilterDialog(owner);
-			//为过滤器删除过滤条件
 			Filter.FilterManager.Instance.AddFilter(filter);
 			owner.RefreshActivePanel();
 		}

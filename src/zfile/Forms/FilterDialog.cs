@@ -85,27 +85,27 @@ namespace zfile.Forms
 			filterPanel.Controls.Add(hintLabel);
 			
 			// 创建按钮
-			var buttonOK = new Button();
-			buttonOK.Text = "确定";
-			buttonOK.DialogResult = DialogResult.OK;
-			buttonOK.Location = new Point(400, 530);
-			buttonOK.Size = new Size(80, 30);
-			this.Controls.Add(buttonOK);
-			buttonOK.Click += buttonOK_Click;
+			//var buttonOK = new Button();
+			//buttonOK.Text = "确定";
+			//buttonOK.DialogResult = DialogResult.OK;
+			//buttonOK.Location = new Point(400, 530);
+			//buttonOK.Size = new Size(80, 30);
+			//this.Controls.Add(buttonOK);
+			//buttonOK.Click += buttonOK_Click;
 			
-			var buttonCancel = new Button();
-			buttonCancel.Text = "取消";
-			buttonCancel.DialogResult = DialogResult.Cancel;
-			buttonCancel.Location = new Point(490, 530);
-			buttonCancel.Size = new Size(80, 30);
-			this.Controls.Add(buttonCancel);
-			buttonCancel.Click += ButtonCancel_Click;
+			//var buttonCancel = new Button();
+			//buttonCancel.Text = "取消";
+			//buttonCancel.DialogResult = DialogResult.Cancel;
+			//buttonCancel.Location = new Point(490, 530);
+			//buttonCancel.Size = new Size(80, 30);
+			//this.Controls.Add(buttonCancel);
+			//buttonCancel.Click += ButtonCancel_Click;
 			
-			var buttonClear = new Button();
-			buttonClear.Text = "清除";
-			buttonClear.Location = new Point(310, 530);
-			buttonClear.Size = new Size(80, 30);
-			this.Controls.Add(buttonClear);
+			//var buttonClear = new Button();
+			//buttonClear.Text = "清除";
+			//buttonClear.Location = new Point(310, 530);
+			//buttonClear.Size = new Size(80, 30);
+			//this.Controls.Add(buttonClear);
 		}
 
 		/// <summary>

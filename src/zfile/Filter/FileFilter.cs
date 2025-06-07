@@ -180,9 +180,7 @@ namespace zfile.Filter
                 return true;
 
             // 检查扩展名是否在列表中
-            bool inList = extensionList.Any(ext => 
-                extension.Equals(ext, StringComparison.OrdinalIgnoreCase) || 
-                extension.Equals("." + ext, StringComparison.OrdinalIgnoreCase));
+            bool inList = extensionList.Any(ext => ext.EndsWith(extension, StringComparison.OrdinalIgnoreCase)); //bufix: extension is 'zip', ext is '*.zip'
 
             // 根据是否排除扩展名返回结果
             return ExcludeExtensions ? !inList : inList;

@@ -219,41 +219,42 @@ namespace zfile.Filter
 				return null;
 			}
 			var result = new List<FileFilter>();
-			// 解析SearchFlags
-			string searchFlags = templateData.ContainsKey(templateName + "_SearchFlags") ?
-				templateData[templateName + "_SearchFlags"] : "";
+			//// 解析SearchFlags
+			//string searchFlags = templateData.ContainsKey(templateName + "_SearchFlags") ?
+			//	templateData[templateName + "_SearchFlags"] : "";
 
-			// 解析SearchFor (搜索模式)
-			string searchFor = templateData.ContainsKey(templateName + "_SearchFor") ?
-				templateData[templateName + "_SearchFor"] : "";
+			//// 解析SearchFor (搜索模式)
+			//string searchFor = templateData.ContainsKey(templateName + "_SearchFor") ?
+			//	templateData[templateName + "_SearchFor"] : "";
 
-			// 解析SearchIn (搜索位置)
-			string searchIn = templateData.ContainsKey(templateName + "_SearchIn") ?
-				templateData[templateName + "_SearchIn"] : "";
+			//// 解析SearchIn (搜索位置)
+			//string searchIn = templateData.ContainsKey(templateName + "_SearchIn") ?
+			//	templateData[templateName + "_SearchIn"] : "";
 
-			// 解析SearchText (搜索文本)
-			string searchText = templateData.ContainsKey(templateName + "_SearchText") ?
-				templateData[templateName + "_SearchText"] : "";
+			//// 解析SearchText (搜索文本)
+			//string searchText = templateData.ContainsKey(templateName + "_SearchText") ?
+			//	templateData[templateName + "_SearchText"] : "";
 
-			// 解析SearchFlags并设置相应的UI控件
-			if (!string.IsNullOrEmpty(searchFlags))
-			{
-				string[] flagParts = searchFlags.Split('|');
-				if (flagParts.Length > 1)
-				{
-					// 如果有日期类型 (第6个参数)
-					if (flagParts.Length > 5 && !string.IsNullOrEmpty(flagParts[5]))
-					{
-						int dateType;
-						if (int.TryParse(flagParts[5], out dateType))
-						{
-							// 1=修改日期, 2=创建日期, 3=访问日期
-							// 这里可以设置相应的UI控件，如果有的话
-							result = createFilterBySearchTemplte(templateData);
-						}
-					}
-				}
-			}
+			//// 解析SearchFlags并设置相应的UI控件
+			//if (!string.IsNullOrEmpty(searchFlags))
+			//{
+			//	string[] flagParts = searchFlags.Split('|');
+			//	if (flagParts.Length > 1)
+			//	{
+			//		// 如果有日期类型 (第6个参数)
+			//		if (flagParts.Length > 5 && !string.IsNullOrEmpty(flagParts[5]))
+			//		{
+			//			int dateType;
+			//			if (int.TryParse(flagParts[5], out dateType))
+			//			{
+			//				// 1=修改日期, 2=创建日期, 3=访问日期
+			//				// 这里可以设置相应的UI控件，如果有的话
+			//				result = createFilterBySearchTemplte(templateData);
+			//			}
+			//		}
+			//	}
+			//}
+			result = createFilterBySearchTemplte(templateData);
 
 			MessageBox.Show($"已加载搜索模板: {templateName}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
 			return result;

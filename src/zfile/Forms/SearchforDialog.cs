@@ -6,11 +6,14 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using zfile.Filter;
 
 namespace zfile.Forms
 {
 	public class SearchforDialog : Form
 	{
+		private FilterManager filterMgr;
+
 		private TabControl tabControl;
 		private TabPage generalTab;
 		private TabPage advancedTab;
@@ -108,6 +111,7 @@ namespace zfile.Forms
 		{
 			isStandalone = isstandalone;
 			this.owner = owner;
+			filterMgr = FilterManager.Instance;
 			InitializeComponent();
 			LoadHistory();
 		}
@@ -650,12 +654,12 @@ namespace zfile.Forms
 			deleteButton.Click += (sender, e) => {
 				if (templatesListBox.SelectedItem != null)
 				{
-					DeleteSearchTemplate(templatesListBox.SelectedItem.ToString(), templatesListBox);
+					filterMgr.DeleteSearchTemplate(templatesListBox.SelectedItem.ToString(), templatesListBox);
 				}
 			};
 
 			// 加载搜索模板列表
-			LoadSearchTemplates(templatesListBox);
+			filterMgr.LoadSearchTemplates(templatesListBox);
 		}
 
 		// 增加规则按钮点击事件处理程序
@@ -833,64 +837,6 @@ namespace zfile.Forms
 			}
 		}
 
-		// 加载搜索模板列表到ListBox控件
-		private void LoadSearchTemplates(ListBox listBox)
-		{
-			listBox.Items.Clear();
-			
-			// 从MainForm获取搜索模板配置
-			if (owner is MainForm mainForm)
-			{
-				var searchesSection = mainForm.configLoader.GetConfigSection("Searches");
-				if (searchesSection != null)
-				{
-					// 提取所有搜索模板名称
-					HashSet<string> templateNames = new HashSet<string>();
-					foreach (var item in searchesSection.Items)
-					{
-						string key = item.Key;
-						if (key.Contains("_SearchFlags") || key.Contains("_SearchFor") || 
-							key.Contains("_SearchIn") || key.Contains("_SearchText"))
-						{
-							string templateName = key.Substring(0, key.IndexOf('_'));
-							templateNames.Add(templateName);
-						}
-					}
-
-					// 添加到列表框
-					foreach (var name in templateNames)
-					{
-						listBox.Items.Add(name);
-					}
-				}
-			}
-		}
-
-		// 从配置中解析搜索模板
-		private Dictionary<string, string> GetSearchTemplateFromCfg(string templateName)
-		{
-			Dictionary<string, string> templateData = new Dictionary<string, string>();
-			
-			if (owner is MainForm mainForm)
-			{
-				var searchesSection = mainForm.configLoader.GetConfigSection("Searches");
-				if (searchesSection != null)
-				{
-					// 查找与模板名称匹配的所有配置项
-					foreach (var item in searchesSection.Items)
-					{
-						if (item.Key.StartsWith(templateName + "_"))
-						{
-							templateData[item.Key] = item.Value;
-						}
-					}
-				}
-			}
-			
-			return templateData;
-		}
-
-		// 加载选中的搜索模板
 		private void LoadSearchTemplate(string templateName)
 		{
 			if (string.IsNullOrEmpty(templateName))
@@ -899,7 +845,7 @@ namespace zfile.Forms
 				return;
 			}
 
-			var templateData = GetSearchTemplateFromCfg(templateName);
+			var templateData = Filter.FilterManager.Instance.GetSearchTemplateFromCfg(templateName);
 			if (templateData.Count == 0)
 			{
 				MessageBox.Show("无法加载搜索模板", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -907,25 +853,25 @@ namespace zfile.Forms
 			}
 
 			// 解析SearchFlags
-			string searchFlags = templateData.ContainsKey(templateName + "_SearchFlags") ? 
+			string searchFlags = templateData.ContainsKey(templateName + "_SearchFlags") ?
 				templateData[templateName + "_SearchFlags"] : "";
-			
+
 			// 解析SearchFor (搜索模式)
-			string searchFor = templateData.ContainsKey(templateName + "_SearchFor") ? 
+			string searchFor = templateData.ContainsKey(templateName + "_SearchFor") ?
 				templateData[templateName + "_SearchFor"] : "";
-			
+
 			// 解析SearchIn (搜索位置)
-			string searchIn = templateData.ContainsKey(templateName + "_SearchIn") ? 
+			string searchIn = templateData.ContainsKey(templateName + "_SearchIn") ?
 				templateData[templateName + "_SearchIn"] : "";
-			
+
 			// 解析SearchText (搜索文本)
-			string searchText = templateData.ContainsKey(templateName + "_SearchText") ? 
+			string searchText = templateData.ContainsKey(templateName + "_SearchText") ?
 				templateData[templateName + "_SearchText"] : "";
 
 			// 应用搜索模板设置到UI
 			searchBox.Text = searchFor;
 			locationBox.Text = searchIn;
-			
+
 			if (!string.IsNullOrEmpty(searchText))
 			{
 				findTextCheckBox.Checked = true;
@@ -945,7 +891,7 @@ namespace zfile.Forms
 				{
 					// 设置正则表达式选项
 					regexCheckBox.Checked = flagParts[1].Contains("00000200");
-					
+
 					// 设置搜索压缩文件选项
 					searchCompressedCheckBox.Checked = flagParts[1].Contains("0020");
 
@@ -987,26 +933,26 @@ namespace zfile.Forms
 
 			// 构建SearchFlags
 			string searchFlags = "0|";
-			
+
 			// 添加正则表达式标志
 			searchFlags += regexCheckBox.Checked ? "00000200" : "00000000";
-			
+
 			// 添加搜索压缩文件标志
 			searchFlags += searchCompressedCheckBox.Checked ? "0020" : "0000";
-			
+
 			// 添加其他标志占位符
 			searchFlags += "|||||";
-			
+
 			// 添加日期限制
 			if (!string.IsNullOrEmpty(notBeforeValueTextBox.Text) && int.TryParse(notBeforeValueTextBox.Text, out int days))
 			{
 				searchFlags += days.ToString();
 			}
 			searchFlags += "|";
-			
+
 			// 添加日期类型 (1=修改日期)
 			searchFlags += "1";
-			
+
 			// 添加剩余标志占位符
 			searchFlags += "||||0000";
 
@@ -1022,10 +968,10 @@ namespace zfile.Forms
 				}
 
 				// 更新或添加模板配置项
-				UpdateOrAddConfigItem(searchesSection, templateName + "_SearchFlags", searchFlags);
-				UpdateOrAddConfigItem(searchesSection, templateName + "_SearchFor", searchBox.Text);
-				UpdateOrAddConfigItem(searchesSection, templateName + "_SearchIn", locationBox.Text);
-				UpdateOrAddConfigItem(searchesSection, templateName + "_SearchText", findTextCheckBox.Checked ? findTextBox.Text : "");
+				filterMgr.UpdateOrAddConfigItem(searchesSection, templateName + "_SearchFlags", searchFlags);
+				filterMgr.UpdateOrAddConfigItem(searchesSection, templateName + "_SearchFor", searchBox.Text);
+				filterMgr.UpdateOrAddConfigItem(searchesSection, templateName + "_SearchIn", locationBox.Text);
+				filterMgr.UpdateOrAddConfigItem(searchesSection, templateName + "_SearchText", findTextCheckBox.Checked ? findTextBox.Text : "");
 
 				// 保存配置
 				mainForm.configLoader.SaveConfig();
@@ -1036,55 +982,9 @@ namespace zfile.Forms
 				var templatesListBox = rulesTab.Controls.OfType<ListBox>().FirstOrDefault();
 				if (templatesListBox != null)
 				{
-					LoadSearchTemplates(templatesListBox);
+					filterMgr.LoadSearchTemplates(templatesListBox);
 					// 选中新保存的模板
 					templatesListBox.SelectedItem = templateName;
-				}
-			}
-		}
-
-		// 更新或添加配置项
-		private void UpdateOrAddConfigItem(ConfigSection section, string key, string value)
-		{
-			var item = section.Items.FirstOrDefault(i => i.Key == key);
-			if (item != null)
-			{
-				item.Value = value;
-			}
-			else
-			{
-				section.Items.Add(new ConfigItem { Key = key, Value = value });
-			}
-		}
-
-		// 删除搜索模板
-		private void DeleteSearchTemplate(string templateName, ListBox listBox)
-		{
-			if (string.IsNullOrEmpty(templateName))
-			{
-				MessageBox.Show("请先选择一个搜索模板", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
-				return;
-			}
-
-			if (MessageBox.Show($"确定要删除搜索模板 '{templateName}' 吗？", "确认删除", 
-				MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-			{
-				if (owner is MainForm mainForm)
-				{
-					var searchesSection = mainForm.configLoader.GetConfigSection("Searches");
-					if (searchesSection != null)
-					{
-						// 删除与模板名称匹配的所有配置项
-						searchesSection.Items.RemoveAll(item => item.Key.StartsWith(templateName + "_"));
-
-						// 保存配置
-						mainForm.configLoader.SaveConfig();
-
-						// 刷新模板列表
-						LoadSearchTemplates(listBox);
-
-						MessageBox.Show($"搜索模板 '{templateName}' 已删除", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
-					}
 				}
 			}
 		}

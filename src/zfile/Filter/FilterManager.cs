@@ -28,11 +28,109 @@ namespace zfile.Filter
                 return _instance;
             }
         }
+		// 加载搜索模板列表到ListBox控件
+		public HashSet<string> LoadSearchTemplates(ListBox listBox)
+		{
+			HashSet<string> templateNames = new HashSet<string>();
+			listBox.Items.Clear();
 
-        /// <summary>
-        /// 当前活动的过滤器
-        /// </summary>
-        public FileFilter CurrentFilter { get; set; }
+			var searchesSection = MainForm.Instance.configLoader.GetConfigSection("Searches");
+			if (searchesSection != null)
+			{
+				// 提取所有搜索模板名称
+				foreach (var item in searchesSection.Items)
+				{
+					string key = item.Key;
+					if (key.Contains("_SearchFlags") || key.Contains("_SearchFor") ||
+						key.Contains("_SearchIn") || key.Contains("_SearchText"))
+					{
+						string templateName = key.Substring(0, key.IndexOf('_'));
+						templateNames.Add(templateName);
+					}
+				}
+
+				// 添加到列表框
+				foreach (var name in templateNames)
+				{
+					listBox.Items.Add(name);
+				}
+			}
+			return templateNames;
+		}
+
+		// 更新或添加配置项
+		public void UpdateOrAddConfigItem(ConfigSection section, string key, string value)
+		{
+			var item = section.Items.FirstOrDefault(i => i.Key == key);
+			if (item != null)
+			{
+				item.Value = value;
+			}
+			else
+			{
+				section.Items.Add(new ConfigItem { Key = key, Value = value });
+			}
+		}
+
+		// 删除搜索模板
+		public void DeleteSearchTemplate(string templateName, ListBox listBox)
+		{
+			if (string.IsNullOrEmpty(templateName))
+			{
+				MessageBox.Show("请先选择一个搜索模板", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return;
+			}
+
+			if (MessageBox.Show($"确定要删除搜索模板 '{templateName}' 吗？", "确认删除",
+				MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+			{
+				//if (owner is MainForm mainForm)
+				MainForm mainForm = MainForm.Instance;
+				{
+					var searchesSection = mainForm.configLoader.GetConfigSection("Searches");
+					if (searchesSection != null)
+					{
+						// 删除与模板名称匹配的所有配置项
+						searchesSection.Items.RemoveAll(item => item.Key.StartsWith(templateName + "_"));
+
+						// 保存配置
+						mainForm.configLoader.SaveConfig();
+
+						// 刷新模板列表
+						LoadSearchTemplates(listBox);
+
+						MessageBox.Show($"搜索模板 '{templateName}' 已删除", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+					}
+				}
+			}
+		}
+		// 从配置中解析搜索模板
+		public Dictionary<string, string> GetSearchTemplateFromCfg(string templateName)
+		{
+			Dictionary<string, string> templateData = [];
+
+			var mainForm = MainForm.Instance;
+			{
+				var searchesSection = mainForm.configLoader.GetConfigSection("Searches");
+				if (searchesSection != null)
+				{
+					// 查找与模板名称匹配的所有配置项
+					foreach (var item in searchesSection.Items)
+					{
+						if (item.Key.StartsWith(templateName + "_"))
+						{
+							templateData[item.Key] = item.Value;
+						}
+					}
+				}
+			}
+
+			return templateData;
+		}
+		/// <summary>
+		/// 当前活动的过滤器
+		/// </summary>
+		public FileFilter CurrentFilter { get; set; }
 
         /// <summary>
         /// 是否启用过滤
@@ -73,24 +171,18 @@ namespace zfile.Filter
         /// <summary>
         /// 显示过滤器对话框
         /// </summary>
-        public bool ShowFilterDialog()
+        public FileFilter? ShowFilterDialog(Form owner = null)
         {
-            using (FilterDialog dialog = new FilterDialog())
+            using (FilterDialog dialog = new FilterDialog(owner as MainForm))
             {
-                // 设置对话框的过滤器为当前过滤器的副本
-                //dialog.Filter = CurrentFilter.Clone();
-                //dialog.IsFilterEnabled = IsFilterEnabled;
-
                 // 显示对话框
-                if (dialog.ShowDialog() == DialogResult.OK)
+                if (dialog.ShowDialog(owner) == DialogResult.OK)
                 {
-                    // 用户点击了确定，更新当前过滤器
-                    //CurrentFilter = dialog.Filter;
-                    //IsFilterEnabled = dialog.IsFilterEnabled;
-                    return true;
+                    IsFilterEnabled = true;
+                    return FilterManager.Instance.CurrentFilter;
                 }
 
-                return false;
+                return null;
             }
         }
 
@@ -112,10 +204,64 @@ namespace zfile.Filter
             IsFilterEnabled = enabled;
         }
 
-        /// <summary>
-        /// 获取过滤器状态描述
-        /// </summary>
-        public string GetFilterStatusDescription()
+		public void LoadSearchTemplate(string templateName)
+		{
+			if (string.IsNullOrEmpty(templateName))
+			{
+				MessageBox.Show("请先选择一个搜索模板", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return;
+			}
+
+			var templateData = Filter.FilterManager.Instance.GetSearchTemplateFromCfg(templateName);
+			if (templateData.Count == 0)
+			{
+				MessageBox.Show("无法加载搜索模板", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return;
+			}
+
+			// 解析SearchFlags
+			string searchFlags = templateData.ContainsKey(templateName + "_SearchFlags") ?
+				templateData[templateName + "_SearchFlags"] : "";
+
+			// 解析SearchFor (搜索模式)
+			string searchFor = templateData.ContainsKey(templateName + "_SearchFor") ?
+				templateData[templateName + "_SearchFor"] : "";
+
+			// 解析SearchIn (搜索位置)
+			string searchIn = templateData.ContainsKey(templateName + "_SearchIn") ?
+				templateData[templateName + "_SearchIn"] : "";
+
+			// 解析SearchText (搜索文本)
+			string searchText = templateData.ContainsKey(templateName + "_SearchText") ?
+				templateData[templateName + "_SearchText"] : "";
+
+			// 解析SearchFlags并设置相应的UI控件
+			if (!string.IsNullOrEmpty(searchFlags))
+			{
+				string[] flagParts = searchFlags.Split('|');
+				if (flagParts.Length > 1)
+				{
+					
+
+					// 如果有日期类型 (第6个参数)
+					if (flagParts.Length > 5 && !string.IsNullOrEmpty(flagParts[5]))
+					{
+						int dateType;
+						if (int.TryParse(flagParts[5], out dateType))
+						{
+							// 1=修改日期, 2=创建日期, 3=访问日期
+							// 这里可以设置相应的UI控件，如果有的话
+						}
+					}
+				}
+			}
+
+			MessageBox.Show($"已加载搜索模板: {templateName}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+		}
+		/// <summary>
+		/// 获取过滤器状态描述
+		/// </summary>
+		public string GetFilterStatusDescription()
         {
             if (!IsFilterEnabled || CurrentFilter.FilterMode == FilterMode.None)
                 return "无过滤";
@@ -141,5 +287,15 @@ namespace zfile.Filter
                     return "已启用过滤";
             }
         }
-    }
+
+		internal void AddFilter(FileFilter? filter)
+		{
+			throw new NotImplementedException();
+		}
+
+		internal void RemoveFilter(FileFilter? filter)
+		{
+			throw new NotImplementedException();
+		}
+	}
 }

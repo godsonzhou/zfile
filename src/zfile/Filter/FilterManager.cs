@@ -262,10 +262,103 @@ namespace zfile.Filter
 		private List<FileFilter> createFilterBySearchTemplte(Dictionary<string, string> templateData)
 		{
 			var result = new List<FileFilter>();
-			// 创建一个新的FileFilter对象
+			if (templateData.Count == 0)
+				return result;
+
+			// 获取模板名称（从任意一个键中提取）
+			string templateName = templateData.Keys.First().Split('_')[0];
+
+			// 获取搜索设置
+			string searchFlags = templateData.ContainsKey($"{templateName}_SearchFlags") ?
+				templateData[$"{templateName}_SearchFlags"] : "";
+			string searchFor = templateData.ContainsKey($"{templateName}_SearchFor") ?
+				templateData[$"{templateName}_SearchFor"] : "";
+			string searchIn = templateData.ContainsKey($"{templateName}_SearchIn") ?
+				templateData[$"{templateName}_SearchIn"] : "";
+			string searchText = templateData.ContainsKey($"{templateName}_SearchText") ?
+				templateData[$"{templateName}_SearchText"] : "";
+
+			// 创建文件过滤器
+			var filter = new FileFilter();
+
+			// 解析 SearchFlags (格式: flag1|flag2|flag3|date|comp|type|size|sizeunit|reserved|attr|reserved)
+			string[] flagParts = searchFlags.Split('|');
+			if (flagParts.Length > 5)
+			{
+				// 基本标志位解析
+				string baseFlags = flagParts[0];
+
+				// 解析扩展名过滤
+				if (!string.IsNullOrEmpty(searchFor))
+				{
+					filter.FilterMode = FilterMode.ByExtension;
+					filter.Extensions = searchFor;
+					// 检查是否是排除模式
+					filter.ExcludeExtensions = baseFlags.Contains("exclude");
+				}
+
+				// 解析日期过滤
+				if (flagParts.Length > 5 && !string.IsNullOrEmpty(flagParts[4]))
+				{
+					int days;
+					if (int.TryParse(flagParts[4], out days) && days > 0)
+					{
+						filter.FilterMode = FilterMode.ByDate;
+						filter.DateComparisonType = ComparisonType.Less;
+						filter.DateType = DateType.Modified; // 默认使用修改时间
+						filter.MinDate = DateTime.Now.AddDays(-days);
+					}
+				}
+
+				// 解析大小过滤
+				if (flagParts.Length > 7)
+				{
+					if (int.TryParse(flagParts[6], out int size) &&
+						int.TryParse(flagParts[7], out int sizeUnit))
+					{
+						filter.FilterMode = FilterMode.BySize;
+						// sizeUnit: 1=KB, 2=MB, 3=GB
+						long multiplier = sizeUnit switch
+						{
+							1 => 1024L,
+							2 => 1024L * 1024L,
+							3 => 1024L * 1024L * 1024L,
+							_ => 1L
+						};
+
+						if (flagParts[5] == "1") // 小于
+						{
+							filter.SizeComparisonType = ComparisonType.Less;
+							filter.MaxSize = size * multiplier;
+						}
+						else if (flagParts[5] == "2") // 大于
+						{
+							filter.SizeComparisonType = ComparisonType.Greater;
+							filter.MinSize = size * multiplier;
+						}
+					}
+				}
+
+				// 解析文件属性 (第10个参数，5位数字代表: 目录|系统|隐藏|只读|存档)
+				if (flagParts.Length > 9 && flagParts[9].Length == 5)
+				{
+					filter.FilterMode = FilterMode.ByAttributes;
+					string attrs = flagParts[9];
+					filter.IncludeDirectories = attrs[0] == '2';
+					filter.IncludeSystem = attrs[1] == '2';
+					filter.IncludeHidden = attrs[2] == '2';
+					filter.IncludeReadOnly = attrs[3] == '2';
+				}
+			}
+
+			if (filter.FilterMode != FilterMode.None)
+			{
+				result.Add(filter);
+			}
 
 			return result;
 		}
+
 
 		/// <summary>
 		/// 获取过滤器状态描述

@@ -1,11 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Windows.Forms;
 using zfile.Filter;
 
 namespace zfile.Forms
@@ -107,7 +101,7 @@ namespace zfile.Forms
 		private Form owner;
 		private bool isStandalone;
 
-		public SearchforDialog(Form owner, bool isstandalone)
+		public SearchforDialog(Form owner, bool isstandalone = false)
 		{
 			isStandalone = isstandalone;
 			this.owner = owner;

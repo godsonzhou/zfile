@@ -1,11 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using zfile.Forms;
-//using zfile.vfs.FileSources;
 
 namespace zfile.Filter
 {
@@ -297,11 +290,13 @@ namespace zfile.Filter
 
 		internal void AddFilter(List<FileFilter>? filter)
 		{
-			CurrentFilters.AddRange(filter);
+			if(filter != null)
+				CurrentFilters.AddRange(filter);
 		}
 
 		internal void RemoveFilter(List<FileFilter>? filter)
 		{
+			if (filter == null) return;
 			foreach(var f in filter)
 				CurrentFilters.Remove(f);
 		}

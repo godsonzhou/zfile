@@ -14,12 +14,12 @@ namespace zfile.Forms
 {
     public partial class FilterDialog : Form
     {
-        private FileFilter _filter;
+        private List<FileFilter> _filter = [];
         private MainForm owner;
         private ListBox templatesListBox;
         private TextBox templateNameTextBox;
 
-        public FilterDialog(MainForm owner = null, FileFilter filter = null)
+        public FilterDialog(MainForm owner = null, FileFilter? filter = null)
         {
             InitializeComponent();
 
@@ -27,18 +27,23 @@ namespace zfile.Forms
 
             // Initialize filter object
             if (filter != null)
-                _filter = filter.Clone();
+                _filter.Add(filter);
             else
-                _filter = FilterManager.Instance.CurrentFilter.Clone();
+                _filter = FilterManager.Instance.CurrentFilters;
 
             // 初始化模板面板
             InitializeTemplatesPanel();
         }
 
-        /// <summary>
-        /// 初始化模板面板
-        /// </summary>
-        private void InitializeTemplatesPanel()
+		private void InitializeComponent()
+		{
+			
+		}
+
+		/// <summary>
+		/// 初始化模板面板
+		/// </summary>
+		private void InitializeTemplatesPanel()
         {
             // 创建模板面板
             Panel templatesPanel = new Panel();
@@ -78,9 +83,14 @@ namespace zfile.Forms
 
             // 调整对话框大小
             this.Height += 140;
+			var buttonOK = new Button();
+			var buttonCancel = new Button();
+			var buttonClear = new Button();
+			buttonOK.Click += buttonOK_Click;
+			buttonCancel.Click += ButtonCancel_Click;
 
-            // 调整确定、取消和清除按钮的位置
-            buttonOK.Location = new Point(buttonOK.Location.X, buttonOK.Location.Y + 140);
+			// 调整确定、取消和清除按钮的位置
+			buttonOK.Location = new Point(buttonOK.Location.X, buttonOK.Location.Y + 140);
             buttonCancel.Location = new Point(buttonCancel.Location.X, buttonCancel.Location.Y + 140);
             buttonClear.Location = new Point(buttonClear.Location.X, buttonClear.Location.Y + 140);
 
@@ -91,10 +101,15 @@ namespace zfile.Forms
             Filter.FilterManager.Instance.LoadSearchTemplates(templatesListBox);
         }
 
-        /// <summary>
-        /// 模板列表选择变更事件处理
-        /// </summary>
-        private void TemplatesListBox_SelectedIndexChanged(object? sender, EventArgs e)
+		private void ButtonCancel_Click(object? sender, EventArgs e)
+		{
+			Close();
+		}
+
+		/// <summary>
+		/// 模板列表选择变更事件处理
+		/// </summary>
+		private void TemplatesListBox_SelectedIndexChanged(object? sender, EventArgs e)
         {
             if (templatesListBox.SelectedItem != null)
             {
@@ -119,7 +134,7 @@ namespace zfile.Forms
         private void buttonOK_Click(object sender, EventArgs e)
         {
             // 更新FilterManager的当前过滤器
-            FilterManager.Instance.CurrentFilter = _filter.Clone();
+            FilterManager.Instance.CurrentFilters = _filter;
 
             // Set dialog result and close
             DialogResult = DialogResult.OK;

@@ -130,7 +130,7 @@ namespace zfile.Filter
 		/// <summary>
 		/// 当前活动的过滤器
 		/// </summary>
-		public FileFilter CurrentFilter { get; set; }
+		public List<FileFilter> CurrentFilters { get; set; }
 
         /// <summary>
         /// 是否启用过滤
@@ -142,7 +142,7 @@ namespace zfile.Filter
         /// </summary>
         private FilterManager()
         {
-            CurrentFilter = new FileFilter();
+            CurrentFilters = new ();
             IsFilterEnabled = false;
         }
 
@@ -151,7 +151,7 @@ namespace zfile.Filter
         /// </summary>
         public FileEntries ApplyFilter(FileEntries files)
         {
-            if (!IsFilterEnabled || CurrentFilter.FilterMode == FilterMode.None)
+            if (!IsFilterEnabled) // || CurrentFilters.FilterMode == FilterMode.None)
                 return files;
 
             FileEntries result = new FileEntries();
@@ -159,19 +159,26 @@ namespace zfile.Filter
 
             foreach (var file in files)
             {
-                if (CurrentFilter.MatchesFilter(file))
-                {
-                    result.Add(file);
-                }
-            }
+				bool ismatch = true;
+				foreach (var filter in CurrentFilters)
+				{
+					if (!filter.MatchesFilter(file))
+					{
+						ismatch = false;
+						break;
+					}
+				}
+				if(ismatch)
+					result.Add(file);
+			}
 
-            return result;
+			return result;
         }
 
         /// <summary>
         /// 显示过滤器对话框
         /// </summary>
-        public FileFilter? ShowFilterDialog(Form owner = null)
+        public List<FileFilter>? ShowFilterDialog(Form owner = null)
         {
             using (FilterDialog dialog = new FilterDialog(owner as MainForm))
             {
@@ -179,7 +186,7 @@ namespace zfile.Filter
                 if (dialog.ShowDialog(owner) == DialogResult.OK)
                 {
                     IsFilterEnabled = true;
-                    return FilterManager.Instance.CurrentFilter;
+                    return FilterManager.Instance.CurrentFilters;
                 }
 
                 return null;
@@ -191,16 +198,16 @@ namespace zfile.Filter
         /// </summary>
         public void ClearFilter()
         {
-            CurrentFilter = new FileFilter();
+			CurrentFilters.Clear();
             IsFilterEnabled = false;
         }
 
         /// <summary>
         /// 设置过滤器
         /// </summary>
-        public void SetFilter(FileFilter filter, bool enabled)
+        public void SetFilter(List<FileFilter> filter, bool enabled)
         {
-            CurrentFilter = filter ?? new FileFilter();
+            CurrentFilters = filter ?? new List<FileFilter>();
             IsFilterEnabled = enabled;
         }
 
@@ -263,39 +270,40 @@ namespace zfile.Filter
 		/// </summary>
 		public string GetFilterStatusDescription()
         {
-            if (!IsFilterEnabled || CurrentFilter.FilterMode == FilterMode.None)
+            if (!IsFilterEnabled)
                 return "无过滤";
 
-            switch (CurrentFilter.FilterMode)
-            {
-                case FilterMode.ByName:
-                    return $"按名称过滤: {CurrentFilter.NamePattern}";
+            //switch (CurrentFilters.FilterMode)
+            //{
+            //    case FilterMode.ByName:
+            //        return $"按名称过滤: {CurrentFilters.NamePattern}";
 
-                case FilterMode.ByExtension:
-                    return $"按扩展名过滤: {CurrentFilter.Extensions}";
+            //    case FilterMode.ByExtension:
+            //        return $"按扩展名过滤: {CurrentFilters.Extensions}";
 
-                case FilterMode.BySize:
-                    return "按大小过滤";
+            //    case FilterMode.BySize:
+            //        return "按大小过滤";
 
-                case FilterMode.ByDate:
-                    return "按日期过滤";
+            //    case FilterMode.ByDate:
+            //        return "按日期过滤";
 
-                case FilterMode.ByAttributes:
-                    return "按属性过滤";
+            //    case FilterMode.ByAttributes:
+            //        return "按属性过滤";
 
-                default:
+            //    default:
                     return "已启用过滤";
-            }
+            //}
         }
 
-		internal void AddFilter(FileFilter? filter)
+		internal void AddFilter(List<FileFilter>? filter)
 		{
-			throw new NotImplementedException();
+			CurrentFilters.AddRange(filter);
 		}
 
-		internal void RemoveFilter(FileFilter? filter)
+		internal void RemoveFilter(List<FileFilter>? filter)
 		{
-			throw new NotImplementedException();
+			foreach(var f in filter)
+				CurrentFilters.Remove(f);
 		}
 	}
 }

@@ -688,45 +688,46 @@ namespace zfile
 
 		private void cm_shrinkselection()
 		{
-			throw new NotImplementedException();
+			//为过滤器删除过滤条件
 		}
 
 		private void cm_spreadselection()
 		{
-			throw new NotImplementedException();
+			//为过滤器添加过滤条件
 		}
 
 		private void cm_srcuserdef()
 		{
 			// 显示过滤对话框
 			Filter.FilterManager.Instance.ShowFilterDialog();
-
-			// 如果过滤器已启用，刷新当前面板以应用过滤器
-			if (Filter.FilterManager.Instance.IsFilterEnabled)
-			{
-				owner.RefreshActivePanel();
-			}
 		}
 
 		private void cm_showonlyselected()
 		{
-		
+			//仅显示选中的文件
 		}
-
 
 		private void cm_srcuserspec()
 		{
-		
+			//应用过滤器的过滤条件，显示指定的文件
+			Filter.FilterManager.Instance.IsFilterEnabled = true;
+
+			// 如果过滤器已启用，刷新当前面板以应用过滤器
+			owner.RefreshActivePanel();			
 		}
 
 		private void cm_srcallfiles()
 		{
-		
+			//不适用过滤器的任何过滤条件，显示所有文件
+			Filter.FilterManager.Instance.IsFilterEnabled = false;
+
+			// 如果过滤器已启用，刷新当前面板以应用过滤器
+			owner.RefreshActivePanel();
 		}
 
 		private void cm_srcexecs()
 		{
-		
+			// 应用过滤器显示所有可执行文件
 		}
 
 		private void cm_separatetreeoff()

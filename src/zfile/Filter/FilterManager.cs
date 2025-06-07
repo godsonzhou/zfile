@@ -37,7 +37,7 @@ namespace zfile.Filter
         /// <summary>
         /// 是否启用过滤
         /// </summary>
-        public bool IsFilterEnabled { get; private set; }
+        public bool IsFilterEnabled { get; set; }
 
         /// <summary>
         /// 构造函数

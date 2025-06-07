@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using WinShell;
 using zfile.Forms;
+using zfile.Filter;
 using Keys = System.Windows.Forms.Keys;
 using System.Windows.Automation;
 //using System.Windows.Controls;
@@ -2485,6 +2486,13 @@ namespace zfile
 				// 应用视图管理器设置 - 根据文件夹内容自动切换视图模式
 				var viewname = viewMgr.ApplyViewToListView(listView, path, fileSource, out var files, colViewId);
 
+				// 应用过滤器
+				//var filteredFiles = files;
+				//if (FilterManager.Instance.IsFilterEnabled)
+				//{
+				//	filteredFiles = FilterManager.Instance.ApplyFilter(files);
+				//}
+
 				// 添加所有项目到 ListView
 				foreach (var file in files)
 				{
@@ -2515,9 +2523,19 @@ namespace zfile
 					listView.Tag = "ScrollEventAttached";
 				}
 
-				// 更新状态栏
+				// 更新状态栏，添加过滤器状态信息
 				var status = (listView == uiManager.LeftList) ? uiManager.LeftStatusStrip : uiManager.RightStatusStrip;
 				uiManager.UpdateStatusBar(listView, status);
+				
+				// 如果过滤器启用，在状态栏显示过滤器状态
+				if (FilterManager.Instance.IsFilterEnabled)
+				{
+					var filterStatus = FilterManager.Instance.GetFilterStatusDescription();
+					if (!string.IsNullOrEmpty(filterStatus))
+					{
+						status.Items[0].Text += $" | {filterStatus}";
+					}
+				}
 			}
 			catch (Exception ex)
 			{

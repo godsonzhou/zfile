@@ -159,6 +159,9 @@ namespace zfile
 				case 270: // 命令ID = 270, Name = cm_srccustomviewmenu 
 					cm_srccustomviewmenu(param);
 					break;
+				//case 271: // 命令ID = 271, Name = cm_srcfilter
+				//	cm_srcfilter(param);
+				//	break;
 				case 301:   //cm_srcshort
 					owner.SetViewMode(View.List);
 					break;
@@ -677,29 +680,37 @@ namespace zfile
 			}
 		}
 
-		private void cm_showonlyselected()
-		{
-			throw new NotImplementedException();
-		}
-
 		private void cm_srcuserdef()
 		{
-			throw new NotImplementedException();
+			// 显示过滤对话框
+			Filter.FilterManager.Instance.ShowFilterDialog();
+
+			// 如果过滤器已启用，刷新当前面板以应用过滤器
+			if (Filter.FilterManager.Instance.IsFilterEnabled)
+			{
+				owner.RefreshActivePanel();
+			}
 		}
+
+		private void cm_showonlyselected()
+		{
+		
+		}
+
 
 		private void cm_srcuserspec()
 		{
-			throw new NotImplementedException();
+		
 		}
 
 		private void cm_srcallfiles()
 		{
-			throw new NotImplementedException();
+		
 		}
 
 		private void cm_srcexecs()
 		{
-			throw new NotImplementedException();
+		
 		}
 
 		private void cm_separatetreeoff()
@@ -720,6 +731,11 @@ namespace zfile
 				owner.LoadListViewByFileSource(owner.CurrentFullpath[owner.LRflag], owner.activeListView, owner.SelectedNode, param);
 			}
 		}
+
+		//private void cm_srcfilter(string param = "")
+		//{
+	
+		//}
 
 		private void cm_srcviewmodelist(string param = "")
 		{

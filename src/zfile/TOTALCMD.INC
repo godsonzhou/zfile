@@ -19,6 +19,7 @@ cm_SrcNegOrder=330;Source: Reversed order
 cm_SrcOpenDrives=331;Source: Open drive list
 cm_SrcThumbs=269;Source: Thumbnail view
 cm_SrcCustomViewMenu=270;Source: Custom view menu
+cm_SrcFilter=271;Source: Filter files
 cm_SrcPathFocus=332;Source: Put focus on path
 cm_SrcViewModeList=333;Source: View mode menu
 

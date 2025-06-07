@@ -154,8 +154,13 @@ namespace zfile
                     
                     if (listOperation is FileSourceListOperation fileListOperation && fileListOperation.Files != null)
                     {
-						stats.files = fileListOperation.Files;
-                        foreach (var file in fileListOperation.Files)
+                        // Apply filter if one is active
+                        var originalFiles = fileListOperation.Files;
+                        var filteredFiles = Filter.FilterManager.Instance.ApplyFilter(originalFiles);
+                        
+                        // Use filtered files for stats and display
+                        stats.files = filteredFiles;
+                        foreach (var file in filteredFiles)
                         {
                             // Skip . and .. entries
                             if (file.Name == "." || file.Name == "..")

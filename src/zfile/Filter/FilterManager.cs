@@ -14,7 +14,7 @@ namespace zfile.Filter
 		public List<FileFilter> CurrentFilters { get; set; }
 		public HashSet<string> AllFilterNames { get; set; }
 		public List<string> CurrentFilterNames => CurrentFilters.Select(f => f.Name).ToList();
-		public List<string> AvailableFiltersNames { get
+		public List<string> AvailableFilterNames { get
 			{
 				// 返回所有可用的过滤器名称，不包括当前过滤器
 				return AllFilterNames.Except(CurrentFilterNames).ToList();
@@ -70,12 +70,12 @@ namespace zfile.Filter
 			return templateNames;
 		}
 		// 加载搜索模板列表到ListBox控件
-		public void LoadSearchTemplates(ListBox listBox)
+		public void LoadSearchTemplates(ListBox listBox, bool useavailable = true)
 		{	
 			listBox.Items.Clear();
 
 			// 添加到列表框
-			foreach (var name in AllFilterNames)
+			foreach (var name in useavailable ? AvailableFilterNames : CurrentFilterNames)
 				listBox.Items.Add(name);
 		}
 

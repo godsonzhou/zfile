@@ -288,7 +288,7 @@ namespace zfile.Filter
 					{
 						filter.FilterMode |= FilterMode.ByDate;
 						filter.DateComparisonType = ComparisonType.Greater;
-						filter.DateType = DateType.Created; // 默认使用创建时间
+						filter.DateType = DateType.Modified; // 默认使用创建时间
 						if (int.TryParse(flagParts[5], out int timeUnit))
 						{
 							// 根据时间单位设置最小日期
@@ -322,7 +322,7 @@ namespace zfile.Filter
 					{
 						filter.FilterMode |= FilterMode.ByDate;
 						filter.DateComparisonType = ComparisonType.Less;
-						filter.DateType = DateType.Created; // 默认使用创建时间
+						filter.DateType = DateType.Modified; // 默认使用创建时间
 						if (int.TryParse(flagParts[13], out int timeUnit))
 						{
 							// 根据时间单位设置最小日期
@@ -389,15 +389,19 @@ namespace zfile.Filter
 					}
 				}
 
-				// 解析文件属性 (第10个参数，5位数字代表: 目录|系统|隐藏|只读|存档)
+				// 解析文件属性 (第10个参数，5位数字代表: 存档|只读|隐藏|系统|目录)
+				//系统（按属性）_SearchFlags=0|00000200| | | | | | | |22212|0000
+				// 隐藏文件_SearchFlags=0|00000200||||||||22122|0000
+				//文件夹_SearchFlags=0|00000200||||||||22221|0000
 				if (flagParts.Length > 9 && flagParts[9].Length == 5)
 				{
-					filter.FilterMode |= FilterMode.ByAttributes;
 					string attrs = flagParts[9];
-					filter.IncludeDirectories = attrs[0] == '2';
-					filter.IncludeSystem = attrs[1] == '2';
-					filter.IncludeHidden = attrs[2] == '2';
-					filter.IncludeReadOnly = attrs[3] == '2';
+					filter.IncludeDirectories = attrs[4] == '1';
+					filter.IncludeSystem = attrs[3] == '1';
+					filter.IncludeHidden = attrs[2] == '1';
+					filter.IncludeReadOnly = attrs[1] == '1';
+					//if(filter.IncludeSystem || filter.IncludeHidden || filter.IncludeReadOnly)
+					filter.FilterMode |= FilterMode.ByAttributes;
 				}
 			}
 

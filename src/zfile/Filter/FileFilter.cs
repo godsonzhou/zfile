@@ -81,22 +81,22 @@ namespace zfile.Filter
             if (FilterMode == FilterMode.None)
                 return true;
 
-            // 根据文件类型过滤
-            if (file.IsDirectory && !IncludeDirectories)
-                return false;
+			// 根据文件类型过滤
+			 if(IncludeDirectories && !(file.IsDirectory))
+				return false;
+			
+			// 根据文件属性过滤
+			if (FilterMode.HasFlag(FilterMode.ByAttributes) && (IncludeReadOnly || IncludeHidden || IncludeSystem))
+			{
+				if (file.IsHidden && !IncludeHidden)
+					return false;
 
-            // 根据文件属性过滤
-            if (FilterMode.HasFlag(FilterMode.ByAttributes) || FilterMode == FilterMode.None)
-            {
-                if (file.IsHidden && !IncludeHidden)
-                    return false;
+				if (file.IsSysFile && !IncludeSystem)
+					return false;
 
-                if (file.IsSysFile && !IncludeSystem)
-                    return false;
-
-                if (file.IsReadOnly && !IncludeReadOnly)
-                    return false;
-            }
+				if (file.IsReadOnly && !IncludeReadOnly)
+					return false;
+			}
 
             // 如果是目录且不是按属性过滤，则始终显示目录
             if (file.IsDirectory && !FilterMode.HasFlag(FilterMode.ByAttributes))

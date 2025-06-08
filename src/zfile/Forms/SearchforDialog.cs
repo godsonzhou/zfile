@@ -926,9 +926,7 @@ namespace zfile.Forms
 			}
 
 			// 构建SearchFlags
-			string searchFlags = "";
-
-		
+			string searchFlags = generateSearchFlags();
 
 			// 保存模板到配置
 			if (owner is MainForm mainForm)
@@ -961,6 +959,11 @@ namespace zfile.Forms
 					templatesListBox.SelectedItem = templateName;
 				}
 			}
+		}
+
+		private string generateSearchFlags()
+		{
+			return "";
 		}
 
 		private void StartSearchButton_Click(object sender, EventArgs e)

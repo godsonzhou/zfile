@@ -153,7 +153,7 @@ namespace zfile.Filter
         /// </summary>
         public FileEntries ApplyFilter(FileEntries files)
         {
-            if (!IsFilterEnabled || CurrentFilters.Count == 0)
+            if ((!IsFilterEnabled || CurrentFilters.Count == 0) && !ShowOnlySelected)
                 return files;
 
             FileEntries result = new FileEntries();

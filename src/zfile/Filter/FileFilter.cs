@@ -2,17 +2,18 @@ using System.Text.RegularExpressions;
 
 namespace zfile.Filter
 {
-    /// <summary>
-    /// 过滤模式枚举
-    /// </summary>
+	/// <summary>
+	/// 过滤模式枚举
+	/// </summary>
+	[Flags]
     public enum FilterMode
     {
-        None,
-        ByName,
-        ByExtension,
-        BySize,
-        ByDate,
-        ByAttributes
+        None = 0,
+        ByName = 1,
+        ByExtension = 2,
+        BySize = 4,
+        ByDate = 8,
+        ByAttributes = 16
     }
 
     /// <summary>
@@ -23,8 +24,8 @@ namespace zfile.Filter
         Equal,
         Greater,
         Less,
-        Between
-    }
+		Between
+	}
 
     /// <summary>
     /// 日期类型枚举
@@ -85,7 +86,7 @@ namespace zfile.Filter
                 return false;
 
             // 根据文件属性过滤
-            if (FilterMode == FilterMode.ByAttributes || FilterMode == FilterMode.None)
+            if (FilterMode.HasFlag(FilterMode.ByAttributes) || FilterMode == FilterMode.None)
             {
                 if (file.IsHidden && !IncludeHidden)
                     return false;
@@ -95,34 +96,27 @@ namespace zfile.Filter
 
                 if (file.IsReadOnly && !IncludeReadOnly)
                     return false;
-
-                // 如果是按属性过滤模式，到这里就可以返回true了
-                if (FilterMode == FilterMode.ByAttributes)
-                    return true;
             }
 
             // 如果是目录且不是按属性过滤，则始终显示目录
-            if (file.IsDirectory && FilterMode != FilterMode.ByAttributes)
+            if (file.IsDirectory && !FilterMode.HasFlag(FilterMode.ByAttributes))
                 return true;
 
+			var isMatch = true;
             // 根据过滤模式进行过滤
-            switch (FilterMode)
-            {
-                case FilterMode.ByName:
-                    return MatchesNameFilter(file.Name);
+            if(FilterMode.HasFlag(FilterMode.ByName))
+				isMatch &= MatchesNameFilter(file.Name);
 
-                case FilterMode.ByExtension:
-                    return MatchesExtensionFilter(file.Extension);
+			if (isMatch && FilterMode.HasFlag(FilterMode.ByExtension))
+                isMatch &= MatchesExtensionFilter(file.Extension);
 
-                case FilterMode.BySize:
-                    return MatchesSizeFilter(file.Size);
+			if (isMatch && FilterMode.HasFlag(FilterMode.BySize))
+				isMatch &= MatchesSizeFilter(file.Size);
+	
+			if (isMatch && FilterMode.HasFlag(FilterMode.ByDate))
+                isMatch &= MatchesDateFilter(file);
 
-                case FilterMode.ByDate:
-                    return MatchesDateFilter(file);
-
-                default:
-                    return true;
-            }
+			return isMatch;            
         }
 
         /// <summary>
@@ -201,12 +195,12 @@ namespace zfile.Filter
                     return fileSize > MinSize;
 
                 case ComparisonType.Less:
-                    return fileSize < MinSize;
+                    return fileSize < MaxSize;
 
-                case ComparisonType.Between:
-                    return fileSize >= MinSize && fileSize <= MaxSize;
+				case ComparisonType.Between:
+					return fileSize >= MinSize && fileSize <= MaxSize;
 
-                default:
+				default:
                     return true;
             }
         }
@@ -245,7 +239,7 @@ namespace zfile.Filter
                     return fileDate.Date > MinDate.Date;
 
                 case ComparisonType.Less:
-                    return fileDate.Date < MinDate.Date;
+                    return fileDate.Date < MaxDate.Date;
 
                 case ComparisonType.Between:
                     return fileDate.Date >= MinDate.Date && fileDate.Date <= MaxDate.Date;

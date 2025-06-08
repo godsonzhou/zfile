@@ -258,7 +258,7 @@ namespace zfile.Filter
 			// 创建文件过滤器
 			var filter = new FileFilter(templateName);
 
-			// 解析 SearchFlags (格式: flag1|flag2|flag3|date|comp|type|size|sizeunit|reserved|attr|reserved)
+			// 解析 SearchFlags (格式: flag1|flag2|flag3|date|comp|type|sizeop|size|sizeunit|attr|reserved)
 			string[] flagParts = searchFlags.Split('|');
 			if (flagParts.Length > 5)
 			{
@@ -268,50 +268,123 @@ namespace zfile.Filter
 				// 解析扩展名过滤
 				if (!string.IsNullOrEmpty(searchFor))
 				{
-					filter.FilterMode = FilterMode.ByExtension;
+					filter.FilterMode |= FilterMode.ByExtension;
 					filter.Extensions = searchFor;
 					// 检查是否是排除模式
 					filter.ExcludeExtensions = baseFlags.Contains("exclude");
 				}
 
 				// 解析日期过滤
-				if (flagParts.Length > 5 && !string.IsNullOrEmpty(flagParts[4]))
+				//今日新文件_SearchFlags=0|00000200| | |1|1| | | | |0000
+				//本周新文件_SearchFlags=0|00000200| | |7|1| | | | |0000
+				//4 = 不早于的时间数
+				//5 = 不早于的时间单位 -1分钟 0小时 1天 2周 3月 4年
+				//ion文件1_SearchFlags=0|002002000020| | | | | | | | |0000| |45|3
+				//12： 早于的时间数
+				//13： 早于的时间单位 -1分钟 0小时 1天 2周 3月 4年
+				if (!string.IsNullOrEmpty(flagParts[4]))
 				{
-					int days;
-					if (int.TryParse(flagParts[4], out days) && days > 0)
+					if (int.TryParse(flagParts[4], out var days) && days > 0)
 					{
-						filter.FilterMode = FilterMode.ByDate;
+						filter.FilterMode |= FilterMode.ByDate;
 						filter.DateComparisonType = ComparisonType.Less;
 						filter.DateType = DateType.Modified; // 默认使用修改时间
-						filter.MinDate = DateTime.Now.AddDays(-days);
+						if (int.TryParse(flagParts[5], out int timeUnit))
+						{
+							// 根据时间单位设置最小日期
+							switch (timeUnit)
+							{
+								case -1: // 分钟
+									filter.MinDate = DateTime.Now.AddMinutes(-days);
+									break;
+								case 0: // 小时
+									filter.MinDate = DateTime.Now.AddHours(-days);
+									break;
+								case 1: // 天
+									filter.MinDate = DateTime.Now.AddDays(-days);
+									break;
+								case 2: // 周
+									filter.MinDate = DateTime.Now.AddDays(-days * 7);
+									break;
+								case 3: // 月
+									filter.MinDate = DateTime.Now.AddMonths(-days);
+									break;
+								case 4: // 年
+									filter.MinDate = DateTime.Now.AddYears(-days);
+									break;
+							}
+						}
 					}
 				}
-
-				// 解析大小过滤
-				if (flagParts.Length > 7)
+				if (flagParts.Length > 13 && !string.IsNullOrEmpty(flagParts[12]))
 				{
-					if (int.TryParse(flagParts[6], out int size) &&
-						int.TryParse(flagParts[7], out int sizeUnit))
+					if (int.TryParse(flagParts[12], out var days) && days > 0)
 					{
-						filter.FilterMode = FilterMode.BySize;
+						filter.FilterMode |= FilterMode.ByDate;
+						filter.DateComparisonType = ComparisonType.Greater;
+						filter.DateType = DateType.Modified; // 默认使用修改时间
+						if (int.TryParse(flagParts[13], out int timeUnit))
+						{
+							// 根据时间单位设置最小日期
+							switch (timeUnit)
+							{
+								case -1: // 分钟
+									filter.MaxDate = DateTime.Now.AddMinutes(-days);
+									break;
+								case 0: // 小时
+									filter.MaxDate = DateTime.Now.AddHours(-days);
+									break;
+								case 1: // 天
+									filter.MaxDate = DateTime.Now.AddDays(-days);
+									break;
+								case 2: // 周
+									filter.MaxDate = DateTime.Now.AddDays(-days * 7);
+									break;
+								case 3: // 月
+									filter.MaxDate = DateTime.Now.AddMonths(-days);
+									break;
+								case 4: // 年
+									filter.MaxDate = DateTime.Now.AddYears(-days);
+									break;
+							}
+						}
+					}
+				}
+				// 0 字节文件_SearchFlags=0|00000200| | | | |0|0|0|22220|0000
+				// 6 = sizeop, 0:= 1:> 2:<
+				// 7 = size,
+				// 8 = sizeunit, 0:B 1:KB 2:MB 3:GB 4:TB
+				// 解析大小过滤
+				if (!string.IsNullOrEmpty(flagParts[6]))
+				{
+					if (int.TryParse(flagParts[7], out int size) &&
+						int.TryParse(flagParts[8], out int sizeUnit))
+					{
+						filter.FilterMode |= FilterMode.BySize;
 						// sizeUnit: 1=KB, 2=MB, 3=GB
 						long multiplier = sizeUnit switch
 						{
+							0 => 1L, // 字节
 							1 => 1024L,
 							2 => 1024L * 1024L,
 							3 => 1024L * 1024L * 1024L,
 							_ => 1L
 						};
 
-						if (flagParts[5] == "1") // 小于
+						if (flagParts[6].Equals("0")) // 等于
 						{
-							filter.SizeComparisonType = ComparisonType.Less;
-							filter.MaxSize = size * multiplier;
+							filter.SizeComparisonType = ComparisonType.Equal;
+							filter.MinSize = filter.MaxSize = size * multiplier;
 						}
-						else if (flagParts[5] == "2") // 大于
+						else if (flagParts[6] == "1") // 大于
 						{
 							filter.SizeComparisonType = ComparisonType.Greater;
 							filter.MinSize = size * multiplier;
+						}
+						else if (flagParts[6] == "2") // 小于
+						{
+							filter.SizeComparisonType = ComparisonType.Less;
+							filter.MaxSize = size * multiplier;
 						}
 					}
 				}
@@ -319,7 +392,7 @@ namespace zfile.Filter
 				// 解析文件属性 (第10个参数，5位数字代表: 目录|系统|隐藏|只读|存档)
 				if (flagParts.Length > 9 && flagParts[9].Length == 5)
 				{
-					filter.FilterMode = FilterMode.ByAttributes;
+					filter.FilterMode |= FilterMode.ByAttributes;
 					string attrs = flagParts[9];
 					filter.IncludeDirectories = attrs[0] == '2';
 					filter.IncludeSystem = attrs[1] == '2';

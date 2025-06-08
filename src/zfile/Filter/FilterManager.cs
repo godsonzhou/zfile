@@ -287,8 +287,8 @@ namespace zfile.Filter
 					if (int.TryParse(flagParts[4], out var days) && days > 0)
 					{
 						filter.FilterMode |= FilterMode.ByDate;
-						filter.DateComparisonType = ComparisonType.Less;
-						filter.DateType = DateType.Modified; // 默认使用修改时间
+						filter.DateComparisonType = ComparisonType.Greater;
+						filter.DateType = DateType.Created; // 默认使用创建时间
 						if (int.TryParse(flagParts[5], out int timeUnit))
 						{
 							// 根据时间单位设置最小日期
@@ -321,8 +321,8 @@ namespace zfile.Filter
 					if (int.TryParse(flagParts[12], out var days) && days > 0)
 					{
 						filter.FilterMode |= FilterMode.ByDate;
-						filter.DateComparisonType = ComparisonType.Greater;
-						filter.DateType = DateType.Modified; // 默认使用修改时间
+						filter.DateComparisonType = ComparisonType.Less;
+						filter.DateType = DateType.Created; // 默认使用创建时间
 						if (int.TryParse(flagParts[13], out int timeUnit))
 						{
 							// 根据时间单位设置最小日期

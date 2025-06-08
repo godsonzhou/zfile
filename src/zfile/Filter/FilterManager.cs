@@ -270,7 +270,7 @@ namespace zfile.Filter
 			// 创建文件过滤器
 			var filter = new FileFilter(templateName);
 
-			// 解析 SearchFlags (格式: flag1|flag2|flag3|date|comp|type|sizeop|size|sizeunit|attr|reserved)
+			// 解析 SearchFlags (格式: flag1|flag2|datefrom|dateto|不早于的时间数|不早于的时间单位|sizeop|size|sizeunit|attributeString|reserved|早于的时间数|早于的时间单位)
 			string[] flagParts = searchFlags.Split('|');
 			if (flagParts.Length > 5)
 			{

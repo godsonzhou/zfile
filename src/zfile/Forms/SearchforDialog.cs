@@ -926,29 +926,9 @@ namespace zfile.Forms
 			}
 
 			// 构建SearchFlags
-			string searchFlags = "0|";
+			string searchFlags = "";
 
-			// 添加正则表达式标志
-			searchFlags += regexCheckBox.Checked ? "00000200" : "00000000";
-
-			// 添加搜索压缩文件标志
-			searchFlags += searchCompressedCheckBox.Checked ? "0020" : "0000";
-
-			// 添加其他标志占位符
-			searchFlags += "|||||";
-
-			// 添加日期限制
-			if (!string.IsNullOrEmpty(notBeforeValueTextBox.Text) && int.TryParse(notBeforeValueTextBox.Text, out int days))
-			{
-				searchFlags += days.ToString();
-			}
-			searchFlags += "|";
-
-			// 添加日期类型 (1=修改日期)
-			searchFlags += "1";
-
-			// 添加剩余标志占位符
-			searchFlags += "||||0000";
+		
 
 			// 保存模板到配置
 			if (owner is MainForm mainForm)

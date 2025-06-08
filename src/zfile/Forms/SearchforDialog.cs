@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using zfile.Filter;
+using System.Text;
 
 namespace zfile.Forms
 {
@@ -963,7 +964,123 @@ namespace zfile.Forms
 
 		private string generateSearchFlags()
 		{
-			return "";
+			// 格式: flag1|flag2|datefrom|dateto|不早于的时间数|不早于的时间单位|sizeop|size|sizeunit|attributeString|reserved|早于的时间数|早于的时间单位
+			StringBuilder sb = new StringBuilder();
+
+			// flag1 - 基本标志位
+			string flag1 = "0";
+			if (regexCheckBox.Checked)
+				flag1 = "1";
+			sb.Append(flag1);
+			sb.Append("|");
+
+			// flag2 - 扩展标志位
+			string flag2 = "00000200"; // 默认标志
+			if (searchCompressedCheckBox.Checked)
+				flag2 = flag2.Replace("00000200", "00200200");
+			sb.Append(flag2);
+			sb.Append("|");
+
+			// datefrom - 日期从
+			if (notBeforeDatePicker.Checked)
+				sb.Append(notBeforeDatePicker.Value.ToString("yyyy/MM/dd HH:mm:ss"));
+			sb.Append("|");
+
+			// dateto - 日期到
+			if (beforeDatePicker.Checked)
+				sb.Append(beforeDatePicker.Value.ToString("yyyy/MM/dd HH:mm:ss"));
+			sb.Append("|");
+
+			// 不早于的时间数
+			if (!string.IsNullOrEmpty(notBeforeValueTextBox.Text) && int.TryParse(notBeforeValueTextBox.Text, out int notBeforeDays))
+				sb.Append(notBeforeDays);
+			sb.Append("|");
+
+			// 不早于的时间单位 (-1分钟 0小时 1天 2周 3月 4年)
+			int notBeforeUnit = 1; // 默认为天
+			if (notBeforeUnitComboBox.SelectedIndex >= 0)
+			{
+				switch (notBeforeUnitComboBox.SelectedIndex)
+				{
+					case 0: // 天
+						notBeforeUnit = 1;
+						break;
+					case 1: // 周
+						notBeforeUnit = 2;
+						break;
+					case 2: // 月
+						notBeforeUnit = 3;
+						break;
+					case 3: // 年
+						notBeforeUnit = 4;
+						break;
+				}
+			}
+			sb.Append(notBeforeUnit);
+			sb.Append("|");
+
+			// sizeop - 文件大小操作符 (0:= 1:> 2:<)
+			int sizeOp = 0;
+			if (fileSizeOperatorComboBox.SelectedIndex >= 0)
+				sizeOp = fileSizeOperatorComboBox.SelectedIndex;
+			sb.Append(sizeOp);
+			sb.Append("|");
+
+			// size - 文件大小值
+			if (!string.IsNullOrEmpty(fileSizeValueTextBox.Text) && int.TryParse(fileSizeValueTextBox.Text, out int sizeValue))
+				sb.Append(sizeValue);
+			sb.Append("|");
+
+			// sizeunit - 文件大小单位 (0:B 1:KB 2:MB 3:GB 4:TB)
+			int sizeUnit = 1; // 默认为KB
+			if (fileSizeUnitComboBox.SelectedIndex >= 0)
+				sizeUnit = fileSizeUnitComboBox.SelectedIndex;
+			sb.Append(sizeUnit);
+			sb.Append("|");
+
+			// attributeString - 文件属性 (5位数字代表: 存档|只读|隐藏|系统|目录)
+			// 0:不选 1:选中 2:保留
+			StringBuilder attrSb = new StringBuilder();
+			attrSb.Append(archivedCheckBox.Checked ? "1" : "2");
+			attrSb.Append(readOnlyCheckBox.Checked ? "1" : "2");
+			attrSb.Append(hiddenCheckBox.Checked ? "1" : "2");
+			attrSb.Append(systemCheckBox.Checked ? "1" : "2");
+			attrSb.Append(folderCheckBox.Checked ? "1" : "2");
+			sb.Append(attrSb.ToString());
+			sb.Append("|");
+
+			// reserved - 保留字段
+			sb.Append("0000");
+			sb.Append("|");
+
+			// 早于的时间数
+			if (!string.IsNullOrEmpty(beforeValueTextBox.Text) && int.TryParse(beforeValueTextBox.Text, out int beforeDays))
+				sb.Append(beforeDays);
+			sb.Append("|");
+
+			// 早于的时间单位 (-1分钟 0小时 1天 2周 3月 4年)
+			int beforeUnit = 1; // 默认为天
+			if (beforeUnitComboBox.SelectedIndex >= 0)
+			{
+				switch (beforeUnitComboBox.SelectedIndex)
+				{
+					case 0: // 天
+						beforeUnit = 1;
+						break;
+					case 1: // 周
+						beforeUnit = 2;
+						break;
+					case 2: // 月
+						beforeUnit = 3;
+						break;
+					case 3: // 年
+						beforeUnit = 4;
+						break;
+				}
+			}
+			sb.Append(beforeUnit);
+
+			return sb.ToString();
 		}
 
 		private void StartSearchButton_Click(object sender, EventArgs e)

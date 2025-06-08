@@ -1,3 +1,4 @@
+using System.Text;
 using zfile.Forms;
 
 namespace zfile.Filter
@@ -8,6 +9,8 @@ namespace zfile.Filter
     public class FilterManager
     {
         private static FilterManager? _instance;
+		internal bool ShowOnlySelected;
+
 		/// <summary>
 		/// 当前活动的过滤器
 		/// </summary>
@@ -158,17 +161,26 @@ namespace zfile.Filter
 
             foreach (var file in files)
             {
-				bool ismatch = CurrentFilterAndOr;
-				foreach (var filter in CurrentFilters)  //bugfix: 遍历所有过滤器，判断文件是否符合任意一个过滤器的条件
+				if (ShowOnlySelected)
 				{
-					if (GetFlagByAndOr(filter.MatchesFilter(file)))
-					{
-						ismatch = !CurrentFilterAndOr;
-						break;
-					}
+					if (MainForm.Instance.SelectedItems.Contains(file.Name))
+						result.Add(file);
 				}
-				if(ismatch)
-					result.Add(file);
+				else
+				{
+					bool ismatch = CurrentFilterAndOr;
+					foreach (var filter in CurrentFilters)  //bugfix: 遍历所有过滤器，判断文件是否符合任意一个过滤器的条件
+					{
+						if (GetFlagByAndOr(filter.MatchesFilter(file)))
+						{
+							ismatch = !CurrentFilterAndOr;
+							break;
+						}
+					}
+
+					if (ismatch)
+						result.Add(file);
+				}
 			}
 
 			return result;
@@ -275,6 +287,24 @@ namespace zfile.Filter
 				}
 
 				// 解析日期过滤
+				//ion文件1_SearchFlags=0|002002000020|2025/06/08 21:16:31|9999/01/01 00:00:00||||||12220|0000|||
+				// 2： datefrom
+				// 3: dateto
+				if (!string.IsNullOrEmpty(flagParts[2]))
+				{
+					filter.FilterMode |= FilterMode.ByDate;
+					filter.DateType = DateType.Modified; // 默认使用修改时间
+					if (DateTime.TryParse(flagParts[2], out DateTime dateFrom))
+					{
+						filter.MinDate = dateFrom;
+						filter.DateComparisonType = ComparisonType.Greater; // 不早于
+					}
+					if(DateTime.TryParse(flagParts[3], out var dateto))
+					{
+						filter.MaxDate = dateto;
+						filter.DateComparisonType = ComparisonType.Less; // 不晚于
+					}
+				}
 				//今日新文件_SearchFlags=0|00000200| | |1|1| | | | |0000
 				//本周新文件_SearchFlags=0|00000200| | |7|1| | | | |0000
 				//4 = 不早于的时间数
@@ -393,13 +423,14 @@ namespace zfile.Filter
 				//系统（按属性）_SearchFlags=0|00000200| | | | | | | |22212|0000
 				// 隐藏文件_SearchFlags=0|00000200||||||||22122|0000
 				//文件夹_SearchFlags=0|00000200||||||||22221|0000
+				//0 : 不选 ， 1：选中， 2：保留
 				if (flagParts.Length > 9 && flagParts[9].Length == 5)
 				{
 					string attrs = flagParts[9];
-					filter.IncludeDirectories = attrs[4] == '1';
-					filter.IncludeSystem = attrs[3] == '1';
-					filter.IncludeHidden = attrs[2] == '1';
-					filter.IncludeReadOnly = attrs[1] == '1';
+					filter.IncludeDirectories = (IncludeType)int.Parse(attrs[4].ToString());
+					filter.IncludeSystem = (IncludeType)int.Parse(attrs[3].ToString());
+					filter.IncludeHidden = (IncludeType)int.Parse(attrs[2].ToString());
+					filter.IncludeReadOnly = (IncludeType)int.Parse(attrs[1].ToString());
 					//if(filter.IncludeSystem || filter.IncludeHidden || filter.IncludeReadOnly)
 					filter.FilterMode |= FilterMode.ByAttributes;
 				}
@@ -419,29 +450,7 @@ namespace zfile.Filter
 		/// </summary>
 		public string GetFilterStatusDescription()
         {
-            if (!IsFilterEnabled)
-                return "无过滤";
-
-            //switch (CurrentFilters.FilterMode)
-            //{
-            //    case FilterMode.ByName:
-            //        return $"按名称过滤: {CurrentFilters.NamePattern}";
-
-            //    case FilterMode.ByExtension:
-            //        return $"按扩展名过滤: {CurrentFilters.Extensions}";
-
-            //    case FilterMode.BySize:
-            //        return "按大小过滤";
-
-            //    case FilterMode.ByDate:
-            //        return "按日期过滤";
-
-            //    case FilterMode.ByAttributes:
-            //        return "按属性过滤";
-
-            //    default:
-                    return "已启用过滤";
-            //}
+			return (IsFilterEnabled && FilterManager.Instance.CurrentFilters.Count != 0) ? "" : "已启用过滤 : " + string.Join(", ", FilterManager.Instance.CurrentFilterNames);
         }
 
 		internal void AddFilter(List<FileFilter>? filter)
@@ -460,6 +469,11 @@ namespace zfile.Filter
 				if (existingFilter != null)	
 					CurrentFilters.Remove(existingFilter);
 			}
+		}
+
+		internal object GetFilterByName(string v)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

@@ -12,6 +12,7 @@ using zfile.Forms;
 using zfile.Filter;
 using Keys = System.Windows.Forms.Keys;
 using System.Windows.Automation;
+using static System.Windows.Forms.ListView;
 //using System.Windows.Controls;
 
 namespace zfile
@@ -300,6 +301,7 @@ namespace zfile
 		public Font myfont;
 		private bool showFolderSize;
 		private IntPtr CtrlPanel_PIDL;
+		public List<string> SelectedItems = [];
 
 		public enum TreeSearchScope
 		{
@@ -2770,8 +2772,10 @@ namespace zfile
 
 			if (listView.SelectedItems.Count > 0)
 			{
-				ListViewItem selectedItem = listView.SelectedItems[0];
-				string filePath = Helper.getFSpath(Path.Combine(CurrentFullpath[LRflag], selectedItem.Text));
+				SelectedItems.Clear();
+				foreach (ListViewItem item in listView.SelectedItems)
+					SelectedItems.Add(item.Text);
+				string filePath = Helper.getFSpath(Path.Combine(CurrentFullpath[LRflag], SelectedItems[0]));
 
 				if (File.Exists(filePath))
 					await PreviewFileAsync(filePath, previewPanel);

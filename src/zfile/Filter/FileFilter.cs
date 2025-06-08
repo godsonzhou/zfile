@@ -27,6 +27,12 @@ namespace zfile.Filter
 		Between
 	}
 
+	public enum IncludeType
+	{
+		Exclude = 0,
+		Include = 1,
+		Keep = 2, // 保留
+	}
     /// <summary>
     /// 日期类型枚举
     /// </summary>
@@ -66,41 +72,40 @@ namespace zfile.Filter
         public DateTime MinDate { get; set; } = DateTime.Now;
         public DateTime MaxDate { get; set; } = DateTime.Now;
 
-        // 属性过滤
-        public bool IncludeDirectories { get; set; } = true;
-        public bool IncludeHidden { get; set; } = true;
-        public bool IncludeSystem { get; set; } = true;
-        public bool IncludeReadOnly { get; set; } = true;
+		// 属性过滤
+		public IncludeType IncludeDirectories { get; set; } = IncludeType.Keep;
+        public IncludeType IncludeHidden { get; set; } = IncludeType.Keep;
+		public IncludeType IncludeSystem { get; set; } = IncludeType.Keep;
+		public IncludeType IncludeReadOnly { get; set; } = IncludeType.Keep;
 
-        /// <summary>
-        /// 判断文件是否符合过滤条件
-        /// </summary>
-        public bool MatchesFilter(FileEntry file)
+		/// <summary>
+		/// 判断文件是否符合过滤条件
+		/// </summary>
+		public bool MatchesFilter(FileEntry file)
         {
             // 如果没有过滤，则所有文件都符合条件
             if (FilterMode == FilterMode.None)
                 return true;
-
-			// 根据文件类型过滤
-			 if(IncludeDirectories && !(file.IsDirectory))
-				return false;
-			
+	
+			//// 如果是目录且不是按属性过滤，则始终显示目录
+			//if (file.IsDirectory && !FilterMode.HasFlag(FilterMode.ByAttributes))
+			//	return true;
+	
 			// 根据文件属性过滤
-			if (FilterMode.HasFlag(FilterMode.ByAttributes) && (IncludeReadOnly || IncludeHidden || IncludeSystem))
+			if (FilterMode.HasFlag(FilterMode.ByAttributes))
 			{
-				if (file.IsHidden && !IncludeHidden)
+				if (file.IsHidden && IncludeHidden == IncludeType.Exclude)
 					return false;
 
-				if (file.IsSysFile && !IncludeSystem)
+				if (file.IsSysFile && IncludeSystem == IncludeType.Exclude)
 					return false;
 
-				if (file.IsReadOnly && !IncludeReadOnly)
+				if (file.IsReadOnly && IncludeReadOnly == IncludeType.Exclude)
+					return false;
+
+				if (IncludeDirectories == IncludeType.Include && !(file.IsDirectory))
 					return false;
 			}
-
-            // 如果是目录且不是按属性过滤，则始终显示目录
-            if (file.IsDirectory && !FilterMode.HasFlag(FilterMode.ByAttributes))
-                return true;
 
 			var isMatch = true;
             // 根据过滤模式进行过滤

@@ -450,7 +450,7 @@ namespace zfile.Filter
 		/// </summary>
 		public string GetFilterStatusDescription()
         {
-			return (IsFilterEnabled && FilterManager.Instance.CurrentFilters.Count != 0) ? "" : "已启用过滤 : " + string.Join(", ", FilterManager.Instance.CurrentFilterNames);
+			return (IsFilterEnabled && FilterManager.Instance.CurrentFilters.Count != 0) ? "已启用过滤 : " + string.Join(", ", FilterManager.Instance.CurrentFilterNames) : "";
         }
 
 		internal void AddFilter(List<FileFilter>? filter)

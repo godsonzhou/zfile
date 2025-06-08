@@ -86,11 +86,11 @@ namespace zfile.Filter
             // 如果没有过滤，则所有文件都符合条件
             if (FilterMode == FilterMode.None)
                 return true;
-	
-			//// 如果是目录且不是按属性过滤，则始终显示目录
-			//if (file.IsDirectory && !FilterMode.HasFlag(FilterMode.ByAttributes))
-			//	return true;
-	
+
+			// 如果是目录且不是按属性过滤，则始终显示目录
+			if (file.IsDirectory && !FilterMode.HasFlag(FilterMode.ByAttributes))
+				return true;
+
 			// 根据文件属性过滤
 			if (FilterMode.HasFlag(FilterMode.ByAttributes))
 			{
@@ -103,7 +103,19 @@ namespace zfile.Filter
 				if (file.IsReadOnly && IncludeReadOnly == IncludeType.Exclude)
 					return false;
 
+				if (!file.IsHidden && IncludeHidden == IncludeType.Include)
+					return false;
+
+				if (!file.IsSysFile && IncludeSystem == IncludeType.Include)
+					return false;
+
+				if (!file.IsReadOnly && IncludeReadOnly == IncludeType.Include)
+					return false;
+
 				if (IncludeDirectories == IncludeType.Include && !(file.IsDirectory))
+					return false;
+
+				if (IncludeDirectories == IncludeType.Exclude && (file.IsDirectory))
 					return false;
 			}
 

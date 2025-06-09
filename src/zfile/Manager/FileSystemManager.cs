@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Security.Cryptography;
 
 namespace zfile
 {
@@ -329,6 +330,71 @@ namespace zfile
 		internal static List<string> FindDuplicateFiles(List<string> files, bool isSameName, bool isSameSize, bool isSameContent, bool isSamePluginField, string? fieldnames)
 		{
 			var result = new List<string>();
+			
+			if (files == null || files.Count <= 1)
+				return result;
+
+			// 按条件分组查找重复文件
+			var groups = new Dictionary<string, List<string>>();
+
+			foreach (var file in files)
+			{
+				if (!File.Exists(file))
+					continue;
+
+				var fileInfo = new FileInfo(file);
+				string key = string.Empty;
+
+				// 根据选择的条件构建分组键
+				if (isSameName)
+					key += Path.GetFileName(file);
+
+				if (isSameSize)
+					key += "_" + fileInfo.Length.ToString();
+
+				if (isSameContent)
+				{
+					try
+					{
+						// 计算文件哈希值
+						using (var md5 = MD5.Create())
+						using (var stream = File.OpenRead(file))
+						{
+							byte[] hash = md5.ComputeHash(stream);
+							key += "_" + BitConverter.ToString(hash);
+						}
+					}
+					catch (Exception)
+					{
+						// 忽略无法读取的文件
+						continue;
+					}
+				}
+
+				if (isSamePluginField && !string.IsNullOrEmpty(fieldnames))
+				{
+					// TODO: 实现插件字段比较逻辑
+					// 这里需要根据实际插件系统实现
+					// 暂时留空，等待插件系统接口定义
+				}
+
+				// 如果没有任何条件被选中，跳过
+				if (string.IsNullOrEmpty(key))
+					continue;
+
+				// 添加到分组
+				if (!groups.ContainsKey(key))
+					groups[key] = new List<string>();
+
+				groups[key].Add(file);
+			}
+
+			// 只返回有重复的文件（组内文件数量大于1）
+			foreach (var group in groups.Values)
+			{
+				if (group.Count > 1)
+					result.AddRange(group);
+			}
 
 			return result;
 		}

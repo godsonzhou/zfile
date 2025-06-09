@@ -180,12 +180,12 @@ namespace zfile.Forms
 			// 注意：addRuleButton.Click 事件在 InitializePluginsTab 方法中绑定
 			// removeRuleButton.Click += RemoveRuleButton_Click;
 		}
-		private void CancelButton_Click(object sender, EventArgs e)
+		private void CancelButton_Click(object? sender, EventArgs e)
 		{
 			Close();
 		}
 
-		private void LocationBrowseButton_Click(object sender, EventArgs e)
+		private void LocationBrowseButton_Click(object? sender, EventArgs e)
 		{
 			using (var folderDialog = new FolderBrowserDialog())
 			{
@@ -197,7 +197,7 @@ namespace zfile.Forms
 			}
 		}
 
-		private void FindTextCheckBox_CheckedChanged(object sender, EventArgs e)
+		private void FindTextCheckBox_CheckedChanged(object? sender, EventArgs e)
 		{
 			// 启用/禁用文本搜索相关控件
 			bool enabled = findTextCheckBox.Checked;
@@ -217,7 +217,7 @@ namespace zfile.Forms
 			pluginCheckBox.Enabled = enabled;
 		}
 
-		private void DuplicateFilesCheckBox_CheckedChanged(object sender, EventArgs e)
+		private void DuplicateFilesCheckBox_CheckedChanged(object? sender, EventArgs e)
 		{
 			// 启用/禁用重复文件搜索选项
 			bool enabled = duplicateFilesCheckBox.Checked;
@@ -228,7 +228,7 @@ namespace zfile.Forms
 			pluginFieldsComboBox.Enabled = enabled && samePluginFieldsCheckBox.Checked;
 		}
 
-		private void ViewButton_Click(object sender, EventArgs e)
+		private void ViewButton_Click(object? sender, EventArgs e)
 		{
 			if (resultsListView.SelectedItems.Count > 0)
 			{
@@ -252,7 +252,7 @@ namespace zfile.Forms
 			}
 		}
 
-		private void EditButton_Click(object sender, EventArgs e)
+		private void EditButton_Click(object? sender, EventArgs e)
 		{
 			if (resultsListView.SelectedItems.Count > 0)
 			{
@@ -276,7 +276,7 @@ namespace zfile.Forms
 			}
 		}
 
-		private void GotoFileButton_Click(object sender, EventArgs e)
+		private void GotoFileButton_Click(object? sender, EventArgs e)
 		{
 			if (resultsListView.SelectedItems.Count > 0)
 			{
@@ -285,12 +285,15 @@ namespace zfile.Forms
 				{
 					string directory = Path.GetDirectoryName(filePath);
 					// 如果有父窗体,通知它跳转到指定目录
-					owner?.GetType().GetMethod("NavigateToDirectory")?.Invoke(owner, new object[] { directory });
+					//owner?.GetType().GetMethod("NavigateToPath")?.Invoke(owner, new object[] { directory });
+					owner.NavigateToPath(directory);
+					//todo: 将文件选中
+					
 				}
 			}
 		}
 
-		private void ExportListButton_Click(object sender, EventArgs e)
+		private void ExportListButton_Click(object? sender, EventArgs e)
 		{
 			using (var saveDialog = new SaveFileDialog())
 			{
@@ -1083,7 +1086,7 @@ namespace zfile.Forms
 			return sb.ToString();
 		}
 
-		private void StartSearchButton_Click(object sender, EventArgs e)
+		private void StartSearchButton_Click(object? sender, EventArgs e)
 		{
 			// 开始搜索
 			if (string.IsNullOrWhiteSpace(searchBox.Text) && !findTextCheckBox.Checked && !duplicateFilesCheckBox.Checked)

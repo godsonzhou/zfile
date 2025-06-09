@@ -279,7 +279,7 @@ namespace zfile
 		private readonly ContextMenuStrip contextMenuStrip = new();
 		public CmdProc cmdProcessor;
 		public KeyMgr keyManager;
-		private IShellFolder iDeskTop, iCtrlPanel;
+		private IShellFolder? iDeskTop, iCtrlPanel;
 		private FileEntry[] draggedItems;
 		private TreeNode? rightClickBegin;
 		private string? oldname;
@@ -571,9 +571,8 @@ namespace zfile
 		private void InitializeCOMComponents()
 		{
 			// 初始化COM组件
-			IntPtr deskTopPtr;
 			w32.InitializeCOM();
-			iDeskTop = w32.GetDesktopFolder(out deskTopPtr);
+			iDeskTop = w32.GetDesktopFolder(out var deskTopPtr);
 			if (iDeskTop == null)
 				throw new Exception("无法初始化桌面Shell接口");
 			iCtrlPanel = w32.GetControlPanelFolder(out CtrlPanel_PIDL);
@@ -786,7 +785,7 @@ namespace zfile
 			else
 				return uiManager.RightList;
 		}
-		private bool IsValidTarget(MyListView listView, DragEventArgs e, out string targetPath)
+		private bool IsValidTarget(MyListView listView, DragEventArgs e, out string? targetPath)
 		{
 			if (IsActiveFtpPanel(out var ftpnode, GetTreeViewByName(listView.Name)))
 			{
@@ -826,7 +825,7 @@ namespace zfile
 		{
 			if (draggedItems == null) return;
 			var listView = sender as MyListView;
-			if (!IsValidTarget(listView, e, out string targetPath)) return;
+			if (!IsValidTarget(listView, e, out var targetPath)) return;
 
 			// 检查目标路径是否为FTP或压缩文件
 			if (fTPMGR.IsFtpPath(targetPath) || IsArchiveFile(targetPath))
@@ -841,7 +840,7 @@ namespace zfile
 
 			if (targetItem != null)
 			{
-				string itemPath = GetListItemPath(targetItem)?.FullPath;
+				var itemPath = GetListItemPath(targetItem)?.FullPath;
 				if (File.Exists(itemPath))
 				{
 					// 检查是否为可执行文件
@@ -1203,14 +1202,12 @@ namespace zfile
 				{
 					// 提供一个弹出式菜单的句柄
 					IntPtr contextMenu = API.CreatePopupMenu();
-					iContextMenu.QueryContextMenu(contextMenu, 0,
-						w32.CMD_FIRST, w32.CMD_LAST, CMF.NORMAL | CMF.EXPLORE);
+					iContextMenu.QueryContextMenu(contextMenu, 0, w32.CMD_FIRST, w32.CMD_LAST, CMF.NORMAL | CMF.EXPLORE);
 					//var str = new StringBuilder(256);
 					//iContextMenu.GetCommandString(w32.CMD_FIRST, GetCommandStringInformations.VERB, IntPtr.Zero, str, 0);
 					//Debug.Print("cmdstr:{0}", str);
 					// 弹出菜单
-					uint cmd = API.TrackPopupMenuEx(contextMenu, TPM.RETURNCMD,
-						MousePosition.X, MousePosition.Y, this.Handle, IntPtr.Zero);
+					uint cmd = API.TrackPopupMenuEx(contextMenu, TPM.RETURNCMD, MousePosition.X, MousePosition.Y, this.Handle, IntPtr.Zero);
 					// 获取命令序号,执行菜单命令
 					if (cmd >= w32.CMD_FIRST)
 						ContextMenuHandler.InvokeCommand(iContextMenu, cmd, strpath, new POINT(MousePosition.X, MousePosition.Y));
@@ -1334,15 +1331,15 @@ namespace zfile
 		public void TreeView_NodeMouseClick(object? sender, TreeNodeMouseClickEventArgs e)
 		{
 			if (e.Node?.Tag == null) return;
-
-			string path = e.Node.Text ?? string.Empty;
+			var treeview = sender as TreeView;
+			if (treeview != null)
+				uiManager.isleft = treeview == uiManager.LeftTree; //更新当前活动面板的标志
+			
+			var shellitem = e.Node.Tag as ShellItem;
+			string path = shellitem?.parsepath ?? string.Empty;
 			if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
 			{
 				SelectedNode = e.Node;
-				var treeview = sender as TreeView; 
-				if (treeview != null) { 
-					uiManager.isleft = treeview == uiManager.LeftTree; //更新当前活动面板的标志
-				}
 				// 更新监视器
 				watcher.Path = path;
 				watcher.EnableRaisingEvents = true;

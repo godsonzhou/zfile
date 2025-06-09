@@ -283,7 +283,9 @@ namespace zfile
 				case 530: // cm_SaveSelection
 					do_cm_SaveSelection();
 					break;
-
+				case 531: // 命令ID=531，Name=cm_exchange
+					cm_exchange();
+					break;
 				case 532: // cm_matchsrc
 					do_cm_matchsrc();
 					break;
@@ -695,17 +697,31 @@ namespace zfile
 			}
 		}
 
+		private void cm_exchange()
+		{
+			//exchange the dir
+			var srcdir = owner.uiManager.srcDir;
+			var targetdir = owner.uiManager.targetDir;
+			if (srcdir.Equals(targetdir))
+				return;
+			owner.NavigateToPath(srcdir, isactive: false);
+			owner.NavigateToPath(targetdir, isactive: true);
+		}
+
 		private void cm_srcquickview()
 		{
 			//ctrol+q
 			owner.uiManager.TogglePreview(-1);
+			var previewbutton = owner.uiManager.GetToolStripButtonByCmd("cm_srcquickview");
+			previewbutton.Checked = owner.uiManager.LeftPreview.Visible;
 		}
 
 		private void cm_syncchangedir()
 		{
 			//同步更改文件夹
 			//if(owner.uiManager.srcDir == owner.uiManager.targetDir)
-				owner.syncchangedir = !owner.syncchangedir;
+			owner.syncchangedir = !owner.syncchangedir;
+			ToolbarManager.cm_syncchangedir_button.Checked = owner.syncchangedir;
 		}
 
 		private void cm_shrinkselection()

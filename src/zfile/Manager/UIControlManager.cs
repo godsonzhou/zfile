@@ -295,7 +295,11 @@ namespace zfile
 				LeftPreview.Visible = (mode & 1) != 0;
 				RightPreview.Visible = (mode & 2) != 0;
 			}
-			
+
+			LeftPanel.SplitterDistance = LeftPreview.Visible ? (int)(LeftPanel.Height * 0.7) : LeftPanel.Height;
+			RightPanel.SplitterDistance = RightPreview.Visible ? (int)(RightPanel.Height * 0.7) : RightPanel.Height;
+			LeftPanel.Update();
+			RightPanel.Update();
 		}
 		// 处理子字段语法：~开始位置,长度
 		public string ProcessSubfield(string value, string subfieldSpec)
@@ -945,9 +949,7 @@ namespace zfile
 			// 获取路径的根目录（盘符）
 			string root = Path.GetPathRoot(currentPath) ?? "";
 			if (!string.IsNullOrEmpty(root))
-			{
 				lastVisitedPaths[root] = currentPath;
-			}
 		}
 		public void InitializeTreeViews()
 		{
@@ -1685,7 +1687,34 @@ namespace zfile
 				MessageBox.Show($"加载菜单失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
 			}
 		}
-
+		public ToolStripMenuItem? GetMenuItemByName(string name)
+		{
+			foreach(ToolStripMenuItem item in form.MainMenuStrip.Items)
+			{
+				if (item.Name.Equals(name))
+					return item;
+			}
+			return null;
+		}
+		public ToolbarButton? GetButtonByCmd(string cmd, bool isvertial = false)
+		{
+			foreach(ToolbarButton button in (isvertial ? vtoolbarManager : toolbarManager).toolbarButtons)
+			{
+				if (button.cmd.Equals(cmd, StringComparison.OrdinalIgnoreCase))
+					return button;
+			}
+			return null;
+		}
+		public ToolStripButton? GetToolStripButtonByCmd(string cmd, bool isvertial = false)
+		{
+			foreach (ToolStripItem item in (isvertial ? vtoolbarManager : toolbarManager).DynamicToolStrip.Items)
+			{
+				var cmdstr = item.Tag as string;
+				if(item is ToolStripButton button && cmd.Equals(cmdstr, StringComparison.OrdinalIgnoreCase))
+					return button;
+			}
+			return null;
+		}
 		private void buildMenuForCmSrcviewmodelist(ToolStripMenuItem menuitem)
 		{
 			//为视图模型列表 cmdid=333创建子菜单

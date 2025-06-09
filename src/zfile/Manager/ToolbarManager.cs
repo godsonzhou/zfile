@@ -41,8 +41,7 @@ namespace zfile
 		ToolStripMenuItem editItem = new ToolStripMenuItem("编辑按钮");
 		ToolStripMenuItem editGroupItem = new ToolStripMenuItem("编辑按钮组");
 		private bool isHidden;
-		public static ToolStripButton cm_srcthumbs_Button;
-		public static ToolStripButton cm_dirbranch_button;
+		public static ToolStripButton? cm_srcthumbs_Button, cm_syncchangedir_button, cm_dirbranch_button;
 		public void Dispose()
 		{
 			Dispose(true);
@@ -329,19 +328,24 @@ namespace zfile
 				// var zhdesc = form.cmdProcessor.cmdTable.GetByCmdName(cmd)?.ZhDesc ?? "";
 				var isSrcThumb = (b.cmd.Equals("cm_srcthumbs"));
 				var isDirBranch = b.cmd.Equals("cm_DirBranch");
+				var isSyncChangeDir = b.cmd.Equals("cm_syncchangedir", StringComparison.OrdinalIgnoreCase);
 				ToolStripButton button = new ToolStripButton
 				{
 					Text = "",  //menuText,
 					ToolTipText = b.name,
 					Image = form.iconManager.LoadIcon(b.icon),
-					CheckOnClick = isSrcThumb || isDirBranch, //b.cmd.Equals("cm_srcthumbs"),    //缩略图按钮为切换模式的按钮
+					CheckOnClick = isSrcThumb || isDirBranch || isSyncChangeDir, //b.cmd.Equals("cm_srcthumbs"),    //缩略图按钮为切换模式的按钮
 					Tag = b.cmd,
 					AllowDrop = true  // 允许按钮接收拖拽
 				};
+
 				if(isSrcThumb)
 					cm_srcthumbs_Button = button; // 保存缩略图按钮的引用
-				if (isDirBranch)
+				else if (isDirBranch)
 					cm_dirbranch_button = button;
+				else if (isSyncChangeDir)
+					cm_syncchangedir_button = button;
+
 				if (b.cmd.StartsWith("openbar"))
 				{
 					string dropdownFilePath = b.cmd.Substring("openbar ".Length);

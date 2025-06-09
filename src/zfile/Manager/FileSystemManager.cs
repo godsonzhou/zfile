@@ -326,6 +326,12 @@ namespace zfile
 			}
 		}
 
+		internal static List<string> FindDuplicateFiles(List<string> files, bool isSameName, bool isSameSize, bool isSameContent, bool isSamePluginField, string? fieldnames)
+		{
+			var result = new List<string>();
+
+			return result;
+		}
 	}
 
 	class FileInfoList

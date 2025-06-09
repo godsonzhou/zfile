@@ -1086,9 +1086,9 @@ namespace zfile.Forms
 		private void StartSearchButton_Click(object sender, EventArgs e)
 		{
 			// 开始搜索
-			if (string.IsNullOrWhiteSpace(searchBox.Text) && !findTextCheckBox.Checked)
+			if (string.IsNullOrWhiteSpace(searchBox.Text) && !findTextCheckBox.Checked && !duplicateFilesCheckBox.Checked)
 			{
-				MessageBox.Show("请输入搜索关键词或选择查找文本选项", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				MessageBox.Show("请输入搜索关键词或选择查找文本/重复文件选项", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
 				return;
 			}
 
@@ -1215,7 +1215,11 @@ namespace zfile.Forms
 
 					files = textFiles;
 				}
-
+				//搜索重复的文件
+				if (duplicateFilesCheckBox.Checked)
+				{
+					files = FileSystemManager.FindDuplicateFiles(files, sameNameCheckBox.Checked, sameSizeCheckBox.Checked, sameContentCheckBox.Checked, samePluginFieldsCheckBox.Checked, pluginFieldsComboBox.SelectedItem?.ToString());
+				}
 				// 显示搜索结果
 				foreach (var file in files)
 				{

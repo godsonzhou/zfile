@@ -8,16 +8,11 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
-using zfile.Forms;
 using WinShell;
-using System.Runtime;
-using System.Xml.Linq;
-using zfile.Filter;
+using zfile.Forms;
 
 namespace zfile
 {
-
 	public partial class CmdProc
 	{
 		public CmdTable cmdTable;
@@ -767,20 +762,21 @@ namespace zfile
 		{
 			//为过滤器删除过滤条件
 			if (owner.filterManager.ShowFilterDialog(owner))
-			owner.RefreshActivePanel();
+				owner.RefreshActivePanel();
 		}
 
 		private void cm_spreadselection()
 		{
 			//为过滤器添加过滤条件
 			if( owner.filterManager.ShowFilterDialog(owner))
-			owner.RefreshActivePanel();
+				owner.RefreshActivePanel();
 		}
 
 		private void cm_srcuserdef()
 		{
 			// 显示过滤对话框
-			owner.filterManager.ShowFilterDialog(owner);
+			if(owner.filterManager.ShowFilterDialog(owner))
+				owner.RefreshActivePanel();
 		}
 
 		private void cm_showonlyselected()

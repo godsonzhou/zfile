@@ -172,6 +172,9 @@ namespace zfile
 				case 303:   //cm_switchviewmode//todo: 先用个303暂时，等确定了具体编号再改
 					owner.cm_switchviewmode();
 					break;
+				case 304: //命令ID=304,Name=cm_srcquickview
+					cm_srcquickview();
+					break;
 				case 311: //命令ID=311,Name=cm_srcexecs
 					cm_srcexecs();
 					break;
@@ -520,6 +523,9 @@ namespace zfile
 				case 2400: // cm_multirename
 					cm_multirename();
 					break;
+				case 2600: //命令ID=2600,Name=cm_syncchangedir
+					cm_syncchangedir();
+					break;
 				case 2901:
 					cm_visbuttonbar();
 					break;
@@ -593,7 +599,9 @@ namespace zfile
 					//cm_separatetree2();
 					owner.uiManager.ToggleTreeview(3);
 					break;
-
+				case 3203: //命令1D=3203，Name=cm_switchseparatetree
+					owner.uiManager.ToggleTreeview(-1);
+					break;
 				case 4001: // 命令ID = 4001, Name = cm_focusleft
 					owner.uiManager.LeftList.Focus();
 					break;
@@ -685,6 +693,19 @@ namespace zfile
 						MessageBox.Show($"命令ID = {cmdId} 尚未实现", "提示");
 					break;
 			}
+		}
+
+		private void cm_srcquickview()
+		{
+			//ctrol+q
+			owner.uiManager.TogglePreview(-1);
+		}
+
+		private void cm_syncchangedir()
+		{
+			//同步更改文件夹
+			//if(owner.uiManager.srcDir == owner.uiManager.targetDir)
+				owner.syncchangedir = !owner.syncchangedir;
 		}
 
 		private void cm_shrinkselection()

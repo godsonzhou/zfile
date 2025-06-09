@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using OpenQA.Selenium.DevTools.V131.DOM;
 using Sheng.Winform.Controls;
 using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
@@ -34,34 +35,42 @@ namespace zfile
 		#region Drive Controls
 		public ComboBox LeftDriveComboBox { get; } = new() { Name = "L" };
 		public ComboBox RightDriveComboBox { get; } = new() { Name = "R" };
+		public Dictionary<string, ComboBox> DriveComboBoxs = [];
 		public ShengAddressBarStrip LeftPathTextBox { get; } = new() { Name = "L" };
 		public ShengAddressBarStrip RightPathTextBox { get; } = new() { Name = "R" };
+		public Dictionary<string, ShengAddressBarStrip> PathTextBoxs = [];
 		public ShengAddressBarStrip ActivePathTextBox { get => (isleft ? LeftPathTextBox : RightPathTextBox); }
 		#endregion
 		// 添加导航按钮控件
 		public ToolStrip LeftNavigationStrip { get; } = new() { Name = "L", Width = 100 };
 		public ToolStrip RightNavigationStrip { get; } = new() { Name = "R", Width = 100 };
+		public Dictionary<string, ToolStrip> NavigationStrips = [];
 
 		#region View Controls
 		public TreeView LeftTree { get; } = new() { Name = "L" };
 		public TreeView RightTree { get; } = new() { Name = "R" };
+		public Dictionary<string, TreeView> Treeviews = [];
 		public MyListView LeftList { get; } = new() { Name = "L" };
 		public MyListView RightList { get; } = new() { Name = "R" };
+		public Dictionary<string, MyListView> Listviews = [];
 		#endregion
 
 		#region Preview Controls
 		public TextBox LeftPreview { get; } = new() { Name = "L" };
 		public TextBox RightPreview { get; } = new() { Name = "R" };
+		public Dictionary<string, TextBox> Previews = [];
 		#endregion
 
 		#region Status Controls
 		public StatusStrip LeftStatusStrip { get; } = new() { Name = "L" };
 		public StatusStrip RightStatusStrip { get; } = new() { Name = "R" };
+		public Dictionary<string, StatusStrip> StatusStrips = [];
 		#endregion
 
 		#region Bookmark Controls
 		public readonly FlowLayoutPanel leftBookmarkPanel = new() { Name = "L" };
 		public readonly FlowLayoutPanel rightBookmarkPanel = new() { Name = "R" };
+		public Dictionary<string, FlowLayoutPanel> BookmarkPanels = [];
 		public BookmarkManager BookmarkManager { get; private set; }
 		#endregion
 
@@ -273,6 +282,20 @@ namespace zfile
 			RightTreeListSplitter.SplitterDistance = RightTree.Visible ? RightPanel.Width / 3 : 0;
 			LeftList.Parent?.Update();
 			RightList.Parent?.Update();
+		}
+		public void TogglePreview(int mode = -1)
+		{
+			if(mode == -1)
+			{
+				LeftPreview.Visible = !LeftPreview.Visible;
+				RightPreview.Visible = !RightPreview.Visible;
+			}
+			else
+			{
+				LeftPreview.Visible = (mode & 1) != 0;
+				RightPreview.Visible = (mode & 2) != 0;
+			}
+			
 		}
 		// 处理子字段语法：~开始位置,长度
 		public string ProcessSubfield(string value, string subfieldSpec)
@@ -634,6 +657,14 @@ namespace zfile
 			InitializeStatusStrips();
 			InitializeToolStrip();
 			InitializeBookmarkLists();
+			Treeviews["L"] = LeftTree;
+			Treeviews["R"] = RightTree;
+			Listviews["L"] = LeftList;
+			Listviews["R"] = RightList;
+			DriveComboBoxs["L"] = LeftDriveComboBox;
+			DriveComboBoxs["R"] = RightDriveComboBox;
+			PathTextBoxs["L"] = LeftPathTextBox;
+			PathTextBoxs["R"] = RightPathTextBox;
 		}
 		private void InitializeFtpController()
 		{

@@ -13,7 +13,6 @@ using zfile.Filter;
 using Keys = System.Windows.Forms.Keys;
 using System.Windows.Automation;
 using static System.Windows.Forms.ListView;
-//using System.Windows.Controls;
 
 namespace zfile
 {
@@ -185,6 +184,8 @@ namespace zfile
 		// 新增标志定义
 		private const uint SIIGBF_IGNORECRYPTED = 0x00000080;
 		const int ILD_TRANSPARENT = 0x00000001;
+		public const int LEFT = 0;
+		public const int RIGHT = 1;
 
 		public class LvCol
 		{
@@ -302,6 +303,7 @@ namespace zfile
 		private bool showFolderSize;
 		private IntPtr CtrlPanel_PIDL;
 		public List<string> SelectedItems = [];
+		internal bool syncchangedir;
 
 		public enum TreeSearchScope
 		{
@@ -310,29 +312,30 @@ namespace zfile
 			ftproot = 2,
 			full = 3
 		}
-		private IFileSource UpdateFilesourceAndCurrentPath(string path, out bool filesourceChanged, out IFileSource? oldfs, out string oldpath)
+		private IFileSource UpdateFilesourceAndCurrentPath(string path, out bool filesourceChanged, out IFileSource? oldfs, out string oldpath, string LR)
 		{
 			// get the current filesource
-			oldpath = CurrentFullpath[LRflag];
-			oldfs = CurrentFullpath.GetFileSource(LRflag);
+			oldpath = CurrentFullpath[LR];
+			oldfs = CurrentFullpath.GetFileSource(LR);
 			// 使用 FileSourceManager 获取合适的 FileSource,
-			IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, isleft);
+			IFileSource fileSource = _fileSourceManager.GetFileSourceForFullPath(path, LR.Equals("L"));
 			filesourceChanged = (oldfs != fileSource);
 			if (filesourceChanged)
 			{
 				Debug.Print($"file source update {oldfs}({oldfs.RootPath}) -> {fileSource}({fileSource.RootPath})");
 				// 更新当前活动面板的 FileSource
-				if (uiManager.isleft)
+				if (LR.Equals("L"))
 					LeftFileSource = fileSource;
 				else
 					RightFileSource = fileSource;
-				uiManager.ActiveFileView.ActiveFileSource = fileSource;
+				if(LR.Equals(LRflag))
+					uiManager.ActiveFileView.ActiveFileSource = fileSource;
 			}
 			else
 				Debug.Print($"WARNING: Update Filesource is not necessary!");
 
 			// 更新当前路径
-			CurrentFullpath[LRflag] = path;
+			CurrentFullpath[LR] = path;
 			return fileSource;
 		}
 		// 导航到指定路径
@@ -342,11 +345,12 @@ namespace zfile
 			var pathsep = searchftp ? '/' : '\\';
 			//ftp filesystem filesource uniprocess here
 			path = Helper.IncludeTrailingPathDelimiter(path, pathsep);
-			if (path.Equals(CurrentFullpath[LRflag]))
+			var whichpanel = isactive ? LRflag : RLflag;
+			if (path.Equals(CurrentFullpath[whichpanel]))
 				return;
 			Debug.Print($"Navigate to path : {path}");
 			//first change currentfilesource according to the path
-			var fs = UpdateFilesourceAndCurrentPath(path, out _, out var oldfs, out var oldpath);
+			var fs = UpdateFilesourceAndCurrentPath(path, out _, out var oldfs, out var oldpath, whichpanel);
 			if (fs is WcxArchiveFileSource wcxfs)
 			{
 				if (!path.StartsWith(wcxfs.ArchivePath))
@@ -1335,6 +1339,10 @@ namespace zfile
 			if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
 			{
 				SelectedNode = e.Node;
+				var treeview = sender as TreeView; 
+				if (treeview != null) { 
+					uiManager.isleft = treeview == uiManager.LeftTree; //更新当前活动面板的标志
+				}
 				// 更新监视器
 				watcher.Path = path;
 				watcher.EnableRaisingEvents = true;
@@ -1354,6 +1362,7 @@ namespace zfile
 			{
 				if (sender is TreeView treeView)
 				{
+					var LR = treeView.Name;
 					//_backgroundIconManager.CancelCurrentTasks();//bugfix:会引发更新不完整的问题
 					// 清除所有节点的高亮状态
 					ClearTreeViewHighlight(treeView);
@@ -1361,23 +1370,25 @@ namespace zfile
 					e.Node.ForeColor = SystemColors.HighlightText;
 					treeView.Refresh(); // 强制重绘
 
-					uiManager.isleft = treeView == uiManager.LeftTree;
+					//uiManager.isleft = treeView == uiManager.LeftTree;
 
 					// 使用 FileSourceManager 获取合适的 FileSource
 					var path = Helper.getFSpathbyTree(e.Node);
 					if (string.IsNullOrEmpty(path))
 						return;
 
-					var fileSource = UpdateFilesourceAndCurrentPath(path, out var fschanged, out var oldfs, out var oldpath);
+					var fileSource = UpdateFilesourceAndCurrentPath(path, out var fschanged, out var oldfs, out var oldpath, LR);
 
 					SelectedNode = e.Node;
-
+					if(syncchangedir)
+						NavigateToPath(path, true, isactive: false); //同步改变非活动面板的目录
+					
 					// 检查是否是FTP节点
 					if (e.Node.Tag is FtpNodeTag ftpTag)
 					{
 						// 处理FTP节点双击事件
 						fTPMGR.HandleFtpNodeDoubleClick(e.Node);
-						UpdatePathTextAndDriveComboBox(e.Node, CurrentFullpath[LRflag], isleft);//TODO: BUGFIX: IF ENODE IS LEFT , LRFLAG IS R, SOME THING ERROR
+						UpdatePathTextAndDriveComboBox(e.Node, CurrentFullpath[LR], LR.Equals("L"));//TODO: BUGFIX: IF ENODE IS LEFT , LRFLAG IS R, SOME THING ERROR
 						uiManager.SetArgs();
 						return;
 					}
@@ -1391,19 +1402,19 @@ namespace zfile
 					bool isNodeLoaded = false;
 					if (e.Node.Tag is ShellItem sItem && sItem.SubNodeState == NODE_LOADED_KEY)
 						isNodeLoaded = true;
-
+					var LV = GetListViewByName(LR);
 					// 只有当节点没有被标记为已加载时才加载子目录
 					if (!isNodeLoaded || fileSource is ShellFileSource) // shellfilesource should always loadsubdir
-						LoadSubDirectories(e.Node, activeListView); //盘符不变时在这里刷新TREEVIEW/LISTVIEW
+						LoadSubDirectories(e.Node, LV); //盘符不变时在这里刷新TREEVIEW/LISTVIEW
 
 					// 无论如何都需要刷新ListView
-					LoadListViewByFileSource(path, activeListView, e.Node);
+					LoadListViewByFileSource(path, LV, e.Node);
 					//当激活的面板发生变化时更新缩略图按钮状态
 					if (ToolbarManager.cm_srcthumbs_Button != null)
-						ToolbarManager.cm_srcthumbs_Button.CheckState = activeListView.View == View.Tile ? CheckState.Checked : CheckState.Unchecked;
+						ToolbarManager.cm_srcthumbs_Button.CheckState = LV.View == View.Tile ? CheckState.Checked : CheckState.Unchecked;
 					
 					uiManager.UpdateLastVisitedPath(path);
-					UpdatePathTextAndDriveComboBox(e.Node, path, isleft);    //盘符改变时在combobox事件中刷新//必须在loadsubdir之后，因为需要loadsubdir中调用pathtextbox.setchildren
+					UpdatePathTextAndDriveComboBox(e.Node, path, LR.Equals("L"));    //盘符改变时在combobox事件中刷新//必须在loadsubdir之后，因为需要loadsubdir中调用pathtextbox.setchildren
 					if (Directory.Exists(path))
 					{
 						watcher.Path = path;

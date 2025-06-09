@@ -436,9 +436,19 @@ namespace zfile
 					MessageBoxButtons.OK, MessageBoxIcon.Error);
 			}
 		}
-		private void cm_DirBranch()
+		/// <summary>
+		/// mode = -1, toggle dir branch mode, mode = 0, toggle off, mode = 1 means toggle on
+		/// </summary>
+		/// <param name="mode"></param>
+		private void cm_DirBranch(int mode = -1)
 		{
-			owner.fsManager.isDirBranchMode = !owner.fsManager.isDirBranchMode;
+			if (mode == -1)
+				owner.fsManager.isDirBranchMode = !owner.fsManager.isDirBranchMode;
+			else if (mode == 0)
+				owner.fsManager.isDirBranchMode = false;
+			else if (mode == 1)
+				owner.fsManager.isDirBranchMode = true;
+
 			ToolbarManager.cm_dirbranch_button.Checked = owner.fsManager.isDirBranchMode;
 			owner.RefreshActivePanel();
 		}

@@ -465,7 +465,9 @@ namespace zfile
 				case 2037: // cm_CopyFullDetailsToClip
 					cm_CopyFullDetailsToClip();
 					break;
-
+				case 2046: // 命令ID=2046,Name=cm_dirbranchsel
+					cm_dirbranchsel();
+					break;
 				case 2050: // 命令ID=2050,Name = cm_gotofirstfile
 					cm_gotofirstfile();
 					break;
@@ -536,6 +538,9 @@ namespace zfile
 					break;
 				case 2906:
 					cm_visdrivecombo();
+					break;
+				case 2908: // 命令ID=2908，Name=cm_vistabheader
+					cm_vistabheader();
 					break;
 				case 2909:
 					cm_visstatusbar();
@@ -695,6 +700,40 @@ namespace zfile
 						MessageBox.Show($"命令ID = {cmdId} 尚未实现", "提示");
 					break;
 			}
+		}
+	
+		// 处理DrawItem事件
+		private void listView1_DrawItem(object sender, DrawListViewItemEventArgs e)
+		{
+			e.DrawDefault = true; // 使用默认方式绘制项
+		}
+		private void cm_vistabheader()
+		{
+			owner.uiManager.vistabheader = !owner.uiManager.vistabheader;
+			owner.uiManager.LeftList.OwnerDraw = !owner.uiManager.vistabheader;
+			owner.uiManager.RightList.OwnerDraw = !owner.uiManager.vistabheader;
+			owner.uiManager.LeftList.DrawColumnHeader += ListView_DrawColumnHeader;
+			owner.uiManager.RightList.DrawColumnHeader += ListView_DrawColumnHeader;
+			owner.RefreshPanel(true);
+			owner.RefreshPanel(false);
+		}
+
+		// 处理DrawColumnHeader事件
+		private void ListView_DrawColumnHeader(object? sender, DrawListViewColumnHeaderEventArgs e)
+		{
+			// 不进行任何绘制操作，从而隐藏标题栏
+
+		}
+
+		private void cm_dirbranchsel()
+		{
+			if (owner.activeListView.SelectedItems.Count == 0)
+				return;
+			var file = owner.GetListItemPath(owner.activeListView.SelectedItems[0]);
+			if (!file.IsDirectory)
+				return;
+			owner.NavigateToPath(file.FullPath);
+			cm_DirBranch(1);
 		}
 
 		private void cm_exchange()

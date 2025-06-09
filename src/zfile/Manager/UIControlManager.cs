@@ -26,6 +26,7 @@ namespace zfile
 		#endregion
 
 		#region Panel Controls
+		public Panel containerPanel;
 		public Panel LeftUpperPanel { get; } = new();
 		public Panel RightUpperPanel { get; } = new();
 		public Panel LeftDrivePanel { get; } = new();
@@ -115,6 +116,7 @@ namespace zfile
 		public FileView ActiveFileView => isleft ? LeftFileView : RightFileView;
 
 		public bool separatetreeflag;
+		public bool vistabheader = true;
 
 		public Dictionary<string, string> args = new();
 		public Dictionary<string, string> lastVisitedPaths = new();
@@ -661,6 +663,7 @@ namespace zfile
 			InitializeStatusStrips();
 			InitializeToolStrip();
 			InitializeBookmarkLists();
+			UpdateLayout();
 			Treeviews["L"] = LeftTree;
 			Treeviews["R"] = RightTree;
 			Listviews["L"] = LeftList;
@@ -674,10 +677,15 @@ namespace zfile
 		{
 			ftpController = new FtpController(form, form.fTPMGR);
 		}
+		public void UpdateLayout()
+		{
+			containerPanel.Padding = new Padding(0, toolbarManager.isHidden ? 0 : toolbarManager.DynamicToolStrip.Height, 0, 0);
+			form.Update();
+		}
 		public void InitializeLayout()
 		{
 			int topHeight = 0;
-			Panel containerPanel = new()
+			containerPanel = new()
 			{
 				Dock = DockStyle.Fill,
 				Padding = new Padding(0, topHeight, 0, 0)
@@ -1352,8 +1360,10 @@ namespace zfile
 		{
 			if (isToolStripHidden)
 				toolStrip.Show();
-			else toolStrip.Hide();
+			else
+				toolStrip.Hide();
 			isToolStripHidden = !isToolStripHidden;
+			form.Update();
 		}
 		public void InitializeToolStrip()
 		{
@@ -1533,7 +1543,6 @@ namespace zfile
 
 		public void InitializeDynamicMenu()
 		{
-
 			var menu = form.configLoader.FindConfigValue("Configuration", "Mainmenu");
 			string menuFilePath = Constants.ZfileCfgPath + menu;// "WCMD_CHN.MNU";
 			if (!File.Exists(menuFilePath))
@@ -1680,6 +1689,7 @@ namespace zfile
 
 					form.MainMenuStrip = dynamicMenuStrip;
 					form.Controls.Add(dynamicMenuStrip);
+					form.Controls.SetChildIndex(dynamicMenuStrip, 1);
 				}
 			}
 			catch (Exception ex)

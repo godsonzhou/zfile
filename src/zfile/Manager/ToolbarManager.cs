@@ -40,7 +40,7 @@ namespace zfile
 		ToolStripMenuItem copyItem = new ToolStripMenuItem("复制按钮");
 		ToolStripMenuItem editItem = new ToolStripMenuItem("编辑按钮");
 		ToolStripMenuItem editGroupItem = new ToolStripMenuItem("编辑按钮组");
-		private bool isHidden;
+		public bool isHidden;
 		public static ToolStripButton? cm_srcthumbs_Button, cm_syncchangedir_button, cm_dirbranch_button;
 		public void Dispose()
 		{
@@ -124,6 +124,7 @@ namespace zfile
 			else
 			{
 				form.Controls.Add(dynamicToolStrip);
+				form.Controls.SetChildIndex(dynamicToolStrip, 0);
 			}
 			dynamicToolStrip.AllowDrop = true;
 			dynamicToolStrip.DragEnter += form.ToolbarButton_DragEnter;
@@ -135,8 +136,10 @@ namespace zfile
 		{
 			if (isHidden)
 				dynamicToolStrip.Show();
-			else dynamicToolStrip.Hide();
+			else 
+				dynamicToolStrip.Hide();
 			isHidden = !isHidden;
+			form.uiManager.UpdateLayout();
 		}
 		public void AddButton(string name, string cmd, string icon, string path, string param, string iconic)
 		{

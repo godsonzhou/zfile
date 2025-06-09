@@ -44,7 +44,7 @@ namespace zfile.Filter
 		/// <summary>
 		/// 构造函数
 		/// </summary>
-		private FilterManager()
+		public FilterManager()
 		{
 			CurrentFilters = new();
 			IsFilterEnabled = false;
@@ -235,7 +235,7 @@ namespace zfile.Filter
 				return null;
 			}
 
-			var templateData = Filter.FilterManager.Instance.GetSearchTemplateFromCfg(templateName);
+			var templateData = GetSearchTemplateFromCfg(templateName);
 			if (templateData.Count == 0)
 			{
 				MessageBox.Show("无法加载搜索模板", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -450,7 +450,7 @@ namespace zfile.Filter
 		/// </summary>
 		public string GetFilterStatusDescription()
         {
-			return (IsFilterEnabled && FilterManager.Instance.CurrentFilters.Count != 0) ? "已启用过滤 : " + string.Join(", ", FilterManager.Instance.CurrentFilterNames) : "";
+			return (IsFilterEnabled && CurrentFilters.Count != 0) ? "已启用过滤 : " + string.Join(", ", CurrentFilterNames) : "";
         }
 
 		internal void AddFilter(List<FileFilter>? filter)

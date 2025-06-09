@@ -125,7 +125,15 @@ namespace zfile
 				}
 			}
 
-			public IFileSource? ActiveFileSource => _mainform.isleft ? _leftFileSource : _rightFileSource;
+			public IFileSource? ActiveFileSource { 
+				get => _mainform.isleft ? _leftFileSource : _rightFileSource; 
+				set {
+					if (_mainform.isleft)
+						LeftFileSource = value;
+					else
+						RightFileSource = value; 
+				}
+			}
 			public IFileSource? InactiveFileSource => _mainform.isleft ? _rightFileSource : _leftFileSource;
 			private Dictionary<string, IFileSource?> FileSourceDict = new();
 			public FileSourceMapper(MainForm mainForm)
@@ -133,8 +141,6 @@ namespace zfile
 				_mainform = mainForm;
 				FileSourceDict.Add("L", _leftFileSource);
 				FileSourceDict.Add("R", _rightFileSource);
-				FileSourceDict.Add("A", ActiveFileSource);
-				FileSourceDict.Add("I", InactiveFileSource);
 			}
 			// 重写索引器
 			public string this[string key]
@@ -226,6 +232,7 @@ namespace zfile
 		public readonly CFGLOADER userConfigLoader;
 		public readonly CFGLOADER cmdicons_configloader;
 		public readonly ViewMgr viewMgr;
+		public readonly FilterManager filterManager;
 		public readonly IconManager iconManager;
 		public readonly IdmManager idmManager;
 		public readonly ThemeManager themeManager;
@@ -328,8 +335,8 @@ namespace zfile
 					LeftFileSource = fileSource;
 				else
 					RightFileSource = fileSource;
-				if(LR.Equals(LRflag))
-					uiManager.ActiveFileView.ActiveFileSource = fileSource;
+				//if(LR.Equals(LRflag))
+				//	uiManager.ActiveFileView.ActiveFileSource = fileSource;
 			}
 			else
 				Debug.Print($"WARNING: Update Filesource is not necessary!");
@@ -431,6 +438,7 @@ namespace zfile
 			//apply font
 			Helper.ApplyFontToControls(this, myfont);
 			viewMgr = new ViewMgr(this);
+			filterManager = FilterManager.Instance;
 			fTPMGR = new FTPMGR(this);
 			cmdProcessor = new CmdProc(this);
 			mcpClientMgr = new MCPClientManager(Constants.ZfileCfgPath + "zfile_mcp_settings.json");
@@ -2531,9 +2539,9 @@ namespace zfile
 				uiManager.UpdateStatusBar(listView, status);
 				
 				// 如果过滤器启用，在状态栏显示过滤器状态
-				if (FilterManager.Instance.IsFilterEnabled)
+				if (filterManager.IsFilterEnabled)
 				{
-					var filterStatus = FilterManager.Instance.GetFilterStatusDescription();
+					var filterStatus = filterManager.GetFilterStatusDescription();
 					if (!string.IsNullOrEmpty(filterStatus))
 					{
 						status.Items[0].Text += $" | {filterStatus}";

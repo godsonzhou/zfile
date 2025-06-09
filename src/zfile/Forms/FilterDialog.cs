@@ -5,7 +5,7 @@ namespace zfile.Forms
     public partial class FilterDialog : Form
     {
         private List<FileFilter>? _filter = [];
-        private MainForm owner;
+        private MainForm? owner;
         private ListBox templatesListBox;
         private ListBox selectedFiltersListBox;
         private TextBox templateNameTextBox;
@@ -15,24 +15,24 @@ namespace zfile.Forms
         private List<FileFilter> _originalFilters = [];
         private bool _originalFilterAndOr;
         
-        public FilterDialog(MainForm owner = null, FileFilter? filter = null)
+        public FilterDialog(MainForm? owner = null, FileFilter? filter = null)
         {
             InitializeComponent();
 
             this.owner = owner;
 
             // 保存FilterManager的初始状态
-            _originalFilters = FilterManager.Instance.CurrentFilters.ToList();
-            _originalFilterAndOr = FilterManager.Instance.CurrentFilterAndOr;
+            _originalFilters = owner.filterManager.CurrentFilters.ToList();
+            _originalFilterAndOr = owner.filterManager.CurrentFilterAndOr;
             
             // 初始化本地状态
-            _currentAndOrState = FilterManager.Instance.CurrentFilterAndOr;
+            _currentAndOrState = owner.filterManager.CurrentFilterAndOr;
             
             // Initialize filter object
             if (filter != null)
                 _filter.Add(filter);
             else
-                _filter = FilterManager.Instance.CurrentFilters;
+                _filter = owner.filterManager.CurrentFilters;
 
             // 初始化模板面板
             InitializeTemplatesPanel();
@@ -150,7 +150,7 @@ namespace zfile.Forms
 			this.Controls.Add(buttonPnl);
 
 			// 加载模板列表
-			Filter.FilterManager.Instance.LoadSearchTemplates(templatesListBox, true);
+			owner.filterManager.LoadSearchTemplates(templatesListBox, true);
             // 加载已选择的过滤器列表
             LoadSelectedFilters();
         }
@@ -169,7 +169,7 @@ namespace zfile.Forms
 		private void LoadSelectedFilters()
         {
             selectedFiltersListBox.Items.Clear();
-            foreach (var name in FilterManager.Instance.CurrentFilterNames)
+            foreach (var name in owner.filterManager.CurrentFilterNames)
             {
                 selectedFiltersListBox.Items.Add(name);
             }
@@ -183,7 +183,7 @@ namespace zfile.Forms
             if (templatesListBox.SelectedItem != null)
             {
                 string selectedTemplate = templatesListBox.SelectedItem.ToString();
-                var filter = FilterManager.Instance.LoadSearchTemplate(selectedTemplate);
+                var filter = owner.filterManager.LoadSearchTemplate(selectedTemplate);
                 if (filter != null)
                 {
                     // 添加到已选择列表
@@ -191,7 +191,7 @@ namespace zfile.Forms
                     // 从可用列表中移除
                     templatesListBox.Items.Remove(selectedTemplate);
                     // 更新过滤器列表
-                    FilterManager.Instance.AddFilter(filter);
+                    owner.filterManager.AddFilter(filter);
                 }
             }
         }
@@ -211,7 +211,7 @@ namespace zfile.Forms
                 // 添加到可用列表
                 templatesListBox.Items.Add(selectedFilter);
                 // 更新过滤器列表
-                FilterManager.Instance.RemoveFilter(tempFilter);
+                owner.filterManager.RemoveFilter(tempFilter);
             }
         }
 
@@ -228,7 +228,7 @@ namespace zfile.Forms
                 templatesListBox.Items.Add(filterName);
             }
             // 清空过滤器
-            FilterManager.Instance.ClearFilter();
+            owner.filterManager.ClearFilter();
         }
 
 		private void ButtonDefine_Click(object? sender, EventArgs e)
@@ -240,8 +240,8 @@ namespace zfile.Forms
 		private void ButtonCancel_Click(object? sender, EventArgs e)
 		{
 			// 恢复FilterManager的初始状态
-			FilterManager.Instance.SetFilter(_originalFilters);
-			FilterManager.Instance.CurrentFilterAndOr = _originalFilterAndOr;
+			owner.filterManager.SetFilter(_originalFilters);
+			owner.filterManager.CurrentFilterAndOr = _originalFilterAndOr;
 			
 			// 设置对话框结果并关闭
 			DialogResult = DialogResult.Cancel;
@@ -281,10 +281,10 @@ namespace zfile.Forms
         private void buttonOK_Click(object? sender, EventArgs e)
         {
             // 应用本地状态到FilterManager
-            FilterManager.Instance.CurrentFilterAndOr = _currentAndOrState;
+            owner.filterManager.CurrentFilterAndOr = _currentAndOrState;
             
             // 获取当前过滤器
-            _filter = FilterManager.Instance.CurrentFilters;
+            _filter = owner.filterManager.CurrentFilters;
 			//if (templatesListBox.SelectedItem != null)
 			//	_filter = Filter.FilterManager.Instance.LoadSearchTemplate(templatesListBox.SelectedItem.ToString());
 

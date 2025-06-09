@@ -99,14 +99,14 @@ namespace zfile.Forms
 		private List<string> locationHistory = new List<string>();
 		private List<string> searchResults = new List<string>();
 
-		private Form owner;
+		private MainForm owner;
 		private bool isStandalone;
 
-		public SearchforDialog(Form owner, bool isstandalone = false)
+		public SearchforDialog(MainForm owner, bool isstandalone = false)
 		{
 			isStandalone = isstandalone;
 			this.owner = owner;
-			filterMgr = FilterManager.Instance;
+			filterMgr = owner.filterManager;
 			InitializeComponent();
 			LoadHistory();
 		}
@@ -840,7 +840,7 @@ namespace zfile.Forms
 				return;
 			}
 
-			var templateData = Filter.FilterManager.Instance.GetSearchTemplateFromCfg(templateName);
+			var templateData = filterMgr.GetSearchTemplateFromCfg(templateName);
 			if (templateData.Count == 0)
 			{
 				MessageBox.Show("无法加载搜索模板", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);

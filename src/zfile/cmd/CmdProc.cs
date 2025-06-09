@@ -727,34 +727,34 @@ namespace zfile
 		private void cm_shrinkselection()
 		{
 			//为过滤器删除过滤条件
-			if (Filter.FilterManager.Instance.ShowFilterDialog(owner))
+			if (owner.filterManager.ShowFilterDialog(owner))
 			owner.RefreshActivePanel();
 		}
 
 		private void cm_spreadselection()
 		{
 			//为过滤器添加过滤条件
-			if( Filter.FilterManager.Instance.ShowFilterDialog(owner))
+			if( owner.filterManager.ShowFilterDialog(owner))
 			owner.RefreshActivePanel();
 		}
 
 		private void cm_srcuserdef()
 		{
 			// 显示过滤对话框
-			Filter.FilterManager.Instance.ShowFilterDialog(owner);
+			owner.filterManager.ShowFilterDialog(owner);
 		}
 
 		private void cm_showonlyselected()
 		{
 			//仅显示选中的文件
-			FilterManager.Instance.ShowOnlySelected = true;
+			owner.filterManager.ShowOnlySelected = true;
 			owner.RefreshActivePanel();
 		}
 
 		private void cm_srcuserspec()
 		{
 			//应用过滤器的过滤条件，显示指定的文件
-			Filter.FilterManager.Instance.IsFilterEnabled = true;
+			owner.filterManager.IsFilterEnabled = true;
 
 			// 如果过滤器已启用，刷新当前面板以应用过滤器
 			owner.RefreshActivePanel();			
@@ -763,8 +763,8 @@ namespace zfile
 		private void cm_srcallfiles()
 		{
 			//不适用过滤器的任何过滤条件，显示所有文件
-			Filter.FilterManager.Instance.IsFilterEnabled = false;
-			FilterManager.Instance.ShowOnlySelected = false;
+			owner.filterManager.IsFilterEnabled = false;
+			owner.filterManager.ShowOnlySelected = false;
 			// 如果过滤器已启用，刷新当前面板以应用过滤器
 			owner.RefreshActivePanel();
 		}
@@ -772,10 +772,10 @@ namespace zfile
 		private void cm_srcexecs()
 		{
 			// 应用过滤器显示所有可执行文件
-			FilterManager.Instance.ShowOnlySelected = false;
-			Filter.FilterManager.Instance.IsFilterEnabled = true;
-			var filter = FilterManager.Instance.LoadSearchTemplate("可执行文件（全部）");
-			FilterManager.Instance.AddFilter(filter);
+			owner.filterManager.ShowOnlySelected = false;
+			owner.filterManager.IsFilterEnabled = true;
+			var filter = owner.filterManager.LoadSearchTemplate("可执行文件（全部）");
+			owner.filterManager.AddFilter(filter);
 			owner.RefreshActivePanel();
 		}
 

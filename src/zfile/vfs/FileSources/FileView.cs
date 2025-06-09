@@ -4,7 +4,7 @@ namespace zfile
 	{
 		private ListView _listView;
 		private List<IFileSource> _fileSources = new List<IFileSource>();
-		private IFileSource _activeFileSource;
+		//private IFileSource ActiveFileSource;
 		private string _currentPath;
 		private readonly object _syncRoot = new object();
 
@@ -14,7 +14,7 @@ namespace zfile
 			_currentPath = string.Empty;
 		}
 
-		public IFileSource ActiveFileSource { get => _activeFileSource; set => _activeFileSource = value; }
+		public IFileSource? ActiveFileSource { get => MainForm.Instance.CurrentFullpath.ActiveFileSource; set => MainForm.Instance.CurrentFullpath.ActiveFileSource = value; }
 		public string CurrentPath { get => _currentPath; set => _currentPath = value; }
 
 		public void AddFileSource(IFileSource fileSource, string path)
@@ -33,7 +33,7 @@ namespace zfile
 				}
 
 				// Set as active file source
-				_activeFileSource = fileSource;
+				ActiveFileSource = fileSource;
 				_currentPath = path;
 
 				// If this is a WFX file source, add to connection manager
@@ -68,16 +68,16 @@ namespace zfile
 				}
 
 				// If this was the active file source, switch to another one
-				if (_activeFileSource == fileSource)
+				if (ActiveFileSource == fileSource)
 				{
 					if (_fileSources.Count > 0)
 					{
-						_activeFileSource = _fileSources[0];
+						ActiveFileSource = _fileSources[0];
 						_currentPath = "";
 					}
 					else
 					{
-						_activeFileSource = null;
+						ActiveFileSource = null;
 						_currentPath = "";
 					}
 
@@ -89,7 +89,7 @@ namespace zfile
 
 		public void ChangeDirectory(string path)
 		{
-			if (_activeFileSource == null) return;
+			if (ActiveFileSource == null) return;
 
 			_currentPath = path;
 			RefreshFileList();
@@ -97,12 +97,12 @@ namespace zfile
 
 		public void RefreshFileList()
 		{
-			if (_activeFileSource == null) return;
+			if (ActiveFileSource == null) return;
 
 			_listView.Items.Clear();
 
 			//var files = new FileEntries();
-			var files = _activeFileSource.GetFiles(_currentPath);
+			var files = ActiveFileSource.GetFiles(_currentPath);
 			if (files.Count != 0)
 			{
 				foreach (var file in files)
@@ -136,7 +136,7 @@ namespace zfile
 					}
 				}
 				_fileSources.Clear();
-				_activeFileSource = null;
+				//ActiveFileSource = null;
 			}
 		}
 

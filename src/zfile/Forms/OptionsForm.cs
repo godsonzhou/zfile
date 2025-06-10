@@ -12,7 +12,7 @@ namespace zfile
 		private CheckBox winCheckBox;
 		private ComboBox keyComboBox;
 
-		public string SelectedCommand => cmdComboBox.SelectedItem?.ToString();
+		public string SelectedCommand => cmdComboBox.SelectedItem?.ToString() ?? "";
 		public string HotkeyString
 		{
 			get
@@ -23,8 +23,8 @@ namespace zfile
 				if (altCheckBox.Checked) modifiers += "A";
 				if (shiftCheckBox.Checked) modifiers += "S";
 
-				string key = keyComboBox.SelectedItem?.ToString();
-				return modifiers.Length > 0 ? $"{modifiers}+{key}" : key;
+				var key = keyComboBox.SelectedItem?.ToString();
+				return (modifiers.Length > 0 ? $"{modifiers}+{key}" : key) ?? "";
 			}
 		}
 
@@ -829,7 +829,7 @@ namespace zfile
 			if (grid?.SelectedRows.Count > 0)
 			{
 				var row = grid.SelectedRows[0];
-				string cmdName = row.Cells["CmdName"].Value?.ToString();
+				var cmdName = row.Cells["CmdName"].Value?.ToString();
 
 				if (!string.IsNullOrEmpty(cmdName))
 				{
@@ -922,7 +922,7 @@ namespace zfile
 			fontPanel.Visible = false; // 初始隐藏
 		}
 
-		private void FontComboBox_SelectedIndexChanged(object sender, EventArgs e)
+		private void FontComboBox_SelectedIndexChanged(object? sender, EventArgs e)
 		{
 
 		}
@@ -931,7 +931,7 @@ namespace zfile
 		{
 			if (fontComboBox.SelectedItem != null)
 			{
-				string selectedFont = fontComboBox.SelectedItem.ToString();
+				var selectedFont = fontComboBox.SelectedItem.ToString();
 				float fontSize = (float)(fontPanel.Controls.OfType<NumericUpDown>().FirstOrDefault()?.Value ?? 10);
 				Font newFont = new Font(selectedFont, fontSize);
 				Helper.ApplyFontToControls(this, newFont);
@@ -1001,7 +1001,7 @@ namespace zfile
 			}
 		}
 
-		private void Grid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+		private void Grid_CellValueChanged(object? sender, DataGridViewCellEventArgs e)
 		{
 			if (e.RowIndex < 0) return;
 
@@ -1009,7 +1009,7 @@ namespace zfile
 			if (grid == null) return;
 
 			var row = grid.Rows[e.RowIndex];
-			string cmdName = row.Cells["CmdName"].Value?.ToString();
+			var cmdName = row.Cells["CmdName"].Value?.ToString();
 
 			if (string.IsNullOrEmpty(cmdName)) return;
 
@@ -1018,7 +1018,7 @@ namespace zfile
 			bool hasAlt = Convert.ToBoolean(row.Cells["Alt"].Value);
 			bool hasShift = Convert.ToBoolean(row.Cells["Shift"].Value);
 			bool hasWin = Convert.ToBoolean(row.Cells["Win"].Value);
-			string keyStr = row.Cells["Key"].Value?.ToString();
+			var keyStr = row.Cells["Key"].Value?.ToString();
 
 			if (string.IsNullOrEmpty(keyStr)) return;
 
@@ -1052,7 +1052,7 @@ namespace zfile
 			UpdateOkButtonState();
 		}
 
-		private void TreeView_AfterSelect(object sender, TreeViewEventArgs e)
+		private void TreeView_AfterSelect(object? sender, TreeViewEventArgs e)
 		{
 			if (e.Node != null)
 			{
@@ -1128,8 +1128,8 @@ namespace zfile
 			if (altCheckBoxes[cmdName].Checked) modifiers += "A";
 			if (shiftCheckBoxes[cmdName].Checked) modifiers += "S";
 
-			string keyStr = comboBox.SelectedItem.ToString();
-			string fullKeyStr = modifiers.Length > 0 ? $"{modifiers}+{keyStr}" : keyStr;
+			var keyStr = comboBox.SelectedItem.ToString();
+			var fullKeyStr = modifiers.Length > 0 ? $"{modifiers}+{keyStr}" : keyStr;
 			// 检查快捷键冲突
 			var conflicts = CheckHotkeyConflicts(cmdName, fullKeyStr);
 			if (conflicts.Any())

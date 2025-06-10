@@ -2,6 +2,107 @@
 using zfile.Forms;
 namespace zfile
 {
+	public class AddHotkeyForm : Form
+	{
+		private ComboBox cmdComboBox;
+		private TextBox hotkeyTextBox;
+		private CheckBox ctrlCheckBox;
+		private CheckBox altCheckBox;
+		private CheckBox shiftCheckBox;
+		private CheckBox winCheckBox;
+		private ComboBox keyComboBox;
+
+		public string SelectedCommand => cmdComboBox.SelectedItem?.ToString();
+		public string HotkeyString
+		{
+			get
+			{
+				string modifiers = "";
+				if (winCheckBox.Checked) modifiers += "#";
+				if (ctrlCheckBox.Checked) modifiers += "C";
+				if (altCheckBox.Checked) modifiers += "A";
+				if (shiftCheckBox.Checked) modifiers += "S";
+
+				string key = keyComboBox.SelectedItem?.ToString();
+				return modifiers.Length > 0 ? $"{modifiers}+{key}" : key;
+			}
+		}
+
+		public AddHotkeyForm(CmdTable cmdTable)
+		{
+			Text = "添加快捷键";
+			Size = new Size(400, 250);
+			FormBorderStyle = FormBorderStyle.FixedDialog;
+			MaximizeBox = false;
+			MinimizeBox = false;
+			StartPosition = FormStartPosition.CenterParent;
+
+			TableLayoutPanel layout = new()
+			{
+				Dock = DockStyle.Fill,
+				ColumnCount = 2,
+				RowCount = 3,
+				Padding = new Padding(10)
+			};
+
+			// 命令选择
+			layout.Controls.Add(new Label { Text = "命令:" }, 0, 0);
+			cmdComboBox = new ComboBox { Dock = DockStyle.Fill, DropDownStyle = ComboBoxStyle.DropDownList };
+			foreach (var cmd in cmdTable.GetAll())
+			{
+				cmdComboBox.Items.Add(cmd.CmdName);
+			}
+			layout.Controls.Add(cmdComboBox, 1, 0);
+
+			// 修饰键
+			FlowLayoutPanel modifiersPanel = new()
+			{
+				Dock = DockStyle.Fill,
+				FlowDirection = FlowDirection.LeftToRight
+			};
+
+			ctrlCheckBox = new CheckBox { Text = "Ctrl" };
+			altCheckBox = new CheckBox { Text = "Alt" };
+			shiftCheckBox = new CheckBox { Text = "Shift" };
+			winCheckBox = new CheckBox { Text = "Win" };
+
+			modifiersPanel.Controls.AddRange(new Control[] {
+			ctrlCheckBox, altCheckBox, shiftCheckBox, winCheckBox
+		});
+
+			layout.Controls.Add(new Label { Text = "修饰键:" }, 0, 1);
+			layout.Controls.Add(modifiersPanel, 1, 1);
+
+			// 按键选择
+			layout.Controls.Add(new Label { Text = "按键:" }, 0, 2);
+			keyComboBox = new ComboBox
+			{
+				Dock = DockStyle.Fill,
+				DropDownStyle = ComboBoxStyle.DropDownList
+			};
+			foreach (string keyName in Enum.GetNames(typeof(Keys)))
+			{
+				keyComboBox.Items.Add(keyName);
+			}
+			layout.Controls.Add(keyComboBox, 1, 2);
+
+			// 按钮
+			FlowLayoutPanel buttonPanel = new()
+			{
+				Dock = DockStyle.Bottom,
+				FlowDirection = FlowDirection.RightToLeft,
+				Height = 40,
+				Padding = new Padding(5)
+			};
+
+			Button btnCancel = new Button { Text = "取消", DialogResult = DialogResult.Cancel };
+			Button btnOK = new Button { Text = "确定", DialogResult = DialogResult.OK };
+			buttonPanel.Controls.AddRange(new Control[] { btnCancel, btnOK });
+
+			Controls.Add(layout);
+			Controls.Add(buttonPanel);
+		}
+	}
 	public class AddWlxMappingForm : Form
 	{
 		private ComboBox pluginCombo;
@@ -652,10 +753,94 @@ namespace zfile
 			// 添加单元格值改变事件
 			grid.CellValueChanged += Grid_CellValueChanged;
 
+			// 添加按钮面板
+			FlowLayoutPanel buttonPanel = new FlowLayoutPanel
+			{
+				Dock = DockStyle.Bottom,
+				FlowDirection = FlowDirection.RightToLeft,
+				Height = 40,
+				Padding = new Padding(5)
+			};
+
+			Button btnAdd = new Button { Text = "添加", Width = 80 };
+			Button btnDelete = new Button { Text = "删除", Width = 80 };
+
+			btnAdd.Click += BtnAdd_Click;
+			btnDelete.Click += BtnDelete_Click;
+
+			buttonPanel.Controls.AddRange(new Control[] { btnAdd, btnDelete });
+
 			HotKeyPanel.Controls.Add(grid);
+			HotKeyPanel.Controls.Add(buttonPanel);
 			splitContainer2.Panel1.Controls.Add(HotKeyPanel);
 		}
+		private void BtnAdd_Click(object? sender, EventArgs e)
+		{
+			// 创建添加快捷键对话框
+			using var addForm = new AddHotkeyForm(mainForm.cmdProcessor.cmdTable);
+			if (addForm.ShowDialog() == DialogResult.OK)
+			{
+				string cmdName = addForm.SelectedCommand;
+				string keyStr = addForm.HotkeyString;
 
+				// 检查是否存在冲突
+				var conflicts = CheckHotkeyConflicts(cmdName, keyStr);
+				if (!conflicts.Any())
+				{
+					// 更新数据结构和UI
+					var cmd = mainForm.cmdProcessor.cmdTable.GetByCmdName(cmdName);
+					var grid = HotKeyPanel.Controls.OfType<DataGridView>().FirstOrDefault();
+					if (grid != null && cmd != null)
+					{
+						bool hasWin = keyStr.Contains("#");
+						string[] parts = keyStr.Split('+');
+						string modifiers = parts[0];
+						string key = parts.Length > 1 ? parts[1] : parts[0];
+
+						int rowIndex = grid.Rows.Add(
+							cmd?.Description ?? cmd?.CmdName,
+							modifiers.Contains("C"),
+							modifiers.Contains("A"),
+							modifiers.Contains("S"),
+							hasWin,
+							Helper.ConvertStringToKey(key),
+							cmdName
+						);
+
+						// 更新热键管理器
+						mainForm.keyManager.UpdateKeyMapping(cmdName, keyStr);
+
+						// 选中新添加的行
+						grid.ClearSelection();
+						grid.Rows[rowIndex].Selected = true;
+					}
+				}
+				else
+				{
+					MessageBox.Show("快捷键已被使用：" + string.Join(", ", conflicts), "冲突",
+						MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				}
+			}
+		}
+
+		private void BtnDelete_Click(object? sender, EventArgs e)
+		{
+			var grid = HotKeyPanel.Controls.OfType<DataGridView>().FirstOrDefault();
+			if (grid?.SelectedRows.Count > 0)
+			{
+				var row = grid.SelectedRows[0];
+				string cmdName = row.Cells["CmdName"].Value?.ToString();
+
+				if (!string.IsNullOrEmpty(cmdName))
+				{
+					// 从数据结构中移除
+					mainForm.keyManager.Remove(cmdName);
+
+					// 从UI中移除
+					grid.Rows.RemoveAt(row.Index);
+				}
+			}
+		}
 		// 添加修饰键变化事件
 		//private CheckBox CreateModifierCheckBox(string text, int x, int y, bool isChecked)
 		//{

@@ -198,9 +198,10 @@ namespace zfile
 		{
 			owner.uiManager.BookmarkManager.OnRightClick();
 		}
-		private void cm_visdirtabs()
+		private void cm_visdirtabs(int mode = -1)
 		{
-			owner.uiManager.BookmarkManager.ToggleHidePanel(owner.uiManager.isleft);
+			owner.uiManager.BookmarkManager.ToggleHidePanel(true);
+			owner.uiManager.BookmarkManager.ToggleHidePanel(false);
 		}
 		private void cm_gotoprevornextselected(bool isprevious = true)
 		{

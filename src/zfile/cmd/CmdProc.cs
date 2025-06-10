@@ -127,6 +127,12 @@ namespace zfile
 								startInfo.WorkingDirectory = workingdir;
 							if (cmdName.StartsWith("control.exe", StringComparison.OrdinalIgnoreCase))
 								cm_executedos1(cmdName);   //TODO: SHELLEXECUTEHELPER.EXECUTECOMMAND合并（增加了参数的处理）
+							else if (cmdName.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+									 cmdName.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+							{
+								// 使用默认浏览器打开网址
+
+							}
 							else
 								Process.Start(startInfo);
 						}

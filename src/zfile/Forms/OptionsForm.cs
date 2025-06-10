@@ -525,12 +525,85 @@ namespace zfile
 				AutoScroll = true
 			};
 
+			// 创建DataGridView控件
+			DataGridView grid = new DataGridView
+			{
+				Dock = DockStyle.Fill,
+				AllowUserToAddRows = false,
+				AllowUserToDeleteRows = false,
+				AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+				SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+				MultiSelect = false,
+				EditMode = DataGridViewEditMode.EditOnEnter
+			};
+
+			// 添加列
+			var descriptionColumn = new DataGridViewTextBoxColumn
+			{
+				Name = "Description",
+				HeaderText = "命令描述",
+				ReadOnly = true
+			};
+
+			var ctrlColumn = new DataGridViewCheckBoxColumn
+			{
+				Name = "Ctrl",
+				HeaderText = "Ctrl",
+				Width = 50
+			};
+
+			var altColumn = new DataGridViewCheckBoxColumn
+			{
+				Name = "Alt",
+				HeaderText = "Alt",
+				Width = 50
+			};
+
+			var shiftColumn = new DataGridViewCheckBoxColumn
+			{
+				Name = "Shift",
+				HeaderText = "Shift",
+				Width = 50
+			};
+
+			var winColumn = new DataGridViewCheckBoxColumn
+			{
+				Name = "Win",
+				HeaderText = "Win",
+				Width = 50
+			};
+
+			var keyColumn = new DataGridViewComboBoxColumn
+			{
+				Name = "Key",
+				HeaderText = "按键",
+				Width = 100
+			};
+
+			// 添加Keys枚举值到ComboBox列
+			foreach (string keyName in Enum.GetNames(typeof(Keys)))
+			{
+				keyColumn.Items.Add(keyName);
+			}
+
+			// 添加列到DataGridView
+			grid.Columns.AddRange(new DataGridViewColumn[] { descriptionColumn, ctrlColumn, altColumn, shiftColumn, winColumn, keyColumn });
+
+			// 添加隐藏列用于存储命令名称
+			var cmdNameColumn = new DataGridViewTextBoxColumn
+			{
+				Name = "CmdName",
+				Visible = false
+			};
+			grid.Columns.Add(cmdNameColumn);
+
 			commandLabels = new Dictionary<string, Label>();
 			commandComboBoxes = new Dictionary<string, ComboBox>();
 
 			var cmdtable = mainForm.cmdProcessor.cmdTable;
 			var cmdmap = mainForm.keyManager.cmdmap;
 
+			// 填充DataGridView
 			foreach (var cmd in cmdtable.GetAll())
 			{
 				KeyDef keydef = null;
@@ -543,53 +616,31 @@ namespace zfile
 				{
 					commandHotkeys[cmd.CmdName] = keydef;
 				}
-			}
-			int y = 10;
-			foreach (var cmd in commandHotkeys)
-			{
-				var keydef = cmd.Value;
-				//if(cmd.Value == Keys.None) continue;
-				Label label = new Label
-				{
-					Text = mainForm.cmdProcessor.cmdTable.GetByCmdName(keydef.Cmd)?.Description ?? cmd.Key,
-					Location = new Point(10, y),
-					AutoSize = true,
-					Width = 180
-				};
-				HotKeyPanel.Controls.Add(label);
-				commandLabels[keydef.Cmd] = label;
 
-				// 添加修饰键复选框
-				int checkBoxX = 200;
-				var ctrlBox = CreateModifierCheckBox("Ctrl", checkBoxX, y, keydef.HasCtrl);
-				var altBox = CreateModifierCheckBox("Alt", checkBoxX + 60, y, keydef.HasAlt);
-				var shiftBox = CreateModifierCheckBox("Shift", checkBoxX + 120, y, keydef.HasShift);
-				var winBox = CreateModifierCheckBox("Win", checkBoxX + 180, y, keydef.HasWin);
-
-				ctrlCheckBoxes[keydef.Cmd] = ctrlBox;
-				altCheckBoxes[keydef.Cmd] = altBox;
-				shiftCheckBoxes[keydef.Cmd] = shiftBox;
-				winCheckBoxes[keydef.Cmd] = winBox;
-				HotKeyPanel.Controls.AddRange([ctrlBox, altBox, shiftBox, winBox]);
-
-				var comboBox = new ComboBox
-				{
-					Location = new Point(250 + checkBoxX, y),
-					Width = 80,
-					DropDownStyle = ComboBoxStyle.DropDownList
-				};
-				comboBox.Items.AddRange(Enum.GetNames(typeof(Keys)));
 				// 解析修饰键和主键
 				var keys = keydef.Key.Split('+', StringSplitOptions.RemoveEmptyEntries);
 				var mainkey = keys[^1];
-				comboBox.SelectedItem = Helper.ConvertStringToKey(mainkey);
-				comboBox.SelectedIndexChanged += (sender, e) => UpdateHotkey(cmd.Key, comboBox);
-				HotKeyPanel.Controls.Add(comboBox);
-				commandComboBoxes[keydef.Cmd] = comboBox;
 
-				y += 26;
+				// 添加行
+				int rowIndex = grid.Rows.Add(
+					cmd.Description ?? cmd.CmdName,
+					keydef.HasCtrl,
+					keydef.HasAlt,
+					keydef.HasShift,
+					keydef.HasWin,
+					Helper.ConvertStringToKey(mainkey),
+					cmd.CmdName
+				);
+
+				// 设置单元格样式
+				var row = grid.Rows[rowIndex];
+				row.Tag = cmd.CmdName; // 存储命令名称
 			}
 
+			// 添加单元格值改变事件
+			grid.CellValueChanged += Grid_CellValueChanged;
+
+			HotKeyPanel.Controls.Add(grid);
 			splitContainer2.Panel1.Controls.Add(HotKeyPanel);
 		}
 
@@ -753,6 +804,57 @@ namespace zfile
 			}
 		}
 
+		private void Grid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+		{
+			if (e.RowIndex < 0) return;
+
+			var grid = sender as DataGridView;
+			if (grid == null) return;
+
+			var row = grid.Rows[e.RowIndex];
+			string cmdName = row.Cells["CmdName"].Value?.ToString();
+
+			if (string.IsNullOrEmpty(cmdName)) return;
+
+			// 获取修饰键状态
+			bool hasCtrl = Convert.ToBoolean(row.Cells["Ctrl"].Value);
+			bool hasAlt = Convert.ToBoolean(row.Cells["Alt"].Value);
+			bool hasShift = Convert.ToBoolean(row.Cells["Shift"].Value);
+			bool hasWin = Convert.ToBoolean(row.Cells["Win"].Value);
+			string keyStr = row.Cells["Key"].Value?.ToString();
+
+			if (string.IsNullOrEmpty(keyStr)) return;
+
+			// 构建热键字符串
+			string modifiers = "";
+			if (hasWin) modifiers += "#";
+			if (hasCtrl) modifiers += "C";
+			if (hasAlt) modifiers += "A";
+			if (hasShift) modifiers += "S";
+
+			string fullKeyStr = modifiers.Length > 0 ? $"{modifiers}+{keyStr}" : keyStr;
+
+			// 检查快捷键冲突
+			var conflicts = CheckHotkeyConflicts(cmdName, fullKeyStr);
+			if (conflicts.Any())
+			{
+				row.Cells["Key"].Style.BackColor = conflictColor;
+				hasConflict = true;
+				string conflictCommands = string.Join(", ", conflicts);
+				toolTip.SetToolTip(grid, $"快捷键冲突与: {conflictCommands}");
+			}
+			else
+			{
+				row.Cells["Key"].Style.BackColor = normalColor;
+				hasConflict = false;
+				toolTip.SetToolTip(grid, "");
+				mainForm.keyManager.UpdateKeyMapping(cmdName, fullKeyStr);
+			}
+
+			// 更新确定按钮状态
+			UpdateOkButtonState();
+		}
+
 		private void TreeView_AfterSelect(object sender, TreeViewEventArgs e)
 		{
 			if (e.Node != null)
@@ -817,13 +919,9 @@ namespace zfile
 
 		private void UpdateHotkey(string cmdName, ComboBox comboBox)
 		{
-			//if (comboBox.SelectedItem != null && Enum.TryParse(comboBox.SelectedItem.ToString(), out Keys newKey))
-			//{
-			//    commandHotkeys[cmdName] = newKey;
-			//}
+			// 此方法保留用于兼容性，但实际功能已移至Grid_CellValueChanged
 			if (!commandComboBoxes.ContainsKey(cmdName)) return;
 
-			//var comboBox = commandComboBoxes[cmdName];
 			if (comboBox.SelectedItem == null) return;
 
 			// 构建热键字符串
@@ -856,8 +954,6 @@ namespace zfile
 
 			// 更新确定按钮状态
 			UpdateOkButtonState();
-			// 更新到mainForm的keyManager
-			//mainForm.keyManager.UpdateKeyMapping(cmdName, fullKeyStr);
 		}
 		// 添加冲突检测方法
 		private List<string> CheckHotkeyConflicts(string currentCmd, string hotkey)

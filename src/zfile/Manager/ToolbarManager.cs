@@ -42,6 +42,7 @@ namespace zfile
 		ToolStripMenuItem editGroupItem = new ToolStripMenuItem("编辑按钮组");
 		public bool isHidden;
 		public static ToolStripButton? cm_srcthumbs_Button, cm_syncchangedir_button, cm_dirbranch_button;
+		public bool isvertial;
 		public void Dispose()
 		{
 			Dispose(true);
@@ -93,6 +94,7 @@ namespace zfile
 			// 加载配置文件中的工具栏按钮信息并初始化控件,实现逻辑参照 initializeDynamicToolbar
 			dynamicToolStrip = new ToolStrip();
 			this.form = form;
+			this.isvertial = isVertical;
 			this.configfile = Helper.GetPathByEnv(cfgfile);
 			// 初始化上下文菜单
 			buttonContextMenu = new ContextMenuStrip();
@@ -139,6 +141,8 @@ namespace zfile
 			else 
 				dynamicToolStrip.Hide();
 			isHidden = !isHidden;
+			var menuitem = form.uiManager.GetToolStripMenuItemByCmd(isvertial ? "cm_visbuttonbar2" : "cm_visbuttonbar");
+			menuitem.Checked = !isHidden;
 			form.uiManager.UpdateLayout();
 		}
 		public void AddButton(string name, string cmd, string icon, string path, string param, string iconic)

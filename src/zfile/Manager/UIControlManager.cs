@@ -1364,6 +1364,8 @@ namespace zfile
 			else
 				toolStrip.Hide();
 			isToolStripHidden = !isToolStripHidden;
+			var menuitem = GetToolStripMenuItemByCmd("cm_viskeybuttons");
+			menuitem.Checked = !isToolStripHidden;
 			form.Update();
 		}
 		public void InitializeToolStrip()
@@ -1616,7 +1618,11 @@ namespace zfile
 									if (emd != null && !menutxt.Equals(string.Empty))
 										usermenuMap[menutxt] = emd;
 								}
-								menuItem.Tag = cmdid;
+								
+								if(usermenuMap.ContainsKey(menutxt))
+									menuItem.Tag = usermenuMap[menutxt];    //在TAG中存入MENUINFO
+								else
+									menuItem.Tag = cmdid;
 								if (cmdid == "270")
 									buildMenuForCm_srccustomviewmenu(menuItem);
 								else if (cmdid == "333")

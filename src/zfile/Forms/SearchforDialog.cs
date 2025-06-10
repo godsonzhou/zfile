@@ -446,12 +446,12 @@ namespace zfile.Forms
 
 			// 属性区域
 			var attributesLabel = new Label { Text = "属性(T)：", Location = new Point(10, 105), AutoSize = true };
-			archivedCheckBox = new CheckBox { Text = "存档(A)", Location = new Point(100, 105), AutoSize = true };
-			hiddenCheckBox = new CheckBox { Text = "隐藏(H)", Location = new Point(200, 105), AutoSize = true };
-			readOnlyCheckBox = new CheckBox { Text = "只读(R)", Location = new Point(300, 105), AutoSize = true };
-			systemCheckBox = new CheckBox { Text = "系统(Y)", Location = new Point(100, 130), AutoSize = true };
-			folderCheckBox = new CheckBox { Text = "文件夹(D)", Location = new Point(200, 130), AutoSize = true };
-			encryptedCheckBox = new CheckBox { Text = "加密(E)", Location = new Point(300, 130), AutoSize = true };
+			archivedCheckBox = new CheckBox { Text = "存档(A)", Location = new Point(100, 105), AutoSize = true, ThreeState = true };
+			hiddenCheckBox = new CheckBox { Text = "隐藏(H)", Location = new Point(200, 105), AutoSize = true, ThreeState = true };
+			readOnlyCheckBox = new CheckBox { Text = "只读(R)", Location = new Point(300, 105), AutoSize = true, ThreeState = true };
+			systemCheckBox = new CheckBox { Text = "系统(Y)", Location = new Point(100, 130), AutoSize = true, ThreeState = true };
+			folderCheckBox = new CheckBox { Text = "文件夹(D)", Location = new Point(200, 130), AutoSize = true, ThreeState = true };
+			encryptedCheckBox = new CheckBox { Text = "加密(E)", Location = new Point(300, 130), AutoSize = true, ThreeState = true };
 
 			// 重复文件区域
 			duplicateFilesCheckBox = new CheckBox { Text = "搜索重复的文件(P)：", Location = new Point(10, 160), AutoSize = true };
@@ -1044,11 +1044,11 @@ namespace zfile.Forms
 			// attributeString - 文件属性 (5位数字代表: 存档|只读|隐藏|系统|目录)
 			// 0:不选 1:选中 2:保留
 			StringBuilder attrSb = new StringBuilder();
-			attrSb.Append(archivedCheckBox.Checked ? "1" : "2");
-			attrSb.Append(readOnlyCheckBox.Checked ? "1" : "2");
-			attrSb.Append(hiddenCheckBox.Checked ? "1" : "2");
-			attrSb.Append(systemCheckBox.Checked ? "1" : "2");
-			attrSb.Append(folderCheckBox.Checked ? "1" : "2");
+			attrSb.Append(archivedCheckBox.Checked ? (archivedCheckBox.CheckState == CheckState.Checked ? "1" : "2") : "0");
+			attrSb.Append(readOnlyCheckBox.Checked ? (readOnlyCheckBox.CheckState == CheckState.Checked ? "1" : "2") : "0");
+			attrSb.Append(hiddenCheckBox.Checked ? (hiddenCheckBox.CheckState == CheckState.Checked ? "1" : "2") : "0");
+			attrSb.Append(systemCheckBox.Checked ? (systemCheckBox.CheckState == CheckState.Checked ? "1" : "2") : "0");
+			attrSb.Append(folderCheckBox.Checked ? (folderCheckBox.CheckState == CheckState.Checked ? "1" : "2") : "0");
 			sb.Append(attrSb.ToString());
 			sb.Append("|");
 

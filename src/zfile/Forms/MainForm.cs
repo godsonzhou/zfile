@@ -161,7 +161,7 @@ namespace zfile
 							Debug.Print("WARNING: SET CURRENTFULLPATH IS NOT NEEDED!");
 						else
 						{
-							Debug.Print($"change CURRENTFULLPATH : {result.CurrentFullPath} -> {value}");
+							Debug.Print($"change [{key}] CURRENTFULLPATH : {result.CurrentFullPath} -> {value}");
 							result.CurrentFullPath = value;
 						}
 					}
@@ -355,7 +355,7 @@ namespace zfile
 			var whichpanel = isactive ? LRflag : RLflag;
 			if (path.Equals(CurrentFullpath[whichpanel]))
 				return;
-			Debug.Print($"Navigate to path : {path}");
+			Debug.Print($"[{whichpanel}] Navigate to path : {path}");
 			//first change currentfilesource according to the path
 			var fs = UpdateFilesourceAndCurrentPath(path, out _, out var oldfs, out var oldpath, whichpanel);
 			if (fs is WcxArchiveFileSource wcxfs)

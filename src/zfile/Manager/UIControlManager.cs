@@ -88,6 +88,7 @@ namespace zfile
 		public FtpController ftpController;
 		public ToolStrip toolStrip;
 		private bool isToolStripHidden;
+		public bool visstatusbar = true;
 		private bool _isleft = true;
 		public bool isleft { 
 			get => _isleft; 
@@ -1697,12 +1698,37 @@ namespace zfile
 				MessageBox.Show($"加载菜单失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
 			}
 		}
-		public ToolStripMenuItem? GetMenuItemByName(string name)
+		private ToolStripMenuItem? GetToolStripMenuItemByCmd(string cmd, ToolStripItemCollection items)
 		{
-			foreach(ToolStripMenuItem item in form.MainMenuStrip.Items)
+			foreach (var i in items)
 			{
-				if (item.Name.Equals(name))
-					return item;
+				if (i is ToolStripMenuItem item)
+				{
+					var menuinfo = item.Tag as MenuInfo;
+					if (menuinfo != null && cmd.Equals(menuinfo.Cmd, StringComparison.OrdinalIgnoreCase))
+						return item;
+					if (item.DropDownItems.Count != 0)
+					{
+						var result = GetToolStripMenuItemByCmd(cmd, item.DropDownItems);
+						if (result != null)
+							return result;
+					}
+				}
+			}
+			return null;
+		}
+
+		public ToolStripMenuItem? GetToolStripMenuItemByCmd(string cmd)
+		{
+			ToolStripMenuItem? result = null;
+			foreach (var i in form.MainMenuStrip.Items)
+			{
+				if (i is ToolStripMenuItem item)
+				{
+					result = GetToolStripMenuItemByCmd(cmd, item.DropDownItems);
+					if (result != null)
+						return result;
+				}
 			}
 			return null;
 		}

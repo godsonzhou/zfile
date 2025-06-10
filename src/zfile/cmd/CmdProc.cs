@@ -1492,7 +1492,12 @@ namespace zfile
 		}
 		private void cm_visstatusbar()
 		{
-
+			owner.uiManager.visstatusbar = !owner.uiManager.visstatusbar;
+			owner.uiManager.LeftStatusStrip.Visible = owner.uiManager.visstatusbar;
+			owner.uiManager.RightStatusStrip.Visible = owner.uiManager.visstatusbar;
+			var menuitem = owner.uiManager.GetToolStripMenuItemByCmd("cm_visstatusbar");
+			menuitem.Checked = owner.uiManager.visstatusbar;
+			owner.Update();
 		}
 		private void cm_visdrivecombo()
 		{

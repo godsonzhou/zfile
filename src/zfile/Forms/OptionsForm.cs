@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Diagnostics;
 using zfile.Forms;
 namespace zfile
 {
@@ -733,7 +734,8 @@ namespace zfile
 				// 解析修饰键和主键
 				var keys = keydef.Key.Split('+', StringSplitOptions.RemoveEmptyEntries);
 				var mainkey = keys[^1];
-
+				var key = Helper.ConvertStringToKey(mainkey);
+				Debug.Print($"{cmd.Description} {cmd.CmdName} {key}");
 				// 添加行
 				int rowIndex = grid.Rows.Add(
 					cmd.Description ?? cmd.CmdName,
@@ -741,7 +743,7 @@ namespace zfile
 					keydef.HasAlt,
 					keydef.HasShift,
 					keydef.HasWin,
-					Helper.ConvertStringToKey(mainkey),
+					key,
 					cmd.CmdName
 				);
 

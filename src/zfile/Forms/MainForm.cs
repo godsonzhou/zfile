@@ -2174,7 +2174,7 @@ namespace zfile
 		//}
 		public List<TreeNode>? LoadSubDirectories(TreeNode node, MyListView? lv = null)
 		{
-			Debug.Print($"load sub dirs for treenode : {node.FullPath}");
+			Debug.Print($"load sub dirs [{node.TreeView.Name}] for treenode : {node.FullPath}");
 			// 创建一个新的节点集合，用于存储需要保留的节点
 			List<TreeNode> nodesToKeep = new List<TreeNode>();
 			if (lv != null)

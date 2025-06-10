@@ -629,7 +629,7 @@ namespace zfile
 				return "OemPipe";
 			else if (str.Equals("ESC"))
 				return "Escape";
-			else if (str.Equals("Oem_us/?"))
+			else if (str.Equals("OEM_US/?"))
 				return "OemQuestion";
 			else
 			{

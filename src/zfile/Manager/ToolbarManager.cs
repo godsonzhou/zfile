@@ -134,13 +134,17 @@ namespace zfile
 			//DynamicToolStrip.MouseClick += form.ToolbarStrip_Click;
 		}
 
-		public void TogglePanel()
+		public void TogglePanel(int mode = -1)
 		{
+			if (mode == -1)
+				isHidden = !isHidden;
+			else
+				isHidden = mode == 0;
 			if (isHidden)
-				dynamicToolStrip.Show();
-			else 
 				dynamicToolStrip.Hide();
-			isHidden = !isHidden;
+			else
+				dynamicToolStrip.Show();
+
 			var menuitem = form.uiManager.GetToolStripMenuItemByCmd(isvertial ? "cm_visbuttonbar2" : "cm_visbuttonbar");
 			menuitem.Checked = !isHidden;
 			form.uiManager.UpdateLayout();

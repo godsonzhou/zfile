@@ -553,8 +553,10 @@ namespace zfile
 				case 2917: // 命令ID=2917，Name=cmswitchoverlayicons
 					cm_switchoverlayicons();
 					break;
-
-				case 2924:  //命令ID=2924,Name=cm_commandbrowser尚未实现
+				case 2919: // 命令ID=2919，Name=cm_vishisthotbuttons
+					cm_vishisthotbuttons();
+					break;
+				case 2924:  //命令ID=2924,Name=cm_commandbrowser
 					cm_commandbrowser();
 					break;
 				case 2944:
@@ -696,7 +698,19 @@ namespace zfile
 					break;
 			}
 		}
-	
+
+		private void cm_vishisthotbuttons(int mode = -1)
+		{
+			if (mode == -1)
+				owner.uiManager.vishisthotbuttons = !owner.uiManager.vishisthotbuttons;
+			else 
+				owner.uiManager.vishisthotbuttons = mode == 1;
+			var menuitem = owner.uiManager.GetToolStripMenuItemByCmd("cm_vishisthotbuttons");
+			menuitem.Checked = owner.uiManager.vishisthotbuttons;
+			owner.uiManager.LeftNavigationStrip.Visible = menuitem.Checked;
+			owner.uiManager.RightNavigationStrip.Visible = menuitem.Checked;
+		}
+
 		// 处理DrawItem事件
 		private void listView1_DrawItem(object sender, DrawListViewItemEventArgs e)
 		{
@@ -1490,18 +1504,27 @@ namespace zfile
 		{
 
 		}
-		private void cm_visstatusbar()
+		private void cm_visstatusbar(int mode = -1)
 		{
-			owner.uiManager.visstatusbar = !owner.uiManager.visstatusbar;
+			if (mode == -1)
+				owner.uiManager.visstatusbar = !owner.uiManager.visstatusbar;
+			else
+				owner.uiManager.visstatusbar = mode == 1;
+
 			owner.uiManager.LeftStatusStrip.Visible = owner.uiManager.visstatusbar;
 			owner.uiManager.RightStatusStrip.Visible = owner.uiManager.visstatusbar;
+
 			var menuitem = owner.uiManager.GetToolStripMenuItemByCmd("cm_visstatusbar");
 			menuitem.Checked = owner.uiManager.visstatusbar;
 			owner.Update();
 		}
-		private void cm_visdrivecombo()
+		private void cm_visdrivecombo(int mode = -1)
 		{
-
+			owner.uiManager.visdrivecombo = mode == -1 ? !owner.uiManager.visdrivecombo : mode == 1;
+			owner.uiManager.LeftDriveComboBox.Visible = owner.uiManager.visdrivecombo;
+			owner.uiManager.RightDriveComboBox.Visible = owner.uiManager.visdrivecombo;
+			var menuitem = owner.uiManager.GetToolStripMenuItemByCmd("cm_visdrivecombo");
+			menuitem.Checked = owner.uiManager.visdrivecombo;
 		}
 		private void cm_visdrivebuttons()
 		{

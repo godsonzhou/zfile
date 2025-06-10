@@ -90,6 +90,8 @@ namespace zfile
 		private bool isToolStripHidden;
 		public bool visstatusbar = true;
 		private bool _isleft = true;
+		public bool visdrivecombo = true;
+		public bool visdrivebuttons = true;
 		public bool isleft { 
 			get => _isleft; 
 			set  { 
@@ -118,6 +120,7 @@ namespace zfile
 
 		public bool separatetreeflag;
 		public bool vistabheader = true;
+		public bool vishisthotbuttons = true;
 
 		public Dictionary<string, string> args = new();
 		public Dictionary<string, string> lastVisitedPaths = new();
@@ -1357,13 +1360,17 @@ namespace zfile
 			button.Click += onClick;
 			return button;
 		}
-		public void ToggleToolStrip()
+		public void ToggleToolStrip(int mode = -1)
 		{
-			if (isToolStripHidden)
-				toolStrip.Show();
+			if (mode == -1)
+				isToolStripHidden = !isToolStripHidden;
 			else
+				isToolStripHidden = mode == 0;
+			if (isToolStripHidden)
 				toolStrip.Hide();
-			isToolStripHidden = !isToolStripHidden;
+			else
+				toolStrip.Show();
+
 			var menuitem = GetToolStripMenuItemByCmd("cm_viskeybuttons");
 			menuitem.Checked = !isToolStripHidden;
 			form.Update();

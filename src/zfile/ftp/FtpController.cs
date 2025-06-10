@@ -133,13 +133,18 @@ namespace zfile
 		{
 			commandInput.Focus();
 		}
-		public void TogglePanel()
+		public void TogglePanel(int mode = -1)
 		{
-			if (isPanelShow)
-				mainPanel.Hide();
+			if (mode == -1)
+				isPanelShow = !isPanelShow;
 			else
+				isPanelShow = mode == 1;
+			if (isPanelShow)
 				mainPanel.Show();
-			isPanelShow = !isPanelShow;
+			else
+				mainPanel.Hide();
+			var menuitem = MainForm.Instance.uiManager.GetToolStripMenuItemByCmd("cm_viscmdline");
+			menuitem.Checked = isPanelShow;
 		}
 		private void TransferModeButton_Click(object? sender, EventArgs e)
 		{

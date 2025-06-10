@@ -542,6 +542,7 @@ namespace zfile
 			{
 				Name = "Description",
 				HeaderText = "命令描述",
+				AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells,
 				ReadOnly = true
 			};
 
@@ -549,6 +550,9 @@ namespace zfile
 			{
 				Name = "Ctrl",
 				HeaderText = "Ctrl",
+				//CellTemplate = new DataGridViewCheckBoxCell { Style = { Alignment = DataGridViewContentAlignment.MiddleCenter } },
+				// header居中对齐
+				HeaderCell = new DataGridViewColumnHeaderCell { Style = { Alignment = DataGridViewContentAlignment.MiddleCenter } },
 				Width = 50
 			};
 
@@ -556,6 +560,8 @@ namespace zfile
 			{
 				Name = "Alt",
 				HeaderText = "Alt",
+				// header居中对齐
+				HeaderCell = new DataGridViewColumnHeaderCell { Style = { Alignment = DataGridViewContentAlignment.MiddleCenter } },
 				Width = 50
 			};
 
@@ -563,6 +569,8 @@ namespace zfile
 			{
 				Name = "Shift",
 				HeaderText = "Shift",
+				// header居中对齐
+				HeaderCell = new DataGridViewColumnHeaderCell { Style = { Alignment = DataGridViewContentAlignment.MiddleCenter } },
 				Width = 50
 			};
 
@@ -570,6 +578,8 @@ namespace zfile
 			{
 				Name = "Win",
 				HeaderText = "Win",
+				// header居中对齐
+				HeaderCell = new DataGridViewColumnHeaderCell { Style = { Alignment = DataGridViewContentAlignment.MiddleCenter } },
 				Width = 50
 			};
 
@@ -577,6 +587,8 @@ namespace zfile
 			{
 				Name = "Key",
 				HeaderText = "按键",
+				// header居中对齐
+				HeaderCell = new DataGridViewColumnHeaderCell { Style = { Alignment = DataGridViewContentAlignment.MiddleCenter } },
 				Width = 100
 			};
 
@@ -645,34 +657,34 @@ namespace zfile
 		}
 
 		// 添加修饰键变化事件
-		private CheckBox CreateModifierCheckBox(string text, int x, int y, bool isChecked)
-		{
-			var checkBox = new CheckBox
-			{
-				Text = text,
-				Location = new Point(x, y),
-				AutoSize = true,
-				Checked = isChecked
-			};
+		//private CheckBox CreateModifierCheckBox(string text, int x, int y, bool isChecked)
+		//{
+		//	var checkBox = new CheckBox
+		//	{
+		//		Text = text,
+		//		Location = new Point(x, y),
+		//		AutoSize = true,
+		//		Checked = isChecked
+		//	};
 
-			// 添加修饰键变化事件处理
-			checkBox.CheckedChanged += (sender, e) =>
-			{
-				var cmd = commandHotkeys.First(c =>
-					ctrlCheckBoxes.ContainsKey(c.Key) &&
-					(ctrlCheckBoxes[c.Key] == checkBox ||
-					 altCheckBoxes[c.Key] == checkBox ||
-					 shiftCheckBoxes[c.Key] == checkBox ||
-					 winCheckBoxes[c.Key] == checkBox)).Key;
+		//	// 添加修饰键变化事件处理
+		//	checkBox.CheckedChanged += (sender, e) =>
+		//	{
+		//		var cmd = commandHotkeys.First(c =>
+		//			ctrlCheckBoxes.ContainsKey(c.Key) &&
+		//			(ctrlCheckBoxes[c.Key] == checkBox ||
+		//			 altCheckBoxes[c.Key] == checkBox ||
+		//			 shiftCheckBoxes[c.Key] == checkBox ||
+		//			 winCheckBoxes[c.Key] == checkBox)).Key;
 
-				if (commandComboBoxes.TryGetValue(cmd, out var comboBox))
-				{
-					UpdateHotkey(cmd, comboBox);
-				}
-			};
+		//		if (commandComboBoxes.TryGetValue(cmd, out var comboBox))
+		//		{
+		//			UpdateHotkey(cmd, comboBox);
+		//		}
+		//	};
 
-			return checkBox;
-		}
+		//	return checkBox;
+		//}
 		private void InitializeFontPanel()
 		{
 			fontPanel = new Panel

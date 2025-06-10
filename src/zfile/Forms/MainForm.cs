@@ -1353,7 +1353,7 @@ namespace zfile
 				watcher.EnableRaisingEvents = true;
 			}
 		}
-		public void TreeView_BeforeExpand(object sender, TreeViewCancelEventArgs e)
+		public void TreeView_BeforeExpand(object? sender, TreeViewCancelEventArgs e)
 		{
 			if (e.Node.Nodes.Count == 1 && e.Node.FirstNode.Text == "...")  //点击+号时，加载子目录
 				LoadSubDirectories(e.Node);

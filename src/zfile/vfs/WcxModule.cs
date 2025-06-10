@@ -1458,7 +1458,7 @@ namespace zfile
 					var detectstring = parts[0].Trim().ToLower();
 					var part1 = parts[1].Trim();
 					var path = part1.Split(',')[^1];
-					path = path.Replace("%COMMANDER_PATH%", Constants.ZfileBinPath);
+					path = path.Replace("%COMMANDER_PATH%", Constants.ZfileBinPath, StringComparison.OrdinalIgnoreCase);
 					LoadModule(path, detectstring);
 				}
 			}

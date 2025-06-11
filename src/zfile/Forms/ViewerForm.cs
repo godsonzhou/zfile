@@ -222,7 +222,13 @@ namespace zfile.Forms
 					{
 						var loadsuccess = LoadWithPlugin();  //should consider load fail
 						if (loadsuccess)
+						//将相应的插件菜单项设为checked状态
+						{
+							var menuitem = UIControlManager.GetToolStripMenuItemByName(_currentPlugin.Name, _menuStrip.Items);
+							if (menuitem != null)
+								menuitem.Checked = true;
 							return;
+						}
 					}
 				}
 				// 检查文件类型
@@ -499,7 +505,7 @@ namespace zfile.Forms
 		#endregion
 
 		#region 事件处理
-		private void ViewerForm_KeyDown(object sender, KeyEventArgs e)
+		private void ViewerForm_KeyDown(object? sender, KeyEventArgs e)
 		{
 			if (e.KeyCode == Keys.Escape)
 			{
@@ -510,7 +516,7 @@ namespace zfile.Forms
 			}
 		}
 
-		private void ImageViewer_MouseDown(object sender, MouseEventArgs e)
+		private void ImageViewer_MouseDown(object? sender, MouseEventArgs e)
 		{
 			if (e.Button == MouseButtons.Left)
 			{
@@ -519,7 +525,7 @@ namespace zfile.Forms
 			}
 		}
 
-		private void ImageViewer_MouseMove(object sender, MouseEventArgs e)
+		private void ImageViewer_MouseMove(object? sender, MouseEventArgs e)
 		{
 			if (_isDragging)
 			{
@@ -533,12 +539,12 @@ namespace zfile.Forms
 			}
 		}
 
-		private void ImageViewer_MouseUp(object sender, MouseEventArgs e)
+		private void ImageViewer_MouseUp(object? sender, MouseEventArgs e)
 		{
 			_isDragging = false;
 		}
 
-		private void AnimationTimer_Tick(object sender, EventArgs e)
+		private void AnimationTimer_Tick(object? sender, EventArgs e)
 		{
 			if (_isAnimation && _currentImage != null)
 			{
@@ -547,7 +553,7 @@ namespace zfile.Forms
 			}
 		}
 
-		private void ScreenshotTimer_Tick(object sender, EventArgs e)
+		private void ScreenshotTimer_Tick(object? sender, EventArgs e)
 		{
 			_screenshotTimer.Stop();
 			CaptureScreenshot();

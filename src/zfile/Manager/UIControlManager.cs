@@ -1745,6 +1745,24 @@ namespace zfile
 			}
 			return null;
 		}
+		public static ToolStripMenuItem? GetToolStripMenuItemByName(string cmd, ToolStripItemCollection Items)
+		{
+			ToolStripMenuItem? result = null;
+			foreach (var i in Items)
+			{
+				if (i is ToolStripMenuItem item)
+				{
+					if (item.Text.Equals(cmd, StringComparison.OrdinalIgnoreCase))
+						return item;
+					if (item.DropDownItems.Count == 0)
+						continue;
+					result = GetToolStripMenuItemByName(cmd, item.DropDownItems);
+					if (result != null)
+						return result;
+				}
+			}
+			return null;
+		}
 		public ToolbarButton? GetButtonByCmd(string cmd, bool isvertial = false)
 		{
 			foreach(ToolbarButton button in (isvertial ? vtoolbarManager : toolbarManager).toolbarButtons)

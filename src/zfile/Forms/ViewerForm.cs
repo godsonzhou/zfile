@@ -164,8 +164,8 @@ namespace zfile.Forms
 			_mainPanel.Controls.Add(_textPanel);
 			_mainPanel.Controls.Add(_hexPanel);
 			Controls.Add(_mainPanel);
-			Controls.Add(_menuStrip);
 			Controls.Add(_toolStrip);
+			Controls.Add(_menuStrip);
 			Controls.Add(_statusStrip);
 
 			// 初始化计时器
@@ -175,16 +175,14 @@ namespace zfile.Forms
 
 		public WlxModuleList InitializePlugins()
 		{
-			//_pluginList = new WlxModuleList();
 			string pluginPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins\\wlx");
 			_pluginList.LoadModulesFromDirectory(pluginPath);
-			//isPluginLoaded = true;
 			return _pluginList;
 		}
 
 		private void InitializeFileList()
 		{
-			_fileList = new List<string>();
+			_fileList = [];
 			_activeFileIndex = -1;
 			_currentEncoding = Encoding.Default;
 		}
@@ -217,18 +215,11 @@ namespace zfile.Forms
 				// 检查是否有插件可以处理
 				int tryModuleIdx = -1; //依次尝试所有的module
 				while (tryModuleIdx < _pluginList._modules.Count) {
-					_currentPlugin = _pluginList.FindModuleForFile(_fileName, ref tryModuleIdx);
+					var _currentPlugin = _pluginList.FindModuleForFile(_fileName, ref tryModuleIdx);
 					if (_currentPlugin != null)
 					{
-						var loadsuccess = LoadWithPlugin();  //should consider load fail
-						if (loadsuccess)
-						//将相应的插件菜单项设为checked状态
-						{
-							var menuitem = UIControlManager.GetToolStripMenuItemByName(_currentPlugin.Name, _menuStrip.Items);
-							if (menuitem != null)
-								menuitem.Checked = true;
+						if (LoadWithPlugin(_currentPlugin))		//should consider load fail
 							return;
-						}
 					}
 				}
 				// 检查文件类型
@@ -237,16 +228,11 @@ namespace zfile.Forms
 				{
 					_isImage = true;
 					LoadImage();
-
 					// 如果是图像文件，自动切换到多媒体模式
 					if (_currentViewMode != ViewMode.Media)
-					{
 						SwitchViewMode(ViewMode.Media);
-					}
 					else
-					{
 						_imagePanel.Visible = true;
-					}
 				}
 				else
 				{
@@ -265,7 +251,7 @@ namespace zfile.Forms
 							break;
 					}
 				}
-
+				setButtonStateForImageMode(_isImage);
 				UpdateStatusBar();
 			}
 			catch (Exception ex)
@@ -273,9 +259,25 @@ namespace zfile.Forms
 				MessageBox.Show($"加载文件失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
 			}
 		}
-
-		private bool LoadWithPlugin()
+		private void setButtonStateForImageMode(bool flag)
 		{
+			UIControlManager.GetToolStripButtonByName("放大", _toolStrip.Items).Visible = flag;
+			UIControlManager.GetToolStripButtonByName("缩小", _toolStrip.Items).Visible = flag;
+			UIControlManager.GetToolStripButtonByName("旋转", _toolStrip.Items).Visible = flag;
+			UIControlManager.GetToolStripButtonByName("全屏", _toolStrip.Items).Visible = flag;
+		}
+		private void SetMenuItemCheckedState(string pluginName, bool flag)
+		{
+			var menuitem = UIControlManager.GetToolStripMenuItemByName(pluginName, _menuStrip.Items);
+			if (menuitem != null)
+				menuitem.Checked = flag;
+		}
+		private bool LoadWithPlugin(WlxModule plugin)
+		{
+			if(_currentPlugin != null)
+				SetMenuItemCheckedState(_currentPlugin.Name, false);
+
+			_currentPlugin = plugin;
 			_isPlugin = true;
 
 			// 隐藏所有内置查看器面板
@@ -286,10 +288,8 @@ namespace zfile.Forms
 			// HIDE ALL SUBPANEL IF SWITCH PLUG
 			foreach (var p in _mainPanel.Controls)
 			{
-				if (p is Panel)
-				{
-					((Panel)p).Visible = false;
-				}
+				if (p is Panel pnl)
+					pnl.Visible = false;
 			}
 			// 创建隐藏的容器面板
 			var container = new Panel
@@ -317,6 +317,9 @@ namespace zfile.Forms
 				container.Visible = true;
 				// 设置插件窗口位置和大小
 				//SetPluginWindowBounds();
+				//将相应的插件菜单项设为checked状态
+				SetMenuItemCheckedState(_currentPlugin.Name, true);
+				setButtonStateForImageMode(false);
 				return true;
 			}
 			return false;
@@ -347,9 +350,7 @@ namespace zfile.Forms
 				// 检查是否是动画GIF
 				_isAnimation = IsAnimatedGif(_currentImage);
 				if (_isAnimation)
-				{
 					_animationTimer.Start();
-				}
 			}
 		}
 
@@ -409,12 +410,12 @@ namespace zfile.Forms
 			var rotateButton = new ToolStripButton("旋转", null, (s, e) => RotateImage());
 			var fullScreenButton = new ToolStripButton("全屏", null, (s, e) => ToggleFullScreen());
 
-			_toolStrip.Items.AddRange(new ToolStripItem[] {
+			_toolStrip.Items.AddRange([
 				openButton, new ToolStripSeparator(),
 				prevButton, nextButton, new ToolStripSeparator(),
 				zoomInButton, zoomOutButton, rotateButton, new ToolStripSeparator(),
 				fullScreenButton
-			});
+			]);
 		}
 
 		private void CreateMenuStrip()
@@ -423,22 +424,22 @@ namespace zfile.Forms
 
 			// 文件菜单
 			var fileMenu = new ToolStripMenuItem("文件(&F)");
-			fileMenu.DropDownItems.AddRange(new ToolStripItem[] {
+			fileMenu.DropDownItems.AddRange([
 				new ToolStripMenuItem("打开(&O)", null, (s, e) => OpenFile()),
 				new ToolStripMenuItem("保存(&S)", null, (s, e) => SaveFile()),
 				new ToolStripSeparator(),
 				new ToolStripMenuItem("退出(&X)", null, (s, e) => Close())
-			});
+			]);
 
 			// 查看菜单
 			var viewMenu = new ToolStripMenuItem("查看(&V)");
-			viewMenu.DropDownItems.AddRange(new ToolStripItem[] {
+			viewMenu.DropDownItems.AddRange([
 				new ToolStripMenuItem("放大(&I)", null, (s, e) => ZoomImage(1.2f)),
 				new ToolStripMenuItem("缩小(&O)", null, (s, e) => ZoomImage(0.8f)),
 				new ToolStripMenuItem("实际大小(&A)", null, (s, e) => ResetZoom()),
 				new ToolStripSeparator(),
 				new ToolStripMenuItem("全屏(&F)", null, (s, e) => ToggleFullScreen())
-			});
+			]);
 
 			// 模式菜单
 			var modeMenu = new ToolStripMenuItem("模式(&M)");
@@ -449,9 +450,7 @@ namespace zfile.Forms
 			// 默认选中文本模式
 			textModeItem.Checked = true;
 
-			modeMenu.DropDownItems.AddRange(new ToolStripItem[] {
-				textModeItem, hexModeItem, mediaModeItem
-			});
+			modeMenu.DropDownItems.AddRange([textModeItem, hexModeItem, mediaModeItem]);
 
 			// 编码菜单
 			var encodingMenu = new ToolStripMenuItem("编码(&E)");
@@ -482,12 +481,11 @@ namespace zfile.Forms
 			{
 				var item = new ToolStripMenuItem(plug.Name, null, (s, e) =>
 				{
-					_currentPlugin = plug;
-					LoadWithPlugin();
+					LoadWithPlugin(plug);
 				});
 				pluginMenu.DropDownItems.Add(item);
 			}
-			_menuStrip.Items.AddRange(new ToolStripItem[] { fileMenu, viewMenu, modeMenu, encodingMenu, pluginMenu });
+			_menuStrip.Items.AddRange([ fileMenu, viewMenu, modeMenu, encodingMenu, pluginMenu ]);
 		}
 
 		private void CreateStatusStrip()
@@ -574,9 +572,7 @@ namespace zfile.Forms
 				foreach (PropertyItem item in image.PropertyItems)
 				{
 					if (item.Id == 0x5100) // FrameCount
-					{
 						return BitConverter.ToInt16(item.Value, 0) > 1;
-					}
 				}
 			}
 			return false;
@@ -627,17 +623,13 @@ namespace zfile.Forms
 					}
 
 					if (_isPlugin)
-					{
 						modeText = "插件模式";
-					}
 
 					encodingLabel.Text = $"编码: {_currentEncoding.EncodingName} | {modeText}";
 				}
 
 				if (zoomLabel != null && _isImage)
-				{
 					zoomLabel.Text = $"缩放: {_zoomFactor:P0}";
-				}
 			}
 		}
 
@@ -646,9 +638,7 @@ namespace zfile.Forms
 			if (_pluginWindow != nint.Zero && container != null)
 			{
 				var bounds = container.ClientRectangle;
-				NativeMethods.SetWindowPos(_pluginWindow, nint.Zero,
-					0, 0, bounds.Width, bounds.Height,
-					NativeMethods.SWP_NOZORDER | NativeMethods.SWP_NOACTIVATE);
+				NativeMethods.SetWindowPos(_pluginWindow, nint.Zero, 0, 0, bounds.Width, bounds.Height, NativeMethods.SWP_NOZORDER | NativeMethods.SWP_NOACTIVATE);
 			}
 		}
 		private void SetPluginWindowBounds()
@@ -669,9 +659,7 @@ namespace zfile.Forms
 			using (var dialog = new OpenFileDialog())
 			{
 				if (dialog.ShowDialog() == DialogResult.OK)
-				{
 					FileName = dialog.FileName;
-				}
 			}
 		}
 
@@ -787,9 +775,7 @@ namespace zfile.Forms
 			foreach (ToolStripMenuItem item in ((ToolStripMenuItem)_menuStrip.Items[2]).DropDownItems)
 			{
 				if (item is ToolStripMenuItem)
-				{
 					item.Checked = false;
-				}
 			}
 
 		((ToolStripMenuItem)((ToolStripMenuItem)_menuStrip.Items[2]).DropDownItems[(int)mode]).Checked = true;
@@ -812,9 +798,7 @@ namespace zfile.Forms
 					break;
 				case ViewMode.Media:
 					if (_isImage)
-					{
 						_imagePanel.Visible = true;
-					}
 					else
 					{
 						// 如果不是图像，默认回到文本模式
@@ -867,13 +851,9 @@ namespace zfile.Forms
 
 							// 添加ASCII字符（如果可打印）
 							if (b >= 32 && b <= 126)
-							{
 								asciiPart.Append((char)b);
-							}
 							else
-							{
 								asciiPart.Append('.');
-							}
 						}
 						else
 						{

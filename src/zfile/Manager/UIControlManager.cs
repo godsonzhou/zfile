@@ -1763,12 +1763,15 @@ namespace zfile
 			}
 			return null;
 		}
-		public ToolbarButton? GetButtonByCmd(string cmd, bool isvertial = false)
+		public static ToolStripButton? GetToolStripButtonByName(string cmd, ToolStripItemCollection Items)
 		{
-			foreach(ToolbarButton button in (isvertial ? vtoolbarManager : toolbarManager).toolbarButtons)
+			foreach(var i in Items)
 			{
-				if (button.cmd.Equals(cmd, StringComparison.OrdinalIgnoreCase))
-					return button;
+				if (i is ToolStripButton button)
+				{
+					if (button.Text.Equals(cmd, StringComparison.OrdinalIgnoreCase))
+						return button;
+				}
 			}
 			return null;
 		}

@@ -1358,7 +1358,52 @@ namespace zfile
 			if (e.Node.Nodes.Count == 1 && e.Node.FirstNode.Text == "...")  //点击+号时，加载子目录
 				LoadSubDirectories(e.Node);
 		}
+		private void ChangePath(string path, string LR, TreeNode eNode)
+		{
+			var fileSource = UpdateFilesourceAndCurrentPath(path, out var fschanged, out var oldfs, out var oldpath, LR);
 
+			SelectedNode = eNode;
+			if (syncchangedir)
+				NavigateToPath(path, true, isactive: false); //同步改变非活动面板的目录
+
+			// 检查是否是FTP节点
+			if (eNode.Tag is FtpNodeTag ftpTag)
+			{
+				// 处理FTP节点双击事件
+				fTPMGR.HandleFtpNodeDoubleClick(eNode);
+				UpdatePathTextAndDriveComboBox(eNode, CurrentFullpath[LR], LR.Equals("L"));//TODO: BUGFIX: IF ENODE IS LEFT , LRFLAG IS R, SOME THING ERROR
+				uiManager.SetArgs();
+				return;
+			}
+			eNode.Expand();
+
+			if (fschanged || Helper.IncludeTrailingPathDelimiter(path) != oldpath)
+				RecordDirectoryHistory(path, oldpath);   // 记录目录历史, 并更新filesource的currentpath
+
+			//如果盘符改变了，则不刷新treeview&listview, 因为在盘符改变时，会触发事件，在事件中会刷新(refreshpanel)
+			// 检查节点是否已经被加载过子目录
+			bool isNodeLoaded = false;
+			if (eNode.Tag is ShellItem sItem && sItem.SubNodeState == NODE_LOADED_KEY)
+				isNodeLoaded = true;
+			var LV = GetListViewByName(LR);
+			// 只有当节点没有被标记为已加载时才加载子目录
+			if (!isNodeLoaded || fileSource is ShellFileSource) // shellfilesource should always loadsubdir
+				LoadSubDirectories(eNode, LV); //盘符不变时在这里刷新TREEVIEW/LISTVIEW
+
+			// 无论如何都需要刷新ListView
+			LoadListViewByFileSource(path, LV, eNode);
+			//当激活的面板发生变化时更新缩略图按钮状态
+			if (ToolbarManager.cm_srcthumbs_Button != null)
+				ToolbarManager.cm_srcthumbs_Button.CheckState = LV.View == View.Tile ? CheckState.Checked : CheckState.Unchecked;
+
+			uiManager.UpdateLastVisitedPath(path);
+			UpdatePathTextAndDriveComboBox(eNode, path, LR.Equals("L"));    //盘符改变时在combobox事件中刷新//必须在loadsubdir之后，因为需要loadsubdir中调用pathtextbox.setchildren
+			if (Directory.Exists(path))
+			{
+				watcher.Path = path;
+				watcher.EnableRaisingEvents = true;
+			}
+		}
 		public void TreeView_AfterSelect(object? sender, TreeViewEventArgs e)
 		{
 			if (e.Node?.Tag == null) return;
@@ -1382,49 +1427,7 @@ namespace zfile
 					if (string.IsNullOrEmpty(path))
 						return;
 
-					var fileSource = UpdateFilesourceAndCurrentPath(path, out var fschanged, out var oldfs, out var oldpath, LR);
-
-					SelectedNode = e.Node;
-					if(syncchangedir)
-						NavigateToPath(path, true, isactive: false); //同步改变非活动面板的目录
-					
-					// 检查是否是FTP节点
-					if (e.Node.Tag is FtpNodeTag ftpTag)
-					{
-						// 处理FTP节点双击事件
-						fTPMGR.HandleFtpNodeDoubleClick(e.Node);
-						UpdatePathTextAndDriveComboBox(e.Node, CurrentFullpath[LR], LR.Equals("L"));//TODO: BUGFIX: IF ENODE IS LEFT , LRFLAG IS R, SOME THING ERROR
-						uiManager.SetArgs();
-						return;
-					}
-					e.Node.Expand();
-
-					if (fschanged || Helper.IncludeTrailingPathDelimiter(path) != oldpath)
-						RecordDirectoryHistory(path, oldpath);   // 记录目录历史, 并更新filesource的currentpath
-
-					//如果盘符改变了，则不刷新treeview&listview, 因为在盘符改变时，会触发事件，在事件中会刷新(refreshpanel)
-					// 检查节点是否已经被加载过子目录
-					bool isNodeLoaded = false;
-					if (e.Node.Tag is ShellItem sItem && sItem.SubNodeState == NODE_LOADED_KEY)
-						isNodeLoaded = true;
-					var LV = GetListViewByName(LR);
-					// 只有当节点没有被标记为已加载时才加载子目录
-					if (!isNodeLoaded || fileSource is ShellFileSource) // shellfilesource should always loadsubdir
-						LoadSubDirectories(e.Node, LV); //盘符不变时在这里刷新TREEVIEW/LISTVIEW
-
-					// 无论如何都需要刷新ListView
-					LoadListViewByFileSource(path, LV, e.Node);
-					//当激活的面板发生变化时更新缩略图按钮状态
-					if (ToolbarManager.cm_srcthumbs_Button != null)
-						ToolbarManager.cm_srcthumbs_Button.CheckState = LV.View == View.Tile ? CheckState.Checked : CheckState.Unchecked;
-					
-					uiManager.UpdateLastVisitedPath(path);
-					UpdatePathTextAndDriveComboBox(e.Node, path, LR.Equals("L"));    //盘符改变时在combobox事件中刷新//必须在loadsubdir之后，因为需要loadsubdir中调用pathtextbox.setchildren
-					if (Directory.Exists(path))
-					{
-						watcher.Path = path;
-						watcher.EnableRaisingEvents = true;
-					}
+					ChangePath(path, LR, e.Node);
 				}
 				uiManager.SetArgs();
 			}
@@ -1757,7 +1760,12 @@ namespace zfile
 						RecordDirectoryHistory(path, oldpath);  // 记录目录历史
 
 					var node = FindTreeNode(activeTreeview.SelectedNode.Nodes, Path.GetFileName(path));
-					activeTreeview.SelectedNode = node;
+					if (node != null)
+						activeTreeview.SelectedNode = node;
+					else
+						//todo: 遇到iso等treeview不支持的压缩格式，无法通过treeviewnode.afterselect事件来loadlistview, 只能手工调用触发
+						//LoadListViewByFileSource(path, activeListView, null);
+						ChangePath(path, listView.Name, activeTreeview.SelectedNode);
 				}
 				else
 				{
@@ -1766,7 +1774,7 @@ namespace zfile
 					_operationsManager.AddOperation(op);
 				}
 				// 更新当前路径
-				CurrentFullpath[LRflag] = path;
+				CurrentFullpath[LRflag] = path;/////////////////////////////////////////////////////////
 				return;
 			}
 			// 获取关联的TreeView

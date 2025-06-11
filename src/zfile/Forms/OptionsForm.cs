@@ -754,6 +754,7 @@ namespace zfile
 
 			// 添加单元格值改变事件
 			grid.CellValueChanged += Grid_CellValueChanged;
+			grid.CurrentCellDirtyStateChanged += Grid_CurrentCellDirtyStateChanged;
 
 			// 添加按钮面板
 			FlowLayoutPanel buttonPanel = new FlowLayoutPanel
@@ -776,6 +777,17 @@ namespace zfile
 			HotKeyPanel.Controls.Add(buttonPanel);
 			splitContainer2.Panel1.Controls.Add(HotKeyPanel);
 		}
+
+		private void Grid_CurrentCellDirtyStateChanged(object? sender, EventArgs e)
+		{
+			var grid = sender as DataGridView;
+			if (grid?.CurrentCell is DataGridViewCheckBoxCell)
+			{
+				// 立即提交CheckBox的更改
+				grid.CommitEdit(DataGridViewDataErrorContexts.Commit);
+			}
+		}
+
 		private void BtnAdd_Click(object? sender, EventArgs e)
 		{
 			// 创建添加快捷键对话框
@@ -1041,6 +1053,7 @@ namespace zfile
 				hasConflict = true;
 				string conflictCommands = string.Join(", ", conflicts);
 				toolTip.SetToolTip(grid, $"快捷键冲突与: {conflictCommands}");
+				MessageBox.Show($"检测到快捷键冲突：{conflictCommands}");
 			}
 			else
 			{

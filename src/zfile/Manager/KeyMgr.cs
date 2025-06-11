@@ -49,8 +49,12 @@
 		public void Remove(string cmd)
 		{
 			var keydef = GetByCmd(cmd);
-			keymap.Remove(keydef.Key);
-			cmdmap.Remove(keydef.Cmd);
+			if (keydef != null)
+			{
+				keymap.Remove(keydef.Key);
+				cmdmap.Remove(keydef.Cmd);
+				keymapChanged = true;
+			}
 		}
 		public void Clear()
 		{

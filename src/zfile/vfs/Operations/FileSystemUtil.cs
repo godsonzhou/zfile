@@ -49,15 +49,17 @@ namespace zfile
 						return true;
 					else
 					{
+						// Additionally check if the remaining path is a relative path.
+						// Look for a path delimiter in the middle of the filepath.
 						string remainingPath = sPathToCheck.Substring(basePathLength);
 						int delimiterPos = remainingPath.IndexOfAny(new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar });
+						// If no delimiter was found or it was found at then end (directories
+						// may end with it), then the 'sPathToCheck' is in 'sBasePath'.
 						return delimiterPos == -1 || delimiterPos == remainingPath.Length - 1;
 					}
 				}
 				else
-				{
 					return false;
-				}
 			}
 			else
 			{

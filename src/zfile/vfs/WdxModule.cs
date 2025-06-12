@@ -103,8 +103,8 @@ namespace zfile
     public class WdxModule : DcxModule, IDisposable
     {
         #region 字段
-        private IntPtr _moduleHandle;
-        private string _modulePath;
+        //private IntPtr ModuleHandle;
+        //private string ModulePath;
         private string _pluginName;
         public string Name => _pluginName;
         private bool _isUnicode;
@@ -136,12 +136,12 @@ namespace zfile
         #endregion
 
         #region 属性
-        public string ModulePath => _modulePath;
+        //public string ModulePath => _modulePath;
         public string PluginName => _pluginName;
-        public bool IsLoaded => _moduleHandle != IntPtr.Zero;
+        public bool IsLoaded => ModuleHandle != IntPtr.Zero;
         public bool IsUnicode => _isUnicode;
         public IReadOnlyList<WdxField> Fields => _fields.AsReadOnly();
-        public string FileName { get => _modulePath; set => _modulePath = value; }
+        public string FileName { get => ModulePath; set => ModulePath = value; }
         public string? DetectString;
 
         /// <summary>
@@ -163,14 +163,14 @@ namespace zfile
         #region 构造函数和初始化
         public WdxModule(string modulePath)
         {
-            _modulePath = modulePath;
+            ModulePath = modulePath;
             _pluginName = Path.GetFileNameWithoutExtension(modulePath);
             _fields = new List<WdxField>();
             _translations = new Dictionary<string, string>();
         }
         public WdxModule(string pluginName, string modulePath)
         {
-            _modulePath = modulePath;
+            ModulePath = modulePath;
             _pluginName = pluginName;
             _fields = new List<WdxField>();
             _translations = new Dictionary<string, string>();
@@ -179,13 +179,13 @@ namespace zfile
         public override bool LoadModule()
         {
             if (IsLoaded) return true;
-            if (!File.Exists(_modulePath))
+            if (!File.Exists(ModulePath))
                 return false;
 
             try
             {
-                _moduleHandle = NativeLibrary.Load(_modulePath);
-                if (_moduleHandle == IntPtr.Zero) return false;
+                ModuleHandle = NativeLibrary.Load(ModulePath);
+                if (ModuleHandle == IntPtr.Zero) return false;
 
                 // 加载必需的函数
                 _contentGetSupportedField = GetDelegate<ContentGetSupportedField>("ContentGetSupportedField");
@@ -279,7 +279,7 @@ namespace zfile
                 }
                 // 加载支持的字段
                 LoadSupportedFields();
-                Debug.Print($"{_modulePath} loaded completed.");
+                Debug.Print($"{ModulePath} loaded completed.");
                 return true;
             }
             catch
@@ -669,11 +669,11 @@ namespace zfile
         #region 资源释放
         public override void UnloadModule()
         {
-            if (_moduleHandle != IntPtr.Zero)
+            if (ModuleHandle != IntPtr.Zero)
             {
                 _contentPluginUnloading?.Invoke();
-                NativeLibrary.Free(_moduleHandle);
-                _moduleHandle = IntPtr.Zero;
+                NativeLibrary.Free(ModuleHandle);
+                ModuleHandle = IntPtr.Zero;
             }
 
             // 清除所有函数指针

@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace zfile
 {
 	public class WcxArchiveListOperation : FileSourceListOperation
@@ -37,7 +39,7 @@ namespace zfile
 					CheckOperationState();
 
 					var currFileName = System.IO.Path.DirectorySeparatorChar + header.FileName;
-
+					Debug.Print(header.FileName);
 					if (!FileSystemUtil.IsInPath(Path, currFileName, _flatView, false))
 						continue;
 

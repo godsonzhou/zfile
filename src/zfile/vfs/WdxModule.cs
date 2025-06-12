@@ -9,27 +9,35 @@ namespace zfile
     #region WDX常量和结构体
     public static class WdxConstants
     {
-        // 字段类型常量
-        public const int FT_NUMERIC_32 = 1;      // 32位整数
+		// 字段类型常量
+		public const int FT_NOMOREFIELDS = 0;   // 没有更多字段
+		public const int FT_NUMERIC_32 = 1;      // 32位整数
         public const int FT_NUMERIC_64 = 2;      // 64位整数
         public const int FT_NUMERIC_FLOATING = 3; // 浮点数
         public const int FT_DATE = 4;            // 日期
         public const int FT_TIME = 5;            // 时间
-        public const int FT_DATETIME = 6;        // 日期时间
-        public const int FT_BOOLEAN = 7;         // 布尔值
-        public const int FT_STRING = 8;          // 字符串
-        public const int FT_MULTIPLECHOICE = 9;  // 多选项
-        public const int FT_FULLTEXT = 10;       // 全文本
-        public const int FT_NOSUCHFIELD = -1;    // 无此字段
-        public const int WDX_NOMOREFIELDS = 0;   // 没有更多字段
-        // 返回值常量
-        public const int WDX_SUCCESS = 0;
+        public const int FT_BOOLEAN = 6;         // 布尔值
+		public const int FT_MULTIPLECHOICE = 7;  // 多选项
+		public const int FT_STRING = 8;          // 字符串
+        public const int FT_FULLTEXT = 9;       // 全文本
+		public const int FT_DATETIME = 10;        // 日期时间
+		public const int FT_STRINGW = 11;
+		public const int FT_FULLTEXTW = 12;     // Unicode全文本
+
+		public const int FT_NOSUCHFIELD = -1;    // 无此字段
+		public const int FT_FILEERROR = -2;   // 文件错误
+		public const int FT_FIELDEMPTY = -3;      // 字段为空
+		public const int FT_ONDEMAND = -4;
+		public const int FT_NOTSUPPORTED = -5;
+		public const int FT_SETCANCEL = -6;
+		public const int FT_DELAYED = 0;
+		// 返回值常量
+		public const int WDX_SUCCESS = 0;
         public const int WDX_ERROR = 1;
         public const int WDX_NOTFOUND = -1;
 
         // 特殊字段类型常量（用于全文处理）
-        public const int FT_FIELDEMPTY = 0;      // 字段为空
-        public const int FT_FULLTEXTW = 11;      // Unicode全文本
+        
     }
 
     //[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
@@ -315,7 +323,7 @@ namespace zfile
                 unitNameBuffer.Clear();
 
                 int result = _contentGetSupportedField(fieldIndex, fieldNameBuffer, unitNameBuffer, MAX_LEN);
-                if (result <= WdxConstants.WDX_NOMOREFIELDS) break;
+                if (result <= WdxConstants.FT_NOMOREFIELDS) break;
 
                 string fieldName = fieldNameBuffer.ToString();
                 string unitName = unitNameBuffer.ToString();

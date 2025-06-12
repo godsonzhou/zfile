@@ -630,7 +630,7 @@ namespace WinShell
 		[DllImport("shell32.dll")]
 		public static extern int SHCreateItemFromIDList(IntPtr pidl, ref Guid riid, out IShellItem ppv);
 		[DllImport("kernel32.dll", CharSet = CharSet.Auto)]
-		public static extern IntPtr FindFirstFile(string lpFileName, out WIN32_FIND_DATA lpFindFileData);
+		public static extern SafeFindHandle FindFirstFile(string lpFileName, out WIN32_FIND_DATA lpFindFileData);
 		[DllImport("kernel32.dll")]
 		public static extern bool FindClose(IntPtr hFindFile);
 		[DllImport("shell32.dll")]
@@ -651,16 +651,15 @@ namespace WinShell
 		[DllImport("shell32.dll")]
 		public static extern int SHCreateShellItemArrayFromIDLists(uint cidl, IntPtr[] rgpidl, out IShellItemArray ppsiItemArray);
 
-		//[DllImport("shell32.dll")]
-		//public static extern IntPtr ILClone(IntPtr pidl);
 		[DllImport("shell32.dll", CharSet = CharSet.Auto)]
 		public static extern bool ShellExecuteEx(ref SHELLEXECUTEINFO lpExecInfo);
 
 		[DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-		public static extern SafeFindHandle FindFirstFileW(string lpFileName, out WIN32_FIND_DATA lpFindFileData);
+		//public static extern SafeFindHandle FindFirstFileW(string lpFileName, out WIN32_FIND_DATAW lpFindFileData);
+		public static extern IntPtr FindFirstFileW(string lpFileName, out WIN32_FIND_DATAW lpFindFileData);
+		[DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+		public static extern bool FindNextFileW(IntPtr hFindFile, out WIN32_FIND_DATAW lpFindFileData);
 
-		//[DllImport("kernel32.dll")]
-		//private static extern bool FindClose(IntPtr hFindFile);
 		public class SafeFindHandle : SafeHandleZeroOrMinusOneIsInvalid
 		{
 			private SafeFindHandle() : base(true) { }
@@ -671,27 +670,4 @@ namespace WinShell
 			}
 		}
 	}
-
-	// [Flags]
-	// public enum SHGFI : uint
-	// {
-	// 	ICON = 0x000000100,
-	// 	DISPLAYNAME = 0x000000200,
-	// 	TYPENAME = 0x000000400,
-	// 	ATTRIBUTES = 0x000000800,
-	// 	ICONLOCATION = 0x000001000,
-	// 	EXETYPE = 0x000002000,
-	// 	SYSICONINDEX = 0x000004000,
-	// 	LINKOVERLAY = 0x000008000,
-	// 	SELECTED = 0x000010000,
-	// 	ATTR_SPECIFIED = 0x000020000,
-	// 	LARGEICON = 0x000000000,
-	// 	SMALLICON = 0x000000001,
-	// 	OPENICON = 0x000000002,
-	// 	SHELLICONSIZE = 0x000000004,
-	// 	PIDL = 0x000000008,
-	// 	USEFILEATTRIBUTES = 0x000000010,
-	// 	ADDOVERLAYS = 0x000000020,
-	// 	OVERLAYINDEX = 0x000000040
-	// }
 }

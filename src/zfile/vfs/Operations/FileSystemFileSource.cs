@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using WinShell;
 namespace zfile
@@ -19,7 +20,12 @@ namespace zfile
 
     public class FileSystemFileSource : LocalFileSource, IFileSystemFileSource
     {
-        private Description description;
+		// Windows API常量
+		private const int MAX_PATH = 260;
+		private const string LONG_PATH_PREFIX = @"\\?\";
+		private const string UNC_PREFIX = @"\\";
+		private const string UNC_LONG_PATH_PREFIX = @"\\?\UNC\";
+		private Description description;
 
         public FileSystemFileSource()
         {
@@ -120,29 +126,120 @@ namespace zfile
 		//    file.FullPath = filePath;
 		//    return file;
 		//}
+		// 移除长路径前缀
+		public static string RemoveLongPathPrefix(string path)
+		{
+			if (string.IsNullOrEmpty(path))
+				return path;
 
+			if (path.StartsWith(LONG_PATH_PREFIX, StringComparison.OrdinalIgnoreCase))
+				return path.Substring(LONG_PATH_PREFIX.Length);
+
+			if (path.StartsWith(UNC_LONG_PATH_PREFIX, StringComparison.OrdinalIgnoreCase))
+				return UNC_PREFIX + path.Substring(UNC_LONG_PATH_PREFIX.Length);
+
+			return path;
+		}
+
+		// 使用长路径支持的文件查找方法
+		public static WIN32_FIND_DATA FindFilesWithLongPathSupport(string directoryPath, string searchPattern = "*")
+		{
+			// 添加长路径前缀
+			string fullPath = AddLongPathPrefix(Path.Combine(directoryPath, searchPattern));
+
+			var findHandle = API.FindFirstFile(fullPath, out WIN32_FIND_DATA findData);
+			if (findHandle.IsInvalid) // == new IntPtr(-1))
+			{
+				int errorCode = Marshal.GetLastWin32Error();
+				throw new System.ComponentModel.Win32Exception(errorCode,
+					$"无法查找文件: {RemoveLongPathPrefix(fullPath)}");
+			}
+
+			//try
+			//{
+			//	do
+			//	{
+			//		// 跳过 "." 和 ".."
+			//		if (findData.cFileName == "." || findData.cFileName == "..")
+			//			continue;
+
+			//		// 处理找到的文件
+			//		string fileName = findData.cFileName;
+			//		string fullFilePath = Path.Combine(directoryPath, fileName);
+
+			//		Debug.WriteLine($"找到文件: {fullFilePath}");
+
+			//		// 这里可以添加对文件的处理逻辑
+			//	}
+			//	while (API.FindNextFileW(findHandle, out findData));
+
+			//	int lastError = Marshal.GetLastWin32Error();
+			//	if (lastError != 0 && lastError != 2) // 2 = ERROR_NO_MORE_FILES
+			//	{
+			//		throw new System.ComponentModel.Win32Exception(lastError);
+			//	}
+			//}
+			//finally
+			//{
+			//	//API.FindClose(findHandle);
+			//	findHandle.Dispose();
+			//}
+			return findData;
+		}
+		// 添加长路径前缀
+		public static string AddLongPathPrefix(string path)
+		{
+			if (string.IsNullOrEmpty(path))
+				return path;
+
+			// 如果已经有长路径前缀，直接返回
+			if (path.StartsWith(LONG_PATH_PREFIX, StringComparison.OrdinalIgnoreCase))
+				return path;
+
+			// 处理UNC路径
+			if (path.StartsWith(UNC_PREFIX, StringComparison.OrdinalIgnoreCase))
+			{
+				return UNC_LONG_PATH_PREFIX + path.Substring(UNC_PREFIX.Length);
+			}
+
+			// 确保路径是绝对路径
+			if (!Path.IsPathRooted(path))
+				path = Path.GetFullPath(path);
+
+			return LONG_PATH_PREFIX + path;
+		}
 		public static FileEntry CreateFileFromFile(string filePath)
 		{
-			//if (!File.Exists(filePath))
-			//	throw new FileNotFoundException(filePath);
-
 			WIN32_FIND_DATA findData;
-			using (var findHandle = API.FindFirstFileW(filePath, out findData))
+			using (var findHandle = API.FindFirstFile(filePath, out findData))
 			{
-				if (findHandle.IsInvalid)
-					throw new Win32Exception(Marshal.GetLastWin32Error());
-				//API.FindClose(findHandle);
 				var file = new FileEntry(Path.GetDirectoryName(filePath));
-
-				// 设置基本属性
-				file.Attributes = findData.dwFileAttributes;
-				file.Size = ((long)findData.nFileSizeHigh << 32) | findData.nFileSizeLow;
-				file.ModificationTime = DateTime.FromFileTime(((long)findData.ftLastWriteTime.dwHighDateTime << 32) |
-															(uint)findData.ftLastWriteTime.dwLowDateTime);
-				file.CreationTime = DateTime.FromFileTime(((long)findData.ftCreationTime.dwHighDateTime << 32) |
-														(uint)findData.ftCreationTime.dwLowDateTime);
-				file.LastAccessTime = DateTime.FromFileTime(((long)findData.ftLastAccessTime.dwHighDateTime << 32) |
-														  (uint)findData.ftLastAccessTime.dwLowDateTime);
+				if (findHandle.IsInvalid)
+				{
+					//长文件名特殊处理			
+					//使用system.io来获取文件的基本信息
+					var fileInfo = new FileInfo(filePath);
+					if (!fileInfo.Exists)
+						throw new FileNotFoundException(filePath);
+					file.Name = fileInfo.Name;
+					file.Attributes = fileInfo.Attributes;
+					file.Size = fileInfo.Length;
+					file.ModificationTime = fileInfo.LastWriteTime;
+					file.CreationTime = fileInfo.CreationTime;
+					file.LastAccessTime = fileInfo.LastAccessTime;
+				}
+				else
+				{
+					// 设置基本属性
+					file.Attributes = findData.dwFileAttributes;
+					file.Size = ((long)findData.nFileSizeHigh << 32) | findData.nFileSizeLow;
+					file.ModificationTime = DateTime.FromFileTime(((long)findData.ftLastWriteTime.dwHighDateTime << 32) |
+																(uint)findData.ftLastWriteTime.dwLowDateTime);
+					file.CreationTime = DateTime.FromFileTime(((long)findData.ftCreationTime.dwHighDateTime << 32) |
+															(uint)findData.ftCreationTime.dwLowDateTime);
+					file.LastAccessTime = DateTime.FromFileTime(((long)findData.ftLastAccessTime.dwHighDateTime << 32) |
+															  (uint)findData.ftLastAccessTime.dwLowDateTime);
+				}
 				file.LinkProperty = new FileLinkProperty();
 
 				// 处理符号链接

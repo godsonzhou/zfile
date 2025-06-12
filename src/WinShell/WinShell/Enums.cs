@@ -268,7 +268,7 @@ namespace WinShell
         USEFILEATTRIBUTES = 0x10
     }
 
-    [Flags]
+	[Flags]
     public enum FILE_ATTRIBUTE
     {
         READONLY = 0x00000001,

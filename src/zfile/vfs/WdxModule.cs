@@ -71,8 +71,8 @@ namespace zfile
         public int Size;
         public int PluginInterfaceVersionLow;
         public int PluginInterfaceVersionHi;
-        [MarshalAs(UnmanagedType.LPStr)]
-        // [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+        //[MarshalAs(UnmanagedType.LPStr)]
+         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
         public string DefaultIniName;
     }
     #endregion
@@ -206,6 +206,7 @@ namespace zfile
 
             try
             {
+				Debug.Print($"try to load wdx module {ModulePath}");
                 ModuleHandle = NativeLibrary.Load(ModulePath);
                 if (ModuleHandle == IntPtr.Zero) return false;
 
@@ -259,8 +260,8 @@ namespace zfile
                 var defaultParams = new ContentDefaultParamStruct
                 {
                     Size = Marshal.SizeOf<ContentDefaultParamStruct>(),
-                    PluginInterfaceVersionLow = 1,
-                    PluginInterfaceVersionHi = 2,
+                    PluginInterfaceVersionLow = 50, //1,
+                    PluginInterfaceVersionHi = 1, //2,
                     DefaultIniName = Path.Combine(Constants.ZfileCfgPath, "wdx.ini")
                 };
                 try
@@ -283,6 +284,7 @@ namespace zfile
                     {
                         IntPtr pDps = Marshal.AllocHGlobal(Marshal.SizeOf<ContentDefaultParamStruct>());
                         Marshal.StructureToPtr(defaultParams, pDps, false);
+						GC.KeepAlive(pDps);
                         _contentSetDefaultParams(pDps);
                         Marshal.FreeHGlobal(pDps);
                     }
@@ -532,30 +534,32 @@ namespace zfile
                         case WdxConstants.FT_MULTIPLECHOICE:
                             return value;
                         case WdxConstants.FT_NUMERIC_32:
-                            if (int.TryParse(value, out int intValue))
-                                return intValue.ToString();
-                            return "0";
-                        case WdxConstants.FT_NUMERIC_64:
-                            if (long.TryParse(value, out long longValue))
-                                return longValue.ToString();
-                            return "0";
+                            //if (int.TryParse(value, out int intValue))
+                            //    return intValue.ToString();
+                            //return "0";
+							return BitConverter.ToInt32(valuePtr, 0).ToString();
+
+						case WdxConstants.FT_NUMERIC_64:
+							long longValue = BitConverter.ToInt64(valuePtr, 0);
+                            return longValue.ToString();
+                            
                         case WdxConstants.FT_NUMERIC_FLOATING:
-                            if (double.TryParse(value, out double doubleValue))
-                                return doubleValue.ToString();
-                            return "0.0";
-                        case WdxConstants.FT_BOOLEAN:
+                            //if (double.TryParse(value, out double doubleValue))
+                            //    return doubleValue.ToString();
+                            //return "0.0";
+							return BitConverter.ToDouble(valuePtr, 0).ToString();
+						case WdxConstants.FT_BOOLEAN:
                             if (int.TryParse(value, out int boolValue))
                                 return boolValue != 0 ? "True" : "False";
                             return "False";
+
                         case WdxConstants.FT_DATE:
                         case WdxConstants.FT_TIME:
                         case WdxConstants.FT_DATETIME:
 							// 从缓冲区的前8个字节读取Int64（小端序）
 							long fileTime = BitConverter.ToInt64(valuePtr, 0);
 							return DateTime.FromFileTime(fileTime).ToString();
-							//if (long.TryParse((value), out long fileTime))
-       //                         return DateTime.FromFileTime(fileTime).ToString();
-                            //return DateTime.MinValue.ToString();
+					
                         default:
                             return value;
                     }

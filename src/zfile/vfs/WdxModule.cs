@@ -1,6 +1,9 @@
+using LibVLCSharp.Shared;
+using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Unicode;
 using System.Xml.Linq;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -78,12 +81,23 @@ namespace zfile
     // 必需的函数
     [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
     public delegate int ContentGetSupportedField(int FieldIndex, StringBuilder FieldName, StringBuilder UnitName, int MaxLen);
-    public delegate int ContentGetValue(string FileName, int FieldIndex, int UnitIndex, StringBuilder FieldValue, int MaxLen, int Flags);
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+	//public delegate int ContentGetValue(string FileName, int FieldIndex, int UnitIndex, StringBuilder FieldValue, int MaxLen, int Flags);
+	public delegate int ContentGetValue([MarshalAs(UnmanagedType.LPStr)] string FileName, int FieldIndex, int UnitIndex, [Out] byte[] FieldValue, int MaxLen, int Flags);
 
-    // Unicode版本
-    [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-    public delegate int ContentGetValueW([MarshalAs(UnmanagedType.LPWStr)] string FileName, int FieldIndex, int UnitIndex, StringBuilder FieldValue, int MaxLen, int Flags);
-    [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+	// Unicode版本
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+	//public delegate int ContentGetValueW([MarshalAs(UnmanagedType.LPWStr)] string FileName, int FieldIndex, int UnitIndex, StringBuilder FieldValue, int MaxLen, int Flags);
+	//[UnmanagedFunctionPointer(CallingConvention.StdCall)]
+	public delegate int ContentGetValueW(
+		[MarshalAs(UnmanagedType.LPWStr)] string FileName,
+		int FieldIndex,
+		int UnitIndex,
+		[Out] byte[] FieldValue,   // 改为字节数组
+		int MaxLen,                // 缓冲区字节大小
+		int Flags
+	);
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
     // public delegate int ContentSetDefaultParams(ref ContentDefaultParamStruct dps);
     public delegate void ContentSetDefaultParams(IntPtr dps);
 
@@ -392,26 +406,31 @@ namespace zfile
             try
             {
                 const int bufferSize = 2048;
-                StringBuilder valuePtr = new(bufferSize);
-                int result;
-
+                //StringBuilder valuePtr = new(bufferSize);
+				var valuePtr = new byte[bufferSize];
+				int result;
+				string value = "";
                 if (_isUnicode)
                 {
                     result = _contentGetValueW(fileName, fieldIndex, unitIndex, valuePtr, bufferSize, flag);
-                }
+					value = Encoding.Unicode.GetString(valuePtr);
+				}
                 else
                 {
                     result = _contentGetValue(fileName, fieldIndex, unitIndex, valuePtr, bufferSize, flag);
-                }
-
-                if (result <= 0)
+					value = Encoding.ASCII.GetString(valuePtr);
+				}
+				int nullIndex = value.IndexOf('\0');
+				if (nullIndex >= 0)
+					value = value.Substring(0, nullIndex);
+				if (result <= 0)
                     return null;
 
                 // 根据字段类型处理返回值
                 WdxField field = _fields[fieldIndex];
-                string value = valuePtr.ToString();
-
-                switch (field.Type)
+                //string value = valuePtr.ToString();
+				//value = value.TrimEnd('\0'); // 去除字符串末尾的 null 字符
+				switch (field.Type)
                 {
                     case WdxConstants.FT_NUMERIC_32:
                         if (int.TryParse(value, out int intValue))
@@ -432,10 +451,14 @@ namespace zfile
                     case WdxConstants.FT_DATE:
                     case WdxConstants.FT_TIME:
                     case WdxConstants.FT_DATETIME:
-                        if (long.TryParse(value, out long fileTime))
-                            return DateTime.FromFileTime(fileTime);
-                        return DateTime.MinValue;
-                    case WdxConstants.FT_STRING:
+                        //if (long.TryParse(value, out long fileTime))
+                        //    return DateTime.FromFileTime(fileTime);
+
+                        //return DateTime.MinValue;
+						// 从缓冲区的前8个字节读取Int64（小端序）
+						long fileTime = BitConverter.ToInt64(valuePtr, 0);
+						return DateTime.FromFileTime(fileTime).ToString();
+					case WdxConstants.FT_STRING:
                     case WdxConstants.FT_FULLTEXT:
                     case WdxConstants.FT_MULTIPLECHOICE:
                         return value;
@@ -476,24 +499,31 @@ namespace zfile
             try
             {
                 const int bufferSize = 2048;
-                StringBuilder valuePtr = new(bufferSize);
-                int result;
-
+				//StringBuilder valuePtr = new(bufferSize);
+				byte[] valuePtr = new byte[bufferSize];
+				int result;
+				string value = "";
                 if (_isUnicode)
                 {
                     result = _contentGetValueW(fileName, fieldIndex, unitIndex, valuePtr, bufferSize, flag);
-                }
+					// 解码为字符串（UTF - 16 Little - Endian）
+					value = Encoding.Unicode.GetString(valuePtr);
+				}
                 else
                 {
                     result = _contentGetValue(fileName, fieldIndex, unitIndex, valuePtr, bufferSize, flag);
-                }
-
-                // 检查返回值是否为有效字段类型（大于0）而不是只检查WDX_SUCCESS
-                if (result > 0)
+					value = Encoding.ASCII.GetString(valuePtr);
+				}
+				// 找到第一个 null 终止符并截断
+				int nullIndex = value.IndexOf('\0');
+				if (nullIndex >= 0)
+					value = value.Substring(0, nullIndex);
+				// 检查返回值是否为有效字段类型（大于0）而不是只检查WDX_SUCCESS
+				if (result > 0)
                 {
                     // 根据字段类型处理返回值
                     WdxField field = _fields[fieldIndex];
-                    string value = valuePtr.ToString();
+                    //string value = valuePtr.ToString();
 
                     switch (field.Type)
                     {
@@ -520,9 +550,12 @@ namespace zfile
                         case WdxConstants.FT_DATE:
                         case WdxConstants.FT_TIME:
                         case WdxConstants.FT_DATETIME:
-                            if (long.TryParse(value, out long fileTime))
-                                return DateTime.FromFileTime(fileTime).ToString();
-                            return DateTime.MinValue.ToString();
+							// 从缓冲区的前8个字节读取Int64（小端序）
+							long fileTime = BitConverter.ToInt64(valuePtr, 0);
+							return DateTime.FromFileTime(fileTime).ToString();
+							//if (long.TryParse((value), out long fileTime))
+       //                         return DateTime.FromFileTime(fileTime).ToString();
+                            //return DateTime.MinValue.ToString();
                         default:
                             return value;
                     }
@@ -562,21 +595,26 @@ namespace zfile
             try
             {
                 const int bufferSize = 2048;
-                StringBuilder valuePtr = new(bufferSize);
-                int result = 0;
-
+				//StringBuilder valuePtr = new(bufferSize);
+				var valuePtr = new byte[bufferSize];
+				int result = 0;
+				string value = "";
                 if (_isUnicode && _contentGetValueW != null)
                 {
                     result = _contentGetValueW(fileName, fieldIndex, unitIndex, valuePtr, bufferSize, 0);
-                }
+					value = Encoding.Unicode.GetString(valuePtr);
+				}
                 else if (_contentGetValue != null)
                 {
                     result = _contentGetValue(fileName, fieldIndex, unitIndex, valuePtr, bufferSize, 0);
-                }
+					value = Encoding.ASCII.GetString(valuePtr);
+				}
 
-                string value = valuePtr.ToString();
-
-                switch (result)
+				//string value = valuePtr.ToString();
+				int nullIndex = value.IndexOf('\0');
+				if (nullIndex >= 0)
+					value = value.Substring(0, nullIndex);
+				switch (result)
                 {
                     case WdxConstants.FT_FIELDEMPTY:
                         return string.Empty;

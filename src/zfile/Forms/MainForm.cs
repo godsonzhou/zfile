@@ -3083,9 +3083,10 @@ namespace zfile
 			// 编辑按钮点击处理逻辑
 			var filePaths = GetFileListByViewOrParam(param);
 			if (filePaths.Count == 0) return;
+			var txt = filePaths.Count > 1 ? "..." : string.Empty;
 			Form viewerForm = new ViewerForm(filePaths.Select(x => x.FullPath).ToList(), wlxModuleList)
 			{
-				Text = $"查看文件 - {filePaths}",
+				Text = $"查看文件 - {filePaths[0]}{txt}",
 				Size = new Size(800, 600)
 			};
 			viewerForm.Show();

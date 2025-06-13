@@ -309,8 +309,7 @@ namespace zfile.Forms
 			{
 				// 设置窗口样式为子窗口
 				NativeMethods.SetParent(_pluginWindow, container.Handle);
-				NativeMethods.SetWindowLong(_pluginWindow, NativeMethods.GWL_STYLE,
-					NativeMethods.WS_VISIBLE | NativeMethods.WS_CHILD);
+				NativeMethods.SetWindowLong(_pluginWindow, NativeMethods.GWL_STYLE, NativeMethods.WS_VISIBLE | NativeMethods.WS_CHILD);
 
 				// 调整窗口位置和大小
 				SetPluginWindowBounds(container);

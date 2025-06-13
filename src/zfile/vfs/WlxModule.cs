@@ -370,7 +370,7 @@ namespace zfile
 			}
 		}
 
-		public WlxModule FindModuleForFile(string fileName, ref int tryModuleIdx)
+		public WlxModule? FindModuleForFile(string fileName, ref int tryModuleIdx)
 		{
 			// 应该按照configdict的配置次序依次查找， 而不是_modules的次序（文件系统的顺序）
 			var i = 0;
@@ -395,7 +395,7 @@ namespace zfile
 		{
 			if (string.IsNullOrEmpty(module.DetectString))
 			{
-				if (_configDict.TryGetValue(module.Name.ToUpper(), out string val))
+				if (_configDict.TryGetValue(module.Name.ToUpper(), out var val))
 					return isModuleSupport(val, fileName);
 				else
 					return true;
@@ -457,7 +457,7 @@ namespace zfile
 			_modules.Clear();
 		}
 
-		public WlxModule FindModuleByName(string name)
+		public WlxModule? FindModuleByName(string name)
 		{
 			return _modules.FirstOrDefault(m => m.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 		}

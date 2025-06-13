@@ -3086,7 +3086,7 @@ namespace zfile
 			var txt = filePaths.Count > 1 ? "..." : string.Empty;
 			Form viewerForm = new ViewerForm(filePaths.Select(x => x.FullPath).ToList(), wlxModuleList)
 			{
-				Text = $"查看文件 - {filePaths[0]}{txt}",
+				Text = $"查看文件 - {filePaths[0].FullPath}{txt}",
 				Size = new Size(800, 600)
 			};
 			viewerForm.Show();

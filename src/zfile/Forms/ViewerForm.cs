@@ -183,7 +183,7 @@ namespace zfile.Forms
 		private void InitializeFileList()
 		{
 			_fileList = [];
-			_activeFileIndex = -1;
+			//_activeFileIndex = -1;
 			_currentEncoding = Encoding.Default;
 		}
 

@@ -42,12 +42,13 @@ namespace zfile
 		public const int LISTPLUGIN_SEARCH_FIRST = 2;
 	}
 
-	[StructLayout(LayoutKind.Sequential)]
+	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
 	public struct ListDefaultParamStruct
 	{
 		public int Size;
 		public int PluginInterfaceVersionHi;
 		public int PluginInterfaceVersionLow;
+		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
 		public string DefaultIniName;
 	}
 
@@ -61,7 +62,9 @@ namespace zfile
 	public delegate int ListSearchText(IntPtr pluginWin, string searchString, int searchParameter);
 	public delegate int ListSearchDialog(IntPtr pluginWin, int findNext);
 	public delegate int ListSendCommand(IntPtr pluginWin, int command, int parameter);
-	public delegate int ListSetDefaultParams(ref ListDefaultParamStruct dps);
+
+	//public delegate int ListSetDefaultParams(ref ListDefaultParamStruct dps);
+	public delegate int ListSetDefaultParams(IntPtr dps);
 	public delegate int ListPrint(IntPtr pluginWin, string fileToPrint, string defPrinter, int printFlags, ref IntPtr margins);
 
 	// 可选的函数委托定义
@@ -72,36 +75,34 @@ namespace zfile
 	public delegate int ListGetValue(int field, [MarshalAs(UnmanagedType.LPWStr)] string filePath, int unitIndex, int maxLen, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder value);
 	public delegate int ListGetPreviewBitmapW([MarshalAs(UnmanagedType.LPWStr)] string fileToLoad, int width, int height, IntPtr bitmapHandle);
 
-	public class WlxModule : IDisposable
+	public class WlxModule : DcxModule, IDisposable
 	{
-		private IntPtr _moduleHandle;
-
 		// 必需的函数指针
-		private ListLoad _listLoad;
-		private ListLoadW _listLoadW;
-		private ListLoadNext _listLoadNext;
-		private ListLoadNextW _listLoadNextW;
-		private ListCloseWindow _listCloseWindow;
-		private ListGetDetectString _listGetDetectString;
-		private ListSearchText _listSearchText;
-		private ListSearchDialog _listSearchDialog;
-		private ListSendCommand _listSendCommand;
-		private ListSetDefaultParams _listSetDefaultParams;
-		private ListPrint _listPrint;
+		private ListLoad? _listLoad;
+		private ListLoadW? _listLoadW;
+		private ListLoadNext? _listLoadNext;
+		private ListLoadNextW? _listLoadNextW;
+		private ListCloseWindow? _listCloseWindow;
+		private ListGetDetectString? _listGetDetectString;
+		private ListSearchText? _listSearchText;
+		private ListSearchDialog? _listSearchDialog;
+		private ListSendCommand? _listSendCommand;
+		private ListSetDefaultParams? _listSetDefaultParams;
+		private ListPrint? _listPrint;
 
 		// 可选的函数指针
-		private ListSearchTextW _listSearchTextW;
-		private ListPrintW _listPrintW;
-		private ListGetPreviewBitmap _listGetPreviewBitmap;
-		private ListGetPreviewBitmapW _listGetPreviewBitmapW;
-		private ListNotificationReceived _listNotificationReceived;
-		private ListGetValue _listGetValue;
+		private ListSearchTextW? _listSearchTextW;
+		private ListPrintW? _listPrintW;
+		private ListGetPreviewBitmap? _listGetPreviewBitmap;
+		private ListGetPreviewBitmapW? _listGetPreviewBitmapW;
+		private ListNotificationReceived? _listNotificationReceived;
+		private ListGetValue? _listGetValue;
 
 		public string Name { get; set; }
 		public string FilePath { get; set; }
 		public string DetectString { get; set; }
 		public bool IsMultimedia { get; set; }
-		public bool IsLoaded => _moduleHandle != IntPtr.Zero;
+		public bool IsLoaded => ModuleHandle != IntPtr.Zero;
 		public string FileName { get => FilePath; set => FilePath = value; }
 
 		public WlxModule()
@@ -111,53 +112,37 @@ namespace zfile
 			DetectString = string.Empty;
 		}
 
-		public bool LoadModule()
+		public override bool LoadModule()
 		{
 			if (IsLoaded) return true;
 
 			try
 			{
-				_moduleHandle = NativeLibrary.Load(FilePath);
-				if (_moduleHandle == IntPtr.Zero) return false;
+				ModuleHandle = NativeLibrary.Load(FilePath);
+				if (ModuleHandle == IntPtr.Zero) return false;
 
 				// 加载必需的函数
-				int flg = 0;
-				try { _listLoad = GetFunction<ListLoad>("ListLoad"); } catch (Exception ex) { flg++; }
-				try { _listLoadW = GetFunction<ListLoadW>("ListLoadW"); } catch (Exception ex) { flg++; }
-				if (flg == 2)
+				_listLoad = GetDelegate<ListLoad>("ListLoad"); 
+				_listLoadW = GetDelegate<ListLoadW>("ListLoadW"); 
+				if(_listLoad == null && _listLoadW == null)
 					throw new Exception("required listload can not be found!");
 
 				// 加载可选函数 // 可选函数加载失败不影响插件使用
-				try { _listLoadNext = GetFunction<ListLoadNext>("ListLoadNext"); }
-				catch (Exception ex) { }
+				_listLoadNext = GetDelegate<ListLoadNext>("ListLoadNext"); 
 				// 加载Unicode版本函数 // Unicode函数加载失败不影响插件使用
-				try { _listLoadNextW = GetFunction<ListLoadNextW>("ListLoadNextW"); }
-				catch (Exception ex) { }
-				try { _listSearchText = GetFunction<ListSearchText>("ListSearchText"); }
-				catch (Exception ex) { }
-				try { _listSearchTextW = GetFunction<ListSearchTextW>("ListSearchTextW"); }
-				catch (Exception ex) { }
-				try { _listPrint = GetFunction<ListPrint>("ListPrint"); }
-				catch (Exception ex) { }
-				try { _listPrintW = GetFunction<ListPrintW>("ListPrintW"); }
-				catch (Exception ex) { }
-				try { _listGetPreviewBitmap = GetFunction<ListGetPreviewBitmap>("ListGetPreviewBitmap"); }
-				catch (Exception ex) { }
-				try { _listGetPreviewBitmapW = GetFunction<ListGetPreviewBitmapW>("ListGetPreviewBitmapW"); }
-				catch (Exception ex) { }
-
-				try { _listCloseWindow = GetFunction<ListCloseWindow>("ListCloseWindow"); }
-				catch (Exception ex) { }
-				try { _listGetDetectString = GetFunction<ListGetDetectString>("ListGetDetectString"); }
-				catch (Exception ex) { }
-				try { _listSearchDialog = GetFunction<ListSearchDialog>("ListSearchDialog"); }
-				catch (Exception ex) { }
-				try { _listSendCommand = GetFunction<ListSendCommand>("ListSendCommand"); }
-				catch (Exception ex) { }
-				try { _listNotificationReceived = GetFunction<ListNotificationReceived>("ListNotificationReceived"); }
-				catch (Exception ex) { }
-				try { _listSetDefaultParams = GetFunction<ListSetDefaultParams>("ListSetDefaultParams"); }
-				catch (Exception ex) { }
+				_listLoadNextW = GetDelegate<ListLoadNextW>("ListLoadNextW"); 
+				_listSearchText = GetDelegate<ListSearchText>("ListSearchText"); 
+				_listSearchTextW = GetDelegate<ListSearchTextW>("ListSearchTextW"); 
+				_listPrint = GetDelegate<ListPrint>("ListPrint"); 
+				_listPrintW = GetDelegate<ListPrintW>("ListPrintW"); 
+				_listGetPreviewBitmap = GetDelegate<ListGetPreviewBitmap>("ListGetPreviewBitmap"); 
+				_listGetPreviewBitmapW = GetDelegate<ListGetPreviewBitmapW>("ListGetPreviewBitmapW"); 
+				_listCloseWindow = GetDelegate<ListCloseWindow>("ListCloseWindow"); 
+				_listGetDetectString = GetDelegate<ListGetDetectString>("ListGetDetectString"); 
+				_listSearchDialog = GetDelegate<ListSearchDialog>("ListSearchDialog"); 
+				_listSendCommand = GetDelegate<ListSendCommand>("ListSendCommand"); 
+				_listNotificationReceived = GetDelegate<ListNotificationReceived>("ListNotificationReceived"); 
+				_listSetDefaultParams = GetDelegate<ListSetDefaultParams>("ListSetDefaultParams"); 
 
 				// 初始化插件
 				CallListSetDefaultParams();
@@ -172,14 +157,13 @@ namespace zfile
 			}
 		}
 
-		private T GetFunction<T>(string functionName) where T : Delegate
-		{
-			IntPtr functionPtr = NativeLibrary.GetExport(_moduleHandle, functionName);
-			if (functionPtr == IntPtr.Zero)
-				//throw new EntryPointNotFoundException($"Function {functionName} not found in module {FilePath}");
-				return null;
-			return Marshal.GetDelegateForFunctionPointer<T>(functionPtr);
-		}
+		//private T? GetFunction<T>(string functionName) where T : Delegate
+		//{
+		//	IntPtr functionPtr = NativeLibrary.GetExport(_moduleHandle, functionName);
+		//	if (functionPtr == IntPtr.Zero)
+		//		return null;
+		//	return Marshal.GetDelegateForFunctionPointer<T>(functionPtr);
+		//}
 
 		private void LoadDetectString()
 		{
@@ -202,7 +186,17 @@ namespace zfile
 				PluginInterfaceVersionLow = 0,
 				DefaultIniName = "wlx.ini"
 			};
-			_listSetDefaultParams(ref defaultParams);
+			//_listSetDefaultParams(ref defaultParams);
+			var ptr = Marshal.AllocHGlobal(Marshal.SizeOf(defaultParams));
+			Marshal.StructureToPtr(defaultParams, ptr, false);
+			try
+			{
+				_listSetDefaultParams(ptr);
+			}
+			finally
+			{
+				Marshal.FreeHGlobal(ptr);
+			}
 		}
 
 		public IntPtr CallListLoad(IntPtr parentWin, string fileToLoad, int showFlags)
@@ -281,12 +275,12 @@ namespace zfile
 			return value.ToString();
 		}
 
-		public void UnloadModule()
+		public override void UnloadModule()
 		{
-			if (_moduleHandle != IntPtr.Zero)
+			if (ModuleHandle != IntPtr.Zero)
 			{
-				NativeLibrary.Free(_moduleHandle);
-				_moduleHandle = IntPtr.Zero;
+				NativeLibrary.Free(ModuleHandle);
+				ModuleHandle = IntPtr.Zero;
 			}
 
 			// 清除所有函数指针
@@ -309,7 +303,7 @@ namespace zfile
 			_listGetValue = null;
 		}
 
-		public void Dispose()
+		public override void Dispose()
 		{
 			UnloadModule();
 			GC.SuppressFinalize(this);

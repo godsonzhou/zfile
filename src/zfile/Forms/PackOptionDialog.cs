@@ -200,7 +200,7 @@ namespace zfile.Forms
             btnConfig.Enabled = false;
         }
 
-        private void BtnConfig_Click(object sender, EventArgs e)
+        private void BtnConfig_Click(object? sender, EventArgs e)
         {
             try
             {

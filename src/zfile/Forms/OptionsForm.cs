@@ -448,9 +448,9 @@ namespace zfile
 			Button btnDelete = new Button { Text = "删除", Width = 80 };
 			Button btnMoveUp = new Button { Text = "上移", Width = 80 };
 			Button btnMoveDown = new Button { Text = "下移", Width = 80 };
+			Button btnConfig = new Button { Text = "配置", Width = 80 };
 
-
-			buttonPanel.Controls.AddRange(new Control[] { btnEdit, btnAdd, btnDelete, btnMoveUp, btnMoveDown });
+			buttonPanel.Controls.AddRange(new Control[] { btnEdit, btnAdd, btnDelete, btnMoveUp, btnMoveDown, btnConfig });
 
 			// 加载现有配置
 			foreach (var ext in wcxModuleList._exts)
@@ -464,10 +464,24 @@ namespace zfile
 			btnDelete.Click += (s, e) => DeleteWcxMapping(grid);
 			btnMoveUp.Click += (s, e) => MoveWcxMapping(grid, -1);
 			btnMoveDown.Click += (s, e) => MoveWcxMapping(grid, 1);
+			btnConfig.Click += (s, e) => ConfigWcxMapping(grid);
 
 			tabPage.Controls.Add(grid);
 			tabPage.Controls.Add(buttonPanel);
 		}
+
+		private void ConfigWcxMapping(DataGridView grid)
+		{
+			if (grid.SelectedRows.Count == 0) return;
+			var selectedRow = grid.SelectedRows[0];
+			string pluginName = selectedRow.Cells["PluginName"].Value?.ToString() ?? "";
+			// 获取插件对应的WcxModule对象
+			var module = WcxPlugins._moduleList.FindModuleByName(pluginName);
+			if (module == null) return;
+			// 打开配置对话框
+			
+		}
+
 		private void AddWcxMapping(DataGridView grid)
 		{
 			using var addForm = new AddPluginMappingForm(wcxModuleList);
@@ -503,7 +517,6 @@ namespace zfile
 				selectedRow.Cells["Extension"].Value = editForm.Extension;
 			}
 			UpdateWcxConfiguration(grid);
-
 		}
 
 		private void MoveWcxMapping(DataGridView grid, int offset)

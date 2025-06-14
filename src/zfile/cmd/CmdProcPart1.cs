@@ -459,10 +459,11 @@ namespace zfile
 		{
 			owner.cm_edit(Constants.ZfileCfgPath + "wincmd.ini");
 		}
-		private void do_cm_configsavesettings()
+		private void cm_configsavesettings()
 		{
 			//save ftp config
 			owner.fTPMGR.SaveToCfgloader();
+			owner.configLoader.SaveConfig();
 		}
 		private void cm_llm_helper(string param)
 		{

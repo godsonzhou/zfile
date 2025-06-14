@@ -362,7 +362,7 @@ namespace zfile
 					do_cm_directoryhistory();
 					break;
 				case 580:
-					do_cm_configsavesettings();
+					cm_configsavesettings();
 					break;
 				case 581:
 					do_cm_configchangeinifiles();

@@ -33,6 +33,7 @@ namespace zfile
 	{
 		public List<ConfigSection> sections;
 		private string cfgfile;
+		private Encoding currentEncoding;
 
 		public CFGLOADER()
 		{
@@ -50,6 +51,7 @@ namespace zfile
 		// 读取配置文件
 		public void LoadConfig(string filePath)
 		{
+			currentEncoding = new StreamReader(filePath, true).CurrentEncoding;
 			sections.Clear();
 			ConfigSection currentSection = null;
 			foreach (var line in File.ReadAllLines(filePath))
@@ -79,7 +81,7 @@ namespace zfile
 		// 保存配置到文件
 		public void SaveConfig()//todo: while writing into wincmd.ini, should use unicode, not gbk, otherwise, such as wcx_ftp.ini, use gbk not unicode
 		{
-			using (var writer = new StreamWriter(cfgfile))
+			using (var writer = new StreamWriter(cfgfile, false, currentEncoding))
 			{
 				foreach (var section in sections)
 				{

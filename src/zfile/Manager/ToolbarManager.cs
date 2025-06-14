@@ -552,6 +552,12 @@ namespace zfile
 						if (emptybuttons.Contains(_buttonIndex))
 							continue;
 						menuText = line.Substring(line.IndexOf('=') + 1);
+						//todo: if empty, read cmdproc to get the default menu text for internal command
+						if (string.IsNullOrEmpty(menuText) && !string.IsNullOrEmpty(cmd))
+						{
+							var zhdesc = form.cmdProcessor.cmdTable.GetByCmdName(cmd)?.ZhDesc ?? "";
+							menuText = string.IsNullOrEmpty(zhdesc) ? cmd : zhdesc;
+						}
 					}
 					else if (line.StartsWith("path"))
 					{

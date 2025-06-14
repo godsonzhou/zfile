@@ -636,9 +636,6 @@ namespace zfile
 		//private static TDialogBoxLFMFileProc? _dialogBoxLFMFileDelegate;
 		//private static TDlgProc? _sendDlgMsgDelegate;
 		//private static TTranslateStringProc? _translateStringDelegate;
-
-
-
 		#region 回调函数实现
 
 		/// <summary>
@@ -1384,11 +1381,11 @@ namespace zfile
 						if (!string.IsNullOrEmpty(detectstring) && !module.DetectStrings.Contains(detectstring))
 							module.DetectStrings.Add(detectstring);
 							
-						if (AddModule(module))
+						if (AddModule(module) && !string.IsNullOrEmpty(detectstring))
 							_exts[detectstring] = module;
 
 						int flags = module.PluginCapabilities;
-						//if (!string.IsNullOrEmpty(detectstring))
+						if (!string.IsNullOrEmpty(detectstring))
 						{	
 							foreach (string ext in detectstring.Split(','))
 							{
@@ -1449,6 +1446,7 @@ namespace zfile
 		 */
 			_modules.Clear();
 			_exts.Clear();
+			Clear();	//bugfix: 需要同时调用基类stringlist的clear方法清空_strings和_objects，否则多次load会导致重复
 			_cfg = Helper.ReadSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "PackerPlugins");
 			foreach (var line in _cfg)
 			{
@@ -1463,7 +1461,7 @@ namespace zfile
 				}
 			}
 			//先按照配置读取插件（优先级高），然后按照目录读取插件
-			LoadModulesFromDirectory(Constants.ZfileBinPath + "Plugins\\wcx\\");
+			LoadModulesFromDirectory(Constants.ZfilePluginPath + "wcx\\");
 		}
 		public WcxModule? GetModuleByExt(string ext)
 		{

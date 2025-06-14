@@ -399,7 +399,7 @@ public class WcxArchiveCopyOutOperation : ArchiveCopyOutOperation
                         _statistics.TotalBytes += header.UnpSize;
                         _statistics.TotalFiles++;
 
-                        string currentFileName = Helper.ExtractDirLevel(currentArchiveDir, Path.GetDirectoryName(header.FileName));
+                        string currentFileName = Helper.ExtractDirLevel(currentArchiveDir, Helper.IncludeTrailingPathDelimiter(Path.GetDirectoryName(header.FileName)));
                         currentFileName = ReplaceInvalidChars(currentFileName);
 
                         // If CurrentFileName is empty now then it was a file in current archive

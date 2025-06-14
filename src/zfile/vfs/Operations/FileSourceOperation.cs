@@ -912,25 +912,46 @@ namespace zfile
         /// Changes the root path of file entries
         /// </summary>
         /// <param name="empty">Reserved parameter</param>
-        /// <param name="fullFilesTreeToDelete">The file entries to modify</param>
-        internal static void ChangeFileEntriesRoot(string _, FileEntries fullFilesTreeToDelete)
+        /// <param name="files">The file entries to modify</param>
+        internal static void ChangeFileEntriesRoot(string newrootpath, FileEntries files)
         {
-            if (fullFilesTreeToDelete == null || fullFilesTreeToDelete.IsEmpty)
+            if (files == null || files.IsEmpty)
                 return;
 
-            // In the original Pascal code, this changes the root path of all entries
-            // We'll implement a basic version that removes the current path
-            string currentPath = fullFilesTreeToDelete.PathName;
+			// In the original Pascal code, this changes the root path of all entries
+			// We'll implement a basic version that removes the current path
+			//string currentPath = files.PathName;
 
-            foreach (var entry in fullFilesTreeToDelete)
-            {
-                if (entry.FullPath.StartsWith(currentPath))
-                {
-                    // Remove the current path prefix
-                    entry.Path = entry.Path[currentPath.Length..].TrimStart('\\', '/');
-                }
-            }
-        }
+			//foreach (var entry in files)
+			//{
+			//    if (entry.FullPath.StartsWith(currentPath))
+			//    {
+			//        // Remove the current path prefix
+			//        entry.Path = entry.Path[currentPath.Length..].TrimStart('\\', '/');
+			//    }
+			//}
+			if (FileSystemUtil.IsInPath(newrootpath, files.PathName, true, true))
+			{
+				//current path is a subpath of new root path.
+				foreach (var file in files)
+				{
+					file.Path = Helper.ExtractDirLevel(newrootpath, file.Path);
+				}
+				files.Path = Helper.ExtractDirLevel(newrootpath, files.PathName);
+			}
+			else
+			{
+				// current path has a different base than new root path.
+				if(!string.IsNullOrEmpty(newrootpath))
+					newrootpath = Helper.IncludeTrailingPathDelimiter(newrootpath);
+
+				foreach(var file in files)
+				{
+					file.Path = newrootpath + Helper.ExtractDirLevel(files.Path, file.Path);
+				}
+				files.Path = newrootpath;
+			}
+		}
 
         /// <summary>
         /// Extracts the error level from a command line

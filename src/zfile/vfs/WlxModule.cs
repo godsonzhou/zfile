@@ -143,7 +143,8 @@ namespace zfile
 				_listSendCommand = GetDelegate<ListSendCommand>("ListSendCommand"); 
 				_listNotificationReceived = GetDelegate<ListNotificationReceived>("ListNotificationReceived"); 
 				_listSetDefaultParams = GetDelegate<ListSetDefaultParams>("ListSetDefaultParams"); 
-
+				//GC.KeepAlive(_listLoad);
+				//GC.KeepAlive(_listLoadW);
 				// 初始化插件
 				CallListSetDefaultParams();
 				LoadDetectString();
@@ -178,13 +179,22 @@ namespace zfile
 		private void CallListSetDefaultParams()
 		{
 			if (_listSetDefaultParams == null) return;
+			var inipath = $"{Path.GetDirectoryName(FilePath)}\\{Name}.ini";
+			if (File.Exists(inipath))
+			{
+				// 如果插件目录下已经存在对应的ini文件，则设置默认参数
+				Debug.Print($"WlxModule: {Name} has an ini file, setting default params.");
+			}
+			else
+				inipath = "";
 
 			var defaultParams = new ListDefaultParamStruct
 			{
 				Size = Marshal.SizeOf<ListDefaultParamStruct>(),
 				PluginInterfaceVersionHi = 2,
 				PluginInterfaceVersionLow = 0,
-				DefaultIniName = "wlx.ini"
+				//DefaultIniName = "wlx.ini"
+				DefaultIniName = inipath // 如果插件目录下没有对应的ini文件，则使用默认的wlx.ini
 			};
 			//_listSetDefaultParams(ref defaultParams);
 			var ptr = Marshal.AllocHGlobal(Marshal.SizeOf(defaultParams));
@@ -212,10 +222,6 @@ namespace zfile
 				Console.WriteLine($"ListLoad error: {ex.Message}");
 				return IntPtr.Zero;
 			}
-
-			//if (_listLoadW != null)
-			//	return _listLoadW(parentWin, fileToLoad, showFlags);
-			//return _listLoad != null ? _listLoad(parentWin, fileToLoad, showFlags) : IntPtr.Zero;
 		}
 
 		public int CallListLoadNext(IntPtr parentWin, IntPtr pluginWin, string fileToLoad, int showFlags)

@@ -58,20 +58,20 @@ namespace zfile
 	public delegate int ListLoadNext(IntPtr parentWin, IntPtr pluginWin, string fileToLoad, int showFlags);
 	public delegate int ListLoadNextW(IntPtr parentWin, IntPtr pluginWin, [MarshalAs(UnmanagedType.LPWStr)] string fileToLoad, int showFlags);
 	public delegate void ListCloseWindow(IntPtr pluginWin);
+
 	public delegate void ListGetDetectString(StringBuilder detectString, int maxLen);
 	public delegate int ListSearchText(IntPtr pluginWin, string searchString, int searchParameter);
 	public delegate int ListSearchDialog(IntPtr pluginWin, int findNext);
 	public delegate int ListSendCommand(IntPtr pluginWin, int command, int parameter);
-
-	//public delegate int ListSetDefaultParams(ref ListDefaultParamStruct dps);
 	public delegate int ListSetDefaultParams(IntPtr dps);
-	public delegate int ListPrint(IntPtr pluginWin, string fileToPrint, string defPrinter, int printFlags, ref IntPtr margins);
 
+	public delegate int ListPrint(IntPtr pluginWin, string fileToPrint, string defPrinter, int printFlags, ref IntPtr margins);
 	// 可选的函数委托定义
 	public delegate int ListSearchTextW(IntPtr pluginWin, [MarshalAs(UnmanagedType.LPWStr)] string searchString, int searchParameter);
 	public delegate int ListPrintW(IntPtr pluginWin, [MarshalAs(UnmanagedType.LPWStr)] string fileToPrint, [MarshalAs(UnmanagedType.LPWStr)] string defPrinter, int printFlags, ref IntPtr margins);
 	public delegate int ListGetPreviewBitmap(string fileToLoad, int width, int height, IntPtr bitmapHandle);
 	public delegate void ListNotificationReceived(IntPtr pluginWin, int message, IntPtr wParam, IntPtr lParam);
+
 	public delegate int ListGetValue(int field, [MarshalAs(UnmanagedType.LPWStr)] string filePath, int unitIndex, int maxLen, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder value);
 	public delegate int ListGetPreviewBitmapW([MarshalAs(UnmanagedType.LPWStr)] string fileToLoad, int width, int height, IntPtr bitmapHandle);
 
@@ -83,6 +83,7 @@ namespace zfile
 		private ListLoadNext? _listLoadNext;
 		private ListLoadNextW? _listLoadNextW;
 		private ListCloseWindow? _listCloseWindow;
+
 		private ListGetDetectString? _listGetDetectString;
 		private ListSearchText? _listSearchText;
 		private ListSearchDialog? _listSearchDialog;
@@ -143,8 +144,7 @@ namespace zfile
 				_listSendCommand = GetDelegate<ListSendCommand>("ListSendCommand"); 
 				_listNotificationReceived = GetDelegate<ListNotificationReceived>("ListNotificationReceived"); 
 				_listSetDefaultParams = GetDelegate<ListSetDefaultParams>("ListSetDefaultParams"); 
-				//GC.KeepAlive(_listLoad);
-				//GC.KeepAlive(_listLoadW);
+		
 				// 初始化插件
 				CallListSetDefaultParams();
 				LoadDetectString();
@@ -193,10 +193,8 @@ namespace zfile
 				Size = Marshal.SizeOf<ListDefaultParamStruct>(),
 				PluginInterfaceVersionHi = 2,
 				PluginInterfaceVersionLow = 0,
-				//DefaultIniName = "wlx.ini"
 				DefaultIniName = inipath // 如果插件目录下没有对应的ini文件，则使用默认的wlx.ini
 			};
-			//_listSetDefaultParams(ref defaultParams);
 			var ptr = Marshal.AllocHGlobal(Marshal.SizeOf(defaultParams));
 			Marshal.StructureToPtr(defaultParams, ptr, false);
 			try
@@ -295,16 +293,19 @@ namespace zfile
 			_listLoadNext = null;
 			_listLoadNextW = null;
 			_listCloseWindow = null;
+
 			_listGetDetectString = null;
 			_listSearchText = null;
 			_listSearchDialog = null;
 			_listSendCommand = null;
 			_listSetDefaultParams = null;
+
 			_listPrint = null;
 			_listSearchTextW = null;
 			_listPrintW = null;
 			_listGetPreviewBitmap = null;
 			_listGetPreviewBitmapW = null;
+
 			_listNotificationReceived = null;
 			_listGetValue = null;
 		}
@@ -457,10 +458,10 @@ namespace zfile
 		public void Dispose()
 		{
 			foreach (var module in _modules)
-			{
 				module.Dispose();
-			}
+			
 			_modules.Clear();
+			ModuleLoaded = false;
 		}
 
 		public WlxModule? FindModuleByName(string name)

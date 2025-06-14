@@ -420,7 +420,8 @@ namespace zfile
 						{
 							buttonInfoMap[buttonNumber] = new MenuInfo();
 						}
-
+						if (buttonValue.Contains(".."))
+							buttonValue = Path.GetFullPath(buttonValue);
 						buttonInfoMap[buttonNumber].Button = buttonValue;
 						continue;
 					}
@@ -451,7 +452,7 @@ namespace zfile
 							buttonInfoMap[buttonNumber] = new MenuInfo();
 						}
 
-						buttonInfoMap[buttonNumber].Param = paramValue;
+						buttonInfoMap[buttonNumber].Param = paramValue.Contains("..") ? Path.GetFullPath(paramValue) : paramValue;
 						continue;
 					}
 
@@ -466,7 +467,7 @@ namespace zfile
 							buttonInfoMap[buttonNumber] = new MenuInfo();
 						}
 
-						buttonInfoMap[buttonNumber].Path = pathValue;
+						buttonInfoMap[buttonNumber].Path = pathValue.Contains("..") ? Path.GetFullPath(pathValue) : pathValue;
 						continue;
 					}
 

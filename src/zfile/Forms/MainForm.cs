@@ -3104,6 +3104,19 @@ namespace zfile
 			Debug.Print(user_edit);
 			if (!string.IsNullOrWhiteSpace(user_edit))
 			{
+				user_edit = Path.GetFullPath(user_edit); //处理..
+				if(user_edit.Contains("%1") || user_edit.Contains("{0}"))
+				{
+					// 如果用户编辑器包含参数占位符，则直接执行
+					var f = GetFileListByViewOrParam(param, false);
+					if (f.Count == 0) return;
+					var filePaths = f.Select(x => x.FullPath).ToArray();
+					var filestring = string.Join(" ", filePaths);
+					if (user_edit.Contains("%1"))
+						user_edit = user_edit.Replace("%1", filestring);
+					if(user_edit.Contains("{0}"))
+						user_edit = string.Format(user_edit, filestring);
+				}
 				myShellExe(user_edit);
 				//cmdProcessor.cm_executedos1(user_edit);
 				return;

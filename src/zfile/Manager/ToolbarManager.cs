@@ -404,7 +404,7 @@ namespace zfile
 			{
 				ToolStripMenuItem menuItem = new ToolStripMenuItem
 				{
-					Text = item.Menu,
+					Text = string.IsNullOrEmpty(item.Menu) ? item.Cmd : item.Menu,
 					Tag = item,
 					Image = form.iconManager.LoadIcon(item.Button)
 				};

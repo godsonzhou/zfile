@@ -145,16 +145,10 @@ namespace zfile
 		Success,
 		NotSupported
 	}
-	public static partial class Constants
+	public static class Constants
 	{
-		//public const int CSIDL_DRIVES = 0x0011;
-		//public const int SHGDN_INFOLDER = 0x0001;
-		//public const int SHGDN_FORPARSING = 0x8000;
 		public const int COPYENGINE_E_USER_CANCELLED = unchecked((int)0x80270000);
-
-		//public const int SW_SHOWNORMAL = 1;
 		public const int SEE_MASK_IDLIST = 0x00000004;
-
 		public const string CLSID_FileOperation = "3AD05575-8857-4850-9277-11B85BDB8E09";
 
 		public const int FOF_SILENT = 0x0004;
@@ -164,6 +158,12 @@ namespace zfile
 
 		public const int ILD_TRANSPARENT = 0x00000001;
 		public const int ILD_IMAGE = 0x00000020;
+		//public static string ZfilePath => ZfileBinPath.Replace("src\\zfile\\bin\\Debug", "",StringComparison.OrdinalIgnoreCase).Replace("src\\zfile\\bin\\Release", "", StringComparison.OrdinalIgnoreCase);
+		public static string ZfileCfgPath => ZfileBinPath + "\\Config\\";
+		public static string ZfileBinPath; // => ZfilePath + "src\\zfile\\bin\\Debug\\";
+		public static string ZfilePluginPath => ZfileBinPath + "\\plugins\\";
+		public const int CacheTimeout = 500; // ª∫¥Ê≥¨ ± ±º‰(∫¡√Î)
+		public static readonly string[] TextFileExtensions = { ".txt", ".cs", ".html", ".htm", ".xml", ".json", ".css", ".js", ".md" };
 	}
 	public static class Resources
 	{

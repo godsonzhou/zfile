@@ -117,7 +117,7 @@ namespace zfile
 		public string FindConfigValue(string sectionName, string key)
 		{
 			var section = sections.FirstOrDefault(s => s.Name == sectionName);
-			return section?.FindValue(key);
+			return section?.FindValue(key) ?? "";
 		}
 		public ConfigSection? GetConfigSection(string sectionName)
 		{

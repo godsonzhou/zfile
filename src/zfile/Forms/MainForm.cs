@@ -426,6 +426,8 @@ namespace zfile
 		}
 		public MainForm()
 		{
+			Constants.ZfileBinPath = Path.GetDirectoryName(Application.ExecutablePath) ?? string.Empty;
+			Debug.Print($"Zfile Bin Path: {Constants.ZfileBinPath}");
 			Instance = this;
 			env = Helper.getEnv();
 			specialpaths = Helper.GetSpecFolderPaths();

@@ -118,7 +118,7 @@ namespace zfile.Forms
 
         private void CheckPrivateKeyExists()
         {
-            if (!File.Exists(Constants.ZfilePath+"private.pem"))
+            if (!File.Exists(Constants.ZfileCfgPath+"private.pem"))
             {
                 statusLabel.Text = "警告: private.pem 文件不存在，无法生成授权码!";
                 generateButton.Enabled = false;

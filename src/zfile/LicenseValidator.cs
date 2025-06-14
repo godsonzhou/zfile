@@ -62,7 +62,7 @@ namespace zfile
 		public static string GenerateLicenseKey(string hardwareId)
 		{
 			using var rsa = new RSACryptoServiceProvider();
-			rsa.ImportFromPem(File.ReadAllText(Constants.ZfilePath+"private.pem"));
+			rsa.ImportFromPem(File.ReadAllText(Constants.ZfileCfgPath+"private.pem"));
 
 			byte[] signature = rsa.SignData(
 				Encoding.UTF8.GetBytes(hardwareId),

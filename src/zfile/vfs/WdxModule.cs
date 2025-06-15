@@ -508,32 +508,43 @@ namespace zfile
                 if (_isUnicode)
                 {
                     result = _contentGetValueW(fileName, fieldIndex, unitIndex, valuePtr, bufferSize, flag);
-					// 解码为字符串（UTF - 16 Little - Endian）
-					value = Encoding.Unicode.GetString(valuePtr);
+					//value = Encoding.Unicode.GetString(valuePtr);
 				}
                 else
                 {
                     result = _contentGetValue(fileName, fieldIndex, unitIndex, valuePtr, bufferSize, flag);
-					value = Encoding.ASCII.GetString(valuePtr);
+					//value = Encoding.ASCII.GetString(valuePtr);
 				}
 				// 找到第一个 null 终止符并截断
-				int nullIndex = value.IndexOf('\0');
-				if (nullIndex >= 0)
-					value = value.Substring(0, nullIndex);
+				//int nullIndex = value.IndexOf('\0');
+				//if (nullIndex >= 0)
+				//	value = value.Substring(0, nullIndex);
 				// 检查返回值是否为有效字段类型（大于0）而不是只检查WDX_SUCCESS
 				if (result > 0)
                 {
                     // 根据字段类型处理返回值
                     WdxField field = _fields[fieldIndex];
-                    //string value = valuePtr.ToString();
-
-                    switch (field.Type)
+					//string value = valuePtr.ToString();
+					var fieldname = field.Name;
+					if (fieldname == "Created")
+						//created 日期特殊处理，因为它的类型是ft_string，
+						// 但实际存储的是日期时间格式的数据
+						field.Type = WdxConstants.FT_DATETIME;
+					switch (field.Type)
                     {
                         case WdxConstants.FT_STRING:
                         case WdxConstants.FT_FULLTEXT:
-                        case WdxConstants.FT_MULTIPLECHOICE:
-                            return value;
-                        case WdxConstants.FT_NUMERIC_32:
+							// 获取GB2312编码实例
+							Encoding gb2312 = Encoding.GetEncoding("gb2312");
+							return gb2312.GetString(valuePtr).TrimEnd('\0');    // 解码为字符串（gb2312）
+							//return Encoding.ASCII.GetString(valuePtr).TrimEnd('\0');
+							
+						case WdxConstants.FT_STRINGW:
+						case WdxConstants.FT_FULLTEXTW:
+							// Unicode 字符串返回// 解码为字符串（UTF - 16 Little - Endian）
+							return Encoding.Unicode.GetString(valuePtr).TrimEnd('\0');
+
+						case WdxConstants.FT_NUMERIC_32:
                             //if (int.TryParse(value, out int intValue))
                             //    return intValue.ToString();
                             //return "0";
@@ -548,21 +559,25 @@ namespace zfile
                             //    return doubleValue.ToString();
                             //return "0.0";
 							return BitConverter.ToDouble(valuePtr, 0).ToString();
-						case WdxConstants.FT_BOOLEAN:
-                            if (int.TryParse(value, out int boolValue))
-                                return boolValue != 0 ? "True" : "False";
-                            return "False";
 
-                        case WdxConstants.FT_DATE:
+						case WdxConstants.FT_BOOLEAN:
+                            //if (int.TryParse(value, out int boolValue))
+                            //    return boolValue != 0 ? "True" : "False";
+                            //return "False";
+							bool bl = BitConverter.ToBoolean(valuePtr, 0);
+							return bl ? "True" : "False";
+						case WdxConstants.FT_DATE:
                         case WdxConstants.FT_TIME:
                         case WdxConstants.FT_DATETIME:
 							// 从缓冲区的前8个字节读取Int64（小端序）
 							long fileTime = BitConverter.ToInt64(valuePtr, 0);
 							return DateTime.FromFileTime(fileTime).ToString();
-					
-                        default:
-                            return value;
-                    }
+
+						case WdxConstants.FT_MULTIPLECHOICE:
+						default:
+                            //return value;
+							return Encoding.ASCII.GetString(valuePtr).TrimEnd('\0');		//default 使用ASCII编码string模式
+					}
                 }
             }
             catch (Exception ex)

@@ -1602,6 +1602,11 @@ namespace zfile
 					if (item != null) item.Text = oldName;
 				}
 			}
+			else if (CurrentFullpath.GetFileSource(listView.Name) is WcxArchiveFileSource wcxSource)
+			{
+				//wcxarchivefilesource的改名操作，可以使用cm_renmov方法
+				cm_renmov(targetPath: uiManager.srcDir, targetfilename: newName);
+			}
 			else
 			{
 				// 处理本地文件重命名
@@ -4110,7 +4115,7 @@ namespace zfile
 			}
 		}
 		// 移动选中的文件
-		public void cm_renmov(string? param = null, string? targetPath = null)
+		public void cm_renmov(string? param = null, string? targetPath = null, string? targetfilename = null)
 		{
 			string? srcpath;
 			var sourceFiles = GetFileListByViewOrParam(param, false);   //bugfix: 因为需要删除源文件，所以不能使用GetFileListByViewOrParam(param, true)，否则会导致源文件为temprary file, 不能删除源文件
@@ -4124,7 +4129,8 @@ namespace zfile
 			else
 			{
 				srcpath = uiManager.srcDir;
-				targetPath = uiManager.targetDir;
+				if(string.IsNullOrEmpty(targetPath))
+					targetPath = uiManager.targetDir;
 			}
 
 			if (string.IsNullOrEmpty(targetPath))
@@ -4133,13 +4139,19 @@ namespace zfile
 				return;
 			}
 
-			if (srcpath.Equals(targetPath)) return;     //if srcpath eq targetpath, do not need move, do rename
+			if (srcpath.Equals(targetPath) && string.IsNullOrEmpty(targetfilename)) 
+				return;     //if srcpath eq targetpath, do not need move, do rename
 
+			if(!string.IsNullOrEmpty(targetfilename) && sourceFiles.Count != 1)
+			{
+				MessageBox.Show("重命名操作只能对单个文件进行", "错误");
+				return;
+			}
 			try
 			{
 				// 使用 FileSourceManager 获取源和目标 FileSource
 				IFileSource sourceFileSource = _fileSourceManager.GetFileSourceForFullPath(srcpath, isleft);
-				IFileSource targetFileSource = _fileSourceManager.GetFileSourceForFullPath(targetPath, !isleft);
+				IFileSource targetFileSource = targetfilename != null ? sourceFileSource : _fileSourceManager.GetFileSourceForFullPath(targetPath, !isleft);
 
 				// 创建文件条目列表
 				var fileEntries = new FileEntries();
@@ -4174,12 +4186,22 @@ namespace zfile
 					var copyOperation = FileSourceManager.CreateCopyOperation(sourceFileSource, targetFileSource, fileEntries, targetPath);
 					if (copyOperation != null)
 					{
-						copyOperation.AddStateChangedListener([ FileSourceOperationState.Stopped ], (sender, state) => deleteFiles(sourceFileSource, fileEntries));	 //copyoperation完成后执行删除文件操作
+						copyOperation.AddStateChangedListener([FileSourceOperationState.Stopped], (sender, state) => deleteFiles(sourceFileSource, fileEntries));    //copyoperation完成后执行删除文件操作
 						_operationsManager.AddOperation(copyOperation);
 					}
 					else
 					{
-						operation = null;
+						//operation = null;
+						if (CopyViaTemporaryDirectory(sourceFileSource, targetFileSource, fileEntries, targetPath, targetfilename))
+						{
+							// 复制成功后删除源文件
+							deleteFiles(sourceFileSource, fileEntries);
+						}
+						else
+						{
+							MessageBox.Show("无法完成移动操作，请检查源和目标路径。", "错误");
+							return;
+						}
 					}
 				}
 
@@ -4351,18 +4373,33 @@ namespace zfile
 			// 启用编辑模式
 			selectedItem.BeginEdit();
 		}
-		private void copyinFiles(FileSourceOperation? copyOutOperation, FileEntries sourceFiles, string tempPath, ITempFileSystemFileSource tempFileSource, IFileSource targetFileSource, string targetPath)
+		private void copyinFiles(FileSourceOperation? copyOutOperation, FileEntries sourceFiles, string tempPath, ITempFileSystemFileSource tempFileSource, IFileSource targetFileSource, string targetPath, string? targetfilename = null)
 		{
-	
 			// 创建临时文件系统中的文件列表
 			var tempFiles = new FileEntries(tempPath);
-
+			if(sourceFiles.Count != 1 && targetfilename != null)
+			{
+				MessageBox.Show("重命名操作只能对单个文件进行", "错误");
+				return;
+			}
 			// 获取临时目录中的所有文件
 			foreach (var file in sourceFiles)
 			{
 				string tempFilePath = Path.Combine(tempPath, file.Name);
-				if (File.Exists(tempFilePath) || Directory.Exists(tempFilePath))
+				var isfile = File.Exists(tempFilePath);
+				var isdir = Directory.Exists(tempFilePath);
+				if (isfile || isdir)
 				{
+					if(targetfilename != null && sourceFiles.Count == 1)
+					{
+						if(isfile)
+							File.Move(tempFilePath, Path.Combine(tempPath, targetfilename)); // 如果是重命名操作，重命名临时文件
+						else if (isdir)
+							Directory.Move(tempFilePath, Path.Combine(tempPath, targetfilename)); // 如果是重命名操作，重命名临时目录
+
+						// 如果是重命名操作，使用指定的目标文件名
+						tempFilePath = Path.Combine(tempPath, targetfilename);
+					}
 					var tempFile = FileSystemFileSource.CreateFileFromFile(tempFilePath);
 					tempFiles.Add(tempFile);
 				}
@@ -4392,7 +4429,8 @@ namespace zfile
 			IFileSource sourceFileSource,
 			IFileSource targetFileSource,
 			FileEntries sourceFiles,
-			string targetPath)
+			string targetPath,
+			string? targetfilename = null)
 		{
 			bool result = false;
 
@@ -4410,9 +4448,10 @@ namespace zfile
 
 				if (copyOutOperation != null)
 				{
-					copyOutOperation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => copyinFiles(copyOutOperation, sourceFiles, tempPath, tempFileSource, targetFileSource, targetPath));
+					copyOutOperation.AddStateChangedListener(new[] { FileSourceOperationState.Stopped }, (sender, state) => copyinFiles(copyOutOperation, sourceFiles, tempPath, tempFileSource, targetFileSource, targetPath, targetfilename));
 					// 添加操作到管理器并执行
 					_operationsManager.AddOperation(copyOutOperation);
+					result = true;
 				}
 			}
 			catch (Exception ex)

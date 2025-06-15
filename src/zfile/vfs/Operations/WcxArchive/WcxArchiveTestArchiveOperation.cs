@@ -33,7 +33,9 @@ public class WcxArchiveTestArchiveOperation : FileSourceTestArchiveOperation
         // Get initialized statistics; then we change only what is needed.
         statistics = RetrieveStatistics();
         statistics.ArchiveFile = _wcxArchiveFileSource.ArchiveFileName;
-    }
+		statistics.TotalBytes = new FileInfo(statistics.ArchiveFile).Length;  // bugfix: 应为totalbytes为0，导致无法计算donebytes, 所以无法触发RemainingTime计算逻辑，进度条无法更新
+		//statistics.TotalFiles = SourceFiles.Count;
+	}
 
     protected override void MainExecute()
     {
@@ -66,9 +68,8 @@ public class WcxArchiveTestArchiveOperation : FileSourceTestArchiveOperation
                     CheckOperationState();
 
                     // Now check if the file is to be tested.
-                    if (!header.IsDirectory) // &&           // Omit directories (we handle them ourselves).
-                    //    MatchesFileEntries(files, header.FileName))    // Check if it's included in the FileEntries
-                    {
+                    if (!header.IsDirectory && MatchesFileEntries(files, header.FileName))            // Omit directories (we handle them ourselves).// Check if it's included in the FileEntries
+					{
                         statistics.CurrentFile = header.FileName;
                         statistics.CurrentFileTotalBytes = header.UnpSize;
                         statistics.CurrentFileDoneBytes = 0;

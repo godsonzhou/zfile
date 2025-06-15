@@ -678,6 +678,15 @@ namespace zfile
 		/// <returns>The files in the target path</returns>
 		public virtual FileEntries GetFiles(string targetPath)
 		{
+			if (OperationsTypes.HasFlag(FileSourceOperationTypes.List) && !string.IsNullOrEmpty(targetPath))
+			{
+				var Operation = CreateListOperation(targetPath);
+				if (Operation != null && Operation is FileSourceListOperation listOperation)
+				{
+					listOperation.Execute();
+					return listOperation.Files;	//in pascal, here use releasefiles,
+				}
+			}
 			return new FileEntries(targetPath);
 		}
 

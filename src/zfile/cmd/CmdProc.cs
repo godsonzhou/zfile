@@ -1029,8 +1029,7 @@ namespace zfile
 						continue;
 					}
 					var archiveFileSource = WcxArchiveFileSource.CreateByArchiveName(owner.CurrentFullpath.GetFileSource(owner.LRflag), file.FullPath);
-					var fileentries = new FileEntries();
-					fileentries.Add(file);
+					var fileentries = archiveFileSource.GetFiles(archiveFileSource.GetRootDir());
 					var testop = archiveFileSource.CreateTestArchiveOperation(fileentries);
 					if (testop != null)
 					{

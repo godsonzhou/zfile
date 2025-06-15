@@ -1112,6 +1112,21 @@ public class FileEntries : IEnumerable<FileEntry>
         }
         return fileEntries;
     }
+	public int TotalSize
+	{
+		get
+		{
+			int totalSize = 0;
+			foreach (var file in _list)
+			{
+				if (file != null && file.Size > 0)
+				{
+					totalSize += (int)file.Size;
+				}
+			}
+			return totalSize;
+		}
+	}
     public FileEntry this[string name]
     {
         get

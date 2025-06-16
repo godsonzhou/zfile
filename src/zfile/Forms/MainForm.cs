@@ -157,9 +157,9 @@ namespace zfile
 				{
 					if (FileSourceDict.TryGetValue(key, out IFileSource? result))
 					{
-						if (value.Equals(result.CurrentFullPath))
-							Debug.Print("WARNING: SET CURRENTFULLPATH IS NOT NEEDED!");
-						else
+						//if (value.Equals(result.CurrentFullPath))
+						//	Debug.Print("WARNING: SET CURRENTFULLPATH IS NOT NEEDED!");
+						//else
 						{
 							Debug.Print($"change [{key}] CURRENTFULLPATH : {result.CurrentFullPath} -> {value}");
 							result.CurrentFullPath = value;
@@ -1361,7 +1361,7 @@ namespace zfile
 				LoadSubDirectories(e.Node);
 		}
 		private void ChangePath(string path, string LR, TreeNode eNode)
-		{
+		{   //in zip, path = D:\\temp\\welcome.zip\\welcome
 			var fileSource = UpdateFilesourceAndCurrentPath(path, out var fschanged, out var oldfs, out var oldpath, LR);
 
 			SelectedNode = eNode;
@@ -1772,6 +1772,9 @@ namespace zfile
 					else
 						//todo: 遇到iso等treeview不支持的压缩格式，无法通过treeviewnode.afterselect事件来loadlistview, 只能手工调用触发
 						//LoadListViewByFileSource(path, activeListView, null);
+						//bugfix: 当在ISO文件中时，path="\session1", 应该包括完整路径"arcname\session1"
+						if (isinarchive && !path.StartsWith(oldpath))
+							path = oldpath + Helper.ExcludeFrontPathDelimiter(path);
 						ChangePath(path, listView.Name, activeTreeview.SelectedNode);
 				}
 				else

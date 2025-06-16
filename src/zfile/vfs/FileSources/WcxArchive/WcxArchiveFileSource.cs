@@ -1,9 +1,3 @@
-using Mono.Nat;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Runtime.InteropServices;
-
 namespace zfile
 {
     public interface IWcxArchiveFileSource : IArchiveFileSource
@@ -27,11 +21,14 @@ namespace zfile
         public ThreadSafeList<WcxHeader> ArchiveFileEntries => _arcFileEntries;
         public int PluginCapabilities => _pluginCapabilities;
         public WcxModule WcxModule => _wcxModule;
+		private HashSet<string> uniqueDirs = [];
+		private List<string> existdirs = [];
+		private int filetime;
 
-        /// <summary>
-        /// 获取压缩文件的完整路径
-        /// </summary>
-        public string ArchivePath => ArchiveFileName;
+		/// <summary>
+		/// 获取压缩文件的完整路径
+		/// </summary>
+		public string ArchivePath => ArchiveFileName;
 		public override string CurrentFullPath { get => ArchivePath + CurrentPath; set => CurrentPath = Helper.ExtractDirLevel(ArchivePath, value, true); }
 
 		public WcxArchiveFileSource(IFileSource archiveFileSource, string archiveFileName, string wcxPluginFileName, int wcxPluginCapabilities)
@@ -202,12 +199,33 @@ namespace zfile
                 var header = new WcxHeader();
                 while (_wcxModule.ReadWCXHeader(arcHandle, ref header) == 0)
                 {
-                    _arcFileEntries.Add(header.Clone());
+					if (filetime == 0)
+						filetime = header.FileTime;
+					var headerClone = header.Clone();
+					_arcFileEntries.Add(headerClone);
+					//COLLECT ALL DIR IN CASE OF THE .ISO FILE DOES NOT INCLUDE 'SESSION*' DIR IN WCXHEADER LIST
+					CollectDirs(headerClone);
+					if (header.IsDirectory) {
+						existdirs.Add(header.FileName);
+					}
                     _wcxModule.ProcessFile(arcHandle, ProcessMode.PK_SKIP, "", "");
                     header = new WcxHeader();
                 }
 
                 result = true;
+				foreach(var dir in uniqueDirs)
+				{
+					//var dirname = Helper.ExcludeTrailingPathDelimiter(dir);
+					if (!existdirs.Contains(dir))
+					{
+						var h = new WcxHeader();
+						h.FileName = dir;
+						h.FileAttr = FileAttributes.Directory;
+						h.FileTime = filetime;
+						h.ArcName = ArchiveFileName;
+						_arcFileEntries.Add(h);
+					}
+				}
             }
             finally
             {
@@ -218,7 +236,25 @@ namespace zfile
             return result;
         }
 
-        private void CreateConnections()
+		public void CollectDirs(WcxHeader header)
+		{
+			var path = header.FileName;
+			// 处理文件路径的情况，提取其目录
+			if (!header.IsDirectory)
+				path = Path.GetDirectoryName(path);
+
+			// 使用HashSet确保不重复添加相同的目录路径 // 逐级向上添加目录直到根目录
+			while (!string.IsNullOrEmpty(path))
+			{
+				if (!uniqueDirs.Contains(path))
+					uniqueDirs.Add(path);
+
+				// 获取父目录
+				path = Path.GetDirectoryName(path);
+			}
+		}
+
+		private void CreateConnections()
         {
             // Create connections for different operation types
             AddConnection(CreateConnection()); // CopyIn

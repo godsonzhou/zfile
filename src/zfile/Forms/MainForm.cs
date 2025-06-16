@@ -1770,12 +1770,14 @@ namespace zfile
 					if (node != null)
 						activeTreeview.SelectedNode = node;
 					else
+					{
 						//todo: 遇到iso等treeview不支持的压缩格式，无法通过treeviewnode.afterselect事件来loadlistview, 只能手工调用触发
 						//LoadListViewByFileSource(path, activeListView, null);
 						//bugfix: 当在ISO文件中时，path="\session1", 应该包括完整路径"arcname\session1"
-						if (isinarchive && !path.StartsWith(oldpath))
-							path = oldpath + Helper.ExcludeFrontPathDelimiter(path);
+						if (isinarchive && fileSource is WcxArchiveFileSource wcx && !path.StartsWith(wcx.ArchiveFileName))
+							path = wcx.ArchiveFileName + path;
 						ChangePath(path, listView.Name, activeTreeview.SelectedNode);
+					}
 				}
 				else
 				{

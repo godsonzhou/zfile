@@ -542,6 +542,7 @@ namespace zfile
 		/// <returns>The corresponding DateTime</returns>
 		public static DateTime FileTimeToDateTime(int fileTime)
 		{
+			if (fileTime == 0) return DateTime.MinValue;
 			try
 			{
 				// Convert DOS time format to DateTime

@@ -1361,7 +1361,7 @@ namespace zfile
 			if (e.Node.Nodes.Count == 1 && e.Node.FirstNode.Text == "...")  //点击+号时，加载子目录
 				LoadSubDirectories(e.Node);
 		}
-		public void ChangePath(string path, string LR, TreeNode eNode)
+		public void ChangePath(string path, string LR, TreeNode eNode, bool recordhistory = true)
 		{   //in zip, path = D:\\temp\\welcome.zip\\welcome
 			var fileSource = UpdateFilesourceAndCurrentPath(path, out var fschanged, out var oldfs, out var oldpath, LR);
 
@@ -1380,7 +1380,7 @@ namespace zfile
 			}
 			eNode.Expand();
 
-			if (fschanged || Helper.IncludeTrailingPathDelimiter(path) != oldpath)
+			if (recordhistory && (fschanged || Helper.IncludeTrailingPathDelimiter(path) != oldpath))
 				RecordDirectoryHistory(path, oldpath);   // 记录目录历史, 并更新filesource的currentpath
 
 			//如果盘符改变了，则不刷新treeview&listview, 因为在盘符改变时，会触发事件，在事件中会刷新(refreshpanel)

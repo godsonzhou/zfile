@@ -1,4 +1,5 @@
-﻿using System.IO.Compression;
+﻿using System.Diagnostics;
+using System.IO.Compression;
 using System.Text;
 using zfile.Forms;
 
@@ -622,7 +623,10 @@ namespace zfile
 					// 从后退栈获取上一个目录
 					string previousPath = owner.backStack.Pop();
 					// 导航到该目录，但不记录到历史（避免重复记录）
-					owner.NavigateToPathByTreeNode(previousPath, false);
+					//var t1 = DateTime.Now;
+					//owner.NavigateToPathByTreeNode(previousPath, false);
+					owner.ChangePath(previousPath, owner.LRflag, owner.activeTreeview.SelectedNode, false);
+					//Debug.Print($"ChangePath ({previousPath}) : {DateTime.Now - t1}");
 				}
 			}
 		}
@@ -644,7 +648,10 @@ namespace zfile
 					// 从前进栈获取下一个目录
 					string nextPath = owner.forwardStack.Pop();
 					// 导航到该目录，但不记录到历史（避免重复记录）
-					owner.NavigateToPathByTreeNode(nextPath, false);
+					//var t1 = DateTime.Now;
+					//owner.NavigateToPathByTreeNode(nextPath, false);
+					owner.ChangePath(nextPath, owner.LRflag, owner.activeTreeview.SelectedNode, false);
+					//Debug.Print($"NavigateToPathByTreeNode ({nextPath}): {DateTime.Now - t1}");
 				}
 			}
 		}

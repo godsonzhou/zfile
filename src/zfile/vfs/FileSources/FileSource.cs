@@ -551,10 +551,11 @@ namespace zfile
 		// CurrentFullPath 是包含rootpath的完整路径, 并以PATHSEP结尾
 		public virtual string CurrentFullPath { 
 			get { return GetRootDir() + _CurrentPath; } 
-			set { 
+			set {
 				//if the value is full path, save its relative part to currentpath, otherwise save it directly
-				if (!string.IsNullOrEmpty(value) && value.StartsWith(GetRootDir()))
-					_CurrentPath = value.Replace(GetRootDir(), string.Empty, StringComparison.OrdinalIgnoreCase);
+				var rootdir = GetRootDir();
+				if (!string.IsNullOrEmpty(value) && !string.IsNullOrEmpty(rootdir) && value.StartsWith(rootdir))
+					_CurrentPath = value.Replace(rootdir, string.Empty, StringComparison.OrdinalIgnoreCase);
 				else
 					_CurrentPath = value;
 				_CurrentPath = Helper.IncludeTrailingPathDelimiter(_CurrentPath);

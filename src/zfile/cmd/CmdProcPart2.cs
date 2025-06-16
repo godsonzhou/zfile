@@ -698,7 +698,7 @@ namespace zfile
 			else
 				parentpath = Path.GetDirectoryName(Helper.ExcludeTrailingPathDelimiter(owner.CurrentFullpath[owner.LRflag]));
 			if (!string.IsNullOrEmpty(parentpath))
-				if (!owner.NavigateToPathByTreeNode(parentpath))    //bugfix: 对于ISO文件内跳转父亲目录，由于目录结构在TREEVIEW中不存在，所以无法适用
+				//if (!owner.NavigateToPathByTreeNode(parentpath))    //bugfix: 对于ISO文件内跳转父亲目录，由于目录结构在TREEVIEW中不存在，所以无法适用
 					owner.ChangePath(parentpath, owner.LRflag, owner.activeTreeview.SelectedNode);
 		}
 

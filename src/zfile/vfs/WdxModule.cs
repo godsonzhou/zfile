@@ -535,9 +535,11 @@ namespace zfile
                         case WdxConstants.FT_STRING:
                         case WdxConstants.FT_FULLTEXT:
 							// 获取GB2312编码实例
-							Encoding gb2312 = Encoding.GetEncoding("gb2312");
-							return gb2312.GetString(valuePtr).TrimEnd('\0');    // 解码为字符串（gb2312）
-							//return Encoding.ASCII.GetString(valuePtr).TrimEnd('\0');
+							//Encoding gb2312 = Encoding.GetEncoding("gb2312");
+							//return gb2312.GetString(valuePtr).TrimEnd('\0');    // 解码为字符串（gb2312）
+							//return Encoding.Unicode.GetString(valuePtr).TrimEnd('\0');
+							var encoding = Helper.SmartDetectEncoding(valuePtr);
+							return encoding.GetString(valuePtr).TrimEnd('\0');
 							
 						case WdxConstants.FT_STRINGW:
 						case WdxConstants.FT_FULLTEXTW:

@@ -311,7 +311,8 @@ namespace zfile
 		private IntPtr CtrlPanel_PIDL;
 		public List<string> SelectedItems = [];
 		internal bool syncchangedir;
-
+		public Dictionary<string, TreeNode> treenodemaps = [];  //用于ISO文件的目录跳转，记录每个文件夹对应的TREENODE
+		private bool preventTreeNodeAfterSelectEvent;
 		public enum TreeSearchScope
 		{
 			thispc = 0,
@@ -349,9 +350,9 @@ namespace zfile
 		public bool NavigateToPathByTreeNode(string path, bool recordHistory = true, TreeSearchScope scope = TreeSearchScope.thispc, bool isactive = true)
 		{
 			var searchftp = path.StartsWith("ftp://");
-			var pathsep = searchftp ? '/' : '\\';
+			var origPath = path;
 			//ftp filesystem filesource uniprocess here
-			path = Helper.IncludeTrailingPathDelimiter(path, pathsep);
+			path = Helper.IncludeTrailingPathDelimiter(path, searchftp ? '/' : '\\');
 			var whichpanel = isactive ? LRflag : RLflag;
 			if (path.Equals(CurrentFullpath[whichpanel]))
 				return true;
@@ -394,6 +395,13 @@ namespace zfile
 				}
 				else
 					unactiveTreeview.SelectedNode = node;
+			}
+			else
+			{
+				node = treenodemaps[$"{LRflag}{origPath}"];
+				preventTreeNodeAfterSelectEvent = true;
+				activeTreeview.SelectedNode = node;
+				ChangePath(path, LRflag, node, false);  //bugfix: 如未找到相应的treenode，则使用changepath(该方法没有treeview定位的功能，需要手动定位到该节点)
 			}
 			// 更新最后访问路径
 			if (isactive)
@@ -1364,7 +1372,7 @@ namespace zfile
 		public void ChangePath(string path, string LR, TreeNode eNode, bool recordhistory = true)
 		{   //in zip, path = D:\\temp\\welcome.zip\\welcome
 			var fileSource = UpdateFilesourceAndCurrentPath(path, out var fschanged, out var oldfs, out var oldpath, LR);
-
+			treenodemaps[$"{LR}{path}"] = eNode;
 			SelectedNode = eNode;
 			if (syncchangedir)
 				NavigateToPathByTreeNode(path, true, isactive: false); //同步改变非活动面板的目录
@@ -1423,6 +1431,11 @@ namespace zfile
 					e.Node.ForeColor = SystemColors.HighlightText;
 					treeView.Refresh(); // 强制重绘
 
+					if (preventTreeNodeAfterSelectEvent)
+					{
+						preventTreeNodeAfterSelectEvent = false;
+						return;
+					}
 					//uiManager.isleft = treeView == uiManager.LeftTree;
 
 					// 使用 FileSourceManager 获取合适的 FileSource

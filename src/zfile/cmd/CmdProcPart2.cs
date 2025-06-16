@@ -624,8 +624,8 @@ namespace zfile
 					string previousPath = owner.backStack.Pop();
 					// 导航到该目录，但不记录到历史（避免重复记录）
 					//var t1 = DateTime.Now;
-					//owner.NavigateToPathByTreeNode(previousPath, false);
-					owner.ChangePath(previousPath, owner.LRflag, owner.activeTreeview.SelectedNode, false);
+					owner.NavigateToPathByTreeNode(previousPath, false);
+					//owner.ChangePath(previousPath, owner.LRflag, owner.activeTreeview.SelectedNode, false);
 					//Debug.Print($"ChangePath ({previousPath}) : {DateTime.Now - t1}");
 				}
 			}
@@ -649,8 +649,8 @@ namespace zfile
 					string nextPath = owner.forwardStack.Pop();
 					// 导航到该目录，但不记录到历史（避免重复记录）
 					//var t1 = DateTime.Now;
-					//owner.NavigateToPathByTreeNode(nextPath, false);
-					owner.ChangePath(nextPath, owner.LRflag, owner.activeTreeview.SelectedNode, false);
+					owner.NavigateToPathByTreeNode(nextPath, false);
+					//owner.ChangePath(nextPath, owner.LRflag, owner.activeTreeview.SelectedNode, false);
 					//Debug.Print($"NavigateToPathByTreeNode ({nextPath}): {DateTime.Now - t1}");
 				}
 			}
@@ -705,8 +705,8 @@ namespace zfile
 			else
 				parentpath = Path.GetDirectoryName(Helper.ExcludeTrailingPathDelimiter(owner.CurrentFullpath[owner.LRflag]));
 			if (!string.IsNullOrEmpty(parentpath))
-				//if (!owner.NavigateToPathByTreeNode(parentpath))    //bugfix: 对于ISO文件内跳转父亲目录，由于目录结构在TREEVIEW中不存在，所以无法适用
-					owner.ChangePath(parentpath, owner.LRflag, owner.activeTreeview.SelectedNode);
+				owner.NavigateToPathByTreeNode(parentpath);    //bugfix: 对于ISO文件内跳转父亲目录，由于目录结构在TREEVIEW中不存在，所以无法适用
+				//owner.ChangePath(parentpath, owner.LRflag, owner.activeTreeview.SelectedNode);
 		}
 
 		// 搜索文件

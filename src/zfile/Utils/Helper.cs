@@ -1057,5 +1057,66 @@ namespace zfile
 			//去掉路径末尾的\符号
 			return fullPath.TrimEnd(sep);
 		}
+		public static Encoding SmartDetectEncoding(byte[] bytes)
+		{
+			// 1. 检查 BOM
+			Encoding bomEncoding = DetectBomEncoding(bytes);
+			if (bomEncoding != null) { 
+				Debug.Print("bom encoding detected: {0}", bomEncoding.WebName);
+				return bomEncoding; 
+			}
+
+			////2.使用 Ude 检测
+			//var detector = new CharsetDetector();
+			//detector.Feed(bytes, 0, Math.Min(bytes.Length, 4096));
+			//detector.DataEnd();
+
+			//if (detector.Charset != null)
+			//{
+			//	try { return Encoding.GetEncoding(detector.Charset); }
+			//	catch { /* 忽略不支持的编码 */ }
+			//}
+
+			//// 3. 尝试常见编码
+			//return TryDetectEncoding(bytes) ?? Encoding.UTF8; // 最终回退到 UTF-8
+			return DetectWithStreamReader(bytes);
+		}
+		public static Encoding DetectWithStreamReader(byte[] bytes)
+		{
+			using (var stream = new MemoryStream(bytes))
+			using (var reader = new StreamReader(stream, detectEncodingFromByteOrderMarks: true))
+			{
+				reader.ReadToEnd(); // 必须读取内容才能检测编码
+				Debug.Print("Detected encoding: {0}", reader.CurrentEncoding.WebName);
+				return reader.CurrentEncoding;
+			}
+		}
+		public static Encoding DetectBomEncoding(byte[] bytes)
+		{
+			if (bytes.Length >= 4)
+			{
+				// UTF-32 Big Endian
+				if (bytes[0] == 0x00 && bytes[1] == 0x00 && bytes[2] == 0xFE && bytes[3] == 0xFF)
+					return Encoding.GetEncoding("utf-32BE");
+
+				// UTF-32 Little Endian
+				if (bytes[0] == 0xFF && bytes[1] == 0xFE && bytes[2] == 0x00 && bytes[3] == 0x00)
+					return Encoding.GetEncoding("utf-32");
+			}
+
+			if (bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
+				return Encoding.UTF8; // UTF-8 BOM
+
+			if (bytes.Length >= 2)
+			{
+				if (bytes[0] == 0xFF && bytes[1] == 0xFE)
+					return Encoding.Unicode; // UTF-16 LE
+
+				if (bytes[0] == 0xFE && bytes[1] == 0xFF)
+					return Encoding.BigEndianUnicode; // UTF-16 BE
+			}
+
+			return null; // 无 BOM 信息
+		}
 	}
 }

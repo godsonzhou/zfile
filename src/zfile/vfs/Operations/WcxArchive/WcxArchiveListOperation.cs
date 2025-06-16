@@ -21,15 +21,15 @@ namespace zfile
 				_wcxArchiveFileSource.Reload(Path);
 			}
 
-			if (!FileSource.IsPathAtRoot(Path))
-			{
-				var parentDir = new FileEntry
-				{
-					Name = "..",
-					Attributes = FileAttributes.Directory
-				};
-				Files.Add(parentDir);
-			}
+			//if (!FileSource.IsPathAtRoot(Path))
+			//{
+			//	var parentDir = new FileEntry
+			//	{
+			//		Name = "..",
+			//		Attributes = FileAttributes.Directory
+			//	};
+			//	Files.Add(parentDir);
+			//}
 
 			var arcFileEntries = _wcxArchiveFileSource.ArchiveFileEntries.Clone();
 			try

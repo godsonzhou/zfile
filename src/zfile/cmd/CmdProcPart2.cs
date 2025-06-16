@@ -622,7 +622,7 @@ namespace zfile
 					// 从后退栈获取上一个目录
 					string previousPath = owner.backStack.Pop();
 					// 导航到该目录，但不记录到历史（避免重复记录）
-					owner.NavigateToPath(previousPath, false);
+					owner.NavigateToPathByTreeNode(previousPath, false);
 				}
 			}
 		}
@@ -644,7 +644,7 @@ namespace zfile
 					// 从前进栈获取下一个目录
 					string nextPath = owner.forwardStack.Pop();
 					// 导航到该目录，但不记录到历史（避免重复记录）
-					owner.NavigateToPath(nextPath, false);
+					owner.NavigateToPathByTreeNode(nextPath, false);
 				}
 			}
 		}
@@ -698,7 +698,8 @@ namespace zfile
 			else
 				parentpath = Path.GetDirectoryName(Helper.ExcludeTrailingPathDelimiter(owner.CurrentFullpath[owner.LRflag]));
 			if (!string.IsNullOrEmpty(parentpath))
-				owner.NavigateToPath(parentpath);
+				if (!owner.NavigateToPathByTreeNode(parentpath))    //bugfix: 对于ISO文件内跳转父亲目录，由于目录结构在TREEVIEW中不存在，所以无法适用
+					owner.ChangePath(parentpath, owner.LRflag, owner.activeTreeview.SelectedNode);
 		}
 
 		// 搜索文件

@@ -62,7 +62,7 @@ namespace zfile
 			//support cm_xx, em_xx, "xx, cmdid", regedit.exe, control.exe xxx.cpl, cmdid param, cd
 			if (cmdName.Equals("cd", StringComparison.OrdinalIgnoreCase))
 			{
-				owner.NavigateToPath(param);
+				owner.NavigateToPathByTreeNode(param);
 				return;
 			}
 			if (cmdName.StartsWith("em_"))
@@ -747,7 +747,7 @@ namespace zfile
 			var file = owner.GetListItemPath(owner.activeListView.SelectedItems[0]);
 			if (!file.IsDirectory)
 				return;
-			owner.NavigateToPath(file.FullPath);
+			owner.NavigateToPathByTreeNode(file.FullPath);
 			cm_DirBranch(1);
 		}
 
@@ -758,8 +758,8 @@ namespace zfile
 			var targetdir = owner.uiManager.targetDir;
 			if (srcdir.Equals(targetdir))
 				return;
-			owner.NavigateToPath(srcdir, isactive: false);
-			owner.NavigateToPath(targetdir, isactive: true);
+			owner.NavigateToPathByTreeNode(srcdir, isactive: false);
+			owner.NavigateToPathByTreeNode(targetdir, isactive: true);
 		}
 
 		private void cm_srcquickview()

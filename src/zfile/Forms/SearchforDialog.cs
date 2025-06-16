@@ -286,7 +286,7 @@ namespace zfile.Forms
 					string directory = Path.GetDirectoryName(filePath);
 					// 如果有父窗体,通知它跳转到指定目录
 					//owner?.GetType().GetMethod("NavigateToPath")?.Invoke(owner, new object[] { directory });
-					owner.NavigateToPath(directory);
+					owner.NavigateToPathByTreeNode(directory);
 					//todo: 将文件选中
 					
 				}

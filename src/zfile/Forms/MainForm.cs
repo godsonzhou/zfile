@@ -346,7 +346,7 @@ namespace zfile
 			return fileSource;
 		}
 		// 导航到指定路径
-		public void NavigateToPath(string path, bool recordHistory = true, TreeSearchScope scope = TreeSearchScope.thispc, bool isactive = true)
+		public bool NavigateToPathByTreeNode(string path, bool recordHistory = true, TreeSearchScope scope = TreeSearchScope.thispc, bool isactive = true)
 		{
 			var searchftp = path.StartsWith("ftp://");
 			var pathsep = searchftp ? '/' : '\\';
@@ -354,7 +354,7 @@ namespace zfile
 			path = Helper.IncludeTrailingPathDelimiter(path, pathsep);
 			var whichpanel = isactive ? LRflag : RLflag;
 			if (path.Equals(CurrentFullpath[whichpanel]))
-				return;
+				return true;
 			Debug.Print($"[{whichpanel}] Navigate to path : {path}");
 			//first change currentfilesource according to the path
 			var fs = UpdateFilesourceAndCurrentPath(path, out _, out var oldfs, out var oldpath, whichpanel);
@@ -364,7 +364,7 @@ namespace zfile
 					path = wcxfs.ArchivePath + path;    //if the new path is wcxfs path, 将其转化为操作系统的绝对路径，eg. d:\tmp\test.7z\
 			}
 			if (string.IsNullOrEmpty(path))
-				return;
+				return true;
 			//如果路径不存在，可能是虚拟节点，扩展搜索范围到桌面，
 			if (path.StartsWith("\\\\"))
 				scope = TreeSearchScope.desktop;
@@ -402,6 +402,7 @@ namespace zfile
 			// 更新路径访问历史
 			if (recordHistory && Directory.Exists(path))
 				updateNavHistory(path);
+			return node != null;
 		}
 		private void updateNavHistory(string path)
 		{
@@ -1360,13 +1361,13 @@ namespace zfile
 			if (e.Node.Nodes.Count == 1 && e.Node.FirstNode.Text == "...")  //点击+号时，加载子目录
 				LoadSubDirectories(e.Node);
 		}
-		private void ChangePath(string path, string LR, TreeNode eNode)
+		public void ChangePath(string path, string LR, TreeNode eNode)
 		{   //in zip, path = D:\\temp\\welcome.zip\\welcome
 			var fileSource = UpdateFilesourceAndCurrentPath(path, out var fschanged, out var oldfs, out var oldpath, LR);
 
 			SelectedNode = eNode;
 			if (syncchangedir)
-				NavigateToPath(path, true, isactive: false); //同步改变非活动面板的目录
+				NavigateToPathByTreeNode(path, true, isactive: false); //同步改变非活动面板的目录
 
 			// 检查是否是FTP节点
 			if (eNode.Tag is FtpNodeTag ftpTag)

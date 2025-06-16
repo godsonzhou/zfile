@@ -567,7 +567,7 @@ namespace zfile.Forms
                 if (!string.IsNullOrEmpty(selectedPath) && Directory.Exists(selectedPath))
                 {
                     // 导航到选定的目录
-                    ownerForm.NavigateToPath(selectedPath);
+                    ownerForm.NavigateToPathByTreeNode(selectedPath);
                 }
             }
         }

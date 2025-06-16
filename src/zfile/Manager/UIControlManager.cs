@@ -831,7 +831,7 @@ namespace zfile
 			switch (button.Tag?.ToString())
 			{
 				case "homedir":
-					form.NavigateToPath(Helper.GetPathByEnv("%userprofile%"));
+					form.NavigateToPathByTreeNode(Helper.GetPathByEnv("%userprofile%"));
 					break;
 				case "rootdir":
 					form.cmdProcessor.cm_gotoroot();//support local and ftp
@@ -853,7 +853,7 @@ namespace zfile
 					ShowSpecialDirsMenu(new Point(button.Bounds.Left, button.Bounds.Bottom));
 					break;
 				case "anotherdir":
-					form.NavigateToPath(isleft ? RightPathTextBox.CurrentNode?.UniqueID : LeftPathTextBox.CurrentNode?.UniqueID);
+					form.NavigateToPathByTreeNode(isleft ? RightPathTextBox.CurrentNode?.UniqueID : LeftPathTextBox.CurrentNode?.UniqueID);
 					break;
 			}
 		}
@@ -878,7 +878,7 @@ namespace zfile
 					Tag = item.Path,
 					ToolTipText = item.Path
 				};
-				menuItem.Click += (s, e) => form.NavigateToPath(item.Path);
+				menuItem.Click += (s, e) => form.NavigateToPathByTreeNode(item.Path);
 				historyMenu.Items.Add(menuItem);
 			}
 
@@ -904,7 +904,7 @@ namespace zfile
 						Tag = path,
 						ToolTipText = path
 					};
-					menuItem.Click += (s, e) => form.NavigateToPath(path);
+					menuItem.Click += (s, e) => form.NavigateToPathByTreeNode(path);
 					historyMenu.Items.Add(menuItem);
 				}
 			}
@@ -948,7 +948,7 @@ namespace zfile
 			if (comboBox.SelectedItem is string drivePath)
 			{
 				if (lastVisitedPaths.TryGetValue(drivePath, out var lastPath))
-					form.NavigateToPath(lastPath);
+					form.NavigateToPathByTreeNode(lastPath);
 				else
 					form.LoadDriveIntoTree(form.activeTreeview, drivePath);
 			}
@@ -1514,7 +1514,7 @@ namespace zfile
 				var subItem = new ToolStripMenuItem(path.Key);
 				subItem.Click += (s, e) =>
 				{
-					form.NavigateToPath(path.Value);
+					form.NavigateToPathByTreeNode(path.Value);
 				};
 				winSpecialItem.DropDownItems.Add(subItem);
 			}
@@ -1530,7 +1530,7 @@ namespace zfile
 					var subItem = new ToolStripMenuItem(key);
 					subItem.Click += (s, e) =>
 					{
-						form.NavigateToPath(value);
+						form.NavigateToPathByTreeNode(value);
 					};
 					envItem.DropDownItems.Add(subItem);
 				}
@@ -1543,7 +1543,7 @@ namespace zfile
 				var hotdirmenu = new ToolStripMenuItem(hotdir.Key);
 				hotdirmenu.Click += (s, e) =>
 				{
-					form.NavigateToPath(hotdir.Value);
+					form.NavigateToPathByTreeNode(hotdir.Value);
 				};
 				menu.Items.Add(hotdirmenu);
 

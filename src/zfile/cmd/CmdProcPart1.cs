@@ -244,7 +244,7 @@ namespace zfile
 		}
 		private void cm_openrecycled()
 		{
-			owner.NavigateToPath("回收站", scope: MainForm.TreeSearchScope.desktop);
+			owner.NavigateToPathByTreeNode("回收站", scope: MainForm.TreeSearchScope.desktop);
 		}
 		private void cm_openfonts()
 		{
@@ -253,20 +253,20 @@ namespace zfile
 
 		private void cm_opencontrols()
 		{
-			owner.NavigateToPath("控制面板", scope: MainForm.TreeSearchScope.desktop);
+			owner.NavigateToPathByTreeNode("控制面板", scope: MainForm.TreeSearchScope.desktop);
 		}
 
 		private void cm_opennetwork()
 		{
-			owner.NavigateToPath("网络", scope: MainForm.TreeSearchScope.desktop);
+			owner.NavigateToPathByTreeNode("网络", scope: MainForm.TreeSearchScope.desktop);
 		}
 		private void cm_opendrives()
 		{
-			owner.NavigateToPath("此电脑", scope: MainForm.TreeSearchScope.desktop);
+			owner.NavigateToPathByTreeNode("此电脑", scope: MainForm.TreeSearchScope.desktop);
 		}
 		private void cm_opendesktop()
 		{
-			owner.NavigateToPath("桌面", scope: MainForm.TreeSearchScope.full);
+			owner.NavigateToPathByTreeNode("桌面", scope: MainForm.TreeSearchScope.full);
 		}
 		public void cm_gotoroot()
 		{
@@ -282,11 +282,11 @@ namespace zfile
 			if (owner.IsActiveFtpPanel(out var ftpnode))
 				owner.fTPMGR.NavigateToPath(ftpnode.ConnectionName, "/", owner.activeListView);
 			else
-				owner.NavigateToPath(Helper.GetPathByEnv(Path.GetPathRoot(owner.uiManager.srcDir)));
+				owner.NavigateToPathByTreeNode(Helper.GetPathByEnv(Path.GetPathRoot(owner.uiManager.srcDir)));
 		}
 		private void do_cm_gotodrive(string drive)
 		{
-			owner.NavigateToPath(drive.ToUpper());
+			owner.NavigateToPathByTreeNode(drive.ToUpper());
 		}
 		private void cm_gotodrivec()
 		{

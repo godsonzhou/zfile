@@ -947,30 +947,29 @@ namespace zfile
 				var parentfolder = ((ShellItem)Node.Parent.Tag).ShellFolder;    //获取父节点的ishellfoler
 				var pidl = ((ShellItem)Node.Tag).PIDL;  //获取c:\\节点的pidl
 				var parsepath = item.parsepath;
-				//var name = w32.GetNameByPIDL(pidl);
-				var path = w32.GetPathByIShell(parentfolder, pidl);
-		
-				if (parsepath.StartsWith("::{"))
+				if (pidl != IntPtr.Zero)
 				{
-					if (path.Equals("Linux"))
-						//var wslpaths = GetWslInstancePaths();
-						return "\\\\wsl.localhost\\";
-					if (path.Equals("控制面板"))
-						return "\\\\控制面板\\";
-					//if (path.Equals("网络"))
-					//	return "network:\\";
-					//if ( path.Equals("回收站"))
-					//	return "recyclebin:\\";
+					//var name = w32.GetNameByPIDL(pidl);
+					var path = w32.GetPathByIShell(parentfolder, pidl);
+					if (parsepath.StartsWith("::{"))
+					{
+						if (path.Equals("Linux"))
+							//var wslpaths = GetWslInstancePaths();
+							return "\\\\wsl.localhost\\";
+						if (path.Equals("控制面板"))
+							return "\\\\控制面板\\";
 
-					return $"\\\\{Node.FullPath}";
-				} 
+						return $"\\\\{Node.FullPath}";
+					}
+					else
+						return path; // w32.GetPathByIShell(parentfolder, pidl); //取得实际path
+				}
 				else
-					return path; // w32.GetPathByIShell(parentfolder, pidl); //取得实际path
+					return parsepath;
 			}
 			if(Node.Tag is FtpNodeTag ftpnode)
-			{
 				return MainForm.Instance.fTPMGR.GetFtpFileSourceByConnectionName(ftpnode.ConnectionName).CurrentFullPath;// Node.Text.Substring(0,2);
-			}
+			
 			return string.Empty;
 		}
 		public static string getFSpathbyList(string path)

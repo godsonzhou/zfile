@@ -313,6 +313,7 @@ namespace zfile
 		internal bool syncchangedir;
 		public Dictionary<string, TreeNode> treenodemaps = [];  //用于ISO文件的目录跳转，记录每个文件夹对应的TREENODE
 		private bool preventTreeNodeAfterSelectEvent;
+		private Dictionary<string, List<string>> wcxarchiveTreeNodes = [];
 		public enum TreeSearchScope
 		{
 			thispc = 0,
@@ -1367,9 +1368,9 @@ namespace zfile
 		public void TreeView_BeforeExpand(object? sender, TreeViewCancelEventArgs e)
 		{
 			if (e.Node.Nodes.Count == 1 && e.Node.FirstNode.Text == "...")  //点击+号时，加载子目录
-				LoadSubDirectories(e.Node);
+				LoadSubDirectories(e.Node, out _);
 		}
-		public void ChangePath(string path, string LR, TreeNode eNode, bool recordhistory = true)
+		public void ChangePath(string path, string LR, TreeNode eNode, bool recordhistory = true, bool forceNodeLoad = false)
 		{   //in zip, path = D:\\temp\\welcome.zip\\welcome
 			var fileSource = UpdateFilesourceAndCurrentPath(path, out var fschanged, out var oldfs, out var oldpath, LR);
 			treenodemaps[$"{LR}{path}"] = eNode;
@@ -1394,15 +1395,33 @@ namespace zfile
 			//如果盘符改变了，则不刷新treeview&listview, 因为在盘符改变时，会触发事件，在事件中会刷新(refreshpanel)
 			// 检查节点是否已经被加载过子目录
 			bool isNodeLoaded = false;
-			if (eNode.Tag is ShellItem sItem && sItem.SubNodeState == NODE_LOADED_KEY)
+			if (!forceNodeLoad && eNode.Tag is ShellItem sItem && sItem.SubNodeState == NODE_LOADED_KEY)
 				isNodeLoaded = true;
 			var LV = GetListViewByName(LR);
 			// 只有当节点没有被标记为已加载时才加载子目录
+			
 			if (!isNodeLoaded || fileSource is ShellFileSource) // shellfilesource should always loadsubdir
-				LoadSubDirectories(eNode, LV); //盘符不变时在这里刷新TREEVIEW/LISTVIEW
+				LoadSubDirectories(eNode, out _, LV); //盘符不变时在这里刷新TREEVIEW/LISTVIEW
 
 			// 无论如何都需要刷新ListView
-			LoadListViewByFileSource(path, LV, eNode);
+			var subdirs = LoadListViewByFileSource(path, LV, eNode);
+			var NeedDirRefresh = false; //标记是否需要刷新目录
+			foreach (var dir in subdirs)
+			{
+				//若subdirs在subnodes中未找到，则创建新的NODES，比如ISO文件下的session1/2
+				if (!eNode.Nodes.Cast<TreeNode>().Any(n => n.Text == dir))
+				{
+					//treenodemaps[dir] = eNode;
+					if (wcxarchiveTreeNodes.ContainsKey(selectedNode.FullPath))
+						wcxarchiveTreeNodes[selectedNode.FullPath].Add(dir);
+					else
+						wcxarchiveTreeNodes[selectedNode.FullPath] = [dir];
+					NeedDirRefresh = true; //标记需要刷新目录
+				}
+			}
+			if(NeedDirRefresh)
+				LoadSubDirectories(eNode, out _); //刷新目录
+
 			//当激活的面板发生变化时更新缩略图按钮状态
 			if (ToolbarManager.cm_srcthumbs_Button != null)
 				ToolbarManager.cm_srcthumbs_Button.CheckState = LV.View == View.Tile ? CheckState.Checked : CheckState.Unchecked;
@@ -1534,9 +1553,9 @@ namespace zfile
 					else
 						rightRoot = rootNode;
 					// 加载并展开根目录
-					LoadSubDirectories(rootNode);
+					LoadSubDirectories(rootNode, out _);
 					rootNode.Expand();
-					LoadSubDirectories(activeThispc);
+					LoadSubDirectories(activeThispc, out _);
 				}
 
 				var node = FindTreeNode(activeThispc.Nodes, drivepath);//todo: if drivepath is ftpdrive, find treenode in ftproot
@@ -1785,12 +1804,19 @@ namespace zfile
 						activeTreeview.SelectedNode = node;
 					else
 					{
+						//在当前TREENODE下新建一个NODE来访问WCXFILESRC
+						//CreateTreeNodeForWcxArchiveFileSource(path, activeTreeview.SelectedNode);
+						wcxarchiveTreeNodes[selectedNode.FullPath] = [path];
+
+						LoadSubDirectories(activeTreeview.SelectedNode, out var newwcxnodes); //重新加载包含wcxnode的子目录
+						//newwcxnode.Tag = new ShellItem();
+						activeTreeview.SelectedNode = newwcxnodes[0]; //FindTreeNodeByFullPath(activeTreeview.SelectedNode.Nodes, path); // ?? activeTreeview.SelectedNode; //确保选中正确的节点
 						//todo: 遇到iso等treeview不支持的压缩格式，无法通过treeviewnode.afterselect事件来loadlistview, 只能手工调用触发
 						//LoadListViewByFileSource(path, activeListView, null);
 						//bugfix: 当在ISO文件中时，path="\session1", 应该包括完整路径"arcname\session1"
-						if (isinarchive && fileSource is WcxArchiveFileSource wcx && !path.StartsWith(wcx.ArchiveFileName))
-							path = wcx.ArchiveFileName + path;
-						ChangePath(path, listView.Name, activeTreeview.SelectedNode);
+						//if (isinarchive && fileSource is WcxArchiveFileSource wcx && !path.StartsWith(wcx.ArchiveFileName))
+						//	path = wcx.ArchiveFileName + path;
+						//ChangePath(path, listView.Name, activeTreeview.SelectedNode, forceNodeLoad : false);
 					}
 				}
 				else
@@ -1861,6 +1887,12 @@ namespace zfile
 				}
 			}
 		}
+
+		//private void CreateTreeNodeForWcxArchiveFileSource(string path, TreeNode selectedNode)
+		//{
+		//	wcxarchiveTreeNodes[selectedNode.FullPath] = path;
+		//}
+
 		public TreeNode? FindTreeNodeByFullPath(TreeNodeCollection nodes, string path)
 		{
 			var pathpart = path.Split('\\', StringSplitOptions.RemoveEmptyEntries);
@@ -1871,7 +1903,7 @@ namespace zfile
 				{
 					if (pathpart.Length == 1)
 						return node;
-					LoadSubDirectories(node);
+					LoadSubDirectories(node, out _);
 					node.Expand();
 					TreeNode? foundNode = FindTreeNodeByFullPath(node.Nodes, path.Substring(path.IndexOf('\\') + 1));
 					if (foundNode != null)
@@ -2206,8 +2238,9 @@ namespace zfile
 		//		return null;
 		//	}
 		//}
-		public List<TreeNode>? LoadSubDirectories(TreeNode node, MyListView? lv = null)
+		public List<TreeNode>? LoadSubDirectories(TreeNode node, out List<TreeNode> newwcxnodes, MyListView? lv = null)
 		{
+			newwcxnodes = [];
 			Debug.Print($"load sub dirs [{node.TreeView.Name}] for treenode : {node.FullPath}");
 			// 创建一个新的节点集合，用于存储需要保留的节点
 			List<TreeNode> nodesToKeep = new List<TreeNode>();
@@ -2221,167 +2254,191 @@ namespace zfile
 			ShellItem sItem = (ShellItem)node.Tag;
 			if (sItem == null) return null;
 			IShellFolder root = sItem.ShellFolder;
-			if (root == null) return null;
-			if (node.Nodes.Count == 1 && node.Nodes[0].Text.Equals("..."))
-				node.Nodes.RemoveAt(0);
-
-			// 标记节点已经加载过子目录
-			sItem.SubNodeState = NODE_LOADED_KEY;
-			// 保存现有节点的引用，以便后续比较
-			Dictionary<string, TreeNode> existingNodes = new Dictionary<string, TreeNode>();
-			foreach (TreeNode existingNode in node.Nodes)
+			if (root != null)
 			{
-				if (existingNode.Tag is ShellItem existingItem)
-				{
-					// 使用路径作为唯一标识符，而不是PIDL的内存地址
-					string path = w32.GetPathByIShell(existingItem.ParentShellFolder, existingItem.PIDL);
-					existingNodes[path] = existingNode;
-				}
-				else if (existingNode.Tag is FtpRootNodeTag)
-					existingNodes["ftproot"] = existingNode;
-			}
+				if (node.Nodes.Count == 1 && node.Nodes[0].Text.Equals("..."))
+					node.Nodes.RemoveAt(0);
 
-			// 创建一个集合，用于存储新的PIDL，以便后续比较
-			HashSet<string> newPidls = new HashSet<string>();
-			try
-			{
-				//get the config showhiddensystem
-				var shcontf = SHCONTF.FOLDERS;
-				if (int.TryParse(configLoader.FindConfigValue("Configuration", "ShowHiddenSystem"), out var showhiddensystem))
+				// 标记节点已经加载过子目录
+				sItem.SubNodeState = NODE_LOADED_KEY;
+				// 保存现有节点的引用，以便后续比较
+				Dictionary<string, TreeNode> existingNodes = new Dictionary<string, TreeNode>();
+				foreach (TreeNode existingNode in node.Nodes)
 				{
-					if ((showhiddensystem & 2) != 0)
-						shcontf |= SHCONTF.INCLUDEHIDDEN;
-				}
-				// 尝试设置忽略加密标志并获取新的IShellFolder
-				// 即使失败也继续使用原来的root
-				//IShellFolder? newRoot = Set_SIIGBF_IGNORECRYPTED_flag(sItem);
-				//if (newRoot != null)
-				//	root = newRoot;
-				if (root.EnumObjects(this.Handle, shcontf, out nint EnumPtr) == w32.S_OK)    // 循环查找子项
-																							 // todo:遇到加密的压缩文件时会跳出窗口“Windows无法打开文件夹。当前不支持加密存档(D：\tmp\welcome.7z)。”，但是又可以打开压缩文件，也可以正常读取压缩文件的内容。如何消除这个弹窗？？？
-				{
-					if (EnumPtr == IntPtr.Zero)  //如果node=程序和功能,则EnumPtr=0，直接返回
-						return null;
-
-					var Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
-					while (Enum.Next(1, out nint pidlSub, out uint celtFetched) == 0 && celtFetched == w32.S_FALSE) //获取子节点的pidl
+					if (existingNode.Tag is ShellItem existingItem)
 					{
-						root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out IShellFolder iSub); //获取子节点的ishellfolder接口
-						string path = w32.GetPathByIShell(root, pidlSub);   //子节点path -> 此电脑\\迅雷下载, c:\\
-						var pathPart = path.Split('\\');
-						var name = !pathPart[^1].Equals(string.Empty) ? pathPart[^1] : pathPart[^2];
-						var subItem = new ShellItem(pidlSub, iSub, root); //子节点的tag存放pidl和ishellfolder接口
-
 						// 使用路径作为唯一标识符，而不是PIDL的内存地址
-						string nodeKey = path;
-						newPidls.Add(nodeKey);
+						string path = w32.GetPathByIShell(existingItem.ParentShellFolder, existingItem.PIDL);
+						existingNodes[path] = existingNode;
+					}
+					else if (existingNode.Tag is FtpRootNodeTag)
+						existingNodes["ftproot"] = existingNode;
+				}
 
-						// 检查是否已存在相同路径的节点
-						TreeNode nodeSub;
-						if (existingNodes.TryGetValue(nodeKey, out TreeNode? existingNode))
-						{
-							// 保留现有节点
-							nodeSub = existingNode;
-							// 更新节点的Tag，确保使用最新的ShellItem
-							nodeSub.Tag = subItem;
-						}
-						else
-							nodeSub = new TreeNode(name) { Tag = subItem }; // 创建新节点
+				// 创建一个集合，用于存储新的PIDL，以便后续比较
+				HashSet<string> newPidls = [];
+				try
+				{
+					//get the config showhiddensystem
+					var shcontf = SHCONTF.FOLDERS;
+					if (int.TryParse(configLoader.FindConfigValue("Configuration", "ShowHiddenSystem"), out var showhiddensystem))
+					{
+						if ((showhiddensystem & 2) != 0)
+							shcontf |= SHCONTF.INCLUDEHIDDEN;
+					}
+					// 尝试设置忽略加密标志并获取新的IShellFolder
+					// 即使失败也继续使用原来的root
+					//IShellFolder? newRoot = Set_SIIGBF_IGNORECRYPTED_flag(sItem);
+					//if (newRoot != null)
+					//	root = newRoot;
+					if (root.EnumObjects(this.Handle, shcontf, out nint EnumPtr) == w32.S_OK)    // 循环查找子项
+					// todo:遇到加密的压缩文件时会跳出窗口“Windows无法打开文件夹。当前不支持加密存档(D：\tmp\welcome.7z)。”，但是又可以打开压缩文件，也可以正常读取压缩文件的内容。如何消除这个弹窗？？？
+					{
+						if (EnumPtr == IntPtr.Zero)  //如果node=程序和功能,则EnumPtr=0，直接返回
+							return null;
 
-						// 为虚拟文件夹或非文件系统项设置特定图标
-						string iconkey;
-						if (subItem.IsVirtual || (subItem.attr & SFGAO.FILESYSTEM) == 0)
+						var Enum = (IEnumIDList)Marshal.GetObjectForIUnknown(EnumPtr);
+						while (Enum.Next(1, out nint pidlSub, out uint celtFetched) == 0 && celtFetched == w32.S_FALSE) //获取子节点的pidl
 						{
-							GetIconBy(subItem, out iconkey, pidlSub);
-							if (!string.IsNullOrEmpty(iconkey))
+							root.BindToObject(pidlSub, IntPtr.Zero, ref Guids.IID_IShellFolder, out IShellFolder iSub); //获取子节点的ishellfolder接口
+							string path = w32.GetPathByIShell(root, pidlSub);   //子节点path -> 此电脑\\迅雷下载, c:\\
+							var pathPart = path.Split('\\');
+							var name = !pathPart[^1].Equals(string.Empty) ? pathPart[^1] : pathPart[^2];
+							var subItem = new ShellItem(pidlSub, iSub, root); //子节点的tag存放pidl和ishellfolder接口
+
+							// 使用路径作为唯一标识符，而不是PIDL的内存地址
+							string nodeKey = path;
+							newPidls.Add(nodeKey);
+
+							// 检查是否已存在相同路径的节点
+							TreeNode nodeSub;
+							if (existingNodes.TryGetValue(nodeKey, out TreeNode? existingNode))
+							{
+								// 保留现有节点
+								nodeSub = existingNode;
+								// 更新节点的Tag，确保使用最新的ShellItem
+								nodeSub.Tag = subItem;
+							}
+							else
+								nodeSub = new TreeNode(name) { Tag = subItem }; // 创建新节点
+
+							// 为虚拟文件夹或非文件系统项设置特定图标
+							string iconkey;
+							if (subItem.IsVirtual || (subItem.attr & SFGAO.FILESYSTEM) == 0)
+							{
+								GetIconBy(subItem, out iconkey, pidlSub);
+								if (!string.IsNullOrEmpty(iconkey))
+									iconManager.LoadIconFromCacheByKey(iconkey, node.TreeView.ImageList);
+
+								// 如果是文件夹且不是虚拟文件夹，则添加"..."节点
+								if (subItem.IsDir && nodeSub.Nodes.Count == 0)
+									nodeSub.Nodes.Add("...");
+							}
+							else
+							{
+								iconkey = IconManager.GetNodeIconKey(nodeSub);
 								iconManager.LoadIconFromCacheByKey(iconkey, node.TreeView.ImageList);
 
-							// 如果是文件夹且不是虚拟文件夹，则添加"..."节点
-							if (subItem.IsDir && nodeSub.Nodes.Count == 0)
-								nodeSub.Nodes.Add("...");
-						}
-						else
-						{
-							iconkey = IconManager.GetNodeIconKey(nodeSub);
-							iconManager.LoadIconFromCacheByKey(iconkey, node.TreeView.ImageList);
-
-							try
-							{
-								// 如果有子文件夹，则添加"..."节点
-								if (Directory.Exists(path))
+								try
 								{
-									var dirinfo = new DirectoryInfo(path);  //压缩文件处理到此处引发异常
-									var subdir = dirinfo.GetDirectories();  //windows目录CSC无权限异常
-									if (subdir.Length != 0 && nodeSub.Nodes.Count == 0)
-										nodeSub.Nodes.Add("...");
+									// 如果有子文件夹，则添加"..."节点
+									if (Directory.Exists(path))
+									{
+										var dirinfo = new DirectoryInfo(path);  //压缩文件处理到此处引发异常
+										var subdir = dirinfo.GetDirectories();  //windows目录CSC无权限异常
+										if (subdir.Length != 0 && nodeSub.Nodes.Count == 0)
+											nodeSub.Nodes.Add("...");
+									}
+								}
+								catch (UnauthorizedAccessException)
+								{
+									_backgroundIconManager.AddUnsupportedExt(path);
 								}
 							}
-							catch (UnauthorizedAccessException) {
-								_backgroundIconManager.AddUnsupportedExt(path);
-							}
-						}
-						nodeSub.ImageKey = iconkey;
-						nodeSub.SelectedImageKey = iconkey;
+							nodeSub.ImageKey = iconkey;
+							nodeSub.SelectedImageKey = iconkey;
 
-						// 如果是新创建的节点，才添加到父节点
-						if (!existingNodes.ContainsValue(nodeSub))
-							node.Nodes.Add(nodeSub);
+							// 如果是新创建的节点，才添加到父节点
+							if (!existingNodes.ContainsValue(nodeSub))
+								node.Nodes.Add(nodeSub);
 
-						// 将节点添加到保留列表
-						nodesToKeep.Add(nodeSub);
-						if (subItem.parsepath.Equals("::{20D04FE0-3AEA-1069-A2D8-08002B30309D}")) //"此电脑"
-						{
-							if (isleft)
-								thispcL = nodeSub;
-							else
-								thispcR = nodeSub;
-						}
-
-						if (lv != null)
-						{
-							string[] s = ["", "", name.Contains(':') ? "本地磁盘" : "<CLS>", ""];
-							var i = new ListViewItem(s);
-							string ico;
-							if (lv.View == View.Tile)
+							// 将节点添加到保留列表
+							nodesToKeep.Add(nodeSub);
+							if (subItem.parsepath.Equals("::{20D04FE0-3AEA-1069-A2D8-08002B30309D}")) //"此电脑"
 							{
-								//getIconByShellItem(ref subItem, out ico, true);	//bugfix: 在tile视图下，控制面板的subitem.iconkey被重新赋值为空的问题, 用此方法无法获取控制面板的iconkey, 在之前的程序中iconkey已经通过geticonby方法获取到了，这里就无需在执行一遍，先注释了再说
-								GetIconBy(subItem, out ico, pidlSub, true); //calculate the large icon key here.
-								iconManager.LoadIconFromCacheByKey(ico, lv.LargeImageList, true);
+								if (isleft)
+									thispcL = nodeSub;
+								else
+									thispcR = nodeSub;
 							}
-							else
+
+							if (lv != null)
 							{
-								ico = IconManager.GetIconKey(subItem); //small icon key is already calculated before, so use it directly
-								iconManager.LoadIconFromCacheByKey(ico, lv.SmallImageList);
+								string[] s = ["", "", name.Contains(':') ? "本地磁盘" : "<CLS>", ""];
+								var i = new ListViewItem(s);
+								string ico;
+								if (lv.View == View.Tile)
+								{
+									//getIconByShellItem(ref subItem, out ico, true);	//bugfix: 在tile视图下，控制面板的subitem.iconkey被重新赋值为空的问题, 用此方法无法获取控制面板的iconkey, 在之前的程序中iconkey已经通过geticonby方法获取到了，这里就无需在执行一遍，先注释了再说
+									GetIconBy(subItem, out ico, pidlSub, true); //calculate the large icon key here.
+									iconManager.LoadIconFromCacheByKey(ico, lv.LargeImageList, true);
+								}
+								else
+								{
+									ico = IconManager.GetIconKey(subItem); //small icon key is already calculated before, so use it directly
+									iconManager.LoadIconFromCacheByKey(ico, lv.SmallImageList);
+								}
+								i.ImageKey = ico;
+								i.Text = name;
+								i.Tag = new LvItemTag(null, node);   //tag存放父节点//bugfix: 在tile视图下，缩略图没有显示的问题
+								lv.Items.Add(i);
 							}
-							i.ImageKey = ico;
-							i.Text = name;
-							i.Tag = new LvItemTag(null, node);   //tag存放父节点//bugfix: 在tile视图下，缩略图没有显示的问题
-							lv.Items.Add(i);
 						}
-					}
-					// 处理需要删除的节点, 找出所有不在新路径集合中的现有节点，这些节点需要被删除
-					foreach (var existingPair in existingNodes)
-					{
-						// 使用路径作为唯一标识符进行比较
-						if (!newPidls.Contains(existingPair.Key) && !existingPair.Key.Equals("ftproot"))
+						// 处理需要删除的节点, 找出所有不在新路径集合中的现有节点，这些节点需要被删除
+						foreach (var existingPair in existingNodes)
 						{
-							Debug.Print(existingPair.Key.ToString() + " removed");
-							node.Nodes.Remove(existingPair.Value);// 从父节点中移除不再存在的节点
+							// 使用路径作为唯一标识符进行比较
+							if (!newPidls.Contains(existingPair.Key) && !existingPair.Key.Equals("ftproot"))
+							{
+								Debug.Print(existingPair.Key.ToString() + " removed");
+								node.Nodes.Remove(existingPair.Value);// 从父节点中移除不再存在的节点
+							}
 						}
 					}
 				}
-				//refresh the addressbar's current node's children according to nodestokeep
-				var fullFSpath = Helper.getFSpath(node.FullPath);
-				var childrenpath = nodesToKeep.Select(x => Helper.getFSpath(x.FullPath)).ToList();
-				if (isleft)
-					uiManager.LeftPathTextBox.SetChildren(fullFSpath, childrenpath);
-				else
-					uiManager.RightPathTextBox.SetChildren(fullFSpath, childrenpath);
+				catch (Exception)
+				{
+					Debug.Print("exception raised in loadsubdir");
+				}
 			}
-			catch (Exception)
+			// add wcxtreenodes if necessary
+			if (wcxarchiveTreeNodes.TryGetValue(node.FullPath, out var wcxarchivenodepathstrs))
 			{
-				Debug.Print("exception raised in loadsubdir");
+				foreach (var wcxarchivenodepathstr in wcxarchivenodepathstrs)
+				{
+					var wcxarchivenodepath = Path.GetFileName(wcxarchivenodepathstr);
+					var newwcxnode = FindTreeNode(node.Nodes, wcxarchivenodepath);
+					if (newwcxnode == null)
+					{
+						newwcxnode = new TreeNode(wcxarchivenodepath);
+						node.Nodes.Add(newwcxnode);
+						nodesToKeep.Add(newwcxnode);
+						newwcxnode.Nodes.Add("...");
+						newwcxnode.ImageKey = "folder";
+						newwcxnode.Tag = new ShellItem(IntPtr.Zero, null, root) { parsepath = wcxarchivenodepathstr };
+						Debug.Print($"new wcx node added : {wcxarchivenodepathstr}");
+					}
+					newwcxnodes.Add(newwcxnode);
+				}
 			}
+	
+			//refresh the addressbar's current node's children according to nodestokeep
+			var fullFSpath = Helper.getFSpath(node.FullPath);
+			var childrenpath = nodesToKeep.Select(x => Helper.getFSpath(x.FullPath)).ToList();
+			if (isleft)
+				uiManager.LeftPathTextBox.SetChildren(fullFSpath, childrenpath);
+			else
+				uiManager.RightPathTextBox.SetChildren(fullFSpath, childrenpath);
 	
 			return nodesToKeep;
 		}
@@ -2516,15 +2573,16 @@ namespace zfile
 		}
 
 		// 加载文件列表 - 使用 FileSource 架构（异步版本）
-		public void LoadListViewByFileSource(string path, ListView listView, TreeNode parentnode, string colViewId = "")
+		public List<string>? LoadListViewByFileSource(string path, ListView listView, TreeNode parentnode, string colViewId = "")
 		{
-			if (string.IsNullOrEmpty(path)) return;
+			List<string> subdirs = [];
+			if (string.IsNullOrEmpty(path)) return null;
 
 			// 确定当前面板
 			bool isLeftPanel = listView == uiManager.LeftList;
 			var fileSource = CurrentFullpath.GetFileSource(listView.Name);
 			if (fileSource is ShellFileSource)  //如果是虚拟节点（由shellfilesource处理的节点），由于在loadsubdirectories中已经生成，所以无需再处理
-				return;
+				return null;
 
 			Debug.Print($"load listview by filesource [{listView.Name}/{colViewId}]: {path}");
 			try
@@ -2541,6 +2599,8 @@ namespace zfile
 				// 添加所有项目到 ListView
 				foreach (var file in files)
 				{
+					if (file.IsDirectory)
+						subdirs.Add(file.Name);
 					var lvItem = CreateListViewItemFromFileEntry(file, showFolderSize, parentnode, viewname, listView.Name);//todo: 在显示自定义视图时，需要启用wdx插件获取额外的信息
 					if (lvItem != null)
 					{
@@ -2586,6 +2646,7 @@ namespace zfile
 			{
 				Debug.Print($"加载文件列表失败: {ex.Message}");
 			}
+			return subdirs;
 		}
 
 		// 创建 ListViewItem (从 FileEntry)
@@ -3291,7 +3352,7 @@ namespace zfile
 		{
 			if (listView == null) return;
 			var node = listView == uiManager.LeftList ? uiManager.LeftTree.SelectedNode : uiManager.RightTree.SelectedNode;
-			LoadSubDirectories(node, listView);
+			LoadSubDirectories(node, out _, listView);
 
 			// 使用 FileSource 架构加载文件列表
 			LoadListViewByFileSource(path, listView, node);
@@ -3330,7 +3391,7 @@ namespace zfile
 				{
 					//refresh the treeview
 					var node = uiManager.LeftTree.SelectedNode;
-					LoadSubDirectories(node, uiManager.LeftList);
+					LoadSubDirectories(node, out _, uiManager.LeftList);
 					var fs = CurrentFullpath.GetFileSource("L");///////////////////////////////////
 					if (LeftFileSource != fs)
 					{
@@ -3356,7 +3417,7 @@ namespace zfile
 				{
 					//refresh the treeview
 					var node = uiManager.RightTree.SelectedNode;
-					LoadSubDirectories(node, uiManager.RightList);
+					LoadSubDirectories(node, out _, uiManager.RightList);
 					RightFileSource = CurrentFullpath.GetFileSource("R");///////////////////////////////////
 
 					// 使用 FileSource 架构刷新右面板
@@ -3775,7 +3836,7 @@ namespace zfile
 							// 在UI线程上执行刷新操作
 							this.BeginInvoke(new Action(() =>
 							{
-								LoadSubDirectories(affectedNode, listView);
+								LoadSubDirectories(affectedNode, out _, listView);
 								// 刷新ListView
 								LoadListViewByFileSource(watcher.Path, listView, affectedNode);
 

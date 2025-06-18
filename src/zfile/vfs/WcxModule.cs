@@ -128,7 +128,7 @@ namespace zfile
 	{
 		PK_CRYPTOPT_MASTERPASS_SET = 1
 	}
-
+	[Flags]
 	public enum PackerCaps : int
 	{
 		/// <summary>
@@ -438,8 +438,7 @@ namespace zfile
 		public const int PK_ERR = 2;
 		public const int PK_PROC_TOTAL_SIZE = 1;
 		public const int PK_PROC_SIZE = 2;
-		// 常量定义
-
+		
 		public const int E_SUCCESS = 0; //	Success
 		public const int E_END_ARCHIVE = 10; //	No more files in archive
 		public const int E_NO_MEMORY = 11; //	Not enough memory

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -296,11 +297,9 @@ namespace Sheng.Winform.Controls
             //create space for the children
             children = new ShengFileSystemNode[drives.Length + ShengAddressBarStrip.FtpDrives.Count];
 
-            for (int i = 0; i < drives.Length; i++)
-            {
-                //create the child value
+			//create the child value
+			for (int i = 0; i < drives.Length; i++)
                 children[i] = new ShengFileSystemNode(drives[i], this);
-            }
 
 			//TODO: NEED ADD FTP VIRTUAL DRIVE
 			for (int j = 0; j < ShengAddressBarStrip.FtpDrives.Count; j++)
@@ -315,24 +314,41 @@ namespace Sheng.Winform.Controls
         /// </summary>
         private void GenerateNodeDisplayDetails()
         {
-            //if the path exists
-            if (icon == null)
+			//if (fullPath.Contains(".iso"))
+			//	Debug.Print(fullPath);
+			
+			//if the path exists
+			if (icon == null)
             {
                 //needed to get a handle to our icon
                 SHFILEINFO shinfo = new SHFILEINFO();
-
-                //If we have an actual path, then we pass a string
-                if (fullPath.Length > 0)
+		
+				//If we have an actual path, then we pass a string
+				if (fullPath.Length > 0)
                 {
 					if (ShengAddressBarStrip.FtpDrives.Contains(fullPath))
 					{
 						this.szDisplayName = $"({fullPath})";
-						this.fullPath = fullPath + "\\";
+						this.fullPath = fullPath + "\\";	// ftp盘符后添加'\', eg. G:\
 						//todo: set icon here
 						return;
 					}
-                    //get the icon and display name
-                    Win32.SHGetFileInfo(fullPath, 0, ref shinfo, (uint)Marshal.SizeOf(shinfo), Win32.SHGFI_ICON | Win32.SHGFI_SMALLICON | Win32.SHGFI_DISPLAYNAME);
+
+					var filename = Path.GetFileName(fullPath);
+					if (!string.IsNullOrEmpty(filename))
+					{
+						var parentfolder = fullPath.Replace(filename, "").TrimEnd('\\');///////CAN USE GETDIRECTORY
+						if (ShengAddressBarStrip.WcxVirtualDirs.TryGetValue(parentfolder, out var wcxdirs))
+						{
+							if (wcxdirs.Contains(fullPath))
+							{
+								this.szDisplayName = filename;
+								return;
+							}
+						}
+					}
+					//get the icon and display name
+					Win32.SHGetFileInfo(fullPath, 0, ref shinfo, (uint)Marshal.SizeOf(shinfo), Win32.SHGFI_ICON | Win32.SHGFI_SMALLICON | Win32.SHGFI_DISPLAYNAME);
                 }
                 else
                 {

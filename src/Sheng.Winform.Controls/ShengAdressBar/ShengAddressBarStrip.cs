@@ -22,7 +22,8 @@ namespace Sheng.Winform.Controls
     [ToolboxItem(false)]
     public class ShengAddressBarStrip : ToolStrip
     {
-        public static List<string> FtpDrives = new List<string>(); 
+        public static List<string> FtpDrives = new List<string>();
+		public static Dictionary<string, List<string>> WcxVirtualDirs = new Dictionary<string, List<string>>();
         public void UpdateDrives(string currentPath = null)
         {
             SetChildren("此电脑", Environment.GetLogicalDrives().Concat(FtpDrives).ToList());
@@ -541,68 +542,57 @@ namespace Sheng.Winform.Controls
         }
         public void SetAddress(TreeNode tnode)
         {
-            if (tnode.Tag is ShellItem)
-            {
-                var i = (ShellItem)tnode.Tag;
+            if (tnode.Tag is ShellItem i)
                 SetAddress(i.parsepath);
-            }
 	
 			_currentNode.tNode = tnode;
         }
         public void SetChildren(string fullpath, List<string> children)
         {
-            if (children != null)
-            {
-                var n = FindNodeByFullPath(fullpath);
-                if (n != null)
-                {
-                    n.SetChildren(children);
-                }
-            }
+			if (children != null)
+			{
+				FindNodeByFullPath(fullpath)?.SetChildren(children);
+				Debug.Print($"set children {children[0]} for path {fullpath}");
+			}
         }
         public IShengAddressNode FindNodeByFullPath(string fullpath)
         {
             if (_rootNode.DisplayName == fullpath)
                 return _rootNode;
 
+			if (fullpath.EndsWith(":"))
+				fullpath += "\\";
+
             string[] pathArray = fullpath.Split('\\');  //bugfix: '/' -> '\\' for windows, '/' is not a valid path separator
             var tmpnode = _rootNode; //  _currentNode;     //record the original value
-                                     //_currentNode = _rootNode;
+                                     
             string pth = "";
             for (int i = 0; i < pathArray.Length; i++)
             {
                 //bugfix: c: -> c:\
                 if (pathArray[i] == string.Empty)
                     continue;
+
 				if (pathArray[i].EndsWith(":"))
 					pathArray[i] += "\\";
+
 				if (pth == string.Empty)
                     pth = pathArray[i];
                 else if (pth.EndsWith("\\"))
-                    pth = pth + pathArray[i];
+                    pth += pathArray[i];
                 else
-                    pth = pth + "\\" + pathArray[i];
+                    pth = $"{pth}\\{pathArray[i]}";
 
-                //_currentNode.CreateChildNodes();    // 确保当前节点的子节点已加载
-                tmpnode.CreateChildNodes();
-                //foreach (IShengAddressNode node in _currentNode.Children)
-                if (tmpnode.Children == null)
+                tmpnode.CreateChildNodes();// 确保当前节点的子节点已加载
+
+				if (tmpnode.Children == null)
                     break;
-                foreach (IShengAddressNode node in tmpnode.Children)
+
+                foreach (var node in tmpnode.Children)
                 {
                     if (node.UniqueID == pth)
                     {
-                        //_currentNode = node;
                         tmpnode = node;
-                        //if (tmpnode != node)
-                        //{
-                        //	Debug.Print("//fire the node change event");
-                        //	if (SelectionChange != null)
-                        //	{
-                        //		NodeChangedArgs nca = new NodeChangedArgs(_currentNode.UniqueID);
-                        //		SelectionChange(this, nca);
-                        //	}
-                        //}
                         break;
                     }
                 }

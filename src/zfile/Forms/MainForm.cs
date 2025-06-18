@@ -2,17 +2,13 @@ using Shell32;
 using Sheng.Winform.Controls;
 using System.Collections;
 using System.Diagnostics;
-using System.Diagnostics.Eventing.Reader;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using WinShell;
-using zfile.Forms;
 using zfile.Filter;
+using zfile.Forms;
 using Keys = System.Windows.Forms.Keys;
-using System.Windows.Automation;
-using static System.Windows.Forms.ListView;
 
 namespace zfile
 {
@@ -311,9 +307,9 @@ namespace zfile
 		private IntPtr CtrlPanel_PIDL;
 		public List<string> SelectedItems = [];
 		internal bool syncchangedir;
-		public Dictionary<string, TreeNode> treenodemaps = [];  //用于ISO文件的目录跳转，记录每个文件夹对应的TREENODE
-		private bool preventTreeNodeAfterSelectEvent;
-		private Dictionary<string, List<string>> wcxarchiveTreeNodes = [];
+		//public Dictionary<string, TreeNode> treenodemaps = [];  //用于ISO文件的目录跳转，记录每个文件夹对应的TREENODE/////////////////////////////////////////////////
+		//private bool preventTreeNodeAfterSelectEvent;////////////////////////////////////////////////////
+		private Dictionary<string, List<string>> wcxarchiveTreeNodes => ShengAddressBarStrip.WcxVirtualDirs;
 		public enum TreeSearchScope
 		{
 			thispc = 0,
@@ -397,13 +393,13 @@ namespace zfile
 				else
 					unactiveTreeview.SelectedNode = node;
 			}
-			else
-			{
-				node = treenodemaps[$"{LRflag}{origPath}"];
-				preventTreeNodeAfterSelectEvent = true;
-				activeTreeview.SelectedNode = node;
-				ChangePath(path, LRflag, node, false);  //bugfix: 如未找到相应的treenode，则使用changepath(该方法没有treeview定位的功能，需要手动定位到该节点)
-			}
+			//else
+			//{
+			//	//node = treenodemaps[$"{LRflag}{origPath}"];////////////////////////////////////////////////////////
+			//	//preventTreeNodeAfterSelectEvent = true;///////////////////////////////////////////////////////
+			//	//activeTreeview.SelectedNode = node;//////////////////////////////////////////////////////////////
+			//	//ChangePath(path, LRflag, node, false);  //bugfix: 如未找到相应的treenode，则使用changepath(该方法没有treeview定位的功能，需要手动定位到该节点)/////////////////////////////////////////////////////
+			//}
 			// 更新最后访问路径
 			if (isactive)
 				uiManager.UpdateLastVisitedPath(path);
@@ -1373,7 +1369,7 @@ namespace zfile
 		public void ChangePath(string path, string LR, TreeNode eNode, bool recordhistory = true, bool forceNodeLoad = false)
 		{   //in zip, path = D:\\temp\\welcome.zip\\welcome
 			var fileSource = UpdateFilesourceAndCurrentPath(path, out var fschanged, out var oldfs, out var oldpath, LR);
-			treenodemaps[$"{LR}{path}"] = eNode;
+			//treenodemaps[$"{LR}{path}"] = eNode;///////////////////////////////////////////////////////
 			SelectedNode = eNode;
 			if (syncchangedir)
 				NavigateToPathByTreeNode(path, true, isactive: false); //同步改变非活动面板的目录
@@ -1387,21 +1383,7 @@ namespace zfile
 				uiManager.SetArgs();
 				return;
 			}
-			eNode.Expand();
-
-			if (recordhistory && (fschanged || Helper.IncludeTrailingPathDelimiter(path) != oldpath))
-				RecordDirectoryHistory(path, oldpath);   // 记录目录历史, 并更新filesource的currentpath
-
-			//如果盘符改变了，则不刷新treeview&listview, 因为在盘符改变时，会触发事件，在事件中会刷新(refreshpanel)
-			// 检查节点是否已经被加载过子目录
-			bool isNodeLoaded = false;
-			if (!forceNodeLoad && eNode.Tag is ShellItem sItem && sItem.SubNodeState == NODE_LOADED_KEY)
-				isNodeLoaded = true;
 			var LV = GetListViewByName(LR);
-			// 只有当节点没有被标记为已加载时才加载子目录
-			
-			if (!isNodeLoaded || fileSource is ShellFileSource) // shellfilesource should always loadsubdir
-				LoadSubDirectories(eNode, out _, LV); //盘符不变时在这里刷新TREEVIEW/LISTVIEW
 
 			// 无论如何都需要刷新ListView
 			var subdirs = LoadListViewByFileSource(path, LV, eNode);
@@ -1411,16 +1393,28 @@ namespace zfile
 				//若subdirs在subnodes中未找到，则创建新的NODES，比如ISO文件下的session1/2
 				if (!eNode.Nodes.Cast<TreeNode>().Any(n => n.Text == dir))
 				{
-					//treenodemaps[dir] = eNode;
-					if (wcxarchiveTreeNodes.ContainsKey(selectedNode.FullPath))
-						wcxarchiveTreeNodes[selectedNode.FullPath].Add(dir);
+					var fspath = Helper.getFSpath(SelectedNode.FullPath);
+					if (wcxarchiveTreeNodes.ContainsKey(fspath))
+						wcxarchiveTreeNodes[fspath].Add($"{path}\\{dir}");
 					else
-						wcxarchiveTreeNodes[selectedNode.FullPath] = [dir];
+						wcxarchiveTreeNodes[fspath] = [$"{path}\\{dir}"];
 					NeedDirRefresh = true; //标记需要刷新目录
 				}
 			}
-			if(NeedDirRefresh)
+
+			if (fileSource is ShellFileSource) // shellfilesource should always loadsubdir
+				LoadSubDirectories(eNode, out _, LV); //盘符不变时在这里刷新TREEVIEW/LISTVIEW/////////////////////重复了，如果可以放在loadlistviewbyfilesource后执行，那么可以合并
+			else if (!(!forceNodeLoad && eNode.Tag is ShellItem sItem && sItem.SubNodeState == NODE_LOADED_KEY) || NeedDirRefresh)                // 只有当节点没有被标记为已加载时才加载子目录
+			{
+				//如果盘符改变了，则不刷新treeview&listview, 因为在盘符改变时，会触发事件，在事件中会刷新(refreshpanel)
+				// 检查节点是否已经被加载过子目录
 				LoadSubDirectories(eNode, out _); //刷新目录
+			}
+
+			eNode.Expand();
+
+			if (recordhistory && (fschanged || Helper.IncludeTrailingPathDelimiter(path) != oldpath))
+				RecordDirectoryHistory(path, oldpath);   // 记录目录历史, 并更新filesource的currentpath
 
 			//当激活的面板发生变化时更新缩略图按钮状态
 			if (ToolbarManager.cm_srcthumbs_Button != null)
@@ -1450,11 +1444,11 @@ namespace zfile
 					e.Node.ForeColor = SystemColors.HighlightText;
 					treeView.Refresh(); // 强制重绘
 
-					if (preventTreeNodeAfterSelectEvent)
-					{
-						preventTreeNodeAfterSelectEvent = false;
-						return;
-					}
+					//if (preventTreeNodeAfterSelectEvent)///////////////////////////////////////////////////
+					//{
+					//	preventTreeNodeAfterSelectEvent = false;//////////////////////////////////////////
+					//	return;/////////////////////////////////////////
+					//}
 					//uiManager.isleft = treeView == uiManager.LeftTree;
 
 					// 使用 FileSourceManager 获取合适的 FileSource
@@ -1806,11 +1800,12 @@ namespace zfile
 					{
 						//在当前TREENODE下新建一个NODE来访问WCXFILESRC
 						//CreateTreeNodeForWcxArchiveFileSource(path, activeTreeview.SelectedNode);
-						wcxarchiveTreeNodes[selectedNode.FullPath] = [path];
-
+						var fspath = Helper.getFSpath(SelectedNode.FullPath);
+						wcxarchiveTreeNodes[fspath] = [path];
 						LoadSubDirectories(activeTreeview.SelectedNode, out var newwcxnodes); //重新加载包含wcxnode的子目录
 						//newwcxnode.Tag = new ShellItem();
 						activeTreeview.SelectedNode = newwcxnodes[0]; //FindTreeNodeByFullPath(activeTreeview.SelectedNode.Nodes, path); // ?? activeTreeview.SelectedNode; //确保选中正确的节点
+						//activeTreeview.SelectedNode.Expand();
 						//todo: 遇到iso等treeview不支持的压缩格式，无法通过treeviewnode.afterselect事件来loadlistview, 只能手工调用触发
 						//LoadListViewByFileSource(path, activeListView, null);
 						//bugfix: 当在ISO文件中时，path="\session1", 应该包括完整路径"arcname\session1"
@@ -1825,8 +1820,7 @@ namespace zfile
 					var op = fileSource?.CreateExecuteOperation(lvItemFile, fileSource.CurrentPath, "open");
 					_operationsManager.AddOperation(op);
 				}
-				// 更新当前路径
-				CurrentFullpath[LRflag] = path;/////////////////////////////////////////////////////////
+	
 				return;
 			}
 			// 获取关联的TreeView
@@ -2243,7 +2237,7 @@ namespace zfile
 			newwcxnodes = [];
 			Debug.Print($"load sub dirs [{node.TreeView.Name}] for treenode : {node.FullPath}");
 			// 创建一个新的节点集合，用于存储需要保留的节点
-			List<TreeNode> nodesToKeep = new List<TreeNode>();
+			List<TreeNode> nodesToKeep = [];
 			if (lv != null)
 			{
 				lv.SmallImageList ??= new ImageList();
@@ -2254,11 +2248,10 @@ namespace zfile
 			ShellItem sItem = (ShellItem)node.Tag;
 			if (sItem == null) return null;
 			IShellFolder root = sItem.ShellFolder;
+			if (node.Nodes.Count == 1 && node.Nodes[0].Text.Equals("..."))
+				node.Nodes.RemoveAt(0);
 			if (root != null)
 			{
-				if (node.Nodes.Count == 1 && node.Nodes[0].Text.Equals("..."))
-					node.Nodes.RemoveAt(0);
-
 				// 标记节点已经加载过子目录
 				sItem.SubNodeState = NODE_LOADED_KEY;
 				// 保存现有节点的引用，以便后续比较
@@ -2400,6 +2393,9 @@ namespace zfile
 							// 使用路径作为唯一标识符进行比较
 							if (!newPidls.Contains(existingPair.Key) && !existingPair.Key.Equals("ftproot"))
 							{
+								if (existingPair.Value.Tag is ShellItem shell_item && shell_item.PIDL == IntPtr.Zero) //通过wcxarchivetreenodes创建的NODE不要删除
+									continue;
+
 								Debug.Print(existingPair.Key.ToString() + " removed");
 								node.Nodes.Remove(existingPair.Value);// 从父节点中移除不再存在的节点
 							}
@@ -2411,8 +2407,9 @@ namespace zfile
 					Debug.Print("exception raised in loadsubdir");
 				}
 			}
+			var fullFSpath = Helper.getFSpath(node.FullPath);
 			// add wcxtreenodes if necessary
-			if (wcxarchiveTreeNodes.TryGetValue(node.FullPath, out var wcxarchivenodepathstrs))
+			if (wcxarchiveTreeNodes.TryGetValue(fullFSpath, out var wcxarchivenodepathstrs))
 			{
 				foreach (var wcxarchivenodepathstr in wcxarchivenodepathstrs)
 				{
@@ -2424,8 +2421,11 @@ namespace zfile
 						node.Nodes.Add(newwcxnode);
 						nodesToKeep.Add(newwcxnode);
 						newwcxnode.Nodes.Add("...");
-						newwcxnode.ImageKey = "folder";
-						newwcxnode.Tag = new ShellItem(IntPtr.Zero, null, root) { parsepath = wcxarchivenodepathstr };
+						var iconkey = "folder";
+						newwcxnode.ImageKey = iconkey;
+						newwcxnode.SelectedImageKey = iconkey;
+						iconManager.LoadIconFromCacheByKey(iconkey, node.TreeView.ImageList);
+						newwcxnode.Tag = new ShellItem(IntPtr.Zero, null, root) { parsepath = wcxarchivenodepathstr, IconKey = iconkey };
 						Debug.Print($"new wcx node added : {wcxarchivenodepathstr}");
 					}
 					newwcxnodes.Add(newwcxnode);
@@ -2433,7 +2433,6 @@ namespace zfile
 			}
 	
 			//refresh the addressbar's current node's children according to nodestokeep
-			var fullFSpath = Helper.getFSpath(node.FullPath);
 			var childrenpath = nodesToKeep.Select(x => Helper.getFSpath(x.FullPath)).ToList();
 			if (isleft)
 				uiManager.LeftPathTextBox.SetChildren(fullFSpath, childrenpath);

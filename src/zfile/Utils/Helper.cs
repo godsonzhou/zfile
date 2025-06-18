@@ -962,7 +962,7 @@ namespace zfile
 						return $"\\\\{Node.FullPath}";
 					}
 					else
-						return path; // w32.GetPathByIShell(parentfolder, pidl); //取得实际path
+						return path;  //取得实际的完整路径，eg. C:\\Sandbox\\Chenguanxi.rar\\張柏芝
 				}
 				else
 					return parsepath;

@@ -550,10 +550,7 @@ namespace Sheng.Winform.Controls
         public void SetChildren(string fullpath, List<string> children)
         {
 			if (children != null)
-			{
 				FindNodeByFullPath(fullpath)?.SetChildren(children);
-				Debug.Print($"set children {children[0]} for path {fullpath}");
-			}
         }
         public IShengAddressNode FindNodeByFullPath(string fullpath)
         {

@@ -14,86 +14,87 @@ namespace zfile
 {
 	public partial class MainForm : Form
 	{
-		public class lrflag
-		{
-			[Flags]
-			public enum LR : uint
-			{
-				None = 0,
-				Left = 1,
-				Right = 2,
-				Both = 3
-			}
-			private LR Val;
-			public bool Isleft => Val == LR.Left;
-			public string GetText(LR lr)
-			{
-				return lr.ToString();
-			}
-			public LR SetByText(string str)
-			{
-				return (LR)Enum.Parse(typeof(LR), str, true);
-			}
-			public lrflag()
-			{
-				Val = LR.None;
-			}
-			public lrflag(LR val)
-			{
-				Val = val;
-			}
-			public lrflag(string str)
-			{
-				Val = SetByText(str);
-			}
-			public lrflag(bool isleft)
-			{
-				Val = isleft ? LR.Left : LR.Right;
-			}
-			public LR GetRervese()
-			{
-				return Val switch
-				{
-					LR.None => LR.Both,
-					LR.Left => LR.Right,
-					LR.Right => LR.Left,
-					LR.Both => LR.None
-				};
-			}
-			public void SetByFlag(LR val)
-			{
-				Val = val;
-			}
-			public void SetByFlag(bool isleft)
-			{
-				Val = isleft ? LR.Left : LR.Right;
-			}
-			public void SetByFlag(string str)
-			{
-				Val = SetByText(str);
-			}
-			public void SetByFlag(lrflag val)
-			{
-				Val = val.Val;
-			}
-			public void SetByFlag(lrflag val, bool isleft)
-			{
-				Val = isleft ? val.Val : val.GetRervese();
-			}
-			public void SetByFlag(lrflag val, string str)
-			{
-				Val = str == "L" ? val.Val : val.GetRervese();
-			}
-			public void SetByFlag(lrflag val, LR lr)
-			{
-				Val = lr == LR.Left ? val.Val : val.GetRervese();
-			}
-			public void SetByFlag(lrflag val, lrflag lr)
-			{
-				Val = lr.Isleft ? val.Val : val.GetRervese();
-			}
+		//public class lrflag
+		//{
+		//	[Flags]
+		//	public enum LR : uint
+		//	{
+		//		None = 0,
+		//		Left = 1,
+		//		Right = 2,
+		//		Both = 3
+		//	}
+		//	private LR Val;
+		//	public bool Isleft => Val == LR.Left;
+		//	public string GetText(LR lr)
+		//	{
+		//		return lr.ToString();
+		//	}
+		//	public LR SetByText(string str)
+		//	{
+		//		return (LR)Enum.Parse(typeof(LR), str, true);
+		//	}
+		//	public lrflag()
+		//	{
+		//		Val = LR.None;
+		//	}
+		//	public lrflag(LR val)
+		//	{
+		//		Val = val;
+		//	}
+		//	public lrflag(string str)
+		//	{
+		//		Val = SetByText(str);
+		//	}
+		//	public lrflag(bool isleft)
+		//	{
+		//		Val = isleft ? LR.Left : LR.Right;
+		//	}
+		//	public LR GetRervese()
+		//	{
+		//		return Val switch
+		//		{
+		//			LR.None => LR.Both,
+		//			LR.Left => LR.Right,
+		//			LR.Right => LR.Left,
+		//			LR.Both => LR.None
+		//		};
+		//	}
+		//	public void SetByFlag(LR val)
+		//	{
+		//		Val = val;
+		//	}
+		//	public void SetByFlag(bool isleft)
+		//	{
+		//		Val = isleft ? LR.Left : LR.Right;
+		//	}
+		//	public void SetByFlag(string str)
+		//	{
+		//		Val = SetByText(str);
+		//	}
+		//	public void SetByFlag(lrflag val)
+		//	{
+		//		Val = val.Val;
+		//	}
+		//	public void SetByFlag(lrflag val, bool isleft)
+		//	{
+		//		Val = isleft ? val.Val : val.GetRervese();
+		//	}
+		//	public void SetByFlag(lrflag val, string str)
+		//	{
+		//		Val = str == "L" ? val.Val : val.GetRervese();
+		//	}
+		//	public void SetByFlag(lrflag val, LR lr)
+		//	{
+		//		Val = lr == LR.Left ? val.Val : val.GetRervese();
+		//	}
+		//	public void SetByFlag(lrflag val, lrflag lr)
+		//	{
+		//		Val = lr.Isleft ? val.Val : val.GetRervese();
+		//	}
 
-		}
+		//}
+
 		// 自定义类来封装字典并实现映射
 		public class FileSourceMapper
 		{
@@ -144,22 +145,15 @@ namespace zfile
 				get
 				{
 					if (FileSourceDict.TryGetValue(key, out IFileSource? value))
-					{
 						return value?.CurrentFullPath ?? string.Empty;
-					}
 					throw new KeyNotFoundException($"Key {key} not found in FileSourceDict.");
 				}
 				set
 				{
 					if (FileSourceDict.TryGetValue(key, out IFileSource? result))
 					{
-						//if (value.Equals(result.CurrentFullPath))
-						//	Debug.Print("WARNING: SET CURRENTFULLPATH IS NOT NEEDED!");
-						//else
-						{
-							Debug.Print($"change [{key}] CURRENTFULLPATH : {result.CurrentFullPath} -> {value}");
-							result.CurrentFullPath = value;
-						}
+						Debug.Print($"change [{key}] CURRENTFULLPATH : {result.CurrentFullPath} -> {value}");
+						result.CurrentFullPath = value;				
 					}
 					else
 						throw new KeyNotFoundException($"Key {key} not found in FileSourceDict.");
@@ -168,18 +162,15 @@ namespace zfile
 			public IFileSource? GetFileSource(string key)
 			{
 				if (FileSourceDict.TryGetValue(key, out IFileSource? value))
-				{
 					return value ?? null;
-				}
+				
 				return null;
 			}
 
 			private void UpdateFileSourceDict(string key, IFileSource? fileSource)
 			{
 				if (FileSourceDict.ContainsKey(key))
-				{
 					FileSourceDict[key] = fileSource;
-				}
 			}
 		}
 
@@ -307,8 +298,7 @@ namespace zfile
 		private IntPtr CtrlPanel_PIDL;
 		public List<string> SelectedItems = [];
 		internal bool syncchangedir;
-		//public Dictionary<string, TreeNode> treenodemaps = [];  //用于ISO文件的目录跳转，记录每个文件夹对应的TREENODE/////////////////////////////////////////////////
-		//private bool preventTreeNodeAfterSelectEvent;////////////////////////////////////////////////////
+	
 		private Dictionary<string, List<string>> wcxarchiveTreeNodes => ShengAddressBarStrip.WcxVirtualDirs;
 		public enum TreeSearchScope
 		{
@@ -333,8 +323,6 @@ namespace zfile
 					LeftFileSource = fileSource;
 				else
 					RightFileSource = fileSource;
-				//if(LR.Equals(LRflag))
-				//	uiManager.ActiveFileView.ActiveFileSource = fileSource;
 			}
 			else
 				Debug.Print($"WARNING: Update Filesource is not necessary!");
@@ -393,13 +381,7 @@ namespace zfile
 				else
 					unactiveTreeview.SelectedNode = node;
 			}
-			//else
-			//{
-			//	//node = treenodemaps[$"{LRflag}{origPath}"];////////////////////////////////////////////////////////
-			//	//preventTreeNodeAfterSelectEvent = true;///////////////////////////////////////////////////////
-			//	//activeTreeview.SelectedNode = node;//////////////////////////////////////////////////////////////
-			//	//ChangePath(path, LRflag, node, false);  //bugfix: 如未找到相应的treenode，则使用changepath(该方法没有treeview定位的功能，需要手动定位到该节点)/////////////////////////////////////////////////////
-			//}
+		
 			// 更新最后访问路径
 			if (isactive)
 				uiManager.UpdateLastVisitedPath(path);
@@ -470,7 +452,6 @@ namespace zfile
 			uiManager.BookmarkManager.CreateDefaultBookmarks();
 
 			// 设置活动视图
-			//isleft = true;
 			thumbnailManager.RegisterProvider(ThumbnailGenerator.GetThumbnail);
 
 			// 其他初始化
@@ -1199,9 +1180,7 @@ namespace zfile
 			}
 
 			// 存放 PIDL 的数组
-			IntPtr[] pidls = new IntPtr[1];
-			pidls[0] = pidl;
-
+			IntPtr[] pidls = [pidl];
 			try
 			{
 				// 得到 IContextMenu 接口
@@ -1248,11 +1227,9 @@ namespace zfile
 
 		private void ShowContextMenuOnTreeview(TreeNode node, Point location)
 		{
-			if (node.Tag is not ShellItem)
-			{
-				//ftp node process
+			if (node.Tag is not ShellItem)	//ftp node process
 				return;
-			}
+			
 			//获得当前节点的 PIDL
 			ShellItem sItem = (ShellItem)node.Tag;
 			IntPtr PIDL = sItem.PIDL;
@@ -1367,9 +1344,9 @@ namespace zfile
 				LoadSubDirectories(e.Node, out _);
 		}
 		public void ChangePath(string path, string LR, TreeNode eNode, bool recordhistory = true, bool forceNodeLoad = false)
-		{   //in zip, path = D:\\temp\\welcome.zip\\welcome
+		{   
+			//in zip, path = D:\\temp\\welcome.zip\\welcome
 			var fileSource = UpdateFilesourceAndCurrentPath(path, out var fschanged, out var oldfs, out var oldpath, LR);
-			//treenodemaps[$"{LR}{path}"] = eNode;///////////////////////////////////////////////////////
 			SelectedNode = eNode;
 			if (syncchangedir)
 				NavigateToPathByTreeNode(path, true, isactive: false); //同步改变非活动面板的目录
@@ -1437,19 +1414,11 @@ namespace zfile
 				if (sender is TreeView treeView)
 				{
 					var LR = treeView.Name;
-					//_backgroundIconManager.CancelCurrentTasks();//bugfix:会引发更新不完整的问题
 					// 清除所有节点的高亮状态
 					ClearTreeViewHighlight(treeView);
 					e.Node.BackColor = SystemColors.Highlight;
 					e.Node.ForeColor = SystemColors.HighlightText;
 					treeView.Refresh(); // 强制重绘
-
-					//if (preventTreeNodeAfterSelectEvent)///////////////////////////////////////////////////
-					//{
-					//	preventTreeNodeAfterSelectEvent = false;//////////////////////////////////////////
-					//	return;/////////////////////////////////////////
-					//}
-					//uiManager.isleft = treeView == uiManager.LeftTree;
 
 					// 使用 FileSourceManager 获取合适的 FileSource
 					var path = Helper.getFSpathbyTree(e.Node);
@@ -1598,7 +1567,8 @@ namespace zfile
 			if (string.IsNullOrEmpty(newName))
 			{
 				MessageBox.Show("文件名不能为空");
-				if (item != null) item.Text = oldName;
+				if (item != null) 
+					item.Text = oldName;
 				return;
 			}
 
@@ -1613,7 +1583,8 @@ namespace zfile
 					parentPath += "/";
 				string newPath = parentPath + newName;
 
-				if (oldPath == newPath) return;
+				if (oldPath == newPath) 
+					return;
 
 				try
 				{
@@ -1799,19 +1770,10 @@ namespace zfile
 					else
 					{
 						//在当前TREENODE下新建一个NODE来访问WCXFILESRC
-						//CreateTreeNodeForWcxArchiveFileSource(path, activeTreeview.SelectedNode);
 						var fspath = Helper.getFSpath(SelectedNode.FullPath);
 						wcxarchiveTreeNodes[fspath] = [path];
 						LoadSubDirectories(activeTreeview.SelectedNode, out var newwcxnodes); //重新加载包含wcxnode的子目录
-						//newwcxnode.Tag = new ShellItem();
 						activeTreeview.SelectedNode = newwcxnodes[0]; //FindTreeNodeByFullPath(activeTreeview.SelectedNode.Nodes, path); // ?? activeTreeview.SelectedNode; //确保选中正确的节点
-						//activeTreeview.SelectedNode.Expand();
-						//todo: 遇到iso等treeview不支持的压缩格式，无法通过treeviewnode.afterselect事件来loadlistview, 只能手工调用触发
-						//LoadListViewByFileSource(path, activeListView, null);
-						//bugfix: 当在ISO文件中时，path="\session1", 应该包括完整路径"arcname\session1"
-						//if (isinarchive && fileSource is WcxArchiveFileSource wcx && !path.StartsWith(wcx.ArchiveFileName))
-						//	path = wcx.ArchiveFileName + path;
-						//ChangePath(path, listView.Name, activeTreeview.SelectedNode, forceNodeLoad : false);
 					}
 				}
 				else
@@ -1881,11 +1843,6 @@ namespace zfile
 				}
 			}
 		}
-
-		//private void CreateTreeNodeForWcxArchiveFileSource(string path, TreeNode selectedNode)
-		//{
-		//	wcxarchiveTreeNodes[selectedNode.FullPath] = path;
-		//}
 
 		public TreeNode? FindTreeNodeByFullPath(TreeNodeCollection nodes, string path)
 		{
@@ -2008,6 +1965,7 @@ namespace zfile
 		{
 			Application.Exit();
 		}
+
 		private bool getIconByShellItem(ref ShellItem subItem, out string iconKey, bool islarge = false)
 		{
 			var shellInfo = new SHFILEINFO();
@@ -2103,7 +2061,7 @@ namespace zfile
 			{
 				iconKey = ($"{shellInfo.szTypeName}_{shellInfo.iIcon}").ToLower();
 				subItem.IconKey = iconKey;
-				//iconKey += islarge ? "l" : "s";
+				
 				if (!iconManager.HasIconKey(iconKey, islarge))
 				{
 					var icon = IconManager.ExtractIconFromFile(shellInfo.szTypeName, shellInfo.iIcon);
@@ -2407,6 +2365,7 @@ namespace zfile
 					Debug.Print("exception raised in loadsubdir");
 				}
 			}
+
 			var fullFSpath = Helper.getFSpath(node.FullPath);
 			// add wcxtreenodes if necessary
 			if (wcxarchiveTreeNodes.TryGetValue(fullFSpath, out var wcxarchivenodepathstrs))
@@ -2426,7 +2385,7 @@ namespace zfile
 						newwcxnode.SelectedImageKey = iconkey;
 						iconManager.LoadIconFromCacheByKey(iconkey, node.TreeView.ImageList);
 						newwcxnode.Tag = new ShellItem(IntPtr.Zero, null, root) { parsepath = wcxarchivenodepathstr, IconKey = iconkey };
-						Debug.Print($"new wcx node added : {wcxarchivenodepathstr}");
+						//Debug.Print($"new wcx node added : {wcxarchivenodepathstr}");
 					}
 					newwcxnodes.Add(newwcxnode);
 				}
@@ -2445,10 +2404,10 @@ namespace zfile
 		// 在目录变更时调用此方法记录历史
 		public void RecordDirectoryHistory(string newPath, string oldpath)
 		{
-			if (string.IsNullOrEmpty(oldpath) || oldpath.Equals(newPath)) return;
-	
-			backStack.Push(oldpath); //同一个filesource下，压入currentpath，不同filesource下，压入老filesource.currentpath
+			if (string.IsNullOrEmpty(oldpath) || oldpath.Equals(newPath)) 
+				return;
 
+			backStack.Push(oldpath); //同一个filesource下，压入currentpath，不同filesource下，压入老filesource.currentpath
 			//Debug.Print($"backstack.push: {oldpath}");
 			forwardStack.Clear(); // 清除前进历史
 		}
@@ -2636,9 +2595,7 @@ namespace zfile
 				{
 					var filterStatus = filterManager.GetFilterStatusDescription();
 					if (!string.IsNullOrEmpty(filterStatus))
-					{
 						status.Items[0].Text += $" | {filterStatus}";
-					}
 				}
 			}
 			catch (Exception ex)
@@ -2779,19 +2736,13 @@ namespace zfile
 												replacement = wdxModule.GetValue(file.FullPath, fieldIndex, 0);
 										}
 										else
-										{
 											Debug.Print($"WDX字段未找到: {fieldName} 在插件 {pluginName} 中");
-										}
 									}
 									else
-									{
 										Debug.Print($"WDX插件未找到: {pluginName}");
-									}
 								}
 								else
-								{
 									Debug.Print($"WDX格式错误: {tag}，应为 [=插件名称.字段名]");
-								}
 
 								// 替换标签为实际值
 								result = result.Remove(tagStart, tagEnd - tagStart + 1).Insert(tagStart, replacement);
@@ -2935,9 +2886,7 @@ namespace zfile
 				// 获取列标题（如果可用）
 				string columnHeader = "";
 				if (listView != null && column < listView.Columns.Count)
-				{
 					columnHeader = listView.Columns[column].Text;
-				}
 
 				// 获取要比较的文本
 				string text1 = item1.SubItems[column].Text;

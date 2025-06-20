@@ -45,8 +45,9 @@ namespace zfile
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
 	public struct ListDefaultParamStruct
 	{
-		public int Size;
-		public int PluginInterfaceVersionHi;
+		public int Size;        //in c version definition, use int , means 16bit signed, so we should use short in c# version, but in pascal definition, it is defined as long int （32 bit signed）, so we use int here
+		//public short Size;	//try to use c version definition
+		public int PluginInterfaceVersionHi;  //in c version definition, use DWORD , means 32bit unsigned, so we should use uint in c# version, but in pascal definition, it is defined as long int , so we use int here
 		public int PluginInterfaceVersionLow;
 		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
 		public string DefaultIniName;
@@ -143,8 +144,9 @@ namespace zfile
 				_listSearchDialog = GetDelegate<ListSearchDialog>("ListSearchDialog"); 
 				_listSendCommand = GetDelegate<ListSendCommand>("ListSendCommand"); 
 				_listNotificationReceived = GetDelegate<ListNotificationReceived>("ListNotificationReceived"); 
-				_listSetDefaultParams = GetDelegate<ListSetDefaultParams>("ListSetDefaultParams"); 
-		
+				_listSetDefaultParams = GetDelegate<ListSetDefaultParams>("ListSetDefaultParams");
+				//GC.KeepAlive(_listLoad);
+				//GC.KeepAlive(_listLoadW);
 				// 初始化插件
 				CallListSetDefaultParams();
 				LoadDetectString();

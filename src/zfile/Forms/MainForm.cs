@@ -1343,7 +1343,7 @@ namespace zfile
 			if (e.Node.Nodes.Count == 1 && e.Node.FirstNode.Text == "...")  //点击+号时，加载子目录
 				LoadSubDirectories(e.Node, out _);
 		}
-		public void ChangePath(string path, string LR, TreeNode eNode, bool recordhistory = true, bool forceNodeLoad = false)
+		public void ChangePath(string path, string LR, TreeNode eNode, bool recordhistory = true)
 		{   
 			//in zip, path = D:\\temp\\welcome.zip\\welcome
 			var fileSource = UpdateFilesourceAndCurrentPath(path, out var fschanged, out var oldfs, out var oldpath, LR);
@@ -1361,35 +1361,34 @@ namespace zfile
 				return;
 			}
 			var LV = GetListViewByName(LR);
-
-			// 无论如何都需要刷新ListView
-			var subdirs = LoadListViewByFileSource(path, LV, eNode);
-			var NeedDirRefresh = false; //标记是否需要刷新目录
-			foreach (var dir in subdirs)
-			{
-				//若subdirs在subnodes中未找到，则创建新的NODES，比如ISO文件下的session1/2
-				if (!eNode.Nodes.Cast<TreeNode>().Any(n => n.Text == dir))
-				{
-					var fspath = Helper.getFSpath(SelectedNode.FullPath);
-					if (wcxarchiveTreeNodes.ContainsKey(fspath))
-						wcxarchiveTreeNodes[fspath].Add($"{path}\\{dir}");
-					else
-						wcxarchiveTreeNodes[fspath] = [$"{path}\\{dir}"];
-					NeedDirRefresh = true; //标记需要刷新目录
-				}
-			}
-
 			if (fileSource is ShellFileSource) // shellfilesource should always loadsubdir
 				LoadSubDirectories(eNode, out _, LV); //盘符不变时在这里刷新TREEVIEW/LISTVIEW/////////////////////重复了，如果可以放在loadlistviewbyfilesource后执行，那么可以合并
-			else if (!(!forceNodeLoad && eNode.Tag is ShellItem sItem && sItem.SubNodeState == NODE_LOADED_KEY) || NeedDirRefresh)                // 只有当节点没有被标记为已加载时才加载子目录
+			else if (eNode.Tag is ShellItem sItem && sItem.SubNodeState != NODE_LOADED_KEY)                // 只有当节点没有被标记为已加载时才加载子目录
 			{
 				//如果盘符改变了，则不刷新treeview&listview, 因为在盘符改变时，会触发事件，在事件中会刷新(refreshpanel)
 				// 检查节点是否已经被加载过子目录
 				LoadSubDirectories(eNode, out _); //刷新目录
+				var NeedDirRefresh = false; //标记是否需要刷新目录
+				// 无论如何都需要刷新ListView
+				var subdirs = LoadListViewByFileSource(path, LV, eNode);
+				foreach (var dir in subdirs)
+				{
+					//若subdirs在subnodes中未找到，则创建新的NODES，比如ISO文件下的session1/2
+					if (!eNode.Nodes.Cast<TreeNode>().Any(n => n.Text == dir))
+					{
+						var fspath = Helper.getFSpath(SelectedNode.FullPath);
+						if (wcxarchiveTreeNodes.ContainsKey(fspath))
+							wcxarchiveTreeNodes[fspath].Add($"{path}\\{dir}");
+						else
+							wcxarchiveTreeNodes[fspath] = [$"{path}\\{dir}"];
+						NeedDirRefresh = true; //标记需要刷新目录
+					}
+				}
+				if (NeedDirRefresh)
+					LoadSubDirectories(eNode, out _);
 			}
-
 			eNode.Expand();
-
+			
 			if (recordhistory && (fschanged || Helper.IncludeTrailingPathDelimiter(path) != oldpath))
 				RecordDirectoryHistory(path, oldpath);   // 记录目录历史, 并更新filesource的currentpath
 
@@ -2376,6 +2375,7 @@ namespace zfile
 					var newwcxnode = FindTreeNode(node.Nodes, wcxarchivenodepath);
 					if (newwcxnode == null)
 					{
+						Debug.Print($"new wcx node added : {wcxarchivenodepathstr}");
 						newwcxnode = new TreeNode(wcxarchivenodepath);
 						node.Nodes.Add(newwcxnode);
 						nodesToKeep.Add(newwcxnode);
@@ -2385,7 +2385,6 @@ namespace zfile
 						newwcxnode.SelectedImageKey = iconkey;
 						iconManager.LoadIconFromCacheByKey(iconkey, node.TreeView.ImageList);
 						newwcxnode.Tag = new ShellItem(IntPtr.Zero, null, root) { parsepath = wcxarchivenodepathstr, IconKey = iconkey };
-						//Debug.Print($"new wcx node added : {wcxarchivenodepathstr}");
 					}
 					newwcxnodes.Add(newwcxnode);
 				}

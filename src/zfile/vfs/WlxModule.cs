@@ -419,7 +419,13 @@ namespace zfile
 			DetectString = DetectString.ToLower().Replace('"', '\'').Replace("[", $"'{ext.Reverse()}'["); //replace " with '
 			var evaluator = new ExpressionEvaluatorClaude();
 			p["ext"] = $"'{ext}'";
-			p["size"] = "1";
+			if (File.Exists(filename))
+			{
+				var fileinfo = new FileInfo(filename);
+				p["size"] = fileinfo.Length.ToString();
+			}
+			else
+				p["size"] = "1";
 			p["multimedia"] = ".true."; //temp ignore multimedia &
 			p["force"] = ".false."; // temp ignore force |
 			return (bool)evaluator.EvalExpr(DetectString, p);

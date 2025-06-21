@@ -141,7 +141,7 @@ namespace zfile.Forms
 					_lastHexSearch = dialog.HexSearch;
 
 					// 执行搜索
-					PerformSearch(dialog.GetProcessedSearchText(), dialog.GetSearchParameters());
+					PerformSearch(dialog.GetProcessedSearchText(), dialog.GetSearchParameters(), _lastHexSearch);
 				}
 			}
 		}
@@ -159,7 +159,7 @@ namespace zfile.Forms
 				return;
 			}
 
-			if (_isPlugin && _pluginWindow != nint.Zero && _currentPlugin != null)
+			if (_isPlugin && _pluginWindow != nint.Zero && _currentPlugin != null && !_lastHexSearch)
 			{
 				// 使用插件的查找功能
 				int searchParameter = 0; // 继续搜索
@@ -189,7 +189,7 @@ namespace zfile.Forms
 				if (_lastSearchUp || reverse)
 					searchParameter |= 8; // lcs_backwards
 
-				PerformSearch(_lastSearchText, searchParameter);
+				PerformSearch(_lastSearchText, searchParameter, _lastHexSearch);
 			}
 		}
 
@@ -198,9 +198,9 @@ namespace zfile.Forms
 		/// </summary>
 		/// <param name="searchText">搜索文本</param>
 		/// <param name="searchParameter">搜索参数</param>
-		private void PerformSearch(string searchText, int searchParameter)
+		private void PerformSearch(string searchText, int searchParameter, bool hexsearch = false)
 		{
-			if (_isPlugin && _pluginWindow != nint.Zero && _currentPlugin != null)
+			if (_isPlugin && _pluginWindow != nint.Zero && _currentPlugin != null && !hexsearch)
 			{
 				// 使用插件的搜索功能
 				if (WlxConstants.LISTPLUGIN_OK == _currentPlugin.CallListSearchText(_pluginWindow, searchText, searchParameter))
@@ -687,8 +687,8 @@ namespace zfile.Forms
 
 			// 添加工具栏按钮
 			var openButton = new ToolStripButton("打开", null, (s, e) => OpenFile());
-			var prevButton = new ToolStripButton("上一个", null, (s, e) => NavigateFile(-1));
-			var nextButton = new ToolStripButton("下一个", null, (s, e) => NavigateFile(1));
+			var prevButton = new ToolStripButton("上一个文件", null, (s, e) => NavigateFile(-1));
+			var nextButton = new ToolStripButton("下一个文件", null, (s, e) => NavigateFile(1));
 			var zoomInButton = new ToolStripButton("放大", null, (s, e) => ZoomImage(1.2f));
 			var zoomOutButton = new ToolStripButton("缩小", null, (s, e) => ZoomImage(0.8f));
 			var rotateButton = new ToolStripButton("旋转", null, (s, e) => RotateImage());
@@ -736,7 +736,7 @@ namespace zfile.Forms
 			]);
 
 			// 模式菜单
-			var modeMenu = new ToolStripMenuItem("模式(&M)");
+			var modeMenu = new ToolStripMenuItem("模式(&M)") { Name = "模式"};
 			var textModeItem = new ToolStripMenuItem("文本(&T)", null, (s, e) => SwitchViewMode(ViewMode.Text));
 			var hexModeItem = new ToolStripMenuItem("16进制(&H)", null, (s, e) => SwitchViewMode(ViewMode.Hex));
 			var mediaModeItem = new ToolStripMenuItem("多媒体(&M)", null, (s, e) => SwitchViewMode(ViewMode.Media));
@@ -1094,21 +1094,21 @@ namespace zfile.Forms
 		private void SwitchViewMode(ViewMode mode)
 		{
 			_currentViewMode = mode;
-
+			var viewmodeIndex = _menuStrip.Items.IndexOfKey("模式");
 			// 更新菜单项选中状态
-			foreach (ToolStripMenuItem item in ((ToolStripMenuItem)_menuStrip.Items[2]).DropDownItems)
+			foreach (var item in ((ToolStripMenuItem)_menuStrip.Items[viewmodeIndex]).DropDownItems)
 			{
-				if (item is ToolStripMenuItem)
-					item.Checked = false;
+				if (item is ToolStripMenuItem menuitem)
+					menuitem.Checked = false;
 			}
 
-		((ToolStripMenuItem)((ToolStripMenuItem)_menuStrip.Items[2]).DropDownItems[(int)mode]).Checked = true;
+		((ToolStripMenuItem)((ToolStripMenuItem)_menuStrip.Items[viewmodeIndex]).DropDownItems[(int)mode]).Checked = true;
 
 			// 隐藏所有面板
 			_textPanel.Visible = false;
 			_hexPanel.Visible = false;
 			_imagePanel.Visible = false;
-
+			
 			// 根据模式显示相应面板
 			switch (mode)
 			{

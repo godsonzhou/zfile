@@ -33,6 +33,291 @@ namespace zfile.Forms
 			Media
 		}
 
+		#region 编辑功能
+		private string _lastSearchText = "";
+		private bool _lastMatchCase = false;
+		private bool _lastWholeWord = false;
+		private bool _lastSearchUp = false;
+		private bool _lastHexSearch = false;
+
+		/// <summary>
+		/// 复制选中的文本到剪贴板
+		/// </summary>
+		private void CopySelectedText()
+		{
+			if (_isPlugin && _pluginWindow != nint.Zero && _currentPlugin != null)
+			{
+				// 使用插件的复制功能
+				_currentPlugin.CallListSendCommand(_pluginWindow, 1, 0); // lc_copy = 1
+			}
+			else if (_currentViewMode == ViewMode.Text && _textViewer.SelectionLength > 0)
+			{
+				// 复制文本查看器中的选中文本
+				string selectedText = _textViewer.SelectedText;
+				// 将所有字符串结束标志 (#0) 转换为空格 (#32)
+				selectedText = selectedText.Replace('\0', ' ');
+				Clipboard.SetText(selectedText);
+			}
+			else if (_currentViewMode == ViewMode.Hex && _hexViewer.SelectionLength > 0)
+			{
+				// 复制十六进制查看器中的选中文本
+				string selectedText = _hexViewer.SelectedText;
+				// 将所有字符串结束标志 (#0) 转换为空格 (#32)
+				selectedText = selectedText.Replace('\0', ' ');
+				Clipboard.SetText(selectedText);
+			}
+		}
+
+		/// <summary>
+		/// 全选文本
+		/// </summary>
+		private void SelectAllText()
+		{
+			if (_isPlugin && _pluginWindow != nint.Zero && _currentPlugin != null)
+			{
+				// 使用插件的全选功能
+				_currentPlugin.CallListSendCommand(_pluginWindow, 3, 0); // lc_selectall = 3
+			}
+			else if (_currentViewMode == ViewMode.Text)
+			{
+				// 全选文本查看器中的文本
+				_textViewer.SelectAll();
+			}
+			else if (_currentViewMode == ViewMode.Hex)
+			{
+				// 全选十六进制查看器中的文本
+				_hexViewer.SelectAll();
+			}
+		}
+
+		/// <summary>
+		/// 显示查找对话框
+		/// </summary>
+		private void ShowFindDialog()
+		{
+			if (_isPlugin && _pluginWindow != nint.Zero && _currentPlugin != null)
+			{
+				// 尝试使用插件的查找对话框
+				int result = _currentPlugin.CallListSearchDialog(_pluginWindow, 0);
+				if (result == WlxConstants.LISTPLUGIN_OK)
+					return; // 插件处理了查找对话框
+			}
+
+			// 使用自定义查找对话框
+			string initialSearchText = "";
+			
+			// 如果有选中的文本，使用它作为初始搜索文本
+			if (_currentViewMode == ViewMode.Text && _textViewer.SelectionLength > 0)
+			{
+				initialSearchText = _textViewer.SelectedText;
+			}
+			else if (_currentViewMode == ViewMode.Hex && _hexViewer.SelectionLength > 0)
+			{
+				initialSearchText = _hexViewer.SelectedText;
+			}
+			else if (!string.IsNullOrEmpty(_lastSearchText))
+			{
+				initialSearchText = _lastSearchText;
+			}
+
+			using (var dialog = new SearchDialog(initialSearchText))
+			{
+				// 设置上次的搜索选项
+				if (!string.IsNullOrEmpty(_lastSearchText))
+				{
+					dialog._matchCaseCheckBox.Checked = _lastMatchCase;
+					dialog._wholeWordCheckBox.Checked = _lastWholeWord;
+					dialog._searchUpCheckBox.Checked = _lastSearchUp;
+					dialog._hexSearchCheckBox.Checked = _lastHexSearch;
+				}
+
+				if (dialog.ShowDialog(this) == DialogResult.OK)
+				{
+					// 保存搜索选项
+					_lastSearchText = dialog.SearchText;
+					_lastMatchCase = dialog.MatchCase;
+					_lastWholeWord = dialog.WholeWord;
+					_lastSearchUp = dialog.SearchUp;
+					_lastHexSearch = dialog.HexSearch;
+
+					// 执行搜索
+					PerformSearch(dialog.GetProcessedSearchText(), dialog.GetSearchParameters());
+				}
+			}
+		}
+
+		/// <summary>
+		/// 查找下一个匹配项
+		/// </summary>
+		/// <param name="reverse">是否反向搜索</param>
+		private void FindNext(bool reverse = false)
+		{
+			if (string.IsNullOrEmpty(_lastSearchText))
+			{
+				// 如果没有上次的搜索文本，显示查找对话框
+				ShowFindDialog();
+				return;
+			}
+
+			if (_isPlugin && _pluginWindow != nint.Zero && _currentPlugin != null)
+			{
+				// 使用插件的查找功能
+				int searchParameter = 0; // 继续搜索
+
+				if (_lastMatchCase)
+					searchParameter |= 2; // lcs_matchcase
+
+				if (_lastWholeWord)
+					searchParameter |= 4; // lcs_wholewords
+
+				if (_lastSearchUp || reverse)
+					searchParameter |= 8; // lcs_backwards
+
+				_currentPlugin.CallListSearchText(_pluginWindow, _lastSearchText, searchParameter);
+			}
+			else
+			{
+				// 使用内置查找功能
+				int searchParameter = 0; // 继续搜索
+
+				if (_lastMatchCase)
+					searchParameter |= 2; // lcs_matchcase
+
+				if (_lastWholeWord)
+					searchParameter |= 4; // lcs_wholewords
+
+				if (_lastSearchUp || reverse)
+					searchParameter |= 8; // lcs_backwards
+
+				PerformSearch(_lastSearchText, searchParameter);
+			}
+		}
+
+		/// <summary>
+		/// 执行搜索
+		/// </summary>
+		/// <param name="searchText">搜索文本</param>
+		/// <param name="searchParameter">搜索参数</param>
+		private void PerformSearch(string searchText, int searchParameter)
+		{
+			if (_isPlugin && _pluginWindow != nint.Zero && _currentPlugin != null)
+			{
+				// 使用插件的搜索功能
+				if (WlxConstants.LISTPLUGIN_OK == _currentPlugin.CallListSearchText(_pluginWindow, searchText, searchParameter))
+					return;
+			}
+
+			bool matchCase = (searchParameter & 2) != 0; // lcs_matchcase
+			bool wholeWord = (searchParameter & 4) != 0; // lcs_wholewords
+			bool backwards = (searchParameter & 8) != 0; // lcs_backwards
+			bool findFirst = (searchParameter & 1) != 0; // lcs_findfirst
+
+			if (_currentViewMode == ViewMode.Text)
+			{
+				// 在文本查看器中搜索
+				RichTextBoxFinds options = RichTextBoxFinds.None;
+
+				if (matchCase)
+					options |= RichTextBoxFinds.MatchCase;
+
+				if (wholeWord)
+					options |= RichTextBoxFinds.WholeWord;
+
+				if (backwards)
+					options |= RichTextBoxFinds.Reverse;
+
+				int startPosition;
+				if (findFirst)
+				{
+					// 从当前行的开始位置搜索
+					int lineIndex = _textViewer.GetLineFromCharIndex(_textViewer.SelectionStart);
+					startPosition = _textViewer.GetFirstCharIndexFromLine(lineIndex);
+				}
+				else if (backwards)
+				{
+					// 反向搜索时，从选择的开始位置搜索
+					startPosition = _textViewer.SelectionStart;
+				}
+				else
+				{
+					// 正向搜索时，从选择的结束位置搜索
+					startPosition = _textViewer.SelectionStart + _textViewer.SelectionLength;
+				}
+
+				int foundIndex = _textViewer.Find(searchText, startPosition, options);
+
+				if (foundIndex == -1 && !findFirst)
+				{
+					// 如果没有找到，从头/尾开始搜索
+					foundIndex = _textViewer.Find(searchText, backwards ? _textViewer.TextLength : 0, options);
+				}
+
+				if (foundIndex != -1)
+				{
+					// 找到了匹配项，滚动到该位置
+					_textViewer.Select(foundIndex, searchText.Length);
+					_textViewer.ScrollToCaret();
+				}
+				else
+				{
+					MessageBox.Show($"找不到 \"{searchText}\"", "查找", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				}
+			}
+			else if (_currentViewMode == ViewMode.Hex)
+			{
+				// 在十六进制查看器中搜索
+				// 十六进制查看器的搜索实现类似于文本查看器
+				RichTextBoxFinds options = RichTextBoxFinds.None;
+
+				if (matchCase)
+					options |= RichTextBoxFinds.MatchCase;
+
+				if (wholeWord)
+					options |= RichTextBoxFinds.WholeWord;
+
+				if (backwards)
+					options |= RichTextBoxFinds.Reverse;
+
+				int startPosition;
+				if (findFirst)
+				{
+					// 从当前行的开始位置搜索
+					int lineIndex = _hexViewer.GetLineFromCharIndex(_hexViewer.SelectionStart);
+					startPosition = _hexViewer.GetFirstCharIndexFromLine(lineIndex);
+				}
+				else if (backwards)
+				{
+					// 反向搜索时，从选择的开始位置搜索
+					startPosition = _hexViewer.SelectionStart;
+				}
+				else
+				{
+					// 正向搜索时，从选择的结束位置搜索
+					startPosition = _hexViewer.SelectionStart + _hexViewer.SelectionLength;
+				}
+
+				int foundIndex = _hexViewer.Find(searchText, startPosition, options);
+
+				if (foundIndex == -1 && !findFirst)
+				{
+					// 如果没有找到，从头/尾开始搜索
+					foundIndex = _hexViewer.Find(searchText, backwards ? _hexViewer.TextLength : 0, options);
+				}
+
+				if (foundIndex != -1)
+				{
+					// 找到了匹配项，滚动到该位置
+					_hexViewer.Select(foundIndex, searchText.Length);
+					_hexViewer.ScrollToCaret();
+				}
+				else
+				{
+					MessageBox.Show($"找不到 \"{searchText}\"", "查找", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				}
+			}
+		}
+		#endregion
+
 		private ViewMode _currentViewMode = ViewMode.Text;
 
 		// 控件
@@ -430,6 +715,16 @@ namespace zfile.Forms
 				new ToolStripMenuItem("退出(&X)", null, (s, e) => Close())
 			]);
 
+			// 编辑菜单
+			var editMenu = new ToolStripMenuItem("编辑(&E)");
+			editMenu.DropDownItems.AddRange([
+				new ToolStripMenuItem("将选择文本复制到剪贴板(&C)", null, (s, e) => CopySelectedText()) { ShortcutKeys = Keys.Control | Keys.C },
+				new ToolStripMenuItem("全部选择(&A)", null, (s, e) => SelectAllText()) { ShortcutKeys = Keys.Control | Keys.A },
+				new ToolStripSeparator(),
+				new ToolStripMenuItem("查找(&F)...", null, (s, e) => ShowFindDialog()) { ShortcutKeys = Keys.F7 },
+				new ToolStripMenuItem("查找下一个(&N)", null, (s, e) => FindNext()) { ShortcutKeys = Keys.F5 }
+			]);
+
 			// 查看菜单
 			var viewMenu = new ToolStripMenuItem("查看(&V)");
 			viewMenu.DropDownItems.AddRange([
@@ -484,7 +779,7 @@ namespace zfile.Forms
 				});
 				pluginMenu.DropDownItems.Add(item);
 			}
-			_menuStrip.Items.AddRange([ fileMenu, viewMenu, modeMenu, encodingMenu, pluginMenu ]);
+			_menuStrip.Items.AddRange([ fileMenu, editMenu, viewMenu, modeMenu, encodingMenu, pluginMenu ]);
 		}
 
 		private void CreateStatusStrip()
@@ -510,6 +805,36 @@ namespace zfile.Forms
 					ToggleFullScreen();
 				else
 					Close();
+			}
+			else if (e.Control && e.KeyCode == Keys.C)
+			{
+				CopySelectedText();
+				e.Handled = true;
+			}
+			else if (e.Control && e.KeyCode == Keys.A)
+			{
+				SelectAllText();
+				e.Handled = true;
+			}
+			else if (e.KeyCode == Keys.F7)
+			{
+				ShowFindDialog();
+				e.Handled = true;
+			}
+			else if (e.KeyCode == Keys.F5 || e.KeyCode == Keys.F3 || (e.Shift && e.KeyCode == Keys.F7))
+			{
+				FindNext();
+				e.Handled = true;
+			}
+			else if ((e.Control && e.KeyCode == Keys.F3) || (e.Control && e.KeyCode == Keys.F5))
+			{
+				FindNext(true); // 反向搜索
+				e.Handled = true;
+			}
+			else if ((e.Shift && e.KeyCode == Keys.F3) || (e.Shift && e.KeyCode == Keys.F5))
+			{
+				FindNext(true); // 反向搜索
+				e.Handled = true;
 			}
 		}
 

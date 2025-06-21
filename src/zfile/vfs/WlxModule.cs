@@ -472,3 +472,547 @@ namespace zfile
 		}
 	}
 }
+/*
+ * ListLoad
+ 
+ListLoad is called when a user opens lister with F3 or the Quick View Panel with Ctrl+Q, and when the definition string either doesn't exist, or its evaluation returns true.
+ 
+Declaration:
+ 
+HWND __stdcall ListLoad(HWND ParentWin,char* FileToLoad,int ShowFlags);
+ 
+Description of parameters:
+ 
+ParentWin This is lister's window. Create your plugin window as a child of this window.
+ 
+FileToLoad The name of the file which has to be loaded.
+ 
+ShowFlags A combination of the following flags:
+lcp_wraptext Text: Word wrap mode is checked
+lcp_fittowindow Images: Fit image to window is checked
+lcp_fitlargeronly Fit image to window only if larger than the window.
+Always set together with lcp_fittowindow.
+lcp_center Center image in viewer window
+lcp_ansi Ansi charset is checked
+lcp_ascii Ascii(DOS) charset is checked
+lcp_variable Variable width charset is checked
+lcp_forceshow User chose 'Image/Multimedia' from the menu. See remarks.
+lcp_darkmode Total Commander is in dark mode
+lcp_darkmodenative Windows 10/11 supports dark mode natively, e.g. for scroll bars
+You may ignore these parameters if they don't apply to your document type.
+ 
+Return value:
+ 
+Return a handle to your window if load succeeds, NULL otherwise. If NULL is returned, Lister will try the next plugin.
+ 
+Remarks:
+ 
+Please note that multiple Lister windows can be open at the same time! Therefore you cannot save settings in global variables. You can call RegisterClass with the parameter cbWndExtra to reserve extra space for your data, which you can then access via GetWindowLong(). Or use an internal list, and store the list parameter via SetWindowLong(hwnd,GWL_ID,...).
+Lister will subclass your window to catch some hotkeys like 'n' or 'p'.
+When lister is activated, it will set the focus to your window. If your window contains child windows, then make sure that you set the focus to the correct child when your main window receives the focus!
+If lcp_forceshow is defined, you may try to load the file even if the plugin wasn't made for it. Example: A plugin with line numbers may only show the file as such when the user explicitly chooses 'Image/Multimedia' from the menu.
+ 
+Lister plugins which only create thumbnail images do not need to implement this function. 
+------------------------------------------
+
+ListSearchDialog
+ 
+ListSearchDialog is called when the user tries to find text in the plugin. Only implement this function if your plugin requires a plugin-specific search dialog! For searching text, please implement ListSearchText instead!
+ 
+Declaration:
+ 
+int __stdcall ListSearchDialog(HWND ListWin,int FindNext);
+ 
+Description of parameters:
+ 
+ListWin Hande to your list window created with ListLoad
+ 
+FindNext 0: FindFirst was chosen by the user
+1: FindNext was chosen from the menu
+ 
+Return value:
+ 
+Return LISTPLUGIN_OK if you implement this function, or LISTPLUGIN_ERROR if Total Commander should show its own text search dialog and call ListSearchText later. This allows a plugin to support both its own search method via ListSearchDialog, and the standard search method via ListSearchText! Do NOT return LISTPLUGIN_ERROR if the search fails!
+ 
+Remarks:
+ 
+The plugin needs to show the search dialog and highlight/select the found text by itself.
+Requires Total Commander 7 or later.
+------------------------------------------
+
+ListSearchText
+ 
+ListSearchText is called when the user tries to find text in the plugin. Don't implement this function if your plugin doesn't contain any text, or doesn't support text searches!
+ 
+Declaration:
+ 
+int __stdcall ListSearchText(HWND ListWin,char* SearchString,int SearchParameter);
+ 
+Description of parameters:
+ 
+ListWin Hande to your list window created with ListLoad
+ 
+SearchString String to be searched.
+ 
+SearchParameter A combination of the following search flags:
+lcs_findfirst Search from the beginning of the first displayed line (not set: find next)
+lcs_matchcase The search string is to be treated case-sensitively.
+lcs_wholewords Find whole words only.
+lcs_backwards Search backwards towards the beginning of the file.
+ 
+ 
+Return value:
+ 
+Return either LISTPLUGIN_OK or LISTPLUGIN_ERROR.
+ 
+Remarks:
+ 
+The plugin needs to highlight/select the found text by itself.
+ --------------------------------------------------
+
+ListSendCommand
+ 
+ListSendCommand is called when the user changes some options in Lister's menu.
+ 
+Declaration:
+ 
+int __stdcall ListSendCommand(HWND ListWin,int Command,int Parameter);
+ 
+Description of parameters:
+ 
+ListWin Hande to your list window created with ListLoad
+ 
+Command One of the following commands:
+lc_copy Copy current selection to the clipboard
+lc_newparams New parameters passed to plugin, see Parameter below
+lc_selectall Select the whole contents
+lc_setpercent Go to new position in document (in percent).
+ 
+Parameter Used for lc_newparams. May be a combination of:
+lcp_wraptext Text: Word wrap mode is checked
+lcp_ansi Ansi charset is checked
+lcp_ascii Ascii(DOS) charset is checked
+lcp_variable Variable width charset is checked
+lcp_fittowindow Images: Fit image to window is checked
+lcp_fitlargeronly Images: Sent in addition to lcp_fittowindow if only images larger than
+the client are should be resized - smaller should be shown centered
+lcp_center Images: Sent when the image needs to be centered
+may be combined with lcp_fittowindow and/or lcp_fitlargeronly
+Also used for lc_setpercent. In this case, the value is the new position (in percent) to which to scroll.
+lcp_darkmode The user interface was switched from normal to dark mode. The flag is missing when switching from dark to normal mode
+lcp_darkmodenative Windows 10/11 supports dark mode natively, e.g. for scroll bars
+You may ignore these parameters if they don't apply to your document type.
+ 
+Return value:
+ 
+Return either LISTPLUGIN_OK or LISTPLUGIN_ERROR.
+------------------------------------------------------------
+
+WM_COMMAND
+ 
+WM_COMMAND can be sent to the parent window to set a new percentage value in Lister's title bar, or to check some menu items like fonts or word wrap mode.
+ 
+Usage:
+ 
+PostMessage(GetParent(ListWin),WM_COMMAND,MAKELONG(value,itemtype),(LPARAM)ListWin);
+ 
+Description of parameters:
+ 
+ListWin Hande to your list window created with ListLoad
+ 
+value The new value, depending on what is passed in itemtype (see below).
+ 
+itemtype Item to change in the framework (Lister) window. Can be one of the following:
+itm_percent Set the percent value in the menu bar of the main Lister window.
+itm_fontstyle Set the font style: set value to lcp_ansi, lcp_ascii, or lcp_variable.
+itm_wrap Word wrap mode on or off. Set value to 1 for on or 0 for off.
+itm_fit Fit image to screen on or off. Set value to 1 for on or 0 for off.
+New in 1.6: Set to 2 for lcp_fittowindow and
+to 3 for lcp_fitlargeronly (if 1, the user-chosen option is not changed)
+itm_center New in 1.6: Center image on screen on or off. Set value to 1 for on or 0 for off.
+itm_next New in TC 5.52: Switch to next file if multiple opened (e.g. after playing an mp3). The value of "value" MUST be 0!
+ 
+Return value:
+ 
+No value is returned by Lister, so you may use PostMessage() or SendMessage().
+ 
+Notes:
+ 
+The message can also be sent during ListLoad, even though Lister doesn't yet know the window handle of the list window! It sets a special flag to handle this. Do not send this message if you don't want to modify any of the values!
+--------------------------------------------------------------------
+
+ListNotificationReceived
+ 
+ListNotificationReceived is called when the parent window receives a notification message from the child window: WM_COMMAND, WM_NOTIFY, WM_MEASUREITEM or WM_DRAWITEM
+ 
+Declaration:
+ 
+int __stdcall ListNotificationReceived(HWND ListWin,int Message,WPARAM wParam,LPARAM lParam);
+ 
+Description of parameters:
+ 
+ListWin Hande to your list window created with ListLoad
+ 
+Message The received message, one of the following: WM_COMMAND, WM_NOTIFY, WM_MEASUREITEM or WM_DRAWITEM.
+ 
+wParam The WPARAM parameter of the message.
+ 
+lParam The LPARAM parameter of the message.
+ 
+Return value:
+ 
+Return the value described for that message in the Windows API help.
+ 
+Notes:
+ 
+Do not implement this function if you don't use any owner-drawn controls and don't require any notification messages! Possible applications: Owner-drawn Listview control, reacting to scroll messages, etc.
+---------------------------------------------------
+
+ListGetPreviewBitmap
+ 
+ListGetPreviewBitmap is called to retrieve a bitmap for the thumbnails view. Please only implement and export this function if it makes sense to show preview pictures for the supported file types! This function is new in version 1.4. It requires Total Commander >=6.5, but is ignored by older versions.
+ 
+Declaration:
+ 
+HBITMAP __stdcall ListGetPreviewBitmap(char* FileToLoad,int width,int height,
+    char* contentbuf,int contentbuflen);
+ 
+Description of parameters:
+ 
+FileToLoad The name of the file for which to load the preview bitmap.
+ 
+width Requested maximum width of the bitmap.
+ 
+height Requested maximum height of the bitmap
+ 
+contentbuf The first 8 kBytes (8k) of the file. Often this is enough data to show a reasonable preview, e.g. the first few lines of a text file.
+ 
+contentbuflen The length of the data passed in contentbuf. Please note that contentbuf is not a 0 terminated string, it may contains 0 bytes in the middle! It's just the 1:1 contents of the first 8k of the file.
+ 
+Return value:
+ 
+Return a device-dependent bitmap created with e.g. CreateCompatibleBitmap.
+ 
+Notes:
+ 
+1. This function is only called in Total Commander 6.5 and later. The plugin version will be >= 1.4.
+2. The bitmap handle goes into possession of Total Commander, which will delete it after using it. The plugin must not delete the bitmap handle!
+3. Make sure you scale your image correctly to the desired maximum width+height! Do not fill the rest of the bitmap - instead, create a bitmap which is SMALLER than requested! This way, Total Commander can center your image and fill the rest with the default background color.
+ 
+The following sample code will stretch a bitmap with dimensions bigwidth*bigheight down to max. width*height keeping the correct aspect ratio (proportions):
+ 
+HBITMAP __stdcall ListGetPreviewBitmap(char* FileToLoad,int width,int height,
+    char* contentbuf,int contentbuflen)
+{
+int w,h;
+int stretchx,stretchy;
+OSVERSIONINFO vx;
+BOOL is_nt;
+BITMAP bmpobj;
+HBITMAP bmp_image,bmp_thumbnail,oldbmp_image,oldbmp_thumbnail;
+HDC maindc,dc_thumbnail,dc_image;
+POINT pt;
+ 
+// check for operating system: Windows 9x does NOT support the HALFTONE stretchblt mode!
+vx.dwOSVersionInfoSize=sizeof(vx);
+GetVersionEx(&vx);
+is_nt=vx.dwPlatformId==VER_PLATFORM_WIN32_NT;
+ 
+// here you load your image
+bmp_image=SomeHowLoadImageFromFile(FileToLoad);
+if (bmp_image && GetObject(bmp_image,sizeof(bmpobj),&bmpobj)) {
+  bigx=bmpobj.bmWidth;
+  bigy=bmpobj.bmHeight;
+  // do we need to stretch?
+  if ((bigx>=width || bigy>=height) && (bigx>0 && bigy>0)) {
+    stretchy=MulDiv(width,bigy,bigx);
+    if (stretchy<=height) {
+      w=width;
+      h=stretchy;
+      if (h<1) h=1;
+    } else {
+      stretchx=MulDiv(height,bigx,bigy);
+      w=stretchx;
+      if (w<1) w=1;
+      h=height;
+    }
+    maindc=GetDC(GetDesktopWindow());
+    dc_thumbnail=CreateCompatibleDC(maindc);
+    dc_image=CreateCompatibleDC(maindc);
+    bmp_thumbnail=CreateCompatibleBitmap(maindc,w,h);
+    ReleaseDC(GetDesktopWindow(),maindc);
+    oldbmp_image=(HBITMAP)SelectObject(dc_image,bmp_image);
+    oldbmp_thumbnail=(HBITMAP)SelectObject(dc_thumbnail,bmp_thumbnail);
+    if(is_nt) {
+      SetStretchBltMode(dc_thumbnail,HALFTONE);
+      SetBrushOrgEx(dc_thumbnail,0,0,&pt);
+    } else {
+      SetStretchBltMode(dc_thumbnail,COLORONCOLOR);
+    }
+    StretchBlt(dc_thumbnail,0,0,w,h,dc_image,0,0,bigx,bigy,SRCCOPY);
+    SelectObject(dc_image,oldbmp_image);
+    SelectObject(dc_thumbnail,oldbmp_thumbnail);
+    DeleteDC(dc_image);
+    DeleteDC(dc_thumbnail);
+    DeleteObject(bmp_image);
+    bmp_image=bmp_thumbnail;
+  }
+}
+return bmp_image;
+}
+--------------------------------------------------------------
+
+ListGetDetectString
+ 
+ListGetDetectString is called when the plugin is loaded for the first time. It should return a parse function which allows Lister to find out whether your plugin can probably handle the file or not. You can use this as a first test - more thorough tests may be performed in ListLoad(). It's very important to define a good test string, especially when there are dozens of plugins loaded! The test string allows lister to load only those plugins relevant for that specific file type.
+ 
+Declaration:
+ 
+void __stdcall ListGetDetectString(char* DetectString,int maxlen);
+ 
+Description of parameters:
+ 
+DetectString Return the detection string here. See remarks for the syntax.
+ 
+maxlen Maximum length, in bytes, of the detection string (currently 2k).
+ 
+Return value:
+ 
+This function doesn't return any value.
+ 
+Remarks:
+ 
+The syntax of the detection string is as follows. There are operands, operators and functions.
+Operands:
+EXT The extension of the file to be loaded (always uppercase).
+SIZE The size of the file to be loaded.
+FORCE 1 if the user chose 'Image/Multimedia' from the menu, 0 otherwise.
+MULTIMEDIA This detect string is special: It is always TRUE (also in older TC versions). If it is present in the string, this plugin overrides internal multimedia viewers in TC. If not, the internal viewers are used. Check the example below!
+[5] The fifth byte in the file to be loaded. The first 8192 bytes can be checked for a match.
+12345 The number 12345
+"TEST" The string "TEST"
+ 
+Operators
+& AND. The left AND the right expression must be true (!=0).
+| OR: Either the left OR the right expression needs to be true (!=0).
+= EQUAL: The left and right expression need to be equal.
+!= UNEQUAL: The left and right expression must not be equal.
+< SMALLER: The left expression is smaller than the right expression. Comparing a number and a string returns false (0). Booleans are stored as 0 (false) and 1 (true).
+> LARGER: The left expression is larger than the right expression.
+ 
+Functions
+() Braces: The expression inside the braces is evaluated as a whole.
+!() NOT: The expression inside the braces will be inverted. Note that the braces are necessary!
+FIND() The text inside the braces is searched in the first 8192 bytes of the file. Returns 1 for success and 0 for failure.
+FINDI() The text inside the braces is searched in the first 8192 bytes of the file. Upper/lowercase is ignored.
+ 
+Internal handling of variables
+ 
+Varialbes can store numbers and strings. Operators can compare numbers with numbers and strings with strings, but not numbers with strings. Exception: A single char can also be compared with a number. Its value is its ANSI character code (e.g. "A"=65). Boolean values of comparisons are stored as 1 (true) and 0 (false).
+ 
+Examples:
+ 
+String Interpretation
+EXT="WAV" | EXT="AVI" The file may be a Wave or AVI file.
+ 
+EXT="WAV" & [0]="R" & [1]="I" & [2]="F" & [3]="F" & FIND("WAVEfmt")
+Also checks for Wave header "RIFF" and string "WAVEfmt"
+ 
+EXT="WAV" & (SIZE<1000000 | FORCE) Load wave files smaller than 1000000 bytes at startup/file change, and all wave files if the user explictly chooses 'Image/Multimedia' from the menu.
+ 
+([0]="P" & [1]="K" & [2]=3 & [3]=4) | ([0]="P" & [1]="K" & [2]=7 & [3]=8)
+Checks for the ZIP header PK#3#4 or PK#7#8 (the latter is used for multi-volume zip files).
+ 
+EXT="TXT" & !(FINDI("<HEAD>") | FINDI("<BODY>")) This plugin handles text files which aren't HTML files. A first detection is done with the <HEAD> and <BODY> tags. If these are not found, a more thorough check may be done in the plugin itself.
+ 
+MULTIMEDIA & (EXT="WAV" | EXT="MP3") Replace the internal player for WAV and MP3 files (which normally uses Windows Media Player as a plugin). Requires TC 6.0 or later!
+ 
+Operator precedence:
+ 
+The strongest operators are =, != < and >, then comes &, and finally |. What does this mean? Example:
+expr1="a" & expr2 | expr3<5 & expr4!=b will be evaluated as ((expr1="a") & expr2) | ((expr3<5) & (expr4!="b"))
+If in doubt, simply use braces to make the evaluation order clear.
+ 
+--------------------------------------------------------------------------
+
+ListLoadNext
+ 
+New in Total Commander 7: ListLoadNext is called when a user switches to the next or previous file in lister with 'n' or 'p' keys, or goes to the next/previous file in the Quick View Panel, and when the definition string either doesn't exist, or its evaluation returns true.
+ 
+Declaration:
+ 
+int __stdcall ListLoadNext(HWND ParentWin,HWND ListWin,char* FileToLoad,int ShowFlags);
+ 
+Description of parameters:
+ 
+ParentWin This is lister's window. Your plugin window needs to be a child of this window
+ 
+ListWin The plugin window returned by ListLoad
+ 
+FileToLoad The name of the file which has to be loaded.
+ 
+ShowFlags A combination of the following flags:
+lcp_wraptext Text: Word wrap mode is checked
+lcp_fittowindow Images: Fit image to window is checked
+lcp_fitlargeronly Fit image to window only if larger than the window.
+Always set together with lcp_fittowindow.
+lcp_center Center image in viewer window
+lcp_ansi Ansi charset is checked
+lcp_ascii Ascii(DOS) charset is checked
+lcp_variable Variable width charset is checked
+lcp_forceshow User chose 'Image/Multimedia' from the menu. See remarks.
+lcp_darkmode Total Commander is in dark mode
+lcp_darkmodenative Windows 10/11 supports dark mode natively, e.g. for scroll bars
+You may ignore these parameters if they don't apply to your document type.
+ 
+Return value:
+ 
+Return LISTPLUGIN_OK if load succeeds, LISTPLUGIN_ERROR otherwise. If LISTPLUGIN_ERROR is returned, Lister will try to load the file with the normal ListLoad function (also with other plugins).
+ 
+Remarks:
+ 
+Please note that multiple Lister windows can be open at the same time! Therefore you cannot save settings in global variables. You can call RegisterClass with the parameter cbWndExtra to reserve extra space for your data, which you can then access via GetWindowLong(). Or use an internal list, and store the list parameter via SetWindowLong(hwnd,GWL_ID,...).
+Lister will subclass your window to catch some hotkeys like 'n' or 'p'.
+When lister is activated, it will set the focus to your window. If your window contains child windows, then make sure that you set the focus to the correct child when your main window receives the focus!
+If lcp_forceshow is defined, you may try to load the file even if the plugin wasn't made for it. Example: A plugin with line numbers may only show the file as such when the user explicitly chooses 'Image/Multimedia' from the menu.
+ 
+Lister plugins which only create thumbnail images do not need to implement this function. If you do not implement LIstLoadNext but only ListLoad, then the plugin will be unloaded and loaded again when switching through files, which results in flickering.
+------------------------------------------------------------------
+
+ListPrint
+ 
+ListPrint is called when the user chooses the print function.
+ 
+Declaration:
+ 
+int __stdcall ListPrint(HWND ListWin,char* FileToPrint,char* DefPrinter,
+                        int PrintFlags,RECT* Margins)
+ 
+Description of parameters:
+ 
+ListWin Hande to your list window created with ListLoad
+ 
+FileToPrint The full name of the file which needs to be printed. This is the same file as loaded with ListLoad.
+ 
+DefPrinter Name of the printer currently chosen in Total Commander. May be NULL (use default printer).
+ 
+PrintFlags Currently not used (set to 0). May be used in a later version.
+ 
+Margins The left, top, right and bottom margins of the print area, in MM_LOMETRIC measurement units (1/10 mm).
+May be ignored.
+ 
+Return value:
+ 
+Return either LISTPLUGIN_OK or LISTPLUGIN_ERROR.
+ 
+Notes:
+ 
+You need to show a print dialog, in which the user can choose what to print, and select a different printer. See the sample plugin on how to do this!
+---------------------------------------------------------
+
+ListSetDefaultParams
+ 
+ListSetDefaultParams is called immediately after loading the DLL, before ListLoad. This function is new in version 1.2. It requires Total Commander >=5.51, but is ignored by older versions.
+ 
+Declaration:
+ 
+void __stdcall ListSetDefaultParams(ListDefaultParamStruct* dps);
+ 
+Description of parameters:
+ 
+dps This structure of type ListDefaultParamStruct currently contains the version number of the plugin interface, and the suggested location for the settings file (ini file). It is recommended to store any plugin-specific information either directly in that file, or in that directory under a different name. Make sure to use a unique header when storing data in this file, because it is shared by other file system plugins! If your plugin needs more than 1kbyte of data, you should use your own ini file because ini files are limited to 64k.
+ 
+Return value:
+ 
+The function has no return value:
+ 
+Important note:
+ 
+This function is only called in Total Commander 5.51 and later. The plugin version will be >= 1.2.
+----------------------------------------------------------
+
+ListDefaultParamStruct
+ 
+ListDefaultParamStruct is passed to ListSetDefaultParams to inform the plugin about the current plugin interface version and ini file location.
+ 
+Declaration:
+ 
+typedef struct {
+    int size;
+    DWORD PluginInterfaceVersionLow;
+    DWORD PluginInterfaceVersionHi;
+    char DefaultIniName[MAX_PATH];
+} ListDefaultParamStruct;
+ 
+Description of struct members:
+ 
+size The size of the structure, in bytes. Later revisions of the plugin interface may add more structure members, and will adjust this size field accordingly.
+ 
+PluginInterfaceVersionLow Low value of plugin interface version. This is the value after the comma, multiplied by 100! Example. For plugin interface version 1.3, the low DWORD is 30 and the high DWORD is 1.
+ 
+PluginInterfaceVersionHi High value of plugin interface version.
+ 
+DefaultIniName Suggested location+name of the ini file where the plugin could store its data. This is a fully qualified path+file name, and will be in the same directory as the wincmd.ini. It's recommended to store the plugin data in this file or at least in this directory, because the plugin directory or the Windows directory may not be writable! 
+---------------------------------------------------------
+
+
+#define lc_copy   1
+#define lc_newparams 2
+#define lc_selectall 3
+#define lc_setpercent 4
+
+#define lcp_wraptext 1
+#define lcp_fittowindow 2
+#define lcp_ansi   4
+#define lcp_ascii   8
+#define lcp_variable 12
+#define lcp_forceshow 16
+#define lcp_fitlargeronly 32
+#define lcp_center 64
+#define lcp_darkmode 128
+#define lcp_darkmodenative 256
+
+#define lcs_findfirst 1
+#define lcs_matchcase 2
+#define lcs_wholewords 4
+#define lcs_backwards 8
+
+#define itm_percent 0xFFFE
+#define itm_fontstyle 0xFFFD
+#define itm_wrap   0xFFFC
+#define itm_fit   0xFFFB
+#define itm_next   0xFFFA
+#define itm_center 0xFFF9
+
+#define LISTPLUGIN_OK 0
+#define LISTPLUGIN_ERROR 1
+
+typedef struct {
+int size;
+DWORD PluginInterfaceVersionLow;
+DWORD PluginInterfaceVersionHi;
+char DefaultIniName[MAX_PATH];
+} ListDefaultParamStruct;
+
+HWND __stdcall ListLoad(HWND ParentWin,char* FileToLoad,int ShowFlags);
+HWND __stdcall ListLoadW(HWND ParentWin,WCHAR* FileToLoad,int ShowFlags);
+int __stdcall ListLoadNext(HWND ParentWin,HWND PluginWin,char* FileToLoad,int ShowFlags);
+int __stdcall ListLoadNextW(HWND ParentWin,HWND PluginWin,WCHAR* FileToLoad,int ShowFlags);
+void __stdcall ListCloseWindow(HWND ListWin);
+void __stdcall ListGetDetectString(char* DetectString,int maxlen);
+int __stdcall ListSearchText(HWND ListWin,char* SearchString,int SearchParameter);
+int __stdcall ListSearchTextW(HWND ListWin,WCHAR* SearchString,int SearchParameter);
+int __stdcall ListSearchDialog(HWND ListWin,int FindNext);
+int __stdcall ListSendCommand(HWND ListWin,int Command,int Parameter);
+int __stdcall ListPrint(HWND ListWin,char* FileToPrint,char* DefPrinter,
+                        int PrintFlags,RECT* Margins);
+int __stdcall ListPrintW(HWND ListWin,WCHAR* FileToPrint,WCHAR* DefPrinter,
+                        int PrintFlags,RECT* Margins);
+int __stdcall ListNotificationReceived(HWND ListWin,int Message,WPARAM wParam,LPARAM lParam);
+void __stdcall ListSetDefaultParams(ListDefaultParamStruct* dps);
+HBITMAP __stdcall ListGetPreviewBitmap(char* FileToLoad,int width,int height,
+    char* contentbuf,int contentbuflen);
+HBITMAP __stdcall ListGetPreviewBitmapW(WCHAR* FileToLoad,int width,int height,
+    char* contentbuf,int contentbuflen);
+
+ */

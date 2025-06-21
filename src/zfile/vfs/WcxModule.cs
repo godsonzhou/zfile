@@ -48,6 +48,9 @@ Unicode支持：
 处理Unicode文件名
 提供进度回调
 安全地管理非托管资源
+===================================================================
+
+
 */
 namespace zfile
 {
@@ -181,7 +184,35 @@ namespace zfile
 		/// </summary>
 		PK_CAPS_ENCRYPT = 512
 	}
-
+	/*tOpenArchiveData
+ 
+	tOpenArchiveData is used in OpenArchive.
+ 
+	typedef struct {
+		char* ArcName;
+		int OpenMode;
+		int OpenResult;
+		char* CmtBuf;
+		int CmtBufSize;
+		int CmtSize;
+		int CmtState;
+	  } tOpenArchiveData;
+ 
+	Description
+ 
+	ArcName contains the name of the archive to open.
+	OpenMode is set to one of the following values:
+	Constant         Value Description
+	PK_OM_LIST         0 Open file for reading of file names only
+	PK_OM_EXTRACT      1 Open file for processing (extract or test)
+ 
+	OpenResult used to return one of the error values if an error occurs.
+	The Cmt* variables are for the file comment. They are currently not used by Total Commander, so may be set to NULL.
+	Notes:
+	If the file is opened with OpenMode==PK_OM_LIST, ProcessFile will never be called by Total Commander.
+	The Unicode version of this function uses WCHAR* instead of char* for the text fields.
+ 
+	 */
 	// 基础结构体定义
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
 	public struct TOpenArchiveData
@@ -305,7 +336,50 @@ namespace zfile
 			}
 		}
 	}
-
+	/*tHeaderData
+ 
+	tHeaderData is a structure used in ReaderHeader.
+ 
+	typedef struct {
+		char ArcName[260];
+		char FileName[260];
+		int Flags;
+		int PackSize;
+		int UnpSize;
+		int HostOS;
+		int FileCRC;
+		int FileTime;
+		int UnpVer;
+		int Method;
+		int FileAttr;
+		char* CmtBuf;
+		int CmtBufSize;
+		int CmtSize;
+		int CmtState;
+	  } tHeaderData;
+ 
+	Description
+ 
+	ArcName, FileName, PackSize, UnpSize contain the name of the archive, the name of the file within the archive, size of the file when packed, and the size of the file when extracted, respectively.
+	HostOS is there for compatibility with unrar.dll only, and should be set to zero.
+	FileCRC is the 32-bit CRC (cyclic redundancy check) checksum of the file. If not available, set to zero.
+	The Cmt* values can be used to transfer file comment information. They are currently not used in Total Commander, so they may be set to zero.
+	FileAttr can be set to any combination of the following values:
+	Value Description
+	0x1 Read-only file
+	0x2 Hidden file
+	0x4 System file
+	0x8 Volume ID file
+	0x10 Directory
+	0x20 Archive file
+	0x3F Any file
+	FileTime contains the date and the time of the file's last update. Use the following algorithm to set the value:
+	FileTime = (year - 1980) << 25 | month << 21 | day << 16 | hour << 11 | minute << 5 | second/2;
+	Make sure that:
+	year is in the four digit format between 1980 and 2100
+	month is a number between 1 and 12
+	hour is in the 24 hour format
+	 */
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
 	public struct THeaderData
 	{
@@ -329,6 +403,57 @@ namespace zfile
 		public int CmtState;
 	}
 
+	/*tHeaderDataEx
+ 
+tHeaderDataEx is a structure used in ReadHeaderEx.
+ 
+typedef struct {
+    char ArcName[1024];
+    char FileName[1024];
+    int Flags;
+    unsigned int PackSize;
+    unsigned int PackSizeHigh;
+    unsigned int UnpSize;
+    unsigned int UnpSizeHigh;
+    int HostOS;
+    int FileCRC;
+    int FileTime;
+    int UnpVer;
+    int Method;
+    int FileAttr;
+    char* CmtBuf;
+    int CmtBufSize;
+    int CmtSize;
+    int CmtState;
+    char Reserved[1024];
+  } tHeaderDataEx;
+ 
+Description
+ 
+ArcName, FileName, PackSize, UnpSize contain the name of the archive, the name of the file within the archive, size of the file when packed, and the size of the file when extracted, respectively. PackSizeHigh, UnpSizeHigh contain the upper 32 bit of a 64-bit size number. Set to 0 if the file is smaller than 4 GB.
+HostOS is there for compatibility with unrar.dll only, and should be set to zero.
+FileCRC is the 32-bit CRC (cyclic redundancy check) checksum of the file. If not available, set to zero.
+The Cmt* values can be used to transfer file comment information. They are currently not used in Total Commander, so they may be set to zero.
+FileAttr can be set to any combination of the following values:
+Value Description
+0x1 Read-only file
+0x2 Hidden file
+0x4 System file
+0x8 Volume ID file
+0x10 Directory
+0x20 Archive file
+0x3F Any file
+FileTime contains the date and the time of the file's last update. Use the following algorithm to set the value:
+FileTime = (year - 1980) << 25 | month << 21 | day << 16 | hour << 11 | minute << 5 | second/2;
+Make sure that:
+year is in the four digit format between 1980 and 2100
+month is a number between 1 and 12
+hour is in the 24 hour format
+Reserved may be used in the future for additional data - you MUST set it to 0 for now to avoid problems with future versions of TC.
+ 
+Note:
+The Unicode version of this structure uses WCHAR[1024] for ArcName and FileName. "Reserved" is unchanged.
+	 */
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1)]
 	public struct THeaderDataExW
 	{
@@ -372,15 +497,69 @@ namespace zfile
 		 typedef int (__stdcall* tProcessDataProc) (char* FileName, int Size);
 	 */
 	// 回调函数定义
+	/*tChangeVolProc
+ 
+		tChangeVolProc is a typedef of the function that asks the user to change volume.
+ 
+		typedef int (__stdcall *tChangeVolProc)(char *ArcName, int Mode);
+ 
+		Description
+ 
+		SetChangeVolProc has provided you with a pointer to a function with this declaration. When you want the user to be asked about changing volume, call this function with appropriate parameters. The function itself is part of Totalcmd - you only specify the question. Totalcmd then asks the user, and you get the answer as the result of the call to this function. If the user has aborted the operation, the function returns zero.
+		ArcName specifies the filename of the archive that you are processing, and will receive the name of the next volume.
+		Set Mode to one of the following values, according to what you want Totalcmd to ask the user:
+		Constant           Value Description
+		PK_VOL_ASK           0 Ask user for location of next volume
+		PK_VOL_NOTIFY        1 Notify app that next volume will be unpacked
+		Note:
+		The keyword or constant __stdcall must be set according to the compiler that you will use to make the library. For example, this is STDCALL for cygwin and __stdcall for MSC.
+	 */
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	public delegate int TChangeVolProc(string arcName, int mode);
+	/*tProcessDataProc
+ 
+	tProcessDataProc is a typedef of the function that notifies the user about the progress when un/packing files.
+ 
+	typedef int (__stdcall *tProcessDataProc)(char *FileName, int Size);
+ 
+	Description
+ 
+	SetProcessDataProc has provided you with a pointer to a function with this declaration. When you want to notify the user about the progress when un/packing files, call this function with appropriate parameters. The function itself is part of Totalcmd - you only specify what Totalcmd should display. In addition, Totalcmd displays the Cancel button that allows the user to abort the un/packing process. If the user has clicked on Cancel, the function returns zero.
+	FileName can be used to pass a pointer to the currently processed filename (0 terminated string), or NULL if it is not available.
+	Set Size to the number of bytes processed since the previous call to the function. For plugins which unpack in CloseArchive: Set size to negative percent value (-1..-100) to directly set first percent bar, -1000..-1100 for second percent bar (-1000=0%).
+	Note
+	The keyword or constant __stdcall must be set according to the compiler that you will use to make the library. For example, this is STDCALL for cygwin and __stdcall for MSC. 
+	 */
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	public delegate int TProcessDataProc([MarshalAs(UnmanagedType.LPStr)] string arcName, int mode);
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
 	public delegate int TProcessDataProcW([MarshalAs(UnmanagedType.LPWStr)] string arcName, int mode);
+
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	public delegate int CryptProcDelegate(int cryptoNumber, int mode, string archiveName, string password);
-
+	/*PackDefaultParamStruct
+ 
+PackDefaultParamStruct is passed to PackSetDefaultParams to inform the plugin about the current plugin interface version and ini file location.
+ 
+Declaration:
+ 
+typedef struct {
+    int size;
+    DWORD PluginInterfaceVersionLow;
+    DWORD PluginInterfaceVersionHi;
+    char DefaultIniName[MAX_PATH];
+} PackDefaultParamStruct;
+ 
+Description of struct members:
+ 
+size The size of the structure, in bytes. Later revisions of the plugin interface may add more structure members, and will adjust this size field accordingly.
+ 
+PluginInterfaceVersionLow Low value of plugin interface version. This is the value after the comma, multiplied by 100! Example. For plugin interface version 2.1, the low DWORD is 10 and the high DWORD is 2.
+ 
+PluginInterfaceVersionHi High value of plugin interface version.
+ 
+DefaultIniName Suggested location+name of the ini file where the plugin could store its data. This is a fully qualified path+file name, and will be in the same directory as the wincmd.ini. It's recommended to store the plugin data in this file or at least in this directory, because the plugin directory or the Windows directory may not be writable! 
+	 */
 	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
 	public struct PackDefaultParamStruct
 	{
@@ -571,6 +750,45 @@ namespace zfile
 		public void SetCryptCallback(int cryptoNr, int flags,
 			CryptProcDelegate cryptProcA, CryptProcDelegate cryptProcW)
 		{
+			/*PkCryptProc
+ 
+PkCryptProc is a callback function, which the plugin can call to store passwords in the secure password store, read them back, or copy them to a new connection.
+ 
+Declaration:
+ 
+int __stdcall PkCryptProc(int CryptoNumber, int mode, char* ArchiveName, char* Password, int maxlen);
+ 
+Description of parameters:
+ 
+CryptoNumber Here the plugin needs to pass the crypto number received through the PkSetCryptCallback function.
+ 
+mode The mode of operation:
+PK_CRYPT_SAVE_PASSWORD: Save password to password store
+PK_CRYPT_LOAD_PASSWORD: Load password from password store
+PK_CRYPT_LOAD_PASSWORD_NO_UI: Load password only if master password has already been entered
+PK_CRYPT_COPY_PASSWORD: Copy password to new connection. Here the second string parameter "Password" is not a password, but the name of the target archive name
+PK_CRYPT_MOVE_PASSWORD: As above, but delete the source password
+PK_CRYPT_DELETE_PASSWORD: Delete the password of the given archive name
+ 
+ArchiveName Name of the archive for this operation. The plugin can give any name here which can be stored in Windows ini files. The plugin should encode names which cannot be stored in ini files, or give a reference code or so instead of the file name.
+ 
+Password Operation-specific, usually the password to be stored/retrieved, or the target name when copying/moving a connection
+ 
+maxlen Maximum length, in characters, the password buffer can store when calling one of the load functions
+ 
+Return value:
+ 
+Total Commander returns one of these values:
+FS_FILE_OK Success
+E_ECREATE Encrypt/Decrypt failed
+E_EWRITE Could not write password to password store
+E_EREAD Password not found in password store
+E_NO_FILES No master password entered yet
+ 
+Note:
+ 
+When showing the details of an existing archive, you should call PK_CRYPT_LOAD_PASSWORD_NO_UI first. In case of error E_NO_FILES, show a button "Edit password". Only call PK_CRYPT_LOAD_PASSWORD when the user clicks that button, or tries to decrypt the archive. This way the user doesn't have to enter the master password if he just wanted to make some other changes to the archive settings.
+			 */
 			if (IsUnicode && cryptProcW != null)
 			{
 				IntPtr pProc = Marshal.GetFunctionPointerForDelegate(cryptProcW);
@@ -609,7 +827,27 @@ namespace zfile
 				return 0;
 			return result;
 		}
-	
+
+		/*PackSetDefaultParams
+ 
+PackSetDefaultParams is called immediately after loading the DLL, before any other function. This function is new in version 2.1. It requires Total Commander >=5.51, but is ignored by older versions.
+ 
+Declaration:
+ 
+void __stdcall PackSetDefaultParams(PackDefaultParamStruct* dps);
+ 
+Description of parameters:
+ 
+dps This structure of type PackDefaultParamStruct currently contains the version number of the plugin interface, and the suggested location for the settings file (ini file). It is recommended to store any plugin-specific information either directly in that file, or in that directory under a different name. Make sure to use a unique header when storing data in this file, because it is shared by other file system plugins! If your plugin needs more than 1kbyte of data, you should use your own ini file because ini files are limited to 64k.
+ 
+Return value:
+ 
+The function has no return value:
+ 
+Important note:
+ 
+This function is only called in Total Commander 5.51 and later. The plugin version will be >= 2.1. 
+		 */
 		public void SetDefaultParam()
 		{
 			if (_packSetDefaultParams == null)
@@ -736,6 +974,55 @@ namespace zfile
 		//}
 
 		#endregion
+		/*GetBackgroundFlags
+ 
+		GetBackgroundFlags is called to determine whether a plugin supports background packing or unpacking.
+ 
+		int __stdcall GetBackgroundFlags(void);
+ 
+		Description
+ 
+		GetBackgroundFlags should return one of the following values:
+ 
+		Constant               Value Description
+		BACKGROUND_UNPACK        1 Calls to OpenArchive, ReadHeader(Ex), ProcessFile and CloseArchive are thread-safe (unpack in background)
+		BACKGROUND_PACK          2 Calls to PackFiles are thread-safe (pack in background)
+		BACKGROUND_MEMPACK       4 Calls to StartMemPack, PackToMem and DoneMemPack are thread-safe
+		Notes
+		To make your packer plugin thread-safe, you should remove any global variables which aren't the same for all pack or unpack operations. For example, the path to the ini file name can remain global, but something like the compression ratio, or file handles need to be stored separately.
+ 
+		Packing: The PackFiles function is just a single call, so you can store all variables on the stack (local variables of that function).
+ 
+		Unpacking: You can allocate a struct containing all the variables you need across function calls, like the compression method and ratio, and state variables, and return a pointer to this struct as a result to OpenArchive. This pointer will then passed to all other functions like ReadHeader as parameter hArcData.
+ 
+		Pack in memory: You can do the same in StartMemPack as described under Unpacking. 
+		==========================================================
+
+		GetPackerCaps
+ 
+		GetPackerCaps tells Totalcmd what features your packer plugin supports.
+ 
+		int __stdcall GetPackerCaps();
+ 
+		Description
+ 
+		Implement GetPackerCaps to return a combination of the following values:
+		Constant                Value Description
+		PK_CAPS_NEW               1 Can create new archives
+		PK_CAPS_MODIFY            2 Can modify existing archives
+		PK_CAPS_MULTIPLE          4 Archive can contain multiple files
+		PK_CAPS_DELETE            8 Can delete files
+		PK_CAPS_OPTIONS          16 Has options dialog
+		PK_CAPS_MEMPACK          32 Supports packing in memory
+		PK_CAPS_BY_CONTENT       64 Detect archive type by content
+		PK_CAPS_SEARCHTEXT      128 Allow searching for text in archives created with this plugin
+		PK_CAPS_HIDE            256 Don't show packer icon, don't open with Enter but with Ctrl+PgDn
+		PK_CAPS_ENCRYPT         512 Plugin supports encryption.
+ 
+		Omitting PK_CAPS_NEW and PK_CAPS_MODIFY means PackFiles will never be called and so you don't have to implement PackFiles. Omitting PK_CAPS_MULTIPLE means PackFiles will be supplied with just one file. Leaving out PK_CAPS_DELETE means DeleteFiles will never be called; leaving out PK_CAPS_OPTIONS means ConfigurePacker will not be called. PK_CAPS_MEMPACK enables the functions StartMemPack, PackToMem and DoneMemPack. If PK_CAPS_BY_CONTENT is returned, Totalcmd calls the function CanYouHandleThisFile when the user presses Ctrl+PageDown on an unknown archive type. Finally, if PK_CAPS_SEARCHTEXT is returned, Total Commander will search for text inside files packed with this plugin. This may not be a good idea for certain plugins like the diskdir plugin, where file contents may not be available. If PK_CAPS_HIDE is set, the plugin will not show the file type as a packer. This is useful for plugins which are mainly used for creating files, e.g. to create batch files, avi files etc. The file needs to be opened with Ctrl+PgDn in this case, because Enter will launch the associated application.
+		Important note:
+		If you change the return values of this function, e.g. add packing support, you need to reinstall the packer plugin in Total Commander, otherwise it will not detect the new capabilities.
+		 */
 
 		public override bool LoadModule()
 		{
@@ -868,7 +1155,18 @@ namespace zfile
 			_pkSetCryptCallbackW = null;
 			_getBackgroundFlags = null;
 		}
-
+		/*
+		 * OpenArchive
+ 
+		OpenArchive should perform all necessary operations when an archive is to be opened.
+ 
+		HANDLE __stdcall OpenArchive (tOpenArchiveData *ArchiveData);
+ 
+		Description
+ 
+		OpenArchive should return a unique handle representing the archive. The handle should remain valid until CloseArchive is called. If an error occurs, you should return zero, and specify the error by setting OpenResult member of ArchiveData.
+		You can use the ArchiveData to query information about the archive being open, and store the information in ArchiveData to some location that can be accessed via the handle.
+		 */
 		public IntPtr OpenArchiveHandle(string archiveName, int openMode, out int openResult)
 		{
 			if (openMode < (int)OpenMode.PK_OM_LIST || openMode > (int)OpenMode.PK_OM_EXTRACT)
@@ -938,7 +1236,31 @@ namespace zfile
 
 			return IntPtr.Zero;
 		}
+		/*
+		 * ReadHeader
+ 
+		Totalcmd calls ReadHeader to find out what files are in the archive.
+ 
+		int __stdcall ReadHeader (HANDLE hArcData, tHeaderData *HeaderData);
+ 
+		Description
+ 
+		ReadHeader is called as long as it returns zero (as long as the previous call to this function returned zero). Each time it is called, HeaderData is supposed to provide Totalcmd with information about the next file contained in the archive. When all files in the archive have been returned, ReadHeader should return E_END_ARCHIVE which will prevent ReaderHeader from being called again. If an error occurs, ReadHeader should return one of the error values or 0 for no error.
+		hArcData contains the handle returned by OpenArchive. The programmer is encouraged to store other information in the location that can be accessed via this handle. For example, you may want to store the position in the archive when returning files information in ReadHeader.
+		In short, you are supposed to set at least PackSize, UnpSize, FileTime, and FileName members of tHeaderData. Totalcmd will use this information to display content of the archive when the archive is viewed as a directory.
 
+		ReadHeaderEx
+ 
+		Totalcmd calls ReadHeaderEx to find out what files are in the archive. This function is always called instead of ReadHeader if it is present. It only needs to be implemented if the supported archive type may contain files >2 GB. You should implement both ReadHeader and ReadHeaderEx in this case, for compatibility with older versions of Total Commander.
+ 
+		int __stdcall ReadHeaderEx (HANDLE hArcData, tHeaderDataEx *HeaderDataEx);
+ 
+		Description
+ 
+		ReadHeaderEx is called as long as it returns zero (as long as the previous call to this function returned zero). Each time it is called, HeaderDataEx is supposed to provide Totalcmd with information about the next file contained in the archive. When all files in the archive have been returned, ReadHeaderEx should return E_END_ARCHIVE which will prevent ReaderHeaderEx from being called again. If an error occurs, ReadHeaderEx should return one of the error values or 0 for no error.
+		hArcData contains the handle returned by OpenArchive. The programmer is encouraged to store other information in the location that can be accessed via this handle. For example, you may want to store the position in the archive when returning files information in ReadHeaderEx.
+		In short, you are supposed to set at least PackSize, PackSizeHigh, UnpSize, UnpSizeHigh, FileTime, and FileName members of tHeaderDataEx. Totalcmd will use this information to display content of the archive when the archive is viewed as a directory.
+		 */
 		public bool ReadHeader(IntPtr arcHandle, out WcxHeader headerData)
 		{
 			if (_readHeaderExW != null)
@@ -962,7 +1284,24 @@ namespace zfile
 			headerData = null;
 			return false;
 		}
-
+		/*ProcessFile
+ 
+		ProcessFile should unpack the specified file or test the integrity of the archive.
+ 
+		int __stdcall ProcessFile (HANDLE hArcData, int Operation, char *DestPath, char *DestName);
+ 
+		Description
+ 
+		ProcessFile should return zero on success, or one of the error values otherwise.
+		hArcData contains the handle previously returned by you in OpenArchive. Using this, you should be able to find out information (such as the archive filename) that you need for extracting files from the archive.
+		Unlike PackFiles, ProcessFile is passed only one filename. Either DestName contains the full path and file name and DestPath is NULL, or DestName contains only the file name and DestPath the file path. This is done for compatibility with unrar.dll.
+		When Total Commander first opens an archive, it scans all file names with OpenMode==PK_OM_LIST, so ReadHeader() is called in a loop with calling ProcessFile(...,PK_SKIP,...). When the user has selected some files and started to decompress them, Total Commander again calls ReadHeader() in a loop. For each file which is to be extracted, Total Commander calls ProcessFile() with Operation==PK_EXTRACT immediately after the ReadHeader() call for this file. If the file needs to be skipped, it calls it with Operation==PK_SKIP.
+		Each time DestName is set to contain the filename to be extracted, tested, or skipped. To find out what operation out of these last three you should apply to the current file within the archive, Operation is set to one of the following:
+		Constant Value Description
+		PK_SKIP 0 Skip this file
+		PK_TEST 1 Test file integrity
+		PK_EXTRACT 2 Extract to disk
+		 */
 		public int ProcessFile(IntPtr arcHandle, ProcessMode operation, string destPath, string destName)
 		{
 			if (_processFileW != null)
@@ -976,7 +1315,18 @@ namespace zfile
 
 			return -1;
 		}
-
+		/*
+		 * CloseArchive
+ 
+			CloseArchive should perform all necessary operations when an archive is about to be closed.
+ 
+			int __stdcall CloseArchive (HANDLE hArcData);
+ 
+			Description
+ 
+			CloseArchive should return zero on success, or one of the error values otherwise. It should free all the resources associated with the open archive.
+			The parameter hArcData refers to the value returned by a programmer within a previous call to OpenArchive.
+		 */
 		public bool CloseArchive(IntPtr arcHandle)
 		{
 			return _closeArchive != null && _closeArchive(arcHandle) == 0;
@@ -999,6 +1349,7 @@ namespace zfile
 			Constant	Value	Description
 			PK_PACK_MOVE_FILES	1	Delete original after packing
 			PK_PACK_SAVE_PATHS	2	Save path names of files
+			PK_PACK_ENCRYPT     4	Ask user for password, then encrypt file with that password
 		 */
 		public int PackFiles(string packedFile, string subPath, string srcPath, string addList, int flags)
 		{
@@ -1013,7 +1364,19 @@ namespace zfile
 
 			return -1;
 		}
-
+		/*
+		 * DeleteFiles
+ 
+			DeleteFiles should delete the specified files from the archive
+ 
+			int __stdcall DeleteFiles (char *PackedFile, char *DeleteList);
+ 
+			Description
+ 
+			DeleteFiles should return zero on success, or one of the error codes otherwise.
+			PackedFile contains full path and name of the the archive.
+			DeleteList contains the list of files that should be deleted from the archive. The format of this string is the same as AddList within PackFiles.
+		 */
 		public int DeleteFiles(string packedFile, string deleteList)
 		{
 			if (_deleteFilesW != null)
@@ -1029,6 +1392,17 @@ namespace zfile
 			var changeVolProcWdelegate = new TChangeVolProc(ChangeVolProcW);
 			WcxSetChangeVolProc(arcHandle, Marshal.GetFunctionPointerForDelegate(changeVolProcAdelegate), Marshal.GetFunctionPointerForDelegate(changeVolProcWdelegate));
 		}
+		/*
+		 * SetChangeVolProc
+ 
+		This function allows you to notify user about changing a volume when packing files.
+ 
+		void __stdcall SetChangeVolProc (HANDLE hArcData, tChangeVolProc pChangeVolProc1);
+ 
+		Description
+ 
+		pChangeVolProc1 contains a pointer to a function that you may want to call when notifying user to change volume (e.g. insterting another diskette). You need to store the value at some place if you want to use it; you can use hArcData that you have returned by OpenArchive to identify that place.
+		 */
 		public void WcxSetChangeVolProc(IntPtr arcHandle, IntPtr changeVolProc, IntPtr changeVolProcW)
 		{
 			if (_setChangeVolProcW != null)
@@ -1045,12 +1419,34 @@ namespace zfile
 		/// <param name="processDataProcW">Unicode版本的回调函数指针</param>
 		public void WcxSetProcessDataProc(IntPtr arcHandle, IntPtr processDataProcA, IntPtr processDataProcW)
 		{
+			/*SetProcessDataProc
+ 
+			This function allows you to notify user about the progress when you un/pack files.
+ 
+			void __stdcall SetProcessDataProc (HANDLE hArcData, tProcessDataProc pProcessDataProc);
+ 
+			Description
+ 
+			pProcessDataProc contains a pointer to a function that you may want to call when notifying user about the progress being made when you pack or extract files from an archive. You need to store the value at some place if you want to use it; you can use hArcData that you have returned by OpenArchive to identify that place.
+
+			 */
 			if (_setProcessDataProcW != null)
 				_setProcessDataProcW(arcHandle, processDataProcW);
 			if (_setProcessDataProc != null)
 				_setProcessDataProc(arcHandle, processDataProcA);
 		}
-
+		/*
+		 * CanYouHandleThisFile
+ 
+		CanYouHandleThisFile allows the plugin to handle files with different extensions than the one defined in Total Commander. It is called when the plugin defines PK_CAPS_BY_CONTENT, and the user tries to open an archive with Ctrl+PageDown.
+ 
+		BOOL __stdcall CanYouHandleThisFile (char *FileName);
+ 
+		Description
+ 
+		CanYouHandleThisFile should return true (nonzero) if the plugin recognizes the file as an archive which it can handle. The detection must be by contents, NOT by extension. If this function is not implemented, Totalcmd assumes that only files with a given extension can be handled by the plugin.
+		Filename contains the fully qualified name (path+name) of the file to be checked. 
+		 */
 		public bool CanYouHandleThisFile(string fileName)
 		{
 			fileName = fileName.ToUpper();
@@ -1061,8 +1457,50 @@ namespace zfile
 
 			return false;
 		}
+		/*PackToMem
+ 
+		PackToMem packs the next chunk of data passed to it and/or returns the compressed data to the calling program. It is implemented together with StartMemPack and DoneMemPack
+ 
+		int __stdcall PackToMem (int hMemPack, char* BufIn, int InLen, int* Taken, char* BufOut, int OutLen, int* Written, int SeekBy);
+ 
+		Description of the fields
+ 
+		PackToMem should return MEMPACK_OK (=0) on success, MEMPACK_DONE (=1) when done, or one of the error values otherwise.
+		hMemPack is the handle returned by StartMemPack()
+		BufIn is a pointer to the data which needs to be packed
+		InLen contains the number of bytes pointed to by BufIn
+		Taken has to receive the number of bytes taken from the buffer. If not the whole buffer is taken, the calling program will pass the remaining bytes to the plugin in a later call.
+		BufOut is a pointer to a buffer which can receive packed data
+		OutLen contains the size of the buffer pointed to by BufOut
+		Written has to receive the number of bytes placed in the buffer pointed to by BufOut
+		SeekBy may be set to the offset from the current output posisition by which the file pointer has to be moved BEFORE accepting the data in BufOut. This allows the plugin to modify a file header also AFTER packing, e.g. to write a CRC to the header.
+		Description of the function
+ 
+		PackToMem is the most complex function of the packer plugin. It is called by Total Commander in a loop as long as there is data to be packed, and as there is data to retrieve. The plugin should do the following:
+		1. As long as there is data sent through BufIn, take it and add it to your internal buffers (if there is enough space).
+		2. As soon as there is enough data in the internal input buffers, start packing to the output buffers.
+		3. As soon as there is enough data in the internal output buffers, start sending data to BufOut.
+		4. When InLen is 0, there is no more data to be compressed, so finish sending data to BufOut until no more data is in the output buffer.
+		5. When there is no more data available, return 1.
+		5. There is no obligation to take any data through BufIn or send any through BufOut. Total Commander will call this function until it either returns 1, or an error.
+		 */
 		public IntPtr StartMemPack(int options, string fileName)
 		{
+			/*StartMemPack
+ 
+			StartMemPack starts packing into memory. This function is only needed if you want to create archives in combination with TAR, e.g. TAR.BZ2. It allows Totalcmd to create a TAR.Plugin file in a single step.
+ 
+			int __stdcall StartMemPack (int Options, char *FileName);
+ 
+			Description
+ 
+			StartMemPack should return a user-defined handle (e.g. pointer to a structure) on success, zero otherwise.
+			FileName refers to the name of the file being packed - some packers store the name in the local header.
+			Options can contain a combination of the following values:
+			Constant                  Value Description
+			MEM_OPTIONS_WANTHEADERS     1 The output stream should include the complete headers (beginning+end)
+ 
+			 */
 			fileName = fileName.ToUpper();
 			if (_startMemPackW != null)
 				return _startMemPackW(options, fileName);
@@ -1071,6 +1509,31 @@ namespace zfile
 
 			return IntPtr.Zero;
 		}
+		/*
+		 * PkSetCryptCallback
+ 
+		PkSetCryptCallback is called when loading the plugin. The passed values should be stored in the plugin for later use. This function is only needed if you want to use the secure password store in Total Commander.
+ 
+		Declaration:
+ 
+		void __stdcall PkSetCryptCallback(tPkCryptProc pPkCryptProc, int CryptoNr, int Flags);
+ 
+		Description of parameters:
+ 
+		pPkCryptProc Pointer to the crypto callback function. See PkCryptProc for a description of this function
+ 
+		CryptoNr A parameter which needs to be passed to the callback function
+ 
+		Flags Flags regarding the crypto connection. Currently only PK_CRYPTOPT_MASTERPASS_SET is defined. It is set when the user has defined a master password.
+ 
+		Return value:
+ 
+		This function does not return any value.
+ 
+		Remarks:
+ 
+		You can use this callback function to store passwords in Total Commander's secure password store. The user will be asked for the master password automatically. 
+		 */
 		public void SetCryptCallback(IntPtr cryptProc, int cryptoNr, int flags)
 		{
 			if (_pkSetCryptCallbackW != null)
@@ -1083,7 +1546,26 @@ namespace zfile
 		{
 			return _getPackerCaps?.Invoke() ?? 0;
 		}
-
+		/*DoneMemPack
+ 
+		DoneMemPack ends packing into memory. This function is used together with StartMemPack and PackToMem.
+ 
+		int __stdcall DoneMemPack (int hMemPack);
+ 
+		Description of fields:
+ 
+		Return value: DoneMemPack should return zero if successful, or one of the error codes otherwise.
+		hMemPack is the handle returned by StartMemPack.
+ 
+		It may be called in two different cases:
+		1. The packing functions have completed successfully, or
+		2. The user has aborted the packing operation.
+		The plugin should free all data allocated when packing.
+		 */
+		public int CallDoneMemPack(IntPtr arcHandle)
+		{
+			return _doneMemPack?.Invoke(arcHandle) ?? 0;
+		}
 		/// <summary>
 		/// 将WCX错误码转换为可读的错误消息
 		/// </summary>
@@ -1134,8 +1616,21 @@ namespace zfile
 		/// <param name="handle">父窗口句柄</param>
 		internal void VFSConfigure(nint handle)
 		{
-			if (_configurePacker != null)
-				_configurePacker(handle, ModuleHandle);
+			/*
+			 * ConfigurePacker
+ 
+			ConfigurePacker gets called when the user clicks the Configure button from within "Pack files..." dialog box in Totalcmd.
+ 
+			void __stdcall ConfigurePacker (HWND Parent, HINSTANCE DllInstance);
+ 
+			Description
+ 
+			Usually, you provide a user with a dialog box specifying a method and/or its parameters that should be applied in the packing process. Or, you just want to display a message box about what your plugin is, just like Christian Ghisler's DiskDir does.
+			In order to help you with a feedback, you can use a window handle of Totalcmd process, Parent. That is, you make your dialog box a child of Parent.
+			When creating a window, you may also need handle of the DLL (your DLL) that creates your dialog box, DllInstance.
+			You may decide not to implement this function. Then, make sure you omit PK_CAPS_OPTIONS from return values of GetPackerCaps.
+			 */
+			_configurePacker?.Invoke(handle, ModuleHandle);
 		}
 
 		public bool IsUnicode => _isUnicode;

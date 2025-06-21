@@ -479,7 +479,7 @@ namespace zfile
 			var module = WcxPlugins._moduleList.FindModuleByName(pluginName);
 			if (module == null) return;
 			// 打开配置对话框
-			
+			module.VFSConfigure();	//不传parent参数，默认使用0，代表桌面
 		}
 
 		private void AddWcxMapping(DataGridView grid)

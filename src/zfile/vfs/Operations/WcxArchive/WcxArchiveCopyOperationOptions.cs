@@ -76,7 +76,7 @@ namespace zfile;
         {
             try
             {
-                _fileSource.WcxModule.VFSConfigure(Handle);
+                _fileSource.WcxModule.VFSConfigure();
             }
             catch (Exception ex)
             {

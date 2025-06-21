@@ -212,7 +212,7 @@ namespace zfile.Forms
                 if (wcxModule != null)
                 {
                     // 调用WCX插件的配置界面
-                    wcxModule.VFSConfigure(Handle);
+                    wcxModule.VFSConfigure();
                 }
             }
             catch (Exception ex)

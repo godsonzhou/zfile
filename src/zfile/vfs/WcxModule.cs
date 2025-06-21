@@ -1614,7 +1614,7 @@ This function is only called in Total Commander 5.51 and later. The plugin versi
 		/// 配置WCX插件
 		/// </summary>
 		/// <param name="handle">父窗口句柄</param>
-		internal void VFSConfigure(nint handle)
+		internal void VFSConfigure(nint handle = 0)
 		{
 			/*
 			 * ConfigurePacker
@@ -1630,7 +1630,11 @@ This function is only called in Total Commander 5.51 and later. The plugin versi
 			When creating a window, you may also need handle of the DLL (your DLL) that creates your dialog box, DllInstance.
 			You may decide not to implement this function. Then, make sure you omit PK_CAPS_OPTIONS from return values of GetPackerCaps.
 			 */
-			_configurePacker?.Invoke(handle, ModuleHandle);
+			if ((PluginCapabilities & (int)PackerCaps.PK_CAPS_OPTIONS) != 0)
+			{
+				//var zfiledllinstance = NativeMethods.LoadLibrary("zfile.dll");
+				_configurePacker?.Invoke(handle, ModuleHandle);
+			}
 		}
 
 		public bool IsUnicode => _isUnicode;

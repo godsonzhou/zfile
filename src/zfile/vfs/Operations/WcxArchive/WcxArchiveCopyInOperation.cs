@@ -16,7 +16,7 @@ namespace zfile
 		private string? _currentTargetFilePath;
 		private FileEntries _fullFilesTree;
 		private int _packingFlags;
-
+		private List<string> processedList = [];
 		// Static variables for WCX callbacks
 		private static WcxArchiveCopyInOperation _wcxCopyInOperationG = null;
 		[ThreadStatic]
@@ -94,38 +94,40 @@ namespace zfile
 
 			SetProcessDataProc(WcxModule.WcxInvalidHandle);
 			wcxModule.WcxSetChangeVolProc(WcxModule.WcxInvalidHandle);
-
-			// Convert TFiles into String
-			string FileEntries = GetFileEntries(_fullFilesTree);
-			// Nothing to pack (user skip all files)
-			if (FileEntries == "\0") return;
-
-			int result = wcxModule.PackFiles(
-						   _wcxArchiveFileSource.ArchiveFileName,
-						   destPath, // no trailing path delimiter here
-						   Helper.IncludeTrailingPathDelimiter(_fullFilesTree.Path), // end with path delimiter here
-						   FileEntries,
-						   _packingFlags);
-
-			// Check for errors.
-			if (result != WcxModule.E_SUCCESS)
+			bool allprocessed = false;
+			while (!allprocessed)
 			{
-				// User aborted operation.
-				if (result == WcxModule.E_EABORTED) RaiseAbortOperation();
+				// Convert TFiles into String
+				string FileEntries = GetFileEntries(_fullFilesTree, ref allprocessed);
+				// Nothing to pack (user skip all files)
+				if (FileEntries == "\0") return;
 
-				ShowError(string.Format("Error packing to {0}: {1}",
-						   _wcxArchiveFileSource.ArchiveFileName,
-						   WcxModule.GetErrorMsg(result)), result, LogOption.ArcOp);
+				int result = wcxModule.PackFiles(
+							   _wcxArchiveFileSource.ArchiveFileName,
+							   destPath, // no trailing path delimiter here
+							   Helper.IncludeTrailingPathDelimiter(_fullFilesTree.Path), // end with path delimiter here
+							   FileEntries,
+							   _packingFlags);
+
+				// Check for errors.
+				if (result != WcxModule.E_SUCCESS)
+				{
+					// User aborted operation.
+					if (result == WcxModule.E_EABORTED) RaiseAbortOperation();
+
+					ShowError(string.Format("Error packing to {0}: {1}",
+							   _wcxArchiveFileSource.ArchiveFileName,
+							   WcxModule.GetErrorMsg(result)), result, LogOption.ArcOp);
+				}
+				else
+				{
+					LogMessage(string.Format("Successfully packed to {0}",
+							   _wcxArchiveFileSource.ArchiveFileName), LogOption.ArcOp, LogOption.Success);
+
+					_statistics.DoneFiles = _statistics.TotalFiles;
+					UpdateStatistics(_statistics);
+				}
 			}
-			else
-			{
-				LogMessage(string.Format("Successfully packed to {0}",
-						   _wcxArchiveFileSource.ArchiveFileName), LogOption.ArcOp, LogOption.Success);
-
-				_statistics.DoneFiles = _statistics.TotalFiles;
-				UpdateStatistics(_statistics);
-			}
-
 			// Delete temporary TAR archive if needed
 			if (_tarBefore) File.Delete(_tarFileName);
 		}
@@ -150,14 +152,18 @@ namespace zfile
 			}
 		}
 
-		private string GetFileEntries(FileEntries theFiles)
+		private string GetFileEntries(FileEntries theFiles, ref bool allprocessed, int maxlen = 5000)
 		{
+			//allprocessed = false;
 			string result = "";
 			bool archiveExists = _FileEntries.Count > 0;
 			string subPath = Helper.ExcludeFrontPathDelimiter(_targetPath).ToLowerInvariant();
 
 			foreach (var file in theFiles)
 			{
+				if (processedList.Contains(file.FullPath))
+					continue;
+				processedList.Add(file.FullPath);
 				// Filenames must be relative to the current directory.
 				string fileName = Helper.ExtractDirLevel(theFiles.Path, file.FullPath);
 
@@ -179,8 +185,10 @@ namespace zfile
 				}
 
 				result += fileName + "\0";
+				if (result.Length > maxlen)
+					break;
 			}
-
+			allprocessed = processedList.Count == theFiles.Count;
 			result += "\0";
 			return result;
 		}

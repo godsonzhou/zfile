@@ -1353,15 +1353,16 @@ This function is only called in Total Commander 5.51 and later. The plugin versi
 		 */
 		public int PackFiles(string packedFile, string subPath, string srcPath, string addList, int flags)
 		{
+			Debug.Print($"packfiles: {addList.Replace('\0', ' ')} : addlist.length = {addList.Length} ");   //bugfix: when length is large than 25k, some exceptions will be thrown, so we need to check the length of addlist
+			if (_packFiles != null)
+				return _packFiles(packedFile, subPath, srcPath, addList, flags);
+
 			if (_packFilesW != null)
 			{
-				//if (string.IsNullOrEmpty(subPath)) 
-				//	return _packFilesW(packedFile, null, srcPath, addList, flags);
-				Debug.Print($"packfiles: addlist = {addList}");
+				if (string.IsNullOrEmpty(subPath))
+					return _packFilesW(packedFile, null, srcPath, addList, flags);
 				return _packFilesW(packedFile, subPath, srcPath, addList, flags);
 			}
-			else if (_packFiles != null)
-				return _packFiles(packedFile, subPath, srcPath, addList, flags);
 
 			return -1;
 		}

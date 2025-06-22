@@ -343,8 +343,9 @@ namespace zfile
 						PlatformTime = fileInfo.CreationTime,
 						LastAccessTime = fileInfo.LastAccessTime
 					};
-					var file = FileSystemFileSource.CreateFile(filePath, sr);
-                    if (file.IsLink)
+					//var file = FileSystemFileSource.CreateFile(filePath, sr);//bugfix: 
+					var file = FileSystemFileSource.CreateFile(srcPath, sr);
+					if (file.IsLink)
                     {
                         newFiles.Add(file.Clone());
                     }

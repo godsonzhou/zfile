@@ -410,8 +410,7 @@ namespace zfile
         protected static int MessageBox(string text, string caption, int flags)
         {
 			// 在实际实现中，这里需要显示消息对话框
-			//return 0;
-			return (int)System.Windows.Forms.MessageBox.Show(text, caption, (MessageBoxButtons)flags, MessageBoxIcon.Information);
+			return (int)System.Windows.Forms.MessageBox.Show(text, caption, (MessageBoxButtons)(flags & 7), MessageBoxIcon.Information);    // flags 仅取低3位作为按钮类型
 		}
 
 		/// <summary>

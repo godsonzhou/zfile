@@ -1357,6 +1357,7 @@ This function is only called in Total Commander 5.51 and later. The plugin versi
 			{
 				//if (string.IsNullOrEmpty(subPath)) 
 				//	return _packFilesW(packedFile, null, srcPath, addList, flags);
+				Debug.Print($"packfiles: addlist = {addList}");
 				return _packFilesW(packedFile, subPath, srcPath, addList, flags);
 			}
 			else if (_packFiles != null)

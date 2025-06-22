@@ -1363,11 +1363,12 @@ namespace zfile
 			var LV = GetListViewByName(LR);
 			if (fileSource is ShellFileSource) // shellfilesource should always loadsubdir
 				LoadSubDirectories(eNode, out _, LV); //盘符不变时在这里刷新TREEVIEW/LISTVIEW/////////////////////重复了，如果可以放在loadlistviewbyfilesource后执行，那么可以合并
-			else if (eNode.Tag is ShellItem sItem && sItem.SubNodeState != NODE_LOADED_KEY)                // 只有当节点没有被标记为已加载时才加载子目录
+			else 
 			{
-				//如果盘符改变了，则不刷新treeview&listview, 因为在盘符改变时，会触发事件，在事件中会刷新(refreshpanel)
-				// 检查节点是否已经被加载过子目录
-				LoadSubDirectories(eNode, out _); //刷新目录
+				if (eNode.Tag is ShellItem sItem && sItem.SubNodeState != NODE_LOADED_KEY)                // 只有当节点没有被标记为已加载时才加载子目录
+					//如果盘符改变了，则不刷新treeview&listview, 因为在盘符改变时，会触发事件，在事件中会刷新(refreshpanel)
+					// 检查节点是否已经被加载过子目录
+					LoadSubDirectories(eNode, out _); //刷新目录
 				var NeedDirRefresh = false; //标记是否需要刷新目录
 				// 无论如何都需要刷新ListView
 				var subdirs = LoadListViewByFileSource(path, LV, eNode);

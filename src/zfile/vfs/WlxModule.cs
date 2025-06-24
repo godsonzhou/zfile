@@ -416,19 +416,27 @@ namespace zfile
 		{
 			var p = new Dictionary<string, string>();
 			var ext = Path.GetExtension(filename).ToLower().Trim('.');
-			DetectString = DetectString.ToLower().Replace('"', '\'').Replace("[", $"'{ext.Reverse()}'["); //replace " with '
-			var evaluator = new ExpressionEvaluatorClaude();
+			DetectString = DetectString.ToLower().Replace('"', '\''); //replace " with '
+			
 			p["ext"] = $"'{ext}'";
 			if (File.Exists(filename))
 			{
 				var fileinfo = new FileInfo(filename);
 				p["size"] = fileinfo.Length.ToString();
+				if (DetectString.Contains('['))		//如果使用了索引器，则代表需要读取文件的前8192个字节
+					p["_FILE8192_"] = File.ReadAllBytes(filename).ToString().Substring(0, 8192);
 			}
 			else
 				p["size"] = "1";
 			p["multimedia"] = ".true."; //temp ignore multimedia &
 			p["force"] = ".false."; // temp ignore force |
-			return (bool)evaluator.EvalExpr(DetectString, p);
+			//var evaluator = new ExpressionEvaluatorClaude();
+			//return (bool)evaluator.EvalExpr(DetectString, p);
+			//方括号特殊处理，dslang的方括号是通用索引器，比如p='abc', p[0] = 'a' is true
+			//但是detectstring中可以省略直接用[0] 表示取文件的第一个字节，所以根据TOTALCMD SDK定义：
+			//[5] The fifth byte in the file to be loaded. The first 8192 bytes can be checked for a match.
+			//约定使用特殊参数_FILE8192_，获得文件的前8192个字节作为内容，同时将'['替换为'_FILE8192_['
+			return (bool)ExpressionEvaluatorDS.EvalExpr(DetectString.Replace("[", "_FILE8192_["), p);
 		}
 	
 		public void LoadModulesFromDirectory(string directory)

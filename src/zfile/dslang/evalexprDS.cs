@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
@@ -8,16 +6,6 @@ public class ExpressionEvaluatorDS
 {
 	private enum TokenType { Number, Boolean, String, Operator, Punctuation, Identifier, Function }
 	private record Token(TokenType Type, string Value);
-
-	// 运算符优先级定义
-	//private static readonly Dictionary<string, int> Precedence = new()
-	//{
-	//	{ "!", 7 }, { "^", 6 },
-	//	{ "*", 5 }, { "/", 5 }, { "%", 5 },
-	//	{ "+", 4 }, { "-", 4 },
-	//	{ ">", 3 }, { "<", 3 }, { ">=", 3 }, { "<=", 3 }, { "=", 3 }, {"!=", 3 },
-	//	{ "&", 2 }, { "|", 1 }
-	//};
 
 	public static object EvalExpr(string expr, Dictionary<string, string> parameters)
 	{
@@ -30,16 +18,15 @@ public class ExpressionEvaluatorDS
 	{
 		var result = new Dictionary<string, object>();
 		foreach (var kvp in parameters)
-		{
 			result[kvp.Key] = ParseValue(kvp.Value);
-		}
+		
 		return result;
 	}
 
 	private static object ParseValue(string value)
 	{
 		if (value.StartsWith("'") && value.EndsWith("'"))
-			return value.Substring(1, value.Length - 2);
+			return value;	//.Substring(1, value.Length - 2);
 
 		if (value == ".true.") return true;
 		if (value == ".false.") return false;
@@ -62,18 +49,16 @@ public class ExpressionEvaluatorDS
 			var varName = match.Groups[1].Value;
 			// 如果是内置函数，直接返回原始值
 			if (BuiltInFunctions.Contains(varName.ToLower()))
-			{
 				return varName;
-			}
+			
 			if (parameters.TryGetValue(varName, out object value))
-			{
 				return value switch
 				{
-					string s => $"'{s}'",
+					string s => s, //$"'{s}'",
 					bool b => b ? ".true." : ".false.",
 					_ => value.ToString()
 				};
-			}
+			
 			throw new KeyNotFoundException($"Variable '{varName}' not found");
 		});
 	}
@@ -89,21 +74,9 @@ public class ExpressionEvaluatorDS
 
 	private static List<Token> Tokenize(string expr)
 	{
-		//var tokenDefinitions = new[]
-		//{
-		//	new { Pattern = @"\d+\.?\d*", Type = TokenType.Number },
-		//	new { Pattern = @"\.true\.|\.false\.", Type = TokenType.Boolean },
-		//	new { Pattern = @"'[^']*'", Type = TokenType.String },
-		//	new { Pattern = @">=|<=|!=|=|>|<", Type = TokenType.Operator },
-		//	new { Pattern = @"\^|\+|-|\*|/|%|!|&|\|", Type = TokenType.Operator },
-		//	new { Pattern = @"\[|\]|\(|\)|,", Type = TokenType.Punctuation },
-		//	new { Pattern = @"[a-zA-Z_][a-zA-Z0-9_]*", Type = TokenType.Identifier }
-		//};
 		var tokenDefinitions = new[]
 		{
 			new { Pattern = @"^[-]?\d+\.?\d*", Type = TokenType.Number },
-			//new { Pattern = @"^\d+\.?\d*", Type = TokenType.Number },
-			//new { Pattern = @"\.true\.|\.false\.", Type = TokenType.Boolean },
 			new { Pattern = @"^(?:\.true\.|\.false\.)", Type = TokenType.Boolean },
 			new { Pattern = @"'[^']*'", Type = TokenType.String },
 			// 调整括号和运算符的顺序，将括号模式提前并分开处理
@@ -187,9 +160,8 @@ public class ExpressionEvaluatorDS
 						i++; // 跳过左括号
 					}
 					else
-					{
 						output.Add(token);
-					}
+					
 					break;
 
 				case TokenType.Punctuation:
@@ -200,16 +172,9 @@ public class ExpressionEvaluatorDS
 							break;
 
 						case ")":
-							if (stack.Count > 0 && stack.Peek().Value != "(")
-							{
-								//if (stack.Peek().Type == TokenType.Function)
-								//{
-								//	var func = stack.Pop();
-								//	output.Add(new Token(TokenType.Function, func.Value));
-								//}
-								//else
-									output.Add(stack.Pop());
-							}
+							while (stack.Count > 0 && stack.Peek().Value != "(")
+								output.Add(stack.Pop());
+							
 							if (stack.Count > 0 && stack.Peek().Value == "(")
 								stack.Pop();// 弹出左括号
 							
@@ -217,9 +182,7 @@ public class ExpressionEvaluatorDS
 
 						case ",":
 							if (stack.Count > 0 && stack.Peek().Type != TokenType.Function && stack.Peek().Value != "[")
-							{
 								output.Add(stack.Pop());
-							}
 							break;
 
 						case "[":
@@ -228,35 +191,21 @@ public class ExpressionEvaluatorDS
 
 						case "]":
 							while (stack.Count > 0 && stack.Peek().Value != "[")
-							{
 								output.Add(stack.Pop());
-							}
+							
 							stack.Pop(); // 弹出左方括号
 							output.Add(new Token(TokenType.Operator, "[]")); // 索引操作符
 							break;
 					}
 					break;
 
-				//case TokenType.Operator:	// bug #1 exist: (1+2)*3, error: not enough operand
-				//	while (stack.Count > 0 && stack.Peek().Type == TokenType.Operator &&
-				//		(precedence[token.Value].prec < precedence[stack.Peek().Value].prec ||
-				//		(precedence[token.Value].prec == precedence[stack.Peek().Value].prec &&
-				//		!precedence[token.Value].rightAssoc)))
-				//	{
-				//		output.Add(stack.Pop());
-				//	}
-				//	stack.Push(token);
-				//	break;
 				case TokenType.Operator://bugfix #1
 					// 修复优先级判断逻辑
-					while (stack.Count > 0 && stack.Peek().Value != "(" &&
-						(precedence.ContainsKey(stack.Peek().Value) &&
-						 (precedence[token.Value].prec < precedence[stack.Peek().Value].prec ||
-						  (precedence[token.Value].prec == precedence[stack.Peek().Value].prec &&
-						   !precedence[token.Value].rightAssoc))))
-					{
+					while (stack.Count > 0 && stack.Peek().Value != "(" && (precedence.ContainsKey(stack.Peek().Value) &&
+						(precedence[token.Value].prec < precedence[stack.Peek().Value].prec ||
+						 (precedence[token.Value].prec == precedence[stack.Peek().Value].prec && !precedence[token.Value].rightAssoc))))
 						output.Add(stack.Pop());
-					}
+					
 					stack.Push(token);
 					break;
 			}
@@ -285,13 +234,9 @@ public class ExpressionEvaluatorDS
 			{
 				case TokenType.Number:
 					if (double.TryParse(token.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out double num))
-					{
 						stack.Push(num);
-					}
 					else
-					{
 						throw new ArgumentException($"Invalid number format: {token.Value}");
-					}
 					break;
 
 				case TokenType.Boolean:
@@ -299,13 +244,20 @@ public class ExpressionEvaluatorDS
 					break;
 
 				case TokenType.String:
-					stack.Push(token.Value.Substring(1, token.Value.Length - 2));
+					//stack.Push(token.Value.Substring(1, token.Value.Length - 2));	//bugfix: 压入堆栈时字符串不能去除单引号
+					stack.Push(token.Value);
 					break;
 
 				case TokenType.Identifier:
 					try
 					{
-						stack.Push(ReplaceVariables(token.Value, parameters));
+						string val = ReplaceVariables(token.Value, parameters);
+						if (val.Equals(".true.", StringComparison.OrdinalIgnoreCase))
+							stack.Push(true);
+						else if (val.Equals(".false.", StringComparison.OrdinalIgnoreCase))
+							stack.Push(false);
+						else
+							stack.Push(val);
 						break;
 					}
 					catch (KeyNotFoundException)
@@ -346,9 +298,7 @@ public class ExpressionEvaluatorDS
 						}
 						var right = stack.Pop();
 						if (token.Value == "!")
-						{
 							stack.Push(EvaluateOperator(token.Value, null, right));
-						}
 						else
 						{
 							var left = stack.Count == 0 ? 0 : stack.Pop();
@@ -369,7 +319,8 @@ public class ExpressionEvaluatorDS
 					var args = new List<object>();
 					for (int i = 0; i < argCount; i++)
 					{
-						if (stack.Count == 0) throw new ArgumentException("Not enough arguments");
+						if (stack.Count == 0) 
+							throw new ArgumentException("Not enough arguments");
 						args.Insert(0, stack.Pop());
 					}
 					stack.Push(ExecuteFunction(funcName, args));
@@ -391,9 +342,12 @@ public class ExpressionEvaluatorDS
 				case "+":
 					var _left = left.ToString();
 					var _right = right.ToString();
-					if (int.TryParse(_left, out var i1) && int.TryParse(_right, out var i2)) return i1 + i2; //if two int add
-					if (double.TryParse(_left, out var d1) && double.TryParse(_right, out var d2)) return d1 + d2;
-					if (left is string s1 && right is string s2) return s1 + s2;
+					if (int.TryParse(_left, out var i1) && int.TryParse(_right, out var i2)) 
+						return i1 + i2; //if two int add
+					if (double.TryParse(_left, out var d1) && double.TryParse(_right, out var d2)) 
+						return d1 + d2;
+					if (left is string s1 && right is string s2) 
+						return s1 + s2;
 					break;
 
 				case "-": return Convert.ToDouble(left) - Convert.ToDouble(right);
@@ -427,8 +381,10 @@ public class ExpressionEvaluatorDS
 
 	private static int Compare(object a, object b)
 	{
-		if (a is bool ba && b is bool bb) return ba.CompareTo(bb);
-		if (a is string sa && b is string sb) return string.Compare(sa, sb, StringComparison.Ordinal);
+		if (a is bool ba && b is bool bb) 
+			return ba.CompareTo(bb);
+		if (a is string sa && b is string sb) 
+			return string.Compare(sa, sb, StringComparison.Ordinal);
 		return Convert.ToDouble(a).CompareTo(Convert.ToDouble(b));
 	}
 
@@ -464,5 +420,4 @@ public class ExpressionEvaluatorDS
 				$"Function {funcName} requires numeric arguments");
 		}
 	}
-
 }

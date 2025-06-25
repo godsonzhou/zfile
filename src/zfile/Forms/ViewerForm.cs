@@ -1087,7 +1087,7 @@ namespace zfile.Forms
 				CleanupCurrentView();
 				_animationTimer?.Dispose();
 				_screenshotTimer?.Dispose();
-				_pluginList?.Dispose();
+				//_pluginList?.Dispose();	//bugfix: inied.wlx关闭时导致主程序意外退出；同时开多个cudalister.wlx，关闭其中一个导致主程序意外退出
 			}
 			base.Dispose(disposing);
 		}

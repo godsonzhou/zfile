@@ -233,7 +233,15 @@ namespace zfile
 
 		public void CallListCloseWindow(IntPtr pluginWin)
 		{
-			_listCloseWindow?.Invoke(pluginWin);
+			// 捕获异常以防止插件崩溃，比如inied.wlx插件关闭时会导致主程序退出。
+			try
+			{
+				_listCloseWindow?.Invoke(pluginWin);
+			}
+			catch (Exception ex) {
+				// 记录日志，防止插件异常导致主程序崩溃
+				Debug.Print($"插件关闭异常: {ex.Message}");
+			}   
 		}
 
 		public int CallListSearchText(IntPtr pluginWin, string searchString, int searchParameter)

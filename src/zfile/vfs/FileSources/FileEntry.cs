@@ -1050,9 +1050,8 @@ public class FileEntries : IEnumerable<FileEntry>
     {
         var fileEntries = new FileEntries();
         foreach (var file in files)
-        {
             fileEntries.Add(file);
-        }
+        
         return fileEntries;
     }
 	public int TotalSize
@@ -1082,18 +1081,18 @@ public class FileEntries : IEnumerable<FileEntry>
     }
     public int Count
     {
-        get { return _list.Count; }
+        get => _list.Count; 
         set
         {
             if (value < _list.Count)
             {
-                if (_ownsObjects)
-                {
-                    for (int i = value; i < _list.Count; i++)
-                    {
-                        // In C# we don't need to manually free objects
-                    }
-                }
+                //if (_ownsObjects)
+                //{
+                //    for (int i = value; i < _list.Count; i++)
+                //    {
+                //        // In C# we don't need to manually free objects
+                //    }
+                //}
                 _list.RemoveRange(value, _list.Count - value);
             }
             else if (value > _list.Count)

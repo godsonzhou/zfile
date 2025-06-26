@@ -24,19 +24,13 @@ namespace zfile
     {
         private FileSourceWipeOperationStatistics _statistics;
         private FileSourceWipeOperationStatistics _statisticsAtStartTime;
-        private readonly object _statisticsLock = new object();
-        private IFileSource _fileSource;
+        private readonly object _statisticsLock = new ();
         private FileEntries _filesToWipe;
 
         /// <summary>
         /// Gets the operation type
         /// </summary>
         public override FileSourceOperationTypes OperationType => FileSourceOperationTypes.Wipe;
-
-        /// <summary>
-        /// Gets the file source
-        /// </summary>
-        protected IFileSource FileSource => _fileSource;
 
         /// <summary>
         /// Gets the files to wipe
@@ -65,7 +59,7 @@ namespace zfile
             };
 
             _fileSource = aTargetFileSource;
-            _filesToWipe = theFilesToWipe ?? new FileEntries();
+            _filesToWipe = theFilesToWipe ?? [];
         }
 
         /// <summary>
@@ -87,9 +81,7 @@ namespace zfile
         protected override void DoReloadFileSources()
         {
             if (FilesToWipe.Count > 0)
-            {
-                _fileSource.Reload(new[] { FilesToWipe[0].Path });
-            }
+                _fileSource.Reload([ FilesToWipe[0].Path ]);
         }
 
         /// <summary>

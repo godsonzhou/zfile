@@ -407,8 +407,7 @@ namespace zfile
 
                             if (pluginFile.Length == 12 && string.Compare(pluginFile, "pluginst.inf", true) == 0)
                             {
-                                FileEntries sourceFiles = new FileEntries();
-                                sourceFiles.Add(archiveFile.Clone());
+                                FileEntries sourceFiles = [archiveFile.Clone()];
                                 ITempFileSystemFileSource temp = TempFileSystemFileSource.GetFileSource();
 
                                 ArchiveCopyOutOperation? operation = fileSource.CreateCopyOutOperation(
@@ -416,11 +415,10 @@ namespace zfile
                                 try
                                 {
 									OperationsManager.Instance.AddOperation(operation);
-									//operation.Execute();
 								}
                                 finally
                                 {
-                                    operation.Dispose();
+                                    operation?.Dispose();
                                 }
 
                                 if (File.Exists(Path.Combine(temp.GetRootDir(), pluginFile)))
@@ -449,13 +447,12 @@ namespace zfile
                                         try
                                         {
 											OperationsManager.Instance.AddOperation(operation);
-                                            //operation.Execute();
                                             if (operation.Result == FileSourceOperationResult.Aborted)
                                                 return;
                                         }
                                         finally
                                         {
-                                            operation.Dispose();
+                                            operation?.Dispose();
                                         }
 
                                         string plugin = Path.Combine(installDir, pluginFileName);
@@ -550,7 +547,6 @@ namespace zfile
                 foreach (string line in lines)
                 {
                     string trimmedLine = line.Trim();
-
                     if (trimmedLine.StartsWith("[") && trimmedLine.EndsWith("]"))
                     {
                         string sectionName = trimmedLine.Substring(1, trimmedLine.Length - 2);
@@ -563,9 +559,7 @@ namespace zfile
                         {
                             string keyName = trimmedLine.Substring(0, equalPos).Trim();
                             if (string.Compare(keyName, key, true) == 0)
-                            {
                                 return trimmedLine.Substring(equalPos + 1).Trim();
-                            }
                         }
                     }
                 }

@@ -48,7 +48,7 @@ namespace zfile
 		FilePropertiesTypes Compare(FileEntry file);
 		void Dispose();
 		bool IsExecutable();
-		bool IsNameValid;
+		bool IsNameValid { get; }
 		Stream OpenRead();
 		Stream OpenRead(long offset, long size);
 		FileProperty ReleaseProperty(FilePropertiesTypes propType);

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -425,9 +426,7 @@ namespace zfile
 					// 创建目标文件的目录（如果不存在）
 					string targetDir = Path.GetDirectoryName(targetFileName);
 					if (!string.IsNullOrEmpty(targetDir) && !Directory.Exists(targetDir))
-					{
 						Directory.CreateDirectory(targetDir);
-					}
 
 					// 尝试直接移动文件
 					File.Move(sourceFile.FullPath, targetFileName, true);
@@ -454,9 +453,7 @@ namespace zfile
 
 			// 如果直接移动失败或是追加/续传模式，则复制文件后删除源文件
 			if (Verify)
-			{
 				_statistics.TotalBytes += sourceFile.Size;
-			}
 
 			if (CopyFile(sourceFile, targetFileName, mode))
 			{
@@ -501,7 +498,7 @@ namespace zfile
 					{
 						// 在Windows系统中，复制文件所有权需要使用P/Invoke调用Windows API
 						// 这里我们简单地记录一下，实际实现需要调用Windows API
-						Console.WriteLine($"Copying ownership for file {targetFileName} is not implemented");
+						Debug.WriteLine($"Copying ownership for file {targetFileName} is not implemented");
 					}
 				}
 			}
@@ -511,9 +508,7 @@ namespace zfile
 
 				// 根据设置决定是否中止操作
 				if (SetPropertyError == FileSourceOperationOptionSetPropertyError.Abort)
-				{
 					_raiseAbortOperation();
-				}
 			}
 		}
 
@@ -550,10 +545,8 @@ namespace zfile
 								return true;
 							}
 							else
-							{
 								// 重命名失败，尝试创建目录并复制内容
 								bRenameDirectory = false;
-							}
 						}
 
 						// 创建目标目录
@@ -606,10 +599,8 @@ namespace zfile
 							case FileSourceOperationOptionDirectoryExists.Delete:
 								// 删除目录后继续
 								if (FileSystemUtil.RemoveDirectoryUAC(absoluteTargetFileName))
-								{
 									// 删除成功，重新处理
 									return ProcessDirectory(node, absoluteTargetFileName);
-								}
 								else
 								{
 									// 删除失败
@@ -658,9 +649,7 @@ namespace zfile
 				{
 					// 如果文件是只读的，先移除只读属性
 					if ((node.TheFile.Attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
-					{
 						FileSystemUtil.FileSetReadOnlyUAC(node.TheFile.FullPath, false);
-					}
 
 					// 删除源目录
 					FileSystemUtil.RemoveDirectoryUAC(node.TheFile.FullPath);
@@ -680,13 +669,9 @@ namespace zfile
 					var subNode = node.SubNodes[0];
 					// 根据子节点类型处理
 					if (subNode.TheFile.IsDirectory)
-					{
 						result = ProcessDirectory(subNode, absoluteTargetFileName);
-					}
 					else
-					{
 						result = ProcessFile(subNode, absoluteTargetFileName);
-					}
 
 					// 不计算统计信息，因为它们不会为跟踪的链接计数
 					return result;
@@ -719,13 +704,9 @@ namespace zfile
 
 									// 如果链接是相对的 - 也使修正后的链接相对
 									if (Path.IsPathRooted(linkTarget) == false)
-									{
 										linkTarget = Path.GetRelativePath(absoluteTargetFileName, correctedLink);
-									}
 									else
-									{
 										linkTarget = correctedLink;
-									}
 								}
 
 								// 创建符号链接
@@ -736,9 +717,7 @@ namespace zfile
 
 									// 如果是移动操作，删除源链接
 									if (_mode == FileSourceOperationHelperMode.Move)
-									{
 										DeleteFile(file);
-									}
 								}
 								else
 								{
@@ -791,9 +770,8 @@ namespace zfile
 				// 在Windows中，我们可以使用GetFinalPathNameByHandle或类似API
 				// 这里简化实现，假设链接目标就是文件本身
 				if (File.Exists(path))
-				{
 					return path;
-				}
+				
 				return string.Empty;
 			}
 			catch
@@ -860,19 +838,9 @@ namespace zfile
 
 				// 复制文件
 				if (_mode == FileSourceOperationHelperMode.Copy)
-				{
-					if (!CopyFile(node.FileEntry, absoluteTargetFileName, FileSystemOperationHelperCopyMode.Default))
-					{
-						return false;
-					}
-				}
-				else if (_mode == FileSourceOperationHelperMode.Move)
-				{
-					if (!MoveFile(node.FileEntry, absoluteTargetFileName, FileSystemOperationHelperCopyMode.Default))
-					{
-						return false;
-					}
-				}
+					return CopyFile(node.FileEntry, absoluteTargetFileName, FileSystemOperationHelperCopyMode.Default);
+				if (_mode == FileSourceOperationHelperMode.Move)
+					return MoveFile(node.FileEntry, absoluteTargetFileName, FileSystemOperationHelperCopyMode.Default);
 
 				return true;
 			}
@@ -890,20 +858,14 @@ namespace zfile
 			{
 				// 检查目标是否存在
 				if (File.Exists(absoluteTargetFileName))
-				{
 					// 目标是文件
 					return FileSystemOperationTargetExistsResult.IsFile;
-				}
 				else if (Directory.Exists(absoluteTargetFileName))
-				{
 					// 目标是目录
 					return FileSystemOperationTargetExistsResult.IsDirectory;
-				}
 				else
-				{
 					// 目标不存在
 					return FileSystemOperationTargetExistsResult.NotExists;
-				}
 			}
 			catch (Exception ex)
 			{
@@ -919,9 +881,7 @@ namespace zfile
 
 			// 更新跳过的文件和目录统计信息
 			if (node.IsDirectory)
-			{
 				_statistics.SkippedDirectories++;
-			}
 			else
 			{
 				_statistics.SkippedFiles++;
@@ -939,9 +899,7 @@ namespace zfile
 
 			// 更新总文件和目录统计信息
 			if (node.IsDirectory)
-			{
 				_statistics.TotalDirectories++;
-			}
 			else
 			{
 				_statistics.TotalFiles++;

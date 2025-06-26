@@ -119,7 +119,6 @@ namespace zfile
                 if (enumPtr != IntPtr.Zero)
                 {
                     IEnumIDList enumIdList = (IEnumIDList)Marshal.GetObjectForIUnknown(enumPtr);
-
                     while (enumIdList.Next(1, out IntPtr pidl, out uint fetched) == 0 && fetched == 1)
                     {
                         try
@@ -150,18 +149,15 @@ namespace zfile
                                 Attributes = FileAttributes.System,
                                 CreationTime = DateTime.Now,
                                 ModificationTime = DateTime.Now,
-                                LastAccessTime = DateTime.Now
-                            };
-
-                            fileEntry.Tag = subItem; // 使用Tag属性存储ShellItem对象
+                                LastAccessTime = DateTime.Now,
+								Tag = subItem   // 使用Tag属性存储ShellItem对象
+							};
                             Files.Add(fileEntry);
                         }
                         finally
                         {
                             if (pidl != IntPtr.Zero)
-                            {
                                 API.ILFree(pidl);
-                            }
                         }
                     }
 

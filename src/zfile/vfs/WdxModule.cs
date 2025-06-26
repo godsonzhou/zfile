@@ -488,12 +488,44 @@ namespace zfile
             int unitIndex = _fields[fieldIndex].GetUnitIndex(unitName);
             return GetValueV(fileName, fieldIndex, unitIndex, flag);
         }
+		private static string SmartDetectString(byte[] buffer, out string encode)
+		{
+			// 先用GB2312解码
+			string gbStr = Encoding.GetEncoding("gb2312").GetString(buffer).TrimEnd('\0');
+			if (IsReadableSmart(gbStr)) {
+				encode = "gb2312";
+				return gbStr; 
+			}
 
-        /// <summary>
-        /// 通过字段索引和单位索引获取字符串值
-        /// 对应 Pascal 的 CallContentGetValue(FileName, FieldIndex, UnitIndex, flags)
-        /// </summary>
-        public string GetValue(string fileName, int fieldIndex, int unitIndex = 0, int flag = 0)
+			// 再用Unicode解码
+			string unicodeStr = Encoding.Unicode.GetString(buffer).TrimEnd('\0');
+			if (IsReadableSmart(unicodeStr)) { encode = "unicode";  return unicodeStr; }
+
+			// 最后尝试ASCII
+			string asciiStr = Encoding.ASCII.GetString(buffer).TrimEnd('\0');
+			encode = "ascii";
+			return asciiStr;
+		}
+
+		// 更严格的可读性判断
+		private static bool IsReadableSmart(string str)
+		{
+			if (string.IsNullOrWhiteSpace(str)) return false;
+			// 包含中文、英文、数字
+			if (str.Any(c => c >= 0x4e00 && c <= 0x9fa5)) return true; // 中文
+			if (str.Any(c => char.IsLetterOrDigit(c))) return true;    // 英文/数字
+																	   // 乱码常见特征：大量不可识别字符
+			int badCharCount = str.Count(c => c == '�' || c == '\ufffd');
+			if (badCharCount > str.Length / 4) return false;
+			// 绝大多数为可见字符
+			int visible = str.Count(c => c >= 0x20 && c < 0x7F || c > 0x80);
+			return visible > str.Length / 2;
+		}
+		/// <summary>
+		/// 通过字段索引和单位索引获取字符串值
+		/// 对应 Pascal 的 CallContentGetValue(FileName, FieldIndex, UnitIndex, flags)
+		/// </summary>
+		public string GetValue(string fileName, int fieldIndex, int unitIndex = 0, int flag = 0)
         {
             if (!IsLoaded || fieldIndex < 0 || fieldIndex >= _fields.Count)
                 return string.Empty;
@@ -535,16 +567,24 @@ namespace zfile
                         case WdxConstants.FT_STRING:
                         case WdxConstants.FT_FULLTEXT:
 							// 获取GB2312编码实例
-							//Encoding encoding = Encoding.GetEncoding("gb2312");
-							var encoding = Encoding.Unicode;
+							Encoding encoding = Encoding.GetEncoding("gb2312");
+							var resultstrgb2312 = encoding.GetString(valuePtr).TrimEnd('\0');
+							encoding = Encoding.Unicode;
 							//var encoding = Helper.SmartDetectEncoding(valuePtr);
-							return encoding.GetString(valuePtr).TrimEnd('\0');
+							var resultstrunicode =  encoding.GetString(valuePtr).TrimEnd('\0');
+							var resultstrsmart = SmartDetectString(valuePtr, out var encodestr);
+							var RESULTASCII = Encoding.ASCII.GetString(valuePtr).TrimEnd('\0');
+
+							Debug.WriteLine($"ISUNCODE: {IsUnicode}, GetValue(string/fulltext): {fieldname} gb2312: {resultstrgb2312}, unicode: {resultstrunicode}, ASCII: {RESULTASCII}, autodetect => [{encodestr}/{resultstrsmart}]");
 							
+							return resultstrsmart; // 返回Unicode字符串
+
 						case WdxConstants.FT_STRINGW:
 						case WdxConstants.FT_FULLTEXTW:
 							// Unicode 字符串返回// 解码为字符串（UTF - 16 Little - Endian）
-							return Encoding.Unicode.GetString(valuePtr).TrimEnd('\0');
-
+							var resultunicode =  Encoding.Unicode.GetString(valuePtr).TrimEnd('\0');
+							Debug.Print($"GetValue(stringw/fulltextw): {fieldname} - unicode: {resultunicode}");
+							return resultunicode;
 						case WdxConstants.FT_NUMERIC_32:
                             //if (int.TryParse(value, out int intValue))
                             //    return intValue.ToString();

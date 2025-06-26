@@ -351,7 +351,7 @@ namespace zfile
 						ColumnHeader column = new ColumnHeader
 						{
 							Text = colDef.header,
-							Width = Math.Abs(colDef.width)
+							Width = Math.Abs(colDef.width) * 2
 						};
 
 						// Set alignment based on content

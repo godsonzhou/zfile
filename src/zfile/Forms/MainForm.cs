@@ -733,14 +733,14 @@ namespace zfile
 			if (listView == null) return;
 
 			listView.Update();
-			if (!IsValidTarget(listView, e, out string targetPath))
+			if (!IsValidTarget(listView, e, out var targetPath))
 			{
 				e.Effect = DragDropEffects.None;
 				return;
 			}
 			Debug.Print($"{targetPath}");
 			// 检查目标路径是否为FTP或压缩文件
-			if (fTPMGR.IsFtpPath(targetPath) || IsArchiveFile(targetPath))
+			if (fTPMGR.IsFtpPath(targetPath)) //|| IsArchiveFile(targetPath))
 			{
 				e.Effect = DragDropEffects.None;
 				return;
@@ -759,7 +759,7 @@ namespace zfile
 					string ext = Path.GetExtension(itemPath).ToLower();
 					if (ext == ".exe" || ext == ".com" || ext == ".bat" || ext == ".cmd")
 					{
-						Debug.Print($"sss{itemPath}");
+						Debug.Print($"listview dragover target : {itemPath}");
 						e.Effect = DragDropEffects.Copy; // 使用Link效果表示将作为参数启动程序
 						return;
 					}
@@ -825,9 +825,9 @@ namespace zfile
 			if (!IsValidTarget(listView, e, out var targetPath)) return;
 
 			// 检查目标路径是否为FTP或压缩文件
-			if (fTPMGR.IsFtpPath(targetPath) || IsArchiveFile(targetPath))
+			if (fTPMGR.IsFtpPath(targetPath)) //|| IsArchiveFile(targetPath))
 			{
-				MessageBox.Show("不能拖放到FTP或压缩文件中", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				MessageBox.Show("不支持的操作", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
 			}
 
@@ -1902,9 +1902,9 @@ namespace zfile
 
 		public void ToolbarButton_DragEnter(object? sender, DragEventArgs e)
 		{
-			if (e.Data.GetDataPresent(DataFormats.FileDrop))
+			if (e.Data != null && e.Data.GetDataPresent(DataFormats.FileDrop))
 			{
-				var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+				//var files = (FileEntry[])e.Data.GetData(DataFormats.FileDrop);
 				e.Effect = DragDropEffects.Copy;
 				return;
 			}
@@ -1913,9 +1913,9 @@ namespace zfile
 
 		public void ToolbarButton_DragDrop(object? sender, DragEventArgs e)
 		{
-			if (e.Data.GetDataPresent(DataFormats.FileDrop))
+			if (e.Data != null && e.Data.GetDataPresent(DataFormats.FileDrop))
 			{
-				string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+				var files = (FileEntry[]?)e.Data.GetData(DataFormats.FileDrop);
 
 				// 首先检查是否拖放到按钮上
 				var button = sender as ToolStripButton;
@@ -1924,13 +1924,16 @@ namespace zfile
 					string cmd = button.Tag?.ToString() ?? "";
 					if (!string.IsNullOrEmpty(cmd))
 					{
-						foreach (string file in files)
+						if (files != null)
 						{
-							// 执行按钮命令，将拖拽的文件作为参数
-							if (cmd.StartsWith("openbar"))
-								continue;   // 如果是下拉菜单按钮，不执行任何操作
-							else
-								cmdProcessor.ExecCmd(cmd, file);    // 执行普通按钮命令
+							foreach (var file in files)
+							{
+								// 执行按钮命令，将拖拽的文件作为参数
+								if (cmd.StartsWith("openbar"))
+									continue;   // 如果是下拉菜单按钮，不执行任何操作
+								else
+									cmdProcessor.ExecCmd(cmd, file.FullPath);    // 执行普通按钮命令
+							}
 						}
 						return;
 					}
@@ -1943,11 +1946,14 @@ namespace zfile
 					var bar = strip?.LayoutStyle == ToolStripLayoutStyle.VerticalStackWithOverflow
 								? uiManager.vtoolbarManager
 								: uiManager.toolbarManager;
-					foreach (string file in files)
+					if(files == null)
+						return; // 如果没有文件，直接返回
+					foreach (var fileentry in files)
 					{
 						try
 						{
-							FileInfo fi = new FileInfo(file);
+							var file = fileentry.FullPath;
+							FileInfo fi = new (file);
 							string displayName = Path.GetFileNameWithoutExtension(file);
 							bar.AddButton(displayName, file, file + ",0", "", "", "0");
 						}

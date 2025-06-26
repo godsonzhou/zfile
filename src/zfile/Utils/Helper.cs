@@ -818,6 +818,8 @@ namespace zfile
 			foreach (ShellSpecialFolders folder in Enum.GetValues(typeof(ShellSpecialFolders)))
 			{
 				string path = w32.GetSpecialFolderPath(IntPtr.Zero, folder);
+				if (string.IsNullOrWhiteSpace(path))
+					continue;
 				specFolderPaths[folder.ToString()] = path;
 				Debug.Print("{0}={1}", folder, path);
 			}

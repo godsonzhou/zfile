@@ -383,7 +383,7 @@ public class FileEntry : IDisposable, IFileEntry
 	{
 		if (size <= 0)
 			return null;
-		Stream stream = null;
+		Stream? stream = null;
 		try
 		{
 			stream = new FileStream(FullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -397,7 +397,7 @@ public class FileEntry : IDisposable, IFileEntry
 		}
 	}
 
-	protected FileProperty GetProperty(FilePropertiesTypes propType)
+	protected FileProperty? GetProperty(FilePropertiesTypes propType)
 	{
 		if (propType < FilePropertiesTypes.Variant)
 		{
@@ -452,7 +452,7 @@ public class FileEntry : IDisposable, IFileEntry
 
 	public virtual string FullPath
 	{
-		get { return _path + ((FileNameProperty)_properties[FilePropertiesTypes.Name]).Value; }
+		get => _path + Name;
 		set
 		{
 			if (!string.IsNullOrEmpty(value))
@@ -483,7 +483,7 @@ public class FileEntry : IDisposable, IFileEntry
 
 	public virtual string Path
 	{
-		get { return _path; }
+		get => _path; 
 		set
 		{
 			if (string.IsNullOrEmpty(value))
@@ -495,29 +495,18 @@ public class FileEntry : IDisposable, IFileEntry
 
 	public string Name
 	{
-		get
-		{
-			EnsurePropertyExists(FilePropertiesTypes.Name);
-			return ((FileNameProperty)_properties[FilePropertiesTypes.Name]).Value;
-		}
+		get => ((FileNameProperty)_properties[FilePropertiesTypes.Name]).Value;
+		
 		set
 		{
-			EnsurePropertyExists(FilePropertiesTypes.Name);
 			((FileNameProperty)_properties[FilePropertiesTypes.Name]).Value = value;
 			UpdateNameAndExtension(value);
 		}
 	}
 
-	public string Extension
-	{
-		get { return _extension; }
-	}
+	public string Extension => _extension;
 
-	public string NameNoExt
-	{
-		get { return _nameNoExt; }
-	}
-
+	public string NameNoExt => _nameNoExt;
 
 	private void EnsurePropertyExists(FilePropertiesTypes propertyType)
 	{
@@ -576,25 +565,13 @@ public class FileEntry : IDisposable, IFileEntry
 	}
 	public FileAttributes Attributes
 	{
-		//get { return ((FileAttributesProperty)_properties[FilePropertyType.Attributes]).Value; }
-		//set { ((FileAttributesProperty)_properties[FilePropertyType.Attributes]).Value = value; }
 		get
 		{
-			//if (!_properties.ContainsKey(FilePropertyType.Attributes))
-			//{
-			//	_properties[FilePropertyType.Attributes] = new FileAttributesProperty();
-			//	_supportedProperties |= FilePropertyType.Attributes;
-			//}
 			EnsurePropertyExists(FilePropertiesTypes.Attributes);
 			return ((FileAttributesProperty)_properties[FilePropertiesTypes.Attributes]).Value;
 		}
 		set
 		{
-			//if (!_properties.ContainsKey(FilePropertyType.Attributes))
-			//{
-			//	_properties[FilePropertyType.Attributes] = new FileAttributesProperty();
-			//	_supportedProperties |= FilePropertyType.Attributes;
-			//}
 			EnsurePropertyExists(FilePropertiesTypes.Attributes);
 			((FileAttributesProperty)_properties[FilePropertiesTypes.Attributes]).Value = value;
 		}
@@ -845,37 +822,25 @@ public class FileEntry : IDisposable, IFileEntry
 
 	public FilePropertiesTypes AssignedProperties => _supportedProperties;
 
-	public FileEntry(string path)
+	public FileEntry(string path) : this()
 	{
-		_properties = new Dictionary<FilePropertiesTypes, FileProperty>();
-		_variantProperties = new List<FileVariantProperty>();
-		_supportedProperties = FilePropertiesTypes.Name;
-		if (File.Exists(path))
-		{
-			//NameProperty = new FileNameProperty(System.IO.Path.GetFileName(path));
-			//NameProperty = new FileNameProperty(); // use ensurepropertyexist, so do not need to init nameproperty here.
+		if (File.Exists(path))	
 			FullPath = path;
-			//Path = path;
-		}
 		else
 			Path = path;
 	}
-	public FileEntry(string path, string name)
+	public FileEntry(string path, string name) : this()
 	{
-		_properties = new Dictionary<FilePropertiesTypes, FileProperty>();
-		_variantProperties = new List<FileVariantProperty>();
-		_supportedProperties = FilePropertiesTypes.Name;
-
-		//NameProperty = new FileNameProperty(name); // bugfix: use this method will not update extension and namewithoutextension,so use name assignment 
 		Name = name;
-		//NameProperty = new FileNameProperty(); // use ensurepropertyexist, so do not need to init nameproperty here.
 		Path = path;
 	}
 
 	public FileEntry()
 	{
-		_properties = new Dictionary<FilePropertiesTypes, FileProperty>();
-		_variantProperties = new List<FileVariantProperty>();
+		_properties = [];
+		_variantProperties = [];
+		_supportedProperties = FilePropertiesTypes.Name;
+		EnsurePropertyExists(FilePropertiesTypes.Name);
 	}
 
 	public FileEntry Clone()
@@ -895,15 +860,11 @@ public class FileEntry : IDisposable, IFileEntry
 			file._supportedProperties = _supportedProperties;
 
 			foreach (var kvp in _properties)
-			{
 				file._properties[kvp.Key] = kvp.Value.Clone();
-			}
 
 			file._variantProperties = new List<FileVariantProperty>(_variantProperties.Count);
 			for (int i = 0; i < _variantProperties.Count; i++)
-			{
 				file._variantProperties.Add(_variantProperties[i]?.Clone() as FileVariantProperty);
-			}
 		}
 	}
 
@@ -925,9 +886,7 @@ public class FileEntry : IDisposable, IFileEntry
 					result |= kvp.Key;
 			}
 			else
-			{
 				result |= kvp.Key;
-			}
 		}
 
 		foreach (var kvp in file._properties)
@@ -965,9 +924,7 @@ public class FileEntry : IDisposable, IFileEntry
 		foreach (var key in _properties.Keys.ToList())
 		{
 			if (key != FilePropertiesTypes.Name)
-			{
 				_properties.Remove(key);
-			}
 		}
 		_supportedProperties = FilePropertiesTypes.Name;
 	}
@@ -1004,10 +961,7 @@ public class FileEntry : IDisposable, IFileEntry
 		return result;
 	}
 
-	public bool IsNameValid()
-	{
-		return Name != "..";
-	}
+	public bool IsNameValid => Name != "..";
 
 	public bool IsDirectory
 	{
@@ -1016,23 +970,14 @@ public class FileEntry : IDisposable, IFileEntry
 		set => Attributes = value ? Attributes | FileAttributes.Directory : Attributes & ~FileAttributes.Directory;
 	}
 
-	public bool IsSysFile
-	{
-		get => _supportedProperties.HasFlag(FilePropertiesTypes.Attributes) &&
+	public bool IsSysFile => _supportedProperties.HasFlag(FilePropertiesTypes.Attributes) &&
 			   (Attributes & FileAttributes.System) == FileAttributes.System;
-	}
 
-	public bool IsHidden
-	{
-		get => _supportedProperties.HasFlag(FilePropertiesTypes.Attributes) &&
+	public bool IsHidden => _supportedProperties.HasFlag(FilePropertiesTypes.Attributes) &&
 			   (Attributes & FileAttributes.Hidden) == FileAttributes.Hidden;
-	}
 
-	public bool IsLink
-	{
-		get => _supportedProperties.HasFlag(FilePropertiesTypes.Link) &&
+	public bool IsLink => _supportedProperties.HasFlag(FilePropertiesTypes.Link) &&
 			   !string.IsNullOrEmpty(((FileLinkProperty)_properties[FilePropertiesTypes.Link]).LinkTarget);
-	}
 
 	public bool IsExecutable()
 	{
@@ -1043,10 +988,8 @@ public class FileEntry : IDisposable, IFileEntry
 		return ext == "exe" || ext == "bat" || ext == "cmd" || ext == "com";
 	}
 
-	public bool IsReadOnly
-	{
-		get => _supportedProperties.HasFlag(FilePropertiesTypes.Attributes) && (Attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly;
-	}
+	public bool IsReadOnly => _supportedProperties.HasFlag(FilePropertiesTypes.Attributes) && (Attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly;
+	
 	public bool Exists { get; internal set; }
 
 	/// <summary>
@@ -1096,8 +1039,8 @@ public class FileEntries : IEnumerable<FileEntry>
     private bool _ownsObjects;
     private string _path;
 
-    public static FileEntries Empty => new FileEntries();
-    public static FileEntries EmptyFlat => new FileEntries { _flat = true };
+    public static FileEntries Empty => [];
+    public static FileEntries EmptyFlat => new () { _flat = true };
     public bool IsEmpty => _list.Count == 0;
     public bool IsFlat => _flat;
     public string Name => _list.Count > 0 ? _list[0].Name : string.Empty;
@@ -1120,9 +1063,7 @@ public class FileEntries : IEnumerable<FileEntry>
 			foreach (var file in _list)
 			{
 				if (file != null && file.Size > 0)
-				{
 					totalSize += (int)file.Size;
-				}
 			}
 			return totalSize;
 		}
@@ -1158,16 +1099,14 @@ public class FileEntries : IEnumerable<FileEntry>
             else if (value > _list.Count)
             {
                 for (int i = _list.Count; i < value; i++)
-                {
                     _list.Add(null);
-                }
             }
         }
     }
 
     public FileEntry this[int index]
     {
-        get { return _list[index]; }
+        get => _list[index]; 
         set { _list[index] = value; }
     }
 
@@ -1175,13 +1114,13 @@ public class FileEntries : IEnumerable<FileEntry>
 
     public bool OwnsObjects
     {
-        get { return _ownsObjects; }
+        get => _ownsObjects; 
         set { _ownsObjects = value; }
     }
 
     public string Path
     {
-        get { return _path; }
+        get => _path;
         set
         {
 			if (string.IsNullOrWhiteSpace(value))
@@ -1197,9 +1136,7 @@ public class FileEntries : IEnumerable<FileEntry>
                 foreach (var file in _list)
                 {
                     if (file != null)
-                    {
                         file.Path = value;
-                    }
                 }
             }
         }
@@ -1207,13 +1144,13 @@ public class FileEntries : IEnumerable<FileEntry>
 
     public bool Flat
     {
-        get { return _flat; }
+        get => _flat;
         set { _flat = value; }
     }
 
     public FileEntries(string? path = "")
     {
-        _list = new List<FileEntry>();
+        _list = [];
         _ownsObjects = true;
         Path = path;
     }
@@ -1225,7 +1162,7 @@ public class FileEntries : IEnumerable<FileEntry>
 
     public FileEntries Clone()
     {
-        FileEntries result = new FileEntries(_path);
+        FileEntries result = new (_path);
         CloneTo(result);
         return result;
     }
@@ -1239,13 +1176,9 @@ public class FileEntries : IEnumerable<FileEntry>
         foreach (var file in _list)
         {
             if (file != null)
-            {
                 files.Add(file.Clone());
-            }
             else
-            {
                 files.Add(null);
-            }
         }
     }
 

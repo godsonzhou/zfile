@@ -359,7 +359,7 @@ namespace zfile
 		/// <returns>复制出操作</returns>
 		public override FileSourceCopyOutOperation CreateCopyOutOperation(IFileSource targetFileSource, FileEntries sourceFiles, string targetPath)
 		{
-			return new FtpCopyOutOperation(this, targetFileSource, sourceFiles.Path.Contains('\\') ? FileSourceUtil.FileEntryListToFileEntries(sourceFiles.List) : sourceFiles, targetPath);
+			return new FtpCopyOutOperation(this, targetFileSource, sourceFiles.Path.Contains('\\') ? FileSourceUtil.FileEntryListToFileEntries(sourceFiles) : sourceFiles, targetPath);
 		}
 
 		/// <summary>

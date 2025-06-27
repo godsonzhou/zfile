@@ -1054,6 +1054,31 @@ public class FileEntries : IEnumerable<FileEntry>
         
         return fileEntries;
     }
+	public static FileEntries FromList(List<FileEntry> files)
+	{
+		var fileEntries = new FileEntries();
+		foreach (var file in files)
+			fileEntries.Add(file);
+		
+		return fileEntries;
+	}
+	
+	public FileEntry[] ToArray()
+	{
+		return _list.ToArray();
+	}
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <param name="sep"> 分隔符 默认为空格 </param>
+	/// <param name="mode"> 0：完整路径； 1：仅名称</param>
+	/// <returns></returns>
+	public string GetStringFromAllFiles(char sep = ' ', int mode = 0)
+	{
+		if (_list.Count == 0)
+			return string.Empty;
+		return string.Join(sep, _list.Select(file => mode == 0 ? file.FullPath : file.Name));
+	}
 	public int TotalSize
 	{
 		get
@@ -1085,16 +1110,7 @@ public class FileEntries : IEnumerable<FileEntry>
         set
         {
             if (value < _list.Count)
-            {
-                //if (_ownsObjects)
-                //{
-                //    for (int i = value; i < _list.Count; i++)
-                //    {
-                //        // In C# we don't need to manually free objects
-                //    }
-                //}
                 _list.RemoveRange(value, _list.Count - value);
-            }
             else if (value > _list.Count)
             {
                 for (int i = _list.Count; i < value; i++)
@@ -1217,18 +1233,7 @@ public class FileEntries : IEnumerable<FileEntry>
         }
         _list.Clear();
     }
-    //public FileEntry GetEnumable()
-    //{
-    //	foreach (var file in _list)
-    //	{
-    //		if (file != null)
-    //		{
-    //			yield return file;
-    //		}
-    //	}
-    //	return null;
-    //}
-
+   
     public IEnumerator<FileEntry> GetEnumerator()
     {
         return ((IEnumerable<FileEntry>)_list).GetEnumerator();

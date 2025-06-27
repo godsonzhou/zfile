@@ -7,7 +7,7 @@ namespace zfile
     /// </summary>
     public static class FileSourceUtil
     {
-		public static FileEntries FileEntryListToFileEntries(List<FileEntry> sourceFiles, bool isFtpFilesource = true)
+		public static FileEntries FileEntryListToFileEntries(FileEntries sourceFiles, bool isFtpFilesource = true)
 		{
 			var fileEntries = new FileEntries();
 			foreach (var file in sourceFiles)

@@ -1051,7 +1051,6 @@ namespace zfile
 				// Process application messages
 				_appProcessMessages?.Invoke();
 				_checkOperationState();
-
 			}
 
 			return result;

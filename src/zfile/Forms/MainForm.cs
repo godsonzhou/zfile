@@ -3024,20 +3024,20 @@ namespace zfile
 		{
 			cm_list();
 		}
-		public List<FileEntry> GetFileListByViewOrParam(string? param, bool isViaTemp = true)
+		public FileEntries GetFileListByViewOrParam(string? param, bool isViaTemp = true)
 		{
 			if (!string.IsNullOrWhiteSpace(param))
 			{
 				var ret = se.PrepareParameter(param, new string[] { }, "");
 				if (ret != null && ret.Count > 0)
-					return ret.Select(x => new FileEntry(x)).ToList();
+					return FileEntries.FromList(ret.Select(x => new FileEntry(Path.GetDirectoryName(x), Path.GetFileName(x))).ToList());
 			}
 
-			List<FileEntry> result = new();
+			FileEntries result = new();
 			if (activeListView.SelectedItems.Count == 0) return result;
 
 			// 获取原始文件列表
-			var originalFiles = new List<FileEntry>();
+			var originalFiles = new FileEntries();
 			foreach (ListViewItem item in activeListView.SelectedItems)
 			{
 				var fileEntry = GetListItemPath(item);
@@ -3065,7 +3065,7 @@ namespace zfile
 		/// <param name="ftpSource">FTP文件源</param>
 		/// <param name="sourceFiles">源文件列表</param>
 		/// <returns>临时文件列表</returns>
-		private List<FileEntry> DownloadFilesToTemp(IFileSource? ftpSource, List<FileEntry> sourceFiles)
+		private FileEntries DownloadFilesToTemp(IFileSource? ftpSource, FileEntries sourceFiles)
 		{
 			try
 			{
@@ -3096,7 +3096,7 @@ namespace zfile
 					if (copyOutOperation.Result == FileSourceOperationResult.Finished)
 					{
 						// 获取临时目录中的所有文件
-						List<FileEntry> tempFiles = [];
+						FileEntries tempFiles = [];
 						foreach (var file in fileEntries)
 						{
 							string tempFilePath = Path.Combine(tempPath, file.Name);
@@ -4148,13 +4148,11 @@ namespace zfile
 				_operationsManager.AddOperation(operation);
 			}
 		}
-		// 移动选中的文件
 		public void cm_renmov(string? param = null, string? targetPath = null, string? targetfilename = null)
 		{
 			string? srcpath;
-			var sourceFiles = GetFileListByViewOrParam(param, false);   //bugfix: 因为需要删除源文件，所以不能使用GetFileListByViewOrParam(param, true)，否则会导致源文件为temprary file, 不能删除源文件
-			if (sourceFiles.Count == 0) return;
 
+			var sourceFiles = GetFileListByViewOrParam(param, false);   //bugfix: 因为需要删除源文件，所以不能使用GetFileListByViewOrParam(param, true)，否则会导致源文件为temprary file, 不能删除源文件
 			if (!string.IsNullOrEmpty(param)) // when use clipboard, the targetpath is actpanel dir, so use srcdir, and the srcpath is determined by the filenames in the clipboard, so use the first sourcefile dir, TODO: the sourcefiles with many directories
 			{
 				srcpath = Path.GetDirectoryName(sourceFiles[0].FullPath) ?? "";
@@ -4163,9 +4161,15 @@ namespace zfile
 			else
 			{
 				srcpath = uiManager.srcDir;
-				if(string.IsNullOrEmpty(targetPath))
+				if (string.IsNullOrEmpty(targetPath))
 					targetPath = uiManager.targetDir;
 			}
+			cm_renmov(sourceFiles, srcpath, targetPath, targetfilename);
+		}
+		// 移动选中的文件
+		public void cm_renmov(FileEntries sourceFiles, string srcpath, string? targetPath = null, string? targetfilename = null)
+		{
+			if (sourceFiles.Count == 0) return;
 
 			if (string.IsNullOrEmpty(targetPath))
 			{
@@ -4188,12 +4192,12 @@ namespace zfile
 				IFileSource targetFileSource = targetfilename != null ? sourceFileSource : _fileSourceManager.GetFileSourceForFullPath(targetPath, !isleft);
 
 				// 创建文件条目列表
-				var fileEntries = new FileEntries();
-				foreach (var fileEntry in sourceFiles)
-					fileEntries.Add(fileEntry);
+				//var fileEntries = new FileEntries();
+				//foreach (var fileEntry in sourceFiles)
+				//	fileEntries.Add(fileEntry);
 
 				// 创建移动操作
-				FileSourceOperation? operation;
+				//FileSourceOperation? operation;
 
 				// 如果源和目标是同一个 FileSource，使用 CreateMoveOperation, filesystem/ftp 支持move operation, archive does not support move operation, so use copy and delete
 				//if (sourceFileSource.GetType() == targetFileSource.GetType())
@@ -4207,30 +4211,26 @@ namespace zfile
 			
 				if(usemoveop)
 				{
-					operation = sourceFileSource.CreateMoveOperation(fileEntries, targetPath);
+					var operation = sourceFileSource.CreateMoveOperation(sourceFiles, targetPath);
 					operation.AddStateChangedListener([ FileSourceOperationState.Stopped ], (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation?)sender, state, mode: RefreshPanelMode.Both));
 					_operationsManager.AddOperation(operation);
-			
 					return;
 				}
 				else
 				{
 					// 如果不是同一类型的 FileSource，先复制后删除
 					// 使用 FileSourceManager 创建复制操作
-					var copyOperation = FileSourceManager.CreateCopyOperation(sourceFileSource, targetFileSource, fileEntries, targetPath);
+					var copyOperation = FileSourceManager.CreateCopyOperation(sourceFileSource, targetFileSource, sourceFiles, targetPath);
 					if (copyOperation != null)
 					{
-						copyOperation.AddStateChangedListener([FileSourceOperationState.Stopped], (sender, state) => deleteFiles(sourceFileSource, fileEntries));    //copyoperation完成后执行删除文件操作
+						copyOperation.AddStateChangedListener([FileSourceOperationState.Stopped], (sender, state) => deleteFiles(sourceFileSource, sourceFiles));    //copyoperation完成后执行删除文件操作
 						_operationsManager.AddOperation(copyOperation);
 					}
 					else
 					{
-						//operation = null;
-						if (CopyViaTemporaryDirectory(sourceFileSource, targetFileSource, fileEntries, targetPath, targetfilename))
-						{
+						if (CopyViaTemporaryDirectory(sourceFileSource, targetFileSource, sourceFiles, targetPath, targetfilename))
 							// 复制成功后删除源文件
-							deleteFiles(sourceFileSource, fileEntries);
-						}
+							deleteFiles(sourceFileSource, sourceFiles);
 						else
 						{
 							MessageBox.Show("无法完成移动操作，请检查源和目标路径。", "错误");

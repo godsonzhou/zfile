@@ -96,17 +96,13 @@ namespace zfile
                 foreach (var file in files)
                 {
                     if (file.IsDirectory)
-                    {
                         AddFilesInDirectory(file.FullPath + Path.DirectorySeparatorChar, _filesTree);
-                    }
                 }
             }
             else
             {
                 foreach (var file in files)
-                {
                     AddItem(file.Clone(), _filesTree);
-                }
             }
         }
 

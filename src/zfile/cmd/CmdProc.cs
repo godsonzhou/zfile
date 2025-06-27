@@ -21,6 +21,7 @@ namespace zfile
 		public List<MenuInfo> emCmds;
 		private int targetIndex = 0;
 		private FileEntries filesInClipboard = [];
+		private string filesPathInClipboard;
 		private ListView listviewClipboard;
 
 		public CmdProc(MainForm owner)
@@ -1097,6 +1098,8 @@ namespace zfile
 				var filePaths = new StringCollection();
 				
 				filesInClipboard.Clear();
+				filesPathInClipboard = owner.CurrentFullpath[listviewClipboard.Name];
+
 				foreach (ListViewItem item in selectedItems)
 				{
 					string fullPath = Path.Combine(owner.uiManager.ActivePathTextBox.CurrentNode.UniqueID, item.Text);//bugfix: 通过字符串传输无法传递是否为文件夹
@@ -1158,7 +1161,9 @@ namespace zfile
 
 				// 再次验证剪贴板内容
 				if (Clipboard.ContainsFileDropList())
-					Debug.Print($"Main thread verification - Successfully copied {Clipboard.GetFileDropList().Count} files");
+				{
+					Debug.Print($"Main thread verification - Successfully copied {Clipboard.GetFileDropList().Count} files ： {filesInClipboard.GetStringFromAllFiles()} from listview:{listviewClipboard.Name}");
+				}
 				else
 					Debug.Print("Main thread verification - Failed to verify clipboard content");
 			}
@@ -1199,10 +1204,10 @@ namespace zfile
 				//var files = string.Join("|", filePaths.Cast<string>());
 
 				if (isCut)
-					owner.cm_renmov(filesInClipboard, filesInClipboard.Path, owner.uiManager.srcDir); // 使用已有的移动功能
+					owner.cm_renmov(filesInClipboard, filesPathInClipboard, owner.uiManager.srcDir); // 使用已有的移动功能
 				else
 					// 使用已有的复制功能
-					owner.cm_copy(filesInClipboard, filesInClipboard.Path, owner.uiManager.srcDir, owner.uiManager.activeListView, listviewClipboard.Name );// when use pastefromclipboard, the copy targetpath is the activepanel path
+					owner.cm_copy(filesInClipboard, filesPathInClipboard, owner.uiManager.srcDir, owner.uiManager.activeListView, listviewClipboard.Name );// when use pastefromclipboard, the copy targetpath is the activepanel path
 
 				// 如果是剪切操作，完成后清空剪贴板
 				if (isCut)

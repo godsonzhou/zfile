@@ -740,11 +740,11 @@ namespace zfile
 			}
 			Debug.Print($"{targetPath}");
 			// 检查目标路径是否为FTP或压缩文件
-			if (fTPMGR.IsFtpPath(targetPath)) //|| IsArchiveFile(targetPath))
-			{
-				e.Effect = DragDropEffects.None;
-				return;
-			}
+			//if (fTPMGR.IsFtpPath(targetPath)) //|| IsArchiveFile(targetPath))
+			//{
+			//	e.Effect = DragDropEffects.None;
+			//	return;
+			//}
 
 			// 获取目标项
 			var clientPoint = listView.PointToClient(new Point(e.X, e.Y));
@@ -825,11 +825,11 @@ namespace zfile
 			if (!IsValidTarget(listView, e, out var targetPath)) return;
 
 			// 检查目标路径是否为FTP或压缩文件
-			if (fTPMGR.IsFtpPath(targetPath)) //|| IsArchiveFile(targetPath))
-			{
-				MessageBox.Show("不支持的操作", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-				return;
-			}
+			//if (fTPMGR.IsFtpPath(targetPath)) //|| IsArchiveFile(targetPath))
+			//{
+			//	MessageBox.Show("不支持的操作", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			//	return;
+			//}
 
 			// 获取目标项
 			var clientPoint = listView.PointToClient(new Point(e.X, e.Y));
@@ -3926,6 +3926,7 @@ namespace zfile
 			{
 				if (targetPath != null)
 				{
+					Debug.Print($"srcfiles:{sourceFiles.GetStringFromAllFiles()}, srcpath:{srcPath}, targetpath:{targetPath}, targetlistview:{targetlist.Name}, srclistview:{srclistviewname}");
 					// 使用 FileSourceManager 获取源和目标 FileSource
 					var sourceFileSource = _fileSourceManager.GetFileSourceForFullPath(srcPath, srclistviewname == null ? isleft : srclistviewname.Equals("L"));//CurrentFullpath.GetFileSource(LRflag);   //fullpath.getfilesource is faster , about 2ms
 					var targetFileSource = _fileSourceManager.GetFileSourceForFullPath(targetPath, srclistviewname == null ? !isleft : targetlist.Name.Equals("L"));    //if pastefromclipboard, the targetpath is not unactive, so calc it is necessary, slower, about 21ms, 10x times slower than the previous method
@@ -4196,6 +4197,7 @@ namespace zfile
 			}
 			try
 			{
+				Debug.Print($"srcfiles:{sourceFiles.GetStringFromAllFiles()}, srcpath:{srcpath}, targetpath:{targetPath}, targetfilename:{targetfilename}");
 				// 使用 FileSourceManager 获取源和目标 FileSource
 				IFileSource sourceFileSource = _fileSourceManager.GetFileSourceForFullPath(srcpath, isleft);
 				IFileSource targetFileSource = targetfilename != null ? sourceFileSource : _fileSourceManager.GetFileSourceForFullPath(targetPath, !isleft);

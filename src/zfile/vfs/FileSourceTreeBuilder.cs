@@ -242,9 +242,7 @@ namespace zfile
                              _fileTemplate.CheckDirectoryNameEx(file.FullPath, _rootDir);
                 }
                 else
-                {
                     matches = _fileTemplate.Check(file);
-                }
 
                 if (!matches)
                 {

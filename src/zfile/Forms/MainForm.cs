@@ -3030,7 +3030,20 @@ namespace zfile
 			{
 				var ret = se.PrepareParameter(param, [], "");
 				if (ret != null && ret.Count > 0)
-					return FileEntries.FromList(ret.Select(x => !x.EndsWith('\\') ? new FileEntry(x) : new FileEntry(Path.GetDirectoryName(x.TrimEnd('\\')), Path.GetFileName(x.TrimEnd('\\'))) { IsDirectory = true }).ToList());
+				//return FileEntries.FromList(ret.Select(x => !x.EndsWith('\\') ? new FileEntry(x) : new FileEntry(Path.GetDirectoryName(x.TrimEnd('\\')), Path.GetFileName(x.TrimEnd('\\'))) { IsDirectory = true }).ToList());
+				{
+					//bugfix:如何获取fileentry对象的时间等属性
+
+					var fileEntries = new FileEntries();
+					foreach (var path in ret)
+					{
+						if (string.IsNullOrWhiteSpace(path)) continue;
+						var fileEntry = new FileEntry(path);
+						if (fileEntry.Exists)
+							fileEntries.Add(fileEntry);
+					}
+					return fileEntries;
+				}
 			}
 
 			FileEntries result = [];
@@ -3053,7 +3066,7 @@ namespace zfile
 				var tempFiles = DownloadFilesToTemp(filesource, originalFiles);
 				if (tempFiles.Count > 0)
 					return tempFiles;
-		}
+			}
 
 			// 非FTP路径或FTP处理失败，或者是不需要下载的操作（cm_copy, cm_renmov, cm_delete），使用原来的逻辑
 			return originalFiles;
@@ -3871,13 +3884,12 @@ namespace zfile
 				}
 			}
 			return string.Empty;
-		}   // 复制选中的文件
+		}
 		public bool cm_copy(string? param = null, string? targetPath = null)
 		{
-			string? srcPath;
-			FileEntries sourceFiles;
 			ListView targetlist;
-
+			FileEntries sourceFiles;
+			string? srcPath;
 			if (!string.IsNullOrEmpty(param)) // if param exist, indicate that use clipboard to copy/move file, so the actpanel is targetpanel, otherwise is normal operation, the actpanel is srcpanel.
 			{
 				sourceFiles = GetFileListByViewOrParam(param);
@@ -3902,17 +3914,21 @@ namespace zfile
 
 				// 如果没有指定目标路径，则使用非活动面板的路径作为目标
 				if (string.IsNullOrEmpty(targetPath))
-					targetPath = CurrentFullpath[unactiveTreeview.Name]; 
+					targetPath = CurrentFullpath[unactiveTreeview.Name];
 				targetlist = uiManager.unactiveListView;
 			}
-
+			return cm_copy(sourceFiles, srcPath, targetPath, targetlist);
+		}
+		// 复制选中的文件
+		public bool cm_copy(FileEntries sourceFiles, string srcPath, string? targetPath = null, ListView? targetlist = null, string? srclistviewname = null)
+		{
 			try
 			{
 				if (targetPath != null)
 				{
 					// 使用 FileSourceManager 获取源和目标 FileSource
-					var sourceFileSource = CurrentFullpath.GetFileSource(LRflag);   //fullpath.getfilesource is faster , about 2ms
-					var targetFileSource = _fileSourceManager.GetFileSourceForFullPath(targetPath, !isleft);    //if pastefromclipboard, the targetpath is not unactive, so calc it is necessary, slower, about 21ms, 10x times slower than the previous method
+					var sourceFileSource = _fileSourceManager.GetFileSourceForFullPath(srcPath, srclistviewname == null ? isleft : srclistviewname.Equals("L"));//CurrentFullpath.GetFileSource(LRflag);   //fullpath.getfilesource is faster , about 2ms
+					var targetFileSource = _fileSourceManager.GetFileSourceForFullPath(targetPath, srclistviewname == null ? !isleft : targetlist.Name.Equals("L"));    //if pastefromclipboard, the targetpath is not unactive, so calc it is necessary, slower, about 21ms, 10x times slower than the previous method
 
 					// 使用 FileSourceManager 创建适合的复制操作
 					FileSourceOperation? operation = FileSourceManager.CreateCopyOperation(

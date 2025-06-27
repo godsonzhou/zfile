@@ -20,6 +20,8 @@ namespace zfile
 		public MainForm owner;
 		public List<MenuInfo> emCmds;
 		private int targetIndex = 0;
+		private FileEntries filesInClipboard = [];
+		private ListView listviewClipboard;
 
 		public CmdProc(MainForm owner)
 		{
@@ -1113,10 +1115,12 @@ namespace zfile
 		{
 			var selectedItems = owner.uiManager.activeListView.SelectedItems;
 			if (selectedItems.Count == 0) return;
-
+			listviewClipboard = owner.uiManager.activeListView; // 记录当前操作的面板名称
 			try
 			{
 				var filePaths = new StringCollection();
+				//var files = new FileEntries();
+				filesInClipboard.Clear();
 				foreach (ListViewItem item in selectedItems)
 				{
 					string fullPath = Path.Combine(owner.uiManager.ActivePathTextBox.CurrentNode.UniqueID, item.Text);//bugfix: 通过字符串传输无法传递是否为文件夹
@@ -1135,7 +1139,7 @@ namespace zfile
 								fullPath += Path.DirectorySeparatorChar;
 						}
 						filePaths.Add(fullPath);
-
+						filesInClipboard.Add(tag.File.Clone()); // 克隆文件条目以避免修改原始数据
 					}
 				}
 
@@ -1151,7 +1155,7 @@ namespace zfile
 
 						// 使用 DataObject 设置所有数据
 						dataObject.SetData(DataFormats.FileDrop, false, filePaths.Cast<string>().ToArray());
-						//dataObject.SetData(DataFormats.FileDrop, false, filePaths);
+						//dataObject.SetData("Target FileEntries", false, files);
 						dataObject.SetData("Preferred DropEffect", false, data);
 
 						// 设置到剪贴板
@@ -1193,10 +1197,9 @@ namespace zfile
 		{
 			// 检查当前面板是否支持粘贴操作
 			var currentPath = owner.uiManager.ActivePathTextBox.CurrentNode.UniqueID;
-			if (currentPath.StartsWith("ftp://") || currentPath.StartsWith("zip://") ||
-				currentPath.StartsWith("::{") || !Directory.Exists(currentPath))
+			if (currentPath.StartsWith("::{"))
 			{
-				MessageBox.Show("当前位置不支持粘贴操作", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				MessageBox.Show($"当前位置{currentPath}不支持粘贴操作", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
 				return;
 			}
 
@@ -1210,6 +1213,8 @@ namespace zfile
 				//var filePaths = Clipboard.GetData(DataFormats.FileDrop) as FileEntries;
 				// 检查是剪切还是复制操作
 				bool isCut = false;
+				//var fileentries = Clipboard.GetData("Target FileEntries") as FileEntries;
+
 				var dropEffect = Clipboard.GetData("Preferred DropEffect") as MemoryStream;
 				if (dropEffect != null && dropEffect.Length == 4)
 				{
@@ -1224,13 +1229,13 @@ namespace zfile
 				//	allfilepathstr.Append(file.FullPath);
 				//	allfilepathstr.Append("|");
 				//}
-				var files = string.Join("|", filePaths.Cast<string>());
+				//var files = string.Join("|", filePaths.Cast<string>());
 
 				if (isCut)
-					owner.cm_renmov(files, owner.uiManager.srcDir); // 使用已有的移动功能
+					owner.cm_renmov(filesInClipboard, filesInClipboard.Path, owner.uiManager.srcDir); // 使用已有的移动功能
 				else
 					// 使用已有的复制功能
-					owner.cm_copy(files, owner.uiManager.srcDir);// when use pastefromclipboard, the copy targetpath is the activepanel path
+					owner.cm_copy(filesInClipboard, filesInClipboard.Path, owner.uiManager.srcDir, owner.uiManager.activeListView, listviewClipboard.Name );// when use pastefromclipboard, the copy targetpath is the activepanel path
 
 				// 如果是剪切操作，完成后清空剪贴板
 				if (isCut)

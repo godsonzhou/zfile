@@ -740,7 +740,6 @@ namespace zfile
 		private void ListView_DrawColumnHeader(object? sender, DrawListViewColumnHeaderEventArgs e)
 		{
 			// 不进行任何绘制操作，从而隐藏标题栏
-
 		}
 
 		private void cm_dirbranchsel()
@@ -850,10 +849,8 @@ namespace zfile
 				optionform.ShowDialog();
 			}
 			else
-			{
-				//var v = owner.viewMgr.GetViewModeByColViewID(param);     //根据自定义列表名称获取视图模式
+				//根据自定义列表名称获取视图模式
 				owner.LoadListViewByFileSource(owner.CurrentFullpath[owner.LRflag], owner.activeListView, owner.SelectedNode, param);
-			}
 		}
 
 		private void cm_srcviewmodelist(string param = "")
@@ -879,9 +876,7 @@ namespace zfile
 				foreach (var file in files)
 				{
 					if (file.SupportedProperties.HasFlag(FilePropertiesTypes.Attributes))
-					{
 						fileEntries.Add(file);
-					}
 				}
 				var activeFrame = owner.uiManager.ActiveFileView;
 				if (activeFrame.ActiveFileSource is IFileSystemFileSource fileSystemFileSource)
@@ -904,12 +899,7 @@ namespace zfile
 					{
 						try
 						{
-							var operation = activeFrame.ActiveFileSource.CreateExecuteOperation(
-								activeFile,
-								activeFrame.CurrentPath,
-								"properties") as FileSourceExecuteOperation;
-
-							if (operation != null)
+							if (activeFrame.ActiveFileSource.CreateExecuteOperation(activeFile, activeFrame.CurrentPath, "properties") is FileSourceExecuteOperation operation)
 								operation.Execute();
 						}
 						finally
@@ -945,15 +935,10 @@ namespace zfile
 				foreach (var file in files)
 				{
 					if (file.SupportedProperties.HasFlag(FilePropertiesTypes.Attributes))
-					{
 						activeFiles.Add(file);
-					}
 				}
 				// 克隆活动文件以获取其属性
 				var activeFile = activeFiles[0];    //owner.GetFileListByViewOrParam();
-													//if (activeFile == null)
-													//	return;
-
 				// 如果是直接访问的文件系统，获取文件的时间属性
 				if (fileSource.Properties.HasFlag(FileSourceProperties.DirectAccess))
 				{
@@ -999,14 +984,10 @@ namespace zfile
 
 					// 显示设置文件属性对话框
 					if (SetFilePropertiesDialog.ShowDialog(operation))
-					{
 						// 添加操作到操作管理器
 						OperationsManager.Instance.AddOperation(operation);
-					}
 					else
-					{
 						operation.Dispose();
-					}
 				}
 
 				// 释放资源
@@ -1035,14 +1016,9 @@ namespace zfile
 					var fileentries = archiveFileSource.GetFiles(archiveFileSource.GetRootDir());
 					var testop = archiveFileSource.CreateTestArchiveOperation(fileentries);
 					if (testop != null)
-					{
-						// 执行操作
 						OperationsManager.Instance.AddOperation(testop);
-					}
 					else
-					{
 						MessageBox.Show($"无法创建测试压缩文件操作: {file.FullPath}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-					}
 				}
 			}
 			//try
@@ -1119,7 +1095,7 @@ namespace zfile
 			try
 			{
 				var filePaths = new StringCollection();
-				//var files = new FileEntries();
+				
 				filesInClipboard.Clear();
 				foreach (ListViewItem item in selectedItems)
 				{
@@ -1155,7 +1131,6 @@ namespace zfile
 
 						// 使用 DataObject 设置所有数据
 						dataObject.SetData(DataFormats.FileDrop, false, filePaths.Cast<string>().ToArray());
-						//dataObject.SetData("Target FileEntries", false, files);
 						dataObject.SetData("Preferred DropEffect", false, data);
 
 						// 设置到剪贴板
@@ -1210,10 +1185,9 @@ namespace zfile
 			{
 				// 获取剪贴板中的文件列表
 				var filePaths = Clipboard.GetFileDropList();
-				//var filePaths = Clipboard.GetData(DataFormats.FileDrop) as FileEntries;
+				
 				// 检查是剪切还是复制操作
 				bool isCut = false;
-				//var fileentries = Clipboard.GetData("Target FileEntries") as FileEntries;
 
 				var dropEffect = Clipboard.GetData("Preferred DropEffect") as MemoryStream;
 				if (dropEffect != null && dropEffect.Length == 4)
@@ -1222,13 +1196,6 @@ namespace zfile
 					dropEffect.Read(bytes, 0, 4);
 					isCut = bytes[0] == 2;
 				}
-				//获取fileentries所包含的所有文件或文件夹的完整路径的拼接字符串，用"|"分隔
-				//StringBuilder allfilepathstr = new StringBuilder();
-				//foreach (var file in filePaths)
-				//{
-				//	allfilepathstr.Append(file.FullPath);
-				//	allfilepathstr.Append("|");
-				//}
 				//var files = string.Join("|", filePaths.Cast<string>());
 
 				if (isCut)

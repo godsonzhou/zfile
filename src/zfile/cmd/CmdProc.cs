@@ -1116,10 +1116,11 @@ namespace zfile
 
 			try
 			{
-				var filePaths = new FileEntries();	//new StringCollection();
+				var filePaths = new StringCollection();
 				foreach (ListViewItem item in selectedItems)
 				{
-					//string fullPath = Path.Combine(owner.uiManager.ActivePathTextBox.CurrentNode.UniqueID, item.Text);//bugfix: 通过字符串传输无法传递是否为文件夹
+					string fullPath = Path.Combine(owner.uiManager.ActivePathTextBox.CurrentNode.UniqueID, item.Text);//bugfix: 通过字符串传输无法传递是否为文件夹
+
 					if (item.Tag is LvItemTag tag)
 					{
 						if (tag.File == null)
@@ -1127,7 +1128,14 @@ namespace zfile
 							Debug.Print($"Warning: Item {item.Text} has no associated file.");
 							continue;
 						}
-						filePaths.Add(tag.File);
+						// 如果是文件夹，确保路径以斜杠结尾
+						if(tag.File.IsDirectory)
+						{
+							if (!fullPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
+								fullPath += Path.DirectorySeparatorChar;
+						}
+						filePaths.Add(fullPath);
+
 					}
 				}
 
@@ -1142,8 +1150,8 @@ namespace zfile
 						object? data = action == ClipBoardAction.Copy ? new MemoryStream(new byte[] { 5, 0, 0, 0 }) : new MemoryStream(new byte[] { 2, 0, 0, 0 });  // 2 表示剪切操作; 5 = copy
 
 						// 使用 DataObject 设置所有数据
-						//dataObject.SetData(DataFormats.FileDrop, false, filePaths.Cast<string>().ToArray());
-						dataObject.SetData(DataFormats.FileDrop, false, filePaths);
+						dataObject.SetData(DataFormats.FileDrop, false, filePaths.Cast<string>().ToArray());
+						//dataObject.SetData(DataFormats.FileDrop, false, filePaths);
 						dataObject.SetData("Preferred DropEffect", false, data);
 
 						// 设置到剪贴板
@@ -1198,8 +1206,8 @@ namespace zfile
 			try
 			{
 				// 获取剪贴板中的文件列表
-				//var filePaths = Clipboard.GetFileDropList();
-				var filePaths = Clipboard.GetData(DataFormats.FileDrop) as FileEntries;
+				var filePaths = Clipboard.GetFileDropList();
+				//var filePaths = Clipboard.GetData(DataFormats.FileDrop) as FileEntries;
 				// 检查是剪切还是复制操作
 				bool isCut = false;
 				var dropEffect = Clipboard.GetData("Preferred DropEffect") as MemoryStream;
@@ -1210,14 +1218,13 @@ namespace zfile
 					isCut = bytes[0] == 2;
 				}
 				//获取fileentries所包含的所有文件或文件夹的完整路径的拼接字符串，用"|"分隔
-				StringBuilder allfilepathstr = new StringBuilder();
-
-				foreach (var file in filePaths)
-				{
-					allfilepathstr.Append(file.FullPath);
-					allfilepathstr.Append("|");
-				}
-				var files = allfilepathstr.ToString();				//string.Join("|", filePaths.Cast<string>());
+				//StringBuilder allfilepathstr = new StringBuilder();
+				//foreach (var file in filePaths)
+				//{
+				//	allfilepathstr.Append(file.FullPath);
+				//	allfilepathstr.Append("|");
+				//}
+				var files = string.Join("|", filePaths.Cast<string>());
 
 				if (isCut)
 					owner.cm_renmov(files, owner.uiManager.srcDir); // 使用已有的移动功能

@@ -3028,12 +3028,12 @@ namespace zfile
 		{
 			if (!string.IsNullOrWhiteSpace(param))
 			{
-				var ret = se.PrepareParameter(param, new string[] { }, "");
+				var ret = se.PrepareParameter(param, [], "");
 				if (ret != null && ret.Count > 0)
-					return FileEntries.FromList(ret.Select(x => new FileEntry(Path.GetDirectoryName(x), Path.GetFileName(x))).ToList());
+					return FileEntries.FromList(ret.Select(x => !x.EndsWith('\\') ? new FileEntry(x) : new FileEntry(Path.GetDirectoryName(x.TrimEnd('\\')), Path.GetFileName(x.TrimEnd('\\'))) { IsDirectory = true }).ToList());
 			}
 
-			FileEntries result = new();
+			FileEntries result = [];
 			if (activeListView.SelectedItems.Count == 0) return result;
 
 			// 获取原始文件列表
@@ -3875,12 +3875,12 @@ namespace zfile
 		public bool cm_copy(string? param = null, string? targetPath = null)
 		{
 			string? srcPath;
-			FileEntry[] sourceFiles;
+			FileEntries sourceFiles;
 			ListView targetlist;
 
 			if (!string.IsNullOrEmpty(param)) // if param exist, indicate that use clipboard to copy/move file, so the actpanel is targetpanel, otherwise is normal operation, the actpanel is srcpanel.
 			{
-				sourceFiles = GetFileListByViewOrParam(param).ToArray();
+				sourceFiles = GetFileListByViewOrParam(param);
 				srcPath = Path.GetDirectoryName(sourceFiles[0].FullPath) ?? "";
 				targetlist = uiManager.activeListView;
 			}
@@ -3914,24 +3914,18 @@ namespace zfile
 					var sourceFileSource = CurrentFullpath.GetFileSource(LRflag);   //fullpath.getfilesource is faster , about 2ms
 					var targetFileSource = _fileSourceManager.GetFileSourceForFullPath(targetPath, !isleft);    //if pastefromclipboard, the targetpath is not unactive, so calc it is necessary, slower, about 21ms, 10x times slower than the previous method
 
-					// 创建文件条目列表
-					var fileEntries = new FileEntries();
-					foreach (var file in sourceFiles)
-						fileEntries.Add(file);
-
 					// 使用 FileSourceManager 创建适合的复制操作
 					FileSourceOperation? operation = FileSourceManager.CreateCopyOperation(
 						sourceFileSource,
 						targetFileSource,
-						fileEntries,
+						sourceFiles,
 						targetPath);
 
 					// 特殊情况：如果源和目标都是WcxArchiveFileSource，需要通过临时文件系统进行复制
 					if (operation == null)
-						return CopyViaTemporaryDirectory(sourceFileSource, targetFileSource, fileEntries, targetPath);
+						return CopyViaTemporaryDirectory(sourceFileSource, targetFileSource, sourceFiles, targetPath);
 					operation.AddStateChangedListener([ FileSourceOperationState.Stopped ], (sender, state) => RefreshPanelOnFileSourceOperationStateChangedNotify((FileSourceOperation?)sender, state, targetlist));
 					_operationsManager.AddOperation(operation);
-				
 					return true;
 				}
 
@@ -4151,7 +4145,6 @@ namespace zfile
 		public void cm_renmov(string? param = null, string? targetPath = null, string? targetfilename = null)
 		{
 			string? srcpath;
-
 			var sourceFiles = GetFileListByViewOrParam(param, false);   //bugfix: 因为需要删除源文件，所以不能使用GetFileListByViewOrParam(param, true)，否则会导致源文件为temprary file, 不能删除源文件
 			if (!string.IsNullOrEmpty(param)) // when use clipboard, the targetpath is actpanel dir, so use srcdir, and the srcpath is determined by the filenames in the clipboard, so use the first sourcefile dir, TODO: the sourcefiles with many directories
 			{

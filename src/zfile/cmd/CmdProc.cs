@@ -156,11 +156,14 @@ namespace zfile
 			switch (cmdId)
 			{
 				case 269:   //cm_srcthumbs
-					if (!owner.uiManager.isThumbs)
+					if(owner.uiManager.isThumbs && owner.activeListView.View == View.Tile)
+						owner.uiManager.isThumbs = !owner.uiManager.isThumbs;
+					//Debug.Print("set thumbs mode : " + owner.uiManager.isThumbs);
+					//Debug.Print($"srcthumbs button state : {ToolbarManager.cm_srcthumbs_Button.Checked} {ToolbarManager.cm_srcthumbs_Button.CheckState}");
+					if (owner.uiManager.isThumbs)
 						owner.SetViewMode(View.Tile);
 					else
 						owner.SetViewMode(View.Details);
-					owner.uiManager.isThumbs = !owner.uiManager.isThumbs;
 					break;
 				case 270: // 命令ID = 270, Name = cm_srccustomviewmenu 
 					cm_srccustomviewmenu(param);

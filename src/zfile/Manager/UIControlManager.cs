@@ -98,8 +98,9 @@ namespace zfile
 				if (_isleft != value) { 
 					_isleft = value;
 					//当激活的面板发生变化时更新缩略图按钮状态
-					if (ToolbarManager.cm_srcthumbs_Button != null)
-						ToolbarManager.cm_srcthumbs_Button.CheckState = activeListView.View == View.Tile ? CheckState.Checked : CheckState.Unchecked;
+					//if (ToolbarManager.cm_srcthumbs_Button != null)
+					//	ToolbarManager.cm_srcthumbs_Button.CheckState = activeListView.View == View.Tile ? CheckState.Checked : CheckState.Unchecked;
+					MainForm.UpdateToolbarButtonState(activeListView);
 				} 
 			} 
 		}

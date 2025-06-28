@@ -1393,10 +1393,7 @@ namespace zfile
 			if (recordhistory && (fschanged || Helper.IncludeTrailingPathDelimiter(path) != oldpath))
 				RecordDirectoryHistory(path, oldpath);   // 记录目录历史, 并更新filesource的currentpath
 
-			//当激活的面板发生变化时更新缩略图按钮状态
-			if (ToolbarManager.cm_srcthumbs_Button != null)
-				ToolbarManager.cm_srcthumbs_Button.CheckState = LV.View == View.Tile ? CheckState.Checked : CheckState.Unchecked;
-
+			UpdateToolbarButtonState(LV);
 			uiManager.UpdateLastVisitedPath(path);
 			UpdatePathTextAndDriveComboBox(eNode, path, LR.Equals("L"));    //盘符改变时在combobox事件中刷新//必须在loadsubdir之后，因为需要loadsubdir中调用pathtextbox.setchildren
 			if (Directory.Exists(path))
@@ -1404,6 +1401,12 @@ namespace zfile
 				watcher.Path = path;
 				watcher.EnableRaisingEvents = true;
 			}
+		}
+		public static void UpdateToolbarButtonState(ListView LV)
+		{
+			//当激活的面板发生变化时更新缩略图按钮状态
+			if (ToolbarManager.cm_srcthumbs_Button != null)
+				ToolbarManager.cm_srcthumbs_Button.CheckState = LV.View == View.Tile ? CheckState.Checked : CheckState.Unchecked;
 		}
 		public void TreeView_AfterSelect(object? sender, TreeViewEventArgs e)
 		{
@@ -3433,7 +3436,10 @@ namespace zfile
 			var needupdate = viewMode == View.Tile || activeListView.View == View.Tile;
 			activeListView.View = viewMode;
 			if (needupdate)
+			{
 				RefreshActivePanel();//update imagekey
+				UpdateToolbarButtonState(activeListView);
+			}
 		}
 
 		/// <summary>

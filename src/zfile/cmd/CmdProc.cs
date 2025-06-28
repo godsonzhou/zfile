@@ -103,7 +103,11 @@ namespace zfile
 					ExecCmdByID(cmdId, param);
 				else
 				{
-					if (int.TryParse(cmdName, out cmdId)) { ExecCmdByID(cmdId, param); return; }
+					if (int.TryParse(cmdName, out cmdId)) 
+					{ 
+						ExecCmdByID(cmdId, param); 
+						return; 
+					}
 					//可能是可执行文件名称,比如regedit.exe, 直接运行
 					//if (Path.GetExtension(cmdName).Equals(".exe", StringComparison.OrdinalIgnoreCase))
 					//{

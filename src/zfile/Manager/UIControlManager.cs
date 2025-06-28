@@ -123,9 +123,9 @@ namespace zfile
 		public bool vistabheader = true;
 		public bool vishisthotbuttons = true;
 
-		public Dictionary<string, string> args = new();
-		public Dictionary<string, string> lastVisitedPaths = new();
-		public Dictionary<string, MenuInfo> usermenuMap = new();
+		public Dictionary<string, Func<string>> args = [];
+		public Dictionary<string, string> lastVisitedPaths = [];
+		public Dictionary<string, MenuInfo> usermenuMap = [];
 		public bool isThumbs;
 		private bool disposed = false;
 		public HotDirManager hotDirManager;
@@ -209,27 +209,27 @@ namespace zfile
 		*/
 		public void SetArgs()
 		{
-			args["%1"] = srcDir + srcfiles;
+			args["%1"] = () => srcDir + srcfiles;
 			// 基本参数设置
-			args["%P"] = srcDir;
-			args["%N"] = srcfiles;
-			args["%T"] = targetDir;
-			args["%M"] = targetfiles;
-			args["%O"] = Path.GetFileNameWithoutExtension(srcfiles);
-			args["%E"] = Path.GetExtension(srcfiles)?.TrimStart('.');
-			args["%S"] = srcfiles;
-			args["%R"] = targetfiles;
-			args["%%"] = "%";
+			args["%P"] = () => srcDir;
+			args["%N"] = () => srcfiles;
+			args["%T"] = () => targetDir;
+			args["%M"] = () => targetfiles;
+			args["%O"] = () => Path.GetFileNameWithoutExtension(srcfiles);
+			args["%E"] = () => Path.GetExtension(srcfiles)?.TrimStart('.');
+			args["%S"] = () => srcfiles;
+			args["%R"] = () => targetfiles;
+			args["%%"] = () => "%";
 
 			// 处理小写版本（短文件名）
-			args["%p"] = GetShortPath(srcDir);
-			args["%n"] = GetShortFileName(srcfiles);
-			args["%t"] = GetShortPath(targetDir);
-			args["%m"] = GetShortFileName(targetfiles);
-			args["%o"] = GetShortFileName(Path.GetFileNameWithoutExtension(srcfiles));
-			args["%e"] = GetShortFileName(Path.GetExtension(srcfiles)?.TrimStart('.'));
-			args["%s"] = GetShortFileName(srcfiles);
-			args["%r"] = GetShortFileName(targetfiles);
+			args["%p"] = () => GetShortPath(srcDir);
+			args["%n"] = () => GetShortFileName(srcfiles);
+			args["%t"] = () => GetShortPath(targetDir);
+			args["%m"] = () => GetShortFileName(targetfiles);
+			args["%o"] = () => GetShortFileName(Path.GetFileNameWithoutExtension(srcfiles));
+			args["%e"] = () => GetShortFileName(Path.GetExtension(srcfiles)?.TrimStart('.'));
+			args["%s"] = () => GetShortFileName(srcfiles);
+			args["%r"] = () => GetShortFileName(targetfiles);
 
 			// 处理目录参数
 			ProcessDirectoryParams(srcDir, "%B", "%B-", "%B+");
@@ -241,31 +241,31 @@ namespace zfile
 			// 处理列表文件参数
 			// 注意：实际创建列表文件的操作应在需要时执行
 			// 这里只是设置参数占位符
-			args["%L"] = "<长文件名列表文件>";
-			args["%l"] = "<短文件名列表文件>";
-			args["%F"] = "<不含路径的长文件名列表文件>";
-			args["%f"] = "<不含路径的短文件名列表文件>";
-			args["%D"] = "<DOS字符集的长文件名列表文件>";
-			args["%d"] = "<DOS字符集的短文件名列表文件>";
-			args["%UL"] = "<UTF-8格式的长文件名列表文件>";
-			args["%UF"] = "<UTF-8格式的不含路径的长文件名列表文件>";
-			args["%WL"] = "<UTF-16格式的长文件名列表文件>";
-			args["%WF"] = "<UTF-16格式的不含路径的长文件名列表文件>";
+			args["%L"] = () => "<长文件名列表文件>";
+			args["%l"] = () => "<短文件名列表文件>";
+			args["%F"] = () => "<不含路径的长文件名列表文件>";
+			args["%f"] = () => "<不含路径的短文件名列表文件>";
+			args["%D"] = () => "<DOS字符集的长文件名列表文件>";
+			args["%d"] = () => "<DOS字符集的短文件名列表文件>";
+			args["%UL"] = () => "<UTF-8格式的长文件名列表文件>";
+			args["%UF"] = () => "<UTF-8格式的不含路径的长文件名列表文件>";
+			args["%WL"] = () => "<UTF-16格式的长文件名列表文件>";
+			args["%WF"] = () => "<UTF-16格式的不含路径的长文件名列表文件>";
 
 			// 其他特殊参数
-			args["%Q"] = "<关闭自动引号>";
-			args["%v"] = "<虚拟文件名>";
-			args["%V"] = "<完整路径的虚拟文件名>";
-			args["%X"] = "<切换为左/右面板参数>";
-			args["%x"] = "<切换回来源/目标面板参数>";
-			args["%Y"] = "<空列表或光标下文件>";
-			args["%Z"] = "<压缩文件名作为路径参数>";
+			args["%Q"] = () => "<关闭自动引号>";
+			args["%v"] = () => "<虚拟文件名>";
+			args["%V"] = () => "<完整路径的虚拟文件名>";
+			args["%X"] = () => "<切换为左/右面板参数>";
+			args["%x"] = () => "<切换回来源/目标面板参数>";
+			args["%Y"] = () => "<空列表或光标下文件>";
+			args["%Z"] = () => "<压缩文件名作为路径参数>";
 
 			// 组合参数
-			args["%P%S"] = CombinePaths(srcDir, srcfiles);
-			args["%p%s"] = CombinePaths(GetShortPath(srcDir), GetShortFileName(srcfiles));
-			args["%T%R"] = CombinePaths(targetDir, targetfiles);
-			args["%t%r"] = CombinePaths(GetShortPath(targetDir), GetShortFileName(targetfiles));
+			args["%P%S"] = () => CombinePaths(srcDir, srcfiles);
+			args["%p%s"] = () => CombinePaths(GetShortPath(srcDir), GetShortFileName(srcfiles));
+			args["%T%R"] = () => CombinePaths(targetDir, targetfiles);
+			args["%t%r"] = () => CombinePaths(GetShortPath(targetDir), GetShortFileName(targetfiles));
 		}
 		/// <summary>
 		/// mode -1表示切换两个树视图的可见性，1表示左侧树视图可见，2表示右侧树视图可见，3表示两个树视图都可见, 0 表示两个树视图都不可见
@@ -409,7 +409,7 @@ namespace zfile
 			if (colonPos <= 0)
 			{
 				// 没有子字段，直接返回参数值
-				return args.TryGetValue(arg, out string value) ? value : string.Empty;
+				return args.TryGetValue(arg, out var value) ? value.Invoke() : string.Empty;
 			}
 
 			// 提取基本参数和子字段规范
@@ -417,7 +417,7 @@ namespace zfile
 			string subfieldSpec = arg.Substring(colonPos + 1);
 
 			// 获取基本参数值
-			string baseValue = args.TryGetValue(baseArg, out string val) ? val : string.Empty;
+			string baseValue = args.TryGetValue(baseArg, out var val) ? val.Invoke() : string.Empty;
 
 			// 应用子字段处理
 			return ProcessSubfield(baseValue, subfieldSpec);
@@ -454,13 +454,13 @@ namespace zfile
 				if (!string.IsNullOrEmpty(basePrefix))
 				{
 					// %B 或 %B0 = 上级文件夹（父目录）
-					args[$"{basePrefix}"] = args[$"{basePrefix}0"] = parts.Length > 1 ? parts[parts.Length - 2] : "";
+					args[$"{basePrefix}"] = args[$"{basePrefix}0"] = () => parts.Length > 1 ? parts[parts.Length - 2] : "";
 
 					// %B1..%B9 = 上两级文件夹及以上
 					for (int i = 1; i <= 9; i++)
 					{
 						int index = parts.Length - 2 - i;
-						args[$"{basePrefix}{i}"] = index >= 0 ? parts[index] : "";
+						args[$"{basePrefix}{i}"] = () => index >= 0 ? parts[index] : "";
 					}
 				}
 
@@ -468,13 +468,13 @@ namespace zfile
 				if (!string.IsNullOrEmpty(noRelativePrefix))
 				{
 					// %B- 或 %B-0 = 上级文件夹（父目录）
-					args[$"{noRelativePrefix}"] = args[$"{noRelativePrefix}0"] = parts.Length > 1 ? parts[parts.Length - 2] : "";
+					args[$"{noRelativePrefix}"] = args[$"{noRelativePrefix}0"] = () => parts.Length > 1 ? parts[parts.Length - 2] : "";
 
 					// %B-1..%B-9 = 上两级文件夹及以上
 					for (int i = 1; i <= 9; i++)
 					{
 						int index = parts.Length - 2 - i;
-						args[$"{noRelativePrefix}{i}"] = index >= 0 ? parts[index] : "";
+						args[$"{noRelativePrefix}{i}"] = () => index >= 0 ? parts[index] : "";
 					}
 				}
 
@@ -485,22 +485,22 @@ namespace zfile
 					if (parts.Length > 0 && parts[0].EndsWith(":"))
 					{
 						// %B+ = 包含 ":" 符号在内的驱动器符
-						args[$"{drivePrefix}"] = parts[0];
+						args[$"{drivePrefix}"] = () => parts[0];
 
 						// %B+0 = 不包含 ":" 符号在内的驱动器符
-						args[$"{drivePrefix}0"] = parts[0].TrimEnd(':');
+						args[$"{drivePrefix}0"] = () => parts[0].TrimEnd(':');
 					}
 					else
 					{
-						args[$"{drivePrefix}"] = "";
-						args[$"{drivePrefix}0"] = "";
+						args[$"{drivePrefix}"] = () => "";
+						args[$"{drivePrefix}0"] = () => "";
 					}
 
 					// %B+1..%B+9 = 第一个文件夹及以上
 					for (int i = 1; i <= 9; i++)
 					{
 						int index = i;
-						args[$"{drivePrefix}{i}"] = index < parts.Length ? parts[index] : "";
+						args[$"{drivePrefix}{i}"] = () => index < parts.Length ? parts[index] : "";
 					}
 				}
 			}
@@ -509,23 +509,23 @@ namespace zfile
 				// 出现异常时，设置空值
 				if (!string.IsNullOrEmpty(basePrefix))
 				{
-					args[$"{basePrefix}"] = args[$"{basePrefix}0"] = "";
+					args[$"{basePrefix}"] = args[$"{basePrefix}0"] = () => "";
 					for (int i = 1; i <= 9; i++)
-						args[$"{basePrefix}{i}"] = "";
+						args[$"{basePrefix}{i}"] = () => "";
 				}
 
 				if (!string.IsNullOrEmpty(noRelativePrefix))
 				{
-					args[$"{noRelativePrefix}"] = args[$"{noRelativePrefix}0"] = "";
+					args[$"{noRelativePrefix}"] = args[$"{noRelativePrefix}0"] = () => "";
 					for (int i = 1; i <= 9; i++)
-						args[$"{noRelativePrefix}{i}"] = "";
+						args[$"{noRelativePrefix}{i}"] = () => "";
 				}
 
 				if (!string.IsNullOrEmpty(drivePrefix))
 				{
-					args[$"{drivePrefix}"] = args[$"{drivePrefix}0"] = "";
+					args[$"{drivePrefix}"] = args[$"{drivePrefix}0"] = () => "";
 					for (int i = 1; i <= 9; i++)
-						args[$"{drivePrefix}{i}"] = "";
+						args[$"{drivePrefix}{i}"] = () => "";
 				}
 			}
 		}
@@ -551,24 +551,24 @@ namespace zfile
 					if (i == 1 && reverseParams) // 第一个参数，可能需要逆转
 					{
 						// 使用目标面板的第一个选中文件
-						args[paramName] = targetSelectedFiles.Count > 0 ?
+						args[paramName] = () => targetSelectedFiles.Count > 0 ?
 							((ListViewItem)targetSelectedFiles[0]).SubItems[0].Text : "";
-						args[shortParamName] = GetShortFileName(args[paramName]);
+						args[shortParamName] = () => GetShortFileName(args[paramName].Invoke());
 					}
 					else if (i == 2 && reverseParams) // 第二个参数，可能需要逆转
 					{
 						// 使用源面板的第一个选中文件
-						args[paramName] = selectedFiles.Count > 0 ?
+						args[paramName] = () => selectedFiles.Count > 0 ?
 							((ListViewItem)selectedFiles[0]).SubItems[0].Text : "";
-						args[shortParamName] = GetShortFileName(args[paramName]);
+						args[shortParamName] = () => GetShortFileName(args[paramName].Invoke());
 					}
 					else // 正常处理
 					{
 						// 获取源面板中第i个选中的文件
 						int index = i - 1;
-						args[paramName] = index < selectedFiles.Count ?
+						args[paramName] = () => index < selectedFiles.Count ?
 							((ListViewItem)selectedFiles[index]).SubItems[0].Text : "";
-						args[shortParamName] = GetShortFileName(args[paramName]);
+						args[shortParamName] = () => GetShortFileName(args[paramName].Invoke());
 					}
 				}
 			}
@@ -577,8 +577,8 @@ namespace zfile
 				// 出现异常时，设置空值
 				for (int i = 1; i <= 9; i++)
 				{
-					args[$"%C{i}"] = "";
-					args[$"%c{i}"] = "";
+					args[$"%C{i}"] = () => "";
+					args[$"%c{i}"] = () => "";
 				}
 			}
 		}

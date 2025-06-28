@@ -1357,7 +1357,7 @@ namespace zfile
 				// 处理FTP节点双击事件
 				fTPMGR.HandleFtpNodeDoubleClick(eNode);
 				UpdatePathTextAndDriveComboBox(eNode, CurrentFullpath[LR], LR.Equals("L"));//TODO: BUGFIX: IF ENODE IS LEFT , LRFLAG IS R, SOME THING ERROR
-				uiManager.SetArgs();
+				//uiManager.SetArgs();
 				return;
 			}
 			var LV = GetListViewByName(LR);
@@ -1430,7 +1430,7 @@ namespace zfile
 
 					ChangePath(path, LR, e.Node);
 				}
-				uiManager.SetArgs();
+				//uiManager.SetArgs();
 			}
 			catch (Exception ex)
 			{
@@ -1541,7 +1541,7 @@ namespace zfile
 			{
 				var v = sender as ListView;
 				uiManager.isleft = v == uiManager.LeftList;
-				uiManager.SetArgs();
+				//uiManager.SetArgs();
 			}
 		}
 		public void ListView_BeforeLabelEdit(object? sender, EventArgs e)
@@ -2850,7 +2850,7 @@ namespace zfile
 				if (File.Exists(filePath))
 					await PreviewFileAsync(filePath, previewPanel);
 			}
-			uiManager.SetArgs();
+			//uiManager.SetArgs();
 		}
 
 		public void ListView_ColumnClick(object? sender, ColumnClickEventArgs e)

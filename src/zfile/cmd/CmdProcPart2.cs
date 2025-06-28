@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.IO.Compression;
+﻿using System.IO.Compression;
 using System.Text;
 using zfile.Forms;
 
@@ -7,7 +6,6 @@ namespace zfile
 {
 	public partial class CmdProc
 	{
-
 		private void do_cm_decode(string param)
 		{
 			if (param.Equals(string.Empty))
@@ -76,7 +74,6 @@ namespace zfile
 						MessageBox.Show($"解码文件 {file} 时出错: {ex.Message}", "错误");
 					}
 				}
-
 			}
 			owner.RefreshActivePanel();
 		}
@@ -218,9 +215,7 @@ namespace zfile
 							}
 						}
 						else
-						{
 							File.WriteAllText(targetFile, header + encodedContent);
-						}
 					}
 					catch (Exception ex)
 					{
@@ -264,7 +259,6 @@ namespace zfile
 
 						// 添加文件头
 						var header = $"begin {Path.GetFileName(sourcePath)}\n";
-
 						if (dialog.FileSize > 0 || dialog.LineCount > 0)
 						{
 							// 分割编码后的内容
@@ -279,9 +273,7 @@ namespace zfile
 							}
 						}
 						else
-						{
 							File.WriteAllText(targetFile, header + encodedContent);
-						}
 					}
 					catch (Exception ex)
 					{
@@ -289,7 +281,6 @@ namespace zfile
 					}
 				}
 			}
-
 
 			owner.RefreshActivePanel();
 		}
@@ -371,10 +362,7 @@ namespace zfile
 			if (maxLines > 0)
 			{
 				for (int i = 0; i < lines.Length; i += maxLines)
-				{
-					result.Add(string.Join("\n",
-						lines.Skip(i).Take(maxLines)));
-				}
+					result.Add(string.Join("\n", lines.Skip(i).Take(maxLines)));
 			}
 			else if (maxSize > 0)
 			{
@@ -389,14 +377,10 @@ namespace zfile
 					currentPart.AppendLine(line);
 				}
 				if (currentPart.Length > 0)
-				{
 					result.Add(currentPart.ToString());
-				}
 			}
 			else
-			{
 				result.Add(content);
-			}
 
 			return result;
 		}
@@ -459,10 +443,8 @@ namespace zfile
 			var lv = owner.activeListView;
 			if (lv == null) return;
 			foreach (ListViewItem item in lv.Items)
-			{
 				item.Selected = true;
-			}
-			owner.uiManager.SetArgs();
+			//owner.uiManager.SetArgs();
 		}
 
 		// 取消全选
@@ -471,10 +453,8 @@ namespace zfile
 			var lv = owner.activeListView;
 			if (lv == null) return;
 			foreach (ListViewItem item in lv.Items)
-			{
 				item.Selected = false;
-			}
-			owner.uiManager.SetArgs();
+			//owner.uiManager.SetArgs();
 		}
 
 		// 反选
@@ -483,10 +463,8 @@ namespace zfile
 			var lv = owner.activeListView;
 			if (lv == null) return;
 			foreach (ListViewItem item in lv.Items)
-			{
 				item.Selected = !item.Selected;
-			}
-			owner.uiManager.SetArgs();
+			//owner.uiManager.SetArgs();
 		}
 
 		// 选择相同扩展名文件
@@ -494,20 +472,15 @@ namespace zfile
 		{
 			var lv = owner.activeListView;
 			if (lv == null || lv.SelectedItems.Count == 0) return;
-
 			var ext = Path.GetExtension(lv.SelectedItems[0].Text);
 			foreach (ListViewItem item in lv.Items)
-			{
 				if (Path.GetExtension(item.Text).Equals(ext, StringComparison.OrdinalIgnoreCase))
-				{
 					item.Selected = true;
-				}
-			}
-			owner.uiManager.SetArgs();
+			//owner.uiManager.SetArgs();
 		}
 
 		// 存储的选择集合
-		private List<string> savedSelection = new();
+		private List<string> savedSelection = [];
 		private void cm_saveselectiontofile()
 		{
 			OpenFileDialog openFileDialog = new OpenFileDialog() { Title = "选择导出的文件", FileName = $"filelist.txt", Filter = $"文本文件 (*.txt)|*.txt|所有文件 (*.*)|*.*" };
@@ -533,12 +506,9 @@ namespace zfile
 		{
 			var lv = owner.activeListView;
 			if (lv == null) return;
-
 			savedSelection.Clear();
 			foreach (ListViewItem item in lv.SelectedItems)
-			{
 				savedSelection.Add(item.Text);
-			}
 		}
 
 		// 恢复选择
@@ -548,10 +518,9 @@ namespace zfile
 			if (lv == null) return;
 
 			foreach (ListViewItem item in lv.Items)
-			{
 				item.Selected = savedSelection.Contains(item.Text);
-			}
-			owner.uiManager.SetArgs();
+			
+			//owner.uiManager.SetArgs();
 		}
 
 		// 复制文件名到剪贴板
@@ -1354,14 +1323,10 @@ namespace zfile
 						// 确保远程目录存在
 						string? remoteDir = Path.GetDirectoryName(remotePath)?.Replace("\\", "/");
 						if (!string.IsNullOrEmpty(remoteDir))
-						{
 							ftpTarget.CreateDirectory(remoteDir);
-						}
 
 						if (!ftpTarget.UploadFile(file, remotePath))
-						{
 							MessageBox.Show($"上传文件失败: {relativePath}");
-						}
 					}
 				}
 
@@ -1376,13 +1341,9 @@ namespace zfile
 			{
 				// 清理临时文件和目录
 				if (isSourceFtp && File.Exists(zipPath))
-				{
 					File.Delete(zipPath);
-				}
 				if (Directory.Exists(tempDir))
-				{
 					Directory.Delete(tempDir, true);
-				}
 			}
 		}
 
@@ -1396,9 +1357,7 @@ namespace zfile
 			}
 			using var dialog = new MultiRenameForm(listView, owner.uiManager.srcDir);
 			if (dialog.ShowDialog() == DialogResult.OK)
-			{
 				owner.RefreshPanel(listView);
-			}
 		}
 
 		private void cm_filesync()

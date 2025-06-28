@@ -93,7 +93,7 @@ namespace zfile
 				if (c.Contains(pattern))
 				{
 					//result = result.Replace(pattern, handler.Value(files));
-					var filelist = owner.uiManager.args[pattern];
+					var filelist = owner.uiManager.args[pattern].Invoke();
 					if(filelist.Length != 0)
 						expandcmds = ExpandCmdStringByArg(c, filelist, pattern);//TODO: BUGFIX: WILL OVERWRITE PARENT CMDS CONTENTS
 				}

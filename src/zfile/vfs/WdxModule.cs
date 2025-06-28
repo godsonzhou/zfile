@@ -575,7 +575,7 @@ namespace zfile
 							var resultstrsmart = SmartDetectString(valuePtr, out var encodestr);
 							var RESULTASCII = Encoding.ASCII.GetString(valuePtr).TrimEnd('\0');
 
-							Debug.WriteLine($"ISUNCODE: {IsUnicode}, GetValue(string/fulltext): {fieldname} gb2312: {resultstrgb2312}, unicode: {resultstrunicode}, ASCII: {RESULTASCII}, autodetect => [{encodestr}/{resultstrsmart}]");
+							Debug.WriteLine($"ISUNICODE: {IsUnicode}, GetValue(string/fulltext): {fieldname} gb2312: {resultstrgb2312}, unicode: {resultstrunicode}, ASCII: {RESULTASCII}, autodetect => [{encodestr}/{resultstrsmart}]");
 							
 							return resultstrsmart; // 返回Unicode字符串
 

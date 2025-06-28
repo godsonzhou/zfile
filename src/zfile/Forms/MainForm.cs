@@ -1424,7 +1424,7 @@ namespace zfile
 		public void ListView_BeforeLabelEdit(object? sender, EventArgs e)
 		{
 			var listView = sender as ListView;
-			if (listView?.SelectedItems.Count == 0) return;
+			if (listView?.SelectedItems.Count != 1) return;
 			var item = listView?.SelectedItems[0];
 			if (item?.SubItems[LVCOL[listView.Name]._TYPE].Text == "本地磁盘")
 			{
@@ -1433,25 +1433,27 @@ namespace zfile
 				return;
 			}
 			oldname = item?.Text;
+			//Debug.Print($"rename from {oldname}");
 		}
 
 		public void ListView_AfterLabelEdit(object? sender, EventArgs e)
 		{
 			var listView = sender as ListView;
-			if (listView?.SelectedItems.Count == 0) return;
+			if (listView?.SelectedItems.Count != 1) return;
 			var item = listView?.SelectedItems[0];
 			string? oldName = oldname;
 			var labeleditEvent = e as LabelEditEventArgs;
-			if (labeleditEvent.CancelEdit) return;
+			//if (labeleditEvent.CancelEdit) return;
 			var newName = labeleditEvent.Label;
 			if (string.IsNullOrEmpty(newName))
 			{
-				MessageBox.Show("文件名不能为空");
-				if (item != null) 
-					item.Text = oldName;
+				//MessageBox.Show("文件名不能为空");
+				//if (item != null) 
+				//	item.Text = oldName;
+				labeleditEvent.CancelEdit = true; // 取消编辑
 				return;
 			}
-
+			//Debug.Print($"rename to {newName}");
 			// 检查是否是FTP文件源
 			var itemTag = item?.Tag as LvItemTag;
 			if(CurrentFullpath.GetFileSource(listView.Name) is FtpFileSource ftpSource)
@@ -1470,13 +1472,13 @@ namespace zfile
 					// 调用FtpFileSource的Rename方法进行重命名
 					if (ftpSource.Rename(oldPath, newPath))
 						fTPMGR.LoadFtpDirectory(ftpSource.ConnectionName, parentPath, listView);    // 刷新FTP目录
-					else if (item != null) 
-						item.Text = oldName;
+					else
+						labeleditEvent.CancelEdit = true;
 				}
 				catch (Exception ex)
 				{
 					MessageBox.Show($"重命名失败: {ex.Message}", "错误");
-					if (item != null) item.Text = oldName;
+					labeleditEvent.CancelEdit = true;
 				}
 			}
 			else if (CurrentFullpath.GetFileSource(listView.Name) is WcxArchiveFileSource wcxSource)
@@ -1493,7 +1495,7 @@ namespace zfile
 				if (File.Exists(newPath) || Directory.Exists(newPath))
 				{
 					MessageBox.Show("文件已存在");
-					if (item != null) item.Text = oldName;
+					labeleditEvent.CancelEdit = true;
 					return;
 				}
 				try
@@ -1506,7 +1508,8 @@ namespace zfile
 				catch (Exception ex)
 				{
 					MessageBox.Show($"重命名失败: {ex.Message}", "错误");
-					if (item != null) item.Text = oldName;
+					//if (item != null) item.Text = oldName;
+					labeleditEvent.CancelEdit = true;
 				}
 				RefreshPanel(listView);
 			}
@@ -2899,7 +2902,6 @@ namespace zfile
 				//return FileEntries.FromList(ret.Select(x => !x.EndsWith('\\') ? new FileEntry(x) : new FileEntry(Path.GetDirectoryName(x.TrimEnd('\\')), Path.GetFileName(x.TrimEnd('\\'))) { IsDirectory = true }).ToList());
 				{
 					//bugfix:如何获取fileentry对象的时间等属性
-
 					var fileEntries = new FileEntries();
 					foreach (var path in ret)
 					{
@@ -3799,19 +3801,10 @@ namespace zfile
 				IFileSource sourceFileSource = _fileSourceManager.GetFileSourceForFullPath(srcpath, string.IsNullOrEmpty(sourcelistviewname) ? isleft : sourcelistviewname.Equals("L"));
 				IFileSource targetFileSource = targetfilename != null ? sourceFileSource : _fileSourceManager.GetFileSourceForFullPath(targetPath, string.IsNullOrEmpty(sourcelistviewname) ? !isleft : targetlistview.Name.Equals("L"));
 
-				// 创建文件条目列表
-				//var fileEntries = new FileEntries();
-				//foreach (var fileEntry in sourceFiles)
-				//	fileEntries.Add(fileEntry);
-
-				// 创建移动操作
-				//FileSourceOperation? operation;
-
 				// 如果源和目标是同一个 FileSource，使用 CreateMoveOperation, filesystem/ftp 支持move operation, archive does not support move operation, so use copy and delete
 				//if (sourceFileSource.GetType() == targetFileSource.GetType())
 				//如果filesource支持moveoperation, 优先使用。（比如ftp.move, filesystem.move)
 				bool usemoveop = false;
-
 				if (sourceFileSource == targetFileSource && sourceFileSource is FtpFileSource)
 					usemoveop = true;
 				else if (sourceFileSource.GetType() == typeof(FileSystemFileSource) && targetFileSource.GetType() == typeof(FileSystemFileSource))
@@ -3846,31 +3839,6 @@ namespace zfile
 						}
 					}
 				}
-
-				// 如果无法使用 FileSource 架构，使用传统方法
-				// 检查源路径和目标路径是否为FTP路径
-				//bool isSourceFtp = fTPMGR.IsFtpPath(srcpath);
-				//bool isTargetFtp = fTPMGR.IsFtpPath(targetPath);
-
-				//if (isSourceFtp || isTargetFtp)
-				//{
-				//	// 如果涉及FTP，先复制后删除
-				//	if (cm_copy(param, targetPath))
-				//	{
-				//		// 如果源是FTP，使用FTP删除
-				//		if (isSourceFtp)
-				//		{
-				//			var ftpSource = fTPMGR.GetFtpSource(srcpath);
-				//			if (ftpSource != null)
-				//				foreach (var remotePath in sourceFiles)
-				//					ftpSource.DeleteFile(remotePath.FullPath);
-				//		}
-				//		else
-				//			cm_delete(param, false); // 源是本地文件，使用本地删除
-				//	}
-				//}
-				//else if (cm_copy(param, targetPath)) // 本地文件之间的移动
-				//	cm_delete(param, false);
 			}
 			catch (Exception ex)
 			{
@@ -3965,39 +3933,6 @@ namespace zfile
 				
 						return;
 					}
-
-					// 如果无法使用 FileSource 架构，使用传统方法
-					//if (IsArchiveFile(CurrentFullpath[LRflag]))
-					//{
-					//	if (DeleteFromArchive(CurrentFullpath[LRflag], files.Select(x => x.FullPath).ToArray()))
-					//	{
-					//		var items = LoadArchiveContents(CurrentFullpath[LRflag]);
-					//		activeListView.Items.Clear();
-					//		activeListView.Items.AddRange(items.ToArray());
-					//	}
-					//	return;
-					//}
-
-					//// 检查是否为FTP路径
-					//if (IsActiveFtpPanel(out var ftpnode))
-					//{
-					//	var ftpSource = fTPMGR.GetFtpFileSourceByConnectionName(ftpnode.ConnectionName);
-					//	if (ftpSource != null)
-					//	{
-					//		foreach (var remotePath in files)
-					//			ftpSource.DeleteFile(remotePath.FullPath);
-					//	}
-					//}
-					//else
-					//{
-					//	// 本地文件删除
-					//	foreach (var file in files)
-					//		FileSystemManager.DeleteFile(file.FullPath);
-					//}
-
-					//RefreshPanel(activeListView);
-					//if (!string.IsNullOrEmpty(param))
-					//	RefreshPanel(unactiveListView);
 				}
 				catch (Exception ex)
 				{
@@ -4010,7 +3945,7 @@ namespace zfile
 		public void cm_renameonly()
 		{
 			var listView = activeListView;
-			if (listView == null || listView.SelectedItems.Count <= 0) return;
+			if (listView == null || listView.SelectedItems.Count != 1) return;
 			var selectedItem = listView.SelectedItems[0];
 			// 启用编辑模式
 			selectedItem.BeginEdit();

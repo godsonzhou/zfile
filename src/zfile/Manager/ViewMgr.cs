@@ -83,9 +83,13 @@ namespace zfile
 
 				// Determine which view mode to use based on rules
 				//bugfix: 当filesource is not filesystemfilesource, do not support custome view mode
-				if(string.IsNullOrEmpty(colViewId))
-					colViewId = (fileSource is not FileSystemFileSource) ? ((int)listView.View).ToString() : DetermineViewMode(stats, folderPath);
-
+				 if (string.IsNullOrEmpty(colViewId))
+				{
+					if(form.uiManager.isThumbs)
+						colViewId = "4"; // Use Tile view (=4) for thumbnails mode, ignore custom view mode
+					else
+						colViewId = (fileSource is not FileSystemFileSource) ? ((int)listView.View).ToString() : DetermineViewMode(stats, folderPath);
+				}
 				// Apply column configuration from the selected view mode
 				ApplyColumnConfiguration(listView, colViewId);
 		

@@ -156,7 +156,9 @@ namespace zfile
 			switch (cmdId)
 			{
 				case 269:   //cm_srcthumbs
-					if(owner.uiManager.isThumbs && owner.activeListView.View == View.Tile)
+					var isthumbs = owner.uiManager.isThumbs;
+					var istileview = owner.activeListView.View == View.Tile;
+					if (isthumbs == istileview)
 						owner.uiManager.isThumbs = !owner.uiManager.isThumbs;
 					//Debug.Print("set thumbs mode : " + owner.uiManager.isThumbs);
 					//Debug.Print($"srcthumbs button state : {ToolbarManager.cm_srcthumbs_Button.Checked} {ToolbarManager.cm_srcthumbs_Button.CheckState}");

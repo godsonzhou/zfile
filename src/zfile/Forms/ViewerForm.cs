@@ -325,6 +325,7 @@ namespace zfile.Forms
 		private Panel _imagePanel;
 		private Panel _textPanel;
 		private Panel _hexPanel;
+		private Panel container;
 		private RichTextBox _textViewer;
 		private RichTextBox _hexViewer;
 		private PictureBox _imageViewer;
@@ -444,6 +445,14 @@ namespace zfile.Forms
 			// 创建状态栏
 			CreateStatusStrip();
 
+			// 创建隐藏的容器面板
+			container = new Panel
+			{
+				Dock = DockStyle.Fill,
+				Visible = false
+			};
+			_mainPanel.Controls.Add(container);
+		
 			// 添加控件到窗体
 			_mainPanel.Controls.Add(_imagePanel);
 			_mainPanel.Controls.Add(_textPanel);
@@ -456,6 +465,8 @@ namespace zfile.Forms
 			// 初始化计时器
 			_animationTimer = new Timer { Interval = 100 };
 			_screenshotTimer = new Timer { Interval = 3000 };
+
+			container.SetBounds(_mainPanel.Bounds.X, _mainPanel.Bounds.Y, _mainPanel.Bounds.Width, _mainPanel.Bounds.Height);
 		}
 
 		public WlxModuleList InitializePlugins()
@@ -468,7 +479,6 @@ namespace zfile.Forms
 		private void InitializeFileList()
 		{
 			_fileList = [];
-			//_activeFileIndex = -1;
 			_currentEncoding = Encoding.Default;
 		}
 
@@ -559,9 +569,10 @@ namespace zfile.Forms
 		}
 		private bool LoadWithPlugin(WlxModule plugin)
 		{
-			if(_currentPlugin != null)
-				SetMenuItemCheckedState(_currentPlugin.Name, false);
-
+			//if(_currentPlugin != null)
+				//SetMenuItemCheckedState(_currentPlugin.Name, false);
+			setCheckedMenuStateByNameToId("模式");    //关闭模式菜单下所有勾选
+			setCheckedMenuStateByNameToId("插件");
 			_currentPlugin = plugin;
 			_isPlugin = true;
 
@@ -573,17 +584,9 @@ namespace zfile.Forms
 			// HIDE ALL SUBPANEL IF SWITCH PLUG
 			foreach (var p in _mainPanel.Controls)
 			{
-				if (p is Panel pnl)
-					pnl.Visible = false;
+				if (p is Panel pnl) pnl.Visible = false;
 			}
-			// 创建隐藏的容器面板
-			var container = new Panel
-			{
-				Dock = DockStyle.Fill,
-				Visible = false
-			};
-			_mainPanel.Controls.Add(container);
-			container.SetBounds(_mainPanel.Bounds.X, _mainPanel.Bounds.Y, _mainPanel.Bounds.Width, _mainPanel.Bounds.Height);
+	
 			// 传递容器面板的句柄作为父窗口
 			_pluginWindow = _currentPlugin.CallListLoad(container.Handle, _fileName, WlxConstants.LISTPLUGIN_SHOW);
 			//IntPtr bmp = IntPtr.Zero;
@@ -599,10 +602,7 @@ namespace zfile.Forms
 				// 调整窗口位置和大小
 				SetPluginWindowBounds(container);
 				container.Visible = true;
-				// 设置插件窗口位置和大小
-				//SetPluginWindowBounds();
-				//将相应的插件菜单项设为checked状态
-				SetMenuItemCheckedState(_currentPlugin.Name, true);
+				SetMenuItemCheckedState(_currentPlugin.Name, true); //将相应的插件菜单项设为checked状态
 				setButtonStateForImageMode(false);
 				return true;
 			}
@@ -743,7 +743,6 @@ namespace zfile.Forms
 
 			// 默认选中文本模式
 			textModeItem.Checked = true;
-
 			modeMenu.DropDownItems.AddRange([textModeItem, hexModeItem, mediaModeItem]);
 
 			// 编码菜单
@@ -760,7 +759,7 @@ namespace zfile.Forms
 			}
 
 			// plugin menu
-			var pluginMenu = new ToolStripMenuItem("插件(&P)");
+			var pluginMenu = new ToolStripMenuItem("插件(&P)") { Name = "插件"};
 
 			// 添加内置查看器选项
 			var builtInViewerItem = new ToolStripMenuItem("内置查看器", null, (s, e) =>
@@ -1091,24 +1090,29 @@ namespace zfile.Forms
 			}
 			base.Dispose(disposing);
 		}
+		private void setCheckedMenuStateByNameToId(string name, int checkedId = -1)
+		{
+			var viewmodeIndex = _menuStrip.Items.IndexOfKey(name);
+			foreach (var item in ((ToolStripMenuItem)_menuStrip.Items[viewmodeIndex]).DropDownItems)
+			{
+				if (item is ToolStripMenuItem menuitem) 
+					menuitem.Checked = false;
+			}
+			if(checkedId >= 0)
+				((ToolStripMenuItem)((ToolStripMenuItem)_menuStrip.Items[viewmodeIndex]).DropDownItems[checkedId]).Checked = true;
+		}
 		private void SwitchViewMode(ViewMode mode)
 		{
 			_currentViewMode = mode;
-			var viewmodeIndex = _menuStrip.Items.IndexOfKey("模式");
-			// 更新菜单项选中状态
-			foreach (var item in ((ToolStripMenuItem)_menuStrip.Items[viewmodeIndex]).DropDownItems)
-			{
-				if (item is ToolStripMenuItem menuitem)
-					menuitem.Checked = false;
-			}
-
-		((ToolStripMenuItem)((ToolStripMenuItem)_menuStrip.Items[viewmodeIndex]).DropDownItems[(int)mode]).Checked = true;
+			// 更新插件菜单的内置查看器为选中状态
+			setCheckedMenuStateByNameToId("插件", 0);
+			setCheckedMenuStateByNameToId("模式", (int)mode);
 
 			// 隐藏所有面板
 			_textPanel.Visible = false;
 			_hexPanel.Visible = false;
 			_imagePanel.Visible = false;
-			
+			container.Visible = false;
 			// 根据模式显示相应面板
 			switch (mode)
 			{

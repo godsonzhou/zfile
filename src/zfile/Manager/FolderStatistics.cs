@@ -14,8 +14,8 @@ namespace zfile
     public class FolderStatistics
     {
         // Cache of folder statistics to avoid redundant calculations
-        private static Dictionary<string, FolderStats> _statsCache = new Dictionary<string, FolderStats>(StringComparer.OrdinalIgnoreCase);
-        private static readonly object _cacheLock = new object();
+        private static Dictionary<string, FolderStats> _statsCache = new (StringComparer.OrdinalIgnoreCase);
+        private static readonly object _cacheLock = new ();
 
         // Maximum cache size to prevent memory issues
         private const int MAX_CACHE_SIZE = 100;
@@ -95,7 +95,7 @@ namespace zfile
                     // Use cached stats if they're less than 1 seconds old
                     if ((DateTime.Now - cachedStats.LastUpdated).TotalSeconds < 1)
                     {
-						Debug.Print("list operation run repeatedly in 1s, Cache used!!!!!!!!!!!!!!!!!!!!");
+						//Debug.Print("list operation run repeatedly in 1s, Cache used!!!!!!!!!!!!!!!!!!!!");
                         return cachedStats;
                     }
                 }
@@ -117,9 +117,7 @@ namespace zfile
                         .ToList();
                         
                     foreach (var key in oldestEntries)
-                    {
                         _statsCache.Remove(key);
-                    }
                 }
                 
                 return stats;
@@ -131,9 +129,9 @@ namespace zfile
         /// </summary>
         private static FolderStats CalculateFolderStats(string folderPath, IFileSource fileSource)
         {
-            FolderStats stats = new FolderStats();
-            Dictionary<string, int> extensionCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-			//FileEntries files = new ();
+            FolderStats stats = new ();
+            Dictionary<string, int> extensionCounts = new (StringComparer.OrdinalIgnoreCase);
+			
             try
             {
                 // Set special folder flags based on file source type
@@ -167,9 +165,7 @@ namespace zfile
                                 continue;
                                 
                             if (file.IsDirectory)
-                            {
                                 stats.TotalFolders++;
-                            }
                             else
                             {
                                 stats.TotalFiles++;

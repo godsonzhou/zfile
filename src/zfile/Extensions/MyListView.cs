@@ -10,6 +10,8 @@
 			//this.HScroll += new EventHandler(OnHScroll);
 			//this.VScroll += new EventHandler(OnVScroll);
 			//this.MouseWheel += new EventHandler(OnMouseWheel);
+			this.SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
+			this.UpdateStyles();
 		}
 		const int WM_HSCROLL = 0x0114;
 		const int WM_VSCROLL = 0x0115;

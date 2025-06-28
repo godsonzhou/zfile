@@ -218,15 +218,13 @@ namespace zfile
                             for (var idx = 0; idx < job.FilePaths.Count; idx++)
                             {
                                 long size = 0;
-                                string imageKey = null;
+                                string? imageKey = null;
                                 var jobFilePath = job.FilePaths[idx];
                                 if (job.Type[idx] == JobType.DirSize)
                                 {
                                     // 检查缓存中是否已有该文件夹的大小
                                     if (HasDirSizeCache(jobFilePath))
-                                    {
                                         size = GetDirSizeFromCache(jobFilePath);
-                                    }
                                     else
                                     {
                                         // 计算文件夹大小并添加到缓存
@@ -238,8 +236,6 @@ namespace zfile
 												_dirsizeCache[jobFilePath] = size;
 											}
 										}
-										//else if (!UnsupportedExts.Contains(jobFilePath))
-										//	UnsupportedExts.Add(jobFilePath);
                                     }
                                 }
                                 else
@@ -265,11 +261,8 @@ namespace zfile
                                                             job.View.LargeImageList.Images.Add(md5key, thumb);
                                                     }));
                                                 }
-                                                else
-                                                {
-                                                    if (!job.View.LargeImageList.Images.ContainsKey(md5key))
+                                                else if (!job.View.LargeImageList.Images.ContainsKey(md5key))
                                                         job.View.LargeImageList.Images.Add(md5key, thumb);
-                                                }
                                             }
                                             catch (Exception ex)
                                             {
@@ -357,7 +350,6 @@ namespace zfile
             foreach (var group in groupedItems)
             {
                 var listView = group.Key;
-
                 try
                 {
                     if (listView.InvokeRequired)
@@ -378,9 +370,7 @@ namespace zfile
                         });
                     }
                     else
-                    {
                         UpdateListViewItems(group.ToList());
-                    }
                 }
                 catch (Exception ex)
                 {
@@ -408,15 +398,17 @@ namespace zfile
                 listView.BeginUpdate();
                 foreach (var (v, imageKey, filepath, i, dirsize) in items)
                 {
-                    if (v != null && !string.IsNullOrEmpty(imageKey))
-                        i.ImageKey = imageKey;
-                    else
-                    {
-                        i.SubItems[MainForm.LVCOL[listView.Name]._SIZE].Text = FileSystemManager.FormatFileSize(dirsize, true);
-                        //i.SubItems[5].Text = dirsize.ToString();
-                        if (i.Tag is LvItemTag tag && tag.File != null)
-                            tag.File.Size = dirsize;
-                    }
+					if (v != null && !string.IsNullOrEmpty(imageKey))
+					{
+						i.ImageKey = imageKey;
+						listView.Invalidate(i.Bounds); // 只重绘该项
+					}
+					else
+					{
+						i.SubItems[MainForm.LVCOL[listView.Name]._SIZE].Text = FileSystemManager.FormatFileSize(dirsize, true);
+						if (i.Tag is LvItemTag tag && tag.File != null)
+							tag.File.Size = dirsize;
+					}
                 }
 			}
 			catch (Exception ex)

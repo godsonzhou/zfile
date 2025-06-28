@@ -4177,7 +4177,7 @@ namespace zfile
 			cm_renmov(sourceFiles, srcpath, targetPath, targetfilename);
 		}
 		// 移动选中的文件
-		public void cm_renmov(FileEntries sourceFiles, string srcpath, string? targetPath = null, string? targetfilename = null)
+		public void cm_renmov(FileEntries sourceFiles, string srcpath, string? targetPath = null, string? targetfilename = null, ListView? targetlistview = null, string? sourcelistviewname = "")
 		{
 			if (sourceFiles.Count == 0) return;
 
@@ -4199,8 +4199,8 @@ namespace zfile
 			{
 				Debug.Print($"srcfiles:{sourceFiles.GetStringFromAllFiles()}, srcpath:{srcpath}, targetpath:{targetPath}, targetfilename:{targetfilename}");
 				// 使用 FileSourceManager 获取源和目标 FileSource
-				IFileSource sourceFileSource = _fileSourceManager.GetFileSourceForFullPath(srcpath, isleft);
-				IFileSource targetFileSource = targetfilename != null ? sourceFileSource : _fileSourceManager.GetFileSourceForFullPath(targetPath, !isleft);
+				IFileSource sourceFileSource = _fileSourceManager.GetFileSourceForFullPath(srcpath, string.IsNullOrEmpty(sourcelistviewname) ? isleft : sourcelistviewname.Equals("L"));
+				IFileSource targetFileSource = targetfilename != null ? sourceFileSource : _fileSourceManager.GetFileSourceForFullPath(targetPath, string.IsNullOrEmpty(sourcelistviewname) ? !isleft : targetlistview.Name.Equals("L"));
 
 				// 创建文件条目列表
 				//var fileEntries = new FileEntries();

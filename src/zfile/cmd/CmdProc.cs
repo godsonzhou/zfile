@@ -1204,7 +1204,7 @@ namespace zfile
 				//var files = string.Join("|", filePaths.Cast<string>());
 
 				if (isCut)
-					owner.cm_renmov(filesInClipboard, filesPathInClipboard, owner.uiManager.srcDir); // 使用已有的移动功能
+					owner.cm_renmov(filesInClipboard, filesPathInClipboard, owner.uiManager.srcDir, null, owner.uiManager.activeListView, listviewClipboard.Name); // 使用已有的移动功能
 				else
 					// 使用已有的复制功能
 					owner.cm_copy(filesInClipboard, filesPathInClipboard, owner.uiManager.srcDir, owner.uiManager.activeListView, listviewClipboard.Name );// when use pastefromclipboard, the copy targetpath is the activepanel path

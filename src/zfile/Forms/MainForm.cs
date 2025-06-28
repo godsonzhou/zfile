@@ -1213,15 +1213,24 @@ namespace zfile
 			{
 				SelectedNode = e.Node;
 				// 更新监视器
-				watcher.Path = path;
-				watcher.EnableRaisingEvents = true;
+				try
+				{
+					watcher.Path = path;        // 读取wsl路径时会报错，可能是因为wsl路径不支持监视
+					watcher.EnableRaisingEvents = true;
+				}
+				catch (Exception ex)
+				{
+					Debug.Print($"设置监视器路径失败: {ex.Message}");
+				}
 			}
 		}
+
 		public void TreeView_BeforeExpand(object? sender, TreeViewCancelEventArgs e)
 		{
-			if (e.Node.Nodes.Count == 1 && e.Node.FirstNode.Text == "...")  //点击+号时，加载子目录
+			if (e.Node?.Nodes.Count == 1 && e.Node.FirstNode.Text == "...")  //点击+号时，加载子目录
 				LoadSubDirectories(e.Node, out _);
 		}
+
 		public void ChangePath(string path, string LR, TreeNode eNode, bool recordhistory = true)
 		{   
 			//in zip, path = D:\\temp\\welcome.zip\\welcome

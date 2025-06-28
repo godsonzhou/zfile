@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 
@@ -71,7 +72,8 @@ public class WcxArchiveTestArchiveOperation : FileSourceTestArchiveOperation
                     if (!header.IsDirectory && MatchesFileEntries(files, header.FileName))            // Omit directories (we handle them ourselves).// Check if it's included in the FileEntries
 					{
                         statistics.CurrentFile = header.FileName;
-                        statistics.CurrentFileTotalBytes = header.UnpSize;
+						Debug.Print($"Testing file: {statistics.CurrentFile}");
+						statistics.CurrentFileTotalBytes = header.UnpSize;
                         statistics.CurrentFileDoneBytes = 0;
 
                         UpdateStatistics(statistics);

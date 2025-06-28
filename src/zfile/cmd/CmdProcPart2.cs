@@ -442,8 +442,10 @@ namespace zfile
 		{
 			var lv = owner.activeListView;
 			if (lv == null) return;
+			lv.BeginUpdate();
 			foreach (ListViewItem item in lv.Items)
 				item.Selected = true;
+			lv.EndUpdate();
 			//owner.uiManager.SetArgs();
 		}
 
@@ -452,8 +454,10 @@ namespace zfile
 		{
 			var lv = owner.activeListView;
 			if (lv == null) return;
+			lv.BeginUpdate();
 			foreach (ListViewItem item in lv.Items)
 				item.Selected = false;
+			lv.EndUpdate();
 			//owner.uiManager.SetArgs();
 		}
 
@@ -462,8 +466,10 @@ namespace zfile
 		{
 			var lv = owner.activeListView;
 			if (lv == null) return;
+			lv.BeginUpdate();
 			foreach (ListViewItem item in lv.Items)
 				item.Selected = !item.Selected;
+			lv.EndUpdate();
 			//owner.uiManager.SetArgs();
 		}
 
@@ -473,10 +479,12 @@ namespace zfile
 			var lv = owner.activeListView;
 			if (lv == null || lv.SelectedItems.Count == 0) return;
 			var ext = Path.GetExtension(lv.SelectedItems[0].Text);
+			lv.BeginUpdate();
 			foreach (ListViewItem item in lv.Items)
 				if (Path.GetExtension(item.Text).Equals(ext, StringComparison.OrdinalIgnoreCase))
 					item.Selected = true;
 			//owner.uiManager.SetArgs();
+			lv.EndUpdate();
 		}
 
 		// 存储的选择集合
@@ -516,10 +524,10 @@ namespace zfile
 		{
 			var lv = owner.activeListView;
 			if (lv == null) return;
-
+			lv.BeginUpdate();
 			foreach (ListViewItem item in lv.Items)
 				item.Selected = savedSelection.Contains(item.Text);
-			
+			lv.EndUpdate();
 			//owner.uiManager.SetArgs();
 		}
 

@@ -404,8 +404,8 @@ namespace zfile
 
             try
             {
+				Debug.Print($"Update List view items >>> {items.Count}");
                 listView.BeginUpdate();
-
                 foreach (var (v, imageKey, filepath, i, dirsize) in items)
                 {
                     if (v != null && !string.IsNullOrEmpty(imageKey))
@@ -418,19 +418,15 @@ namespace zfile
                             tag.File.Size = dirsize;
                     }
                 }
-            }
-            catch (Exception ex)
+			}
+			catch (Exception ex)
             {
                 Debug.Print($"更新ListViewItem异常: {ex.Message}");
             }
             finally
             {
-                try
-                {
-                    listView.EndUpdate();
-                }
-                catch { }
-            }
+				listView.EndUpdate();
+			}
         }
 
         /// <summary>

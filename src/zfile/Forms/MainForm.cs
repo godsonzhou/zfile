@@ -2222,7 +2222,7 @@ namespace zfile
 				// 标记节点已经加载过子目录
 				sItem.SubNodeState = NODE_LOADED_KEY;
 				// 保存现有节点的引用，以便后续比较
-				Dictionary<string, TreeNode> existingNodes = new Dictionary<string, TreeNode>();
+				Dictionary<string, TreeNode> existingNodes = [];
 				foreach (TreeNode existingNode in node.Nodes)
 				{
 					if (existingNode.Tag is ShellItem existingItem)
@@ -2251,6 +2251,7 @@ namespace zfile
 					//IShellFolder? newRoot = Set_SIIGBF_IGNORECRYPTED_flag(sItem);
 					//if (newRoot != null)
 					//	root = newRoot;
+					node.TreeView.BeginUpdate();
 					if (root.EnumObjects(this.Handle, shcontf, out nint EnumPtr) == w32.S_OK)    // 循环查找子项
 					// todo:遇到加密的压缩文件时会跳出窗口“Windows无法打开文件夹。当前不支持加密存档(D：\tmp\welcome.7z)。”，但是又可以打开压缩文件，也可以正常读取压缩文件的内容。如何消除这个弹窗？？？
 					{
@@ -2368,6 +2369,7 @@ namespace zfile
 							}
 						}
 					}
+					node.TreeView.EndUpdate();
 				}
 				catch (Exception)
 				{
@@ -2480,6 +2482,7 @@ namespace zfile
 			var visibleRect = listView.ClientRectangle;
 
 			// 遍历所有项目，检查是否在可见区域内
+			listView.BeginUpdate();
 			foreach (ListViewItem item in listView.Items)
 			{
 				// 获取项目的边界
@@ -2491,6 +2494,7 @@ namespace zfile
 				{
 					var file = (item.Tag as LvItemTag)?.File;
 					var itemFullName = file?.FullPath;
+					Debug.Print($"process visible items for thumbnails >>> {itemFullName}");
 					var isdir = (file?.IsDirectory) ?? false;
 					if (isdir)
 					{
@@ -2530,7 +2534,7 @@ namespace zfile
 					}
 				}
 			}
-
+			listView.EndUpdate();
 			// 如果有需要处理的项目，加入缩略图生成队列
 			if (itemsForJob.Count > 0)
 			{
@@ -2577,7 +2581,7 @@ namespace zfile
 				}
 
 				listView.EndUpdate();
-				listView.Refresh();
+				//listView.Refresh();
 
 				// 只为可见项生成缩略图
 				ProcessVisibleItemsForThumbnails(listView);

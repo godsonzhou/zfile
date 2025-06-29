@@ -23,6 +23,7 @@ namespace zfile
 		private FileEntries filesInClipboard = [];
 		private string filesPathInClipboard;
 		private ListView listviewClipboard;
+		private bool dirmatch_mode;
 
 		public CmdProc(MainForm owner)
 		{
@@ -1316,8 +1317,8 @@ namespace zfile
 			ListView rightList = owner.uiManager.RightList;
 
 			// 创建文件名集合
-			HashSet<string> leftFiles = new HashSet<string>();
-			HashSet<string> rightFiles = new HashSet<string>();
+			HashSet<string> leftFiles = [];
+			HashSet<string> rightFiles = [];
 
 			// 收集左面板文件名
 			foreach (ListViewItem item in leftList.Items)
@@ -1347,6 +1348,7 @@ namespace zfile
 				{
 					// 如果需要隐藏相同文件
 					item.ForeColor = Color.LightGray;
+					item.BackColor = SystemColors.Window;
 				}
 				else
 				{
@@ -1370,6 +1372,7 @@ namespace zfile
 				{
 					// 如果需要隐藏相同文件
 					item.ForeColor = Color.LightGray;
+					item.BackColor = SystemColors.Window;
 				}
 				else
 				{
@@ -1378,6 +1381,7 @@ namespace zfile
 					item.ForeColor = SystemColors.WindowText;
 				}
 			}
+			dirmatch_mode = true;
 		}
 		private async Task cm_StartMcpServer(string param)
 		{

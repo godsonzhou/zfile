@@ -266,9 +266,7 @@ namespace zfile
 							for (int i = 0; i < parts.Count; i++)
 							{
 								var partFile = i == 0 ? targetFile :
-									Path.Combine(targetPath,
-										Path.GetFileNameWithoutExtension(targetFile) +
-										$"_{i + 1}{extension}");
+									Path.Combine(targetPath, Path.GetFileNameWithoutExtension(targetFile) + $"_{i + 1}{extension}");
 								File.WriteAllText(partFile, header + parts[i]);
 							}
 						}
@@ -446,21 +444,34 @@ namespace zfile
 			foreach (ListViewItem item in lv.Items)
 				item.Selected = true;
 			lv.EndUpdate();
-			//owner.uiManager.SetArgs();
 		}
 
 		// 取消全选
 		private void do_cm_ClearAll()
 		{
-			var lv = owner.activeListView;
+			cm_ClearAll();
+			if (dirmatch_mode)
+			{
+				cm_ClearAll(false);
+				dirmatch_mode = false;
+			}
+		}
+		private void cm_ClearAll(bool isactivepanel = true)
+		{
+			var lv = isactivepanel ? owner.activeListView : owner.unactiveListView;
 			if (lv == null) return;
 			lv.BeginUpdate();
 			foreach (ListViewItem item in lv.Items)
+			{
 				item.Selected = false;
+				if (dirmatch_mode)  //如果在dir比较模式，则恢复默认颜色
+				{
+					item.BackColor = SystemColors.Window;
+					item.ForeColor = SystemColors.WindowText;
+				}
+			}
 			lv.EndUpdate();
-			//owner.uiManager.SetArgs();
 		}
-
 		// 反选
 		private void do_cm_InvertSelection()
 		{
@@ -470,7 +481,6 @@ namespace zfile
 			foreach (ListViewItem item in lv.Items)
 				item.Selected = !item.Selected;
 			lv.EndUpdate();
-			//owner.uiManager.SetArgs();
 		}
 
 		// 选择相同扩展名文件
@@ -483,7 +493,6 @@ namespace zfile
 			foreach (ListViewItem item in lv.Items)
 				if (Path.GetExtension(item.Text).Equals(ext, StringComparison.OrdinalIgnoreCase))
 					item.Selected = true;
-			//owner.uiManager.SetArgs();
 			lv.EndUpdate();
 		}
 
@@ -528,7 +537,6 @@ namespace zfile
 			foreach (ListViewItem item in lv.Items)
 				item.Selected = savedSelection.Contains(item.Text);
 			lv.EndUpdate();
-			//owner.uiManager.SetArgs();
 		}
 
 		// 复制文件名到剪贴板
@@ -559,12 +567,10 @@ namespace zfile
 		{
 			var lv = owner.activeListView;
 			if (lv == null || lv.SelectedItems.Count == 0) return;
-
 			var details = new StringBuilder();
 			foreach (ListViewItem item in lv.SelectedItems)
-			{
 				details.AppendLine(string.Join("\t", item.SubItems.Cast<ListViewItem.ListViewSubItem>().Select(si => si.Text)));
-			}
+			
 			Clipboard.SetText(details.ToString());
 		}
 
@@ -573,13 +579,11 @@ namespace zfile
 		{
 			var lv = owner.activeListView;
 			if (lv == null || lv.SelectedItems.Count == 0) return;
-
 			var details = new StringBuilder();
 			foreach (ListViewItem item in lv.SelectedItems)
-			{
 				details.AppendLine(Path.Combine(owner.CurrentFullpath[owner.LRflag], item.Text) + "\t" +
 					string.Join("\t", item.SubItems.Cast<ListViewItem.ListViewSubItem>().Skip(1).Select(si => si.Text)));
-			}
+			
 			Clipboard.SetText(details.ToString());
 		}
 		// 添加导航命令的实现
@@ -587,24 +591,12 @@ namespace zfile
 		{
 			if (owner.backStack.Count > 0)
 			{
-				//if (owner.IsActiveFtpPanel(out var ftpnode))
-				//{
-				//	owner.forwardStack.Push(ftpnode.Path);
-				//	string previousPath = owner.backStack.Pop();
-				//	owner.fTPMGR.NavigateToPath(ftpnode.ConnectionName, previousPath, owner.activeListView, false);
-				//}
-				//else
-				{
-					// 将当前目录存入前进栈
-					owner.forwardStack.Push(owner.CurrentFullpath[owner.LRflag]);
-					// 从后退栈获取上一个目录
-					string previousPath = owner.backStack.Pop();
-					// 导航到该目录，但不记录到历史（避免重复记录）
-					//var t1 = DateTime.Now;
-					owner.NavigateToPathByTreeNode(previousPath, false);
-					//owner.ChangePath(previousPath, owner.LRflag, owner.activeTreeview.SelectedNode, false);
-					//Debug.Print($"ChangePath ({previousPath}) : {DateTime.Now - t1}");
-				}
+				// 将当前目录存入前进栈
+				owner.forwardStack.Push(owner.CurrentFullpath[owner.LRflag]);
+				// 从后退栈获取上一个目录
+				string previousPath = owner.backStack.Pop();
+				// 导航到该目录，但不记录到历史（避免重复记录）
+				owner.NavigateToPathByTreeNode(previousPath, false);
 			}
 		}
 
@@ -612,24 +604,12 @@ namespace zfile
 		{
 			if (owner.forwardStack.Count > 0)
 			{
-				//if (owner.IsActiveFtpPanel(out var ftpnode))
-				//{
-				//	owner.backStack.Push(ftpnode.Path);
-				//	string nextpath = owner.forwardStack.Pop();
-				//	owner.fTPMGR.NavigateToPath(ftpnode.ConnectionName, nextpath, owner.activeListView, false);
-				//}
-				//else
-				{
-					// 将当前目录存入后退栈
-					owner.backStack.Push(owner.CurrentFullpath[owner.LRflag]);
-					// 从前进栈获取下一个目录
-					string nextPath = owner.forwardStack.Pop();
-					// 导航到该目录，但不记录到历史（避免重复记录）
-					//var t1 = DateTime.Now;
-					owner.NavigateToPathByTreeNode(nextPath, false);
-					//owner.ChangePath(nextPath, owner.LRflag, owner.activeTreeview.SelectedNode, false);
-					//Debug.Print($"NavigateToPathByTreeNode ({nextPath}): {DateTime.Now - t1}");
-				}
+				// 将当前目录存入后退栈
+				owner.backStack.Push(owner.CurrentFullpath[owner.LRflag]);
+				// 从前进栈获取下一个目录
+				string nextPath = owner.forwardStack.Pop();
+				// 导航到该目录，但不记录到历史（避免重复记录）		
+				owner.NavigateToPathByTreeNode(nextPath, false);
 			}
 		}
 		private string GetParentUri(string url)
@@ -664,26 +644,12 @@ namespace zfile
 		public void cm_gotoparent()
 		{
 			string? parentpath = null;
-			//if (owner.IsActiveFtpPanel(out var ftpnode))
 			if(owner.CurrentFullpath.GetFileSource(owner.LRflag) is FtpFileSource fs)
-			{
 				parentpath = GetParentUri(owner.CurrentFullpath[owner.LRflag]);
-				//parentpath = Helper.ExcludeTrailingPathDelimiter(owner.CurrentFullpath[owner.LRflag], '/');
-				//parentpath = parentpath.Replace("\\", "/");
-				//owner.fTPMGR.NavigateToPath(ftpnode.ConnectionName, parentPath ?? string.Empty, owner.activeListView);
-			}
-			//else if (owner.CurrentFullpath.GetFileSource(owner.LRflag) is WcxArchiveFileSource wcxfs)
-			//{
-			//	//if (!string.IsNullOrEmpty(Helper.ExcludeTrailingPathDelimiter(wcxfs.CurrentPath)))//IsPathAtRoot(wcxfs.CurrentFullPath)) //CurrentPath.Equals("\\")
-			//		//parentpath = wcxfs.ArchivePath + Path.GetDirectoryName(wcxfs.CurrentPath);
-			//	//else
-			//	parentpath = Path.GetDirectoryName(wcxfs.ArchivePath);
-			//}
 			else
 				parentpath = Path.GetDirectoryName(Helper.ExcludeTrailingPathDelimiter(owner.CurrentFullpath[owner.LRflag]));
 			if (!string.IsNullOrEmpty(parentpath))
 				owner.NavigateToPathByTreeNode(parentpath);    //bugfix: 对于ISO文件内跳转父亲目录，由于目录结构在TREEVIEW中不存在，所以无法适用
-				//owner.ChangePath(parentpath, owner.LRflag, owner.activeTreeview.SelectedNode);
 		}
 
 		// 搜索文件
@@ -722,20 +688,6 @@ namespace zfile
 				MessageBox.Show($"无法获取文件属性: {ex.Message}", "错误");
 			}
 		}
-
-		//// 格式化文件大小
-		//private string FormatFileSize(long bytes)
-		//{
-		//	string[] sizes = { "B", "KB", "MB", "GB", "TB" };
-		//	int order = 0;
-		//	double size = bytes;
-		//	while (size >= 1024 && order < sizes.Length - 1)
-		//	{
-		//		order++;
-		//		size = size / 1024;
-		//	}
-		//	return $"{size:0.##} {sizes[order]}";
-		//}
 
 		// 比较文件
 		private void cm_comparefilesbycontent(string param)

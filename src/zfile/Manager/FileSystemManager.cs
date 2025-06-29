@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO.Enumeration;
 using System.Security.Cryptography;
 
 namespace zfile
@@ -397,6 +398,21 @@ namespace zfile
 			}
 
 			return result;
+		}
+
+		internal static bool MatchesPattern(string relativePath, string filterPattern)
+		{
+			if (string.IsNullOrWhiteSpace(filterPattern) || filterPattern == "*")
+				return true;
+
+			// 支持多模式（如 "*.txt;*.md"）
+			var patterns = filterPattern.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+			foreach (var pattern in patterns)
+			{
+				if (FileSystemName.MatchesSimpleExpression(pattern, relativePath, ignoreCase: true))
+					return true;
+			}
+			return false;
 		}
 	}
 

@@ -218,7 +218,7 @@ namespace zfile.Forms
 								var linepart = line.Replace("MENUITEM ", "").Replace("END_POPUP", "--").Replace("POPUP ", "-").Replace("\"", "").Replace("SEPARATOR", "-").Split(',');
 								menuItems.Add(linepart[0]);
 								menuItemsListBox.Items.Add(linepart[0]);
-								mainMenuInfos.Add(new MenuInfo { Menu = linepart[0], Cmd = linepart[1] });
+								mainMenuInfos.Add(new MenuInfo { Menu = linepart[0], Cmd = linepart.Length > 1 ? linepart[1] : "" });
 							}
                         }
                     }
@@ -241,19 +241,19 @@ namespace zfile.Forms
             {
                 int selectedIndex = menuItemsListBox.SelectedIndex;
                 string selectedItem = menuItems[selectedIndex];
+				bool isNotSpecialItem = !(selectedItem.Equals("--") || selectedItem.Equals("-"));
 
-                // 启用或禁用编辑按钮
-                editTitleButton.Enabled = !selectedItem.StartsWith("--");
+				// 启用或禁用编辑按钮
+				editTitleButton.Enabled = isNotSpecialItem;	//对于分隔符和结束符禁用编辑按钮
 
                 // 根据菜单类型和选中项更新输入框状态
                 if (currentMenuType == "usermenu")
                 {
-                    bool isNotEndItem = !selectedItem.StartsWith("--");
-                    cmdTextBox.Enabled = isNotEndItem;
-                    paramTextBox.Enabled = isNotEndItem;
-                    pathTextBox.Enabled = isNotEndItem;
+                    cmdTextBox.Enabled = isNotSpecialItem;
+                    paramTextBox.Enabled = isNotSpecialItem;
+                    pathTextBox.Enabled = isNotSpecialItem;
 
-                    if (isNotEndItem && selectedIndex < userMenuInfos.Count)
+                    if (isNotSpecialItem && selectedIndex < userMenuInfos.Count)
                     {
                         // 直接从userMenuInfos获取选中项的信息
                         var menuInfo = userMenuInfos[selectedIndex];
@@ -262,18 +262,17 @@ namespace zfile.Forms
                         pathTextBox.Text = menuInfo.Path;
                     }
                 }
-                
                 else
                 {
                     // 主菜单项，禁用参数和路径输入框
-                    cmdTextBox.Enabled = !selectedItem.StartsWith("--");
+                    cmdTextBox.Enabled = isNotSpecialItem;
                     paramTextBox.Enabled = false;
                     pathTextBox.Enabled = false;
 					//MenuInfo cmditem;
 					if (mainForm.uiManager.usermenuMap.TryGetValue(selectedItem.TrimStart('-'), out var cmditem))
 					{
 						//cmditem = mainForm.uiManager.usermenuMap[selectedItem.TrimStart('-')];
-						if (!selectedItem.StartsWith("--"))
+						if (isNotSpecialItem)
 							cmdTextBox.Text = cmditem.Cmd;
 					}
                 }
@@ -290,7 +289,7 @@ namespace zfile.Forms
 
         private void AddItemButton_Click(object sender, EventArgs e)
         {
-            using (var dialog = new InputDialog("添加菜单项", "请输入菜单项标题:"))
+            using (var dialog = new InputDialog("添加菜单项", "请输入菜单项标题(-代表分隔符):", ["", "--"]))	//end of submenu "--" must not be inputed
             {
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
@@ -306,11 +305,11 @@ namespace zfile.Forms
                     // 如果是用户菜单，创建新的MenuInfo对象
                     if (currentMenuType == "usermenu")
                     {
-                        MenuInfo newMenuInfo = new MenuInfo
+                        var newMenuInfo = new MenuInfo
                         {
                             Menu = newItem,
-                            Cmd = "%COMMANDER_PATH%\\Tools\\Swoff.exe", // 默认命令
-                            Param = "/锁定 /wait:0" // 默认参数
+                            Cmd = "", // 默认命令
+                            Param = "" // 默认参数
                         };
                         
                         // 在相应位置插入新的MenuInfo
@@ -318,9 +317,7 @@ namespace zfile.Forms
                         usermenu_changed = true;
                     }
                     else
-                    {
                         mainmenu_changed = true;
-                    }
                     
                     menuItemsListBox.SelectedIndex = insertIndex + 1;
                 }
@@ -329,7 +326,7 @@ namespace zfile.Forms
 
         private void AddSubmenuButton_Click(object sender, EventArgs e)
         {
-            using (var dialog = new InputDialog("添加子菜单", "请输入子菜单标题:"))
+            using (var dialog = new InputDialog("添加子菜单", "请输入子菜单标题:", ["-", ""]))
             {
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
@@ -353,56 +350,40 @@ namespace zfile.Forms
 				}
             }
         }
-
-        private void DeleteItemButton_Click(object sender, EventArgs e)
+		private void RemoveMenuItemsByRange(int startIndex, int endIndex)
+		{
+			if (startIndex < 0 || endIndex >= menuItems.Count || startIndex > endIndex) return;
+			for (int i = endIndex; i >= startIndex; i--)
+			{
+				menuItems.RemoveAt(i);
+				menuItemsListBox.Items.RemoveAt(i);
+				// 如果是用户菜单，同时删除对应的MenuInfo
+				if (currentMenuType == "usermenu")
+					userMenuInfos.RemoveAt(i);
+			}
+		}	
+		private void DeleteItemButton_Click(object sender, EventArgs e)
         {
             if (menuItemsListBox.SelectedIndex == -1) return;
 
             int selectedIndex = menuItemsListBox.SelectedIndex;
             string selectedItem = menuItems[selectedIndex];
-
-			if (selectedItem.Equals("--"))
+			var t = GetMenuItemType(selectedItem);
+			if(t == MenuItemType.EndOfSubMenu)
 			{
 				// 删除子菜单结束项及其起始项
 				int startIndex = FindSubmenuStart(selectedIndex);
 				if (startIndex != -1)
-				{
-					menuItems.RemoveAt(selectedIndex);
-					menuItems.RemoveAt(startIndex);
-					menuItemsListBox.Items.RemoveAt(selectedIndex);
-					menuItemsListBox.Items.RemoveAt(startIndex);
-                    
-                    // 如果是用户菜单，同时删除对应的MenuInfo
-                    if (currentMenuType == "usermenu")
-                    {
-                        if (selectedIndex < userMenuInfos.Count)
-                            userMenuInfos.RemoveAt(selectedIndex);
-                        if (startIndex < userMenuInfos.Count)
-                            userMenuInfos.RemoveAt(startIndex);
-                    }
-				}
+					RemoveMenuItemsByRange(startIndex, selectedIndex);
 			}
-			else if (selectedItem.StartsWith("-") && selectedItem.Length != 1) // - is separator, so exclude it
-            {
-                // 删除子菜单起始项及其结束项
-                int endIndex = FindSubmenuEnd(selectedIndex);
-                if (endIndex != -1)
-                {
-                    menuItems.RemoveAt(endIndex);
-                    menuItems.RemoveAt(selectedIndex);
-                    menuItemsListBox.Items.RemoveAt(endIndex);
-                    menuItemsListBox.Items.RemoveAt(selectedIndex);
-                    
-                    // 如果是用户菜单，同时删除对应的MenuInfo
-                    if (currentMenuType == "usermenu")
-                    {
-                        if (endIndex < userMenuInfos.Count)
-                            userMenuInfos.RemoveAt(endIndex);
-                        if (selectedIndex < userMenuInfos.Count)
-                            userMenuInfos.RemoveAt(selectedIndex);
-                    }
-                }
-            }
+			//else if (selectedItem.StartsWith("-") && selectedItem.Length != 1) // - is separator, so exclude it
+			else if (t == MenuItemType.BeginOfSubMenu)
+			{
+				// 删除子菜单起始项及其结束项和所包含的所有子项
+				int endIndex = FindSubmenuEnd(selectedIndex);
+				if (endIndex != -1)
+					RemoveMenuItemsByRange(selectedIndex, endIndex);
+			}
             else
             {
                 // 删除普通菜单项
@@ -411,9 +392,7 @@ namespace zfile.Forms
                 
                 // 如果是用户菜单，同时删除对应的MenuInfo
                 if (currentMenuType == "usermenu" && selectedIndex < userMenuInfos.Count)
-                {
                     userMenuInfos.RemoveAt(selectedIndex);
-                }
             }
 			if (currentMenuType == "mainmenu")
 				mainmenu_changed = true;
@@ -433,23 +412,24 @@ namespace zfile.Forms
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     string newTitle = dialog.InputText;
-                    if (selectedItem.StartsWith("-") && !selectedItem.StartsWith("--"))
-                    {
+					var t = GetMenuItemType(selectedItem);
+					//if (selectedItem.StartsWith("-") && !selectedItem.StartsWith("--"))
+					if( t == MenuItemType.BeginOfSubMenu)
+					{
                         string newItem = $"-{newTitle}";
                         menuItems[selectedIndex] = newItem;
                         menuItemsListBox.Items[selectedIndex] = newItem;
                     }
-                    else if (!selectedItem.StartsWith("--"))
-                    {
-                        menuItems[selectedIndex] = newTitle;
-                        menuItemsListBox.Items[selectedIndex] = newTitle;
-                        
-                        // 如果是用户菜单，同时更新对应MenuInfo的Menu属性
-                        if (currentMenuType == "usermenu" && selectedIndex < userMenuInfos.Count)
-                        {
-                            userMenuInfos[selectedIndex].Menu = newTitle;
-                        }
-                    }
+					//else if (!selectedItem.StartsWith("--"))
+					else if (t != MenuItemType.EndOfSubMenu)
+					{
+						menuItems[selectedIndex] = newTitle;
+						menuItemsListBox.Items[selectedIndex] = newTitle;
+
+						// 如果是用户菜单，同时更新对应MenuInfo的Menu属性
+						if (currentMenuType == "usermenu" && selectedIndex < userMenuInfos.Count)
+							userMenuInfos[selectedIndex].Menu = newTitle;
+					}
 					if (currentMenuType == "mainmenu")
 						mainmenu_changed = true;
 					else
@@ -465,17 +445,11 @@ namespace zfile.Forms
             if (currentMenuType == "usermenu" && selectedIndex >= 0 && selectedIndex < userMenuInfos.Count)
             {
                 if (sender == cmdTextBox)
-                {
                     userMenuInfos[selectedIndex].Cmd = cmdTextBox.Text;
-                }
                 else if (sender == paramTextBox)
-                {
                     userMenuInfos[selectedIndex].Param = paramTextBox.Text;
-                }
                 else if (sender == pathTextBox)
-                {
                     userMenuInfos[selectedIndex].Path = pathTextBox.Text;
-                }
                 usermenu_changed = true;
             }
         }
@@ -559,20 +533,29 @@ namespace zfile.Forms
             int nestedLevel = 1;
             for (int i = startIndex + 1; i < menuItems.Count; i++)
             {
-                string item = menuItems[i];
-                if (item.StartsWith("-") && !item.StartsWith("--"))
-                {
-                    nestedLevel++;
-                }
-                else if (item.StartsWith("--"))
-                {
-                    nestedLevel--;
-                    if (nestedLevel == 0)
-                    {
-                        return i;
-                    }
-                }
-            }
+     //           string item = menuItems[i];
+     //           if (item.StartsWith("-") && !item.StartsWith("--"))
+     //           {
+     //               //bugfix: 如果item="-", 代表分隔符，不参与层次计算
+					//if(!item.Equals("-"))
+					//	nestedLevel++;
+     //           }
+     //           else if (item.StartsWith("--"))
+     //           {
+     //               nestedLevel--;
+     //               if (nestedLevel == 0)
+     //                   return i;
+     //           }
+				var t = GetMenuItemType(menuItems[i]);
+				if(t == MenuItemType.BeginOfSubMenu)
+					nestedLevel++;
+				else if (t == MenuItemType.EndOfSubMenu)
+				{
+					nestedLevel--;
+					if (nestedLevel == 0)
+						return i;
+				}
+			}
             return -1;
         }
 
@@ -581,33 +564,70 @@ namespace zfile.Forms
             int nestedLevel = 1;
             for (int i = endIndex - 1; i >= 0; i--)
             {
-                string item = menuItems[i];
-                if (item.StartsWith("--"))
-                {
-                    nestedLevel++;
-                }
-                else if (item.StartsWith("-") && !item.StartsWith("--"))
-                {
-                    nestedLevel--;
-                    if (nestedLevel == 0)
-                    {
-                        return i;
-                    }
-                }
-            }
+				//string item = menuItems[i];
+				//if (item.Equals("-")) continue;
+				//if (item.Equals("--"))
+				//                nestedLevel++;
+				//            else if (item.StartsWith("-") && !item.Equals("--"))
+				//            {
+				//                nestedLevel--;
+				//                if (nestedLevel == 0)
+				//                    return i;
+				//            }
+				var t = GetMenuItemType(menuItems[i]);
+				if (t == MenuItemType.EndOfSubMenu)
+					nestedLevel++;
+				else if (t == MenuItemType.BeginOfSubMenu)
+				{
+					nestedLevel--;
+					if (nestedLevel == 0)
+						return i;
+				}
+			}
             return -1;
         }
-    }
-
+		/// <summary>
+		/// Determines the type of a menu item based on its identifier.
+		/// </summary>
+		/// <param name="menuitem">The identifier of the menu item to evaluate. Cannot be null or empty.</param>
+		/// <returns>The <see cref="MenuItemType"/> corresponding to the specified menu item.</returns>
+		private MenuItemType GetMenuItemType(string menuitem)
+		{
+			// no "-" is a normal item
+			// "-" is a separator
+			// "--" is the end of a submenu
+			// "-" at the beginning is the start of a submenu
+			if (!menuitem.StartsWith('-'))
+				return MenuItemType.NormalItem;
+			else if (menuitem.Equals("-"))
+				return MenuItemType.Seperator;
+			else if (menuitem.Equals("--"))
+				return MenuItemType.EndOfSubMenu; 
+			else
+				return MenuItemType.BeginOfSubMenu;
+		}
+	}
+	
+	enum MenuItemType
+	{
+		NormalItem,
+		Seperator,
+		BeginOfSubMenu,
+		EndOfSubMenu
+	}
     public class InputDialog : Form
     {
         private TextBox textBox;
         private Button okButton;
         private Button cancelButton;
         private Label label;
-
+		private List<string> forbiddenStrings = [];
         public string InputText => textBox.Text;
 
+		public InputDialog(string title, string prompt, List<string> forbiddenstr) : this(title, prompt)
+		{
+			forbiddenStrings = forbiddenstr;
+		}
         public InputDialog(string title, string prompt)
         {
             Text = title;
@@ -623,19 +643,25 @@ namespace zfile.Forms
                 Location = new Point(10, 10),
                 Size = new Size(260, 20)
             };
-
+			
             textBox = new TextBox
             {
                 Location = new Point(10, 40),
                 Size = new Size(260, 20)
             };
-
-            okButton = new Button
+			textBox.TextChanged += (sender, e) => 
+			{
+				//MessageBox.Show("输入内容包含非法字符，请重新输入。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				//textBox.Clear();
+				okButton.Enabled = !forbiddenStrings.Any(s => textBox.Text.Trim().Equals(s));
+			};
+			okButton = new Button
             {
                 Text = "确定",
                 DialogResult = DialogResult.OK,
                 Location = new Point(110, 70),
-                Size = new Size(75, 30)
+                Size = new Size(75, 30),
+				Enabled = false		//default is disable
             };
 
             cancelButton = new Button
@@ -646,7 +672,7 @@ namespace zfile.Forms
                 Size = new Size(75, 30)
             };
 
-            Controls.AddRange(new Control[] { label, textBox, okButton, cancelButton });
+            Controls.AddRange([ label, textBox, okButton, cancelButton ]);
             AcceptButton = okButton;
             CancelButton = cancelButton;
         }

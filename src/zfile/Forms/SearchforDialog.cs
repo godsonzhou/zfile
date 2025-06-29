@@ -98,6 +98,7 @@ namespace zfile.Forms
 		private List<string> searchHistory = new List<string>();
 		private List<string> locationHistory = new List<string>();
 		private List<string> searchResults = new List<string>();
+		private CancellationTokenSource _cancellationTokenSource;
 
 		private MainForm owner;
 		private bool isStandalone;
@@ -1136,8 +1137,24 @@ namespace zfile.Forms
 			return sb.ToString();
 		}
 
-		private void StartSearchButton_Click(object? sender, EventArgs e)
+		private async void StartSearchButton_Click(object? sender, EventArgs e)
 		{
+			// If search is already running, cancel it
+			if (startSearchButton.Text == "停止")
+			{
+				_cancellationTokenSource?.Cancel();
+				startSearchButton.Text = "开始搜索(S)";
+				return;
+			}
+
+			// Change button to "Stop"
+			startSearchButton.Text = "停止";
+			statusLabel.Text = "正在搜索...";
+			Application.DoEvents();
+
+			// Create new cancellation token source
+			_cancellationTokenSource = new CancellationTokenSource();
+			var cancellationToken = _cancellationTokenSource.Token;
 			// 开始搜索
 			if (string.IsNullOrWhiteSpace(searchBox.Text) && !findTextCheckBox.Checked && !duplicateFilesCheckBox.Checked)
 			{
@@ -1186,8 +1203,10 @@ namespace zfile.Forms
 
 			try
 			{
-				// 执行搜索
-				List<string> files;
+				// 执行搜索 (在后台线程运行)
+				List<string> files = new List<string>();
+				await Task.Run(() =>
+				{
 				if (regexCheckBox.Checked)
 				{
 					// 使用正则表达式搜索
@@ -1273,6 +1292,15 @@ namespace zfile.Forms
 				{
 					files = FileSystemManager.FindDuplicateFiles(files, sameNameCheckBox.Checked, sameSizeCheckBox.Checked, sameContentCheckBox.Checked, samePluginFieldsCheckBox.Checked, pluginFieldsComboBox.SelectedItem?.ToString());
 				}
+				}, cancellationToken);
+
+				// 检查是否被取消
+				if (cancellationToken.IsCancellationRequested)
+				{
+					statusLabel.Text = "搜索已取消";
+					return;
+				}
+
 				// 显示搜索结果
 				foreach (var file in files)
 				{
@@ -1293,6 +1321,7 @@ namespace zfile.Forms
 			{
 				MessageBox.Show($"搜索文件时出错: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				statusLabel.Text = " ";
+				startSearchButton.Text = "开始搜索(S)";
 				var a = new ComboBox
 				{
 					Location = new Point(160, 42),

@@ -513,7 +513,16 @@ namespace zfile.Forms
 				Name = "PluginColumn",
 				Width = 100
 			};
-			pluginColumn.Items.AddRange(new object[] { "插件1", "插件2", "插件3" });
+			
+			// 从WdxPlugins.ModuleList中获取已注册的插件
+			if (WdxPlugins.ModuleList != null && WdxPlugins.ModuleList._modules.Count > 0)
+			{
+				pluginColumn.Items.AddRange(WdxPlugins.ModuleList._modules.Select(m => m.Name).ToArray());
+			}
+			else
+			{
+				pluginColumn.Items.AddRange(new object[] { "无可用插件" });
+			}
 
 			var attributeColumn = new DataGridViewComboBoxColumn
 			{
@@ -521,7 +530,7 @@ namespace zfile.Forms
 				Name = "AttributeColumn",
 				Width = 100
 			};
-			attributeColumn.Items.AddRange(new object[] { "属性1", "属性2", "属性3" });
+			// 属性列的选项将在选择插件后动态加载
 
 			var operatorColumn = new DataGridViewComboBoxColumn
 			{
@@ -550,6 +559,9 @@ namespace zfile.Forms
 			// 绑定事件处理程序
 			addRuleButton.Click += AddRuleButton_Click;
 			removeRuleButton.Click += RemoveRuleButton_Click;
+			
+			// 添加DataGridView的CellValueChanged事件处理程序
+			rulesDataGridView.CellValueChanged += RulesDataGridView_CellValueChanged;
 		}
 		
 
@@ -686,7 +698,7 @@ namespace zfile.Forms
 		}
 
 		// 添加规则行项目的辅助方法
-		private void AddRuleItem(string plugin = "插件1", string attribute = "属性1", string op = "包含", string value = "请输入值")
+		private void AddRuleItem(string plugin = "", string attribute = "", string op = "包含", string value = "请输入值")
 		{
 			// 创建一个新的DataGridView行
 			int rowIndex = rulesDataGridView.Rows.Add();
@@ -703,6 +715,44 @@ namespace zfile.Forms
 			row.Selected = true;
 			rulesDataGridView.CurrentCell = row.Cells[0];
 			rulesDataGridView.FirstDisplayedScrollingRowIndex = rowIndex;
+		}
+
+		// DataGridView的CellValueChanged事件处理程序
+		private void RulesDataGridView_CellValueChanged(object? sender, DataGridViewCellEventArgs e)
+		{
+			// 检查是否是插件列发生了变化
+			if (e.ColumnIndex == rulesDataGridView.Columns["PluginColumn"].Index && e.RowIndex >= 0)
+			{
+				// 获取选中的插件名称
+				string? selectedPlugin = rulesDataGridView.Rows[e.RowIndex].Cells["PluginColumn"].Value?.ToString();
+				if (!string.IsNullOrEmpty(selectedPlugin))
+				{
+					// 查找对应的WDX插件
+					var wdxModule = WdxPlugins.ModuleList.FindModuleByName(selectedPlugin);
+					if (wdxModule != null)
+					{
+						// 获取属性列的下拉框
+						var attributeCell = rulesDataGridView.Rows[e.RowIndex].Cells["AttributeColumn"] as DataGridViewComboBoxCell;
+						if (attributeCell != null)
+						{
+							// 清除现有的选项
+							attributeCell.Items.Clear();
+							
+							// 添加插件的字段作为选项
+							foreach (var field in wdxModule.Fields)
+							{
+								attributeCell.Items.Add(field.Name);
+							}
+							
+							// 如果有字段，选择第一个
+							if (attributeCell.Items.Count > 0)
+							{
+								attributeCell.Value = attributeCell.Items[0];
+							}
+						}
+					}
+				}
+			}
 		}
 
 		private void InitializeResultsArea()
@@ -725,7 +775,7 @@ namespace zfile.Forms
 			nextResultButton = new Button { Text = ">", Width = 30, Location = new Point(45, 5) };
 			searchInResultsCheckBox = new CheckBox { Text = "F2 搜索找到的文件/文件夹", Location = new Point(85, 5), AutoSize = true };
 
-			navigationPanel.Controls.AddRange(new Control[] { prevResultButton, nextResultButton, searchInResultsCheckBox });
+			navigationPanel.Controls.AddRange([ prevResultButton, nextResultButton, searchInResultsCheckBox ]);
 
 			// 创建结果列表
 			resultsListView = new ListView
@@ -1123,7 +1173,7 @@ namespace zfile.Forms
 
 			// 获取搜索参数
 			string searchPattern = searchBox.Text;
-			string searchPath = string.IsNullOrWhiteSpace(locationBox.Text) ?
+			var searchPath = string.IsNullOrWhiteSpace(locationBox.Text) ?
 				Path.GetDirectoryName(Application.ExecutablePath) : locationBox.Text;
 
 			// 设置搜索选项

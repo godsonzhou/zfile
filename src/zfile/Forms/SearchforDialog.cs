@@ -95,9 +95,9 @@ namespace zfile.Forms
 		private Button cancelButton;
 		private Button helpButton;
 
-		private List<string> searchHistory = new List<string>();
-		private List<string> locationHistory = new List<string>();
-		private List<string> searchResults = new List<string>();
+		private List<string> searchHistory = [];
+		private List<string> locationHistory = [];
+		private List<string> searchResults = [];
 		private CancellationTokenSource _cancellationTokenSource;
 
 		private MainForm owner;
@@ -165,7 +165,7 @@ namespace zfile.Forms
 			cancelButton = new Button { Text = "取消", Width = 80, Location = new Point(590, 5) };
 			helpButton = new Button { Text = "帮助", Width = 80, Location = new Point(680, 5) };
 
-			buttonPanel.Controls.AddRange(new Control[] { startSearchButton, cancelButton, helpButton });
+			buttonPanel.Controls.AddRange([ startSearchButton, cancelButton, helpButton ]);
 			Controls.Add(buttonPanel);
 
 			// 绑定事件处理程序
@@ -384,7 +384,7 @@ namespace zfile.Forms
 			pluginCheckBox = new CheckBox { Text = "插件：", Location = new Point(100, 375), AutoSize = true, Enabled = false };
 
 			// 添加控件到常规选项卡
-			generalTab.Controls.AddRange(new Control[] {
+			generalTab.Controls.AddRange([
 				searchLabel, searchBox, locationLabel, locationBox, locationBrowseButton,
 				drivesLabel, drivesList, regexCheckBox, selectedFilesCheckBox,
 				everythingCheckBox, searchCompressedCheckBox, subFoldersLabel, subFoldersComboBox,
@@ -392,7 +392,7 @@ namespace zfile.Forms
 				textRegexCheckBox, hexSearchCheckBox, invertTextSearchCheckBox,
 				encodingLabel, ansiEncodingCheckBox, asciiEncodingCheckBox,
 				utf16EncodingCheckBox, utf8EncodingCheckBox, officeXmlCheckBox, pluginCheckBox
-			});
+			]);
 		}
 
 		private void InitializeAdvancedTab()
@@ -411,7 +411,7 @@ namespace zfile.Forms
 				Width = 80,
 				DropDownStyle = ComboBoxStyle.DropDownList
 			};
-			notBeforeUnitComboBox.Items.AddRange(new object[] { "天", "周", "月", "年" });
+			notBeforeUnitComboBox.Items.AddRange([ "天", "周", "月", "年" ]);
 			notBeforeUnitComboBox.SelectedIndex = 0;
 
 			var beforeLabel = new Label { Text = "早于：", Location = new Point(260, 45), AutoSize = true };
@@ -422,7 +422,7 @@ namespace zfile.Forms
 				Width = 80,
 				DropDownStyle = ComboBoxStyle.DropDownList
 			};
-			beforeUnitComboBox.Items.AddRange(new object[] { "天", "周", "月", "年" });
+			beforeUnitComboBox.Items.AddRange([ "天", "周", "月", "年" ]);
 			beforeUnitComboBox.SelectedIndex = 0;
 
 			// 文件大小区域
@@ -433,7 +433,7 @@ namespace zfile.Forms
 				Width = 50,
 				DropDownStyle = ComboBoxStyle.DropDownList
 			};
-			fileSizeOperatorComboBox.Items.AddRange(new object[] { "=", "<", ">" });
+			fileSizeOperatorComboBox.Items.AddRange([ "=", "<", ">" ]);
 			fileSizeOperatorComboBox.SelectedIndex = 0;
 
 			fileSizeValueTextBox = new TextBox { Location = new Point(160, 72), Width = 100 };
@@ -469,7 +469,7 @@ namespace zfile.Forms
 			};
 
 			// 添加控件到高级选项卡
-			advancedTab.Controls.AddRange(new Control[] {
+			advancedTab.Controls.AddRange([
 				dateLabel, notBeforeDatePicker, toLabel, beforeDatePicker,
 				notBeforeLabel, notBeforeValueTextBox, notBeforeUnitComboBox,
 				beforeLabel, beforeValueTextBox, beforeUnitComboBox,
@@ -478,7 +478,7 @@ namespace zfile.Forms
 				systemCheckBox, folderCheckBox, encryptedCheckBox,
 				duplicateFilesCheckBox, sameNameCheckBox, sameSizeCheckBox,
 				sameContentCheckBox, samePluginFieldsCheckBox, pluginFieldsComboBox
-			});
+			]);
 		}
 
 		private void InitializePluginsTab()
@@ -523,7 +523,7 @@ namespace zfile.Forms
 			}
 			else
 			{
-				pluginColumn.Items.AddRange(new object[] { "无可用插件" });
+				pluginColumn.Items.AddRange([ "无可用插件" ]);
 			}
 
 			var attributeColumn = new DataGridViewComboBoxColumn
@@ -540,7 +540,7 @@ namespace zfile.Forms
 				Name = "OperatorColumn",
 				Width = 80
 			};
-			operatorColumn.Items.AddRange(new object[] { "包含", "等于", "大于", "小于", "开始于", "结束于" });
+			operatorColumn.Items.AddRange([ "包含", "不包含", "等于", "不等于", "大于", "小于", "开始于", "结束于" ]);
 
 			var valueColumn = new DataGridViewTextBoxColumn
 			{
@@ -549,14 +549,14 @@ namespace zfile.Forms
 				Width = 270
 			};
 
-			rulesDataGridView.Columns.AddRange(new DataGridViewColumn[] { pluginColumn, attributeColumn, operatorColumn, valueColumn });
+			rulesDataGridView.Columns.AddRange([pluginColumn, attributeColumn, operatorColumn, valueColumn ]);
 
 			// 添加控件到插件选项卡
-			pluginsTab.Controls.AddRange(new Control[] {
+			pluginsTab.Controls.AddRange([
 				usePluginsCheckBox, 
 				matchRuleLabel, andRuleRadioButton, orRuleRadioButton,
 				addRuleButton, removeRuleButton, rulesDataGridView
-			});
+			]);
 
 			// 绑定事件处理程序
 			addRuleButton.Click += AddRuleButton_Click;
@@ -572,7 +572,7 @@ namespace zfile.Forms
 			// 初始化加载/保存页面
 			
 			// 创建标签和控件
-			Label templatesLabel = new Label
+			var templatesLabel = new Label
 			{
 				Text = "保存的搜索参数(P):",
 				Location = new Point(10, 20),
@@ -582,7 +582,7 @@ namespace zfile.Forms
 			rulesTab.Controls.Add(templatesLabel);
 
 			// 创建模板列表框
-			ListBox templatesListBox = new ListBox
+			ListBox templatesListBox = new ()
 			{
 				Location = new Point(10, 45),
 				Size = new Size(670, 250),
@@ -592,7 +592,7 @@ namespace zfile.Forms
 			rulesTab.Controls.Add(templatesListBox);
 
 			// 创建保存名称标签和文本框
-			Label saveNameLabel = new Label
+			var saveNameLabel = new Label
 			{
 				Text = "保存名称:",
 				Location = new Point(10, 310),
@@ -601,7 +601,7 @@ namespace zfile.Forms
 			};
 			rulesTab.Controls.Add(saveNameLabel);
 
-			TextBox saveNameTextBox = new TextBox
+			var saveNameTextBox = new TextBox
 			{
 				Location = new Point(90, 307),
 				Size = new Size(250, 23),
@@ -610,7 +610,7 @@ namespace zfile.Forms
 			rulesTab.Controls.Add(saveNameTextBox);
 
 			// 创建按钮
-			Button loadButton = new Button
+			var loadButton = new Button
 			{
 				Text = "加载(L)",
 				Location = new Point(350, 307),
@@ -619,7 +619,7 @@ namespace zfile.Forms
 			};
 			rulesTab.Controls.Add(loadButton);
 
-			Button saveButton = new Button
+			var saveButton = new Button
 			{
 				Text = "保存(S)",
 				Location = new Point(460, 307),
@@ -628,7 +628,7 @@ namespace zfile.Forms
 			};
 			rulesTab.Controls.Add(saveButton);
 
-			Button deleteButton = new Button
+			var deleteButton = new Button
 			{
 				Text = "删除(D)",
 				Location = new Point(570, 307),
@@ -675,14 +675,14 @@ namespace zfile.Forms
 		}
 
 		// 增加规则按钮点击事件处理程序
-		private void AddRuleButton_Click(object sender, EventArgs e)
+		private void AddRuleButton_Click(object? sender, EventArgs e)
 		{
 			// 创建一个新的规则行项目
 			AddRuleItem();
 		}
 
 		// 删除规则按钮点击事件处理程序
-		private void RemoveRuleButton_Click(object sender, EventArgs e)
+		private void RemoveRuleButton_Click(object? sender, EventArgs e)
 		{
 			// 检查是否有选中的行
 			if (rulesDataGridView.SelectedRows.Count > 0)

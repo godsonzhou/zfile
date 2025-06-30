@@ -329,13 +329,14 @@ namespace zfile.Forms
 			searchBox = new TextBox { Location = new Point(100, 12), Width = 400 };
 			searchBox.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
 			searchBox.AutoCompleteSource = AutoCompleteSource.CustomSource;
+			searchBox.Text = "*.*"; // 默认搜索所有文件
 
 			// 位置区域
 			var locationLabel = new Label { Text = "位置：", Location = new Point(10, 45), AutoSize = true };
 			locationBox = new TextBox { Location = new Point(100, 42), Width = 400 };
 			locationBox.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
 			locationBox.AutoCompleteSource = AutoCompleteSource.CustomSource;
-
+			locationBox.Text = MainForm.Instance.uiManager.srcDir; // 默认位置为当前目录
 			locationBrowseButton = new Button { Text = ">>", Location = new Point(510, 41), Width = 30 };
 
 			// 驱动器区域
@@ -1211,6 +1212,9 @@ namespace zfile.Forms
 				{
 					// 使用正则表达式搜索
 					var regex = new Regex(searchPattern, RegexOptions.IgnoreCase);
+					// 检查是否取消
+					if (cancellationToken.IsCancellationRequested) return;
+
 					files = Directory.GetFiles(searchPath, "*.*", searchOption)
 						.Where(file => regex.IsMatch(Path.GetFileName(file)))
 						.ToList();
@@ -1218,6 +1222,9 @@ namespace zfile.Forms
 				else
 				{
 					// 使用通配符搜索
+					// 检查是否取消
+					if (cancellationToken.IsCancellationRequested) return;
+
 					files = Directory.GetFiles(searchPath, $"*{searchPattern}*", searchOption).ToList();
 				}
 
@@ -1227,17 +1234,28 @@ namespace zfile.Forms
 					var textFiles = new List<string>();
 					foreach (var file in files)
 					{
+						// 检查是否取消
+						if (cancellationToken.IsCancellationRequested) return;
+
 						try
 						{
+							// 检查是否取消
+							if (cancellationToken.IsCancellationRequested) return;
+
 							// 检查文件是否是文本文件
 							if (Helper.IsTextFile(file))
 							{
 								string content = File.ReadAllText(file);
+								// 读取文件后再次检查是否取消
+								if (cancellationToken.IsCancellationRequested) return;
 								bool found = false;
 
 								if (textRegexCheckBox.Checked)
 								{
 									// 使用正则表达式搜索文本内容
+									// 检查是否取消
+									if (cancellationToken.IsCancellationRequested) return;
+
 									var regex = caseSensitiveCheckBox.Checked ?
 										new Regex(findTextBox.Text) :
 										new Regex(findTextBox.Text, RegexOptions.IgnoreCase);
@@ -1252,6 +1270,9 @@ namespace zfile.Forms
 									if (wholeWordCheckBox.Checked)
 									{
 										// 全字匹配
+										// 检查是否取消
+										if (cancellationToken.IsCancellationRequested) return;
+
 										string pattern = $"\\b{Regex.Escape(findTextBox.Text)}\\b";
 										var regex = caseSensitiveCheckBox.Checked ?
 											new Regex(pattern) :
@@ -1261,6 +1282,9 @@ namespace zfile.Forms
 									else
 									{
 										// 普通包含匹配
+										// 检查是否取消
+										if (cancellationToken.IsCancellationRequested) return;
+
 										found = content.IndexOf(findTextBox.Text, comparison) >= 0;
 									}
 								}
@@ -1290,6 +1314,9 @@ namespace zfile.Forms
 				//搜索重复的文件
 				if (duplicateFilesCheckBox.Checked)
 				{
+					// 检查是否取消
+					if (cancellationToken.IsCancellationRequested) return;
+
 					files = FileSystemManager.FindDuplicateFiles(files, sameNameCheckBox.Checked, sameSizeCheckBox.Checked, sameContentCheckBox.Checked, samePluginFieldsCheckBox.Checked, pluginFieldsComboBox.SelectedItem?.ToString());
 				}
 				}, cancellationToken);
@@ -1316,6 +1343,8 @@ namespace zfile.Forms
 
 				// 更新状态栏
 				statusLabel.Text = $"找到了 {files.Count} 个文件";
+				// 将按钮文本改回"开始搜索"
+				startSearchButton.Text = "开始搜索(S)";
 			}
 			catch (Exception ex)
 			{

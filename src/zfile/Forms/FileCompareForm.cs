@@ -322,7 +322,7 @@ namespace zfile
             FormClosing += FileCompareForm_FormClosing;
         }
 
-        private void BytesPerLineCombo_SelectedIndexChanged(object sender, EventArgs e)
+        private void BytesPerLineCombo_SelectedIndexChanged(object? sender, EventArgs e)
         {
             if (int.TryParse(bytesPerLineCombo.SelectedItem.ToString(), out int newBytesPerLine))
             {
@@ -810,12 +810,12 @@ namespace zfile
             lblStatus.Text = $"共发现 {differences.Count} 个差异";
         }
 
-        private void BtnCompare_Click(object sender, EventArgs e)
+        private void BtnCompare_Click(object? sender, EventArgs e)
         {
             CompareFiles();
         }
 
-        private void BtnNextDiff_Click(object sender, EventArgs e)
+        private void BtnNextDiff_Click(object? sender, EventArgs e)
         {
             if (currentDifferenceIndex < differences.Count - 1)
             {
@@ -824,7 +824,7 @@ namespace zfile
             }
         }
 
-        private void BtnPrevDiff_Click(object sender, EventArgs e)
+        private void BtnPrevDiff_Click(object? sender, EventArgs e)
         {
             if (currentDifferenceIndex > 0)
             {
@@ -833,7 +833,7 @@ namespace zfile
             }
         }
 
-        private void BtnFont_Click(object sender, EventArgs e)
+        private void BtnFont_Click(object? sender, EventArgs e)
         {
             using var fontDialog = new FontDialog { Font = currentFont };
             if (fontDialog.ShowDialog() == DialogResult.OK)
@@ -846,38 +846,38 @@ namespace zfile
             }
         }
 
-        private void BtnHexMode_Click(object sender, EventArgs e)
+        private void BtnHexMode_Click(object? sender, EventArgs e)
         {
             isHexMode = !isHexMode;
             LoadFiles();
         }
 
-        private void BtnCaseSensitive_Click(object sender, EventArgs e)
+        private void BtnCaseSensitive_Click(object? sender, EventArgs e)
         {
             isCaseSensitive = !isCaseSensitive;
             CompareFiles();
         }
 
-        private void BtnIgnoreWhitespace_Click(object sender, EventArgs e)
+        private void BtnIgnoreWhitespace_Click(object? sender, EventArgs e)
         {
             ignoreWhitespace = !ignoreWhitespace;
             CompareFiles();
         }
 
-        private void BtnIgnoreCommonLines_Click(object sender, EventArgs e)
+        private void BtnIgnoreCommonLines_Click(object? sender, EventArgs e)
         {
             ignoreCommonLines = !ignoreCommonLines;
             CompareFiles();
         }
 
-        private void BtnEditMode_Click(object sender, EventArgs e)
+        private void BtnEditMode_Click(object? sender, EventArgs e)
         {
             isEditMode = !isEditMode;
             txtLeftContent.ReadOnly = !isEditMode;
             txtRightContent.ReadOnly = !isEditMode;
         }
 
-        private void BtnCopyToRight_Click(object sender, EventArgs e)
+        private void BtnCopyToRight_Click(object? sender, EventArgs e)
         {
             if (txtLeftContent.SelectionLength > 0)
             {
@@ -886,7 +886,7 @@ namespace zfile
             }
         }
 
-        private void BtnCopyToLeft_Click(object sender, EventArgs e)
+        private void BtnCopyToLeft_Click(object? sender, EventArgs e)
         {
             if (txtRightContent.SelectionLength > 0)
             {
@@ -895,18 +895,18 @@ namespace zfile
             }
         }
 
-        private void BtnUndo_Click(object sender, EventArgs e)
+        private void BtnUndo_Click(object? sender, EventArgs e)
         {
             txtLeftContent.Undo();
             txtRightContent.Undo();
         }
 
-        private void BtnEncoding_Click(object sender, EventArgs e)
+        private void BtnEncoding_Click(object? sender, EventArgs e)
         {
             // 实现编码切换逻辑
         }
 
-        private void BtnFind_Click(object sender, EventArgs e)
+        private void BtnFind_Click(object? sender, EventArgs e)
         {
             using var findDialog = new Form
             {
@@ -938,7 +938,7 @@ namespace zfile
             }
         }
 
-        private void BtnFindNext_Click(object sender, EventArgs e)
+        private void BtnFindNext_Click(object? sender, EventArgs e)
         {
             if (string.IsNullOrEmpty(searchText)) return;
 
@@ -958,7 +958,7 @@ namespace zfile
             }
         }
 
-        private void BtnSelectLeft_Click(object sender, EventArgs e)
+        private void BtnSelectLeft_Click(object? sender, EventArgs e)
         {
             using var dialog = new OpenFileDialog();
             if (dialog.ShowDialog() == DialogResult.OK)
@@ -969,7 +969,7 @@ namespace zfile
             }
         }
 
-        private void BtnSelectRight_Click(object sender, EventArgs e)
+        private void BtnSelectRight_Click(object? sender, EventArgs e)
         {
             using var dialog = new OpenFileDialog();
             if (dialog.ShowDialog() == DialogResult.OK)
@@ -980,7 +980,7 @@ namespace zfile
             }
         }
 
-        private void BtnSaveLeft_Click(object sender, EventArgs e)
+        private void BtnSaveLeft_Click(object? sender, EventArgs e)
         {
             try
             {
@@ -994,7 +994,7 @@ namespace zfile
             }
         }
 
-        private void BtnSaveRight_Click(object sender, EventArgs e)
+        private void BtnSaveRight_Click(object? sender, EventArgs e)
         {
             try
             {
@@ -1008,7 +1008,7 @@ namespace zfile
             }
         }
 
-        private void FileCompareForm_FormClosing(object sender, FormClosingEventArgs e)
+        private void FileCompareForm_FormClosing(object? sender, FormClosingEventArgs e)
         {
             if (isLeftModified || isRightModified)
             {

@@ -829,12 +829,15 @@ namespace zfile
 					SyncLineNumbersScroll(leftContent, rightLineNumbers); // 新增：同步右侧行号
 					
 					// 16进制模式下，滚动时更新可见区域
-					if (hexMode)
-					{
-						// 重置定时器，只在滚动停止后更新
-						scrollTimer.Stop();
-						scrollTimer.Start();
-					}
+				if (hexMode)
+				{
+					// 检查是否滚动到底部
+					CheckScrollPosition(leftContent);
+					
+					// 重置定时器，只在滚动停止后更新
+					scrollTimer.Stop();
+					scrollTimer.Start();
+				}
 					
 					isScrolling = false;
 				}
@@ -850,12 +853,15 @@ namespace zfile
 					SyncLineNumbersScroll(rightContent, leftLineNumbers); // 新增：同步左侧行号
 					
 					// 16进制模式下，滚动时更新可见区域
-					if (hexMode)
-					{
-						// 重置定时器，只在滚动停止后更新
-						scrollTimer.Stop();
-						scrollTimer.Start();
-					}
+				if (hexMode)
+				{
+					// 检查是否滚动到底部
+					CheckScrollPosition(rightContent);
+					
+					// 重置定时器，只在滚动停止后更新
+					scrollTimer.Stop();
+					scrollTimer.Start();
+				}
 					
 					isScrolling = false;
 				}
@@ -891,6 +897,30 @@ namespace zfile
 			{
 				mainSplit.SplitterDistance = mainSplit.Width / 2;
 			};
+			
+			// 检查是否滚动到底部，如果是则立即更新显示
+			void CheckScrollPosition(RichTextBox textBox)
+			{
+				if (!hexMode) return;
+				
+				// 计算当前可见区域
+				int firstVisibleLine = textBox.GetCharIndexFromPosition(new Point(0, 0));
+				firstVisibleLine = textBox.GetLineFromCharIndex(firstVisibleLine);
+				
+				int linesPerPage = textBox.Height / textBox.Font.Height;
+				int lastVisibleLine = firstVisibleLine + linesPerPage;
+				
+				// 计算文件的总行数
+				int maxLines = (int)Math.Ceiling((double)Math.Max(leftBytes?.Length ?? 0, rightBytes?.Length ?? 0) / bytesPerLine);
+				
+				// 检查是否接近底部
+				if (lastVisibleLine + linesPerPage >= maxLines)
+				{
+					// 如果接近底部，立即更新显示
+					scrollTimer.Stop(); // 停止定时器，避免重复更新
+					DisplayHexDiffsForVisibleArea();
+				}
+			}
 	
             this.Shown += (s, e) =>
             {
@@ -981,10 +1011,13 @@ namespace zfile
 						leftBytes = File.ReadAllBytes(leftFilePath);
 						rightBytes = File.ReadAllBytes(rightFilePath);
 
-						// 计算可见区域
+						// 计算可见区域和总行数
 						int linesPerPage = leftContent.Height / leftContent.Font.Height;
+						int maxLines = (int)Math.Ceiling((double)Math.Max(leftBytes.Length, rightBytes.Length) / bytesPerLine);
 						visibleStartLine = 0;
-						visibleEndLine = Math.Min(linesPerPage * 2, (int)Math.Ceiling((double)Math.Max(leftBytes.Length, rightBytes.Length) / bytesPerLine));
+						visibleEndLine = Math.Min(linesPerPage * 3, maxLines); // 增加初始显示行数
+						
+						Debug.Print($"初始化: 总行数={maxLines}, 显示区域={visibleStartLine}-{visibleEndLine}");
 
 						// 计算可见区域的差异
 						CalculateHexDiffs(visibleStartLine, visibleEndLine, hexComparisonCts.Token);
@@ -1027,6 +1060,12 @@ namespace zfile
 
 		private void CalculateHexDiffs(int startLine, int endLine, CancellationToken cancellationToken)
 		{
+			// 确保endLine不超过文件的实际行数
+			int maxLines = (int)Math.Ceiling((double)Math.Max(leftBytes.Length, rightBytes.Length) / bytesPerLine);
+			endLine = Math.Min(endLine, maxLines);
+			
+			Debug.Print($"计算差异: {startLine}-{endLine}, 总行数: {maxLines}");
+			
 			for (int line = startLine; line < endLine; line++)
 			{
 				if (cancellationToken.IsCancellationRequested)
@@ -1034,13 +1073,22 @@ namespace zfile
 
 				int lineStart = line * bytesPerLine;
 				bool isDiff = false;
+				bool hasContent = false; // 检查行是否有内容
 
 				for (int j = 0; j < bytesPerLine; j++)
 				{
 					int pos = lineStart + j;
+					
+					// 检查是否超出文件范围
 					if (pos >= leftBytes.Length && pos >= rightBytes.Length)
 					{
 						break;
+					}
+					
+					// 只要有一个文件在这个位置有内容，就标记为有内容
+					if (pos < leftBytes.Length || pos < rightBytes.Length)
+					{
+						hasContent = true;
 					}
 
 					byte leftByte = pos < leftBytes.Length ? leftBytes[pos] : (byte)0;
@@ -1057,13 +1105,20 @@ namespace zfile
 					}
 				}
 
-				if (isDiff)
+				// 只有当行有内容且有差异时才标记整行
+				if (isDiff && hasContent)
 				{
 					lock (hexDiffs)
 					{
 						hexDiffs.Add(new HexDiff { Line = line, Position = -1 }); // Mark whole line
 					}
 				}
+			}
+			
+			// 如果计算到了文件末尾，记录一下
+			if (endLine >= maxLines)
+			{
+				Debug.Print($"已计算到文件末尾: {maxLines}行");
 			}
 		}
 
@@ -1156,9 +1211,16 @@ namespace zfile
 				int linesPerPage = leftContent.Height / leftContent.Font.Height;
 				int lastVisibleLine = firstVisibleLine + linesPerPage;
 
+				// 计算文件的总行数
+				int maxLines = (int)Math.Ceiling((double)Math.Max(leftBytes.Length, rightBytes.Length) / bytesPerLine);
+
+				// 检查是否滚动到底部
+				bool isNearBottom = (lastVisibleLine + linesPerPage >= maxLines);
+
 				// 检查可见区域是否真的变化了（避免微小变化导致的重绘）
 				if (Math.Abs(firstVisibleLine - lastFirstVisibleLine) > 2 || 
-				    Math.Abs(lastVisibleLine - lastLastVisibleLine) > 2)
+				    Math.Abs(lastVisibleLine - lastLastVisibleLine) > 2 ||
+				    isNearBottom) // 接近底部时总是更新
 				{
 					// 更新上次可见区域记录
 					lastFirstVisibleLine = firstVisibleLine;
@@ -1166,7 +1228,16 @@ namespace zfile
 
 					// 更新可见区域范围，增加缓冲区
 					visibleStartLine = Math.Max(0, firstVisibleLine - linesPerPage / 2);
-					visibleEndLine = lastVisibleLine + linesPerPage / 2;
+					
+					// 如果接近底部，确保显示到文件末尾
+					if (isNearBottom)
+					{
+						visibleEndLine = maxLines;
+					}
+					else
+					{
+						visibleEndLine = lastVisibleLine + linesPerPage / 2;
+					}
 
 					// 在后台计算新可见区域的差异
 					Task.Run(() =>
@@ -1219,6 +1290,15 @@ namespace zfile
 			StringBuilder rightLineNumbersText = new StringBuilder();
 
 			int diffCount = 0;
+			
+			// 计算文件的总行数
+			int maxLines = (int)Math.Ceiling((double)Math.Max(leftBytes.Length, rightBytes.Length) / bytesPerLine);
+			
+			// 确保visibleEndLine不超过总行数
+			visibleEndLine = Math.Min(visibleEndLine, maxLines);
+			
+			// 调试信息
+			Debug.Print($"显示区域: {visibleStartLine}-{visibleEndLine}, 总行数: {maxLines}");
 
 			// 只显示可见区域的内容
 			for (int line = visibleStartLine; line < visibleEndLine; line++)
@@ -1297,6 +1377,21 @@ namespace zfile
 			leftLineNumbers.ResumeLayout();
 			rightLineNumbers.ResumeLayout();
 
+			// 计算文件的总行数
+			maxLines = (int)Math.Ceiling((double)Math.Max(leftBytes?.Length ?? 0, rightBytes?.Length ?? 0) / bytesPerLine);
+			
+			// 检查是否需要调整滚动位置（确保底部内容可见）
+			int linesPerPage = leftContent.Height / leftContent.Font.Height;
+			int lastVisibleLine = scrollPos + linesPerPage;
+			
+			// 如果接近底部，确保显示到文件末尾
+			if (lastVisibleLine + linesPerPage >= maxLines && maxLines > linesPerPage)
+			{
+				// 调整滚动位置以显示底部
+				scrollPos = Math.Max(0, maxLines - linesPerPage);
+				Debug.Print($"调整滚动位置: {scrollPos}, 总行数: {maxLines}");
+			}
+			
 			// 恢复滚动位置
 			NativeMethods.SetScrollPos(leftContent.Handle, NativeMethods.SB_VERT, scrollPos, true);
 			NativeMethods.SendMessage(leftContent.Handle, NativeMethods.WM_VSCROLL,
@@ -1308,13 +1403,16 @@ namespace zfile
 			SyncLineNumbersScroll(rightContent, rightLineNumbers);
 
 			// 更新状态栏
-			UpdateStatusBar($"差异数: {totalHexDiffCount} (显示区域: {diffCount})");
+			UpdateStatusBar($"差异数: {totalHexDiffCount} (显示区域: {diffCount}, 总行数: {maxLines})");
 
 			// 恢复双缓冲设置
 			SetDoubleBuffered(leftContent, false);
 			SetDoubleBuffered(rightContent, false);
 			SetDoubleBuffered(leftLineNumbers, false);
 			SetDoubleBuffered(rightLineNumbers, false);
+			
+			// 调试信息
+			Debug.Print($"显示完成: 总行数={maxLines}, 显示区域={visibleStartLine}-{visibleEndLine}, 滚动位置={scrollPos}");
 		}
 
 		private char GetAsciiChar(byte b)

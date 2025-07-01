@@ -716,7 +716,7 @@ namespace zfile
 			});
 
 			// 保存按钮面板
-			var buttonPanel = new Panel { Dock = DockStyle.Bottom, Height = 40 };
+			var buttonPanel = new Panel { Dock = DockStyle.Bottom, Height = 30 };
 			var btnSaveLeft = new Button { Text = "保存左侧", Dock = DockStyle.Left, Width = 100 };
 			var btnSaveRight = new Button { Text = "保存右侧", Dock = DockStyle.Right, Width = 100 };
 			btnSaveLeft.Click += BtnSaveLeft_Click;
@@ -733,23 +733,20 @@ namespace zfile
 			var mainSplit = new SplitContainer
 			{
 				Dock = DockStyle.Fill,
-				Orientation = Orientation.Vertical,
-				SplitterDistance = this.ClientSize.Width / 2
+				Orientation = Orientation.Vertical
 			};
-			mainSplit.SplitterWidth = 5;
+			mainSplit.SplitterWidth = 1;
 
 			// 左侧面板
 			var leftPanel = new Panel { Dock = DockStyle.Fill };
-			leftFilePathBox = new TextBox { Dock = DockStyle.Top, ReadOnly = true, Height = 25 };
-			leftPanel.Controls.Add(leftFilePathBox);
 
 			// 左侧内容区 - 水平分割（行号列 + 内容）
 			var leftContentSplit = new SplitContainer
 			{
 				Dock = DockStyle.Fill,
 				Orientation = Orientation.Vertical,
-				SplitterDistance = 50, // 行号列宽度
-				SplitterWidth = 2
+				SplitterWidth = 1,
+				
 			};
 			leftLineNumbers = new RichTextBox
 			{
@@ -770,18 +767,19 @@ namespace zfile
 			leftContentSplit.Panel2.Controls.Add(leftContent);
 			leftPanel.Controls.Add(leftContentSplit);
 
+			leftFilePathBox = new TextBox { Dock = DockStyle.Top, ReadOnly = true, Height = 25 };
+			leftPanel.Controls.Add(leftFilePathBox);
+
 			// 右侧面板
 			var rightPanel = new Panel { Dock = DockStyle.Fill };
-			rightFilePathBox = new TextBox { Dock = DockStyle.Top, ReadOnly = true, Height = 25 };
-			rightPanel.Controls.Add(rightFilePathBox);
 
 			// 右侧内容区 - 水平分割（行号列 + 内容）
 			var rightContentSplit = new SplitContainer
 			{
 				Dock = DockStyle.Fill,
 				Orientation = Orientation.Vertical,
-				SplitterDistance = 50, // 行号列宽度
-				SplitterWidth = 2
+				SplitterWidth = 1,
+				
 			};
 			rightLineNumbers = new RichTextBox
 			{
@@ -802,11 +800,15 @@ namespace zfile
 			rightContentSplit.Panel2.Controls.Add(rightContent);
 			rightPanel.Controls.Add(rightContentSplit);
 
+			rightFilePathBox = new TextBox { Dock = DockStyle.Top, ReadOnly = true, Height = 25 };
+			rightPanel.Controls.Add(rightFilePathBox);
+
 			mainSplit.Panel1.Controls.Add(leftPanel);
 			mainSplit.Panel2.Controls.Add(rightPanel);
 
 			// 添加滚动同步事件（修复递归问题）
-			leftContent.VScroll += (s, e) => {
+			leftContent.VScroll += (s, e) =>
+			{
 				if (!isScrolling)
 				{
 					isScrolling = true;
@@ -816,7 +818,8 @@ namespace zfile
 				}
 			};
 
-			rightContent.VScroll += (s, e) => {
+			rightContent.VScroll += (s, e) =>
+			{
 				if (!isScrolling)
 				{
 					isScrolling = true;
@@ -826,7 +829,8 @@ namespace zfile
 				}
 			};
 
-			leftContent.HScroll += (s, e) => {
+			leftContent.HScroll += (s, e) =>
+			{
 				if (!isScrolling)
 				{
 					isScrolling = true;
@@ -835,7 +839,8 @@ namespace zfile
 				}
 			};
 
-			rightContent.HScroll += (s, e) => {
+			rightContent.HScroll += (s, e) =>
+			{
 				if (!isScrolling)
 				{
 					isScrolling = true;
@@ -849,6 +854,13 @@ namespace zfile
 			this.Controls.Add(toolStrip);
 			this.Controls.Add(buttonPanel);
 			this.Controls.Add(statusBar);
+			// 在 InitializeUI 末尾添加
+			this.Load += (s, e) =>
+			{
+				mainSplit.SplitterDistance = mainSplit.Width / 2;
+				leftContentSplit.SplitterDistance = 5; // 行号列宽度
+				rightContentSplit.SplitterDistance = 5; // 行号列宽度
+			};
 		}
 
 		#region UI Controls
@@ -1146,7 +1158,7 @@ namespace zfile
 		#endregion
 
 		#region 按钮事件处理
-		private void BtnCompare_Click(object sender, EventArgs e)
+		private void BtnCompare_Click(object? sender, EventArgs e)
 		{
 			using (var dialog = new OpenFileDialog())
 			{
@@ -1166,13 +1178,13 @@ namespace zfile
 			}
 		}
 
-		private void BtnNextDiff_Click(object sender, EventArgs e)
+		private void BtnNextDiff_Click(object? sender, EventArgs e)
 		{
 			// 查找下一个差异
 			FindNextDiff(true);
 		}
 
-		private void BtnPrevDiff_Click(object sender, EventArgs e)
+		private void BtnPrevDiff_Click(object? sender, EventArgs e)
 		{
 			// 查找上一个差异
 			FindNextDiff(false);
@@ -1267,7 +1279,7 @@ namespace zfile
 			leftContent.ScrollToCaret();
 		}
 
-		private void BtnFont_Click(object sender, EventArgs e)
+		private void BtnFont_Click(object? sender, EventArgs e)
 		{
 			using (var fontDialog = new FontDialog())
 			{
@@ -1281,38 +1293,38 @@ namespace zfile
 			}
 		}
 
-		private void BtnHexMode_Click(object sender, EventArgs e)
+		private void BtnHexMode_Click(object? sender, EventArgs e)
 		{
 			hexMode = ((ToolStripButton)sender).Checked;
 			if (!string.IsNullOrEmpty(leftFilePath)) CompareFiles();
 		}
 
-		private void BtnCaseSensitive_Click(object sender, EventArgs e)
+		private void BtnCaseSensitive_Click(object? sender, EventArgs e)
 		{
 			caseSensitive = ((ToolStripButton)sender).Checked;
 			if (!string.IsNullOrEmpty(leftFilePath)) CompareFiles();
 		}
 
-		private void BtnIgnoreWhitespace_Click(object sender, EventArgs e)
+		private void BtnIgnoreWhitespace_Click(object? sender, EventArgs e)
 		{
 			ignoreWhitespace = ((ToolStripButton)sender).Checked;
 			if (!string.IsNullOrEmpty(leftFilePath)) CompareFiles();
 		}
 
-		private void BtnIgnoreCommonLines_Click(object sender, EventArgs e)
+		private void BtnIgnoreCommonLines_Click(object? sender, EventArgs e)
 		{
 			ignoreCommonLines = ((ToolStripButton)sender).Checked;
 			if (!string.IsNullOrEmpty(leftFilePath)) CompareFiles();
 		}
 
-		private void BtnEditMode_Click(object sender, EventArgs e)
+		private void BtnEditMode_Click(object? sender, EventArgs e)
 		{
 			editMode = ((ToolStripButton)sender).Checked;
 			leftContent.ReadOnly = !editMode;
 			rightContent.ReadOnly = !editMode;
 		}
 
-		private void BtnCopyToRight_Click(object sender, EventArgs e)
+		private void BtnCopyToRight_Click(object? sender, EventArgs e)
 		{
 			// 复制选中内容到右侧
 			if (leftContent.SelectionLength > 0)
@@ -1333,7 +1345,7 @@ namespace zfile
 			}
 		}
 
-		private void BtnCopyToLeft_Click(object sender, EventArgs e)
+		private void BtnCopyToLeft_Click(object? sender, EventArgs e)
 		{
 			// 复制选中内容到左侧
 			if (rightContent.SelectionLength > 0)
@@ -1354,14 +1366,14 @@ namespace zfile
 			}
 		}
 
-		private void BtnUndo_Click(object sender, EventArgs e)
+		private void BtnUndo_Click(object? sender, EventArgs e)
 		{
 			// 撤销编辑
 			leftContent.Undo();
 			rightContent.Undo();
 		}
 
-		private void BtnEncoding_Click(object sender, EventArgs e)
+		private void BtnEncoding_Click(object? sender, EventArgs e)
 		{
 			currentEncoding = (currentEncoding == Encoding.Default) ?
 				Encoding.UTF8 : Encoding.Default;
@@ -1369,19 +1381,19 @@ namespace zfile
 			if (!string.IsNullOrEmpty(leftFilePath)) CompareFiles();
 		}
 
-		private void BtnFind_Click(object sender, EventArgs e)
+		private void BtnFind_Click(object? sender, EventArgs e)
 		{
 			// 查找功能
 			MessageBox.Show("查找功能");
 		}
 
-		private void BtnFindNext_Click(object sender, EventArgs e)
+		private void BtnFindNext_Click(object? sender, EventArgs e)
 		{
 			// 查找下一个
 			MessageBox.Show("查找下一个功能");
 		}
 
-		private void BtnSaveLeft_Click(object sender, EventArgs e)
+		private void BtnSaveLeft_Click(object? sender, EventArgs e)
 		{
 			if (string.IsNullOrEmpty(leftFilePath)) return;
 
@@ -1396,7 +1408,7 @@ namespace zfile
 			}
 		}
 
-		private void BtnSaveRight_Click(object sender, EventArgs e)
+		private void BtnSaveRight_Click(object? sender, EventArgs e)
 		{
 			if (string.IsNullOrEmpty(rightFilePath)) return;
 
@@ -1462,5 +1474,10 @@ namespace zfile
 			public static extern int SendMessage(IntPtr hWnd, int wMsg, int wParam, int lParam);
 		}
 		#endregion
+
+		private void InitializeComponent()
+		{
+
+		}
 	}
 }

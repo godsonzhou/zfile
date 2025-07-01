@@ -106,14 +106,14 @@
 //		{
 //			Dock = DockStyle.Fill,
 //			ReadOnly = true,
-//			Font = new Font("Consolas", 10),
+//			Font = new Font("新宋体", 10),
 //			BackColor = Color.LightGray
 //		};
 //		leftContent = new RichTextBox
 //		{
 //			Dock = DockStyle.Fill,
 //			ReadOnly = true,
-//			Font = new Font("Consolas", 10),
+//			Font = new Font("新宋体", 10),
 //			ScrollBars = RichTextBoxScrollBars.Both
 //		};
 //		leftSplit.Panel1.Controls.Add(leftLineNumbers);
@@ -135,14 +135,14 @@
 //		{
 //			Dock = DockStyle.Fill,
 //			ReadOnly = true,
-//			Font = new Font("Consolas", 10),
+//			Font = new Font("新宋体", 10),
 //			BackColor = Color.LightGray
 //		};
 //		rightContent = new RichTextBox
 //		{
 //			Dock = DockStyle.Fill,
 //			ReadOnly = true,
-//			Font = new Font("Consolas", 10),
+//			Font = new Font("新宋体", 10),
 //			ScrollBars = RichTextBoxScrollBars.Both
 //		};
 //		rightSplit.Panel1.Controls.Add(rightLineNumbers);
@@ -751,7 +751,7 @@ namespace zfile
 			{
 				Dock = DockStyle.Fill,
 				ReadOnly = true,
-				Font = new Font("Consolas", 10),
+				Font = new Font("新宋体", 9),
 				BackColor = Color.LightGray,
 				ScrollBars = RichTextBoxScrollBars.None
 			};
@@ -759,7 +759,7 @@ namespace zfile
 			{
 				Dock = DockStyle.Fill,
 				ReadOnly = true,
-				Font = new Font("Consolas", 10),
+				Font = new Font("新宋体", 9),
 				ScrollBars = RichTextBoxScrollBars.Both
 			};
 			leftContentSplit.Panel1.Controls.Add(leftLineNumbers);
@@ -784,7 +784,7 @@ namespace zfile
 			{
 				Dock = DockStyle.Fill,
 				ReadOnly = true,
-				Font = new Font("Consolas", 10),
+				Font = new Font("新宋体", 9),
 				BackColor = Color.LightGray,
 				ScrollBars = RichTextBoxScrollBars.None
 			};
@@ -792,7 +792,7 @@ namespace zfile
 			{
 				Dock = DockStyle.Fill,
 				ReadOnly = true,
-				Font = new Font("Consolas", 10),
+				Font = new Font("新宋体", 9),
 				ScrollBars = RichTextBoxScrollBars.Both
 			};
 			rightContentSplit.Panel1.Controls.Add(rightLineNumbers);

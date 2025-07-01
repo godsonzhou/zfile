@@ -640,9 +640,11 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
 using DiffPlex;
@@ -805,6 +807,17 @@ namespace zfile
 			mainSplit.Panel1.Controls.Add(leftPanel);
 			mainSplit.Panel2.Controls.Add(rightPanel);
 
+			// 用于跟踪滚动定时器
+			System.Windows.Forms.Timer scrollTimer = new System.Windows.Forms.Timer { Interval = 150, Enabled = false };
+			scrollTimer.Tick += (s, e) => 
+			{
+				scrollTimer.Stop();
+				if (hexMode)
+				{
+					DisplayHexDiffsForVisibleArea();
+				}
+			};
+
 			// 添加滚动同步事件（修复递归问题）
 			leftContent.VScroll += (s, e) =>
 			{
@@ -814,6 +827,15 @@ namespace zfile
 					SyncScroll(leftContent, rightContent);
 					SyncLineNumbersScroll(leftContent, leftLineNumbers);
 					SyncLineNumbersScroll(leftContent, rightLineNumbers); // 新增：同步右侧行号
+					
+					// 16进制模式下，滚动时更新可见区域
+					if (hexMode)
+					{
+						// 重置定时器，只在滚动停止后更新
+						scrollTimer.Stop();
+						scrollTimer.Start();
+					}
+					
 					isScrolling = false;
 				}
 			};
@@ -826,6 +848,15 @@ namespace zfile
 					SyncScroll(rightContent, leftContent);
 					SyncLineNumbersScroll(rightContent, rightLineNumbers);
 					SyncLineNumbersScroll(rightContent, leftLineNumbers); // 新增：同步左侧行号
+					
+					// 16进制模式下，滚动时更新可见区域
+					if (hexMode)
+					{
+						// 重置定时器，只在滚动停止后更新
+						scrollTimer.Stop();
+						scrollTimer.Start();
+					}
+					
 					isScrolling = false;
 				}
 			};
@@ -916,51 +947,123 @@ namespace zfile
 			}
 		}
 
+		private byte[] leftBytes;
+		private byte[] rightBytes;
+		private int visibleStartLine = 0;
+		private int visibleEndLine = 0;
+		private int totalHexDiffCount = 0;
+		private CancellationTokenSource? hexComparisonCts;
+
 		private void CompareHexFiles()
 		{
 			try
 			{
-				var leftBytes = File.ReadAllBytes(leftFilePath);
-				var rightBytes = File.ReadAllBytes(rightFilePath);
+				// 取消之前的任务（如果有）
+				hexComparisonCts?.Cancel();
+				hexComparisonCts = new CancellationTokenSource();
 
+				// 显示加载指示器
+				UpdateStatusBar("正在加载文件...");
+				
+				// 清空显示
+				leftContent.Clear();
+				rightContent.Clear();
+				leftLineNumbers.Clear();
+				rightLineNumbers.Clear();
 				hexDiffs.Clear();
-				int maxLength = Math.Max(leftBytes.Length, rightBytes.Length);
-				int diffCount = 0;
 
-				for (int i = 0; i < maxLength; i += bytesPerLine)
+				// 在后台线程加载文件
+				Task.Run(() => 
 				{
-					bool isDiff = false;
-					for (int j = 0; j < bytesPerLine; j++)
+					try 
 					{
-						int pos = i + j;
-						if (pos >= leftBytes.Length && pos >= rightBytes.Length)
-						{
-							break;
-						}
+						var t = DateTime.Now;
+						leftBytes = File.ReadAllBytes(leftFilePath);
+						rightBytes = File.ReadAllBytes(rightFilePath);
 
-						byte leftByte = pos < leftBytes.Length ? leftBytes[pos] : (byte)0;
-						byte rightByte = pos < rightBytes.Length ? rightBytes[pos] : (byte)0;
+						// 计算可见区域
+						int linesPerPage = leftContent.Height / leftContent.Font.Height;
+						visibleStartLine = 0;
+						visibleEndLine = Math.Min(linesPerPage * 2, (int)Math.Ceiling((double)Math.Max(leftBytes.Length, rightBytes.Length) / bytesPerLine));
 
-						if (leftByte != rightByte)
+						// 计算可见区域的差异
+						CalculateHexDiffs(visibleStartLine, visibleEndLine, hexComparisonCts.Token);
+
+						// 在UI线程更新显示
+						this.BeginInvoke(() => 
 						{
-							isDiff = true;
-							hexDiffs.Add(new HexDiff { Line = i / bytesPerLine, Position = j });
-							diffCount++;
-						}
+							DisplayHexDiffsForVisibleArea();
+							Debug.Print($"Initial hex display took: {DateTime.Now - t}");
+						});
+
+						// 在后台继续计算剩余部分的差异
+						Task.Run(() => 
+						{
+							try 
+							{
+								int maxLines = (int)Math.Ceiling((double)Math.Max(leftBytes.Length, rightBytes.Length) / bytesPerLine);
+								CalculateHexDiffs(visibleEndLine, maxLines, hexComparisonCts.Token);
+								Debug.Print($"Full hex comparison took: {DateTime.Now - t}");
+							}
+							catch (OperationCanceledException) { /* 任务被取消 */ }
+							catch (Exception ex) 
+							{
+								this.BeginInvoke(() => MessageBox.Show($"计算差异时出错: {ex.Message}"));
+							}
+						}, hexComparisonCts.Token);
 					}
-
-					if (isDiff)
+					catch (OperationCanceledException) { /* 任务被取消 */ }
+					catch (Exception ex)
 					{
-						hexDiffs.Add(new HexDiff { Line = i / bytesPerLine, Position = -1 }); // Mark whole line
+						this.BeginInvoke(() => MessageBox.Show($"比较文件时出错: {ex.Message}"));
 					}
-				}
-
-				DisplayHexDiffs(leftBytes, rightBytes);
-				UpdateStatusBar($"差异数: {diffCount}");
+				}, hexComparisonCts.Token);
 			}
 			catch (Exception ex)
 			{
 				MessageBox.Show($"比较文件时出错: {ex.Message}");
+			}
+		}
+
+		private void CalculateHexDiffs(int startLine, int endLine, CancellationToken cancellationToken)
+		{
+			for (int line = startLine; line < endLine; line++)
+			{
+				if (cancellationToken.IsCancellationRequested)
+					return;
+
+				int lineStart = line * bytesPerLine;
+				bool isDiff = false;
+
+				for (int j = 0; j < bytesPerLine; j++)
+				{
+					int pos = lineStart + j;
+					if (pos >= leftBytes.Length && pos >= rightBytes.Length)
+					{
+						break;
+					}
+
+					byte leftByte = pos < leftBytes.Length ? leftBytes[pos] : (byte)0;
+					byte rightByte = pos < rightBytes.Length ? rightBytes[pos] : (byte)0;
+
+					if (leftByte != rightByte)
+					{
+						isDiff = true;
+						lock (hexDiffs)
+						{
+							hexDiffs.Add(new HexDiff { Line = line, Position = j });
+							totalHexDiffCount++;
+						}
+					}
+				}
+
+				if (isDiff)
+				{
+					lock (hexDiffs)
+					{
+						hexDiffs.Add(new HexDiff { Line = line, Position = -1 }); // Mark whole line
+					}
+				}
 			}
 		}
 
@@ -1034,79 +1137,184 @@ namespace zfile
 			UpdateStatusBar($"差异数: {diffCount}");
 		}
 
-		private void DisplayHexDiffs(byte[] leftBytes, byte[] rightBytes)
-		{
-			leftContent.Clear();
-			rightContent.Clear();
-			leftLineNumbers.Clear();
-			rightLineNumbers.Clear();
+		// 用于跟踪上次可见区域的变量
+		private int lastFirstVisibleLine = -1;
+		private int lastLastVisibleLine = -1;
 
-			int maxLines = (int)Math.Ceiling((double)Math.Max(leftBytes.Length, rightBytes.Length) / bytesPerLine);
+		private void DisplayHexDiffsForVisibleArea()
+		{
+			// 防止重入
+			if (isScrolling) return;
+			isScrolling = true;
+
+			try
+			{
+				// 计算当前可见区域
+				int firstVisibleLine = leftContent.GetCharIndexFromPosition(new Point(0, 0));
+				firstVisibleLine = leftContent.GetLineFromCharIndex(firstVisibleLine);
+
+				int linesPerPage = leftContent.Height / leftContent.Font.Height;
+				int lastVisibleLine = firstVisibleLine + linesPerPage;
+
+				// 检查可见区域是否真的变化了（避免微小变化导致的重绘）
+				if (Math.Abs(firstVisibleLine - lastFirstVisibleLine) > 2 || 
+				    Math.Abs(lastVisibleLine - lastLastVisibleLine) > 2)
+				{
+					// 更新上次可见区域记录
+					lastFirstVisibleLine = firstVisibleLine;
+					lastLastVisibleLine = lastVisibleLine;
+
+					// 更新可见区域范围，增加缓冲区
+					visibleStartLine = Math.Max(0, firstVisibleLine - linesPerPage / 2);
+					visibleEndLine = lastVisibleLine + linesPerPage / 2;
+
+					// 在后台计算新可见区域的差异
+					Task.Run(() =>
+					{
+						try
+						{
+							// 确保这个区域的差异已经计算
+							if (hexComparisonCts != null && !hexComparisonCts.IsCancellationRequested)
+							{
+								CalculateHexDiffs(visibleStartLine, visibleEndLine, hexComparisonCts.Token);
+								
+								// 在UI线程更新显示
+								this.BeginInvoke(DisplayVisibleHexContent);
+							}
+						}
+						catch (OperationCanceledException) { /* 任务被取消 */ }
+						catch (Exception ex)
+						{
+							this.BeginInvoke(() => Debug.Print($"更新可见区域时出错: {ex.Message}"));
+						}
+					});
+				}
+			}
+			finally
+			{
+				isScrolling = false;
+			}
+		}
+
+		private void DisplayVisibleHexContent()
+		{
+			// 保存滚动位置
+			int scrollPos = NativeMethods.GetScrollPos(leftContent.Handle, NativeMethods.SB_VERT);
+
+			// 使用双缓冲减少闪烁
+			SetDoubleBuffered(leftContent, true);
+			SetDoubleBuffered(rightContent, true);
+			SetDoubleBuffered(leftLineNumbers, true);
+			SetDoubleBuffered(rightLineNumbers, true);
+
+			leftContent.SuspendLayout();
+			rightContent.SuspendLayout();
+			leftLineNumbers.SuspendLayout();
+			rightLineNumbers.SuspendLayout();
+
+			// 使用StringBuilder构建内容，减少字符串连接操作
+			StringBuilder leftContentText = new StringBuilder();
+			StringBuilder rightContentText = new StringBuilder();
+			StringBuilder leftLineNumbersText = new StringBuilder();
+			StringBuilder rightLineNumbersText = new StringBuilder();
+
 			int diffCount = 0;
 
-			for (int line = 0; line < maxLines; line++)
+			// 只显示可见区域的内容
+			for (int line = visibleStartLine; line < visibleEndLine; line++)
 			{
 				int lineStart = line * bytesPerLine;
 
 				// 左侧显示
-				string hexLeft = "";
-				string asciiLeft = "";
+				StringBuilder hexLeft = new StringBuilder();
+				StringBuilder asciiLeft = new StringBuilder();
 				for (int i = 0; i < bytesPerLine; i++)
 				{
 					int pos = lineStart + i;
 					if (pos < leftBytes.Length)
 					{
-						hexLeft += $"{leftBytes[pos]:X2} ";
-						asciiLeft += GetAsciiChar(leftBytes[pos]);
+						hexLeft.Append($"{leftBytes[pos]:X2} ");
+						asciiLeft.Append(GetAsciiChar(leftBytes[pos]));
 					}
 					else
 					{
-						hexLeft += "   ";
-						asciiLeft += " ";
+						hexLeft.Append("   ");
+						asciiLeft.Append(" ");
 					}
 				}
 
 				// 右侧显示
-				string hexRight = "";
-				string asciiRight = "";
+				StringBuilder hexRight = new StringBuilder();
+				StringBuilder asciiRight = new StringBuilder();
 				for (int i = 0; i < bytesPerLine; i++)
 				{
 					int pos = lineStart + i;
 					if (pos < rightBytes.Length)
 					{
-						hexRight += $"{rightBytes[pos]:X2} ";
-						asciiRight += GetAsciiChar(rightBytes[pos]);
+						hexRight.Append($"{rightBytes[pos]:X2} ");
+						asciiRight.Append(GetAsciiChar(rightBytes[pos]));
 					}
 					else
 					{
-						hexRight += "   ";
-						asciiRight += " ";
+						hexRight.Append("   ");
+						asciiRight.Append(" ");
 					}
 				}
 
 				// 检查差异
-				bool hasDiff = hexDiffs.Any(d => d.Line == line && d.Position == -1);
+				bool hasDiff = false;
+				lock (hexDiffs)
+				{
+					hasDiff = hexDiffs.Any(d => d.Line == line && d.Position == -1);
+				}
 				if (hasDiff) diffCount++;
 
 				// 添加行号
-				leftLineNumbers.AppendText($"{line + 1}\n");
-				rightLineNumbers.AppendText($"{line + 1}\n");
+				leftLineNumbersText.AppendLine($"{line + 1}");
+				rightLineNumbersText.AppendLine($"{line + 1}");
 
-				// 添加内容（带高亮）
-				if (hasDiff)
-				{
-					leftContent.SelectionBackColor = Color.LightPink;
-					rightContent.SelectionBackColor = Color.LightPink;
-				}
-
-				leftContent.AppendText($"{hexLeft} | {asciiLeft}\n");
-				rightContent.AppendText($"{hexRight} | {asciiRight}\n");
-
-				leftContent.SelectionBackColor = leftContent.BackColor;
-				rightContent.SelectionBackColor = rightContent.BackColor;
+				// 添加内容（记录差异行以便后续批量设置颜色）
+				leftContentText.AppendLine($"{hexLeft} | {asciiLeft}");
+				rightContentText.AppendLine($"{hexRight} | {asciiRight}");
 			}
 
-			UpdateStatusBar($"差异数: {diffCount}");
+			// 批量更新内容
+			leftContent.Clear();
+			rightContent.Clear();
+			leftLineNumbers.Clear();
+			rightLineNumbers.Clear();
+
+			leftContent.Text = leftContentText.ToString();
+			rightContent.Text = rightContentText.ToString();
+			leftLineNumbers.Text = leftLineNumbersText.ToString();
+			rightLineNumbers.Text = rightLineNumbersText.ToString();
+
+			// 高亮显示差异行
+			HighlightHexDiffs();
+
+			leftContent.ResumeLayout();
+			rightContent.ResumeLayout();
+			leftLineNumbers.ResumeLayout();
+			rightLineNumbers.ResumeLayout();
+
+			// 恢复滚动位置
+			NativeMethods.SetScrollPos(leftContent.Handle, NativeMethods.SB_VERT, scrollPos, true);
+			NativeMethods.SendMessage(leftContent.Handle, NativeMethods.WM_VSCROLL,
+				NativeMethods.SB_THUMBPOSITION + 0x10000 * scrollPos, 0);
+
+			// 同步右侧滚动
+			SyncScroll(leftContent, rightContent);
+			SyncLineNumbersScroll(leftContent, leftLineNumbers);
+			SyncLineNumbersScroll(rightContent, rightLineNumbers);
+
+			// 更新状态栏
+			UpdateStatusBar($"差异数: {totalHexDiffCount} (显示区域: {diffCount})");
+
+			// 恢复双缓冲设置
+			SetDoubleBuffered(leftContent, false);
+			SetDoubleBuffered(rightContent, false);
+			SetDoubleBuffered(leftLineNumbers, false);
+			SetDoubleBuffered(rightLineNumbers, false);
 		}
 
 		private char GetAsciiChar(byte b)
@@ -1123,6 +1331,104 @@ namespace zfile
 				case ChangeType.Modified: return Color.LightYellow;
 				default: return Color.White;
 			}
+		}
+
+		/// <summary>
+		/// 设置控件的双缓冲属性，减少闪烁
+		/// </summary>
+		private void SetDoubleBuffered(Control control, bool enabled)
+		{
+			// 获取控件的Type
+			Type controlType = control.GetType();
+
+			// 获取DoubleBuffered属性
+			PropertyInfo pi = controlType.GetProperty("DoubleBuffered", 
+				BindingFlags.Instance | BindingFlags.NonPublic);
+
+			// 设置DoubleBuffered属性值
+			pi?.SetValue(control, enabled, null);
+
+			// 对于RichTextBox，还可以设置其他减少闪烁的属性
+			if (control is RichTextBox rtb)
+			{
+				// 设置WM_ERASEBKGND消息处理
+				if (enabled)
+				{
+					// 使用反射调用SetStyle方法
+					MethodInfo method = controlType.GetMethod("SetStyle", 
+						BindingFlags.Instance | BindingFlags.NonPublic);
+
+					if (method != null)
+					{
+						// 减少重绘次数
+						method.Invoke(rtb, new object[] { ControlStyles.OptimizedDoubleBuffer, enabled });
+						method.Invoke(rtb, new object[] { ControlStyles.AllPaintingInWmPaint, enabled });
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// 高亮显示十六进制差异行
+		/// </summary>
+		private void HighlightHexDiffs()
+		{
+			// 获取当前可见区域的差异行
+			List<int> diffLines = new List<int>();
+			lock (hexDiffs)
+			{
+				diffLines = hexDiffs
+					.Where(d => d.Line >= visibleStartLine && d.Line < visibleEndLine && d.Position == -1)
+					.Select(d => d.Line)
+					.Distinct()
+					.ToList();
+			}
+
+			// 批量高亮差异行
+			foreach (int line in diffLines)
+			{
+				// 计算行在文本中的位置
+				int lineIndex = line - visibleStartLine;
+				if (lineIndex < 0) continue;
+
+				// 获取行的起始和结束位置
+				int startPos = leftContent.GetFirstCharIndexFromLine(lineIndex);
+				if (startPos < 0) continue;
+
+				int endPos;
+				if (lineIndex < leftContent.Lines.Length - 1)
+					endPos = leftContent.GetFirstCharIndexFromLine(lineIndex + 1) - 1;
+				else
+					endPos = leftContent.TextLength;
+
+				// 高亮左侧内容
+				leftContent.SelectionStart = startPos;
+				leftContent.SelectionLength = endPos - startPos;
+				leftContent.SelectionBackColor = Color.LightPink;
+
+				// 高亮右侧内容
+				if (lineIndex < rightContent.Lines.Length)
+				{
+					startPos = rightContent.GetFirstCharIndexFromLine(lineIndex);
+					if (startPos >= 0)
+					{
+						if (lineIndex < rightContent.Lines.Length - 1)
+							endPos = rightContent.GetFirstCharIndexFromLine(lineIndex + 1) - 1;
+						else
+							endPos = rightContent.TextLength;
+
+						rightContent.SelectionStart = startPos;
+						rightContent.SelectionLength = endPos - startPos;
+						rightContent.SelectionBackColor = Color.LightPink;
+					}
+				}
+			}
+
+			// 重置选择
+			leftContent.SelectionStart = 0;
+			leftContent.SelectionLength = 0;
+			rightContent.SelectionStart = 0;
+			rightContent.SelectionLength = 0;
 		}
 
 		private void AppendWithColor(RichTextBox rtb, string text, Color color)
@@ -1301,6 +1607,11 @@ namespace zfile
 		private void BtnHexMode_Click(object? sender, EventArgs e)
 		{
 			hexMode = ((ToolStripButton)sender).Checked;
+			
+			// 取消之前的任务（如果有）
+			hexComparisonCts?.Cancel();
+			hexComparisonCts = null;
+			
 			if (!string.IsNullOrEmpty(leftFilePath)) CompareFiles();
 		}
 

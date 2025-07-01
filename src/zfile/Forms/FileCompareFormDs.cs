@@ -813,6 +813,7 @@ namespace zfile
 					isScrolling = true;
 					SyncScroll(leftContent, rightContent);
 					SyncLineNumbersScroll(leftContent, leftLineNumbers);
+					SyncLineNumbersScroll(leftContent, rightLineNumbers); // 新增：同步右侧行号
 					isScrolling = false;
 				}
 			};
@@ -824,6 +825,7 @@ namespace zfile
 					isScrolling = true;
 					SyncScroll(rightContent, leftContent);
 					SyncLineNumbersScroll(rightContent, rightLineNumbers);
+					SyncLineNumbersScroll(rightContent, leftLineNumbers); // 新增：同步左侧行号
 					isScrolling = false;
 				}
 			};

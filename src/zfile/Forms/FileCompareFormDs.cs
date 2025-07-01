@@ -746,7 +746,6 @@ namespace zfile
 				Dock = DockStyle.Fill,
 				Orientation = Orientation.Vertical,
 				SplitterWidth = 1,
-				
 			};
 			leftLineNumbers = new RichTextBox
 			{
@@ -858,9 +857,13 @@ namespace zfile
 			this.Load += (s, e) =>
 			{
 				mainSplit.SplitterDistance = mainSplit.Width / 2;
-				leftContentSplit.SplitterDistance = 5; // 行号列宽度
-				rightContentSplit.SplitterDistance = 5; // 行号列宽度
 			};
+	
+            this.Shown += (s, e) =>
+            {
+                leftContentSplit.SplitterDistance = leftLineNumbers.Width / 4; // 行号列宽度
+                rightContentSplit.SplitterDistance = rightLineNumbers.Width / 4; // 行号列宽度
+            };	
 		}
 
 		#region UI Controls

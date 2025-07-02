@@ -228,9 +228,13 @@ namespace zfile
 	
             this.Shown += (s, e) =>
             {
-                leftContentSplit.SplitterDistance = leftLineNumbers.Width / 4; // 行号列宽度
-                rightContentSplit.SplitterDistance = rightLineNumbers.Width / 4; // 行号列宽度
-            };	
+				//leftContentSplit.SplitterDistance = leftLineNumbers.Width / 4; // 行号列宽度
+				//rightContentSplit.SplitterDistance = rightLineNumbers.Width / 4; // 行号列宽度
+				// 或者根据字体大小动态计算
+				int lineNumberWidth = TextRenderer.MeasureText("00000", leftLineNumbers.Font).Width + 10;
+				leftContentSplit.SplitterDistance = lineNumberWidth;
+				rightContentSplit.SplitterDistance = lineNumberWidth;
+			};	
 		}
 
 		#region UI Controls
@@ -367,6 +371,9 @@ namespace zfile
 			leftLineNumbers.Clear();
 			rightLineNumbers.Clear();
 
+			var leftLineNumbersBuilder = new StringBuilder();
+			var rightLineNumbersBuilder = new StringBuilder();
+
 			int maxLines = (int)Math.Ceiling((double)Math.Max(leftBytes.Length, rightBytes.Length) / bytesPerLine);
 			int diffCount = 0;
 
@@ -415,8 +422,8 @@ namespace zfile
 				if (hasDiff) diffCount++;
 
 				// 添加行号
-				leftLineNumbers.AppendText($"{line + 1}\n");
-				rightLineNumbers.AppendText($"{line + 1}\n");
+				leftLineNumbersBuilder.AppendLine($"{line + 1}");
+				rightLineNumbersBuilder.AppendLine($"{line + 1}");
 
 				// 添加内容（带高亮）
 				if (hasDiff)
@@ -431,6 +438,8 @@ namespace zfile
 				leftContent.SelectionBackColor = leftContent.BackColor;
 				rightContent.SelectionBackColor = rightContent.BackColor;
 			}
+			leftLineNumbers.Text = leftLineNumbersBuilder.ToString();
+			rightLineNumbers.Text = rightLineNumbersBuilder.ToString();
 
 			UpdateStatusBar($"差异数: {diffCount}");
 		}
@@ -442,9 +451,13 @@ namespace zfile
 			leftLineNumbers.Clear();
 			rightLineNumbers.Clear();
 
-			int lineNum = 1;	//for left
-			int lineNum1 = 1;	//for right
+			int lineNum = 1;    //for left
+			int lineNum1 = 1;   //for right
 			int diffCount = 0;
+
+			// 用StringBuilder一次性拼接行号文本
+			var leftLineNumbersBuilder = new StringBuilder();
+			var rightLineNumbersBuilder = new StringBuilder();
 
 			for (int i = 0; i < Math.Max(leftDiffLines.Count, rightDiffLines.Count); i++)
 			{
@@ -455,19 +468,17 @@ namespace zfile
 					AppendWithColor(leftContent, piece.Text, GetDiffColor(piece.Type));
 					if (piece.Type != ChangeType.Imaginary)
 					{
-						leftLineNumbers.AppendText($"{lineNum}\n");
+						leftLineNumbersBuilder.AppendLine(lineNum.ToString());
 						lineNum++;
 					}
 					else
 					{
-						leftLineNumbers.AppendText("\n");
-						Debug.Print($"left empty line insert. {i} {lineNum} {piece.Type} {piece.Text}");
+						leftLineNumbersBuilder.AppendLine();
 					}
 				}
 				else
 				{
-					leftLineNumbers.AppendText("\n");
-					Debug.Print($"left empty line insert. {i} {lineNum} {leftDiffLines.Count} ");
+					leftLineNumbersBuilder.AppendLine();
 				}
 
 				// 右侧行
@@ -477,20 +488,17 @@ namespace zfile
 					AppendWithColor(rightContent, piece.Text, GetDiffColor(piece.Type));
 					if (piece.Type != ChangeType.Imaginary)
 					{
-						rightLineNumbers.AppendText($"{lineNum1}\n");
+						rightLineNumbersBuilder.AppendLine(lineNum1.ToString());
 						lineNum1++;
 					}
 					else
 					{
-						rightLineNumbers.AppendText("\n");
-						Debug.Print($"right empty line insert. {i} {lineNum1} {piece.Type} {piece.Text}");
-
+						rightLineNumbersBuilder.AppendLine();
 					}
 				}
 				else
 				{
-					rightLineNumbers.AppendText("\n");
-					Debug.Print($"right empty line insert. {i} {lineNum1} {rightDiffLines.Count} ");
+					rightLineNumbersBuilder.AppendLine();
 				}
 
 				// 处理差异计数
@@ -506,13 +514,20 @@ namespace zfile
 				{
 					diffCount++;
 				}
-
-				//lineNum++;
 			}
 
-			UpdateStatusBar($"差异数: {diffCount}");
-		}
+			// 一次性赋值，避免AppendText导致的自动滚动
+			leftLineNumbers.Text = leftLineNumbersBuilder.ToString();
+			rightLineNumbers.Text = rightLineNumbersBuilder.ToString();
 
+			UpdateStatusBar($"差异数: {diffCount}");
+
+			// 让内容区回到顶部
+			leftContent.SelectionStart = 0;
+			leftContent.ScrollToCaret();
+			rightContent.SelectionStart = 0;
+			rightContent.ScrollToCaret();
+		}
 		// 用于跟踪上次可见区域的变量
 		private int lastFirstVisibleLine = -1;
 		private int lastLastVisibleLine = -1;

@@ -25,6 +25,14 @@ namespace zfile
 		private List<DiffPiece> rightDiffLines;
 		private List<HexDiff> hexDiffs = new List<HexDiff>();
 		private bool isScrolling = false; // 防止滚动递归
+		
+		// 跟踪文本修改状态
+		private bool leftContentModified = false;
+		private bool rightContentModified = false;
+		
+		// 独立的撤销堆栈
+		private Stack<string> leftUndoStack = new Stack<string>();
+		private Stack<string> rightUndoStack = new Stack<string>();
 
 		public FileCompareForm()
 		{
@@ -76,8 +84,8 @@ namespace zfile
 
 			// 保存按钮面板
 			var buttonPanel = new Panel { Dock = DockStyle.Bottom, Height = 30 };
-			var btnSaveLeft = new Button { Text = "保存左侧", Dock = DockStyle.Left, Width = 100 };
-			var btnSaveRight = new Button { Text = "保存右侧", Dock = DockStyle.Right, Width = 100 };
+			btnSaveLeft = new Button { Text = "保存左侧", Dock = DockStyle.Left, Width = 100, Visible = false };
+			btnSaveRight = new Button { Text = "保存右侧", Dock = DockStyle.Right, Width = 100, Visible = false };
 			btnSaveLeft.Click += BtnSaveLeft_Click;
 			btnSaveRight.Click += BtnSaveRight_Click;
 			buttonPanel.Controls.Add(btnSaveLeft);
@@ -123,6 +131,24 @@ namespace zfile
 				ScrollBars = RichTextBoxScrollBars.Both,
 				WordWrap = false
 			};
+			leftContent.TextChanged += (s, e) => {
+				if (editMode && !isScrolling) {
+					// 标记为已修改
+					leftContentModified = true;
+					// 显示保存按钮
+					btnSaveLeft.Visible = true;
+				}
+			};
+			
+			// 添加按键事件，用于捕获编辑操作并保存到撤销堆栈
+			leftContent.KeyDown += (s, e) => {
+				if (editMode) {
+					// 当用户按下可能导致文本更改的按键时，保存当前状态到撤销堆栈
+					if (IsEditKey(e.KeyCode)) {
+						leftUndoStack.Push(leftContent.Text);
+					}
+				}
+			};
 			leftContentSplit.Panel1.Controls.Add(leftLineNumbers);
 			leftContentSplit.Panel2.Controls.Add(leftContent);
 			leftPanel.Controls.Add(leftContentSplit);
@@ -157,6 +183,24 @@ namespace zfile
 				Font = new Font("新宋体", 9),
 				ScrollBars = RichTextBoxScrollBars.Both,
 				WordWrap = false
+			};
+			rightContent.TextChanged += (s, e) => {
+				if (editMode && !isScrolling) {
+					// 标记为已修改
+					rightContentModified = true;
+					// 显示保存按钮
+					btnSaveRight.Visible = true;
+				}
+			};
+			
+			// 添加按键事件，用于捕获编辑操作并保存到撤销堆栈
+			rightContent.KeyDown += (s, e) => {
+				if (editMode) {
+					// 当用户按下可能导致文本更改的按键时，保存当前状态到撤销堆栈
+					if (IsEditKey(e.KeyCode)) {
+						rightUndoStack.Push(rightContent.Text);
+					}
+				}
 			};
 			rightContentSplit.Panel1.Controls.Add(rightLineNumbers);
 			rightContentSplit.Panel2.Controls.Add(rightContent);
@@ -244,6 +288,8 @@ namespace zfile
 		private RichTextBox rightContent;
 		private RichTextBox leftLineNumbers;
 		private RichTextBox rightLineNumbers;
+		private Button btnSaveLeft;
+		private Button btnSaveRight;
 		#endregion
 
 		#region 核心功能
@@ -278,6 +324,20 @@ namespace zfile
 
 				DisplayTextDiffs();
 				UpdateDiffCount();
+				
+				// 重置修改状态和隐藏保存按钮
+				leftContentModified = false;
+				rightContentModified = false;
+				btnSaveLeft.Visible = false;
+				btnSaveRight.Visible = false;
+				
+				// 清空撤销堆栈
+				leftUndoStack.Clear();
+				rightUndoStack.Clear();
+				if (editMode) {
+					leftUndoStack.Push(leftContent.Text);
+					rightUndoStack.Push(rightContent.Text);
+				}
 			}
 			catch (Exception ex)
 			{
@@ -314,45 +374,59 @@ namespace zfile
 				//Task.Run(() => 
 				{
 					try
-					{
-						var leftBytes = File.ReadAllBytes(leftFilePath);
-						var rightBytes = File.ReadAllBytes(rightFilePath);
-
-						hexDiffs.Clear();
-						int maxLength = Math.Max(leftBytes.Length, rightBytes.Length);
-						int diffCount = 0;
-
-						for (int i = 0; i < maxLength; i += bytesPerLine)
 						{
-							bool isDiff = false;
-							for (int j = 0; j < bytesPerLine; j++)
+							var leftBytes = File.ReadAllBytes(leftFilePath);
+							var rightBytes = File.ReadAllBytes(rightFilePath);
+
+							hexDiffs.Clear();
+							int maxLength = Math.Max(leftBytes.Length, rightBytes.Length);
+							int diffCount = 0;
+
+							for (int i = 0; i < maxLength; i += bytesPerLine)
 							{
-								int pos = i + j;
-								if (pos >= leftBytes.Length && pos >= rightBytes.Length)
+								bool isDiff = false;
+								for (int j = 0; j < bytesPerLine; j++)
 								{
-									break;
+									int pos = i + j;
+									if (pos >= leftBytes.Length && pos >= rightBytes.Length)
+									{
+										break;
+									}
+
+									byte leftByte = pos < leftBytes.Length ? leftBytes[pos] : (byte)0;
+									byte rightByte = pos < rightBytes.Length ? rightBytes[pos] : (byte)0;
+
+									if (leftByte != rightByte)
+									{
+										isDiff = true;
+										hexDiffs.Add(new HexDiff { Line = i / bytesPerLine, Position = j });
+										diffCount++;
+									}
 								}
 
-								byte leftByte = pos < leftBytes.Length ? leftBytes[pos] : (byte)0;
-								byte rightByte = pos < rightBytes.Length ? rightBytes[pos] : (byte)0;
-
-								if (leftByte != rightByte)
+								if (isDiff)
 								{
-									isDiff = true;
-									hexDiffs.Add(new HexDiff { Line = i / bytesPerLine, Position = j });
-									diffCount++;
+									hexDiffs.Add(new HexDiff { Line = i / bytesPerLine, Position = -1 }); // Mark whole line
 								}
 							}
 
-							if (isDiff)
-							{
-								hexDiffs.Add(new HexDiff { Line = i / bytesPerLine, Position = -1 }); // Mark whole line
+							DisplayHexDiffs(leftBytes, rightBytes);
+							UpdateStatusBar($"差异数: {diffCount}");
+							
+							// 重置修改状态和隐藏保存按钮
+							leftContentModified = false;
+							rightContentModified = false;
+							btnSaveLeft.Visible = false;
+							btnSaveRight.Visible = false;
+							
+							// 清空撤销堆栈
+							leftUndoStack.Clear();
+							rightUndoStack.Clear();
+							if (editMode) {
+								leftUndoStack.Push(leftContent.Text);
+								rightUndoStack.Push(rightContent.Text);
 							}
 						}
-
-						DisplayHexDiffs(leftBytes, rightBytes);
-						UpdateStatusBar($"差异数: {diffCount}");
-					}
 					catch (Exception ex)
 					{
 						MessageBox.Show($"比较文件时出错: {ex.Message}");
@@ -523,10 +597,10 @@ namespace zfile
 			UpdateStatusBar($"差异数: {diffCount}");
 
 			// 让内容区回到顶部
-			leftContent.SelectionStart = 0;
-			leftContent.ScrollToCaret();
-			rightContent.SelectionStart = 0;
-			rightContent.ScrollToCaret();
+			//leftContent.SelectionStart = 0;
+			//leftContent.ScrollToCaret();
+			//rightContent.SelectionStart = 0;
+			//rightContent.ScrollToCaret();
 		}
 		// 用于跟踪上次可见区域的变量
 		private int lastFirstVisibleLine = -1;
@@ -755,6 +829,24 @@ namespace zfile
 			editMode = ((ToolStripButton)sender).Checked;
 			leftContent.ReadOnly = !editMode;
 			rightContent.ReadOnly = !editMode;
+			
+			if (editMode) {
+				// 进入编辑模式时，清空撤销堆栈并保存当前内容作为初始状态
+				leftUndoStack.Clear();
+				rightUndoStack.Clear();
+				leftUndoStack.Push(leftContent.Text);
+				rightUndoStack.Push(rightContent.Text);
+				
+				// 重置修改状态
+				leftContentModified = false;
+				rightContentModified = false;
+				btnSaveLeft.Visible = false;
+				btnSaveRight.Visible = false;
+			} else {
+				// 退出编辑模式时，隐藏保存按钮
+				btnSaveLeft.Visible = false;
+				btnSaveRight.Visible = false;
+			}
 		}
 
 		private void BtnCopyToRight_Click(object? sender, EventArgs e)
@@ -801,9 +893,35 @@ namespace zfile
 
 		private void BtnUndo_Click(object? sender, EventArgs e)
 		{
-			// 撤销编辑
-			leftContent.Undo();
-			rightContent.Undo();
+			// 根据焦点确定撤销哪个面板的更改
+			if (leftContent.Focused && leftUndoStack.Count > 1)
+			{
+				// 弹出当前状态
+				leftUndoStack.Pop();
+				// 恢复到上一个状态
+				leftContent.Text = leftUndoStack.Peek();
+				
+				// 如果回到初始状态，隐藏保存按钮
+				if (leftUndoStack.Count == 1)
+				{
+					leftContentModified = false;
+					btnSaveLeft.Visible = false;
+				}
+			}
+			else if (rightContent.Focused && rightUndoStack.Count > 1)
+			{
+				// 弹出当前状态
+				rightUndoStack.Pop();
+				// 恢复到上一个状态
+				rightContent.Text = rightUndoStack.Peek();
+				
+				// 如果回到初始状态，隐藏保存按钮
+				if (rightUndoStack.Count == 1)
+				{
+					rightContentModified = false;
+					btnSaveRight.Visible = false;
+				}
+			}
 		}
 
 		private void BtnEncoding_Click(object? sender, EventArgs e)
@@ -970,6 +1088,14 @@ namespace zfile
 			{
 				File.WriteAllText(leftFilePath, leftContent.Text, currentEncoding);
 				MessageBox.Show("左侧文件保存成功！");
+				
+				// 重置修改状态
+				leftContentModified = false;
+				btnSaveLeft.Visible = false;
+				
+				// 清空撤销堆栈并保存当前内容作为新的初始状态
+				leftUndoStack.Clear();
+				leftUndoStack.Push(leftContent.Text);
 			}
 			catch (Exception ex)
 			{
@@ -985,6 +1111,14 @@ namespace zfile
 			{
 				File.WriteAllText(rightFilePath, rightContent.Text, currentEncoding);
 				MessageBox.Show("右侧文件保存成功！");
+				
+				// 重置修改状态
+				rightContentModified = false;
+				btnSaveRight.Visible = false;
+				
+				// 清空撤销堆栈并保存当前内容作为新的初始状态
+				rightUndoStack.Clear();
+				rightUndoStack.Push(rightContent.Text);
 			}
 			catch (Exception ex)
 			{
@@ -1014,6 +1148,23 @@ namespace zfile
 					return;
 				}
 			}
+		}
+		
+		// 判断按键是否会导致文本更改
+		private bool IsEditKey(Keys keyCode)
+		{
+			// 这些按键通常会导致文本内容变化
+			return keyCode == Keys.Back || keyCode == Keys.Delete ||
+				keyCode == Keys.Space || keyCode == Keys.Tab ||
+				(keyCode >= Keys.A && keyCode <= Keys.Z) ||
+				(keyCode >= Keys.D0 && keyCode <= Keys.D9) ||
+				(keyCode >= Keys.NumPad0 && keyCode <= Keys.NumPad9) ||
+				keyCode == Keys.OemPeriod || keyCode == Keys.Oemcomma ||
+				keyCode == Keys.OemMinus || keyCode == Keys.Oemplus ||
+				keyCode == Keys.OemQuestion || keyCode == Keys.OemSemicolon ||
+				keyCode == Keys.OemOpenBrackets || keyCode == Keys.OemCloseBrackets ||
+				keyCode == Keys.OemPipe || keyCode == Keys.OemQuotes ||
+				keyCode == Keys.OemBackslash || keyCode == Keys.Enter;
 		}
 		#endregion
 

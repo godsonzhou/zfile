@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO.Pipelines;
 using System.Reflection;
 using System.Text;
+using zfile.Forms;
 
 namespace zfile
 {
@@ -798,16 +799,152 @@ namespace zfile
 			if (!string.IsNullOrEmpty(leftFilePath)) CompareFiles();
 		}
 
+		private string lastSearchText = "";
+		private bool lastMatchCase = false;
+		private bool lastWholeWord = false;
+		private bool lastSearchUp = false;
+		private bool lastHexSearch = false;
+
 		private void BtnFind_Click(object? sender, EventArgs e)
 		{
 			// 查找功能
-			MessageBox.Show("查找功能");
+			using (var searchDialog = new SearchDialog(lastSearchText))
+			{
+				// 设置上次的搜索选项
+				searchDialog._matchCaseCheckBox.Checked = lastMatchCase;
+				searchDialog._wholeWordCheckBox.Checked = lastWholeWord;
+				searchDialog._searchUpCheckBox.Checked = lastSearchUp;
+				searchDialog._hexSearchCheckBox.Checked = lastHexSearch;
+
+				if (searchDialog.ShowDialog() == DialogResult.OK)
+				{
+					// 保存搜索选项以便下次使用
+					lastSearchText = searchDialog.SearchText;
+					lastMatchCase = searchDialog.MatchCase;
+					lastWholeWord = searchDialog.WholeWord;
+					lastSearchUp = searchDialog.SearchUp;
+					lastHexSearch = searchDialog.HexSearch;
+
+					// 执行搜索
+					PerformSearch(searchDialog);
+				}
+			}
 		}
 
 		private void BtnFindNext_Click(object? sender, EventArgs e)
 		{
 			// 查找下一个
-			MessageBox.Show("查找下一个功能");
+			if (string.IsNullOrEmpty(lastSearchText))
+			{
+				// 如果没有上次的搜索，则打开搜索对话框
+				BtnFind_Click(sender, e);
+			}
+			else
+			{
+				// 使用上次的搜索参数继续搜索
+				using (var searchDialog = new SearchDialog(lastSearchText))
+				{
+					searchDialog._matchCaseCheckBox.Checked = lastMatchCase;
+					searchDialog._wholeWordCheckBox.Checked = lastWholeWord;
+					searchDialog._searchUpCheckBox.Checked = lastSearchUp;
+					searchDialog._hexSearchCheckBox.Checked = lastHexSearch;
+
+					PerformSearch(searchDialog);
+				}
+			}
+		}
+
+		private void PerformSearch(SearchDialog searchDialog)
+		{
+			// 获取活动的RichTextBox
+			RichTextBox activeTextBox = leftContent.Focused ? leftContent : rightContent;
+
+			// 获取处理后的搜索文本和参数
+			string searchText = searchDialog.GetProcessedSearchText();
+			int searchParams = searchDialog.GetSearchParameters();
+
+			// 设置搜索起始位置
+			int startPosition = activeTextBox.SelectionStart;
+			if (searchDialog.SearchUp)
+			{
+				// 向上搜索时，从选择的起始位置开始
+				startPosition = activeTextBox.SelectionStart;
+			}
+			else
+			{
+				// 向下搜索时，从选择的结束位置开始
+				startPosition = activeTextBox.SelectionStart + activeTextBox.SelectionLength;
+			}
+
+			// 执行搜索
+			int foundPosition = -1;
+			if (searchDialog.SearchUp)
+			{
+				// 向上搜索
+				string textToSearch = activeTextBox.Text.Substring(0, startPosition);
+				foundPosition = FindLastOccurrence(textToSearch, searchText, searchDialog.MatchCase, searchDialog.WholeWord);
+			}
+			else
+			{
+				// 向下搜索
+				foundPosition = activeTextBox.Find(searchText, startPosition, GetRichTextBoxFinds(searchParams));
+			}
+
+			if (foundPosition >= 0)
+			{
+				// 找到匹配项，选中它
+				activeTextBox.Select(foundPosition, searchText.Length);
+				activeTextBox.ScrollToCaret();
+			}
+			else
+			{
+				// 未找到匹配项
+				MessageBox.Show("找不到指定的文本。", "查找", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			}
+		}
+		private RichTextBoxFinds GetRichTextBoxFinds(int searchParams)
+		{
+			RichTextBoxFinds finds = RichTextBoxFinds.None;
+			if ((searchParams & 2) != 0) finds |= RichTextBoxFinds.MatchCase; // 匹配大小写
+			if ((searchParams & 4) != 0) finds |= RichTextBoxFinds.WholeWord; // 全字匹配
+			if ((searchParams & 8) != 0) finds |= RichTextBoxFinds.Reverse; // 反向查找
+			return finds;
+		}
+		private int FindLastOccurrence(string text, string searchText, bool matchCase, bool wholeWord)
+		{
+			// 向上搜索时查找最后一次出现的位置
+			StringComparison comparison = matchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+			
+			if (wholeWord)
+			{
+				// 全字匹配
+				int lastIndex = -1;
+				int index = 0;
+				
+				while (index < text.Length)
+				{
+					index = text.IndexOf(searchText, index, comparison);
+					if (index == -1) break;
+					
+					// 检查是否是完整单词
+					bool isWordStart = (index == 0 || !char.IsLetterOrDigit(text[index - 1]));
+					bool isWordEnd = (index + searchText.Length == text.Length || !char.IsLetterOrDigit(text[index + searchText.Length]));
+					
+					if (isWordStart && isWordEnd)
+					{
+						lastIndex = index;
+					}
+					
+					index += searchText.Length;
+				}
+				
+				return lastIndex;
+			}
+			else
+			{
+				// 普通搜索
+				return text.LastIndexOf(searchText, comparison);
+			}
 		}
 
 		private void BtnSaveLeft_Click(object? sender, EventArgs e)

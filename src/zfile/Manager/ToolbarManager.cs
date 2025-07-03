@@ -78,6 +78,7 @@ namespace zfile
 					}
 					// 释放上下文菜单
 					buttonContextMenu.Dispose();
+					Unload();
 				}
 
 				// 释放非托管资源
@@ -133,7 +134,20 @@ namespace zfile
 			dynamicToolStrip.DragDrop += form.ToolbarButton_DragDrop;
 			//DynamicToolStrip.MouseClick += form.ToolbarStrip_Click;
 		}
-
+		public void Unload()
+		{
+			if (dynamicToolStrip != null)
+			{
+				form.Controls.Remove(dynamicToolStrip);
+				dynamicToolStrip.Dispose();
+				dynamicToolStrip = null;
+			}
+			toolbarButtons.Clear();
+			toolbarsDict.Clear();
+			cm_srcthumbs_Button = null;
+			cm_syncchangedir_button = null;
+			cm_dirbranch_button = null;
+		}
 		public void TogglePanel(int mode = -1)
 		{
 			if (mode == -1)

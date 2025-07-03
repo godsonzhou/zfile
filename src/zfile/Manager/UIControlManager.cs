@@ -1461,6 +1461,17 @@ namespace zfile
 			vtoolbarManager = new ToolbarManager(form, bar1, true);//"VERTICAL.BAR"
 		}
 
+		public void LoadToolbar(string bar, bool isvertical = false)
+		{
+			if (isvertical)
+				vtoolbarManager = new ToolbarManager(form, bar, true);
+			else
+			{
+				if (toolbarManager != null)
+					toolbarManager.Dispose();
+				toolbarManager = new ToolbarManager(form, bar, false);
+			}
+		}
 		public void ShowSpecialDirsMenu(Point location)
 		{
 			var menu = new ContextMenuStrip();

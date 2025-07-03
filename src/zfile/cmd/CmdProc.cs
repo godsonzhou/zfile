@@ -97,6 +97,19 @@ namespace zfile
 				}
 				Debug.Print($"Command name {cmdName} does not exist.");
 			}
+			else if (cmdName.StartsWith("openbar", StringComparison.OrdinalIgnoreCase))
+			{
+				//将主菜单更改为指定的BAR
+				var cmdparts = cmdName.Split(" ");
+				param = string.Join(" ", cmdparts.Skip(1));
+				var args = owner.se.PrepareParameter(param, null, "");
+				owner.uiManager.LoadToolbar(args[0]);
+			}
+			else if (cmdName.EndsWith(".bar", StringComparison.OrdinalIgnoreCase))
+			{
+				var args = owner.se.PrepareParameter(cmdName, null, "");
+				owner.uiManager.LoadToolbar(args[0]);
+			}
 			else
 			{
 				var parts = cmdName.Split(',');
@@ -104,10 +117,10 @@ namespace zfile
 					ExecCmdByID(cmdId, param);
 				else
 				{
-					if (int.TryParse(cmdName, out cmdId)) 
-					{ 
-						ExecCmdByID(cmdId, param); 
-						return; 
+					if (int.TryParse(cmdName, out cmdId))
+					{
+						ExecCmdByID(cmdId, param);
+						return;
 					}
 					//可能是可执行文件名称,比如regedit.exe, 直接运行
 					//if (Path.GetExtension(cmdName).Equals(".exe", StringComparison.OrdinalIgnoreCase))

@@ -343,7 +343,7 @@ namespace zfile
 			configLoader = new CFGLOADER(Constants.ZfileCfgPath + "wincmd.ini");
 			ftpconfigLoader = new CFGLOADER(Constants.ZfileCfgPath + "wcx_ftp.ini");
 			cmdicons_configloader = new CFGLOADER(Constants.ZfileCfgPath + "wcmicons.inc");
-			userConfigLoader = new CFGLOADER(Constants.ZfileCfgPath + "user.ini");
+			userConfigLoader = new CFGLOADER(Constants.ZfileCfgPath + "user\\user.ini");
 			GetFontFromCfgloader();
 			//apply font
 			Helper.ApplyFontToControls(this, myfont);

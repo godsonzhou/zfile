@@ -573,7 +573,7 @@ namespace zfile.Forms
 				//SetMenuItemCheckedState(_currentPlugin.Name, false);
 			setCheckedMenuStateByNameToId("模式");    //关闭模式菜单下所有勾选
 			setCheckedMenuStateByNameToId("插件");
-			_currentPlugin = plugin;
+
 			_isPlugin = true;
 
 			// 隐藏所有内置查看器面板
@@ -586,9 +586,21 @@ namespace zfile.Forms
 			{
 				if (p is Panel pnl) pnl.Visible = false;
 			}
+
+			if (_currentPlugin == null)
+				_currentPlugin = plugin;
+			else if (_currentPlugin == plugin)
+			{ }
+			else
+			{
+				_currentPlugin.CallListCloseWindow(_pluginWindow);  //关闭原有plugin window
+				_pluginWindow = IntPtr.Zero;
+				_currentPlugin = plugin;
+			}
 	
 			// 传递容器面板的句柄作为父窗口
-			_pluginWindow = _currentPlugin.CallListLoad(container.Handle, _fileName, WlxConstants.LISTPLUGIN_SHOW);
+			if(_pluginWindow == IntPtr.Zero)
+				_pluginWindow = _currentPlugin.CallListLoad(container.Handle, _fileName, WlxConstants.LISTPLUGIN_SHOW);
 			//IntPtr bmp = IntPtr.Zero;
 			//if(_pluginWindow == IntPtr.Zero)
 			//	_pluginWindow = _currentPlugin.CallListGetPreviewBitmap(_fileName, _mainPanel.Bounds.Width, _mainPanel.Bounds.Height, bmp);

@@ -1464,7 +1464,11 @@ namespace zfile
 		public void LoadToolbar(string bar, bool isvertical = false)
 		{
 			if (isvertical)
+			{
+				if (vtoolbarManager != null)
+					vtoolbarManager.Dispose();
 				vtoolbarManager = new ToolbarManager(form, bar, true);
+			}
 			else
 			{
 				if (toolbarManager != null)

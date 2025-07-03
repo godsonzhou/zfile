@@ -456,7 +456,7 @@ namespace zfile.Forms
 			_mainPanel.Controls.Add(_imagePanel);
 			_mainPanel.Controls.Add(_textPanel);
 			_mainPanel.Controls.Add(_hexPanel);
-			_mainPanel.Controls.Add(container);
+			_mainPanel.Controls.Add(container); //must be add after all subpanel, otherwise the plugin container will be set to a very small size when double click the window
 			Controls.Add(_mainPanel);
 			Controls.Add(_toolStrip);
 			Controls.Add(_menuStrip);

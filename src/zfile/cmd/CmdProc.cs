@@ -593,6 +593,10 @@ namespace zfile
 				case 2400: // cm_multirename
 					cm_multirename();
 					break;
+				case 2500: // 命令ID=2500,Name =cm_contextmenu
+					cm_contextmenu();
+					break;
+
 				case 2600: //命令ID=2600,Name=cm_syncchangedir
 					cm_syncchangedir();
 					break;
@@ -620,6 +624,9 @@ namespace zfile
 					break;
 				case 2911: // 命令ID=2911,Name=cm_viskeybuttons
 					cm_viskeybuttons();
+					break;
+				case 2915: // 命令ID =2915,Name =cm_showquicksearch
+					cm_showquicksearch();
 					break;
 				case 2916: // 命令ID=2916,Name=cm_visdirtabs
 					cm_visdirtabs();
@@ -771,6 +778,20 @@ namespace zfile
 						MessageBox.Show($"命令ID = {cmdId} 尚未实现", "提示");
 					break;
 			}
+		}
+
+		private void cm_contextmenu()
+		{
+			if (owner.activeListView.SelectedItems.Count != 0) 
+				owner.ShowContextMenu(owner.activeListView, owner.activeListView.SelectedItems[0]);
+			else
+				owner.ShowContextMenuOnTreeview(owner.activeTreeview.SelectedNode);
+		}
+
+		private void cm_showquicksearch()
+		{
+			owner.uiManager.isquicksearch = !owner.uiManager.isquicksearch;
+			owner.uiManager.GetToolStripMenuItemByCmd("cm_showquicksearch").Checked = owner.uiManager.isquicksearch;
 		}
 
 		private void cm_configsavedirhistory()

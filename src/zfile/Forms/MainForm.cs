@@ -815,7 +815,7 @@ namespace zfile
 				if (treeView != null && node != null && node == rightClickBegin)
 				{
 					treeView.SelectedNode = node;
-					ShowContextMenuOnTreeview(node, e.Location);
+					ShowContextMenuOnTreeview(node);
 				}
 			}
 		}
@@ -1032,7 +1032,7 @@ namespace zfile
 			
 		}
 
-		private void ShowCtxMenuOnListview(string path, Point location)
+		private void ShowCtxMenuOnListview(string path)
 		{
 			// 先获取路径的父目录
 			if (!File.Exists(path) && !Directory.Exists(path))
@@ -1112,7 +1112,7 @@ namespace zfile
 			}
 		}
 
-		private void ShowContextMenuOnTreeview(TreeNode node, Point location)
+		public void ShowContextMenuOnTreeview(TreeNode node)
 		{
 			if (node.Tag is not ShellItem)	//ftp node process
 				return;
@@ -1548,7 +1548,60 @@ namespace zfile
 				RefreshPanel(listView);
 			}
 		}
+		public void ShowContextMenu(ListView listView, ListViewItem item)
+		{
+			// 设置焦点项并更新面板标识
+			listView.FocusedItem = item;
+			uiManager.isleft = listView.Name.Equals("L");
 
+			// 检查FTP路径
+			if (CurrentFullpath[LRflag].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
+			{
+				string connectionName = ExtractFtpConnectionName(CurrentFullpath[LRflag]);
+				if (!string.IsNullOrEmpty(connectionName))
+				{
+					fTPMGR.ShowFtpContextMenu(connectionName, item);
+					return;
+				}
+			}
+
+			// 获取对应的TreeView
+			var tree = listView == uiManager.LeftList ? uiManager.LeftTree : uiManager.RightTree;
+			TreeNode? node = tree.SelectedNode;
+
+			if (node == null) return;
+
+			// 回收站特殊处理
+			if (node.Text.Equals("回收站"))
+			{
+				showCtxMenuOnRecyclebin();
+				return;
+			}
+
+			// 获取文件信息
+			var file = (item.Tag as LvItemTag)?.File;
+			string itemPath = file?.FullPath ?? "";
+
+			// 查找对应的树节点
+			TreeNode? targetNode = FindTreeNode(node.Nodes, item.Text);
+
+			if (targetNode != null)
+			{
+				ShowContextMenuOnTreeview(targetNode);
+			}
+			else
+			{
+				// 压缩包文件特殊处理
+				if (CurrentFullpath.GetFileSource(LRflag) is WcxArchiveFileSource)
+				{
+					ShowCtxMenuOnWcxListview(file);
+				}
+				else
+				{
+					ShowCtxMenuOnListview(itemPath);
+				}
+			}
+		}
 		public void ListView_MouseUp(object? sender, MouseEventArgs e)
 		{
 			if (sender is not ListView listView) return;
@@ -1560,50 +1613,51 @@ namespace zfile
 			{
 				if (item != null)
 				{
-					listView.FocusedItem = item;
-					uiManager.isleft = listView.Name.Equals("L");	//bugfix: 点击右键时强制更新LRFLAG, 否则可能导致实际操作的面板和LRFLAG指定的面板不一致
-					// 检查是否是FTP路径
-					if (CurrentFullpath[LRflag].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
-					{
-						// 从当前目录中提取连接名称
-						string connectionName = ExtractFtpConnectionName(CurrentFullpath[LRflag]);
-						if (!string.IsNullOrEmpty(connectionName))
-						{
-							// 显示FTP右键菜单
-							fTPMGR.ShowFtpContextMenu(connectionName, item);
-							return;
-						}
-					}
+					ShowContextMenu(listView, item);
+					//listView.FocusedItem = item;
+					//uiManager.isleft = listView.Name.Equals("L");	//bugfix: 点击右键时强制更新LRFLAG, 否则可能导致实际操作的面板和LRFLAG指定的面板不一致
+					//// 检查是否是FTP路径
+					//if (CurrentFullpath[LRflag].StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
+					//{
+					//	// 从当前目录中提取连接名称
+					//	string connectionName = ExtractFtpConnectionName(CurrentFullpath[LRflag]);
+					//	if (!string.IsNullOrEmpty(connectionName))
+					//	{
+					//		// 显示FTP右键菜单
+					//		fTPMGR.ShowFtpContextMenu(connectionName, item);
+					//		return;
+					//	}
+					//}
 
-					var tree1 = listView == uiManager.LeftList ? uiManager.LeftTree : uiManager.RightTree;
-					// Find corresponding TreeNode for the clicked ListView item
-					TreeNode? node = tree1.SelectedNode;
-					if (node != null)
-					{
-						if (node.Text.Equals("回收站"))
-						{
-							showCtxMenuOnRecyclebin();
-							return;
-						}
-						var file = (item.Tag as LvItemTag)?.File;
-						string iPath = file?.FullPath ?? ""; 
-						// Get corresponding TreeNode for this path
-						TreeNode? targetNode = FindTreeNode(node.Nodes, item.Text);
-						if (targetNode != null)
-							ShowContextMenuOnTreeview(targetNode, e.Location);
-						else
-						{
-							// If no corresponding node found, use path to show context menu
-							if (CurrentFullpath.GetFileSource(LRflag) is WcxArchiveFileSource)
-							{
-								ShowCtxMenuOnWcxListview(file);
-								return;
-							}
-							ShowCtxMenuOnListview(iPath, e.Location);
-						}
-					}
+					//var tree1 = listView == uiManager.LeftList ? uiManager.LeftTree : uiManager.RightTree;
+					//// Find corresponding TreeNode for the clicked ListView item
+					//TreeNode? node = tree1.SelectedNode;
+					//if (node != null)
+					//{
+					//	if (node.Text.Equals("回收站"))
+					//	{
+					//		showCtxMenuOnRecyclebin();
+					//		return;
+					//	}
+					//	var file = (item.Tag as LvItemTag)?.File;
+					//	string iPath = file?.FullPath ?? ""; 
+					//	// Get corresponding TreeNode for this path
+					//	TreeNode? targetNode = FindTreeNode(node.Nodes, item.Text);
+					//	if (targetNode != null)
+					//		ShowContextMenuOnTreeview(targetNode);
+					//	else
+					//	{
+					//		// If no corresponding node found, use path to show context menu
+					//		if (CurrentFullpath.GetFileSource(LRflag) is WcxArchiveFileSource)
+					//		{
+					//			ShowCtxMenuOnWcxListview(file);
+					//			return;
+					//		}
+					//		ShowCtxMenuOnListview(iPath);
+					//	}
+					//}
 				}
-				return;
+				//return;
 			}
 		}
 		private void showCtxMenuOnRecyclebin()

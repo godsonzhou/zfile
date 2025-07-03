@@ -129,6 +129,7 @@ namespace zfile
 		public bool isThumbs;
 		private bool disposed = false;
 		public HotDirManager hotDirManager;
+		public bool isquicksearch;
 
 		//public event Action<string>? DriveLabelChanged; // 盘符如"C:"
 

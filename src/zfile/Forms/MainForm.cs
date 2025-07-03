@@ -1809,7 +1809,7 @@ namespace zfile
 				var t = DateTime.Now;
 				TreeNode? foundNode = FindTreeNodeByFullPath(nodes, path);
 				////if (foundNode != null) 
-				Debug.Print($"find tree node took {(DateTime.Now - t).Milliseconds} ms");
+				Debug.Print($"find tree node {path} took {(DateTime.Now - t).Milliseconds} ms");
 				return foundNode;
 				//return FindTreeNodeByFullPath(nodes, path);
 			}
@@ -2975,7 +2975,7 @@ namespace zfile
 			if ((filesource is FtpFileSource || filesource is WcxArchiveFileSource) && isViaTemp)
 			{
 				// 使用FtpCopyOutOperation下载文件到临时目录
-				var tempFiles = DownloadFilesToTemp(filesource, originalFiles);
+				var tempFiles = DownloadFilesToTemp(filesource, originalFiles); 
 				if (tempFiles.Count > 0)
 					return tempFiles;
 			}
@@ -3271,14 +3271,14 @@ namespace zfile
 					//refresh the treeview
 					var node = uiManager.LeftTree.SelectedNode;
 					LoadSubDirectories(node, out _, uiManager.LeftList);
-					var fs = CurrentFullpath.GetFileSource("L");///////////////////////////////////
-					if (LeftFileSource != fs)
-					{
-						Debug.Print($"WARNING: filesource CHANGED in refreshpanel {LeftFileSource} -> {fs}");
-						LeftFileSource = fs;
-					}
-					else
-						Debug.Print("unnecessary filesource assignment in refreshpanel");
+					//var fs = CurrentFullpath.GetFileSource("L");///////////////////////////////////
+					//if (LeftFileSource != fs)
+					//{
+					//	Debug.Print($"WARNING: filesource CHANGED in refreshpanel {LeftFileSource} -> {fs}");
+					//	LeftFileSource = fs;
+					//}
+					//else
+					//	Debug.Print("unnecessary filesource assignment in refreshpanel");
 
 					// 使用 FileSource 架构刷新左面板
 					LoadListViewByFileSource(path, uiManager.LeftList, uiManager.LeftTree.SelectedNode);
@@ -3297,7 +3297,7 @@ namespace zfile
 					//refresh the treeview
 					var node = uiManager.RightTree.SelectedNode;
 					LoadSubDirectories(node, out _, uiManager.RightList);
-					RightFileSource = CurrentFullpath.GetFileSource("R");///////////////////////////////////
+					//RightFileSource = CurrentFullpath.GetFileSource("R");///////////////////////////////////
 
 					// 使用 FileSource 架构刷新右面板
 					LoadListViewByFileSource(path, uiManager.RightList, uiManager.RightTree.SelectedNode);

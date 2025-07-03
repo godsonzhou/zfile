@@ -989,8 +989,8 @@ public class FileEntry : IDisposable, IFileEntry
 	}
 
 	public bool IsReadOnly => _supportedProperties.HasFlag(FilePropertiesTypes.Attributes) && (Attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly;
-	
-	public bool Exists { get; internal set; }
+
+	public bool Exists => IsDirectory ? Directory.Exists(FullPath) : File.Exists(FullPath);
 
 	/// <summary>
 	/// Disposes resources used by the FileEntry.

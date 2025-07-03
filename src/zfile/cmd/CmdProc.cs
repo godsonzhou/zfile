@@ -431,7 +431,7 @@ namespace zfile
 					do_cm_register();
 					break;
 				case 690: // cm_about
-					MessageBox.Show("Zfile v0.1.3.14 \r\n Author: zhou yaping \r\n Email: zhouyaping822@gmail.com");
+					MessageBox.Show("Zfile v0.1.7.4 \r\n Author: zhou yaping \r\n Email: zhouyaping822@gmail.com");
 					break;
 				case 700: // cm_ChangeStartMenu
 					owner.uiManager.EditMenu(0);//set to 1 to change mainmenu

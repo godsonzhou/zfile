@@ -385,6 +385,7 @@ namespace zfile
 			if (path.Contains("%"))
 			{
 				path = path.Replace("%COMMANDER_PATH%\\", Constants.ZfileCfgPath, StringComparison.OrdinalIgnoreCase);
+				path = path.Replace("%COMMANDER_INI%", Constants.ZfileCfgPath + "WINCMD.INI", StringComparison.OrdinalIgnoreCase);
 				path = Environment.ExpandEnvironmentVariables(path);
 				//将path中的%环境变量%替换为实际路径
 				//path = ReplaceEnvironmentVariables(path);

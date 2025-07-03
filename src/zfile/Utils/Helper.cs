@@ -87,7 +87,7 @@ namespace zfile
 				// 定义最大读取字节数
 				const int maxBytesToRead = 4096;
 				// 以二进制模式打开文件
-				using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+				using (FileStream fs = new (filePath, FileMode.Open, FileAccess.Read))
 				{
 					// 确保文件有内容
 					if (fs.Length == 0) return true;
@@ -122,7 +122,7 @@ namespace zfile
 			MatchCollection matches = Regex.Matches(input, pattern);
 
 			// 用于存储提取的内容
-			StringBuilder result = new StringBuilder();
+			StringBuilder result = new ();
 
 			// 遍历所有匹配结果
 			foreach (Match match in matches)
@@ -243,30 +243,30 @@ namespace zfile
 			}
 		}
 
-		public static void WriteConfigToFile(string path, List<MenuInfo> list)
+		public static void WriteConfigToFile(string path, List<MenuInfo> list, Encoding encoding)
 		{
 			var cfg = Write_em_Config(list);
-			File.WriteAllText(path, cfg);
+			File.WriteAllText(path, cfg, encoding);
 		}
-		public static List<MenuInfo> ReadConfigFromFile(string filePath)
+		public static List<MenuInfo> ReadConfigFromFile(string filePath, Encoding encoding)
 		{
 			try
 			{
 				// 读取文件内容
-				string configContent = File.ReadAllText(filePath);
+				string configContent = File.ReadAllText(filePath, encoding);
 				// 调用 ReadConfig 函数处理配置内容
 				return Read_em_Config(configContent);
 			}
 			catch (Exception ex)
 			{
 				// 若读取文件或处理配置过程中出现异常，打印错误信息
-				Console.WriteLine($"读取配置文件时发生错误: {ex.Message}");
-				return new List<MenuInfo>();
+				Debug.WriteLine($"读取配置文件时发生错误: {ex.Message}");
+				return [];
 			}
 		}
 		public static List<MenuInfo> Read_em_Config(string config)
 		{
-			List<MenuInfo> menuInfos = new List<MenuInfo>();
+			List<MenuInfo> menuInfos = [];
 			string[] sections = Regex.Split(config, @"\[(em_[^\]]+)\]");
 
 			for (int i = 1; i < sections.Length; i += 2)
@@ -393,20 +393,20 @@ namespace zfile
 		}
 		public static List<MenuInfo> GetMenuInfoFromList(string[] lines)
 		{
-			List<MenuInfo> menuInfos = new List<MenuInfo>();
+			List<MenuInfo> menuInfos = [];
 
 			try
 			{
 				// 用于匹配按钮信息的正则表达式
-				Regex buttonRegex = new Regex(@"button(\d+)=(.*)");
-				Regex cmdRegex = new Regex(@"cmd(\d+)=(.*)"); //also can be used by dynamic menu contruction
-				Regex paramRegex = new Regex(@"param(\d+)=(.*)"); //also can be used by dynamic menu contruction
-				Regex pathRegex = new Regex(@"path(\d+)=(.*)");
-				Regex iconicRegex = new Regex(@"iconic(\d+)=(\d+)");
-				Regex menuRegex = new Regex(@"menu(\d+)=(.*)"); // also can be used by dynamic menu contruction
+				Regex buttonRegex = new (@"button(\d+)=(.*)");
+				Regex cmdRegex = new (@"cmd(\d+)=(.*)"); //also can be used by dynamic menu contruction
+				Regex paramRegex = new (@"param(\d+)=(.*)"); //also can be used by dynamic menu contruction
+				Regex pathRegex = new (@"path(\d+)=(.*)");
+				Regex iconicRegex = new (@"iconic(\d+)=(\d+)");
+				Regex menuRegex = new (@"menu(\d+)=(.*)"); // also can be used by dynamic menu contruction
 
 				// 用于存储每个按钮的信息
-				Dictionary<int, MenuInfo> buttonInfoMap = new Dictionary<int, MenuInfo>();
+				Dictionary<int, MenuInfo> buttonInfoMap = [];
 
 				foreach (string line in lines)
 				{
@@ -755,12 +755,14 @@ namespace zfile
 
 			return rowCount;
 		}
-		public static void WriteSectionContent(string filePath, string sectionContent, List<string> content)
+		public static void WriteSectionContent(string filePath, string sectionContent, List<string> content, Encoding? encoding = null)
 		{
 			try
 			{
-				// 读取文件内容
-				string fileContent = File.ReadAllText(filePath, Encoding.GetEncoding("GB2312"));
+				if(encoding == null)
+					encoding = Encoding.Unicode; // 默认使用Unicode编码
+												 // 读取文件内容
+				string fileContent = File.ReadAllText(filePath, encoding);
 				// 查找目标节起始位置
 				int sectionStartIndex = fileContent.IndexOf(sectionContent);
 				if (sectionStartIndex == -1)
@@ -779,22 +781,23 @@ namespace zfile
 				fileContent = fileContent.Remove(sectionStartIndex + sectionContent.Length + 1, sectionEndIndex - sectionStartIndex - sectionContent.Length - 2);
 				fileContent = fileContent.Insert(sectionStartIndex + sectionContent.Length + 1, "\r\n" + string.Join("\r\n", content)) + "\r\n";
 				// 写入文件
-				File.WriteAllText(filePath, fileContent, Encoding.GetEncoding("GB2312"));
+				File.WriteAllText(filePath, fileContent, encoding); //bugfix: wincmd.ini wincmd_chn.ini use unicode encoding, wcxftp.ini use utf8 encoding, the other use ansi encoding
 			}
 			catch (Exception ex)
 			{
 				Console.WriteLine($"写入文件时发生错误: {ex.Message}");
 			}
 		}
-		public static List<string> ReadSectionContent(string filePath, string targetSection)
+		public static List<string> ReadSectionContent(string filePath, string targetSection, Encoding? encoding = null)
 		{
-			List<string> sectionContent = new List<string>();
+			List<string> sectionContent = [];
 			bool isInTargetSection = false;
-
+			if(encoding == null)
+				encoding = Encoding.Unicode; // 默认使用Unicode编码
 			try
 			{
 				// 打开文件并逐行读取
-				using (StreamReader reader = new StreamReader(filePath, Encoding.GetEncoding("GB2312")))
+				using (StreamReader reader = new (filePath, encoding))
 				{
 					string line;
 					while ((line = reader.ReadLine()) != null)
@@ -836,7 +839,7 @@ namespace zfile
 		public static Dictionary<string, string> GetSpecFolderPaths()
 		{
 			//遍历ShellSpecialFolders枚举值，获取对应的路径并存入一个列表
-			Dictionary<string, string> specFolderPaths = new Dictionary<string, string>();
+			Dictionary<string, string> specFolderPaths = [];
 			foreach (ShellSpecialFolders folder in Enum.GetValues(typeof(ShellSpecialFolders)))
 			{
 				string path = w32.GetSpecialFolderPath(IntPtr.Zero, folder);
@@ -852,7 +855,7 @@ namespace zfile
 		}
 		public static Dictionary<string, string> GetSpecPathFromReg()
 		{
-			Dictionary<string, string> specialpaths = new Dictionary<string, string>();
+			Dictionary<string, string> specialpaths = [];
 			RegistryKey folders;
 			folders = OpenRegistryPath(Registry.CurrentUser, @"\software\microsoft\windows\currentversion\explorer\shell folders");
 			//Windows用户桌面路径

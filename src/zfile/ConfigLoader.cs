@@ -37,7 +37,7 @@ namespace zfile
 
 		public CFGLOADER()
 		{
-			sections = new List<ConfigSection>();
+			sections = [];
 		}
 
 		public CFGLOADER(string filePath) : this()
@@ -158,7 +158,7 @@ namespace zfile
 						var groupKey = match.Groups[1].Value;
 						if (!groupedItems.ContainsKey(groupKey))
 						{
-							groupedItems[groupKey] = new List<ConfigItem>();
+							groupedItems[groupKey] = [];
 						}
 						groupedItems[groupKey].Add(item);
 					}
@@ -166,12 +166,12 @@ namespace zfile
 			}
 			return groupedItems;
 		}
-		public static CmdTable LoadCmdTable(string totalCmdPath, string wcmIconsPath)
+		public static CmdTable LoadCmdTable(string totalCmdPath, string wcmIconsPath, Encoding encoding)
 		{
 			var cmdTable = new CmdTable();
-			var zhDescDict = LoadZhDesc(wcmIconsPath);
+			var zhDescDict = LoadZhDesc(wcmIconsPath, encoding);
 
-			using (var reader = new StreamReader(totalCmdPath, Encoding.GetEncoding("GB2312")))
+			using (var reader = new StreamReader(totalCmdPath, encoding))
 			{
 				string? line;
 				while ((line = reader.ReadLine()) != null)
@@ -196,11 +196,11 @@ namespace zfile
 			return cmdTable;
 		}
 
-		private static Dictionary<int, string> LoadZhDesc(string wcmIconsPath)
+		private static Dictionary<int, string> LoadZhDesc(string wcmIconsPath, Encoding encoding)
 		{
 			var zhDescDict = new Dictionary<int, string>();
 
-			using (var reader = new StreamReader(wcmIconsPath, Encoding.GetEncoding("GB2312")))
+			using (var reader = new StreamReader(wcmIconsPath, encoding))
 			{
 				string? line;
 				while ((line = reader.ReadLine()) != null)

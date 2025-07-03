@@ -28,18 +28,20 @@ namespace zfile
 		public CmdProc(MainForm owner)
 		{
 			cmdTable = new CmdTable();
-			InitializeCmdTable(Constants.ZfileCfgPath + "TOTALCMD.INC", Constants.ZfileCfgPath + "WCMD_CHN.INC");//读取cm_开头的内部命令与ID的对应关系
-			emCmds = Helper.ReadConfigFromFile(Constants.ZfileCfgPath + "Wcmd_chn.ini");
+			// 获取CP936编码实例
+			Encoding cp936 = Encoding.GetEncoding(936);
+			InitializeCmdTable(Constants.ZfileCfgPath + "TOTALCMD.INC", Constants.ZfileCfgPath + "WCMD_CHN.INC", cp936);//读取cm_开头的内部命令与ID的对应关系
+			emCmds = Helper.ReadConfigFromFile(Constants.ZfileCfgPath + "Wcmd_chn.ini", Encoding.Unicode);
 			this.owner = owner;
 		}
 		public void SaveEmCmdCfg()
 		{
-			Helper.WriteConfigToFile(Constants.ZfileCfgPath + "Wcmd_chn.ini", emCmds);
+			Helper.WriteConfigToFile(Constants.ZfileCfgPath + "Wcmd_chn.ini", emCmds, Encoding.Unicode);
 		}
 
-		public void InitializeCmdTable(string totalCmdPath, string wcmIconsPath)
+		public void InitializeCmdTable(string totalCmdPath, string wcmIconsPath, Encoding encoding)
 		{
-			cmdTable = CFGLOADER.LoadCmdTable(totalCmdPath, wcmIconsPath);
+			cmdTable = CFGLOADER.LoadCmdTable(totalCmdPath, wcmIconsPath, encoding);
 		}
 
 		public CmdTableItem? GetCmdByName(string cmdName)
@@ -625,6 +627,9 @@ namespace zfile
 				case 2911: // 命令ID=2911,Name=cm_viskeybuttons
 					cm_viskeybuttons();
 					break;
+				case 2912: // 命令ID=2912,Name=cm_editpath
+					cm_editpath();
+					break;
 				case 2915: // 命令ID =2915,Name =cm_showquicksearch
 					cm_showquicksearch();
 					break;
@@ -778,6 +783,11 @@ namespace zfile
 						MessageBox.Show($"命令ID = {cmdId} 尚未实现", "提示");
 					break;
 			}
+		}
+
+		private void cm_editpath()
+		{
+			throw new NotImplementedException();
 		}
 
 		private void cm_contextmenu()

@@ -24,6 +24,10 @@ namespace Sheng.Winform.Controls
     {
         public static List<string> FtpDrives = new List<string>();
 		public static Dictionary<string, List<string>> WcxVirtualDirs = new Dictionary<string, List<string>>();
+		public void RefreshDriveLabel()
+		{
+	
+		}
         public void UpdateDrives(string currentPath = null)
         {
             SetChildren("此电脑", Environment.GetLogicalDrives().Concat(FtpDrives).ToList());

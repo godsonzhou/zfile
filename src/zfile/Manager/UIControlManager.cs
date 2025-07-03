@@ -130,6 +130,8 @@ namespace zfile
 		private bool disposed = false;
 		public HotDirManager hotDirManager;
 
+		//public event Action<string>? DriveLabelChanged; // 盘符如"C:"
+
 		public UIControlManager(MainForm form)
 		{
 			this.form = form;
@@ -142,10 +144,26 @@ namespace zfile
 
 			LeftPathTextBox.SelectionChange += LeftPathTextBox_PathChanged;
 			RightPathTextBox.SelectionChange += RightPathTextBox_PathChanged;
-
+			//DriveLabelChanged += RefreshDriveLabelOnPathTextBox;
 			LeftFileView = new FileView(LeftList);
 			RightFileView = new FileView(RightList);
 			SetArgs();
+		}
+
+		public void RefreshDriveLabelOnPathTextBox(string driveLetter)
+		{
+			// 检查左侧
+			if (LeftPathTextBox.CurrentNode != null &&
+				LeftPathTextBox.CurrentNode.UniqueID.StartsWith(driveLetter, StringComparison.OrdinalIgnoreCase))
+			{
+				LeftPathTextBox.RefreshDriveLabel(); // 或调用自定义刷新方法
+			}
+			// 检查右侧
+			if (RightPathTextBox.CurrentNode != null &&
+				RightPathTextBox.CurrentNode.UniqueID.StartsWith(driveLetter, StringComparison.OrdinalIgnoreCase))
+			{
+				RightPathTextBox.RefreshDriveLabel(); // 或调用自定义刷新方法
+			}
 		}
 		/*
 		注意： 所有参数现在都支持下面表单中的子字段：~开始位置，长度。例如：％N:~2,5 或 ％N:~-8,5。要在长度值之后直接追加数字，请使用另一个 "~" 字符，例如：％N:~2,5~2。负值从字符串的末端开始计算。示例：％P:~0,-1 表示从路径中去除反斜杠。

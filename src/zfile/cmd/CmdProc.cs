@@ -800,7 +800,56 @@ namespace zfile
 
 		private void cm_volumeid()
 		{
-			throw new NotImplementedException();
+			try
+			{
+				// 1. 获取当前激活面板路径
+				string currentPath = owner.uiManager.ActivePathTextBox.CurrentNode.UniqueID;
+				if (string.IsNullOrEmpty(currentPath) || currentPath.Length < 2 || currentPath[1] != ':')
+				{
+					MessageBox.Show("无法识别当前驱动器。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					return;
+				}
+				string driveLetter = currentPath.Substring(0, 2); // 如 "C:"
+
+				// 2. 获取当前卷标
+				var drive = new DriveInfo(driveLetter);
+				string oldLabel = drive.IsReady ? drive.VolumeLabel : "";
+
+				// 3. 弹出输入框
+				string prompt = $"请输入新的卷标（当前卷标：{oldLabel}）：";
+				using var inputBox = new InputBox("更改卷标", prompt, oldLabel);
+				if (inputBox.ShowDialog() != DialogResult.OK)
+					return;
+				string newLabel = inputBox.InputText.Trim();
+
+				// 4. 检查合法性
+				if (string.IsNullOrEmpty(newLabel))
+				{
+					MessageBox.Show("卷标不能为空。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+					return;
+				}
+				if (newLabel.Length > 32)
+				{
+					MessageBox.Show("卷标长度不能超过32个字符。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+					return;
+				}
+				char[] invalidChars = Path.GetInvalidFileNameChars().Concat(new[] { '\\', '/', ':', '*', '?', '"', '<', '>', '|' }).ToArray();
+				if (newLabel.IndexOfAny(invalidChars) >= 0)
+				{
+					MessageBox.Show("卷标包含非法字符。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+					return;
+				}
+
+				// 5. 设置卷标
+				drive.VolumeLabel = newLabel;
+				MessageBox.Show($"卷标已成功更改为：{newLabel}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				// ... 卷标变更成功后
+				owner.uiManager.RefreshDriveLabelOnPathTextBox(driveLetter);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"更改卷标失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
 		}
 
 		private void cm_rightopendrives()

@@ -451,12 +451,12 @@ namespace zfile.Forms
 				Dock = DockStyle.Fill,
 				Visible = false
 			};
-			_mainPanel.Controls.Add(container);
 		
 			// 添加控件到窗体
 			_mainPanel.Controls.Add(_imagePanel);
 			_mainPanel.Controls.Add(_textPanel);
 			_mainPanel.Controls.Add(_hexPanel);
+			_mainPanel.Controls.Add(container);
 			Controls.Add(_mainPanel);
 			Controls.Add(_toolStrip);
 			Controls.Add(_menuStrip);

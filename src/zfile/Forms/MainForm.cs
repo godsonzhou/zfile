@@ -220,7 +220,7 @@ namespace zfile
 	
 		private Dictionary<string, List<string>> wcxarchiveTreeNodes => ShengAddressBarStrip.WcxVirtualDirs;
 		private bool isRightClickSelecting = false;
-
+		private TreeNode lastHighlightedNode;
 		public enum TreeSearchScope
 		{
 			thispc = 0,
@@ -1301,6 +1301,13 @@ namespace zfile
 			if (ToolbarManager.cm_srcthumbs_Button != null)
 				ToolbarManager.cm_srcthumbs_Button.CheckState = LV.View == View.Tile ? CheckState.Checked : CheckState.Unchecked;
 		}
+		private void SetHighlightNodeForTreeview(TreeView treeView, TreeNode node)
+		{
+			ClearTreeViewHighlight(treeView);
+			node.BackColor = SystemColors.Highlight;
+			node.ForeColor = SystemColors.HighlightText;
+			treeView.Refresh(); // 强制重绘
+		}
 		public void TreeView_AfterSelect(object? sender, TreeViewEventArgs e)
 		{
 			if (e.Node?.Tag == null) return;
@@ -1311,17 +1318,28 @@ namespace zfile
 				{
 					var LR = treeView.Name;
 					// 清除所有节点的高亮状态
-					ClearTreeViewHighlight(treeView);
-					e.Node.BackColor = SystemColors.Highlight;
-					e.Node.ForeColor = SystemColors.HighlightText;
-					treeView.Refresh(); // 强制重绘
+					//var t = DateTime.Now;
+					//ClearTreeViewHighlight(treeView);
+					//e.Node.BackColor = SystemColors.Highlight;
+					//e.Node.ForeColor = SystemColors.HighlightText;
+					//treeView.Refresh(); // 强制重绘
+					SetHighlightNodeForTreeview(treeView, e.Node);
+					//Debug.Print((DateTime.Now - t).Milliseconds.ToString());	//5-6ms
+					//if (lastHighlightedNode != null)
+					//{
+					//	lastHighlightedNode.BackColor = SystemColors.Window;
+					//	lastHighlightedNode.ForeColor = SystemColors.WindowText;
+					//}
+					//e.Node.BackColor = SystemColors.Highlight;
+					//e.Node.ForeColor = SystemColors.HighlightText;
+					//lastHighlightedNode = e.Node;
 
 					// 使用 FileSourceManager 获取合适的 FileSource
 					var path = Helper.getFSpathbyTree(e.Node);
 					if (string.IsNullOrEmpty(path))
 						return;
-					if (!isRightClickSelecting)
-						ChangePath(path, LR, e.Node);
+					//if (!isRightClickSelecting)	//bugfix: 会导致treeview.selectednode 和listview显示的内容不一致，从而导致双击listviewitem时无法正确执行findtreenode(treeview.selectednode, item.text)
+					ChangePath(path, LR, e.Node);
 					// 右键选择后重置标志
 					isRightClickSelecting = false;
 				}
@@ -1689,16 +1707,17 @@ namespace zfile
 				{
 					// 设置选中状态并高亮显示
 					treeView.SelectedNode = node;
-					ClearTreeViewHighlight(treeView);
-					node.BackColor = SystemColors.Highlight;
-					node.ForeColor = SystemColors.HighlightText;
-					treeView.Refresh(); // 强制重绘
+					//ClearTreeViewHighlight(treeView);
+					//node.BackColor = SystemColors.Highlight;
+					//node.ForeColor = SystemColors.HighlightText;
+					//treeView.Refresh(); // 强制重绘
+					SetHighlightNodeForTreeview(treeView, node);
 					node.EnsureVisible(); // 确保节点可见
 					node.Expand();
 
 					// 更新当前目录和ListView
 					SelectedNode = node;
-					RefreshPanel(listView);
+					//RefreshPanel(listView);/////////////////////////////////////////////////////////
 				}
 
 				// 更新监视器
@@ -1739,16 +1758,19 @@ namespace zfile
 
 		public TreeNode? FindTreeNodeByFullPath(TreeNodeCollection nodes, string path)
 		{
+			//var t = DateTime.Now;
 			var pathpart = path.Split('\\', StringSplitOptions.RemoveEmptyEntries);
 			foreach (var n in nodes)
 			{
 				if (n is TreeNode node && node.Text.Equals(pathpart[0], StringComparison.OrdinalIgnoreCase))
 				{
-					if (pathpart.Length == 1) return node;
+					if (pathpart.Length == 1) 
+						return node;
 					LoadSubDirectories(node, out _);
 					node.Expand();
 					TreeNode? foundNode = FindTreeNodeByFullPath(node.Nodes, path.Substring(path.IndexOf('\\') + 1));
-					if (foundNode != null) return foundNode;
+					if (foundNode != null) 
+						return foundNode;
 				}
 			}
 			return null;
@@ -1784,8 +1806,12 @@ namespace zfile
 			}
 			else
 			{   // Get the first part of the path, find the node, expand it, and call FindTreeNode recursively
+				var t = DateTime.Now;
 				TreeNode? foundNode = FindTreeNodeByFullPath(nodes, path);
-				if (foundNode != null) return foundNode;
+				////if (foundNode != null) 
+				Debug.Print($"find tree node took {(DateTime.Now - t).Milliseconds} ms");
+				return foundNode;
+				//return FindTreeNodeByFullPath(nodes, path);
 			}
 			return null;
 		}
@@ -2081,6 +2107,7 @@ namespace zfile
 		{
 			newwcxnodes = [];
 			Debug.Print($"load sub dirs [{node.TreeView.Name}] for treenode : {node.FullPath}");
+			var t = DateTime.Now;
 			// 创建一个新的节点集合，用于存储需要保留的节点
 			List<TreeNode> nodesToKeep = [];
 			if (lv != null)
@@ -2286,7 +2313,7 @@ namespace zfile
 				uiManager.LeftPathTextBox.SetChildren(fullFSpath, childrenpath);
 			else
 				uiManager.RightPathTextBox.SetChildren(fullFSpath, childrenpath);
-	
+			Debug.Print($"load sub dir took {(DateTime.Now - t).Milliseconds} ms");
 			return nodesToKeep;
 		}
 		
@@ -2372,7 +2399,6 @@ namespace zfile
 				{
 					var file = (item.Tag as LvItemTag)?.File;
 					var itemFullName = file?.FullPath;
-					Debug.Print($"process visible items for thumbnails >>> {itemFullName}");
 					var isdir = (file?.IsDirectory) ?? false;
 					if (isdir)
 					{
@@ -2408,6 +2434,7 @@ namespace zfile
 							itemsForJob.Add(itemFullName);
 							lvitemsForJob.Add(item);
 							jobtypelist.Add(BackgroundJobManager.JobType.Thumbnail);
+							Debug.Print($"process visible items for thumbnails >>> {itemFullName}");
 						}
 					}
 				}
@@ -2426,7 +2453,7 @@ namespace zfile
 		{
 			List<string> subdirs = [];
 			if (string.IsNullOrEmpty(path)) return null;
-
+			var t = DateTime.Now;
 			// 确定当前面板
 			bool isLeftPanel = listView == uiManager.LeftList;
 			var fileSource = CurrentFullpath.GetFileSource(listView.Name);
@@ -2493,6 +2520,7 @@ namespace zfile
 			{
 				Debug.Print($"加载文件列表失败: {ex.Message}");
 			}
+			Debug.Print($"LoadListViewByFileSource took {(DateTime.Now - t).Milliseconds} ms");
 			return subdirs;
 		}
 

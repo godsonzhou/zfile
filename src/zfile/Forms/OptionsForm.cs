@@ -830,12 +830,14 @@ namespace zfile
 							modifiers.Contains("A"),
 							modifiers.Contains("S"),
 							hasWin,
-							Helper.ConvertStringToKey(key),
+							//Helper.ConvertStringToKey(key),
+							//Helper.ConvertKeyStringToEnum(key),
+							key,
 							cmdName
 						);
-
+						
 						// 更新热键管理器
-						mainForm.keyManager.UpdateKeyMapping(cmdName, keyStr);
+						mainForm.keyManager.UpdateKeyMapping(cmdName, Helper.ConvertKeyToString(Helper.ConvertKeyStringToEnum(key)).ToUpper());
 
 						// 选中新添加的行
 						grid.ClearSelection();

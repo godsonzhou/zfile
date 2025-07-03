@@ -545,27 +545,41 @@ namespace zfile
 			switch (str)
 			{
 				case "Oem3":
-				case "Oemtilde": return "Oem_us`~";	// can also be Oem3
-				case "Multiply": return "*";
-				case "Divide": return "/";
+				case "Oemtilde": 
+					return "Oem_us`~";	// can also be Oem3
+				case "Multiply": 
+					return "*";
+				case "Divide": 
+					return "/";
 
-				case "Oemcomma": return ",";
-				case "OemPeriod": return ".";
-				case "OemMinus": return "-";
-				case "Oemplus": return "=";
-					case "Oem4":
-				case "OemOpenBrackets": return "[";
-					case "Oem6":
-				case "OemCloseBrackets": return "]";
+				case "Oemcomma": 
+					return ",";
+				case "OemPeriod": 
+					return ".";
+				case "OemMinus": 
+					return "-";
+				case "Oemplus": 
+					return "=";
+				case "Oem4":
+				case "OemOpenBrackets": 
+					return "[";
+				case "Oem6":
+				case "OemCloseBrackets": 
+					return "]";
 				case "Oem5":
-				case "OemPipe": return "\\";
+				case "OemPipe": 
+					return "\\";
 				case "Oem1":
-				case "OemSemicolon": return ";";
-					case "Oem7":
-				case "OemQuotes": return "'";
+				case "OemSemicolon": 
+					return ";";
+				case "Oem7":
+				case "OemQuotes": 
+					return "'";
 				case "Oem2":
-				case "OemQuestion": return "Oem_us/?";
-				case "Escape": return "ESC";
+				case "OemQuestion": 
+					return "Oem_us/?";
+				case "Escape": 
+					return "ESC";
 				default:
 					// 如果是单个字母,转换为大写
 					if (str.Length == 1)

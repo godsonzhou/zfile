@@ -560,13 +560,24 @@ namespace zfile
 			this.KeyDown += new KeyEventHandler(Form1_KeyDown);
 			this.KeyUp += new KeyEventHandler(Form1_KeyUp);
 		}
-	
+		private bool isDigitalKey(Keys key)
+		{
+			return (key >= Keys.D0 && key <= Keys.D9);
+		}
+		private bool isAlphabitKey(Keys key)
+		{
+			return key >= Keys.A && key <= Keys.Z;
+		}
+		private bool isDigitalOrAlphabitKey(Keys key)
+		{
+			return isDigitalKey(key) || isAlphabitKey(key);
+		}
 		private void Form1_KeyUp(object? sender, KeyEventArgs e)
 		{
 			var specKey = ((e.KeyCode == Keys.LWin || e.KeyCode == Keys.RWin) ? "#" : "") + (e.Alt ? "A" : "") + (e.Control ? "C" : "") + (e.Shift ? "S" : "");
 			var mainKey = Helper.ConvertKeyToString(e.KeyCode);
 			Debug.Print($"key {specKey} {mainKey} pressed");
-			if (mainKey.Equals(string.Empty))
+			if (mainKey.Equals(string.Empty) || (uiManager.isquicksearch && string.IsNullOrWhiteSpace(specKey) && isDigitalOrAlphabitKey(e.KeyCode)))	//quicksearch mode, 不处理普通按钮
 			{
 				//e.Handled = true;
 				return;

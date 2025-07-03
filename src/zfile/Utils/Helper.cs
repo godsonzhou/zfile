@@ -87,28 +87,28 @@ namespace zfile
 				// 定义最大读取字节数
 				const int maxBytesToRead = 4096;
 				// 以二进制模式打开文件
-				using (FileStream fs = new (filePath, FileMode.Open, FileAccess.Read))
+				using FileStream fs = new(filePath, FileMode.Open, FileAccess.Read);
+				
+				// 确保文件有内容
+				if (fs.Length == 0) return true;
+				// 读取文件的字节数
+				int bytesToRead = (int)Math.Min(maxBytesToRead, fs.Length);
+				byte[] buffer = new byte[bytesToRead];
+				fs.Read(buffer, 0, bytesToRead);
+				int controlCharCount = 0;
+				// 遍历字节数组
+				foreach (byte b in buffer)
 				{
-					// 确保文件有内容
-					if (fs.Length == 0) return true;
-					// 读取文件的字节数
-					int bytesToRead = (int)Math.Min(maxBytesToRead, fs.Length);
-					byte[] buffer = new byte[bytesToRead];
-					fs.Read(buffer, 0, bytesToRead);
-					int controlCharCount = 0;
-					// 遍历字节数组
-					foreach (byte b in buffer)
+					if (b < 32 && b != 9 && b != 10 && b != 13)
 					{
-						if (b < 32 && b != 9 && b != 10 && b != 13)
-						{
-							controlCharCount++;
-						}
+						controlCharCount++;
 					}
-					// 计算控制字符的比例
-					double controlCharRatio = (double)controlCharCount / bytesToRead;
-					// 若控制字符比例小于阈值，则判定为文本文件
-					return controlCharRatio < 0.05;
 				}
+				// 计算控制字符的比例
+				double controlCharRatio = (double)controlCharCount / bytesToRead;
+				// 若控制字符比例小于阈值，则判定为文本文件
+				return controlCharRatio < 0.05;
+				
 			}
 			catch (Exception)
 			{
@@ -281,7 +281,7 @@ namespace zfile
 				string button = string.Empty;
 				int iconic = 0;
 
-				string[] lines = sectionContent.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+				string[] lines = sectionContent.Split([ '\n', '\r' ], StringSplitOptions.RemoveEmptyEntries);
 				foreach (string line in lines)
 				{
 					if (line.StartsWith("cmd="))
@@ -298,7 +298,7 @@ namespace zfile
 						iconic = line[7..] == null ? 0 : int.Parse(line[7..]);
 				}
 
-				MenuInfo menuInfo = new MenuInfo(sectionName, button, cmd, param, path, iconic, menu);
+				MenuInfo menuInfo = new (sectionName, button, cmd, param, path, iconic, menu);
 				menuInfos.Add(menuInfo);
 			}
 
@@ -792,38 +792,37 @@ namespace zfile
 		{
 			List<string> sectionContent = [];
 			bool isInTargetSection = false;
-			if(encoding == null)
-				encoding = Encoding.Unicode; // 默认使用Unicode编码
+
+			encoding ??= Encoding.Unicode; // 默认使用Unicode编码
 			try
 			{
 				// 打开文件并逐行读取
-				using (StreamReader reader = new (filePath, encoding))
+				using StreamReader reader = new(filePath, encoding);
+				
+				string line;
+				while ((line = reader.ReadLine()) != null)
 				{
-					string line;
-					while ((line = reader.ReadLine()) != null)
+					// 检查是否为节的起始行
+					if (line.StartsWith("[") && line.EndsWith("]"))
 					{
-						// 检查是否为节的起始行
-						if (line.StartsWith("[") && line.EndsWith("]"))
+						string currentSection = line.Substring(1, line.Length - 2);
+						if (currentSection == targetSection)
 						{
-							string currentSection = line.Substring(1, line.Length - 2);
-							if (currentSection == targetSection)
+							isInTargetSection = true;
+						}
+						else
+						{
+							if (isInTargetSection)
 							{
-								isInTargetSection = true;
-							}
-							else
-							{
-								if (isInTargetSection)
-								{
-									// 遇到下一个节，停止收集内容
-									break;
-								}
+								// 遇到下一个节，停止收集内容
+								break;
 							}
 						}
-						else if (isInTargetSection)
-						{
-							// 收集目标节内的内容
-							sectionContent.Add(line);
-						}
+					}
+					else if (isInTargetSection)
+					{
+						// 收集目标节内的内容
+						sectionContent.Add(line);
 					}
 				}
 			}

@@ -173,6 +173,13 @@ namespace zfile
 			// 在这里添加处理命令的逻辑
 			switch (cmdId)
 			{
+				case 131: // 命令ID=131,Name=cm_leftopendrives
+					cm_leftopendrives();
+					break;
+				case 231: // 命令ID=231,Name=cm_rightopendrives
+					cm_rightopendrives();
+					break;
+
 				case 269:   //cm_srcthumbs
 					var isthumbs = owner.uiManager.isThumbs;
 					var istileview = owner.activeListView.View == View.Tile;
@@ -191,6 +198,9 @@ namespace zfile
 				//case 271: // 命令ID = 271, Name = cm_srcfilter
 				//	cm_srcfilter(param);
 				//	break;
+				case 300: // 命令ID=300,Name=cm_srccomments
+					cm_srccomments();
+					break;
 				case 301:   //cm_srcshort
 					owner.SetViewMode(View.List);
 					break;
@@ -202,6 +212,9 @@ namespace zfile
 					break;
 				case 304: //命令ID=304,Name=cm_srcquickview
 					cm_srcquickview();
+					break;
+				case 305: // 命令ID=305,Name=cm_verticalpanels
+					cm_verticalpanels();
 					break;
 				case 311: //命令ID=311,Name=cm_srcexecs
 					cm_srcexecs();
@@ -240,11 +253,17 @@ namespace zfile
 				case 483: // cm_CustomColumnConfig
 					owner.OpenOptions("自定义视图");
 					break;
+				case 488: // 命令ID=488,Name=cm_dirtabsconfig
+					cm_dirtabsconfig();
+					break;
 				case 490:   //cm_config
 					owner.OpenOptions(param);
 					break;
 				case 492: // cm_FontConfig
 					owner.OpenOptions("字体设置");
+					break;
+				case 493: // 命令1D=493,Name=cm_configsavepos
+					cm_configsavepos();
 					break;
 				case 498: // 命令ID = 498, Name = cm_buttonconfig
 					owner.uiManager.toolbarManager.EditToolbar();
@@ -261,6 +280,15 @@ namespace zfile
 					break;
 				case 502: // cm_setattrib
 					cm_setattrib();
+					break;
+				case 504: // 命令ID=504，Name=cm_printfile
+					cm_printfile();
+					break;
+				case 505: // 命令1D=505，Name=cmvolumeid
+					cm_volumeid();
+					break;
+				case 506: // 命令ID =506, Name = cm_sysinfo
+					cm_sysinfo();
 					break;
 				case 508: // cm_packfiles
 					cm_packfiles();
@@ -394,6 +422,9 @@ namespace zfile
 				case 581:
 					do_cm_configchangeinifiles();
 					break;
+				case 582: // 命令ID=582,Name=cm_configsavedirhistory
+					cm_configsavedirhistory();
+					break;
 				case 630:
 					do_cm_register();
 					break;
@@ -481,6 +512,13 @@ namespace zfile
 				case 2026:
 					cm_DirBranch();
 					break;
+				case 2027:  // 命令ID = 2027, Name = cm_printdir
+					cm_printdir();
+					break;
+				case 2028: // 命令ID = 2028,Name = cm_printdirsub
+					cm_printdirsub();
+					break;
+
 				case 2031: // 命令ID=2031，Name = cmsaveselectiontofile
 					cm_saveselectiontofile();
 					break;
@@ -557,6 +595,9 @@ namespace zfile
 					break;
 				case 2600: //命令ID=2600,Name=cm_syncchangedir
 					cm_syncchangedir();
+					break;
+				case 2700: // 命令1D=2700，Name=cmeditcomment
+					cm_editcomment();
 					break;
 				case 2901:
 					cm_visbuttonbar();
@@ -730,6 +771,71 @@ namespace zfile
 						MessageBox.Show($"命令ID = {cmdId} 尚未实现", "提示");
 					break;
 			}
+		}
+
+		private void cm_configsavedirhistory()
+		{
+			throw new NotImplementedException();
+		}
+
+		private void cm_configsavepos()
+		{
+			throw new NotImplementedException();
+		}
+
+		private void cm_verticalpanels()
+		{
+			throw new NotImplementedException();
+		}
+
+		private void cm_srccomments()
+		{
+			throw new NotImplementedException();
+		}
+
+		private void cm_sysinfo()
+		{
+			throw new NotImplementedException();
+		}
+
+		private void cm_volumeid()
+		{
+			throw new NotImplementedException();
+		}
+
+		private void cm_rightopendrives()
+		{
+			throw new NotImplementedException();
+		}
+
+		private void cm_leftopendrives()
+		{
+			throw new NotImplementedException();
+		}
+
+		private void cm_dirtabsconfig()
+		{
+			throw new NotImplementedException();
+		}
+
+		private void cm_printfile()
+		{
+			throw new NotImplementedException();
+		}
+
+		private void cm_printdirsub()
+		{
+			throw new NotImplementedException();
+		}
+
+		private void cm_printdir()
+		{
+			throw new NotImplementedException();
+		}
+
+		private void cm_editcomment()
+		{
+			throw new NotImplementedException();
 		}
 
 		private void cm_vishisthotbuttons(int mode = -1)

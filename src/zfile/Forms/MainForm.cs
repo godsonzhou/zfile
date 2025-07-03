@@ -219,6 +219,8 @@ namespace zfile
 		internal bool syncchangedir;
 	
 		private Dictionary<string, List<string>> wcxarchiveTreeNodes => ShengAddressBarStrip.WcxVirtualDirs;
+		private bool isRightClickSelecting = false;
+
 		public enum TreeSearchScope
 		{
 			thispc = 0,
@@ -794,11 +796,14 @@ namespace zfile
 		{
 			if (e.Button == MouseButtons.Right)
 			{
+				isRightClickSelecting = true;
 				var Tree1 = sender as TreeView;
 				rightClickBegin = Tree1?.GetNodeAt(e.X, e.Y);
 				if (Tree1 != null && Tree1.SelectedNode != rightClickBegin)
 					Tree1.SelectedNode = rightClickBegin;
 			}
+			else
+				isRightClickSelecting = false;
 		}
 
 		public void TreeView_MouseUp(object? sender, MouseEventArgs e)
@@ -1315,8 +1320,10 @@ namespace zfile
 					var path = Helper.getFSpathbyTree(e.Node);
 					if (string.IsNullOrEmpty(path))
 						return;
-
-					ChangePath(path, LR, e.Node);
+					if (!isRightClickSelecting)
+						ChangePath(path, LR, e.Node);
+					// 右键选择后重置标志
+					isRightClickSelecting = false;
 				}
 			}
 			catch (Exception ex)

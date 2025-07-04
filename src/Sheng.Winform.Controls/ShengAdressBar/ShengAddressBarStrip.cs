@@ -26,7 +26,7 @@ namespace Sheng.Winform.Controls
 		public static Dictionary<string, List<string>> WcxVirtualDirs = new Dictionary<string, List<string>>();
 		public void RefreshDriveLabel()
 		{
-	
+			UpdateNode();	//todo: 刷新无效？不能更新C:卷标
 		}
         public void UpdateDrives(string currentPath = null)
         {

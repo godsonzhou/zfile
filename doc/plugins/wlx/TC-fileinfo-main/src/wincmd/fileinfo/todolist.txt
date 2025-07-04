@@ -1,0 +1,83 @@
+
+___________________________________________
+
+
+PData = 1 et x64 on x32
+
+___________________________________________
+
+
+
+winsxs... MFC90.dll et msvcr90.dll assembly xml
+rendre compatible avec search
+fichier msp
+
+manque delayed fonction of x64 Apps
+A corriger : ListLoadNext
+
+
+
+
+
+/********************/
+assembly xml
+
+http://www.davidlenihan.com/2007/07/winsxs.html
+http://msdn.microsoft.com/en-us/library/aa374224.aspx
+
+http://stackoverflow.com/questions/420852/reading-an-applications-manifest-file
+http://stackoverflow.com/questions/316626/how-do-i-read-from-a-version-resource-in-visual-c
+http://weblogs.asp.net/kennykerr/archive/2007/07/10/manifest-view-1-0.aspx
+
+/********************/
+
+utiliser la size dans l'entete pour les sections
+
+/********************/
+exemple 1 EXEDUMP -> DumpBoundImportDescriptors
+
+	// Bound import descriptors RVA
+	DWORD bidRVA = pe.GetDataDirectoryEntryRVA(IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT);
+	if ( !bidRVA ) return str;
+
+///   FG    !!! check size of section
+	DWORD bidsz = pe.GetDataDirectoryEntrySize(IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT);
+	if ( !bidsz ) return str;
+/********************/
+
+
+
+to Add
+==========
+#include "..\commun\resource.h"
+
+Wishes list
+==========
+please add an "entry points" column on the imports/exports tab (even better, you could display exported RVAs for the default DLL base - I mean, virtual addresses of exported symbols, very useful for debugging).
+
+find compiler
+
+Import / Export -> real called addr
+Search / Find
+Save Sorting
+See RVA / VA 
+option to see UTC time
+UTC time
+
+correct Use ANSI font to display
+or Not using font
+
+ Palm OS executable also - http://web.mit.edu/tytso/www/pilot/prc-format.html
+ LOCALE_SDATE character(s) and the time with the LOCALE_STIME character(s).
+
+
+Add exclude ext
+ajouter symbol
+
+A voir!!!
+=========
+http://cpp.developpez.com/faq/vc/?page=ProcessThread
+
+Todo list
+=========
+http://www.aspack.com/files/aspack211.zip

@@ -1,0 +1,428 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Anglais (États-Unis) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_Export DIALOGEX 0, 0, 305, 229
+STYLE DS_SETFONT | WS_CHILD | WS_CAPTION | WS_THICKFRAME
+CAPTION "Imports / Exports"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    LISTBOX         IDC_LIST1,53,7,237,47,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDC_LIST2,7,73,283,132,LBS_NOINTEGRALHEIGHT | NOT WS_BORDER | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP,WS_EX_CLIENTEDGE
+    CONTROL         "Undecorate",IDC_undecorate,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,102,60,53,10
+    PUSHBUTTON      "Test Imported Function",IDC_BUTTON1,205,57,83,13
+    LTEXT           "Modules :",IDC_STATIC,13,8,32,8
+    LTEXT           "Functions :",IDC_STATIC,7,60,36,8
+    CONTROL         "Sort",IDC_CHECK1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,165,60,29,10
+    LTEXT           "0",IDC_nbfunc,51,61,19,8,NOT WS_GROUP
+END
+
+IDD_NotFound DIALOG  0, 0, 188, 146
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Functions not succesfully loaded"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,131,125,50,14
+    LISTBOX         IDC_LIST1,7,7,174,111,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_OCX DIALOG  0, 0, 224, 204
+STYLE DS_SETFONT | WS_CHILD | WS_CAPTION | WS_THICKFRAME
+CAPTION "Activex / OCX"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "",IDC_REocx,"RICHEDIT",TCS_VERTICAL | TCS_BUTTONS | TCS_RAGGEDRIGHT | TCS_MULTISELECT | WS_BORDER | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP,7,54,210,143
+    PUSHBUTTON      "Register Server",IDC_RegServer,7,13,56,14,WS_DISABLED
+    PUSHBUTTON      "Unregister",IDC_UnRegServer,7,32,56,14,WS_DISABLED
+    CONTROL         "List1",IDC_Listocx,"SysListView32",LVS_REPORT | LVS_SORTASCENDING | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,67,7,150,43
+END
+
+IDD_PageDll DIALOG  0, 0, 222, 175
+STYLE DS_SETFONT | WS_CHILD | WS_CAPTION
+CAPTION "Dll Dependency"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Tree1",IDC_TREE1,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_DISABLEDRAGDROP | TVS_SINGLEEXPAND | WS_BORDER | WS_TABSTOP,7,7,208,161
+END
+
+IDD_Wait DIALOG  0, 0, 96, 41
+STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Please Wait ...",IDC_STATIC,23,15,47,8
+    LTEXT           "",IDC_status,2,29,92,8
+END
+
+IDD_About DIALOGEX 0, 0, 223, 236
+STYLE DS_SETFONT | WS_CHILD | WS_VISIBLE | WS_CAPTION | WS_THICKFRAME
+EXSTYLE WS_EX_CONTROLPARENT
+CAPTION "About"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    CONTROL         "",IDC_RICHEDIT,"RICHEDIT",TCS_HOTTRACK | TCS_BUTTONS | TCS_RAGGEDRIGHT | TCS_MULTISELECT | WS_BORDER | WS_VSCROLL | WS_TABSTOP,14,105,201,124
+    LTEXT           "Information :",IDC_STATIC,14,94,59,8
+    CONTROL         184,IDC_STATIC,"Static",SS_BITMAP | SS_CENTERIMAGE | SS_SUNKEN,7,7,209,66
+    CONTROL         188,IDC_mailme,"Static",SS_BITMAP,129,74,19,14,WS_EX_DLGMODALFRAME
+    CONTROL         155,IDC_followme,"Static",SS_BITMAP,172,74,41,20,WS_EX_DLGMODALFRAME
+    CONTROL         193,IDC_Don,"Static",SS_BITMAP,43,74,42,20,WS_EX_DLGMODALFRAME
+    CONTROL         194,IDC_support,"Static",SS_BITMAP,88,74,39,20,WS_EX_DLGMODALFRAME
+END
+
+IDD_fi DIALOG  0, 0, 222, 175
+STYLE DS_SETFONT | WS_CHILD | WS_CAPTION | WS_THICKFRAME
+CAPTION "File Properties"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "",IDC_RicheditFI,"RICHEDIT",TCS_VERTICAL | TCS_BUTTONS | TCS_RAGGEDRIGHT | TCS_MULTISELECT | WS_BORDER | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP,7,7,208,161
+END
+
+IDD_Option DIALOGEX 0, 0, 265, 213
+STYLE DS_SETFONT | WS_CHILD | WS_VISIBLE | WS_CAPTION | WS_THICKFRAME
+EXSTYLE WS_EX_CONTROLPARENT
+CAPTION "Options"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    CONTROL         "Autosave Position",IDC_autosave,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,50,77,10
+    GROUPBOX        "Options",IDC_STATIC,7,38,109,159
+    CONTROL         "Remember Last Page Open",IDC_Remember,"Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,14,65,77,16
+    CONTROL         185,IDC_STATIC,"Static",SS_BITMAP,128,61,15,10
+    CONTROL         191,IDC_STATIC,"Static",SS_BITMAP,128,77,15,10
+    CONTROL         187,IDC_STATIC,"Static",SS_BITMAP,128,45,15,10
+    CONTROL         190,IDC_STATIC,"Static",SS_BITMAP,128,93,15,10
+    LTEXT           "Implicit load DLL",IDC_STATIC,147,46,68,10
+    LTEXT           "Delay-load DLL",IDC_STATIC,147,62,68,10
+    LTEXT           "Missing DLL",IDC_STATIC,147,78,68,10
+    LTEXT           "Missing delay-load DLL",IDC_STATIC,147,94,76,10
+    CONTROL         "Undecorate Microsoft and",IDC_undec,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,147,98,10
+    LTEXT           "Borland C++ Function name",IDC_STATIC,19,157,88,8
+    CONTROL         "Show Debug Info",IDC_debug,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,101,71,10
+    CONTROL         "Dump Resources",IDC_res,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,86,71,10
+    CONTROL         186,IDC_STATIC,"Static",SS_BITMAP,127,125,15,10
+    CONTROL         189,IDC_STATIC,"Static",SS_BITMAP,127,109,15,10
+    LTEXT           "Missing Functions in implicit load DLL",IDC_STATIC,147,107,87,17
+    LTEXT           "Missing Functions in delay-load DLL",IDC_STATIC,147,123,86,19
+    LTEXT           "Max Depth :",IDC_STATIC,14,175,40,8
+    LTEXT           "Warning : All options are changed only for the next session",IDC_STATIC,124,159,108,22
+    COMBOBOX        IDC_MaxD,60,173,32,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Show Runtime FTable",IDC_pdata,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,116,86,10
+    CONTROL         "Show Relocations",IDC_reloc,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,131,73,10
+    EDITTEXT        IDC_Path,14,21,244,14,ES_AUTOHSCROLL | WS_DISABLED | NOT WS_TABSTOP
+    LTEXT           "path of fileinfo.ini :",IDC_STATIC,14,10,58,8
+    PUSHBUTTON      "Edit fileinfo.ini",IDC_Edit,128,7,48,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_Export, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 299
+        VERTGUIDE, 290
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 221
+    END
+
+    IDD_NotFound, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 181
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 139
+    END
+
+    IDD_OCX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 217
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 197
+    END
+
+    IDD_About, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 216
+        VERTGUIDE, 14
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 229
+        HORZGUIDE, 76
+    END
+
+    IDD_Option, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 258
+        VERTGUIDE, 14
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 206
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 2,2,4,0
+ PRODUCTVERSION 2,2,4,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "Comments", "Display File and Version Information in Total Commander 5.50+"
+            VALUE "CompanyName", "François GANNIER"
+            VALUE "FileDescription", "File Version Information for Total Commander 5.50"
+            VALUE "FileVersion", "2, 2, 4, 0"
+            VALUE "InternalName", "fileinfo"
+            VALUE "LegalCopyright", "François GANNIER, Copyright (C) 2002-2024"
+            VALUE "LegalTrademarks", "Some code from Christian Ghisler, Thomas Weller (Special Thank for it's CFileVersionInfo  Class), Matt Pietrek"
+            VALUE "OriginalFilename", "fileinfo.wlx"
+            VALUE "ProductName", "Version info Application"
+            VALUE "ProductVersion", "2, 2, 4, 0"
+        END
+        BLOCK "040c04b0"
+        BEGIN
+            VALUE "Comments", "Affiche les informations de Version des executables dans Total Commander 5.50+"
+            VALUE "CompanyName", "François GANNIER"
+            VALUE "FileDescription", "Versions Information pour Total Commander 5.50"
+            VALUE "FileVersion", "2, 2, 4, 0"
+            VALUE "InternalName", "fileinfo"
+            VALUE "LegalCopyright", "François GANNIER, Copyright (C) 2002-2024"
+            VALUE "LegalTrademarks", "Christian Ghisler, Thomas Weller (un grand merci pour CFileVersionInfo  Class), Matt Pietrek"
+            VALUE "OriginalFilename", "fileinfo.wlx"
+            VALUE "ProductName", "Version info Application"
+            VALUE "ProductVersion", "2, 2, 4, 0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200, 0x40c, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_DELAYED             BITMAP                  "delayed.bmp"
+IDB_NFDELAYED           BITMAP                  "NFdelayed.bmp"
+IDB_NOTFOUND            BITMAP                  "NotFound.bmp"
+IDB_FOUND               BITMAP                  "Found.bmp"
+IDB_BITMAP1             BITMAP                  "fileinfo.bmp"
+IDB_MAILME              BITMAP                  "mailme.bmp"
+IDB_BITMAP4             BITMAP                  "follow.bmp"
+IDB_DELMISSING          BITMAP                  "delmissi.bmp"
+IDB_MISSING             BITMAP                  "missing.bmp"
+IDB_SUPPORT             BITMAP                  "support.bmp"
+IDB_DON                 BITMAP                  "bitmap2.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_Option DLGINIT
+BEGIN
+    IDC_MaxD, 0x403, 2, 0
+0x0031, 
+    IDC_MaxD, 0x403, 2, 0
+0x0032, 
+    IDC_MaxD, 0x403, 2, 0
+0x0033, 
+    IDC_MaxD, 0x403, 2, 0
+0x0034, 
+    IDC_MaxD, 0x403, 2, 0
+0x0035, 
+    IDC_MaxD, 0x403, 2, 0
+0x0036, 
+    IDC_MaxD, 0x403, 2, 0
+0x0037, 
+    IDC_MaxD, 0x403, 2, 0
+0x0038, 
+    IDC_MaxD, 0x403, 2, 0
+0x0039, 
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MENU2 MENU 
+BEGIN
+    POPUP "Edit"
+    BEGIN
+        MENUITEM "Copy",                        ID_COPY
+        MENUITEM "Copy all",                    ID_COPY_S
+        MENUITEM "Select all",                  ID_SELECTALL
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_STRING1             "Version Information viewer plugin for Total Commander\nby François GANNIER\n"
+    IDS_STRING2             "\nSpecial thanks to :\n--------------------------\nEnrico Frumento to provide me sources to extract typelib information\nThomas Weller , for his file : file_ver.cpp ; Implementation of class CFileVersionInfo.  (Last modified:  02/02/2002)\nGiancarlo Iovino  : HyperLink static control\nMatt Pietrek for his helpfull articles on PE files format.\nChristian Ghisler author of Total Commander: for developing this great utilitie and for the lister plugin interface \n"
+    IDS_STRING3             "\nCopyright (c) 2002 - 2024 François GANNIER\nAll rigths reserved"
+    IDS_STRING4             "\nSend comments to the author :\nFrançois GANNIER  ( fgannier@physio-a.univ-tours.fr )\nhttp://physio-a.univ-tours.fr/tcplugins/"
+    IDS_STRING5             "\nHistory :\n--------------"
+    IDS_STRING6             "\n2.22 -"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_STRING17            "\n2.00 - 16.03.2004\n   - Added : can use plugin to pre-analysing, decoding or unpacking executables\n   - Added : 'Dll dependency' test now missing functions\n   - Added : copy of exported function undecorate or not(in 'Imports' tabs)\n   - Added : Depth of analysis in DLL dependencies can now be chosen\n   - Added : Delayed Import Table added to Dump\n   - Added : Import/Export tabs\n   - Added : Function imported can be tested and missing functions will be shown\n   - Added : version of windows added in 'File properties'\n   - Changed : demangling of borland C++ more accurate (some problems with multi-nested template)\n   - Changed : Names of section more explicit\n   - Fixed : VersionInfo of Visual Basic executables not shown correctly\n"
+    IDS_STRING18            "\n1.99 - Internal released\n   - Fixed : version resource of .VXD and .386 files not shown under WinNT\n   - Fixed : version resource with long string not shown\n   - Fixed : some version resource entries not shown\n   - Fixed : strength compatibility with some executable\n   - Fixed : Import Table not shown with some executable\n"
+    IDS_STRING19            "\n2.01 - 20.03.2004\n   - Added : %COMMANDER_PATH% can be used in fileinfo.ini for plugin paths   \n   - Changed : rewriting some part (less memory used and speed up file analysis)\n   - Fixed : crash with compressed-exe holding delay-load import\n   - Fixed : crash in 'DLL dependency' on other EXE type than PE\n"
+    IDS_STRING20            "\n2.02 - 18.06.2004\n   - Fixed : crash in 'Import/Export' when you click outside selections\n   - Fixed : increase compatibility with some EXE files\n   - Fixed : hang with damaged executables\n   - Added : read some unconventional VersionInfo\n   - Added : Option to sort functions in 'Import/Export' tab\n   - Added : Jump directly to tabs with CTRL-( 1 to 8 )\n   - Added : register/unregister activex library\n   - Added : typelib information\n   - Added : image for SH3, SH4, SH5, ARM and AMD64 processors\n   - Changed : page order to be more usefull with autosave option\n"
+    IDS_STRING21            "\n2.03 - 09.07.2004\n   - Added : Option to change the depth of analysis in DLL dependencies\n   - Added : Fix for cygwin DLL Dumping (bugged)\n   - Added : group DLL redondance found in Import table\n   - Added : typelib information of TLB files\n   - Fixed : crash in 'Image File Header' when EXE have no Import Table\n   - Fixed : crash with some Cygwin compiled DLL ( in parts )\n   - Changed : rewriting some part (speed up file analysis)\n"
+    IDS_STRING22            "\n2.04 - 01.09.2004\n   - Added : save ""sort"" state in ""Import"" tab\n   - Added : Dump of LIB, OBJ, EXP files\n   - Added : register OLE components even if typelib info isn't present\n   - Fixed : start excel.exe with xls/cvs file\n   - Fixed : Hscrollbar lost when sorting in ""Import"" tab\n"
+    IDS_STRING23            "\n2.04a- 03.09.2004\n   - Fixed : start excel.exe with cvs file\n   - Fixed : Scrollbars lost in ""Import"" tab\n"
+    IDS_STRING24            "\n2.04b- 13.09.2004\n   - Added : can save unpacked file with CTL-S\n   - Fixed : start COM server with linked extensions (excel, PSP, photoshop,...)\n"
+    IDS_STRING25            "\n2.05 - 20.01.2005\n   - Updated : Display compressed PE-EXE ( Winzip ) \n   - Added : automatic plugin installation (TC 6.5 and above)\n   - Added : filename in save dialog\n   - Added : add the same extention to the file in save dialog if none is given\n   - Fixed : button name in save dialog\n   - Fixed : crash lister with some UPX compressed EXE files (Maxthon.exe)\n   - Fixed : unaspack crash with some compressed-EXE\n"
+    IDS_STRING26            "\n2.06 - 08.07.2005\n   - Updated : some characteristic flags\n   - Added : compatibility with 64bits modules\n   - Added : detection for Xbox system\n   - Fixed : access to some files not freed\n   - Fixed : Malware code executed\n"
+    IDS_STRING27            "\n2.07 - 24.08.2005\n   - Added : Relocation entries\n   - Added : Codeview format ""RSDS""\n   - Added : Option to enable/disable view of runtime function table\n   - Added : Option to enable/disable view of relocations\n   - Added : Some IMAGE_DEBUG_TYPE descriptors\n   - Added : Some IMAGE_FILE_MACHINE descriptors\n   - Fixed : Crash when dumping 64bits executables with IMAGE_ORDINAL_FLAG64 present\n   - Fixed : Imported functions not shown in import tab if dll not found\n"
+    IDS_STRING28            "\n2.08 - 09.11.2006\n   - Added : Disassembly of code\n   - Added : Display Entry-point of Executables\n   - Added : Option to stop pre-detecting COM Interface\n   - Fixed : protect Win9x machine against malware code in COM interface (need to be tested)\n   - Fixed : Crash with some Microsoft xpsp... DLL\n   - Fixed : Incorrect size of windows in quickview mode\n\n"
+    IDS_STRING29            "\n2.09 - 31.11.2006\n   - Added : Option to not Load User Font\n   - Fixed : Crash in disassemble tab with some EXE\n   - Fixed : CTL-Tab key come back\n   - Fixed : Tab name with typelib info\n   - Fixed : Some SH3/SH4 specific dll not recognized\n"
+    IDS_STRING30            "\n2.10 - 28.11.2007\n   - Updated : Some IMAGE_FILE_MACHINE descriptors\n   - Changed : fileinfo.ini removed from distribution\n   - Fixed : compatibility with MSWin Vista\n   - Fixed : protection again DoS vulnerability (see http://securityreason.com/securityalert/3044 )\n   - Fixed : protection again spoofing (see  http://securityreason.com/securityalert/3044 )\n   - Fixed : Arrow key come back\n   - Fixed : crash in ""Import Table Dump"" with some compressed EXE\n   - Fixed : crash in ""Export Table Dump"" with some compressed EXE\n"
+    IDS_STRING31            "\n2.20 - 09.10.2011\n   - Added   : both x32/x64 versions are included\n   - Added   : display the number of imported/exported functions\n   - Added   : Display path of configuration file\n   - Changed : fileinfo.ini is placed by default in the wincmd.ini directory\n   - Changed : cadt.dll can now be put in fileinfo.wlx directory\n   - Changed fonts to tahoma in imports/Exports tab\n   - Fixed : Crash with unaspack plugin with some EXE\n   - Fixed : Crash in Dump Bound Import Descriptors\n   - Fixed : Crash in Dump Delayed Import section with Packed EXE\n   - Fixed : Crash in Dependency list with Packed EXE\n   - Fixed : test ptr out of bound in import section\n"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_STRING32            "\n2.21 - 15.01.2012\n   - Added : subsystem ""IMAGE_SUBSYSTEM_WINDOWS_BOOT_APPLICATION"" and ""IMAGE_SUBSYSTEM_EFI_ROM""\n   - Added : new tab for Manifest resource if present\n   - Added : resource types ""RT_HTML"", ""RT_MANIFEST"", ""RT_DLGINIT"" & ""RT_TOOLBAR""\n   - Added : 's' and 'u' key to sort and undecorate in 'Imports/Exports' tabs\n   - Added : in 'DLL dependency' & 'Imports/Exports' tabs, the 'F3' key can open a new fileinfo window\n   - Added : x64 version of unaspack plugun\n   - Added : Button to edit fileinfo.ini\n   - Added : in ""DLL dependency"" tab, path of file is added\n   - Changed : Address/Size of unused Data directory not displayed\n   - Fixed : crash with filesize > 4GB\n   - Fixed : in Imports/Exports tab, impossible to uncheck 'Sort' checkbox\n   - Fixed : unaspack plugin\n   - Fixed : wrong service pack detected\n   - Fixed : missing delay-load DLL was not displayed correctly\n"
+    IDS_STRING33            "\n2.22 - 01.07.2015\n   - Added : Implementation of ListLoadNext\n   - Added : links to support and donation\n   - Added : Context Menu for ""File properties""/""Image File Header""/""Manifest"" tabs\n   - Updated : links to HTML homepage and e-mail\n   - Fixed : DoS vulnerability (10 corrected)\n   - Fixed : crash with some EXE/DLL without resource\n   - Fixed : incorrect list of import functions in delayed DLL of x64 Applications\n   - Fixed : crash in ""Resource Dump"" with some chars in String Table\n   - Fixed : resources not shown if Manifest resource exist\n   - Fixed : some memory leaks\n"
+    IDS_STRING34            "\n2.23 - 18.05.2017\n   - Fixed : ListLoadNext not really working (content not changed)\n   - Fixed : Pointer moved to arbitrary location\n   - Fixed : Missing values in ""Manifest""\n   - Fixed : Crash in ""Image File Header"" on some DLL\n   - Fixed : Crash in ""Image File Header"" with option ""Relocations"" (Dump_Pdata)\n   - Fixed : Memory leak\n"
+    IDS_STRING35            "\n2.24 - 13.11.2024 (GizMoCuz)\n   - Added   : Support for ARM64, ARM64EC\n"
+END
+
+#endif    // Anglais (États-Unis) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Français (France) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_FRA)
+#ifdef _WIN32
+LANGUAGE LANG_FRENCH, SUBLANG_FRENCH
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_FRA)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 12, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#endif //_WIN32\r\n"
+    "#include ""res\\fileinfo1.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""l.fra\\afxres.rc""          // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Français (France) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_FRA)
+#ifdef _WIN32
+LANGUAGE 12, 1
+#pragma code_page(1252)
+#endif //_WIN32
+#include "res\fileinfo1.rc2"  // non-Microsoft Visual C++ edited resources
+#include "l.fra\afxres.rc"          // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

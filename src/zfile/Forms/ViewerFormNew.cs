@@ -6,7 +6,7 @@ using Timer = System.Windows.Forms.Timer;
 
 namespace zfile.Forms
 {
-	public class ViewerForm : Form
+	public class NewViewerForm : Form
 	{
 		#region 字段和属性
 		private string _fileName;
@@ -25,7 +25,10 @@ namespace zfile.Forms
 		private WlxModuleList _pluginList;
 		private WlxModule _currentPlugin;
 		private nint _pluginWindow;
-
+		// 在ViewerForm类中添加以下字段
+		private Process _pluginHostProcess;
+		private IntPtr _pluginHostWindow = IntPtr.Zero;
+		private bool _isHostedPlugin;
 		// 查看模式枚举
 		private enum ViewMode
 		{
@@ -351,17 +354,17 @@ namespace zfile.Forms
 		#endregion
 
 		#region 构造函数和初始化
-		public ViewerForm()
+		public NewViewerForm()
 		{
 			init();
 		}
-		public ViewerForm(string fileName, WlxModuleList wlxModuleList)
+		public NewViewerForm(string fileName, WlxModuleList wlxModuleList)
 		{
 			_pluginList = wlxModuleList;
 			init();
 			FileName = fileName;
 		}
-		public ViewerForm(List<string> files, WlxModuleList wlxModuleList)
+		public NewViewerForm(List<string> files, WlxModuleList wlxModuleList)
 		{
 			_pluginList = wlxModuleList;
 			init();
@@ -570,8 +573,19 @@ namespace zfile.Forms
 		}
 		private bool LoadWithPlugin(WlxModule plugin)
 		{
+			// 清理现有插件
+			CleanupHostedPlugin();
+			// 检查是否是32位插件
+			bool is32BitPlugin = Is32BitPlugin(plugin.FilePath);
+			if (plugin.Name.Equals("Fileinfo", StringComparison.OrdinalIgnoreCase))
+				return LoadWith32BitHost(plugin);
+			if (is32BitPlugin && Environment.Is64BitProcess)
+			{
+				// 使用32位宿主进程加载32位插件
+				return LoadWith32BitHost(plugin);
+			}
 			//if(_currentPlugin != null)
-				//SetMenuItemCheckedState(_currentPlugin.Name, false);
+			//SetMenuItemCheckedState(_currentPlugin.Name, false);
 			setCheckedMenuStateByNameToId("模式");    //关闭模式菜单下所有勾选
 			setCheckedMenuStateByNameToId("插件");
 
@@ -659,17 +673,186 @@ namespace zfile.Forms
 			}
 			return false;
 		}
-		// 在窗体Resize事件中更新位置
+
+		private bool Is32BitPlugin(string pluginPath)
+		{
+			try
+			{
+				// 检查PE头判断是32位还是64位
+				using (var fs = new FileStream(pluginPath, FileMode.Open, FileAccess.Read))
+				using (var br = new BinaryReader(fs))
+				{
+					// 跳过DOS头
+					fs.Seek(0x3C, SeekOrigin.Begin);
+					int peOffset = br.ReadInt32();
+					fs.Seek(peOffset, SeekOrigin.Begin);
+
+					// 读取PE签名
+					uint peSig = br.ReadUInt32();
+					if (peSig != 0x00004550) // "PE\0\0"
+						return false;
+
+					// 读取机器类型
+					ushort machine = br.ReadUInt16();
+					return machine == 0x014C; // IMAGE_FILE_MACHINE_I386
+				}
+			}
+			catch
+			{
+				return false;
+			}
+		}
+
+		private bool LoadWith32BitHost(WlxModule plugin)
+		{
+			try
+			{
+				_isHostedPlugin = true;
+
+				// 启动32位宿主进程
+				string hostPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PluginHost32.exe");
+
+				var startInfo = new ProcessStartInfo
+				{
+					FileName = hostPath,
+					Arguments = $"\"{plugin.FilePath}\" \"{_fileName}\"",
+					UseShellExecute = false,
+					CreateNoWindow = true,
+					RedirectStandardOutput = true,
+					RedirectStandardError = true
+				};
+
+				_pluginHostProcess = new Process { StartInfo = startInfo };
+				_pluginHostProcess.OutputDataReceived += PluginHostOutputHandler;
+				_pluginHostProcess.ErrorDataReceived += PluginHostErrorHandler;
+
+				if (!_pluginHostProcess.Start())
+				{
+					MessageBox.Show($"无法启动插件宿主进程{hostPath}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					return false;
+				}
+
+				_pluginHostProcess.BeginOutputReadLine();
+				_pluginHostProcess.BeginErrorReadLine();
+
+				// 隐藏所有内置查看器
+				_textPanel.Visible = false;
+				_hexPanel.Visible = false;
+				_imagePanel.Visible = false;
+				container.Visible = false;
+
+				return true;
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"启动插件宿主失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return false;
+			}
+		}
+
+		private void PluginHostOutputHandler(object sender, DataReceivedEventArgs e)
+		{
+			if (!string.IsNullOrEmpty(e.Data))
+			{
+				if (e.Data.StartsWith("ERROR:"))
+				{
+					// 处理错误
+					string error = e.Data.Substring(6);
+					this.Invoke((Action)(() =>
+					{
+						MessageBox.Show($"插件加载失败: {error}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					}));
+				}
+				else if (long.TryParse(e.Data, out long handleValue))
+				{
+					// 获取插件窗口句柄
+					_pluginHostWindow = new IntPtr(handleValue);
+					this.Invoke((Action)(() =>
+					{
+						EmbedPluginWindow();
+					}));
+				}
+			}
+		}
+
+		private void PluginHostErrorHandler(object sender, DataReceivedEventArgs e)
+		{
+			if (!string.IsNullOrEmpty(e.Data))
+			{
+				this.Invoke((Action)(() =>
+				{
+					MessageBox.Show($"插件宿主错误: {e.Data}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}));
+			}
+		}
+
+		private void EmbedPluginWindow()
+		{
+			if (_pluginHostWindow == IntPtr.Zero) return;
+
+			// 设置父窗口
+			NativeMethods.SetParent(_pluginHostWindow, container.Handle);
+
+			// 更新窗口位置和大小
+			NativeMethods.SetWindowLong(_pluginHostWindow, NativeMethods.GWL_STYLE,
+				NativeMethods.WS_VISIBLE | NativeMethods.WS_CHILD);
+
+			NativeMethods.SetWindowPos(_pluginHostWindow, IntPtr.Zero,
+				0, 0, container.ClientSize.Width, container.ClientSize.Height,
+				NativeMethods.SWP_NOZORDER);
+
+			container.Visible = true;
+		}
+
 		protected override void OnResize(EventArgs e)
 		{
 			base.OnResize(e);
-			if (_pluginWindow != nint.Zero)
+
+			if (_pluginHostWindow != IntPtr.Zero)
 			{
-				//var container = _mainPanel.Controls.OfType<Panel>().FirstOrDefault();
-				foreach (var container in _mainPanel.Controls.OfType<Panel>())
-					SetPluginWindowBounds(container);
+				NativeMethods.SetWindowPos(_pluginHostWindow, IntPtr.Zero,
+					0, 0, container.ClientSize.Width, container.ClientSize.Height,
+					NativeMethods.SWP_NOZORDER);
 			}
 		}
+
+		private void CleanupHostedPlugin()
+		{
+			if (_pluginHostProcess != null)
+			{
+				if (!_pluginHostProcess.HasExited)
+				{
+					_pluginHostProcess.Kill();
+				}
+				_pluginHostProcess.Dispose();
+				_pluginHostProcess = null;
+			}
+
+			if (_pluginHostWindow != IntPtr.Zero)
+			{
+				// 注意：不要尝试直接销毁窗口，它属于另一个进程
+				_pluginHostWindow = IntPtr.Zero;
+			}
+
+			_isHostedPlugin = false;
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			CleanupHostedPlugin();
+			base.Dispose(disposing);
+		}
+		// 在窗体Resize事件中更新位置
+		//protected override void OnResize(EventArgs e)
+		//{
+		//	base.OnResize(e);
+		//	if (_pluginWindow != nint.Zero)
+		//	{
+		//		//var container = _mainPanel.Controls.OfType<Panel>().FirstOrDefault();
+		//		foreach (var container in _mainPanel.Controls.OfType<Panel>())
+		//			SetPluginWindowBounds(container);
+		//	}
+		//}
 		private void LoadImage()
 		{
 			_isImage = true;
@@ -1129,17 +1312,17 @@ namespace zfile.Forms
 		}
 		#endregion
 
-		protected override void Dispose(bool disposing)
-		{
-			if (disposing)
-			{
-				CleanupCurrentView();
-				_animationTimer?.Dispose();
-				_screenshotTimer?.Dispose();
-				//_pluginList?.Dispose();	//bugfix: inied.wlx关闭时导致主程序意外退出；同时开多个cudalister.wlx，关闭其中一个导致主程序意外退出
-			}
-			base.Dispose(disposing);
-		}
+		//protected override void Dispose(bool disposing)
+		//{
+		//	if (disposing)
+		//	{
+		//		CleanupCurrentView();
+		//		_animationTimer?.Dispose();
+		//		_screenshotTimer?.Dispose();
+		//		//_pluginList?.Dispose();	//bugfix: inied.wlx关闭时导致主程序意外退出；同时开多个cudalister.wlx，关闭其中一个导致主程序意外退出
+		//	}
+		//	base.Dispose(disposing);
+		//}
 		private void setCheckedMenuStateByNameToId(string name, int checkedId = -1)
 		{
 			var viewmodeIndex = _menuStrip.Items.IndexOfKey(name);
@@ -1254,29 +1437,29 @@ namespace zfile.Forms
 		}
 	}
 
-	internal static class NativeMethods
-	{
-		public const int SWP_NOZORDER = 0x0004;
-		public const int SWP_NOACTIVATE = 0x0010;
-		// 新增窗口样式常量
-		public const int GWL_STYLE = -16;
-		public const int WS_CHILD = 0x40000000;
-		public const int WS_VISIBLE = 0x10000000;
-		[DllImport("kernel32.dll")]
-		public static extern int SetProcessWorkingSetSizeEx(
-			IntPtr hProcess,
-			IntPtr dwMinimumWorkingSetSize,
-			IntPtr dwMaximumWorkingSetSize,
-			int Flags
-		);
-		[DllImport("user32.dll")]
-		public static extern int SetWindowLong(nint hWnd, int nIndex, int dwNewLong);
+	//internal static class NativeMethods
+	//{
+	//	public const int SWP_NOZORDER = 0x0004;
+	//	public const int SWP_NOACTIVATE = 0x0010;
+	//	// 新增窗口样式常量
+	//	public const int GWL_STYLE = -16;
+	//	public const int WS_CHILD = 0x40000000;
+	//	public const int WS_VISIBLE = 0x10000000;
+	//	[DllImport("kernel32.dll")]
+	//	public static extern int SetProcessWorkingSetSizeEx(
+	//		IntPtr hProcess,
+	//		IntPtr dwMinimumWorkingSetSize,
+	//		IntPtr dwMaximumWorkingSetSize,
+	//		int Flags
+	//	);
+	//	[DllImport("user32.dll")]
+	//	public static extern int SetWindowLong(nint hWnd, int nIndex, int dwNewLong);
 
-		[DllImport("user32.dll", SetLastError = true)]
-		public static extern nint SetParent(nint hWndChild, nint hWndNewParent);
-		[DllImport("user32.dll")]
-		public static extern bool SetWindowPos(nint hWnd, nint hWndInsertAfter,
-			int x, int y, int cx, int cy, int flags);
-	}
+	//	[DllImport("user32.dll", SetLastError = true)]
+	//	public static extern nint SetParent(nint hWndChild, nint hWndNewParent);
+	//	[DllImport("user32.dll")]
+	//	public static extern bool SetWindowPos(nint hWnd, nint hWndInsertAfter,
+	//		int x, int y, int cx, int cy, int flags);
+	//}
 
 }

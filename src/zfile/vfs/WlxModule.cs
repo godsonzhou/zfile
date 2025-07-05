@@ -49,7 +49,7 @@ namespace zfile
 		//public short Size;	//try to use c version definition
 		public uint PluginInterfaceVersionLow;
 		public uint PluginInterfaceVersionHi;  //in c version definition, use DWORD , means 32bit unsigned, so we should use uint in c# version, but in pascal definition, it is defined as long int , so we use int here
-		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32000)]	//bugfix: in pascal version max path is 32000, not 260
 		public string DefaultIniName;
 	}
 
@@ -190,7 +190,7 @@ namespace zfile
 			if (File.Exists(inipath))
 			{
 				// 如果插件目录下已经存在对应的ini文件，则设置默认参数
-				Debug.Print($"WlxModule: {Name} has an ini file, setting default params.");
+				Debug.Print($"WlxModule: {Name} has an ini file {inipath}, setting default params.");
 			}
 			else
 				inipath = "";
@@ -200,7 +200,7 @@ namespace zfile
 				Size = Marshal.SizeOf<ListDefaultParamStruct>(),
 				PluginInterfaceVersionHi = 2,
 				PluginInterfaceVersionLow = 0,
-				DefaultIniName = inipath // 如果插件目录下没有对应的ini文件，则使用默认的wlx.ini
+				DefaultIniName = Constants.ZfileCfgPath + "wincmd.ini" // 如果插件目录下没有对应的ini文件，则使用默认的wlx.ini
 			};
 			var ptr = Marshal.AllocHGlobal(Marshal.SizeOf(defaultParams));
 			Marshal.StructureToPtr(defaultParams, ptr, false);

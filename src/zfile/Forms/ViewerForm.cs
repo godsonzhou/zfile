@@ -593,8 +593,11 @@ namespace zfile.Forms
 			{ }
 			else
 			{
-				_currentPlugin.CallListCloseWindow(_pluginWindow);  //关闭原有plugin window
-				_pluginWindow = IntPtr.Zero;
+				if (_pluginWindow != IntPtr.Zero)
+				{
+					_currentPlugin.CallListCloseWindow(_pluginWindow);  //关闭原有plugin window
+					_pluginWindow = IntPtr.Zero;
+				}
 				_currentPlugin = plugin;
 			}
 	

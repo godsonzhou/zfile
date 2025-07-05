@@ -618,24 +618,24 @@ namespace zfile.Forms
 					return;	
 				}
 			 */
-			try
-			{
-				const int SET_WS_SET = 0x1;
-				NativeMethods.SetProcessWorkingSetSizeEx(
-					Process.GetCurrentProcess().Handle,
-					(IntPtr)(100 * 1024 * 1024),  // 100MB
-					(IntPtr)(300 * 1024 * 1024),  // 300MB
-					SET_WS_SET
-				);
+			//try
+			//{
+			//	const int SET_WS_SET = 0x1;
+			//	NativeMethods.SetProcessWorkingSetSizeEx(
+			//		Process.GetCurrentProcess().Handle,
+			//		(IntPtr)(100 * 1024 * 1024),  // 100MB
+			//		(IntPtr)(300 * 1024 * 1024),  // 300MB
+			//		SET_WS_SET
+			//	);
 				
-				// 可选：预先分配低地址内存1MB，帮助确保后续分配在低地址空间
-				IntPtr lowMem = Marshal.AllocHGlobal(0x100000);
-			}
-			catch (Exception ex)
-			{
-				// 如果设置失败，记录但不阻止插件加载
-				System.Diagnostics.Debug.WriteLine($"设置低地址分配偏好失败: {ex.Message}");
-			}
+			//	// 可选：预先分配低地址内存1MB，帮助确保后续分配在低地址空间
+			//	IntPtr lowMem = Marshal.AllocHGlobal(0x100000);
+			//}
+			//catch (Exception ex)
+			//{
+			//	// 如果设置失败，记录但不阻止插件加载
+			//	System.Diagnostics.Debug.WriteLine($"设置低地址分配偏好失败: {ex.Message}");
+			//}
 	
 			// 传递容器面板的句柄作为父窗口
 			if(_pluginWindow == IntPtr.Zero)
@@ -1262,6 +1262,23 @@ namespace zfile.Forms
 		public const int GWL_STYLE = -16;
 		public const int WS_CHILD = 0x40000000;
 		public const int WS_VISIBLE = 0x10000000;
+		[DllImport("kernel32.dll", SetLastError = true)]
+		public static extern IntPtr VirtualAlloc(
+		 IntPtr lpAddress,
+		 IntPtr dwSize,
+		 uint flAllocationType,
+		 uint flProtect);
+
+		[DllImport("kernel32.dll", SetLastError = true)]
+		public static extern bool VirtualFree(
+			IntPtr lpAddress,
+			IntPtr dwSize,
+			uint dwFreeType);
+
+		public const uint MEM_COMMIT = 0x1000;
+		public const uint MEM_RESERVE = 0x2000;
+		public const uint MEM_RELEASE = 0x8000;
+		public const uint PAGE_READWRITE = 0x04;
 		[DllImport("kernel32.dll")]
 		public static extern int SetProcessWorkingSetSizeEx(
 			IntPtr hProcess,

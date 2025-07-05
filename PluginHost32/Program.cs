@@ -17,9 +17,11 @@ namespace PluginHost32
 				ApplicationConfiguration.Initialize();
 				//接收2个argument, 用于初始化pluginhost
 				//var arg = Environment.GetCommandLineArgs();
-				Console.WriteLine($"pluginhost32: arg0={args[0]} arg1={args[1]}");
-
-				Application.Run(new PluginHost(args[0], args[1]));
+				if (args.Length == 2)
+				{
+					Console.WriteLine($"pluginhost32: arg0={args[0]} arg1={args[1]}");
+					Application.Run(new PluginHost(args[0], args[1]));
+				}
 			}
 			catch (Exception ex)
 			{

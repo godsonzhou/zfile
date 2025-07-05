@@ -571,14 +571,72 @@ namespace zfile.Forms
 			if (menuitem != null)
 				menuitem.Checked = flag;
 		}
+		private bool AllocateLowAddressMemory()
+		{
+			try
+			{
+				long size = 512 * 1024 * 1024; // 512MB
+				IntPtr baseAddress = (IntPtr)0x10000000; // 256MB 起始地址
+
+				// 尝试在指定地址分配
+				IntPtr lowMem = NativeMethods.VirtualAlloc(
+					baseAddress,
+					(IntPtr)size,
+					NativeMethods.MEM_RESERVE | NativeMethods.MEM_COMMIT,
+					NativeMethods.PAGE_READWRITE);
+
+				if (lowMem != IntPtr.Zero)
+				{
+					// 立即释放，创建低地址空间空洞
+					NativeMethods.VirtualFree(lowMem, IntPtr.Zero, NativeMethods.MEM_RELEASE);
+					Debug.WriteLine("成功分配并释放低地址内存");
+					return true;
+				}
+				else
+				{
+					while (size > 1024 * 1024)
+					{
+						// 尝试不指定地址分配
+						lowMem = NativeMethods.VirtualAlloc(
+							IntPtr.Zero,
+							(IntPtr)size,
+							NativeMethods.MEM_RESERVE | NativeMethods.MEM_COMMIT,
+							NativeMethods.PAGE_READWRITE);
+
+						if (lowMem != IntPtr.Zero)
+						{
+							long address = lowMem.ToInt64();
+							NativeMethods.VirtualFree(lowMem, IntPtr.Zero, NativeMethods.MEM_RELEASE);
+							if (address < 0x100000000) // 检查是否在4GB以下
+							{
+								Debug.WriteLine($"分配{size}字节在低地址空间: 0x{address:X}");
+								return true;
+							}
+							size /= 2;
+						}
+						else
+						{
+							size /= 2; // 如果分配失败，减小分配大小
+							Debug.WriteLine($"低地址内存分配失败，尝试减小分配大小: {size / (1024 * 1024)}MB");
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"低地址内存分配失败: {ex.Message}");
+			}
+			Debug.WriteLine($"低地址内存分配失败");
+			return false;
+		}
+
 		private bool LoadWithPlugin(WlxModule plugin)
 		{
 			// 清理现有插件
 			CleanupHostedPlugin();
 			// 检查是否是32位插件
 			bool is32BitPlugin = Is32BitPlugin(plugin.FilePath);
-			if (plugin.Name.Equals("Fileinfo", StringComparison.OrdinalIgnoreCase))
-				return LoadWith32BitHost(plugin);
+		
 			if (is32BitPlugin && Environment.Is64BitProcess)
 			{
 				// 使用32位宿主进程加载32位插件
@@ -641,7 +699,7 @@ namespace zfile.Forms
 					(IntPtr)(300 * 1024 * 1024),  // 300MB
 					SET_WS_SET
 				);
-				
+
 				// 可选：预先分配低地址内存1MB，帮助确保后续分配在低地址空间
 				IntPtr lowMem = Marshal.AllocHGlobal(0x100000);
 			}
@@ -650,9 +708,9 @@ namespace zfile.Forms
 				// 如果设置失败，记录但不阻止插件加载
 				System.Diagnostics.Debug.WriteLine($"设置低地址分配偏好失败: {ex.Message}");
 			}
-	
+			AllocateLowAddressMemory();
 			// 传递容器面板的句柄作为父窗口
-			if(_pluginWindow == IntPtr.Zero)
+			if (_pluginWindow == IntPtr.Zero)
 				_pluginWindow = _currentPlugin.CallListLoad(container.Handle, _fileName, WlxConstants.LISTPLUGIN_SHOW);
 			//IntPtr bmp = IntPtr.Zero;
 			//if(_pluginWindow == IntPtr.Zero)

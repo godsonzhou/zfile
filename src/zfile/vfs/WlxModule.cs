@@ -52,7 +52,15 @@ namespace zfile
 		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32000)]	//bugfix: in pascal version max path is 32000, not 260
 		public string DefaultIniName;
 	}
-
+	// 应使用结构体而非 IntPtr
+	[StructLayout(LayoutKind.Sequential)]
+	public struct RECT
+	{
+		public int Left;
+		public int Top;
+		public int Right;
+		public int Bottom;
+	}
 	// 必需的函数委托定义
 	public delegate IntPtr ListLoad(IntPtr parentWin, string fileToLoad, int showFlags);
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
@@ -68,19 +76,31 @@ namespace zfile
 	public delegate int ListSendCommand(IntPtr pluginWin, int command, int parameter);
 	public delegate void ListSetDefaultParams(IntPtr dps);
 
-	public delegate int ListPrint(IntPtr pluginWin, string fileToPrint, string defPrinter, int printFlags, ref IntPtr margins);
+	//public delegate int ListPrint(IntPtr pluginWin, string fileToPrint, string defPrinter, int printFlags, ref IntPtr margins);
+	public delegate int ListPrint(IntPtr pluginWin, string fileToPrint,
+	string defPrinter, int printFlags, ref RECT margins);
 	// 可选的函数委托定义
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-	public delegate int ListSearchTextW(IntPtr pluginWin, [MarshalAs(UnmanagedType.LPWStr)] string searchString, int searchParameter);
+	public delegate int ListPrintW(IntPtr pluginWin, [MarshalAs(UnmanagedType.LPWStr)] string fileToPrint,
+	[MarshalAs(UnmanagedType.LPWStr)] string defPrinter, int printFlags, ref RECT margins);
+
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-	public delegate int ListPrintW(IntPtr pluginWin, [MarshalAs(UnmanagedType.LPWStr)] string fileToPrint, [MarshalAs(UnmanagedType.LPWStr)] string defPrinter, int printFlags, ref IntPtr margins);
-	public delegate int ListGetPreviewBitmap(string fileToLoad, int width, int height, IntPtr bitmapHandle);
+	public delegate int ListSearchTextW(IntPtr pluginWin, [MarshalAs(UnmanagedType.LPWStr)] string searchString, int searchParameter);
+	//[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+	//public delegate int ListPrintW(IntPtr pluginWin, [MarshalAs(UnmanagedType.LPWStr)] string fileToPrint, [MarshalAs(UnmanagedType.LPWStr)] string defPrinter, int printFlags, ref IntPtr margins);
+	//public delegate int ListGetPreviewBitmap(string fileToLoad, int width, int height, IntPtr bitmapHandle);
 	public delegate void ListNotificationReceived(IntPtr pluginWin, int message, IntPtr wParam, IntPtr lParam);
 
 	public delegate int ListGetValue(int field, [MarshalAs(UnmanagedType.LPWStr)] string filePath, int unitIndex, int maxLen, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder value);
-	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-	public delegate int ListGetPreviewBitmapW([MarshalAs(UnmanagedType.LPWStr)] string fileToLoad, int width, int height, IntPtr bitmapHandle);
+	//[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+	//public delegate int ListGetPreviewBitmapW([MarshalAs(UnmanagedType.LPWStr)] string fileToLoad, int width, int height, IntPtr bitmapHandle);
+	// 修正委托定义
+	public delegate IntPtr ListGetPreviewBitmap(string fileToLoad, int width, int height,
+		IntPtr contentBuf, int contentBufLen);
 
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+	public delegate IntPtr ListGetPreviewBitmapW([MarshalAs(UnmanagedType.LPWStr)] string fileToLoad,
+		int width, int height, IntPtr contentBuf, int contentBufLen);
 	public class WlxModule : DcxModule, IDisposable
 	{
 		// 必需的函数指针
@@ -111,12 +131,50 @@ namespace zfile
 		public bool IsMultimedia { get; set; }
 		public bool IsLoaded => ModuleHandle != IntPtr.Zero;
 		public string FileName { get => FilePath; set => FilePath = value; }
+		// 在类顶部添加
+		private const int GWL_WNDPROC = -4;
+		private static IntPtr _originalParentProc = IntPtr.Zero;
+		private static IntPtr _originalPluginProc = IntPtr.Zero;
+		public bool Enabled { get; set; } = true;
+		// 窗口过程委托
+		private delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+		public IntPtr PluginWindow { get; private set; } = IntPtr.Zero;
+		public bool IsDarkModeEnabled;
+		public bool IsDarkModeSupported;
+		private WndProcDelegate _parentWndProcDelegate;
+		private WndProcDelegate _pluginWndProcDelegate;
 
+		public void SetFocus()
+		{
+			if (PluginWindow != IntPtr.Zero)
+				SetFocus(PluginWindow);
+		}
+
+		public void ResizeWindow(RECT rect)
+		{
+			if (PluginWindow == IntPtr.Zero) return;
+
+			MoveWindow(PluginWindow,
+				rect.Left, rect.Top,
+				rect.Right - rect.Left,
+				rect.Bottom - rect.Top,
+				true);
+		}
+
+		// Win32 API
+		[DllImport("user32.dll")]
+		private static extern bool SetFocus(IntPtr hWnd);
+
+		[DllImport("user32.dll")]
+		private static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int Width, int Height, bool Repaint);
 		public WlxModule()
 		{
 			Name = string.Empty;
 			FilePath = string.Empty;
 			DetectString = string.Empty;
+			// 初始化委托
+			_parentWndProcDelegate = ParentWndProc;
+			_pluginWndProcDelegate = PluginWndProc;
 		}
 
 		public override bool LoadModule()
@@ -150,6 +208,7 @@ namespace zfile
 				_listSendCommand = GetDelegate<ListSendCommand>("ListSendCommand"); 
 				_listNotificationReceived = GetDelegate<ListNotificationReceived>("ListNotificationReceived"); 
 				_listSetDefaultParams = GetDelegate<ListSetDefaultParams>("ListSetDefaultParams");
+				_listGetValue = GetDelegate<ListGetValue>("ListGetValue");
 				//GC.KeepAlive(_listLoad);
 				//GC.KeepAlive(_listLoadW);
 				// 初始化插件
@@ -218,9 +277,41 @@ namespace zfile
 		{
 			try
 			{
+				// 添加深色模式支持
+				if (IsDarkModeEnabled)
+				{
+					showFlags |= 0x10000000; // lcp_darkmode
+					if (IsDarkModeSupported)
+						showFlags |= 0x20000000; // lcp_darkmodenative
+				}
+
+				IntPtr result;
 				if (_listLoadW != null)
-					return _listLoadW(parentWin, fileToLoad, showFlags);
-				return _listLoad?.Invoke(parentWin, fileToLoad, showFlags) ?? IntPtr.Zero;
+					result = _listLoadW(parentWin, fileToLoad, showFlags);
+				else
+					result = _listLoad?.Invoke(parentWin, fileToLoad, showFlags) ?? IntPtr.Zero;
+
+				if (result != IntPtr.Zero)
+				{
+					PluginWindow = result; // 存储插件窗口句柄
+
+					// 子类化父窗口
+					_originalParentProc = SetWindowLongPtr(
+						parentWin,
+						GWL_WNDPROC,
+						Marshal.GetFunctionPointerForDelegate(_parentWndProcDelegate)
+					);
+					SetProp(parentWin, "ParentProc", _originalParentProc);
+
+					// 子类化插件窗口
+					_originalPluginProc = SetWindowLongPtr(
+						result,
+						GWL_WNDPROC,
+						Marshal.GetFunctionPointerForDelegate(_pluginWndProcDelegate)
+					);
+					SetProp(result, "PluginProc", _originalPluginProc);
+				}
+				return result;
 			}
 			catch (Exception ex)
 			{
@@ -228,7 +319,54 @@ namespace zfile
 				return IntPtr.Zero;
 			}
 		}
+		// 窗口过程实现
+		private IntPtr ParentWndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
+		{
+			if (msg == WM_COMMAND && lParam != IntPtr.Zero)
+			{
+				// 处理命令消息
+			}
 
+			// 调用原始窗口过程
+			IntPtr originalProc = GetProp(hWnd, "ParentProc");
+			return CallWindowProc(originalProc, hWnd, msg, wParam, lParam);
+		}
+
+		private IntPtr PluginWndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
+		{
+			if (msg == WM_KEYDOWN)
+			{
+				// 处理热键（如 'n'/'p'）
+				PostMessage(GetParent(hWnd), msg, wParam, lParam);
+			}
+
+			// 调用原始窗口过程
+			IntPtr originalProc = GetProp(hWnd, "PluginProc");
+			return CallWindowProc(originalProc, hWnd, msg, wParam, lParam);
+		}
+		private const uint WM_COMMAND = 0x0111;
+		private const uint WM_KEYDOWN = 0x0100;
+		[DllImport("user32.dll", CharSet = CharSet.Auto)]
+		private static extern IntPtr SetProp(IntPtr hWnd, string lpString, IntPtr hData);
+		[DllImport("user32.dll", CharSet = CharSet.Auto)]
+		private static extern IntPtr GetProp(IntPtr hWnd, string lpString);
+		[DllImport("user32.dll", CharSet = CharSet.Auto)]
+		private static extern IntPtr RemoveProp(IntPtr hWnd, string lpString);
+		[DllImport("user32.dll", SetLastError = true)]
+		private static extern bool DestroyWindow(IntPtr hWnd);
+
+		// 所需的Win32 API
+		[DllImport("user32.dll")]
+		private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+		[DllImport("user32.dll")]
+		private static extern IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+		[DllImport("user32.dll")]
+		private static extern IntPtr GetParent(IntPtr hWnd);
+
+		[DllImport("user32.dll")]
+		private static extern bool PostMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 		public int CallListLoadNext(IntPtr parentWin, IntPtr pluginWin, string fileToLoad, int showFlags)
 		{
 			if (_listLoadNextW != null)
@@ -236,19 +374,43 @@ namespace zfile
 			return _listLoadNext != null ? _listLoadNext(parentWin, pluginWin, fileToLoad, showFlags) : WlxConstants.LISTPLUGIN_ERROR;
 		}
 
+		//public void CallListCloseWindow(IntPtr pluginWin)
+		//{
+		//	// 捕获异常以防止插件崩溃，比如inied.wlx插件关闭时会导致主程序退出。
+		//	try
+		//	{
+		//		_listCloseWindow?.Invoke(pluginWin);
+		//	}
+		//	catch (Exception ex) {
+		//		// 记录日志，防止插件异常导致主程序崩溃
+		//		Debug.Print($"插件关闭异常: {ex.Message}");
+		//	}   
+		//}
 		public void CallListCloseWindow(IntPtr pluginWin)
 		{
-			// 捕获异常以防止插件崩溃，比如inied.wlx插件关闭时会导致主程序退出。
 			try
 			{
-				_listCloseWindow?.Invoke(pluginWin);
-			}
-			catch (Exception ex) {
-				// 记录日志，防止插件异常导致主程序崩溃
-				Debug.Print($"插件关闭异常: {ex.Message}");
-			}   
-		}
+				// 恢复原始窗口过程
+				IntPtr parentWin = GetParent(pluginWin);
+				IntPtr parentProc = GetProp(parentWin, "ParentProc");
+				SetWindowLongPtr(parentWin, GWL_WNDPROC, parentProc);
+				RemoveProp(parentWin, "ParentProc");
 
+				IntPtr pluginProc = GetProp(pluginWin, "PluginProc");
+				SetWindowLongPtr(pluginWin, GWL_WNDPROC, pluginProc);
+				RemoveProp(pluginWin, "PluginProc");
+
+				// 关闭窗口
+				if (_listCloseWindow != null)
+					_listCloseWindow(pluginWin);
+				else
+					DestroyWindow(pluginWin);
+			}
+			finally
+			{
+				PluginWindow = IntPtr.Zero;
+			}
+		}
 		public int CallListSearchText(IntPtr pluginWin, string searchString, int searchParameter)
 		{
 			if (_listSearchTextW != null)
@@ -266,20 +428,38 @@ namespace zfile
 			return _listSendCommand?.Invoke(pluginWin, command, parameter) ?? WlxConstants.LISTPLUGIN_ERROR;
 		}
 
-		public int CallListPrint(IntPtr pluginWin, string fileToPrint, string defPrinter, int printFlags, ref IntPtr margins)
+		public int CallListPrint(IntPtr pluginWin, string fileToPrint, string defPrinter, int printFlags, ref RECT margins)
 		{
 			if (_listPrintW != null)
 				return _listPrintW(pluginWin, fileToPrint, defPrinter, printFlags, ref margins);
 			return _listPrint != null ? _listPrint(pluginWin, fileToPrint, defPrinter, printFlags, ref margins) : WlxConstants.LISTPLUGIN_ERROR;
 		}
 
-		public int CallListGetPreviewBitmap(string fileToLoad, int width, int height, IntPtr bitmapHandle)
+		//public int CallListGetPreviewBitmap(string fileToLoad, int width, int height, IntPtr bitmapHandle)
+		//{
+		//	if (_listGetPreviewBitmapW != null)
+		//		return _listGetPreviewBitmapW(fileToLoad, width, height, bitmapHandle);
+		//	return _listGetPreviewBitmap?.Invoke(fileToLoad, width, height, bitmapHandle) ?? WlxConstants.LISTPLUGIN_ERROR;
+		//}
+		// 修正调用方法
+		public IntPtr CallListGetPreviewBitmap(string fileToLoad, int width, int height, byte[] contentBuf)
 		{
-			if (_listGetPreviewBitmapW != null)
-				return _listGetPreviewBitmapW(fileToLoad, width, height, bitmapHandle);
-			return _listGetPreviewBitmap?.Invoke(fileToLoad, width, height, bitmapHandle) ?? WlxConstants.LISTPLUGIN_ERROR;
-		}
+			IntPtr contentPtr = Marshal.AllocHGlobal(contentBuf.Length);
+			Marshal.Copy(contentBuf, 0, contentPtr, contentBuf.Length);
 
+			try
+			{
+				if (_listGetPreviewBitmapW != null)
+					return _listGetPreviewBitmapW(fileToLoad, width, height, contentPtr, contentBuf.Length);
+
+				return _listGetPreviewBitmap?.Invoke(fileToLoad, width, height, contentPtr, contentBuf.Length)
+					   ?? IntPtr.Zero;
+			}
+			finally
+			{
+				Marshal.FreeHGlobal(contentPtr);
+			}
+		}
 		public void CallListNotificationReceived(IntPtr pluginWin, int message, IntPtr wParam, IntPtr lParam)
 		{
 			_listNotificationReceived?.Invoke(pluginWin, message, wParam, lParam);

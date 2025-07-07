@@ -29,7 +29,9 @@ namespace zfile.Forms
 		private Process _pluginHostProcess;
 		private IntPtr _pluginHostWindow = IntPtr.Zero;
 		private bool _isHostedPlugin;
-		// 查看模式枚举
+		//private List<nint> _reservedMemoryBlocks = [];
+		private nint _reserveMemory = nint.Zero; // 用于低地址分配的内存
+												 // 查看模式枚举
 		private enum ViewMode
 		{
 			Text,
@@ -109,7 +111,7 @@ namespace zfile.Forms
 
 			// 使用自定义查找对话框
 			string initialSearchText = "";
-			
+
 			// 如果有选中的文本，使用它作为初始搜索文本
 			if (_currentViewMode == ViewMode.Text && _textViewer.SelectionLength > 0)
 			{
@@ -455,7 +457,7 @@ namespace zfile.Forms
 				Dock = DockStyle.Fill,
 				Visible = false
 			};
-		
+
 			// 添加控件到窗体
 			_mainPanel.Controls.Add(_imagePanel);
 			_mainPanel.Controls.Add(_textPanel);
@@ -510,14 +512,16 @@ namespace zfile.Forms
 			{
 				// 清理当前资源
 				CleanupCurrentView();
-
+				//_reservedMemoryBlocks = ReserveHighMem(); // 预留高地址内存空间
+				_reserveMemory = AllocateLowAddressMemory();
 				// 检查是否有插件可以处理
 				int tryModuleIdx = -1; //依次尝试所有的module
-				while (tryModuleIdx < _pluginList._modules.Count) {
+				while (tryModuleIdx < _pluginList._modules.Count)
+				{
 					var _currentPlugin = _pluginList.FindModuleForFile(_fileName, ref tryModuleIdx);
 					if (_currentPlugin != null)
 					{
-						if (LoadWithPlugin(_currentPlugin))		//should consider load fail
+						if (LoadWithPlugin(_currentPlugin))     //should consider load fail
 							return;
 					}
 				}
@@ -571,55 +575,33 @@ namespace zfile.Forms
 			if (menuitem != null)
 				menuitem.Checked = flag;
 		}
-		private bool AllocateLowAddressMemory()
+		private IntPtr AllocateLowAddressMemory()
 		{
 			try
 			{
 				long size = 512 * 1024 * 1024; // 512MB
 				IntPtr baseAddress = (IntPtr)0x10000000; // 256MB 起始地址
-
-				// 尝试在指定地址分配
-				IntPtr lowMem = NativeMethods.VirtualAlloc(
-					baseAddress,
-					(IntPtr)size,
-					NativeMethods.MEM_RESERVE | NativeMethods.MEM_COMMIT,
-					NativeMethods.PAGE_READWRITE);
-
-				if (lowMem != IntPtr.Zero)
+				IntPtr lowMem;
+				while ((ulong)baseAddress < MAX_LOW_ADDRESS)
 				{
-					// 立即释放，创建低地址空间空洞
-					NativeMethods.VirtualFree(lowMem, IntPtr.Zero, NativeMethods.MEM_RELEASE);
-					Debug.WriteLine("成功分配并释放低地址内存");
-					return true;
-				}
-				else
-				{
-					while (size > 1024 * 1024)
+					// 尝试指定地址分配
+					lowMem = NativeMethods.VirtualAlloc(
+						baseAddress,
+						(IntPtr)size,
+						NativeMethods.MEM_RESERVE | NativeMethods.MEM_COMMIT,
+						NativeMethods.PAGE_READWRITE);
+
+					if (lowMem != IntPtr.Zero)
 					{
-						// 尝试不指定地址分配
-						lowMem = NativeMethods.VirtualAlloc(
-							IntPtr.Zero,
-							(IntPtr)size,
-							NativeMethods.MEM_RESERVE | NativeMethods.MEM_COMMIT,
-							NativeMethods.PAGE_READWRITE);
-
-						if (lowMem != IntPtr.Zero)
-						{
-							long address = lowMem.ToInt64();
-							NativeMethods.VirtualFree(lowMem, IntPtr.Zero, NativeMethods.MEM_RELEASE);
-							if (address < 0x100000000) // 检查是否在4GB以下
-							{
-								Debug.WriteLine($"分配{size}字节在低地址空间: 0x{address:X}");
-								return true;
-							}
-							size /= 2;
-						}
-						else
-						{
-							size /= 2; // 如果分配失败，减小分配大小
-							Debug.WriteLine($"低地址内存分配失败，尝试减小分配大小: {size / (1024 * 1024)}MB");
-						}
+						//long address = lowMem.ToInt64();
+						//NativeMethods.VirtualFree(lowMem, IntPtr.Zero, NativeMethods.MEM_RELEASE);
+						//if (address < 0x100000000) // 检查是否在4GB以下
+						//{
+							Debug.WriteLine($"分配{size}字节在低地址空间: 0x{lowMem:X}");
+							return lowMem;
+						//}
 					}
+					baseAddress += (nint)size;
 				}
 			}
 			catch (Exception ex)
@@ -627,7 +609,7 @@ namespace zfile.Forms
 				Debug.WriteLine($"低地址内存分配失败: {ex.Message}");
 			}
 			Debug.WriteLine($"低地址内存分配失败");
-			return false;
+			return IntPtr.Zero;
 		}
 
 		private bool LoadWithPlugin(WlxModule plugin)
@@ -636,7 +618,7 @@ namespace zfile.Forms
 			CleanupHostedPlugin();
 			// 检查是否是32位插件
 			bool is32BitPlugin = Is32BitPlugin(plugin.FilePath);
-		
+
 			if (is32BitPlugin && Environment.Is64BitProcess)
 			{
 				// 使用32位宿主进程加载32位插件
@@ -674,7 +656,7 @@ namespace zfile.Forms
 				_currentPlugin = plugin;
 			}
 
-			// 调用插件前执行, 在 C# 调用插件前设置低地址分配偏好，保持32位插件兼容性，解决fileinfo.wlx64报错"映射文件地址>4GB"
+			// 调用插件前执行, 在 C# 调用插件前设置低地址分配偏好，使用Windows的MEM_TOP_DOWN标志来控制内存分配策略!!!!!!!!!!!, 保持32位插件兼容性，解决fileinfo.wlx64报错"映射文件地址>4GB"
 			/*
 			 * 因为在FILEINFO.WLX64插件中使用了如下判断：
 			 * if (((DWORD64)m_pMemoryMappedFileBase) >> 32)
@@ -690,28 +672,35 @@ namespace zfile.Forms
 					return;	
 				}
 			 */
-			try
-			{
-				const int SET_WS_SET = 0x1;
-				NativeMethods.SetProcessWorkingSetSizeEx(
-					Process.GetCurrentProcess().Handle,
-					(IntPtr)(100 * 1024 * 1024),  // 100MB
-					(IntPtr)(300 * 1024 * 1024),  // 300MB
-					SET_WS_SET
-				);
+			//try
+			//{
+			//	const int SET_WS_SET = 0x1;
+			//	NativeMethods.SetProcessWorkingSetSizeEx(
+			//		Process.GetCurrentProcess().Handle,
+			//		(IntPtr)(100 * 1024 * 1024),  // 100MB
+			//		(IntPtr)(300 * 1024 * 1024),  // 300MB
+			//		SET_WS_SET
+			//	);
 
-				// 可选：预先分配低地址内存1MB，帮助确保后续分配在低地址空间
-				IntPtr lowMem = Marshal.AllocHGlobal(0x100000);
-			}
-			catch (Exception ex)
-			{
-				// 如果设置失败，记录但不阻止插件加载
-				System.Diagnostics.Debug.WriteLine($"设置低地址分配偏好失败: {ex.Message}");
-			}
-			AllocateLowAddressMemory();
+			//	// 可选：预先分配低地址内存1MB，帮助确保后续分配在低地址空间
+			//	IntPtr lowMem = Marshal.AllocHGlobal(0x100000);
+			//}
+			//catch (Exception ex)
+			//{
+			//	// 如果设置失败，记录但不阻止插件加载
+			//	System.Diagnostics.Debug.WriteLine($"设置低地址分配偏好失败: {ex.Message}");
+			//}
+
+			//_reserveMemory = AllocateLowAddressMemory();
+
+			// 预留高地址空间，确保插件可以在低地址空间分配内存，确保某些插件如FILEINFO.WLX64可以正常工作
+			// 预留高地址内存空间，整个插件生命周期有效
+			//_reservedMemoryBlocks = ReserveHighMem();
+			
 			// 传递容器面板的句柄作为父窗口
 			if (_pluginWindow == IntPtr.Zero)
 				_pluginWindow = _currentPlugin.CallListLoad(container.Handle, _fileName, WlxConstants.LISTPLUGIN_SHOW);
+			
 			//IntPtr bmp = IntPtr.Zero;
 			//if(_pluginWindow == IntPtr.Zero)
 			//	_pluginWindow = _currentPlugin.CallListGetPreviewBitmap(_fileName, _mainPanel.Bounds.Width, _mainPanel.Bounds.Height, bmp);
@@ -730,6 +719,96 @@ namespace zfile.Forms
 				return true;
 			}
 			return false;
+		}
+		// 分配类型枚举
+		[Flags]
+		enum AllocationType
+		{
+			Commit = 0x1000,
+			Reserve = 0x2000,
+			Reset = 0x80000,
+			LargePages = 0x20000000,
+			Physical = 0x400000,
+			TopDown = 0x100000
+		}
+
+		// 内存保护属性枚举
+		[Flags]
+		enum MemoryProtection
+		{
+			Execute = 0x10,
+			ExecuteRead = 0x20,
+			ExecuteReadWrite = 0x40,
+			ExecuteWriteCopy = 0x80,
+			NoAccess = 0x01,
+			ReadOnly = 0x02,
+			ReadWrite = 0x04,
+			WriteCopy = 0x08,
+			GuardModifierflag = 0x100,
+			NoCacheModifierflag = 0x200,
+			WriteCombineModifierflag = 0x400
+		}
+
+		// 最大的低地址空间（4GB）
+		private const ulong MAX_LOW_ADDRESS = 0x100000000; // 4GB
+		/// <summary>
+		/// 申请高地址内存空间(大于4GB)作为保留用途
+		/// </summary>
+		/// <returns>申请到的内存块地址列表</returns>
+		public List<IntPtr> ReserveHighMem()
+		{
+			List<IntPtr> allocatedBlocks = new List<IntPtr>();
+			const ulong BLOCK_SIZE = 0x4000000; // 1GB块大小
+			const ulong HIGH_ADDRESS_START = 0x100000000; // 4GB起始地址
+			const ulong HIGH_ADDRESS_END = 0x2000000000; // 128GB终止地址
+			const int MAX_BLOCKS = 1240; // 最多申请16个块
+
+			ulong currentAddress = HIGH_ADDRESS_START;
+			int allocatedCount = 0;
+
+			while (currentAddress < HIGH_ADDRESS_END && allocatedCount < MAX_BLOCKS)
+			{
+				IntPtr result = NativeMethods.VirtualAlloc(
+					new IntPtr((long)currentAddress),
+					(nint)BLOCK_SIZE,
+					0x2000, // MEM_RESERVE
+					0x01    // PAGE_NOACCESS
+				);
+
+				if (result != IntPtr.Zero)
+				{
+					allocatedBlocks.Add(result);
+					currentAddress += BLOCK_SIZE;
+					allocatedCount++;
+					Debug.WriteLine($"成功预留高地址内存块: 0x{result.ToInt64():X}");
+				}
+				else
+				{
+					int errorCode = Marshal.GetLastWin32Error();
+					if (errorCode == 487) // ERROR_INVALID_ADDRESS
+					{
+						// 地址已被占用，尝试下一个块地址
+						currentAddress += BLOCK_SIZE;
+						continue;
+					}
+					break; // 其他错误则停止
+				}
+			}
+
+			return allocatedBlocks;
+		}
+
+		// 获取Windows错误代码的描述
+		private string GetErrorMessage(int errorCode)
+		{
+			try
+			{
+				return new System.ComponentModel.Win32Exception(errorCode).Message;
+			}
+			catch
+			{
+				return "未知错误";
+			}
 		}
 
 		private bool Is32BitPlugin(string pluginPath)
@@ -897,6 +976,15 @@ namespace zfile.Forms
 
 		protected override void Dispose(bool disposing)
 		{
+			//foreach(var block in _reservedMemoryBlocks)
+			//{
+			//	NativeMethods.VirtualFree(block, IntPtr.Zero, NativeMethods.MEM_RELEASE);
+			//}
+			if(_reserveMemory != IntPtr.Zero)
+			{
+				NativeMethods.VirtualFree(_reserveMemory, IntPtr.Zero, NativeMethods.MEM_RELEASE);
+				_reserveMemory = IntPtr.Zero;
+			}
 			CleanupHostedPlugin();
 			base.Dispose(disposing);
 		}
@@ -1028,7 +1116,7 @@ namespace zfile.Forms
 			]);
 
 			// 模式菜单
-			var modeMenu = new ToolStripMenuItem("模式(&M)") { Name = "模式"};
+			var modeMenu = new ToolStripMenuItem("模式(&M)") { Name = "模式" };
 			var textModeItem = new ToolStripMenuItem("文本(&T)", null, (s, e) => SwitchViewMode(ViewMode.Text));
 			var hexModeItem = new ToolStripMenuItem("16进制(&H)", null, (s, e) => SwitchViewMode(ViewMode.Hex));
 			var mediaModeItem = new ToolStripMenuItem("多媒体(&M)", null, (s, e) => SwitchViewMode(ViewMode.Media));
@@ -1051,7 +1139,7 @@ namespace zfile.Forms
 			}
 
 			// plugin menu
-			var pluginMenu = new ToolStripMenuItem("插件(&P)") { Name = "插件"};
+			var pluginMenu = new ToolStripMenuItem("插件(&P)") { Name = "插件" };
 
 			// 添加内置查看器选项
 			var builtInViewerItem = new ToolStripMenuItem("内置查看器", null, (s, e) =>
@@ -1069,7 +1157,7 @@ namespace zfile.Forms
 				});
 				pluginMenu.DropDownItems.Add(item);
 			}
-			_menuStrip.Items.AddRange([ fileMenu, editMenu, viewMenu, modeMenu, encodingMenu, pluginMenu ]);
+			_menuStrip.Items.AddRange([fileMenu, editMenu, viewMenu, modeMenu, encodingMenu, pluginMenu]);
 		}
 
 		private void CreateStatusStrip()
@@ -1386,10 +1474,10 @@ namespace zfile.Forms
 			var viewmodeIndex = _menuStrip.Items.IndexOfKey(name);
 			foreach (var item in ((ToolStripMenuItem)_menuStrip.Items[viewmodeIndex]).DropDownItems)
 			{
-				if (item is ToolStripMenuItem menuitem) 
+				if (item is ToolStripMenuItem menuitem)
 					menuitem.Checked = false;
 			}
-			if(checkedId >= 0)
+			if (checkedId >= 0)
 				((ToolStripMenuItem)((ToolStripMenuItem)_menuStrip.Items[viewmodeIndex]).DropDownItems[checkedId]).Checked = true;
 		}
 		private void SwitchViewMode(ViewMode mode)
@@ -1428,7 +1516,7 @@ namespace zfile.Forms
 
 			UpdateStatusBar();
 		}
-	
+
 		private void LoadHex()
 		{
 			_hexPanel.Visible = true;

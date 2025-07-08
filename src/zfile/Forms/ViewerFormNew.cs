@@ -951,6 +951,12 @@ namespace zfile.Forms
 					0, 0, container.ClientSize.Width, container.ClientSize.Height,
 					NativeMethods.SWP_NOZORDER);
 			}
+			if (_pluginWindow != IntPtr.Zero)
+			{
+				NativeMethods.SetWindowPos(_pluginWindow, IntPtr.Zero,
+					0, 0, container.ClientSize.Width, container.ClientSize.Height,
+					NativeMethods.SWP_NOZORDER);
+			}
 		}
 
 		private void CleanupHostedPlugin()

@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.Eventing.Reader;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Windows.Interop;
 /*
 ********************************************************************
 *这个实现提供了：
@@ -143,7 +145,17 @@ namespace zfile
 		public bool IsDarkModeSupported;
 		private WndProcDelegate _parentWndProcDelegate;
 		private WndProcDelegate _pluginWndProcDelegate;
+		// 辅助方法：从窗口句柄获取.NET控件
+		private Control? GetControlFromHandle(IntPtr hWnd)
+		{
+			// 在WinForms中，可以使用Control.FromHandle
+			return Control.FromHandle(hWnd);
 
+			/* 如果是其他UI框架（如WPF），需要不同的实现：
+			HwndSource source = HwndSource.FromHwnd(hWnd);
+			return source?.RootVisual as Control;
+			*/
+		}
 		public void SetFocus()
 		{
 			if (PluginWindow != IntPtr.Zero)
@@ -322,27 +334,57 @@ namespace zfile
 		// 窗口过程实现
 		private IntPtr ParentWndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
 		{
-			if (msg == WM_COMMAND && lParam != IntPtr.Zero)
-			{
-				// 处理命令消息
-			}
-
 			// 调用原始窗口过程
 			IntPtr originalProc = GetProp(hWnd, "ParentProc");
-			return CallWindowProc(originalProc, hWnd, msg, wParam, lParam);
+			IntPtr result;
+			if (originalProc != IntPtr.Zero) 
+				result = CallWindowProc(originalProc, hWnd, msg, wParam, lParam);
+			else
+				result = DefWindowProc(hWnd, msg, wParam, lParam);
+
+			if (result == IntPtr.Zero && msg == WM_COMMAND && lParam != IntPtr.Zero)
+			{
+				// 处理命令消息
+				//TControl Lister:= TControl(GetLCLOwnerObject(hWnd));
+				//	if Assigned(Lister) then Lister.Perform(Msg, wParam, lParam);
+				// 获取关联的.NET控件
+				// 注意：这里需要实现 GetControlFromHandle 方法
+				//Control? control = GetControlFromHandle(hWnd);
+
+				//if (control != null)
+				//{
+				//	// 转发消息给.NET控件
+				//	Message m = Message.Create(hWnd, (int)msg, wParam, lParam);
+				//	control.WndProc(ref m);
+				//	result = m.Result;
+				//}
+				// 使用 SendMessage 代替直接调用 WndProc
+				// 获取父窗口的父窗口（可能是主窗体）
+				IntPtr mainWindow = GetParent(hWnd);
+				if (mainWindow != IntPtr.Zero)
+				{
+					result = SendMessage(mainWindow, msg, wParam, lParam);
+				}
+			}
+			return result;
 		}
 
 		private IntPtr PluginWndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
 		{
-			if (msg == WM_KEYDOWN)
+			// 调用原始窗口过程
+			IntPtr originalProc = GetProp(hWnd, "PluginProc");
+			IntPtr result;
+			if(originalProc != IntPtr.Zero)
+				result = CallWindowProc(originalProc, hWnd, msg, wParam, lParam);
+			else
+				result = DefWindowProc(hWnd, msg, wParam, lParam);
+
+			if (result == IntPtr.Zero && msg == WM_KEYDOWN)
 			{
 				// 处理热键（如 'n'/'p'）
 				PostMessage(GetParent(hWnd), msg, wParam, lParam);
 			}
-
-			// 调用原始窗口过程
-			IntPtr originalProc = GetProp(hWnd, "PluginProc");
-			return CallWindowProc(originalProc, hWnd, msg, wParam, lParam);
+			return result;
 		}
 		private const uint WM_COMMAND = 0x0111;
 		private const uint WM_KEYDOWN = 0x0100;
@@ -363,10 +405,15 @@ namespace zfile
 		private static extern IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
 		[DllImport("user32.dll")]
+		private static extern IntPtr DefWindowProc(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam);
+		[DllImport("user32.dll")]
 		private static extern IntPtr GetParent(IntPtr hWnd);
 
 		[DllImport("user32.dll")]
 		private static extern bool PostMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+		
+		[DllImport("user32.dll", CharSet = CharSet.Auto)]
+		private static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 		public int CallListLoadNext(IntPtr parentWin, IntPtr pluginWin, string fileToLoad, int showFlags)
 		{
 			if (_listLoadNextW != null)

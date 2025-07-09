@@ -627,7 +627,7 @@ namespace zfile.Forms
 			//		(IntPtr)(300 * 1024 * 1024),  // 300MB
 			//		SET_WS_SET
 			//	);
-				
+
 			//	// 可选：预先分配低地址内存1MB，帮助确保后续分配在低地址空间
 			//	IntPtr lowMem = Marshal.AllocHGlobal(0x100000);
 			//}
@@ -636,10 +636,24 @@ namespace zfile.Forms
 			//	// 如果设置失败，记录但不阻止插件加载
 			//	System.Diagnostics.Debug.WriteLine($"设置低地址分配偏好失败: {ex.Message}");
 			//}
-	
+			if (!container.IsHandleCreated)
+				_ = container.Handle;
 			// 传递容器面板的句柄作为父窗口
-			if(_pluginWindow == IntPtr.Zero)
-				_pluginWindow = _currentPlugin.CallListLoad(container.Handle, _fileName, WlxConstants.LISTPLUGIN_SHOW);
+			if (_pluginWindow == IntPtr.Zero)
+			{
+				// 创建一个隐藏的Form作为插件父窗口
+				Form pluginHostForm = new Form();
+				pluginHostForm.Size = container.Size;
+				pluginHostForm.StartPosition = FormStartPosition.Manual;
+				pluginHostForm.Location = container.PointToScreen(Point.Empty);
+				pluginHostForm.ShowInTaskbar = false;
+				pluginHostForm.FormBorderStyle = FormBorderStyle.None;
+				pluginHostForm.Visible = false; // 不显示
+
+				IntPtr parentWin = pluginHostForm.Handle; // 传递给插件
+				//_pluginWindow = _currentPlugin.CallListLoad(container.Handle, _fileName, WlxConstants.LISTPLUGIN_SHOW);
+				_pluginWindow = _currentPlugin.CallListLoad(parentWin, _fileName, WlxConstants.LISTPLUGIN_SHOW);
+			}
 			//IntPtr bmp = IntPtr.Zero;
 			//if(_pluginWindow == IntPtr.Zero)
 			//	_pluginWindow = _currentPlugin.CallListGetPreviewBitmap(_fileName, _mainPanel.Bounds.Width, _mainPanel.Bounds.Height, bmp);

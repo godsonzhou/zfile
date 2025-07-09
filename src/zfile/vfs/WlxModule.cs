@@ -343,57 +343,73 @@ namespace zfile
 		// 窗口过程实现
 		private IntPtr ParentWndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
 		{
-			// 调用原始窗口过程
-			IntPtr originalProc = GetProp(hWnd, "ParentProc");
-			IntPtr result;
-			if (originalProc != IntPtr.Zero) 
-				result = CallWindowProc(originalProc, hWnd, msg, wParam, lParam);
-			else
-				result = DefWindowProc(hWnd, msg, wParam, lParam);
-
-			if (result == IntPtr.Zero && msg == WM_COMMAND && lParam != IntPtr.Zero)
+			try
 			{
-				// 处理命令消息
-				//TControl Lister:= TControl(GetLCLOwnerObject(hWnd));
-				//	if Assigned(Lister) then Lister.Perform(Msg, wParam, lParam);
-				// 获取关联的.NET控件
-				// 注意：这里需要实现 GetControlFromHandle 方法
-				//Control? control = GetControlFromHandle(hWnd);
+				// 调用原始窗口过程
+				IntPtr originalProc = GetProp(hWnd, "ParentProc");
+				IntPtr result;
+				if (originalProc != IntPtr.Zero)
+					result = CallWindowProc(originalProc, hWnd, msg, wParam, lParam);
+				else
+					result = DefWindowProc(hWnd, msg, wParam, lParam);
 
-				//if (control != null)
-				//{
-				//	// 转发消息给.NET控件
-				//	Message m = Message.Create(hWnd, (int)msg, wParam, lParam);
-				//	control.WndProc(ref m);
-				//	result = m.Result;
-				//}
-				// 使用 SendMessage 代替直接调用 WndProc
-				// 获取父窗口的父窗口（可能是主窗体）
-				IntPtr mainWindow = GetParent(hWnd);
-				if (mainWindow != IntPtr.Zero)
+				if (result == IntPtr.Zero && msg == WM_COMMAND && lParam != IntPtr.Zero)
 				{
-					result = SendMessage(mainWindow, msg, wParam, lParam);
+					// 处理命令消息
+					//TControl Lister:= TControl(GetLCLOwnerObject(hWnd));
+					//	if Assigned(Lister) then Lister.Perform(Msg, wParam, lParam);
+					// 获取关联的.NET控件
+					// 注意：这里需要实现 GetControlFromHandle 方法
+					//Control? control = GetControlFromHandle(hWnd);
+
+					//if (control != null)
+					//{
+					//	// 转发消息给.NET控件
+					//	Message m = Message.Create(hWnd, (int)msg, wParam, lParam);
+					//	control.WndProc(ref m);
+					//	result = m.Result;
+					//}
+					// 使用 SendMessage 代替直接调用 WndProc
+					// 获取父窗口的父窗口（可能是主窗体）
+					IntPtr mainWindow = GetParent(hWnd);
+					if (mainWindow != IntPtr.Zero)
+					{
+						result = SendMessage(mainWindow, msg, wParam, lParam);
+					}
 				}
+				return result;
 			}
-			return result;
+			catch (Exception ex)
+			{  // 记录日志，防止崩溃
+				Debug.WriteLine("ParentWndProc Exception: " + ex);
+				return IntPtr.Zero;
+			}
 		}
 
 		private IntPtr PluginWndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
 		{
-			// 调用原始窗口过程
-			IntPtr originalProc = GetProp(hWnd, "PluginProc");
-			IntPtr result;
-			if(originalProc != IntPtr.Zero)
-				result = CallWindowProc(originalProc, hWnd, msg, wParam, lParam);
-			else
-				result = DefWindowProc(hWnd, msg, wParam, lParam);
-
-			if (result == IntPtr.Zero && msg == WM_KEYDOWN)
+			try
 			{
-				// 处理热键（如 'n'/'p'）
-				PostMessage(GetParent(hWnd), msg, wParam, lParam);
+				// 调用原始窗口过程
+				IntPtr originalProc = GetProp(hWnd, "PluginProc");
+				IntPtr result;
+				if (originalProc != IntPtr.Zero)
+					result = CallWindowProc(originalProc, hWnd, msg, wParam, lParam);
+				else
+					result = DefWindowProc(hWnd, msg, wParam, lParam);
+
+				if (result == IntPtr.Zero && msg == WM_KEYDOWN)
+				{
+					// 处理热键（如 'n'/'p'）
+					PostMessage(GetParent(hWnd), msg, wParam, lParam);
+				}
+				return result;
 			}
-			return result;
+			catch (Exception ex) {
+				// 记录日志，防止崩溃
+				Debug.WriteLine("PluginWndProc Exception: " + ex);
+				return IntPtr.Zero;
+			}
 		}
 		private const uint WM_COMMAND = 0x0111;
 		private const uint WM_KEYDOWN = 0x0100;
@@ -449,18 +465,27 @@ namespace zfile
 				// 恢复原始窗口过程
 				IntPtr parentWin = GetParent(pluginWin);
 				IntPtr parentProc = GetProp(parentWin, "ParentProc");
-				SetWindowLongPtr(parentWin, GWL_WNDPROC, parentProc);
-				RemoveProp(parentWin, "ParentProc");
-
+				if (parentProc != IntPtr.Zero)
+				{
+					SetWindowLongPtr(parentWin, GWL_WNDPROC, parentProc);
+					RemoveProp(parentWin, "ParentProc");
+				}
 				IntPtr pluginProc = GetProp(pluginWin, "PluginProc");
-				SetWindowLongPtr(pluginWin, GWL_WNDPROC, pluginProc);
-				RemoveProp(pluginWin, "PluginProc");
-
+				if (pluginProc != IntPtr.Zero)
+				{
+					SetWindowLongPtr(pluginWin, GWL_WNDPROC, pluginProc);
+					RemoveProp(pluginWin, "PluginProc");
+				}
 				// 关闭窗口
 				if (_listCloseWindow != null)
 					_listCloseWindow(pluginWin);
 				else
 					DestroyWindow(pluginWin);
+			}
+			catch(Exception ex)
+			{
+				// 记录日志，防止插件异常导致主程序崩溃
+				Debug.Print($"插件关闭异常: {ex.Message}");
 			}
 			finally
 			{

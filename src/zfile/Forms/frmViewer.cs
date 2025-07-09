@@ -1,6 +1,7 @@
-﻿using System.Drawing.Imaging;
-using System.Text;
+﻿using System.ComponentModel;
+using System.Drawing.Imaging;
 using System.Drawing.Printing;
+using System.Text;
 //using FastColoredTextBoxNS;
 
 namespace zfile.Forms
@@ -26,6 +27,7 @@ namespace zfile.Forms
 		private bool isAnimation = false;
 		private bool isImage = false;
 		private bool isPlugin = false;
+		private WlxModule currentPlugin;
 		private bool isQuickView = false;
 		private bool isMDFlag = false;
 		private bool isImgEdit = false;
@@ -179,7 +181,7 @@ namespace zfile.Forms
 		// 新增控件和变量声明（补全缺失部分）
 		private TextBox txtContent; // 文本查看器
 		private RichTextBox codeBox; // 代码查看器
-		private Panel panelText, panelCode, panelTools; // 文本/代码/工具栏面板
+		//private Panel panelText, panelCode, panelTools; // 文本/代码/工具栏面板
 		private StatusStrip statusStrip; // 状态栏
 		private ToolStripStatusLabel statusFileName, statusFileSize, statusFileType, statusImageSize; // 状态栏项
 		private ListView listViewFolder; // 文件夹浏览
@@ -211,6 +213,7 @@ namespace zfile.Forms
 		public frmViewer(List<string> filesToView, WlxModuleList wlx, bool quickView = false)
 		{
 			_wlxmodulelist = wlx;
+			//_wlxmodulelist.LoadConfiguration();
 			InitializeComponent();
 			InitializeViewer(filesToView, quickView);
 		}
@@ -218,11 +221,13 @@ namespace zfile.Forms
 		private void InitializeComponent()
 		{
 			// 初始化窗体
-			this.Text = "Double Commander Viewer";
+			this.Text = "Viewer";
 			this.Size = new Size(800, 600);
 			this.FormClosing += FrmViewer_FormClosing;
 			this.KeyDown += FrmViewer_KeyDown;
 			this.Resize += FrmViewer_Resize;
+			// 1. 构造函数或InitializeComponent中绑定KeyPress事件
+			this.KeyPress += FrmViewer_KeyPress;
 			pnlFolder = new Panel { Dock = DockStyle.Fill, Visible = false };
 
 			// 初始化panelTools
@@ -281,35 +286,61 @@ namespace zfile.Forms
 			pnlImage.Controls.Add(imageBox);
 			this.Controls.Add(pnlImage);
 
-			// 初始化文本显示面板
-			pnlText = new Panel { Dock = DockStyle.Fill, Visible = false };
-			// 这里添加文本查看控件
-			this.Controls.Add(pnlText);
-
-			// 初始化代码显示面板
-			pnlCode = new Panel { Dock = DockStyle.Fill, Visible = false };
-			// 这里添加代码查看控件
-			this.Controls.Add(pnlCode);
-
 			// 初始化文件夹显示面板
 			pnlFolder = new Panel { Dock = DockStyle.Fill, Visible = false };
 			// 这里添加文件夹内容显示控件
 			this.Controls.Add(pnlFolder);
 
+			// 创建插件宿主面板
+			if (pnlPlugin == null)
+			{
+				pnlPlugin = new Panel { Dock = DockStyle.Fill };
+				this.Controls.Add(pnlPlugin);
+			}
 			// 初始化菜单
 			mainMenu = new MenuStrip();
 			miFile = new ToolStripMenuItem("文件(&F)");
 			miPrev = new ToolStripMenuItem("上一个(&P)", null, (s, e) => cm_LoadPrevFile());
 			miNext = new ToolStripMenuItem("下一个(&N)", null, (s, e) => cm_LoadNextFile());
 			miExit = new ToolStripMenuItem("退出(&X)", null, (s, e) => Close());
-			miSearchNext = new ToolStripMenuItem("查找下一个", null);
-			miSearchPrev = new ToolStripMenuItem("查找上一个", null);
+			miFile.DropDownItems.AddRange(new ToolStripItem[] { miPrev, miNext, new ToolStripSeparator(), miExit });
+
+			miEdit = new ToolStripMenuItem("编辑(&E)");
+			miSearchNext = new ToolStripMenuItem("查找下一个", null, (s, e) => FindNext());
+			miSearchPrev = new ToolStripMenuItem("查找上一个", null, (s, e) => FindPrev());
+			miGotoLine = new ToolStripMenuItem("跳转到行", null, (s, e) => {
+				string input = Microsoft.VisualBasic.Interaction.InputBox("跳转到行号：", "跳转行", "1");
+				if (int.TryParse(input, out int lineNum))
+				{
+					GotoLine(lineNum);
+				}
+			});
+			miSelectAll = new ToolStripMenuItem("选中全部", null, (s, e) => SelectAll());
+			miCopyToClipboard = new ToolStripMenuItem("复制到剪贴板", null, (s, e) => Copy());
+			miEdit.DropDownItems.AddRange(new ToolStripItem[] { miSearchNext, miSearchPrev, miGotoLine, new ToolStripSeparator(), miSelectAll, miCopyToClipboard });
+
 			miView = new ToolStripMenuItem("查看(&V)");
-			// 其他菜单项初始化...
+			miBin = new ToolStripMenuItem("二进制", null, (s, e) => ShowAsBin());
+			miHex = new ToolStripMenuItem("十六进制", null, (s, e) => ShowAsHex());
+			miDec = new ToolStripMenuItem("十进制", null, (s, e) => ShowAsDec());
+			miOffice = new ToolStripMenuItem("Office", null, (s, e) => ShowOffice());
+			miPlugins = new ToolStripMenuItem("插件");
+			if (_wlxmodulelist != null && _wlxmodulelist.Modules != null)
+			{
+				foreach (var module in _wlxmodulelist.Modules)
+				{
+					var mi = new ToolStripMenuItem(module.Name);
+					mi.Click += (s, e) => ShowPlugins(module.Name);
+					miPlugins.DropDownItems.Add(mi);
+				}
+			}
+			miCode = new ToolStripMenuItem("代码", null, (s, e) => ShowCode());
+			miView.DropDownItems.AddRange(new ToolStripItem[] { miBin, miHex, miDec, new ToolStripSeparator(), miOffice, miPlugins, miCode });
 
 			mainMenu.Items.Add(miFile);
+			mainMenu.Items.Add(miEdit);
 			mainMenu.Items.Add(miView);
-			this.Controls.Add(mainMenu);
+			mainMenu.Items.Add(miPlugins);
 			this.MainMenuStrip = mainMenu;
 
 			// 初始化工具栏
@@ -348,7 +379,9 @@ namespace zfile.Forms
 			toolBar.Items.Add(btnRect);
 			toolBar.Items.Add(btnEllipse);
 			toolBar.Items.Add(btnPenColor);
+
 			this.Controls.Add(toolBar);
+			this.Controls.Add(mainMenu);
 
 			// 初始化预览面板
 			splitContainer = new SplitContainer { Dock = DockStyle.Fill, SplitterDistance = 600 };
@@ -400,19 +433,6 @@ namespace zfile.Forms
 			miCopyToClipboard = new ToolStripMenuItem("复制到剪贴板");
 			miCopyToClipboard.ShortcutKeys = Keys.Control | Keys.C;
 			miCopyToClipboard.Click += (s, e) => Copy();
-			miBin = new ToolStripMenuItem("二进制");
-			miHex = new ToolStripMenuItem("十六进制");
-			miDec = new ToolStripMenuItem("十进制");
-			miOffice = new ToolStripMenuItem("Office");
-			miPlugins = new ToolStripMenuItem("插件");
-			miCode = new ToolStripMenuItem("代码");
-			// 菜单项绑定高级模式切换
-			miBin.Click += (s, e) => ShowAsBin();
-			miHex.Click += (s, e) => ShowAsHex();
-			miDec.Click += (s, e) => ShowAsDec();
-			miOffice.Click += (s, e) => ShowOffice();
-			miPlugins.Click += (s, e) => ShowPlugins();
-			miCode.Click += (s, e) => ShowCode();
 
 			// 查找框
 			txtFind = new TextBox { Width = 120, Location = new Point(10, 40) };
@@ -427,6 +447,38 @@ namespace zfile.Forms
 			printDocument.PrintPage += printDocument_PrintPage;
 		}
 
+		// 2. 实现FormKeyPress方法
+		private void FrmViewer_KeyPress(object? sender, KeyPressEventArgs e)
+		{
+			if (isPlugin) return; // 插件模式下不响应
+			switch (char.ToUpper(e.KeyChar))
+			{
+				case '1':
+					ActivatePanel(PanelType.Text);
+					break;
+				case '2':
+					ShowAsBin();
+					break;
+				case '3':
+					ShowAsHex();
+					break;
+				case '4':
+					ShowAsDec();
+					break;
+				case '6':
+					ActivatePanel(PanelType.Image);
+					break;
+				case '7':
+					ShowPlugins();
+					break;
+				case '8':
+					ShowOffice();
+					break;
+				case '9':
+					ShowCode();
+					break;
+			}
+		}
 		private void cm_SearchNext()
 		{
 			throw new NotImplementedException();
@@ -902,7 +954,7 @@ namespace zfile.Forms
 		}
 		private void ActivatePanel(Panel panel)
 		{
-			foreach(var pnl in new[] { pnlImage, pnlText, pnlCode, pnlFolder })
+			foreach(var pnl in new[] { pnlImage, pnlText, pnlCode, pnlFolder, pnlPlugin })
 			{
 				pnl.Visible = false;
 			}
@@ -1374,6 +1426,8 @@ namespace zfile.Forms
 		private ToolStripButton btnPenColor;
 		private TextBox txtFind;
 		private PrintDocument printDocument;
+		private Panel pnlPlugin;
+		private nint pluginWin;
 		private const int HANDLE_SIZE = 8; // 手柄大小
 
 		// 2. 辅助方法：判断鼠标在哪个手柄/边/内部
@@ -1913,32 +1967,216 @@ namespace zfile.Forms
 		// 二进制模式切换（占位）
 		private void ShowAsBin()
 		{
-			MessageBox.Show("二进制模式暂未实现，可扩展！", "提示");
+			if (string.IsNullOrEmpty(fileName) || !File.Exists(fileName))
+			{
+				MessageBox.Show("无可用文件。", "提示");
+				return;
+			}
+			try
+			{
+				byte[] bytes = File.ReadAllBytes(fileName);
+				StringBuilder sb = new StringBuilder();
+				for (int i = 0; i < bytes.Length; i += 16)
+				{
+					sb.AppendFormat("{0:X8}: ", i);
+					for (int j = 0; j < 16; j++)
+					{
+						if (i + j < bytes.Length)
+							sb.AppendFormat("{0:X2} ", bytes[i + j]);
+						else
+							sb.Append("   ");
+					}
+					sb.Append(" ");
+					for (int j = 0; j < 16; j++)
+					{
+						if (i + j < bytes.Length)
+						{
+							char c = (char)bytes[i + j];
+							sb.Append(char.IsControl(c) ? '.' : c);
+						}
+					}
+					sb.AppendLine();
+				}
+				txtContent.Text = sb.ToString();
+				ActivatePanel(PanelType.Text);
+				statusFileType.Text = "Bin";
+				statusImageSize.Text = $"{bytes.Length:N0} bytes";
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"二进制模式加载失败: {ex.Message}", "错误");
+			}
 		}
-		// 十六进制模式切换（占位）
 		private void ShowAsHex()
 		{
-			MessageBox.Show("十六进制模式暂未实现，可扩展！", "提示");
+			if (string.IsNullOrEmpty(fileName) || !File.Exists(fileName))
+			{
+				MessageBox.Show("无可用文件。", "提示");
+				return;
+			}
+			try
+			{
+				byte[] bytes = File.ReadAllBytes(fileName);
+				StringBuilder sb = new StringBuilder();
+				for (int i = 0; i < bytes.Length; i++)
+				{
+					sb.AppendFormat("{0:X2} ", bytes[i]);
+					if ((i + 1) % 16 == 0) sb.AppendLine();
+				}
+				txtContent.Text = sb.ToString();
+				ActivatePanel(PanelType.Text);
+				statusFileType.Text = "Hex";
+				statusImageSize.Text = $"{bytes.Length:N0} bytes";
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"十六进制模式加载失败: {ex.Message}", "错误");
+			}
 		}
-		// 十进制模式切换（占位）
 		private void ShowAsDec()
 		{
-			MessageBox.Show("十进制模式暂未实现，可扩展！", "提示");
+			if (string.IsNullOrEmpty(fileName) || !File.Exists(fileName))
+			{
+				MessageBox.Show("无可用文件。", "提示");
+				return;
+			}
+			try
+			{
+				byte[] bytes = File.ReadAllBytes(fileName);
+				StringBuilder sb = new StringBuilder();
+				for (int i = 0; i < bytes.Length; i++)
+				{
+					sb.AppendFormat("{0:D3} ", bytes[i]);
+					if ((i + 1) % 16 == 0) sb.AppendLine();
+				}
+				txtContent.Text = sb.ToString();
+				ActivatePanel(PanelType.Text);
+				statusFileType.Text = "Dec";
+				statusImageSize.Text = $"{bytes.Length:N0} bytes";
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"十进制模式加载失败: {ex.Message}", "错误");
+			}
 		}
-		// Office模式切换（占位）
 		private void ShowOffice()
 		{
-			MessageBox.Show("Office文件查看暂未实现，可扩展！", "提示");
+			if (string.IsNullOrEmpty(fileName) || !File.Exists(fileName))
+			{
+				MessageBox.Show("无可用文件。", "提示");
+				return;
+			}
+			string ext = Path.GetExtension(fileName).ToLower();
+			if (ext == ".doc" || ext == ".docx" || ext == ".xls" || ext == ".xlsx" || ext == ".ppt" || ext == ".pptx")
+			{
+				MessageBox.Show("Office文件查看暂未实现，可扩展！", "提示");
+				return;
+			}
+			else
+			{
+				LoadText(fileName);
+			}
 		}
-		// 插件模式切换（占位）
-		private void ShowPlugins()
-		{
-			MessageBox.Show("插件模式暂未实现，可扩展！", "提示");
-		}
-		// 代码高亮模式切换（占位）
 		private void ShowCode()
 		{
-			MessageBox.Show("代码高亮模式暂未实现，可扩展！", "提示");
+			if (string.IsNullOrEmpty(fileName) || !File.Exists(fileName))
+			{
+				MessageBox.Show("无可用文件。", "提示");
+				return;
+			}
+			string ext = Path.GetExtension(fileName).ToLower();
+			string[] codeExts = { ".cs", ".cpp", ".h", ".java", ".py", ".js", ".html", ".css", ".php" };
+			if (codeExts.Contains(ext))
+			{
+				try
+				{
+					string content = File.ReadAllText(fileName, GetEncoding(fileName));
+					codeBox.Text = content;
+					ActivatePanel(PanelType.Code);
+					statusFileType.Text = "Code";
+					statusImageSize.Text = $"{content.Length:N0} chars";
+				}
+				catch (Exception ex)
+				{
+					MessageBox.Show($"代码高亮模式加载失败: {ex.Message}", "错误");
+				}
+			}
+			else
+			{
+				LoadText(fileName);
+			}
+		}
+	
+		// 插件模式切换（占位）
+		private void ShowPlugins(string? pluginName = null)
+		{
+			if (_wlxmodulelist == null || fileName == null)
+			{
+				MessageBox.Show("未配置插件或无文件可用。", "插件", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return;
+			}
+			// 卸载上一个插件
+			if (currentPlugin != null && pluginWin != IntPtr.Zero)
+			{
+				currentPlugin.CallListCloseWindow(pluginWin);
+				pluginWin = IntPtr.Zero;
+				currentPlugin = null;
+			}
+			WlxModule? plugin = null;
+			if (!string.IsNullOrEmpty(pluginName))
+			{
+				plugin = _wlxmodulelist.Modules.FirstOrDefault(m => m.Name == pluginName);
+			}
+			else
+			{
+				int tryIdx = -1;
+				plugin = _wlxmodulelist.FindModuleForFile(fileName, ref tryIdx);
+			}
+			if (plugin == null)
+			{
+				MessageBox.Show("没有可用插件打开此文件。", "插件", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return;
+			}
+	
+			ActivatePanel(pnlPlugin);
+			// 调用插件加载
+			pluginWin = plugin.CallListLoad(pnlPlugin.Handle, fileName, 1);
+			if (pluginWin == IntPtr.Zero)
+			{
+				MessageBox.Show($"插件 {plugin.Name} 加载失败。", "插件", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return;
+			}
+			isPlugin = true;
+			currentPlugin = plugin;
+			pluginNameStatus.Text = plugin.Name;
+			if (pluginWin != nint.Zero)
+			{
+				// 设置窗口样式为子窗口
+				NativeMethods.SetParent(pluginWin, pnlPlugin.Handle);
+				NativeMethods.SetWindowLong(pluginWin, NativeMethods.GWL_STYLE, NativeMethods.WS_VISIBLE | NativeMethods.WS_CHILD);
+
+				// 调整窗口位置和大小
+				SetPluginWindowBounds(pnlPlugin);
+				//container.Visible = true;
+				SetMenuItemCheckedState(currentPlugin.Name, true); //将相应的插件菜单项设为checked状态
+				//setButtonStateForImageMode(false);
+				//return true;
+			}
+			//return false;
+		}
+		private void SetMenuItemCheckedState(string pluginName, bool flag)
+		{
+			var menuitem = UIControlManager.GetToolStripMenuItemByName(pluginName, mainMenu.Items);
+			if (menuitem != null)
+				menuitem.Checked = flag;
+		}
+		private void SetPluginWindowBounds(Panel container)
+		{
+			if (pluginWin != nint.Zero && container != null)
+			{
+				var bounds = container.ClientRectangle;
+				NativeMethods.SetWindowPos(pluginWin, nint.Zero, 0, 0, bounds.Width, bounds.Height, NativeMethods.SWP_NOZORDER | NativeMethods.SWP_NOACTIVATE);
+			}
 		}
 
 		private void UpdateStatusBarForImage()
@@ -2132,8 +2370,5 @@ namespace zfile.Forms
 				isDisposed = true;
 			}
 		}
-
-
-
 	}
 }

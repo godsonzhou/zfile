@@ -44,14 +44,14 @@ namespace zfile
 		public const int LISTPLUGIN_SEARCH_FIRST = 2;
 	}
 
-	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
 	public struct ListDefaultParamStruct
 	{
 		public int Size;        //in c version definition, use int , means 16bit signed, so we should use short in c# version, but in pascal definition, it is defined as long int （32 bit signed）, so we use int here
 		//public short Size;	//try to use c version definition
 		public uint PluginInterfaceVersionLow;
 		public uint PluginInterfaceVersionHi;  //in c version definition, use DWORD , means 32bit unsigned, so we should use uint in c# version, but in pascal definition, it is defined as long int , so we use int here
-		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32000)]	//bugfix: in pascal version max path is 32000, not 260
+		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]	//bugfix: in pascal version max path is 32000, not 260
 		public string DefaultIniName;
 	}
 	// 应使用结构体而非 IntPtr
@@ -64,6 +64,7 @@ namespace zfile
 		public int Bottom;
 	}
 	// 必需的函数委托定义
+	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
 	public delegate IntPtr ListLoad(IntPtr parentWin, string fileToLoad, int showFlags);
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
 	public delegate IntPtr ListLoadW(IntPtr parentWin, [MarshalAs(UnmanagedType.LPWStr)] string fileToLoad, int showFlags);
@@ -271,7 +272,7 @@ namespace zfile
 				Size = Marshal.SizeOf<ListDefaultParamStruct>(),
 				PluginInterfaceVersionHi = 2,
 				PluginInterfaceVersionLow = 0,
-				DefaultIniName = Constants.ZfileCfgPath + "wincmd.ini" // 如果插件目录下没有对应的ini文件，则使用默认的wlx.ini
+				DefaultIniName = (Constants.ZfileCfgPath + "wincmd.ini") // 如果插件目录下没有对应的ini文件，则使用默认的wlx.ini
 			};
 			var ptr = Marshal.AllocHGlobal(Marshal.SizeOf(defaultParams));
 			Marshal.StructureToPtr(defaultParams, ptr, false);
@@ -284,7 +285,15 @@ namespace zfile
 				Marshal.FreeHGlobal(ptr);
 			}
 		}
-
+		public static byte[] StringToAnsiBytes(string str, int length)
+		{
+			var bytes = Encoding.Default.GetBytes(str ?? "");
+			var arr = new byte[length];
+			int copyLen = Math.Min(bytes.Length, length - 1); // 预留结尾0
+			Array.Copy(bytes, arr, copyLen);
+			arr[copyLen] = 0; // 结尾补0
+			return arr;
+		}
 		public IntPtr CallListLoad(IntPtr parentWin, string fileToLoad, int showFlags)
 		{
 			try
@@ -576,6 +585,7 @@ namespace zfile
 		public WlxModuleList()
 		{
 			LoadConfiguration();
+			LoadModulesFromDirectory(Constants.ZfileBinPath + "\\plugins\\wlx");
 		}
 		public void LoadConfiguration()
 		{

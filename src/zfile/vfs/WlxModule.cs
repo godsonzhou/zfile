@@ -230,8 +230,9 @@ namespace zfile
 
 				return true;
 			}
-			catch
+			catch (Exception ex)
 			{
+				Debug.WriteLine($"插件加载失败: {FilePath}, 错误: {ex.Message}");
 				UnloadModule();
 				return false;
 			}
@@ -294,10 +295,51 @@ namespace zfile
 			arr[copyLen] = 0; // 结尾补0
 			return arr;
 		}
+
+		// 添加 IME 相关的 Win32 API
+		[DllImport("imm32.dll")]
+		private static extern IntPtr ImmGetContext(IntPtr hWnd);
+
+		[DllImport("imm32.dll")]
+		private static extern bool ImmReleaseContext(IntPtr hWnd, IntPtr hIMC);
+
+		[DllImport("imm32.dll")]
+		private static extern bool ImmSetOpenStatus(IntPtr hIMC, bool fOpen);
+
+		[DllImport("user32.dll")]
+		private static extern bool EnableWindow(IntPtr hWnd, bool bEnable);
+
+		// 完全禁用 IME 的方法
+		private void DisableIME(IntPtr hWnd)
+		{
+			try
+			{
+				// 方法1：禁用 IME 上下文
+				IntPtr hIMC = ImmGetContext(hWnd);
+				if (hIMC != IntPtr.Zero)
+				{
+					ImmSetOpenStatus(hIMC, false); // 关闭 IME
+					ImmReleaseContext(hWnd, hIMC);
+				}
+
+				// 方法2：禁用窗口的 IME 支持
+				SetWindowLongPtr(hWnd, -20, GetWindowLongPtr(hWnd, -20) & ~0x00000080); // 移除 WS_EX_IME
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"禁用 IME 失败: {ex.Message}");
+			}
+		}
+
+		[DllImport("user32.dll")]
+		private static extern IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);
 		public IntPtr CallListLoad(IntPtr parentWin, string fileToLoad, int showFlags)
 		{
 			try
 			{
+				// 完全禁用 IME，避免插件崩溃
+				DisableIME(parentWin);
+
 				// 添加深色模式支持
 				if (IsDarkModeEnabled)
 				{
@@ -340,11 +382,37 @@ namespace zfile
 				return IntPtr.Zero;
 			}
 		}
+
+		private const uint WM_IME_SETCONTEXT = 0x0281;
+		private const uint WM_IME_NOTIFY = 0x0282;
+		private const uint WM_IME_STARTCOMPOSITION = 0x010D;
+		private const uint WM_IME_ENDCOMPOSITION = 0x010E;
+		private const uint WM_IME_COMPOSITION = 0x010F;
+		private const uint WM_IME_KEYDOWN = 0x0290;
+		private const uint WM_IME_KEYUP = 0x0291;
+		private const uint WM_IME_CHAR = 0x0286;
+		private const uint WM_IME_REQUEST = 0x0288;
+		private const uint WM_IME_SELECT = 0x0285;
+		private const uint WM_IME_CONTROL = 0x0283;
+		private const uint WM_IME_COMPOSITIONFULL = 0x0284;
+		private const uint WM_IME_KEYLAST = 0x010F;
+		private const uint WM_IME_SYSTEM = 0x0287;
+		
 		// 窗口过程实现
 		private IntPtr ParentWndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
 		{
 			try
 			{
+				// 过滤掉所有可能导致崩溃的 IME 消息
+				if ((msg >= WM_IME_STARTCOMPOSITION && msg <= WM_IME_KEYLAST) ||
+					msg == WM_IME_SETCONTEXT || msg == WM_IME_NOTIFY ||
+					msg == WM_IME_KEYDOWN || msg == WM_IME_KEYUP ||
+					msg == WM_IME_CHAR || msg == WM_IME_REQUEST ||
+					msg == WM_IME_SELECT || msg == WM_IME_CONTROL ||
+					msg == WM_IME_COMPOSITIONFULL || msg == WM_IME_SYSTEM)
+				{
+					return IntPtr.Zero; // 直接返回，不处理任何 IME 消息
+				}
 				// 调用原始窗口过程
 				IntPtr originalProc = GetProp(hWnd, "ParentProc");
 				IntPtr result;
@@ -390,6 +458,17 @@ namespace zfile
 		{
 			try
 			{
+				// 过滤掉所有可能导致崩溃的 IME 消息
+				if ((msg >= WM_IME_STARTCOMPOSITION && msg <= WM_IME_KEYLAST) ||
+					msg == WM_IME_SETCONTEXT || msg == WM_IME_NOTIFY ||
+					msg == WM_IME_KEYDOWN || msg == WM_IME_KEYUP ||
+					msg == WM_IME_CHAR || msg == WM_IME_REQUEST ||
+					msg == WM_IME_SELECT || msg == WM_IME_CONTROL ||
+					msg == WM_IME_COMPOSITIONFULL || msg == WM_IME_SYSTEM)
+				{
+					return IntPtr.Zero; // 直接返回，不处理任何 IME 消息
+				}
+
 				// 调用原始窗口过程
 				IntPtr originalProc = GetProp(hWnd, "PluginProc");
 				IntPtr result;
@@ -610,7 +689,7 @@ namespace zfile
 		public WlxModuleList()
 		{
 			LoadConfiguration();
-			LoadModulesFromDirectory(Constants.ZfileBinPath + "\\plugins\\wlx");
+			//LoadModulesFromDirectory(Constants.ZfileBinPath + "\\plugins\\wlx");
 		}
 		public void LoadConfiguration()
 		{
@@ -735,11 +814,19 @@ namespace zfile
 						if (module.LoadModule())
 						{
 							AddModule(module);
+							Debug.WriteLine($"成功加载插件: {module.Name}");
+						}
+						else
+						{
+							Debug.WriteLine($"跳过插件: {module.Name} (加载失败)");
+							module.Dispose(); // 清理资源
 						}
 					}
-					catch
+					catch (Exception ex)
 					{
 						// 加载失败的模块直接跳过
+						Debug.WriteLine($"插件加载异常: {Path.GetFileName(file)}, 错误: {ex.Message}");
+						// 继续加载下一个插件，不中断整个流程
 					}
 				}
 			}

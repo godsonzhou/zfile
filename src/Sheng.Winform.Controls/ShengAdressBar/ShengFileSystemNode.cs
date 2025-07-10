@@ -348,6 +348,8 @@ namespace Sheng.Winform.Controls
 						}
 					}
 					//get the icon and display name
+					if (!Directory.Exists(fullPath))
+						return;
 					Win32.SHGetFileInfo(fullPath, 0, ref shinfo, (uint)Marshal.SizeOf(shinfo), Win32.SHGFI_ICON | Win32.SHGFI_SMALLICON | Win32.SHGFI_DISPLAYNAME);
                 }
                 else

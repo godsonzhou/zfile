@@ -1230,38 +1230,78 @@ namespace zfile.Forms
 			}
 		}
 
-		// 创建原生 Windows 窗口，模拟 TC Lister 环境
+		// 1. 在 ViewerForm 类顶部添加静态字段
+		private static bool _classRegistered = false;
+		private static string _nativeClassName = "ListerWindowClass";
+		private static IntPtr _nativeHInstance = NativeMethods.GetModuleHandle(null);
+
+		// 2. RegisterWindowClass 方法
+		private void RegisterWindowClass()
+		{
+			if (_classRegistered) return;
+			try
+			{
+				var wc = new NativeMethods.WNDCLASS();
+				wc.style = NativeMethods.CS_HREDRAW | NativeMethods.CS_VREDRAW | NativeMethods.CS_DBLCLKS;
+				wc.lpfnWndProc = Marshal.GetFunctionPointerForDelegate(wndProcDelegate);
+				wc.cbClsExtra = 0;
+				wc.cbWndExtra = 0;
+				wc.hInstance = _nativeHInstance;
+				wc.hIcon = IntPtr.Zero;
+				wc.hCursor = NativeMethods.LoadCursor(IntPtr.Zero, NativeMethods.IDC_ARROW);
+				wc.hbrBackground = NativeMethods.GetStockObject(NativeMethods.WHITE_BRUSH);
+				wc.lpszMenuName = null;
+				wc.lpszClassName = _nativeClassName;
+
+				ushort atom = NativeMethods.RegisterClass(ref wc);
+				if (atom == 0)
+				{
+					uint err = NativeMethods.GetLastError();
+					if (err != 1410) // 1410 = ERROR_CLASS_ALREADY_EXISTS
+						Debug.WriteLine($"RegisterClass 失败，错误代码: {err}");
+				}
+				else
+					Debug.Print($"RegisterClass成功{atom}");
+				_classRegistered = true;
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"注册窗口类失败: {ex.Message}");
+			}
+		}
+
+		// 3. CreateNativeWindow 方法
 		private IntPtr CreateNativeWindow(Size size, Point location)
 		{
 			try
 			{
-				// 注册窗口类
-				string className = "ListerWindowClass";
-				RegisterWindowClass(className);
+				RegisterWindowClass();
+				//uint style = NativeMethods.WS_OVERLAPPEDWINDOW | NativeMethods.WS_CLIPCHILDREN | NativeMethods.WS_CLIPSIBLINGS | NativeMethods.WS_VISIBLE;
+				uint style = NativeMethods.WS_POPUP | NativeMethods.WS_CLIPCHILDREN | NativeMethods.WS_CLIPSIBLINGS;
 
-				// 创建窗口
 				IntPtr hWnd = NativeMethods.CreateWindowEx(
-					0, // 扩展样式
-					className,
+					0,
+					_nativeClassName,
 					"Lister Window",
-					NativeMethods.WS_POPUP | NativeMethods.WS_VISIBLE, // 弹出窗口，可见
+					style,
 					location.X, location.Y,
 					size.Width, size.Height,
-					IntPtr.Zero, // 父窗口
-					IntPtr.Zero, // 菜单
-					IntPtr.Zero, // 实例句柄
-					IntPtr.Zero  // 额外参数
+					IntPtr.Zero,
+					IntPtr.Zero,
+					_nativeHInstance, // 必须和注册时一致
+					IntPtr.Zero
 				);
-
 				if (hWnd != IntPtr.Zero)
 				{
 					Debug.WriteLine($"成功创建原生窗口: {hWnd}");
+					//NativeMethods.ShowWindow(hWnd, NativeMethods.SW_SHOW);
+					//NativeMethods.SetForegroundWindow(hWnd);
+					NativeMethods.ShowWindow(hWnd, 0); // SW_HIDE
 				}
 				else
 				{
 					Debug.WriteLine($"创建原生窗口失败，错误代码: {NativeMethods.GetLastError()}");
 				}
-
 				return hWnd;
 			}
 			catch (Exception ex)
@@ -1270,21 +1310,34 @@ namespace zfile.Forms
 				return IntPtr.Zero;
 			}
 		}
-
+		private static NativeMethods.WndProcDelegate wndProcDelegate = MyWndProc;
+		private static IntPtr MyWndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
+		{
+			Debug.WriteLine($"[MyWndProc] hWnd=0x{hWnd.ToInt64():X}, msg=0x{msg:X}, wParam=0x{wParam.ToInt64():X}, lParam=0x{lParam.ToInt64():X}");
+			return NativeMethods.DefWindowProc(hWnd, msg, wParam, lParam);
+		}
 		// 注册窗口类
 		private void RegisterWindowClass(string className)
 		{
 			try
 			{
 				var wc = new NativeMethods.WNDCLASS();
-				wc.lpfnWndProc = NativeMethods.DefWindowProc;
-				wc.hInstance = NativeMethods.GetModuleHandle(null);
-				wc.lpszClassName = className;
-				wc.hbrBackground = NativeMethods.GetStockObject(NativeMethods.WHITE_BRUSH);
-				wc.hCursor = NativeMethods.LoadCursor(IntPtr.Zero, NativeMethods.IDC_ARROW);
 				wc.style = NativeMethods.CS_HREDRAW | NativeMethods.CS_VREDRAW | NativeMethods.CS_DBLCLKS;
+				wc.lpfnWndProc = Marshal.GetFunctionPointerForDelegate(wndProcDelegate);
+				wc.cbClsExtra = 0;
+				wc.cbWndExtra = 0;
+				wc.hInstance = NativeMethods.GetModuleHandle(null);
+				wc.hIcon = IntPtr.Zero;
+				wc.hCursor = NativeMethods.LoadCursor(IntPtr.Zero, NativeMethods.IDC_ARROW);
+				wc.hbrBackground = NativeMethods.GetStockObject(NativeMethods.WHITE_BRUSH);
+				wc.lpszMenuName = null; // 必须赋值
+				wc.lpszClassName = className;
 
-				NativeMethods.RegisterClass(ref wc);
+				ushort atom = NativeMethods.RegisterClass(ref wc);
+				if (atom == 0)
+				{
+					Debug.WriteLine($"RegisterClass 失败，错误代码: {NativeMethods.GetLastError()}");
+				}
 			}
 			catch (Exception ex)
 			{
@@ -1366,6 +1419,10 @@ namespace zfile.Forms
 		public const int GWL_STYLE = -16;
 		public const int WS_CHILD = 0x40000000;
 		//public const int WS_VISIBLE = 0x10000000;
+		public const uint WS_OVERLAPPEDWINDOW = 0x00CF0000;
+		public const uint WS_CLIPCHILDREN = 0x02000000;
+		public const uint WS_CLIPSIBLINGS = 0x04000000;
+		public const int SW_SHOW = 5;
 		[DllImport("kernel32.dll", SetLastError = true)]
 		public static extern IntPtr VirtualAlloc(
 		 IntPtr lpAddress,
@@ -1415,7 +1472,7 @@ namespace zfile.Forms
 		public const int GCL_HICONSM = -34;
 
 		// 原生窗口创建相关的常量
-		public const int WS_POPUP = 0x80000000;
+		public const uint WS_POPUP = 0x80000000;
 		public const int WS_VISIBLE = 0x10000000;
 		public const int CS_HREDRAW = 0x0002;
 		public const int CS_VREDRAW = 0x0001;
@@ -1424,10 +1481,10 @@ namespace zfile.Forms
 		public const int IDC_ARROW = 32512;
 
 		// 窗口类结构体
-		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
 		public struct WNDCLASS
 		{
-			public int style;
+			public uint style;
 			public IntPtr lpfnWndProc;
 			public int cbClsExtra;
 			public int cbWndExtra;
@@ -1442,10 +1499,14 @@ namespace zfile.Forms
 		}
 
 		// Win32 API 声明
-		[DllImport("user32.dll", CharSet = CharSet.Auto)]
+		[DllImport("user32.dll", CharSet = CharSet.Ansi)]
 		public static extern ushort RegisterClass(ref WNDCLASS lpWndClass);
 
-		[DllImport("user32.dll", CharSet = CharSet.Auto)]
+		// 窗口过程委托
+		[UnmanagedFunctionPointer(CallingConvention.StdCall)]
+		public delegate IntPtr WndProcDelegate(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam);
+
+		[DllImport("user32.dll", CharSet = CharSet.Ansi)]
 		public static extern IntPtr CreateWindowEx(
 			uint dwExStyle,
 			string lpClassName,
@@ -1473,6 +1534,12 @@ namespace zfile.Forms
 
 		[DllImport("user32.dll")]
 		public static extern IntPtr LoadCursor(IntPtr hInstance, int lpCursorName);
+
+		[DllImport("user32.dll")]
+		public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+		[DllImport("user32.dll")]
+		public static extern bool SetForegroundWindow(IntPtr hWnd);
 
 		[DllImport("kernel32.dll")]
 		public static extern uint GetLastError();

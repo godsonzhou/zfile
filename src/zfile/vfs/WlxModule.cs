@@ -348,6 +348,13 @@ namespace zfile
 						showFlags |= 0x20000000; // lcp_darkmodenative
 				}
 
+				// 特殊处理：跳过已知有问题的插件
+				// if (Name.Equals("uLister", StringComparison.OrdinalIgnoreCase))
+				// {
+				// 	Debug.WriteLine("跳过已知有问题的 uLister 插件");
+				// 	return IntPtr.Zero;
+				// }
+
 				IntPtr result;
 				if (_listLoadW != null)
 					result = _listLoadW(parentWin, fileToLoad, showFlags);

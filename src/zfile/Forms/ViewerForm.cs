@@ -641,7 +641,7 @@ namespace zfile.Forms
 			// 传递容器面板的句柄作为父窗口
 			if (_pluginWindow == IntPtr.Zero)
 			{
-				// 创建一个隐藏的Form作为插件父窗口
+				// 创建一个完全模拟 TC Lister 的隐藏 Form
 				Form pluginHostForm = new Form();
 				pluginHostForm.Size = container.Size;
 				pluginHostForm.StartPosition = FormStartPosition.Manual;
@@ -649,10 +649,23 @@ namespace zfile.Forms
 				pluginHostForm.ShowInTaskbar = false;
 				pluginHostForm.FormBorderStyle = FormBorderStyle.None;
 				pluginHostForm.Visible = false; // 不显示
-
-				IntPtr parentWin = pluginHostForm.Handle; // 传递给插件
-				//_pluginWindow = _currentPlugin.CallListLoad(container.Handle, _fileName, WlxConstants.LISTPLUGIN_SHOW);
-				_pluginWindow = _currentPlugin.CallListLoad(parentWin, _fileName, WlxConstants.LISTPLUGIN_SHOW);
+				
+				// 确保窗口句柄已创建
+				IntPtr parentWin = pluginHostForm.Handle;
+				
+				// 设置窗口类名，模拟 TC Lister
+				SetWindowClass(parentWin, "ListerWindow");
+				
+				// 调用插件，使用 try-catch 捕获任何异常
+				try
+				{
+					_pluginWindow = _currentPlugin.CallListLoad(parentWin, _fileName, WlxConstants.LISTPLUGIN_SHOW);
+				}
+				catch (Exception ex)
+				{
+					Debug.WriteLine($"插件加载失败: {ex.Message}");
+					_pluginWindow = IntPtr.Zero;
+				}
 			}
 			//IntPtr bmp = IntPtr.Zero;
 			//if(_pluginWindow == IntPtr.Zero)
@@ -1202,6 +1215,22 @@ namespace zfile.Forms
 			UpdateStatusBar();
 		}
 	
+		// 设置窗口类属性，模拟 TC Lister
+		private void SetWindowClass(IntPtr hWnd, string className)
+		{
+			try
+			{
+				// 设置窗口类样式，模拟 TC Lister
+				int currentStyle = NativeMethods.GetClassLong(hWnd, NativeMethods.GCL_STYLE);
+				currentStyle |= 0x00000020; // CS_DBLCLKS
+				NativeMethods.SetClassLong(hWnd, NativeMethods.GCL_STYLE, currentStyle);
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"设置窗口类失败: {ex.Message}");
+			}
+		}
+	
 		private void LoadHex()
 		{
 			_hexPanel.Visible = true;
@@ -1308,6 +1337,21 @@ namespace zfile.Forms
 		[DllImport("user32.dll")]
 		public static extern bool SetWindowPos(nint hWnd, nint hWndInsertAfter,
 			int x, int y, int cx, int cy, int flags);
+
+		[DllImport("user32.dll", CharSet = CharSet.Auto)]
+		public static extern int SetClassLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+		[DllImport("user32.dll", CharSet = CharSet.Auto)]
+		public static extern int GetClassLong(IntPtr hWnd, int nIndex);
+
+		public const int GCL_WNDPROC = -24;
+		public const int GCL_STYLE = -26;
+		public const int GCL_HBRBACKGROUND = -10;
+		public const int GCL_HCURSOR = -12;
+		public const int GCL_HICON = -14;
+		public const int GCL_HMODULE = -16;
+		public const int GCL_MENUNAME = -8;
+		public const int GCL_HICONSM = -34;
 	}
 
 }

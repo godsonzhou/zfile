@@ -25,6 +25,7 @@ namespace zfile.Forms
 		private WlxModuleList _pluginList;
 		private WlxModule _currentPlugin;
 		private nint _pluginWindow;
+		private IntPtr _nativeParentWindow; // 新增字段，用于存储原生父窗口句柄
 
 		// 查看模式枚举
 		private enum ViewMode
@@ -641,20 +642,8 @@ namespace zfile.Forms
 			// 传递容器面板的句柄作为父窗口
 			if (_pluginWindow == IntPtr.Zero)
 			{
-				// 创建一个完全模拟 TC Lister 的隐藏 Form
-				Form pluginHostForm = new Form();
-				pluginHostForm.Size = container.Size;
-				pluginHostForm.StartPosition = FormStartPosition.Manual;
-				pluginHostForm.Location = container.PointToScreen(Point.Empty);
-				pluginHostForm.ShowInTaskbar = false;
-				pluginHostForm.FormBorderStyle = FormBorderStyle.None;
-				pluginHostForm.Visible = false; // 不显示
-				
-				// 确保窗口句柄已创建
-				IntPtr parentWin = pluginHostForm.Handle;
-				
-				// 设置窗口类名，模拟 TC Lister
-				SetWindowClass(parentWin, "ListerWindow");
+				// 使用原生 Windows 窗口替代 WinForms Form
+				IntPtr parentWin = CreateNativeWindow(container.Size, container.PointToScreen(Point.Empty));
 				
 				// 调用插件，使用 try-catch 捕获任何异常
 				try
@@ -666,6 +655,9 @@ namespace zfile.Forms
 					Debug.WriteLine($"插件加载失败: {ex.Message}");
 					_pluginWindow = IntPtr.Zero;
 				}
+				
+				// 保存原生窗口句柄，用于后续清理
+				_nativeParentWindow = parentWin;
 			}
 			//IntPtr bmp = IntPtr.Zero;
 			//if(_pluginWindow == IntPtr.Zero)
@@ -749,6 +741,13 @@ namespace zfile.Forms
 			{
 				_currentPlugin?.CallListCloseWindow(_pluginWindow);
 				_pluginWindow = nint.Zero;
+			}
+
+			// 清理原生父窗口
+			if (_nativeParentWindow != IntPtr.Zero)
+			{
+				NativeMethods.DestroyWindow(_nativeParentWindow);
+				_nativeParentWindow = IntPtr.Zero;
 			}
 
 			_isImage = false;
@@ -1230,6 +1229,68 @@ namespace zfile.Forms
 				Debug.WriteLine($"设置窗口类失败: {ex.Message}");
 			}
 		}
+
+		// 创建原生 Windows 窗口，模拟 TC Lister 环境
+		private IntPtr CreateNativeWindow(Size size, Point location)
+		{
+			try
+			{
+				// 注册窗口类
+				string className = "ListerWindowClass";
+				RegisterWindowClass(className);
+
+				// 创建窗口
+				IntPtr hWnd = NativeMethods.CreateWindowEx(
+					0, // 扩展样式
+					className,
+					"Lister Window",
+					NativeMethods.WS_POPUP | NativeMethods.WS_VISIBLE, // 弹出窗口，可见
+					location.X, location.Y,
+					size.Width, size.Height,
+					IntPtr.Zero, // 父窗口
+					IntPtr.Zero, // 菜单
+					IntPtr.Zero, // 实例句柄
+					IntPtr.Zero  // 额外参数
+				);
+
+				if (hWnd != IntPtr.Zero)
+				{
+					Debug.WriteLine($"成功创建原生窗口: {hWnd}");
+				}
+				else
+				{
+					Debug.WriteLine($"创建原生窗口失败，错误代码: {NativeMethods.GetLastError()}");
+				}
+
+				return hWnd;
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"创建原生窗口异常: {ex.Message}");
+				return IntPtr.Zero;
+			}
+		}
+
+		// 注册窗口类
+		private void RegisterWindowClass(string className)
+		{
+			try
+			{
+				var wc = new NativeMethods.WNDCLASS();
+				wc.lpfnWndProc = NativeMethods.DefWindowProc;
+				wc.hInstance = NativeMethods.GetModuleHandle(null);
+				wc.lpszClassName = className;
+				wc.hbrBackground = NativeMethods.GetStockObject(NativeMethods.WHITE_BRUSH);
+				wc.hCursor = NativeMethods.LoadCursor(IntPtr.Zero, NativeMethods.IDC_ARROW);
+				wc.style = NativeMethods.CS_HREDRAW | NativeMethods.CS_VREDRAW | NativeMethods.CS_DBLCLKS;
+
+				NativeMethods.RegisterClass(ref wc);
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"注册窗口类失败: {ex.Message}");
+			}
+		}
 	
 		private void LoadHex()
 		{
@@ -1304,7 +1365,7 @@ namespace zfile.Forms
 		// 新增窗口样式常量
 		public const int GWL_STYLE = -16;
 		public const int WS_CHILD = 0x40000000;
-		public const int WS_VISIBLE = 0x10000000;
+		//public const int WS_VISIBLE = 0x10000000;
 		[DllImport("kernel32.dll", SetLastError = true)]
 		public static extern IntPtr VirtualAlloc(
 		 IntPtr lpAddress,
@@ -1352,6 +1413,69 @@ namespace zfile.Forms
 		public const int GCL_HMODULE = -16;
 		public const int GCL_MENUNAME = -8;
 		public const int GCL_HICONSM = -34;
+
+		// 原生窗口创建相关的常量
+		public const int WS_POPUP = 0x80000000;
+		public const int WS_VISIBLE = 0x10000000;
+		public const int CS_HREDRAW = 0x0002;
+		public const int CS_VREDRAW = 0x0001;
+		public const int CS_DBLCLKS = 0x0008;
+		public const int WHITE_BRUSH = 0;
+		public const int IDC_ARROW = 32512;
+
+		// 窗口类结构体
+		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+		public struct WNDCLASS
+		{
+			public int style;
+			public IntPtr lpfnWndProc;
+			public int cbClsExtra;
+			public int cbWndExtra;
+			public IntPtr hInstance;
+			public IntPtr hIcon;
+			public IntPtr hCursor;
+			public IntPtr hbrBackground;
+			[MarshalAs(UnmanagedType.LPStr)]
+			public string lpszMenuName;
+			[MarshalAs(UnmanagedType.LPStr)]
+			public string lpszClassName;
+		}
+
+		// Win32 API 声明
+		[DllImport("user32.dll", CharSet = CharSet.Auto)]
+		public static extern ushort RegisterClass(ref WNDCLASS lpWndClass);
+
+		[DllImport("user32.dll", CharSet = CharSet.Auto)]
+		public static extern IntPtr CreateWindowEx(
+			uint dwExStyle,
+			string lpClassName,
+			string lpWindowName,
+			uint dwStyle,
+			int x, int y,
+			int nWidth, int nHeight,
+			IntPtr hWndParent,
+			IntPtr hMenu,
+			IntPtr hInstance,
+			IntPtr lpParam
+		);
+
+		[DllImport("user32.dll")]
+		public static extern bool DestroyWindow(IntPtr hWnd);
+
+		[DllImport("user32.dll")]
+		public static extern IntPtr DefWindowProc(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam);
+
+		[DllImport("kernel32.dll")]
+		public static extern IntPtr GetModuleHandle(string lpModuleName);
+
+		[DllImport("gdi32.dll")]
+		public static extern IntPtr GetStockObject(int fnObject);
+
+		[DllImport("user32.dll")]
+		public static extern IntPtr LoadCursor(IntPtr hInstance, int lpCursorName);
+
+		[DllImport("kernel32.dll")]
+		public static extern uint GetLastError();
 	}
 
 }

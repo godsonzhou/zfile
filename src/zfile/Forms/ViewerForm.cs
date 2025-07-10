@@ -2,10 +2,176 @@ using System.Diagnostics;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.Text;
+using static zfile.Forms.NativeMethods;
 using Timer = System.Windows.Forms.Timer;
 
 namespace zfile.Forms
 {
+	public class PluginHostThread : IDisposable
+	{
+		public IntPtr ParentWindow { get; private set; }
+		public IntPtr PluginWindow { get; private set; }
+		private Thread _thread;
+		private ManualResetEvent _ready = new ManualResetEvent(false);
+		private ManualResetEvent _exit = new ManualResetEvent(false);
+		private string _fileName;
+		private WlxModule _plugin;
+		private int _showFlags;
+		private Size _size;
+		private Point _location;
+		private static bool _classRegistered = false;
+		private static string _nativeClassName = "ListerWindowClass";
+		private static IntPtr _nativeHInstance = NativeMethods.GetModuleHandle(null);
+		private static NativeMethods.WndProcDelegate wndProcDelegate = MyWndProc;
+		private static IntPtr MyWndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
+		{
+			Debug.WriteLine($"[MyWndProc] hWnd=0x{hWnd.ToInt64():X}, msg=0x{msg:X}, wParam=0x{wParam.ToInt64():X}, lParam=0x{lParam.ToInt64():X}");
+			return NativeMethods.DefWindowProc(hWnd, msg, wParam, lParam);
+		}
+		public PluginHostThread(string fileName, WlxModule plugin, Size size, Point location, int showFlags)
+		{
+			_fileName = fileName;
+			_plugin = plugin;
+			_size = size;
+			_location = location;
+			_showFlags = showFlags;
+		}
+
+		public void Start()
+		{
+			_thread = new Thread(ThreadProc);
+			_thread.SetApartmentState(ApartmentState.STA);
+			_thread.IsBackground = true;
+			_thread.Start();
+			_ready.WaitOne(); // 等待窗口和插件加载完成
+		}
+
+		private void ThreadProc()
+		{
+			// 注册窗口类
+			RegisterWindowClass();
+
+			// 创建父窗口
+			ParentWindow = CreateNativeWindow(_size, _location);
+
+			// 调用插件
+			PluginWindow = _plugin.CallListLoad(ParentWindow, _fileName, _showFlags);
+
+			_ready.Set();
+
+			// 消息循环
+			NativeMethods.MSG msg;
+			while (NativeMethods.GetMessage(out msg, IntPtr.Zero, 0, 0))
+			{
+				NativeMethods.TranslateMessage(ref msg);
+				NativeMethods.DispatchMessage(ref msg);
+				if (_exit.WaitOne(0)) break;
+			}
+
+			// 关闭窗口
+			if (PluginWindow != IntPtr.Zero)
+			{
+				_plugin.CallListCloseWindow(PluginWindow);
+				PluginWindow = IntPtr.Zero;
+			}
+			if (ParentWindow != IntPtr.Zero)
+			{
+				NativeMethods.DestroyWindow(ParentWindow);
+				ParentWindow = IntPtr.Zero;
+			}
+		}
+
+		public void Stop()
+		{
+			if (ParentWindow != IntPtr.Zero)
+				NativeMethods.PostMessage(ParentWindow, NativeMethods.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+			_exit.Set();
+			_thread.Join();
+		}
+
+		public void Dispose()
+		{
+			Stop();
+			_ready.Dispose();
+			_exit.Dispose();
+		}
+
+		// 你已有的 RegisterWindowClass 和 CreateNativeWindow 方法可直接复用
+		private void RegisterWindowClass()
+		{
+			// ... 你的窗口类注册代码 ...
+			if (_classRegistered) return;
+			try
+			{
+				var wc = new NativeMethods.WNDCLASS();
+				wc.style = NativeMethods.CS_HREDRAW | NativeMethods.CS_VREDRAW | NativeMethods.CS_DBLCLKS;
+				wc.lpfnWndProc = Marshal.GetFunctionPointerForDelegate(wndProcDelegate);
+				wc.cbClsExtra = 0;
+				wc.cbWndExtra = 0;
+				wc.hInstance = _nativeHInstance;
+				wc.hIcon = IntPtr.Zero;
+				wc.hCursor = NativeMethods.LoadCursor(IntPtr.Zero, NativeMethods.IDC_ARROW);
+				wc.hbrBackground = NativeMethods.GetStockObject(NativeMethods.WHITE_BRUSH);
+				wc.lpszMenuName = null;
+				wc.lpszClassName = _nativeClassName;
+
+				ushort atom = NativeMethods.RegisterClass(ref wc);
+				if (atom == 0)
+				{
+					uint err = NativeMethods.GetLastError();
+					if (err != 1410) // 1410 = ERROR_CLASS_ALREADY_EXISTS
+						Debug.WriteLine($"RegisterClass 失败，错误代码: {err}");
+				}
+				else
+					Debug.Print($"RegisterClass成功{atom}");
+				_classRegistered = true;
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"注册窗口类失败: {ex.Message}");
+			}
+		}
+		private IntPtr CreateNativeWindow(Size size, Point location)
+		{
+			// ... 你的原生窗口创建代码 ...
+			try
+			{
+				RegisterWindowClass();
+				//uint style = NativeMethods.WS_OVERLAPPEDWINDOW | NativeMethods.WS_CLIPCHILDREN | NativeMethods.WS_CLIPSIBLINGS | NativeMethods.WS_VISIBLE;
+				uint style = NativeMethods.WS_POPUP | NativeMethods.WS_CLIPCHILDREN | NativeMethods.WS_CLIPSIBLINGS;
+
+				IntPtr hWnd = NativeMethods.CreateWindowEx(
+					0,
+					_nativeClassName,
+					"Lister Window",
+					style,
+					location.X, location.Y,
+					size.Width, size.Height,
+					IntPtr.Zero,
+					IntPtr.Zero,
+					_nativeHInstance, // 必须和注册时一致
+					IntPtr.Zero
+				);
+				if (hWnd != IntPtr.Zero)
+				{
+					Debug.WriteLine($"成功创建原生窗口: {hWnd}");
+					//NativeMethods.ShowWindow(hWnd, NativeMethods.SW_SHOW);
+					//NativeMethods.SetForegroundWindow(hWnd);
+					NativeMethods.ShowWindow(hWnd, 0); // SW_HIDE
+				}
+				else
+				{
+					Debug.WriteLine($"创建原生窗口失败，错误代码: {NativeMethods.GetLastError()}");
+				}
+				return hWnd;
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"创建原生窗口异常: {ex.Message}");
+				return IntPtr.Zero;
+			}
+		}
+	}
 	public class ViewerForm : Form
 	{
 		#region 字段和属性
@@ -26,7 +192,7 @@ namespace zfile.Forms
 		private WlxModule _currentPlugin;
 		private nint _pluginWindow;
 		private IntPtr _nativeParentWindow; // 新增字段，用于存储原生父窗口句柄
-
+		private PluginHostThread _pluginHostThread;
 		// 查看模式枚举
 		private enum ViewMode
 		{
@@ -571,8 +737,24 @@ namespace zfile.Forms
 		}
 		private bool LoadWithPlugin(WlxModule plugin)
 		{
+			if (_pluginHostThread != null)
+			{
+				_pluginHostThread.Dispose();
+				_pluginHostThread = null;
+			}
+
+			// 传递容器面板的大小和位置
+			var size = container.Size;
+			var location = container.PointToScreen(Point.Empty);
+
+			_pluginHostThread = new PluginHostThread(_fileName, plugin, size, location, WlxConstants.LISTPLUGIN_SHOW);
+			_pluginHostThread.Start();
+
+			_pluginWindow = _pluginHostThread.PluginWindow;
+			_nativeParentWindow = _pluginHostThread.ParentWindow;
+
 			//if(_currentPlugin != null)
-				//SetMenuItemCheckedState(_currentPlugin.Name, false);
+			//SetMenuItemCheckedState(_currentPlugin.Name, false);
 			setCheckedMenuStateByNameToId("模式");    //关闭模式菜单下所有勾选
 			setCheckedMenuStateByNameToId("插件");
 
@@ -640,25 +822,25 @@ namespace zfile.Forms
 			if (!container.IsHandleCreated)
 				_ = container.Handle;
 			// 传递容器面板的句柄作为父窗口
-			if (_pluginWindow == IntPtr.Zero)
-			{
-				// 使用原生 Windows 窗口替代 WinForms Form
-				IntPtr parentWin = CreateNativeWindow(container.Size, container.PointToScreen(Point.Empty));
+			//if (_pluginWindow == IntPtr.Zero)
+			//{
+			//	// 使用原生 Windows 窗口替代 WinForms Form
+			//	IntPtr parentWin = CreateNativeWindow(container.Size, container.PointToScreen(Point.Empty));
 				
-				// 调用插件，使用 try-catch 捕获任何异常
-				try
-				{
-					_pluginWindow = _currentPlugin.CallListLoad(parentWin, _fileName, WlxConstants.LISTPLUGIN_SHOW);
-				}
-				catch (Exception ex)
-				{
-					Debug.WriteLine($"插件加载失败: {ex.Message}");
-					_pluginWindow = IntPtr.Zero;
-				}
+			//	// 调用插件，使用 try-catch 捕获任何异常
+			//	try
+			//	{
+			//		_pluginWindow = _currentPlugin.CallListLoad(parentWin, _fileName, WlxConstants.LISTPLUGIN_SHOW);
+			//	}
+			//	catch (Exception ex)
+			//	{
+			//		Debug.WriteLine($"插件加载失败: {ex.Message}");
+			//		_pluginWindow = IntPtr.Zero;
+			//	}
 				
-				// 保存原生窗口句柄，用于后续清理
-				_nativeParentWindow = parentWin;
-			}
+			//	// 保存原生窗口句柄，用于后续清理
+			//	_nativeParentWindow = parentWin;
+			//}
 			//IntPtr bmp = IntPtr.Zero;
 			//if(_pluginWindow == IntPtr.Zero)
 			//	_pluginWindow = _currentPlugin.CallListGetPreviewBitmap(_fileName, _mainPanel.Bounds.Width, _mainPanel.Bounds.Height, bmp);
@@ -749,7 +931,11 @@ namespace zfile.Forms
 				NativeMethods.DestroyWindow(_nativeParentWindow);
 				_nativeParentWindow = IntPtr.Zero;
 			}
-
+			if (_pluginHostThread != null)
+			{
+				_pluginHostThread.Dispose();
+				_pluginHostThread = null;
+			}
 			_isImage = false;
 			_isPlugin = false;
 			_isAnimation = false;
@@ -1423,6 +1609,37 @@ namespace zfile.Forms
 		public const uint WS_CLIPCHILDREN = 0x02000000;
 		public const uint WS_CLIPSIBLINGS = 0x04000000;
 		public const int SW_SHOW = 5;
+		[StructLayout(LayoutKind.Sequential)]
+		public struct MSG
+		{
+			public IntPtr hwnd;
+			public uint message;
+			public IntPtr wParam;
+			public IntPtr lParam;
+			public uint time;
+			public POINT pt;
+			public uint lPrivate;
+		}
+		[StructLayout(LayoutKind.Sequential)]
+		public struct POINT
+		{
+			public int x;
+			public int y;
+		}
+
+		[DllImport("user32.dll")]
+		public static extern bool GetMessage(out MSG lpMsg, IntPtr hWnd, uint wMsgFilterMin, uint wMsgFilterMax);
+
+		[DllImport("user32.dll")]
+		public static extern bool TranslateMessage([In] ref MSG lpMsg);
+
+		[DllImport("user32.dll")]
+		public static extern IntPtr DispatchMessage([In] ref MSG lpMsg);
+
+		[DllImport("user32.dll")]
+		public static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+
+		public const uint WM_CLOSE = 0x0010;
 		[DllImport("kernel32.dll", SetLastError = true)]
 		public static extern IntPtr VirtualAlloc(
 		 IntPtr lpAddress,

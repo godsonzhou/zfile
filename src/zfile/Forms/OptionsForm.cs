@@ -194,6 +194,7 @@ namespace zfile
 		private Panel autoSwitchViewPanel;
 		private string _node;
 		private TreeNode rootNode;
+		private ViewModePanel viewModePanelControl;
 		public OptionsForm(MainForm mainForm, string node)
 		{
 			_node = node;
@@ -1245,7 +1246,7 @@ namespace zfile
 					autoSwitchViewPanelControl.ApplyChanges();
 				}
 			}
-
+			viewModePanelControl.ApplyChanges(); // 假设ViewModePanel有ApplyChanges方法
 			this.Close();
 		}
 
@@ -1491,7 +1492,7 @@ namespace zfile
 			};
 
 			// 创建视图模式面板
-			var viewModePanelControl = new ViewModePanel(mainForm);
+			viewModePanelControl = new ViewModePanel(mainForm);
 			viewModePanelControl.Dock = DockStyle.Fill;
 			viewModePanelControl.Visible = true;
 

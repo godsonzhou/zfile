@@ -591,11 +591,12 @@ namespace zfile
 					string ext = row.Cells["Extension"].Value?.ToString() ?? "";
 					string pluginName = row.Cells["PluginName"].Value?.ToString() ?? "";
 
-					var module = WdxPlugins._moduleList.FindModuleByName(pluginName);
-					if (module != null)
-					{
-						WdxPlugins._moduleList._configDict[ext] = module.Name;
-					}
+					//var module = WdxPlugins._moduleList.FindModuleByName(pluginName);
+					//if (module != null)
+					//{
+					//	WdxPlugins._moduleList._configDict[ext] = module.Name;
+					//}
+					WdxPlugins._moduleList._configDict[pluginName] = ext;
 				}
 				// 标记配置已更改
 				WdxPlugins._moduleList.isConfigChanged = true;

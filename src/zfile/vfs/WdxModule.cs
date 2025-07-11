@@ -828,8 +828,15 @@ namespace zfile
         public bool isConfigChanged;
         private List<string> _config;
         public Dictionary<string, string> _configDict;
+		public Dictionary<string, string> _pathDict;
+		public (Dictionary<string, string> , Dictionary<string, string> ) _wdxDicts;
+		public WdxModuleList()
+		{
+			_configPath = Constants.ZfileCfgPath + "wincmd.ini";
+			LoadConfiguration();
+		}
 
-        public WdxModuleList(string configPath)
+		public WdxModuleList(string configPath)
         {
             _configPath = configPath;
             LoadConfiguration();
@@ -906,9 +913,10 @@ namespace zfile
             Debug.Print("load wdx module list configuration");
             _modules.Clear();
             _config = Helper.ReadSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ContentPlugins");
-            _configDict = Helper.ParseConfig(_config, out var pathdict, "wdx");
-
-            foreach (var line in _config)
+            _configDict = Helper.ParseConfig(_config, out var pathdict, out var wdxdicts, "wdx");
+			_wdxDicts = wdxdicts;
+			_pathDict = pathdict;
+			foreach (var line in _config)
             {
                 var parts = line.Split('=');
                 if (parts.Length == 2)
@@ -982,14 +990,23 @@ namespace zfile
         {
             if (!isConfigChanged) return;
             List<string> configContent = new();
+			var i = 0;
             foreach (var pair in _configDict)
             {
-                if (!configContent.Contains(pair.Key))
-                    configContent.Append(pair.Key + "=" + pair.Value + Environment.NewLine);
-                else
-                {
-                    configContent[configContent.IndexOf(pair.Key)] += $",{pair.Value}";
-                }
+				//if (!configContent.Contains(pair.Key))
+				//    configContent.Append(pair.Key + "=" + pair.Value + Environment.NewLine);
+				//else
+				//{
+				//    configContent[configContent.IndexOf(pair.Key)] += $",{pair.Value}";
+				//}
+				configContent.Add($"{i}={_pathDict[pair.Key]}");
+				if(!string.IsNullOrEmpty(pair.Value))
+					configContent.Add($"{i}_detect={pair.Value}");
+				if (_wdxDicts.Item1.TryGetValue(pair.Key, out var date))
+					configContent.Add($"{i}_date={date}");
+				if (_wdxDicts.Item2.TryGetValue(pair.Key, out var flags))
+					configContent.Add($"{i}_flags={flags}");
+				i++;
             }
             Helper.WriteSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ContentPlugins", configContent);
             LoadConfiguration();

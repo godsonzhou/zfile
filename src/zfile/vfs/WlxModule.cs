@@ -618,7 +618,7 @@ namespace zfile
 			Debug.Print("load configuration for wlxmodulelist ");	//检查是否重复初始化
 			_modules.Clear();
 			_config = Helper.ReadSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ListerPlugins");
-			_configDict = Helper.ParseConfig(_config, out var _pathdict);
+			_configDict = Helper.ParseConfig(_config, out var _pathdict, out _);
 			pathdict = _pathdict;
 		}
 		public void SaveConfiguration()

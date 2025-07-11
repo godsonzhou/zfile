@@ -651,7 +651,7 @@ namespace zfile
 				return str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower();
 			}
 		}
-		public static Dictionary<string, string> ParseConfig(List<string> config, out Dictionary<string, string> pathdict, string plugin_type = "wlx")
+		public static Dictionary<string, string> ParseConfig(List<string> config, out Dictionary<string, string> pathdict, out (Dictionary<string, string>, Dictionary<string,string>) wdxdicts, string plugin_type = "wlx")
 		{
 			/*
 			 * [ListerPlugins]
@@ -679,12 +679,13 @@ namespace zfile
 				12=%COMMANDER_PATH%\Plugins\Wlx\CudaLister\cudalister.wlx
 				13=%COMMANDER_PATH%\Plugins\Wlx\uLister\uLister.wlx64
 			 */
-			Dictionary<string, string> result = new Dictionary<string, string>();
+			Dictionary<string, string> result = [];
 			//string[] lines = configText.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-			Dictionary<int, string> nameMap = new Dictionary<int, string>();
+			Dictionary<int, string> nameMap = [];
 			Dictionary<int, string> pathmap = [];
-			pathdict = [];
-			Dictionary<int, string> detectMap = new Dictionary<int, string>();
+			Dictionary<int, string> detectMap = [];
+			Dictionary<int, string> dateMap = [];
+			Dictionary<int, string> flagsMap = [];
 			// 首先解析路径和检测规则
 			foreach (string line in config)
 			{
@@ -703,8 +704,31 @@ namespace zfile
 					int index = int.Parse(detectMatch.Groups[1].Value);
 					string detectRule = detectMatch.Groups[2].Value;
 					detectMap[index] = detectRule;
+					continue;
+				}
+				if (plugin_type == "wlx") continue;
+				//else is wdx, need process date & flag
+				Match dateMatch = Regex.Match(line, @"^(\d+)_date=(.*)$");
+				if (dateMatch.Success)
+				{
+					int index = int.Parse(dateMatch.Groups[1].Value);
+					string date = dateMatch.Groups[2].Value;
+					dateMap[index] = date;
+					continue;
+				}
+				Match flagsMatch = Regex.Match(line, @"^(\d+)_flags=(.*)$");
+				if (flagsMatch.Success)
+				{
+					int index = int.Parse(flagsMatch.Groups[1].Value);
+					string flags = flagsMatch.Groups[2].Value;
+					flagsMap[index] = flags;
+					continue;
 				}
 			}
+
+			pathdict = [];
+			wdxdicts = ([], []); // (dateMap, flagsMap) for wdx plugins
+
 			// 将有检测规则的插件添加到结果字典中
 			foreach (var kvp in nameMap)
 			{
@@ -714,6 +738,15 @@ namespace zfile
 				result[pluginName] = detectRule ?? string.Empty;
 				pathmap.TryGetValue(index, out var path);
 				pathdict[pluginName] = path;
+				if (plugin_type == "wdx")
+				{
+					dateMap.TryGetValue(index, out var date);
+					flagsMap.TryGetValue(index, out var flags);
+					if (!string.IsNullOrEmpty(date))
+						wdxdicts.Item1[pluginName] = date;
+					if (!string.IsNullOrEmpty(flags))
+						wdxdicts.Item2[pluginName] = flags;
+				}
 			}
 			return result;
 		}

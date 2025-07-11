@@ -1,4 +1,5 @@
-﻿namespace zfile
+﻿using System.Diagnostics;
+namespace zfile
 {
 	public class MyListView : ListView
 	{
@@ -19,31 +20,35 @@
 		private const int WM_MOUSEWHEEL = 0x20a;
 		protected override void WndProc(ref System.Windows.Forms.Message m)
 		{
-			// 拦截WM_CHAR消息，阻止ListView处理键盘输入
-			if (m.Msg == WM_CHAR && !MainForm.Instance.uiManager.isquicksearch)
-			{
-				// 如果你想允许某些特定字符通过，可以在这里添加条件判断
-				// 例如：if ((char)m.WParam == 'A') { base.WndProc(ref m); return; }
-				return;
-			}
-			if (m.Msg == WM_HSCROLL)
-			{
-				//OnHScroll(this, new EventArgs());
-				//if (HScroll != null)
-				HScroll?.Invoke(this, new EventArgs());
-			}
-			else if (m.Msg == WM_VSCROLL)
-			{
-				//OnVScroll(this, new EventArgs());
-				//if (VScroll != null)
-				VScroll?.Invoke(this, new EventArgs());
-				//Debug.Print("vscroll event trigger");
-			}
-			else if (m.Msg == WM_MOUSEWHEEL)
-			{
-				//OnMouseWheel(this, new EventArgs());
-				//if (MouseWheel != null)
-				MouseWheel?.Invoke(this, new EventArgs());
+			try{
+				// 拦截WM_CHAR消息，阻止ListView处理键盘输入
+				if (m.Msg == WM_CHAR && !MainForm.Instance.uiManager.isquicksearch)
+				{
+					// 如果你想允许某些特定字符通过，可以在这里添加条件判断
+					// 例如：if ((char)m.WParam == 'A') { base.WndProc(ref m); return; }
+					return;
+				}
+				if (m.Msg == WM_HSCROLL)
+				{
+					//OnHScroll(this, new EventArgs());
+					//if (HScroll != null)
+					HScroll?.Invoke(this, new EventArgs());
+				}
+				else if (m.Msg == WM_VSCROLL)
+				{
+					//OnVScroll(this, new EventArgs());
+					//if (VScroll != null)
+					VScroll?.Invoke(this, new EventArgs());
+					//Debug.Print("vscroll event trigger");
+				}
+				else if (m.Msg == WM_MOUSEWHEEL)
+				{
+					//OnMouseWheel(this, new EventArgs());
+					//if (MouseWheel != null)
+					MouseWheel?.Invoke(this, new EventArgs());
+				}
+			} catch (Exception ex) {
+				Debug.Print(ex.Message);
 			}
 			base.WndProc(ref m);
 		}

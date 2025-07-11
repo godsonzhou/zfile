@@ -311,7 +311,7 @@ namespace zfile
 		}
 		public void TogglePreview(int mode = -1)
 		{
-			if(mode == -1)
+			if (mode == -1)
 			{
 				LeftPreview.Visible = !LeftPreview.Visible;
 				RightPreview.Visible = !RightPreview.Visible;
@@ -322,8 +322,16 @@ namespace zfile
 				RightPreview.Visible = (mode & 2) != 0;
 			}
 
-			LeftPanel.SplitterDistance = LeftPreview.Visible ? (int)(LeftPanel.Height * 0.7) : LeftPanel.Height;
-			RightPanel.SplitterDistance = RightPreview.Visible ? (int)(RightPanel.Height * 0.7) : RightPanel.Height;
+			if (LeftPreview.Visible)
+				LeftPanel.SplitterDistance = (int)(LeftPanel.Height * 0.7);
+			else
+				LeftPanel.SplitterDistance = LeftPanel.Height - (leftBookmarkPanel.Height + LeftStatusStrip.Height);
+
+			if (RightPreview.Visible)
+				RightPanel.SplitterDistance = (int)(RightPanel.Height * 0.7);
+			else
+				RightPanel.SplitterDistance = RightPanel.Height - (rightBookmarkPanel.Height + RightStatusStrip.Height);
+
 			LeftPanel.Update();
 			RightPanel.Update();
 		}
@@ -1238,8 +1246,6 @@ namespace zfile
 				spacerLabel,
 				selectedFilesLabel
 			});
-			LeftStatusStrip.Dock = DockStyle.Bottom;
-			LeftPanel.Panel2.Controls.Add(LeftStatusStrip);
 
 			// 为右侧状态栏创建相同的项
 			var rightTotalFilesLabel = new ToolStripStatusLabel();
@@ -1251,8 +1257,7 @@ namespace zfile
 				rightSpacerLabel,
 				rightSelectedFilesLabel
 			});
-			RightStatusStrip.Dock = DockStyle.Bottom;
-			RightPanel.Panel2.Controls.Add(RightStatusStrip);
+
 			// 添加事件处理
 			LeftList.ItemSelectionChanged += (s, e) => UpdateStatusBar(LeftList, LeftStatusStrip);
 			RightList.ItemSelectionChanged += (s, e) => UpdateStatusBar(RightList, RightStatusStrip);
@@ -1410,38 +1415,27 @@ namespace zfile
 		}
 		public void InitializeBookmarkLists()
 		{
-			// 创建左侧预览容器
-			var leftPreviewContainer = new TableLayoutPanel
-			{
-				Dock = DockStyle.Fill,
-				RowCount = 2,
-				ColumnCount = 1,
-				RowStyles = { new RowStyle(SizeType.AutoSize), new RowStyle(SizeType.Percent, 100F) },
-				ColumnStyles = { new ColumnStyle(SizeType.Percent, 100F) }
-			};
-			// 初始化左侧书签Panel
-			var leftlines = Helper.GetFlowLayoutPanelLineCount(leftBookmarkPanel);
-			leftBookmarkPanel.Height = 20 * leftlines;
-			leftBookmarkPanel.Dock = DockStyle.Top;
-			leftPreviewContainer.Controls.Add(leftBookmarkPanel, 0, 0);
-			leftPreviewContainer.Controls.Add(LeftPreview, 0, 1);
-			LeftPanel.Panel2.Controls.Add(leftPreviewContainer);
+			// 先清空 Panel2
+			LeftPanel.Panel2.Controls.Clear();
+			RightPanel.Panel2.Controls.Clear();
 
-			// 创建右侧预览容器
-			var rightPreviewContainer = new TableLayoutPanel
-			{
-				Dock = DockStyle.Fill,
-				RowCount = 2,
-				ColumnCount = 1,
-				RowStyles = { new RowStyle(SizeType.AutoSize), new RowStyle(SizeType.Percent, 100F) },
-				ColumnStyles = { new ColumnStyle(SizeType.Percent, 100F) }
-			};
-			var rightlines = Helper.GetFlowLayoutPanelLineCount(rightBookmarkPanel);
-			rightBookmarkPanel.Height = 20 * rightlines;
+			// 左侧
+			leftBookmarkPanel.Dock = DockStyle.Top;
+			leftBookmarkPanel.Height = 32;
+			LeftPreview.Dock = DockStyle.Fill;
+			LeftStatusStrip.Dock = DockStyle.Bottom;
+			LeftPanel.Panel2.Controls.Add(LeftStatusStrip);      // Bottom
+			LeftPanel.Panel2.Controls.Add(LeftPreview);          // Fill
+			LeftPanel.Panel2.Controls.Add(leftBookmarkPanel);    // Top
+
+			// 右侧
 			rightBookmarkPanel.Dock = DockStyle.Top;
-			rightPreviewContainer.Controls.Add(rightBookmarkPanel, 0, 0);
-			rightPreviewContainer.Controls.Add(RightPreview, 0, 1);
-			RightPanel.Panel2.Controls.Add(rightPreviewContainer);
+			rightBookmarkPanel.Height = 32;
+			RightPreview.Dock = DockStyle.Fill;
+			RightStatusStrip.Dock = DockStyle.Bottom;
+			RightPanel.Panel2.Controls.Add(RightStatusStrip);    // Bottom
+			RightPanel.Panel2.Controls.Add(RightPreview);        // Fill
+			RightPanel.Panel2.Controls.Add(rightBookmarkPanel);  // Top
 		}
 		//from环境变量获取%COMMANDER_PATH%
 		public string GetCommanderPath()

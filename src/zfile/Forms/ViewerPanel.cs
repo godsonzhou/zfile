@@ -113,9 +113,15 @@ namespace zfile.Forms
         // --- 预览核心方法 ---
         public void LoadFile(string fileName)
         {
-            if (string.IsNullOrEmpty(fileName) || !File.Exists(fileName))
+            if (string.IsNullOrEmpty(fileName))
                 return;
-            _fileName = fileName;
+			if (!File.Exists(fileName))
+				if (Directory.Exists(fileName))
+					fileName = Helper.IncludeTrailingPathDelimiter(fileName);
+				else
+					return;
+
+			_fileName = fileName;
             try
             {
                 CleanupCurrentView();

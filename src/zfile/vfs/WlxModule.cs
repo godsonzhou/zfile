@@ -669,11 +669,12 @@ namespace zfile
 		{
 			// 应该按照configdict的配置次序依次查找， 而不是_modules的次序（文件系统的顺序）
 			var i = 0;
-			foreach (var module in _modules)
+			foreach(var cfgitem in _configDict)
 			{
 				if (i > tryModuleIdx) //已经尝试过的模块不再尝试
 				{
-					if (IsModuleSupported(module, fileName))
+					var module = FindModuleByName(cfgitem.Key);
+					if (IsModuleSupported(module, fileName))					
 					{
 						tryModuleIdx = i;
 						Debug.Print($"try to use #{i} module {module.Name} for {fileName} ");

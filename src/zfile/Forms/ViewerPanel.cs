@@ -399,7 +399,6 @@ namespace zfile.Forms
 
         private void CreatePluginWindow(WlxModule plugin, Rectangle rect)
         {
-            // 强制隐藏 Form 用一个较大默认值
             int initW = rect.Width >= 10 ? rect.Width : 800;
             int initH = rect.Height >= 10 ? rect.Height : 600;
             Form pluginHostForm = new Form();
@@ -427,6 +426,21 @@ namespace zfile.Forms
                 container.VisibleChanged += Container_ResizeForPlugin;
                 container.Layout -= Container_ResizeForPlugin;
                 container.Layout += Container_ResizeForPlugin;
+
+                // 多次延迟强制同步插件窗口大小
+                for (int i = 1; i <= 3; i++)
+                {
+                    int delay = i * 100;
+                    var timer = new System.Windows.Forms.Timer();
+                    timer.Interval = delay;
+                    timer.Tick += (s, e) =>
+                    {
+                        SetPluginWindowBounds(container);
+                        timer.Stop();
+                        timer.Dispose();
+                    };
+                    timer.Start();
+                }
             }
         }
         private void Container_ResizeForPlugin(object? sender, EventArgs e)

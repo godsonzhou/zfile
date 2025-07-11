@@ -1410,27 +1410,38 @@ namespace zfile
 		}
 		public void InitializeBookmarkLists()
 		{
+			// 创建左侧预览容器
+			var leftPreviewContainer = new TableLayoutPanel
+			{
+				Dock = DockStyle.Fill,
+				RowCount = 2,
+				ColumnCount = 1,
+				RowStyles = { new RowStyle(SizeType.AutoSize), new RowStyle(SizeType.Percent, 100F) },
+				ColumnStyles = { new ColumnStyle(SizeType.Percent, 100F) }
+			};
 			// 初始化左侧书签Panel
-			//leftBookmarkPanel.Dock = DockStyle.Top;
 			var leftlines = Helper.GetFlowLayoutPanelLineCount(leftBookmarkPanel);
 			leftBookmarkPanel.Height = 20 * leftlines;
-			//leftBookmarkPanel.WrapContents = true;
-			//leftBookmarkPanel.DoubleClick += BookmarkPanel_DoubleClick;
-			LeftPanel.Panel2.Controls.Add(leftBookmarkPanel);
+			leftBookmarkPanel.Dock = DockStyle.Top;
+			leftPreviewContainer.Controls.Add(leftBookmarkPanel, 0, 0);
+			leftPreviewContainer.Controls.Add(LeftPreview, 0, 1);
+			LeftPanel.Panel2.Controls.Add(leftPreviewContainer);
 
-			// 初始化右侧书签Panel
+			// 创建右侧预览容器
+			var rightPreviewContainer = new TableLayoutPanel
+			{
+				Dock = DockStyle.Fill,
+				RowCount = 2,
+				ColumnCount = 1,
+				RowStyles = { new RowStyle(SizeType.AutoSize), new RowStyle(SizeType.Percent, 100F) },
+				ColumnStyles = { new ColumnStyle(SizeType.Percent, 100F) }
+			};
 			var rightlines = Helper.GetFlowLayoutPanelLineCount(rightBookmarkPanel);
-			//rightBookmarkPanel.Dock = DockStyle.Top;
 			rightBookmarkPanel.Height = 20 * rightlines;
-			//rightBookmarkPanel.WrapContents = true;
-			//rightBookmarkPanel.DoubleClick += BookmarkPanel_DoubleClick;
-			RightPanel.Panel2.Controls.Add(rightBookmarkPanel);
-
-			// 调整布局顺序
-			LeftPanel.Panel2.Controls.SetChildIndex(leftBookmarkPanel, 0);
-			LeftPanel.Panel2.Controls.SetChildIndex(LeftPreview, 1);
-			RightPanel.Panel2.Controls.SetChildIndex(rightBookmarkPanel, 0);
-			RightPanel.Panel2.Controls.SetChildIndex(RightPreview, 1);
+			rightBookmarkPanel.Dock = DockStyle.Top;
+			rightPreviewContainer.Controls.Add(rightBookmarkPanel, 0, 0);
+			rightPreviewContainer.Controls.Add(RightPreview, 0, 1);
+			RightPanel.Panel2.Controls.Add(rightPreviewContainer);
 		}
 		//from环境变量获取%COMMANDER_PATH%
 		public string GetCommanderPath()

@@ -674,7 +674,7 @@ namespace zfile
 				if (i > tryModuleIdx) //已经尝试过的模块不再尝试
 				{
 					var module = FindModuleByName(cfgitem.Key);
-					if (IsModuleSupported(module, fileName))					
+					if (module != null && IsModuleSupported(module, fileName))					
 					{
 						tryModuleIdx = i;
 						Debug.Print($"try to use #{i} module {module.Name} for {fileName} ");

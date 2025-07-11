@@ -121,9 +121,12 @@ namespace zfile.Forms
                 CleanupCurrentView();
                 EnsurePluginList();
                 int tryModuleIdx = -1;
-                var plugin = _pluginList?.FindModuleForFile(_fileName, ref tryModuleIdx);
-                if (plugin != null && LoadWithPlugin(plugin))
-                    return;
+				while (tryModuleIdx < _pluginList._configDict.Count)
+				{
+					var plugin = _pluginList?.FindModuleForFile(_fileName, ref tryModuleIdx);
+					if (plugin != null && LoadWithPlugin(plugin))
+						return;
+				}
                 string extension = Path.GetExtension(_fileName).ToLower();
                 if (IsImageFile(extension))
                 {

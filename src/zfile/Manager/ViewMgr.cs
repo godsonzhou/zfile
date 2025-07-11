@@ -131,7 +131,15 @@ namespace zfile
 				return viewModes[selectedViewMode].Options.Split('|')[0]; //{[3, {ViewMode(name='图片', icon='', options='10|-1|0||32896|-1|-1|-1|-1')}]} //10-6=4 is 列视图编号
 			return selectedViewMode;
 		}
-
+		private string GetViewModeOptionString(string viewmode)
+		{
+			foreach(var v in viewModes.Values)
+			{
+				if (v.Options.Split("|")[0] == viewmode)
+					return v.Options;
+			}
+			return string.Empty;
+		}
 		/// <summary>
 		/// Evaluate a rule against folder statistics
 		/// </summary>
@@ -309,6 +317,10 @@ namespace zfile
 				currentLeftViewMode = colViewId;
 			else
 				currentRightViewMode = colViewId;
+			var options = GetViewModeOptionString(colViewId);
+			//options look like "6|-1|0||-1|-1|-1|-1|-1"
+			//"14|1|0|1|128|-1|-1|-1|-1"
+			//对应定义： 列视图编号|排序方式（-1不变，0文件名，1扩展名...）|升降序（0-升序，1-降序）|附加排序列号|标签颜色-255（红色）|？|？|？|？（背景颜色/偶数行背景颜色）
 			var viewmodeid = int.Parse(colViewId);
 			if (viewmodeid < 5) 
 			{

@@ -247,13 +247,23 @@ namespace zfile
         // 解析option字符串到控件
         private void ParseOptionToControls(string option)
         {
-            // option: 列视图编号|排序方式|升降序|附加排序列号|标签颜色|？|？|？|？
             var parts = option.Split('|');
             // 列视图编号
             if (parts.Length > 0)
             {
-                int idx = Math.Max(0, Array.IndexOf(mainForm.viewMgr.colDefDict.Keys.ToArray(), parts[0]));
-                viewTypeCombo.SelectedIndex = idx >= 0 ? idx : 0;
+                if (int.TryParse(parts[0], out int viewId))
+                {
+                    // 只处理自定义列视图（6及以上）
+                    int idx = viewId - 6;
+                    if (idx >= 0 && idx < mainForm.viewMgr.colDefDict.Count)
+                        viewTypeCombo.SelectedIndex = idx;
+                    else
+                        viewTypeCombo.SelectedIndex = 0;
+                }
+                else
+                {
+                    viewTypeCombo.SelectedIndex = 0;
+                }
             }
             // 排序方式
             if (parts.Length > 1)
@@ -270,8 +280,6 @@ namespace zfile
                 }
                 sortMethodCombo.SelectedIndex = idx;
             }
-            // 升降序
-            // 可扩展：如有升降序控件
             // 附加排序列号
             if (parts.Length > 3)
                 additionalSortTextBox.Text = parts[3];
@@ -331,8 +339,9 @@ namespace zfile
         private string GenerateOptionFromControls(string oldOption)
         {
             var parts = oldOption.Split('|');
-            // 列视图编号
-            string colViewId = mainForm.viewMgr.colDefDict.Keys.ElementAt(viewTypeCombo.SelectedIndex);
+            // 列视图编号：combobox索引+6
+            int colViewIdNum = viewTypeCombo.SelectedIndex + 6;
+            string colViewId = colViewIdNum.ToString();
             // 排序方式
             string sortMethod = sortMethodCombo.SelectedIndex switch
             {
@@ -374,7 +383,6 @@ namespace zfile
                 5 => "8454016",
                 _ => "-1"
             };
-            // 偶数行背景色、优先、自动命令等可扩展
             // 拼接
             return string.Join("|", new[] { colViewId, sortMethod, order, addSort, labelColor, q1, q2, q3, bgColor });
         }

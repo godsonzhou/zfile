@@ -624,19 +624,10 @@ namespace zfile
 		public void SaveConfiguration()
 		{
 			if (!isConfigChanged) return;
-			List<string> configContent = new();
+			List<string> configContent = [];
 			var i = 0;
-			foreach (var pair in _configDict)	//bug to be fixed: configcontent内容与实际不符
+			foreach (var pair in _configDict)	//bug fixed: configcontent内容与实际不符
 			{
-				//if (!configContent.Contains(pair.Key))
-				//	configContent.Append(pair.Key + "=" + pair.Value + Environment.NewLine);
-				//else
-				//{
-				//	configContent[configContent.IndexOf(pair.Key)] += $",{pair.Value}";
-				//}
-				//var module = _modules.FirstOrDefault(m => m.Name.Equals(pair.Key, StringComparison.OrdinalIgnoreCase));
-				//if (module == null) 
-				//	continue;
 				var modulepath = pathdict[pair.Key];
 				configContent.Add($"{i}={modulepath}");
 				if(!string.IsNullOrEmpty(pair.Value))
@@ -693,8 +684,8 @@ namespace zfile
 			{
 				if (_configDict.TryGetValue(module.Name.ToUpper(), out var val))
 					return isModuleSupport(val, fileName);
-				else
-					return true;
+				
+				return true;
 			}
 
 			return isModuleSupport(module.DetectString, fileName);
@@ -746,9 +737,8 @@ namespace zfile
 							Name = Path.GetFileNameWithoutExtension(file)
 						};
 						if (module.LoadModule())
-						{
 							AddModule(module);
-						}
+						
 						//记录插件的完整路径到_pathdict
 						if (!pathdict.TryGetValue(module.Name.ToUpper(), out var fullpath))
 							pathdict[module.Name] = file;

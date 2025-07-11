@@ -906,7 +906,7 @@ namespace zfile
             Debug.Print("load wdx module list configuration");
             _modules.Clear();
             _config = Helper.ReadSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ContentPlugins");
-            _configDict = Helper.ParseConfig(_config, "wdx");
+            _configDict = Helper.ParseConfig(_config, out var pathdict, "wdx");
 
             foreach (var line in _config)
             {

@@ -651,7 +651,7 @@ namespace zfile
 				return str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower();
 			}
 		}
-		public static Dictionary<string, string> ParseConfig(List<string> config, string plugin_type = "wlx")
+		public static Dictionary<string, string> ParseConfig(List<string> config, out Dictionary<string, string> pathdict, string plugin_type = "wlx")
 		{
 			/*
 			 * [ListerPlugins]
@@ -681,7 +681,9 @@ namespace zfile
 			 */
 			Dictionary<string, string> result = new Dictionary<string, string>();
 			//string[] lines = configText.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-			Dictionary<int, string> pathMap = new Dictionary<int, string>();
+			Dictionary<int, string> nameMap = new Dictionary<int, string>();
+			Dictionary<int, string> pathmap = [];
+			pathdict = [];
 			Dictionary<int, string> detectMap = new Dictionary<int, string>();
 			// 首先解析路径和检测规则
 			foreach (string line in config)
@@ -691,7 +693,8 @@ namespace zfile
 				{
 					int index = int.Parse(pathMatch.Groups[1].Value);
 					string pluginName = pathMatch.Groups[2].Value;
-					pathMap[index] = pluginName;
+					nameMap[index] = pluginName;
+					pathmap[index] = line.Split('=')[^1];
 					continue;
 				}
 				Match detectMatch = Regex.Match(line, @"^(\d+)_detect=(.*)$");
@@ -703,12 +706,14 @@ namespace zfile
 				}
 			}
 			// 将有检测规则的插件添加到结果字典中
-			foreach (var kvp in pathMap)
+			foreach (var kvp in nameMap)
 			{
 				int index = kvp.Key;
-				string pluginName = pathMap[index].ToUpper();
+				string pluginName = nameMap[index].ToUpper();
 				detectMap.TryGetValue(index, out var detectRule);
 				result[pluginName] = detectRule ?? string.Empty;
+				pathmap.TryGetValue(index, out var path);
+				pathdict[pluginName] = path;
 			}
 			return result;
 		}
@@ -754,33 +759,96 @@ namespace zfile
 
 			return rowCount;
 		}
+		//public static void WriteSectionContent(string filePath, string sectionContent, List<string> content, Encoding? encoding = null)
+		//{
+		//	try
+		//	{
+		//		if(encoding == null)
+		//			encoding = Encoding.Unicode; // 默认使用Unicode编码
+		//										 // 读取文件内容
+		//		string fileContent = File.ReadAllText(filePath, encoding);
+		//		// 查找目标节起始位置
+		//		int sectionStartIndex = fileContent.IndexOf(sectionContent);
+		//		if (sectionStartIndex == -1)
+		//		{
+		//			// 如果找不到目标节，直接返回
+		//			return;
+		//		}
+		//		// 查找目标节的结束位置
+		//		int sectionEndIndex = fileContent.IndexOf('[', sectionStartIndex + sectionContent.Length);//bug to be fixed: [ 必须在行首，如果在行中间会导致错误 比如 xxx[0] = "test"
+		//		if (sectionEndIndex == -1)
+		//		{
+		//			// 如果找不到下一个节，说明目标节是文件的最后一节
+		//			sectionEndIndex = fileContent.Length;
+		//		}
+		//		// 将目标节的内容替换为新内容
+		//		fileContent = fileContent.Remove(sectionStartIndex + sectionContent.Length + 1, sectionEndIndex - sectionStartIndex - sectionContent.Length - 2);
+		//		fileContent = fileContent.Insert(sectionStartIndex + sectionContent.Length + 1, "\r\n" + string.Join("\r\n", content)) + "\r\n";
+		//		// 写入文件
+		//		File.WriteAllText(filePath, fileContent, encoding); //bugfix: wincmd.ini wincmd_chn.ini use unicode encoding, wcxftp.ini use utf8 encoding, the other use ansi encoding
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		Console.WriteLine($"写入文件时发生错误: {ex.Message}");
+		//	}
+		//}
 		public static void WriteSectionContent(string filePath, string sectionContent, List<string> content, Encoding? encoding = null)
 		{
 			try
 			{
-				if(encoding == null)
+				if (encoding == null)
 					encoding = Encoding.Unicode; // 默认使用Unicode编码
-												 // 读取文件内容
-				string fileContent = File.ReadAllText(filePath, encoding);
-				// 查找目标节起始位置
-				int sectionStartIndex = fileContent.IndexOf(sectionContent);
+
+				// 读取文件内容并按行分割
+				string[] lines = File.ReadAllLines(filePath, encoding);
+				List<string> fileContent = new List<string>(lines);
+
+				// 查找目标节起始行索引
+				int sectionStartIndex = -1;
+				for (int i = 0; i < fileContent.Count; i++)
+				{
+					if (fileContent[i] == $"[{sectionContent}]")
+					{
+						sectionStartIndex = i;
+						break;
+					}
+				}
+
 				if (sectionStartIndex == -1)
 				{
 					// 如果找不到目标节，直接返回
 					return;
 				}
-				// 查找目标节的结束位置
-				int sectionEndIndex = fileContent.IndexOf('[', sectionStartIndex + sectionContent.Length);//bug to be fixed: [ 必须在行首，如果在行中间会导致错误 比如 xxx[0] = "test"
+
+				// 查找目标节的结束行索引（下一个行首为'['的位置）
+				int sectionEndIndex = -1;
+				for (int i = sectionStartIndex + 1; i < fileContent.Count; i++)
+				{
+					if (fileContent[i].StartsWith("["))
+					{
+						sectionEndIndex = i;
+						break;
+					}
+				}
+
 				if (sectionEndIndex == -1)
 				{
 					// 如果找不到下一个节，说明目标节是文件的最后一节
-					sectionEndIndex = fileContent.Length;
+					sectionEndIndex = fileContent.Count;
 				}
-				// 将目标节的内容替换为新内容
-				fileContent = fileContent.Remove(sectionStartIndex + sectionContent.Length + 1, sectionEndIndex - sectionStartIndex - sectionContent.Length - 2);
-				fileContent = fileContent.Insert(sectionStartIndex + sectionContent.Length + 1, "\r\n" + string.Join("\r\n", content)) + "\r\n";
+
+				// 移除原节内容（保留节标题行）
+				int linesToRemove = sectionEndIndex - sectionStartIndex - 1;
+				if (linesToRemove > 0)
+				{
+					fileContent.RemoveRange(sectionStartIndex + 1, linesToRemove);
+				}
+
+				// 插入新内容
+				fileContent.InsertRange(sectionStartIndex + 1, content);
+
 				// 写入文件
-				File.WriteAllText(filePath, fileContent, encoding); //bugfix: wincmd.ini wincmd_chn.ini use unicode encoding, wcxftp.ini use utf8 encoding, the other use ansi encoding
+				File.WriteAllLines(filePath, fileContent, encoding);
 			}
 			catch (Exception ex)
 			{

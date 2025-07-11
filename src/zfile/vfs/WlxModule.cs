@@ -607,6 +607,7 @@ namespace zfile
 		public List<WlxModule> Modules { get { return _modules; } }
 		public bool isConfigChanged = false;
 		public bool ModuleLoaded = false;
+		public Dictionary<string, string> pathdict = new();
 		public WlxModuleList()
 		{
 			LoadConfiguration();
@@ -617,20 +618,30 @@ namespace zfile
 			Debug.Print("load configuration for wlxmodulelist ");	//检查是否重复初始化
 			_modules.Clear();
 			_config = Helper.ReadSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ListerPlugins");
-			_configDict = Helper.ParseConfig(_config);
+			_configDict = Helper.ParseConfig(_config, out var _pathdict);
+			pathdict = _pathdict;
 		}
 		public void SaveConfiguration()
 		{
 			if (!isConfigChanged) return;
 			List<string> configContent = new();
+			var i = 0;
 			foreach (var pair in _configDict)	//bug to be fixed: configcontent内容与实际不符
 			{
-				if (!configContent.Contains(pair.Key))
-					configContent.Append(pair.Key + "=" + pair.Value + Environment.NewLine);
-				else
-				{
-					configContent[configContent.IndexOf(pair.Key)] += $",{pair.Value}";
-				}
+				//if (!configContent.Contains(pair.Key))
+				//	configContent.Append(pair.Key + "=" + pair.Value + Environment.NewLine);
+				//else
+				//{
+				//	configContent[configContent.IndexOf(pair.Key)] += $",{pair.Value}";
+				//}
+				//var module = _modules.FirstOrDefault(m => m.Name.Equals(pair.Key, StringComparison.OrdinalIgnoreCase));
+				//if (module == null) 
+				//	continue;
+				var modulepath = pathdict[pair.Key];
+				configContent.Add($"{i}={modulepath}");
+				if(!string.IsNullOrEmpty(pair.Value))
+					configContent.Add($"{i}_detect={pair.Value}");
+				i++;
 			}
 			Helper.WriteSectionContent(Constants.ZfileCfgPath + "wincmd.ini", "ListerPlugins", configContent);
 			LoadConfiguration();

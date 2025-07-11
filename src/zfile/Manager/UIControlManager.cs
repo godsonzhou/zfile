@@ -57,9 +57,9 @@ namespace zfile
 		#endregion
 
 		#region Preview Controls
-		public TextBox LeftPreview { get; } = new() { Name = "L" };
-		public TextBox RightPreview { get; } = new() { Name = "R" };
-		public Dictionary<string, TextBox> Previews = [];
+		public ViewerPanel LeftPreview { get; } = new() { Name = "L" };
+		public ViewerPanel RightPreview { get; } = new() { Name = "R" };
+		public Dictionary<string, ViewerPanel> Previews = [];
 		#endregion
 
 		#region Status Controls
@@ -1220,15 +1220,8 @@ namespace zfile
 		public void InitializePreviewPanels()
 		{
 			LeftPreview.Dock = DockStyle.Fill;
-			LeftPreview.Multiline = true;
-			LeftPreview.ReadOnly = true;
-			LeftPreview.ScrollBars = ScrollBars.Both;
-			LeftPanel.Panel2.Controls.Add(LeftPreview);
-
 			RightPreview.Dock = DockStyle.Fill;
-			RightPreview.Multiline = true;
-			RightPreview.ReadOnly = true;
-			RightPreview.ScrollBars = ScrollBars.Both;
+			LeftPanel.Panel2.Controls.Add(LeftPreview);
 			RightPanel.Panel2.Controls.Add(RightPreview);
 		}
 
@@ -1949,6 +1942,15 @@ namespace zfile
 		~UIControlManager()
 		{
 			Dispose(false);
+		}
+
+		// 新增：主界面文件选中时调用预览
+		public void PreviewFile(string side, string filePath)
+		{
+			if (side == "L")
+				LeftPreview.LoadFile(filePath);
+			else if (side == "R")
+				RightPreview.LoadFile(filePath);
 		}
 	}
 }

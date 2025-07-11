@@ -336,6 +336,7 @@ namespace zfile.Forms
 		private Timer _animationTimer;
 		private Timer _screenshotTimer;
 		//private bool isPluginLoaded;
+		private ViewerPanel _viewerPanel;
 
 		public string FileName
 		{
@@ -344,7 +345,8 @@ namespace zfile.Forms
 			{
 				_fileName = value;
 				UpdateTitle();
-				LoadFile();
+				//LoadFile();
+				_viewerPanel.LoadFile(_fileName);
 			}
 		}
 
@@ -370,10 +372,14 @@ namespace zfile.Forms
 		}
 		private void init()
 		{
-			InitializePlugins();        //load all wlx plugins
 			InitializeComponent();
 			InitializeFileList();
 			SetupEventHandlers();
+
+			// 初始化 ViewerPanel 并添加到主面板
+			_viewerPanel = new ViewerPanel();
+			_viewerPanel.Dock = DockStyle.Fill;
+			_mainPanel.Controls.Add(_viewerPanel);
 		}
 
 		private void InitializeComponent()
@@ -1147,10 +1153,10 @@ namespace zfile.Forms
 		{
 			if (disposing)
 			{
+				_viewerPanel?.Unload();
 				CleanupCurrentView();
 				_animationTimer?.Dispose();
 				_screenshotTimer?.Dispose();
-				//_pluginList?.Dispose();	//bugfix: inied.wlx关闭时导致主程序意外退出；同时开多个cudalister.wlx，关闭其中一个导致主程序意外退出
 			}
 			base.Dispose(disposing);
 		}
@@ -1165,41 +1171,18 @@ namespace zfile.Forms
 			if(checkedId >= 0)
 				((ToolStripMenuItem)((ToolStripMenuItem)_menuStrip.Items[viewmodeIndex]).DropDownItems[checkedId]).Checked = true;
 		}
+		// 相关快捷键、菜单等操作委托给 ViewerPanel
 		private void SwitchViewMode(ViewMode mode)
 		{
-			_currentViewMode = mode;
-			// 更新插件菜单的内置查看器为选中状态
-			setCheckedMenuStateByNameToId("插件", 0);
-			setCheckedMenuStateByNameToId("模式", (int)mode);
-
-			// 隐藏所有面板
-			_textPanel.Visible = false;
-			_hexPanel.Visible = false;
-			_imagePanel.Visible = false;
-			container.Visible = false;
-			// 根据模式显示相应面板
-			switch (mode)
+			// 仅调用 ViewerPanel 的 SwitchMode
+			string modeStr = mode switch
 			{
-				case ViewMode.Text:
-					LoadText();
-					_textPanel.Visible = true;
-					break;
-				case ViewMode.Hex:
-					LoadHex();
-					_hexPanel.Visible = true;
-					break;
-				case ViewMode.Media:
-					if (_isImage)
-						_imagePanel.Visible = true;
-					else
-					{
-						// 如果不是图像，默认回到文本模式
-						SwitchViewMode(ViewMode.Text);
-					}
-					break;
-			}
-
-			UpdateStatusBar();
+				ViewMode.Text => "text",
+				ViewMode.Hex => "hex",
+				ViewMode.Media => "media",
+				_ => "text"
+			};
+			_viewerPanel.SwitchMode(modeStr);
 		}
 	
 		private void LoadHex()

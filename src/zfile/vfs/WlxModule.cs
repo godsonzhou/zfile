@@ -623,7 +623,7 @@ namespace zfile
 		{
 			if (!isConfigChanged) return;
 			List<string> configContent = new();
-			foreach (var pair in _configDict)
+			foreach (var pair in _configDict)	//bug to be fixed: configcontent内容与实际不符
 			{
 				if (!configContent.Contains(pair.Key))
 					configContent.Append(pair.Key + "=" + pair.Value + Environment.NewLine);

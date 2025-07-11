@@ -692,6 +692,7 @@ namespace zfile
 					int index = int.Parse(pathMatch.Groups[1].Value);
 					string pluginName = pathMatch.Groups[2].Value;
 					pathMap[index] = pluginName;
+					continue;
 				}
 				Match detectMatch = Regex.Match(line, @"^(\d+)_detect=(.*)$");
 				if (detectMatch.Success)
@@ -702,15 +703,12 @@ namespace zfile
 				}
 			}
 			// 将有检测规则的插件添加到结果字典中
-			foreach (var kvp in detectMap)
+			foreach (var kvp in pathMap)
 			{
 				int index = kvp.Key;
-				if (pathMap.ContainsKey(index))
-				{
-					string pluginName = pathMap[index];
-					string detectRule = kvp.Value;
-					result[pluginName.ToUpper()] = detectRule;
-				}
+				string pluginName = pathMap[index].ToUpper();
+				detectMap.TryGetValue(index, out var detectRule);
+				result[pluginName] = detectRule ?? string.Empty;
 			}
 			return result;
 		}
@@ -772,7 +770,7 @@ namespace zfile
 					return;
 				}
 				// 查找目标节的结束位置
-				int sectionEndIndex = fileContent.IndexOf('[', sectionStartIndex + sectionContent.Length);
+				int sectionEndIndex = fileContent.IndexOf('[', sectionStartIndex + sectionContent.Length);//bug to be fixed: [ 必须在行首，如果在行中间会导致错误 比如 xxx[0] = "test"
 				if (sectionEndIndex == -1)
 				{
 					// 如果找不到下一个节，说明目标节是文件的最后一节

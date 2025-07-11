@@ -114,7 +114,7 @@ namespace zfile
 		public AddWlxMappingForm(WlxModuleList wlxModules)
 		{
 			Text = "添加WLX插件映射";
-			Size = new Size(300, 150);
+			Size = new Size(400, 150);
 			FormBorderStyle = FormBorderStyle.FixedDialog;
 			MaximizeBox = false;
 			MinimizeBox = false;
@@ -296,7 +296,7 @@ namespace zfile
 			// 加载现有配置
 			foreach (var config in MainForm.wlxModuleList._configDict)
 			{
-				grid.Rows.Add(config.Value, config.Key);
+				grid.Rows.Add(config.Key, config.Value);
 			}
 
 			// 添加事件处理
@@ -408,10 +408,10 @@ namespace zfile
 				string ext = row.Cells["Extension"].Value?.ToString() ?? "";
 				string pluginName = row.Cells["PluginName"].Value?.ToString() ?? "";
 
-				var module = MainForm.wlxModuleList.FindModuleByName(pluginName);
-				if (module != null)
+				//var module = MainForm.wlxModuleList.FindModuleByName(pluginName);
+				//if (module != null)
 				{
-					MainForm.wlxModuleList._configDict[ext] = module.Name;
+					MainForm.wlxModuleList._configDict[pluginName] = ext;
 				}
 			}
 			MainForm.wlxModuleList.isConfigChanged = true;

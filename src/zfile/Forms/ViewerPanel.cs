@@ -54,7 +54,7 @@ namespace zfile.Forms
         private PictureBox _imageViewer;
         private ToolStrip _toolStrip;
         private StatusStrip _statusStrip;
-        private MenuStrip _menuStrip;
+        private ContextMenuStrip _menuStrip;
         private System.Windows.Forms.Timer _animationTimer;
         private System.Windows.Forms.Timer _screenshotTimer;
 
@@ -119,6 +119,11 @@ namespace zfile.Forms
             try
             {
                 CleanupCurrentView();
+                EnsurePluginList();
+                int tryModuleIdx = -1;
+                var plugin = _pluginList?.FindModuleForFile(_fileName, ref tryModuleIdx);
+                if (plugin != null && LoadWithPlugin(plugin))
+                    return;
                 string extension = Path.GetExtension(_fileName).ToLower();
                 if (IsImageFile(extension))
                 {
@@ -126,9 +131,13 @@ namespace zfile.Forms
                     LoadImage();
                     SwitchViewModeInternal(ViewMode.Media);
                 }
+                else if (IsMediaFile(extension))
+                {
+                    // 预留音视频播放接口
+                    SwitchViewModeInternal(ViewMode.Media);
+                }
                 else
                 {
-                    // 默认文本模式
                     LoadText();
                     SwitchViewModeInternal(ViewMode.Text);
                 }
@@ -293,9 +302,149 @@ namespace zfile.Forms
         {
             CleanupCurrentView();
         }
+        // 插件支持
+        private void EnsurePluginList()
+        {
+            if (_pluginList == null)
+                _pluginList = new WlxModuleList();
+        }
+
+        // 菜单支持
+        private void CreateMenuStrip()
+        {
+            if (_menuStrip != null) return;
+            _menuStrip = new ContextMenuStrip();
+            // 模式切换
+            var textMode = new ToolStripMenuItem("文本模式", null, (s, e) => SwitchMode("text"));
+            var hexMode = new ToolStripMenuItem("16进制模式", null, (s, e) => SwitchMode("hex"));
+            var mediaMode = new ToolStripMenuItem("图片/多媒体", null, (s, e) => SwitchMode("media"));
+            _menuStrip.Items.AddRange(new ToolStripItem[] { textMode, hexMode, mediaMode });
+            // 插件菜单
+            EnsurePluginList();
+            if (_pluginList != null && _pluginList.Modules.Count > 0)
+            {
+                var pluginMenu = new ToolStripMenuItem("插件");
+                foreach (var plug in _pluginList.Modules)
+                {
+                    var item = new ToolStripMenuItem(plug.Name, null, (s, e) => LoadWithPlugin(plug));
+                    pluginMenu.DropDownItems.Add(item);
+                }
+                _menuStrip.Items.Add(pluginMenu);
+            }
+            // 右键弹出
+            this.ContextMenuStrip = _menuStrip;
+        }
+
+        public override void Refresh()
+        {
+            base.Refresh();
+            CreateMenuStrip();
+        }
+
         public void SetPluginList(WlxModuleList pluginList)
         {
             _pluginList = pluginList;
+            CreateMenuStrip();
+        }
+
+        private bool LoadWithPlugin(WlxModule plugin)
+        {
+            _isPlugin = true;
+            _textPanel.Visible = false;
+            _hexPanel.Visible = false;
+            _imagePanel.Visible = false;
+            foreach (var p in _mainPanel.Controls)
+                if (p is Panel pnl) pnl.Visible = false;
+            if (_currentPlugin == null)
+                _currentPlugin = plugin;
+            else if (_currentPlugin != plugin)
+            {
+                if (_pluginWindow != IntPtr.Zero)
+                {
+                    _currentPlugin.CallListCloseWindow(_pluginWindow);
+                    _pluginWindow = IntPtr.Zero;
+                }
+                _currentPlugin = plugin;
+            }
+            if (!container.IsHandleCreated)
+                _ = container.Handle;
+
+            // 检查 container 的实际大小
+            var rect = container.DisplayRectangle;
+            if (rect.Width < 10 || rect.Height < 10)
+            {
+                // 挂接一次性 Resize 事件，等有实际大小再创建插件窗口
+                container.Resize -= DelayedPluginLoad_Resize;
+                container.Resize += DelayedPluginLoad_Resize;
+                container.Visible = true;
+                return false;
+            }
+
+            CreatePluginWindow(plugin, rect);
+            return _pluginWindow != IntPtr.Zero;
+        }
+
+        private void DelayedPluginLoad_Resize(object? sender, EventArgs e)
+        {
+            var rect = container.DisplayRectangle;
+            if (rect.Width >= 10 && rect.Height >= 10)
+            {
+                container.Resize -= DelayedPluginLoad_Resize;
+                if (_currentPlugin != null && _pluginWindow == IntPtr.Zero)
+                {
+                    CreatePluginWindow(_currentPlugin, rect);
+                }
+            }
+        }
+
+        private void CreatePluginWindow(WlxModule plugin, Rectangle rect)
+        {
+            // 强制隐藏 Form 用一个较大默认值
+            int initW = rect.Width >= 10 ? rect.Width : 800;
+            int initH = rect.Height >= 10 ? rect.Height : 600;
+            Form pluginHostForm = new Form();
+            pluginHostForm.Size = new Size(initW, initH);
+            pluginHostForm.StartPosition = FormStartPosition.Manual;
+            pluginHostForm.Location = container.PointToScreen(Point.Empty);
+            pluginHostForm.ShowInTaskbar = false;
+            pluginHostForm.FormBorderStyle = FormBorderStyle.None;
+            pluginHostForm.Visible = false;
+            IntPtr parentWin = pluginHostForm.Handle;
+            _pluginWindow = plugin.CallListLoad(parentWin, _fileName, 1);
+
+            if (_pluginWindow != IntPtr.Zero)
+            {
+                NativeMethods.SetParent(_pluginWindow, container.Handle);
+                NativeMethods.SetWindowLong(_pluginWindow, NativeMethods.GWL_STYLE, NativeMethods.WS_VISIBLE | NativeMethods.WS_CHILD);
+                SetPluginWindowBounds(container);
+                container.Visible = true;
+                // 多重事件保证后续自适应
+                container.Resize -= Container_ResizeForPlugin;
+                container.Resize += Container_ResizeForPlugin;
+                container.ParentChanged -= Container_ResizeForPlugin;
+                container.ParentChanged += Container_ResizeForPlugin;
+                container.VisibleChanged -= Container_ResizeForPlugin;
+                container.VisibleChanged += Container_ResizeForPlugin;
+                container.Layout -= Container_ResizeForPlugin;
+                container.Layout += Container_ResizeForPlugin;
+            }
+        }
+        private void Container_ResizeForPlugin(object? sender, EventArgs e)
+        {
+            SetPluginWindowBounds(container);
+        }
+        private void SetPluginWindowBounds(Panel container)
+        {
+            if (_pluginWindow != IntPtr.Zero && container != null)
+            {
+                var bounds = container.ClientRectangle;
+                NativeMethods.SetWindowPos(_pluginWindow, IntPtr.Zero, 0, 0, bounds.Width, bounds.Height, NativeMethods.SWP_NOZORDER | NativeMethods.SWP_NOACTIVATE);
+            }
+        }
+        private bool IsMediaFile(string extension)
+        {
+            string[] mediaExtensions = { ".mp3", ".wav", ".mp4", ".avi", ".wmv", ".mov", ".flv", ".mkv" };
+            return Array.IndexOf(mediaExtensions, extension) != -1;
         }
     }
 } 

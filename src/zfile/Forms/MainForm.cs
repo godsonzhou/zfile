@@ -2823,7 +2823,8 @@ namespace zfile
 				string filePath = Helper.getFSpath(Path.Combine(CurrentFullpath[LRflag], SelectedItems[0]));
 
 				if (File.Exists(filePath))
-					await PreviewFileAsync(filePath, previewPanel);
+					//await PreviewFileAsync(filePath, previewPanel); //仅能预览文本，改用viewerpanel代替
+					uiManager.PreviewFile(listView.Name, filePath);
 			}
 			//uiManager.SetArgs();
 		}

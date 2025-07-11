@@ -700,6 +700,7 @@ namespace zfile
 		}
 		private bool isModuleSupport(string DetectString, string filename)
 		{
+			if (string.IsNullOrEmpty(DetectString)) return true;
 			var p = new Dictionary<string, string>();
 			var ext = Path.GetExtension(filename).ToLower().Trim('.');
 			DetectString = DetectString.ToLower().Replace('"', '\''); //replace " with '

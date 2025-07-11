@@ -749,6 +749,9 @@ namespace zfile
 						{
 							AddModule(module);
 						}
+						//记录插件的完整路径到_pathdict
+						if (!pathdict.TryGetValue(module.Name.ToUpper(), out var fullpath))
+							pathdict[module.Name] = file;
 					}
 					catch
 					{

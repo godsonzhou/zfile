@@ -2822,9 +2822,9 @@ namespace zfile
 					SelectedItems.Add(item.Text);
 				string filePath = Helper.getFSpath(Path.Combine(CurrentFullpath[LRflag], SelectedItems[0]));
 
-				if (File.Exists(filePath))
+				//if (File.Exists(filePath))
 					//await PreviewFileAsync(filePath, previewPanel); //仅能预览文本，改用viewerpanel代替
-					uiManager.PreviewFile(listView.Name, filePath);
+				uiManager.PreviewFile(listView.Name, filePath);//可以通过htmlview支持文件夹的预览
 			}
 			//uiManager.SetArgs();
 		}

@@ -6,6 +6,19 @@ namespace zfile
         private DataGridView grid;
         private MainForm mainForm;
 
+        // 新增：保存控件引用
+        private ComboBox viewTypeCombo;
+        private ComboBox sortMethodCombo;
+        private TextBox additionalSortTextBox;
+        private ComboBox labelColorCombo;
+        private ComboBox bgColorCombo;
+        private ComboBox evenRowColorCombo;
+        private CheckBox priorityCheckBox;
+        private TextBox autoCommandTextBox;
+        // 保存初始viewModes副本
+        private Dictionary<string, string> originalOptions = new();
+        private bool isLoading = false;
+
         public ViewModePanel(MainForm mainForm)
         {
             this.mainForm = mainForm;
@@ -63,7 +76,7 @@ namespace zfile
 
             // 列视图设置
             Label viewTypeLabel = new Label { Text = "列视图(Q):", AutoSize = true, Location = new Point(10, 10) };
-            ComboBox viewTypeCombo = new ComboBox
+            viewTypeCombo = new ComboBox
             {
                 DropDownStyle = ComboBoxStyle.DropDownList,
                 Width = 320,
@@ -77,61 +90,61 @@ namespace zfile
 
             // 排序方式设置
             Label sortMethodLabel = new Label { Text = "排序方式(S):", AutoSize = true, Location = new Point(10, 40) };
-            ComboBox sortMethodCombo = new ComboBox
+            sortMethodCombo = new ComboBox
             {
                 DropDownStyle = ComboBoxStyle.DropDownList,
                 Width = 320,
                 Location = new Point(220, 40)
             };
-            sortMethodCombo.Items.AddRange(new object[] { "不变" });
+            sortMethodCombo.Items.AddRange(new object[] { "不变", "文件名", "扩展名", "大小", "时间", "类型" });
             sortMethodCombo.SelectedIndex = 0;
 
             // 附加排序设置
             Label additionalSortLabel = new Label { Text = "附加排序(I):", AutoSize = true, Location = new Point(10, 70) };
-            TextBox additionalSortTextBox = new TextBox { Width = 320, Location = new Point(220, 70) };
+            additionalSortTextBox = new TextBox { Width = 320, Location = new Point(220, 70) };
             Button additionalSortButton = new Button { Text = "+", Width = 30, Location = new Point(550, 70) };
 
             // 标签颜色设置
             Label labelColorLabel = new Label { Text = "标签颜色和图标(T):", AutoSize = true, Location = new Point(10, 100) };
-            ComboBox labelColorCombo = new ComboBox
+            labelColorCombo = new ComboBox
             {
                 DropDownStyle = ComboBoxStyle.DropDownList,
                 Width = 320,
                 Location = new Point(220, 100)
             };
-            labelColorCombo.Items.AddRange(new object[] { "默认色" });
+            labelColorCombo.Items.AddRange(new object[] { "默认色", "红色", "绿色", "蓝色", "黄色", "紫色" });
             labelColorCombo.SelectedIndex = 0;
             Button labelColorButton1 = new Button { Text = ">>", Width = 30, Location = new Point(550, 100) };
             Button labelColorButton2 = new Button { Text = ">>", Width = 30, Location = new Point(590, 100) };
 
             // 背景颜色设置
             Label bgColorLabel = new Label { Text = "背景颜色(B):", AutoSize = true, Location = new Point(10, 130) };
-            ComboBox bgColorCombo = new ComboBox
+            bgColorCombo = new ComboBox
             {
                 DropDownStyle = ComboBoxStyle.DropDownList,
                 Width = 320,
                 Location = new Point(220, 130)
             };
-            bgColorCombo.Items.AddRange(new object[] { "默认色" });
+            bgColorCombo.Items.AddRange(new object[] { "默认色", "白色", "灰色", "黑色", "浅蓝", "浅绿" });
             bgColorCombo.SelectedIndex = 0;
             Button bgColorButton = new Button { Text = ">>", Width = 30, Location = new Point(550, 130) };
-            CheckBox priorityCheckBox = new CheckBox { Text = "优先(P)", AutoSize = true, Location = new Point(590, 130), Checked = true };
+            priorityCheckBox = new CheckBox { Text = "优先(P)", AutoSize = true, Location = new Point(590, 130), Checked = true };
 
             // 偶数行背景颜色设置
             Label evenRowColorLabel = new Label { Text = "偶数行背景颜色(2):", AutoSize = true, Location = new Point(10, 160) };
-            ComboBox evenRowColorCombo = new ComboBox
+            evenRowColorCombo = new ComboBox
             {
                 DropDownStyle = ComboBoxStyle.DropDownList,
                 Width = 320,
                 Location = new Point(220, 160)
             };
-            evenRowColorCombo.Items.AddRange(new object[] { "默认色" });
+            evenRowColorCombo.Items.AddRange(new object[] { "默认色", "白色", "灰色", "浅蓝", "浅绿" });
             evenRowColorCombo.SelectedIndex = 0;
             Button evenRowColorButton = new Button { Text = ">>", Width = 30, Location = new Point(550, 160) };
 
             // 自动运行命令设置
             Label autoCommandLabel = new Label { Text = "自动运行命令:", AutoSize = true, Location = new Point(10, 190) };
-            TextBox autoCommandTextBox = new TextBox { Width = 320, Location = new Point(220, 190) };
+            autoCommandTextBox = new TextBox { Width = 320, Location = new Point(220, 190) };
             Button autoCommandButton = new Button { Text = "-", Width = 30, Location = new Point(550, 190) };
 
             // 添加控件到设置面板
@@ -149,23 +162,31 @@ namespace zfile
             Controls.Add(settingsPanel);
             Controls.Add(buttonPanel);
             Controls.Add(grid);
+
+            // 新增：事件绑定
+            grid.SelectionChanged += Grid_SelectionChanged;
+            viewTypeCombo.SelectedIndexChanged += Controls_Changed;
+            sortMethodCombo.SelectedIndexChanged += Controls_Changed;
+            additionalSortTextBox.TextChanged += Controls_Changed;
+            labelColorCombo.SelectedIndexChanged += Controls_Changed;
+            bgColorCombo.SelectedIndexChanged += Controls_Changed;
+            evenRowColorCombo.SelectedIndexChanged += Controls_Changed;
+            priorityCheckBox.CheckedChanged += Controls_Changed;
+            autoCommandTextBox.TextChanged += Controls_Changed;
         }
 
         private void LoadViewModes()
         {
             // 加载默认视图模式
-            //grid.Rows.Add("默认", "默认视图模式");
-            //grid.Rows.Add("系统", "系统文件视图模式");
-            //grid.Rows.Add("程序", "程序文件视图模式");
-            //grid.Rows.Add("图片", "图片文件视图模式");
-            //grid.Rows.Add("音频", "音频文件视图模式");
-            //grid.Rows.Add("视频", "视频文件视图模式");
-            //grid.Rows.Add("源码", "源代码文件视图模式");
-            //grid.Rows.Add("文档", "文档文件视图模式");
-			foreach(var v in mainForm.viewMgr.viewModes.Values)
-			{
-				grid.Rows.Add(v.Name, v.Options);
-			}
+            grid.Rows.Clear();
+            originalOptions.Clear();
+            foreach(var v in mainForm.viewMgr.viewModes.Values)
+            {
+                grid.Rows.Add(v.Name, v.Options);
+                originalOptions[v.Name] = v.Options; // 以Name为key保存原始option
+            }
+            if (grid.Rows.Count > 0)
+                grid.Rows[0].Selected = true;
         }
 
         private void AddViewMode()
@@ -200,6 +221,199 @@ namespace zfile
                     row.Cells["ViewName"].Value = inputBox.InputText;
                 }
             }
+        }
+
+        // 新增：表格行选中时刷新控件
+        private void Grid_SelectionChanged(object sender, EventArgs e)
+        {
+            if (grid.SelectedRows.Count == 0) return;
+            isLoading = true;
+            var row = grid.SelectedRows[0];
+            string option = row.Cells["Description"].Value?.ToString() ?? "";
+            ParseOptionToControls(option);
+            isLoading = false;
+        }
+
+        // 新增：控件变更时同步option
+        private void Controls_Changed(object sender, EventArgs e)
+        {
+            if (isLoading) return;
+            if (grid.SelectedRows.Count == 0) return;
+            var row = grid.SelectedRows[0];
+            string newOption = GenerateOptionFromControls(row.Cells["Description"].Value?.ToString() ?? "");
+            row.Cells["Description"].Value = newOption;
+        }
+
+        // 解析option字符串到控件
+        private void ParseOptionToControls(string option)
+        {
+            // option: 列视图编号|排序方式|升降序|附加排序列号|标签颜色|？|？|？|？
+            var parts = option.Split('|');
+            // 列视图编号
+            if (parts.Length > 0)
+            {
+                int idx = Math.Max(0, Array.IndexOf(mainForm.viewMgr.colDefDict.Keys.ToArray(), parts[0]));
+                viewTypeCombo.SelectedIndex = idx >= 0 ? idx : 0;
+            }
+            // 排序方式
+            if (parts.Length > 1)
+            {
+                int idx = 0;
+                switch (parts[1])
+                {
+                    case "-1": idx = 0; break;
+                    case "0": idx = 1; break;
+                    case "1": idx = 2; break;
+                    case "2": idx = 3; break;
+                    case "3": idx = 4; break;
+                    case "4": idx = 5; break;
+                }
+                sortMethodCombo.SelectedIndex = idx;
+            }
+            // 升降序
+            // 可扩展：如有升降序控件
+            // 附加排序列号
+            if (parts.Length > 3)
+                additionalSortTextBox.Text = parts[3];
+            // 标签颜色
+            if (parts.Length > 4)
+            {
+                int idx = 0;
+                if (int.TryParse(parts[4], out int colorVal))
+                {
+                    switch (colorVal)
+                    {
+                        case -1: idx = 0; break;
+                        case 255: idx = 1; break;
+                        case 65280: idx = 2; break;
+                        case 16711680: idx = 3; break;
+                        case 65535: idx = 4; break;
+                        case 8388736: idx = 5; break;
+                        default: idx = 0; break;
+                    }
+                }
+                labelColorCombo.SelectedIndex = idx;
+            }
+            // 背景颜色
+            if (parts.Length > 8)
+            {
+                int idx = 0;
+                if (int.TryParse(parts[8], out int bgVal))
+                {
+                    switch (bgVal)
+                    {
+                        case -1: idx = 0; break;
+                        case 0: idx = 1; break;
+                        case 8421504: idx = 2; break;
+                        case 16777215: idx = 3; break;
+                        case 12639424: idx = 4; break;
+                        case 8454016: idx = 5; break;
+                        default: idx = 0; break;
+                    }
+                }
+                bgColorCombo.SelectedIndex = idx;
+            }
+            // 偶数行背景色
+            if (parts.Length > 8)
+            {
+                evenRowColorCombo.SelectedIndex = 0; // 可扩展
+            }
+            // 优先
+            priorityCheckBox.Checked = true; // 可扩展
+            // 自动命令
+            if (parts.Length > 9)
+                autoCommandTextBox.Text = parts[9];
+            else
+                autoCommandTextBox.Text = "";
+        }
+
+        // 生成option字符串
+        private string GenerateOptionFromControls(string oldOption)
+        {
+            var parts = oldOption.Split('|');
+            // 列视图编号
+            string colViewId = mainForm.viewMgr.colDefDict.Keys.ElementAt(viewTypeCombo.SelectedIndex);
+            // 排序方式
+            string sortMethod = sortMethodCombo.SelectedIndex switch
+            {
+                0 => "-1",
+                1 => "0",
+                2 => "1",
+                3 => "2",
+                4 => "3",
+                5 => "4",
+                _ => "-1"
+            };
+            // 升降序
+            string order = parts.Length > 2 ? parts[2] : "0";
+            // 附加排序列号
+            string addSort = additionalSortTextBox.Text;
+            // 标签颜色
+            string labelColor = labelColorCombo.SelectedIndex switch
+            {
+                0 => "-1",
+                1 => "255",
+                2 => "65280",
+                3 => "16711680",
+                4 => "65535",
+                5 => "8388736",
+                _ => "-1"
+            };
+            // ？|？|？|？ 保留原样
+            string q1 = parts.Length > 5 ? parts[5] : "-1";
+            string q2 = parts.Length > 6 ? parts[6] : "-1";
+            string q3 = parts.Length > 7 ? parts[7] : "-1";
+            // 背景色
+            string bgColor = bgColorCombo.SelectedIndex switch
+            {
+                0 => "-1",
+                1 => "0",
+                2 => "8421504",
+                3 => "16777215",
+                4 => "12639424",
+                5 => "8454016",
+                _ => "-1"
+            };
+            // 偶数行背景色、优先、自动命令等可扩展
+            // 拼接
+            return string.Join("|", new[] { colViewId, sortMethod, order, addSort, labelColor, q1, q2, q3, bgColor });
+        }
+
+        // 对外：应用更改
+        public void ApplyChanges()
+        {
+            // 遍历表格，将option写回viewModes
+            foreach (DataGridViewRow row in grid.Rows)
+            {
+                string name = row.Cells["ViewName"].Value?.ToString() ?? "";
+                string option = row.Cells["Description"].Value?.ToString() ?? "";
+                // 找到对应viewMode
+                foreach (var kv in mainForm.viewMgr.viewModes)
+                {
+                    if (kv.Value.Name == name)
+                    {
+                        kv.Value.Options = option;
+                        break;
+                    }
+                }
+            }
+            // 更新原始副本
+            foreach (var kv in mainForm.viewMgr.viewModes)
+            {
+                originalOptions[kv.Value.Name] = kv.Value.Options;
+            }
+        }
+
+        // 对外：恢复初始状态
+        public void Reload()
+        {
+            // 恢复viewModes为originalOptions
+            foreach (var kv in mainForm.viewMgr.viewModes)
+            {
+                if (originalOptions.TryGetValue(kv.Value.Name, out var opt))
+                    kv.Value.Options = opt;
+            }
+            LoadViewModes();
         }
     }
 

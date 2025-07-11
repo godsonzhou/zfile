@@ -2,6 +2,7 @@ namespace zfile
 {
 	using System;
 	using System.ComponentModel;
+	using zfile.Forms;
 
 	public class ThemeManager : IDisposable
 	{
@@ -13,8 +14,8 @@ namespace zfile
 		private readonly TreeView rightTree;
 		private readonly ListView leftList;
 		private readonly ListView rightList;
-		private readonly TextBox leftPreview;
-		private readonly TextBox rightPreview;
+		private readonly ViewerPanel leftPreview;
+		private readonly ViewerPanel rightPreview;
 		private readonly StatusStrip leftStatusStrip;
 		private readonly StatusStrip rightStatusStrip;
 		private bool disposed = false;
@@ -23,7 +24,7 @@ namespace zfile
 		public ThemeManager(Form form, ToolStrip toolStrip, ToolStrip vtoolStrip, MenuStrip menuStrip,
 			TreeView leftTree, TreeView rightTree,
 			ListView leftList, ListView rightList,
-			TextBox leftPreview, TextBox rightPreview,
+			ViewerPanel leftPreview, ViewerPanel rightPreview,
 			StatusStrip leftStatusStrip, StatusStrip rightStatusStrip)
 		{
 			this.mainForm = form;
@@ -363,13 +364,13 @@ namespace zfile
 			listView.ForeColor = SystemColors.WindowText;
 		}
 
-		private void SetPreviewDarkTheme(TextBox preview)
+		private void SetPreviewDarkTheme(ViewerPanel preview)
 		{
 			preview.BackColor = Color.FromArgb(37, 37, 38);
 			preview.ForeColor = Color.White;
 		}
 
-		private void SetPreviewLightTheme(TextBox preview)
+		private void SetPreviewLightTheme(ViewerPanel preview)
 		{
 			preview.BackColor = SystemColors.Window;
 			preview.ForeColor = SystemColors.WindowText;

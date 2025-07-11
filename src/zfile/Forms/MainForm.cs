@@ -2782,11 +2782,11 @@ namespace zfile
 		}
 
 		// 预览文件内容
-		private async Task PreviewFileAsync(string filePath, TextBox previewPanel)
+		private async Task PreviewFileAsync(string filePath, ViewerPanel previewPanel)
 		{
 			if (!File.Exists(filePath))
 			{
-				previewPanel.Clear();
+				//previewPanel.Clear();//TODO: TEMP REMARK
 				return;
 			}
 

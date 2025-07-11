@@ -38,7 +38,8 @@ namespace zfile.Forms
         {
             Text,
             Hex,
-            Media
+            Media,
+			Plugin
         }
         private ViewMode _currentViewMode = ViewMode.Text;
 
@@ -54,8 +55,8 @@ namespace zfile.Forms
         private ToolStrip _toolStrip;
         private StatusStrip _statusStrip;
         private MenuStrip _menuStrip;
-        private Timer _animationTimer;
-        private Timer _screenshotTimer;
+        private System.Windows.Forms.Timer _animationTimer;
+        private System.Windows.Forms.Timer _screenshotTimer;
 
         public ViewerPanel()
         {

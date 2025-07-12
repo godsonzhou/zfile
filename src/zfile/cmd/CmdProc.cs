@@ -139,13 +139,15 @@ namespace zfile
 						var args = owner.se.PrepareParameter(param, null, "");
 						foreach (var arg in args)
 						{
+							var tmpcmd = Helper.GetPathByEnv(cmdName.TrimStart('*')) + " " + arg;
+							var tmpcmds = Helper.SplitCommand(tmpcmd);
 							// 使用 ProcessStartInfo 设置启动进程的详细信息
-							var startInfo = new ProcessStartInfo
+							var startInfo = new ProcessStartInfo()
 							{
-								FileName = Helper.GetPathByEnv(cmdName),
-								UseShellExecute = true,
-								Arguments = arg,
-								Verb = "runas" // 请求管理员权限
+								FileName = tmpcmds.cmd,	//*代表用管理员权限执行
+								UseShellExecute = false, //true,
+								Arguments = tmpcmds.arg,	
+								Verb = cmdName.StartsWith("*") ? "runas" : string.Empty // 请求管理员权限
 							};
 							if (workingdir != "")
 								startInfo.WorkingDirectory = workingdir;

@@ -180,6 +180,94 @@ namespace zfile
 
 		[DllImport("user32.dll")]
 		private static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int Width, int Height, bool Repaint);
+
+		[DllImport("kernel32.dll", SetLastError = true)]
+		private static extern IntPtr LoadLibrary(string lpFileName);
+
+		[DllImport("kernel32.dll", SetLastError = true)]
+		private static extern bool FreeLibrary(IntPtr hModule);
+
+		/// <summary>
+		/// 检查插件的依赖项是否可用
+		/// </summary>
+		private bool CheckDependencies()
+		{
+			try
+			{
+				// 常见的依赖项列表
+				string[] commonDependencies = {
+					"msvcr120.dll", "msvcp120.dll",  // Visual C++ 2013
+					"msvcr140.dll", "msvcp140.dll",  // Visual C++ 2015-2019
+					"vcruntime140.dll", "vcruntime140_1.dll",  // Visual C++ 2015-2019
+					"msvcr110.dll", "msvcp110.dll",  // Visual C++ 2012
+					"msvcr100.dll", "msvcp100.dll",  // Visual C++ 2010
+					"msvcr90.dll", "msvcp90.dll",    // Visual C++ 2008
+					"msvcr80.dll", "msvcp80.dll",    // Visual C++ 2005
+					"gdiplus.dll", "gdi32.dll", "user32.dll", "kernel32.dll"
+				};
+
+				foreach (var dep in commonDependencies)
+				{
+					IntPtr handle = LoadLibrary(dep);
+					if (handle == IntPtr.Zero)
+					{
+						int error = Marshal.GetLastWin32Error();
+						Debug.Print($"WlxModule: Dependency {dep} not available, error: {error}");
+					}
+					else
+					{
+						FreeLibrary(handle);
+					}
+				}
+				return true;
+			}
+			catch (Exception ex)
+			{
+				Debug.Print($"WlxModule: Exception checking dependencies - {ex.Message}");
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// 检查插件是否可能有兼容性问题
+		/// </summary>
+		private bool CheckPluginCompatibility()
+		{
+			try
+			{
+				// 检查插件文件大小，过大的插件可能有问题
+				var fileInfo = new FileInfo(FilePath);
+				if (fileInfo.Length > 50 * 1024 * 1024) // 50MB
+				{
+					Debug.Print($"WlxModule: Plugin {Name} is very large ({fileInfo.Length / 1024 / 1024}MB), may have compatibility issues");
+					return false;
+				}
+
+				// 检查插件名称，某些类型的插件可能有问题
+				string lowerName = Name.ToLower();
+				if (lowerName.Contains("ie") || lowerName.Contains("html") || lowerName.Contains("web") || 
+					lowerName.Contains("iclv") || lowerName.Contains("akfont"))
+				{
+					Debug.Print($"WlxModule: Plugin {Name} appears to be a potentially problematic plugin, may have compatibility issues");
+					return false;
+				}
+
+				// 检查插件目录，某些目录下的插件可能有问题
+				string pluginDir = Path.GetDirectoryName(FilePath)?.ToLower() ?? "";
+				if (pluginDir.Contains("ie") || pluginDir.Contains("html") || pluginDir.Contains("web"))
+				{
+					Debug.Print($"WlxModule: Plugin {Name} is in a potentially problematic directory, may have compatibility issues");
+					return false;
+				}
+
+				return true;
+			}
+			catch (Exception ex)
+			{
+				Debug.Print($"WlxModule: Exception checking plugin compatibility - {ex.Message}");
+				return true; // 如果检查失败，默认允许加载
+			}
+		}
 		public WlxModule()
 		{
 			Name = string.Empty;
@@ -196,42 +284,150 @@ namespace zfile
 
 			try
 			{
-				ModuleHandle = NativeLibrary.Load(FilePath);
-				if (ModuleHandle == IntPtr.Zero) return false;
+				// 检查文件是否存在
+				if (!File.Exists(FilePath))
+				{
+					Debug.Print($"WlxModule: File not found - {FilePath}");
+					return false;
+				}
+
+				// 检查文件是否可读
+				try
+				{
+					using var stream = File.OpenRead(FilePath);
+				}
+				catch (Exception ex)
+				{
+					Debug.Print($"WlxModule: Cannot read file {FilePath} - {ex.Message}");
+					return false;
+				}
+
+				// 检查依赖项
+				CheckDependencies();
+
+				// 检查插件兼容性
+				if (!CheckPluginCompatibility())
+				{
+					Debug.Print($"WlxModule: Plugin {FilePath} failed compatibility check, skipping");
+					//return false;
+				}
+
+				Debug.Print($"WlxModule: Attempting to load {FilePath}");
+				
+				// 尝试使用 LoadLibraryEx 进行更安全的加载
+				try
+				{
+					// 首先尝试使用 LoadLibraryEx 从插件目录加载
+					string pluginDir = Path.GetDirectoryName(FilePath);
+					ModuleHandle = NativeMethods.LoadLibraryEx(FilePath, IntPtr.Zero, 
+						NativeMethods.LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | 
+						NativeMethods.LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
+					
+					if (ModuleHandle == IntPtr.Zero)
+					{
+						// 如果失败，尝试普通的 LoadLibrary
+						ModuleHandle = NativeLibrary.Load(FilePath);
+					}
+				}
+				catch (Exception ex)
+				{
+					Debug.Print($"WlxModule: Exception during LoadLibraryEx for {FilePath} - {ex.Message}");
+					// 回退到普通的 LoadLibrary
+					ModuleHandle = NativeLibrary.Load(FilePath);
+				}
+				
+				if (ModuleHandle == IntPtr.Zero)
+				{
+					// 获取详细的错误信息
+					int errorCode = Marshal.GetLastWin32Error();
+					Debug.Print($"WlxModule: Failed to load {FilePath}, Error code: {errorCode}");
+					return false;
+				}
+
+				Debug.Print($"WlxModule: Successfully loaded {FilePath}, Handle: {ModuleHandle}");
 
 				// 加载必需的函数
 				_listLoad = GetDelegate<ListLoad>("ListLoad"); 
 				_listLoadW = GetDelegate<ListLoadW>("ListLoadW"); 
 				if(_listLoad == null && _listLoadW == null)
+				{
+					Debug.Print($"WlxModule: Required ListLoad function not found in {FilePath}");
 					throw new Exception("required listload can not be found!");
+				}
+
+				Debug.Print($"WlxModule: Required functions loaded successfully for {FilePath}");
 
 				// 加载可选函数 // 可选函数加载失败不影响插件使用
-				_listLoadNext = GetDelegate<ListLoadNext>("ListLoadNext"); 
-				// 加载Unicode版本函数 // Unicode函数加载失败不影响插件使用
-				_listLoadNextW = GetDelegate<ListLoadNextW>("ListLoadNextW"); 
-				_listSearchText = GetDelegate<ListSearchText>("ListSearchText"); 
-				_listSearchTextW = GetDelegate<ListSearchTextW>("ListSearchTextW"); 
-				_listPrint = GetDelegate<ListPrint>("ListPrint"); 
-				_listPrintW = GetDelegate<ListPrintW>("ListPrintW"); 
-				_listGetPreviewBitmap = GetDelegate<ListGetPreviewBitmap>("ListGetPreviewBitmap"); 
-				_listGetPreviewBitmapW = GetDelegate<ListGetPreviewBitmapW>("ListGetPreviewBitmapW"); 
-				_listCloseWindow = GetDelegate<ListCloseWindow>("ListCloseWindow"); 
-				_listGetDetectString = GetDelegate<ListGetDetectString>("ListGetDetectString"); 
-				_listSearchDialog = GetDelegate<ListSearchDialog>("ListSearchDialog"); 
-				_listSendCommand = GetDelegate<ListSendCommand>("ListSendCommand"); 
-				_listNotificationReceived = GetDelegate<ListNotificationReceived>("ListNotificationReceived"); 
-				_listSetDefaultParams = GetDelegate<ListSetDefaultParams>("ListSetDefaultParams");
-				_listGetValue = GetDelegate<ListGetValue>("ListGetValue");
+				try
+				{
+					_listLoadNext = GetDelegate<ListLoadNext>("ListLoadNext"); 
+					// 加载Unicode版本函数 // Unicode函数加载失败不影响插件使用
+					_listLoadNextW = GetDelegate<ListLoadNextW>("ListLoadNextW"); 
+					_listSearchText = GetDelegate<ListSearchText>("ListSearchText"); 
+					_listSearchTextW = GetDelegate<ListSearchTextW>("ListSearchTextW"); 
+					_listPrint = GetDelegate<ListPrint>("ListPrint"); 
+					_listPrintW = GetDelegate<ListPrintW>("ListPrintW"); 
+					_listGetPreviewBitmap = GetDelegate<ListGetPreviewBitmap>("ListGetPreviewBitmap"); 
+					_listGetPreviewBitmapW = GetDelegate<ListGetPreviewBitmapW>("ListGetPreviewBitmapW"); 
+					_listCloseWindow = GetDelegate<ListCloseWindow>("ListCloseWindow"); 
+					_listGetDetectString = GetDelegate<ListGetDetectString>("ListGetDetectString"); 
+					_listSearchDialog = GetDelegate<ListSearchDialog>("ListSearchDialog"); 
+					_listSendCommand = GetDelegate<ListSendCommand>("ListSendCommand"); 
+					_listNotificationReceived = GetDelegate<ListNotificationReceived>("ListNotificationReceived"); 
+					_listSetDefaultParams = GetDelegate<ListSetDefaultParams>("ListSetDefaultParams");
+					_listGetValue = GetDelegate<ListGetValue>("ListGetValue");
+				}
+				catch (Exception ex)
+				{
+					Debug.Print($"WlxModule: Exception while loading optional functions for {FilePath} - {ex.Message}");
+					// 可选函数加载失败不应该阻止插件使用
+				}
+
 				//GC.KeepAlive(_listLoad);
 				//GC.KeepAlive(_listLoadW);
-				// 初始化插件
-				CallListSetDefaultParams();
-				LoadDetectString();
+				
+				// 初始化插件 - 使用更安全的方式
+				bool initSuccess = true;
+				
+				try
+				{
+					CallListSetDefaultParams();
+					Debug.Print($"WlxModule: ListSetDefaultParams completed for {FilePath}");
+				}
+				catch (Exception ex)
+				{
+					Debug.Print($"WlxModule: Exception in CallListSetDefaultParams for {FilePath} - {ex.Message}");
+					initSuccess = false;
+					// 继续执行，不要因为初始化失败而完全放弃插件
+				}
 
+				try
+				{
+					LoadDetectString();
+					Debug.Print($"WlxModule: LoadDetectString completed for {FilePath}");
+				}
+				catch (Exception ex)
+				{
+					Debug.Print($"WlxModule: Exception in LoadDetectString for {FilePath} - {ex.Message}");
+					initSuccess = false;
+					// 继续执行，不要因为检测字符串加载失败而完全放弃插件
+				}
+
+				if (initSuccess)
+				{
+					Debug.Print($"WlxModule: Successfully initialized {FilePath}");
+				}
+				else
+				{
+					Debug.Print($"WlxModule: Partially initialized {FilePath} (some optional functions failed)");
+				}
+				
 				return true;
 			}
-			catch
+			catch (Exception ex)
 			{
+				Debug.Print($"WlxModule: Exception while loading {FilePath} - {ex.Message}");
+				Debug.Print($"WlxModule: Stack trace - {ex.StackTrace}");
 				UnloadModule();
 				return false;
 			}
@@ -247,42 +443,82 @@ namespace zfile
 
 		private void LoadDetectString()
 		{
-			if (_listGetDetectString == null) return;
+			if (_listGetDetectString == null) 
+			{
+				Debug.Print($"WlxModule: ListGetDetectString function not available for {FilePath}");
+				return;
+			}
 
-			StringBuilder detectStr = new StringBuilder(1024);
-			_listGetDetectString(detectStr, detectStr.Capacity);
-			DetectString = detectStr.ToString();
-			IsMultimedia = DetectString.Contains("multimedia", StringComparison.OrdinalIgnoreCase);
+			try
+			{
+				Debug.Print($"WlxModule: Calling ListGetDetectString for {FilePath}");
+				StringBuilder detectStr = new StringBuilder(1024);
+				_listGetDetectString(detectStr, detectStr.Capacity);
+				DetectString = detectStr.ToString();
+				IsMultimedia = DetectString.Contains("multimedia", StringComparison.OrdinalIgnoreCase);
+				Debug.Print($"WlxModule: DetectString loaded for {FilePath}: {DetectString}");
+			}
+			catch (Exception ex)
+			{
+				Debug.Print($"WlxModule: Exception in LoadDetectString for {FilePath} - {ex.Message}");
+				Debug.Print($"WlxModule: Stack trace - {ex.StackTrace}");
+				throw; // 重新抛出异常，让上层处理
+			}
 		}
 
 		private void CallListSetDefaultParams()
 		{
-			if (_listSetDefaultParams == null) return;
-			var inipath = $"{Path.GetDirectoryName(FilePath)}\\{Name}.ini";
-			if (File.Exists(inipath))
+			if (_listSetDefaultParams == null) 
 			{
-				// 如果插件目录下已经存在对应的ini文件，则设置默认参数
-				Debug.Print($"WlxModule: {Name} has an ini file {inipath}, setting default params.");
+				Debug.Print($"WlxModule: ListSetDefaultParams function not available for {FilePath}");
+				return;
 			}
-			else
-				inipath = "";
 
-			var defaultParams = new ListDefaultParamStruct
-			{
-				Size = Marshal.SizeOf<ListDefaultParamStruct>(),
-				PluginInterfaceVersionHi = 2,
-				PluginInterfaceVersionLow = 0,
-				DefaultIniName = (Constants.ZfileCfgPath + "wincmd.ini") // 如果插件目录下没有对应的ini文件，则使用默认的wlx.ini
-			};
-			var ptr = Marshal.AllocHGlobal(Marshal.SizeOf(defaultParams));
-			Marshal.StructureToPtr(defaultParams, ptr, false);
 			try
 			{
-				_listSetDefaultParams(ptr);
+				var inipath = $"{Path.GetDirectoryName(FilePath)}\\{Name}.ini";
+				if (File.Exists(inipath))
+				{
+					// 如果插件目录下已经存在对应的ini文件，则设置默认参数
+					Debug.Print($"WlxModule: {Name} has an ini file {inipath}, setting default params.");
+				}
+				else
+				{
+					inipath = "";
+					Debug.Print($"WlxModule: {Name} no ini file found, using default config path.");
+				}
+
+				var defaultParams = new ListDefaultParamStruct
+				{
+					Size = Marshal.SizeOf<ListDefaultParamStruct>(),
+					PluginInterfaceVersionHi = 2,
+					PluginInterfaceVersionLow = 0,
+					DefaultIniName = (Constants.ZfileCfgPath + "wincmd.ini") // 如果插件目录下没有对应的ini文件，则使用默认的wlx.ini
+				};
+
+				Debug.Print($"WlxModule: Allocating memory for default params structure, size: {defaultParams.Size}");
+				var ptr = Marshal.AllocHGlobal(Marshal.SizeOf(defaultParams));
+				
+				try
+				{
+					Debug.Print($"WlxModule: Copying structure to unmanaged memory at {ptr}");
+					Marshal.StructureToPtr(defaultParams, ptr, false);
+					
+					Debug.Print($"WlxModule: Calling ListSetDefaultParams with ptr: {ptr}");
+					_listSetDefaultParams(ptr);
+					Debug.Print($"WlxModule: ListSetDefaultParams call completed successfully");
+				}
+				finally
+				{
+					Debug.Print($"WlxModule: Freeing unmanaged memory at {ptr}");
+					Marshal.FreeHGlobal(ptr);
+				}
 			}
-			finally
+			catch (Exception ex)
 			{
-				Marshal.FreeHGlobal(ptr);
+				Debug.Print($"WlxModule: Exception in CallListSetDefaultParams for {FilePath} - {ex.Message}");
+				Debug.Print($"WlxModule: Stack trace - {ex.StackTrace}");
+				throw; // 重新抛出异常，让上层处理
 			}
 		}
 		public static byte[] StringToAnsiBytes(string str, int length)
@@ -603,6 +839,7 @@ namespace zfile
 		private List<string> _config;
 		public Dictionary<string, string> _configDict;
 		public List<WlxModule> _modules = [];
+		private HashSet<string> _blacklistedPlugins = new(); // 黑名单插件
 
 		public List<WlxModule> Modules { get { return _modules; } }
 		public bool isConfigChanged = false;
@@ -611,7 +848,79 @@ namespace zfile
 		public WlxModuleList()
 		{
 			LoadConfiguration();
+			LoadBlacklist();
+			
 			LoadModulesFromDirectory(Constants.ZfileBinPath + "\\plugins\\wlx");
+		}
+
+		/// <summary>
+		/// 加载插件黑名单
+		/// </summary>
+		private void LoadBlacklist()
+		{
+			try
+			{
+				string blacklistFile = Path.Combine(Constants.ZfileCfgPath, "plugin_blacklist.txt");
+				if (File.Exists(blacklistFile))
+				{
+					string[] blacklistedPlugins = File.ReadAllLines(blacklistFile);
+					foreach (string plugin in blacklistedPlugins)
+					{
+						string trimmedPlugin = plugin.Trim();
+						if (!string.IsNullOrEmpty(trimmedPlugin) && !trimmedPlugin.StartsWith("#"))
+						{
+							_blacklistedPlugins.Add(trimmedPlugin);
+							Debug.Print($"WlxModuleList: Loaded blacklisted plugin from config: {trimmedPlugin}");
+						}
+					}
+				}
+				else
+				{
+					// 创建默认黑名单文件
+					CreateDefaultBlacklist(blacklistFile);
+				}
+			}
+			catch (Exception ex)
+			{
+				Debug.Print($"WlxModuleList: Exception loading blacklist - {ex.Message}");
+			}
+		}
+
+		/// <summary>
+		/// 创建默认黑名单文件
+		/// </summary>
+		private void CreateDefaultBlacklist(string blacklistFile)
+		{
+			try
+			{
+				string[] defaultBlacklist = {
+					"# Plugin Blacklist Configuration",
+					"# Add plugin names (without extension) to this file to prevent them from loading",
+					"# Lines starting with # are comments",
+					"",
+					"# Known problematic plugins",
+					"AKFont",
+					"ICLView",
+					"SQLiteViewer",
+					"# Web/IE-based plugins (often cause issues)",
+					"# HTMLView",
+					"# WebView",
+					"",
+					"# Add more problematic plugins here"
+				};
+
+				File.WriteAllLines(blacklistFile, defaultBlacklist);
+				Debug.Print($"WlxModuleList: Created default blacklist file: {blacklistFile}");
+				
+				// 添加默认黑名单插件
+				_blacklistedPlugins.Add("AKFont");
+				_blacklistedPlugins.Add("ICLView");
+				_blacklistedPlugins.Add("SQLiteViewer");
+			}
+			catch (Exception ex)
+			{
+				Debug.Print($"WlxModuleList: Exception creating default blacklist - {ex.Message}");
+			}
 		}
 		public void LoadConfiguration()
 		{
@@ -721,35 +1030,73 @@ namespace zfile
 		public void LoadModulesFromDirectory(string directory)
 		{
 			if (ModuleLoaded) return;
-			if (!Directory.Exists(directory)) return;
+			if (!Directory.Exists(directory)) 
+			{
+				Debug.Print($"WlxModuleList: Directory not found - {directory}");
+				return;
+			}
+
+			Debug.Print($"WlxModuleList: Loading modules from {directory}");
 
 			//读取pluginpath目录下所有子目录的plugins
 			var subdirs = Directory.GetDirectories(directory, "*", SearchOption.AllDirectories);
 			foreach (var subdir in subdirs)
 			{
+				Debug.Print($"WlxModuleList: Scanning subdirectory - {subdir}");
 				foreach (var file in Directory.GetFiles(subdir, "*.wlx64"))
 				{
 					try
 					{
+						string pluginName = Path.GetFileNameWithoutExtension(file);
+						
+						// 检查是否在黑名单中
+						if (_blacklistedPlugins.Contains(pluginName))
+						{
+							Debug.Print($"WlxModuleList: Skipping blacklisted plugin - {pluginName}");
+							continue;
+						}
+						
+						Debug.Print($"WlxModuleList: Attempting to load plugin - {file}");
+						
 						var module = new WlxModule
 						{
 							FilePath = file,
-							Name = Path.GetFileNameWithoutExtension(file)
+							Name = pluginName
 						};
+						
 						if (module.LoadModule())
+						{
 							AddModule(module);
+							Debug.Print($"WlxModuleList: Successfully added module - {module.Name}");
+						}
+						else
+						{
+							Debug.Print($"WlxModuleList: Failed to load module - {file}");
+							// 如果加载失败，可以考虑加入黑名单
+							// _blacklistedPlugins.Add(pluginName);
+						}
 						
 						//记录插件的完整路径到_pathdict
 						if (!pathdict.TryGetValue(module.Name.ToUpper(), out var fullpath))
 							pathdict[module.Name] = file;
 					}
-					catch
+					catch (Exception ex)
 					{
-						// 加载失败的模块直接跳过
+						// 加载失败的模块直接跳过，但记录错误信息
+						Debug.Print($"WlxModuleList: Exception while loading {file} - {ex.Message}");
+						
+						// 如果是致命错误，可以考虑将插件加入黑名单
+						if (ex.Message.Contains("0x0EEDFADE") || ex.Message.Contains("Fatal Application Exit"))
+						{
+							string pluginName = Path.GetFileNameWithoutExtension(file);
+							_blacklistedPlugins.Add(pluginName);
+							Debug.Print($"WlxModuleList: Added {pluginName} to blacklist due to fatal error");
+						}
 					}
 				}
 			}
 			ModuleLoaded = true;
+			Debug.Print($"WlxModuleList: Finished loading modules, total loaded: {_modules.Count}");
 		}
 
 		public void Dispose()
@@ -764,6 +1111,32 @@ namespace zfile
 		public WlxModule? FindModuleByName(string name)
 		{
 			return _modules.FirstOrDefault(m => m.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+		}
+
+		/// <summary>
+		/// 将插件加入黑名单
+		/// </summary>
+		public void AddToBlacklist(string pluginName)
+		{
+			_blacklistedPlugins.Add(pluginName);
+			Debug.Print($"WlxModuleList: Manually added {pluginName} to blacklist");
+		}
+
+		/// <summary>
+		/// 从黑名单中移除插件
+		/// </summary>
+		public void RemoveFromBlacklist(string pluginName)
+		{
+			_blacklistedPlugins.Remove(pluginName);
+			Debug.Print($"WlxModuleList: Removed {pluginName} from blacklist");
+		}
+
+		/// <summary>
+		/// 检查插件是否在黑名单中
+		/// </summary>
+		public bool IsBlacklisted(string pluginName)
+		{
+			return _blacklistedPlugins.Contains(pluginName);
 		}
 	}
 }

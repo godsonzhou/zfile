@@ -3,6 +3,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace zfile
 {
@@ -456,10 +457,27 @@ namespace zfile
         /// </summary>
         protected T? GetDelegate<T>(string procName) where T : class
         {
-            IntPtr procAddress = NativeMethods.GetProcAddress(ModuleHandle, procName);
-            if (procAddress == IntPtr.Zero)
+            try
+            {
+                IntPtr procAddress = NativeMethods.GetProcAddress(ModuleHandle, procName);
+                if (procAddress == IntPtr.Zero)
+                {
+                    Debug.Print($"DcxModule: Function {procName} not found in module");
+                    return null;
+                }
+                
+                var d = Marshal.GetDelegateForFunctionPointer(procAddress, typeof(T)) as T;
+                if (d == null)
+                {
+                    Debug.Print($"DcxModule: Failed to create delegate for {procName}");
+                }
+                return d;
+            }
+            catch (Exception ex)
+            {
+                Debug.Print($"DcxModule: Exception getting delegate {procName} - {ex.Message}");
                 return null;
-            return Marshal.GetDelegateForFunctionPointer(procAddress, typeof(T)) as T;
+            }
         }
 
         /// <summary>
@@ -470,11 +488,25 @@ namespace zfile
             [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
             public static extern IntPtr LoadLibrary(string lpFileName);
 
+            [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+            public static extern IntPtr LoadLibraryEx(string lpFileName, IntPtr hReservedNull, uint dwFlags);
+
             [DllImport("kernel32.dll", SetLastError = true)]
             public static extern bool FreeLibrary(IntPtr hModule);
 
             [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
             public static extern IntPtr GetProcAddress(IntPtr hModule, string lpProcName);
+
+            // LoadLibraryEx 标志
+            public const uint LOAD_LIBRARY_AS_DATAFILE = 0x00000002;
+            public const uint LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE = 0x00000040;
+            public const uint LOAD_LIBRARY_AS_IMAGE_RESOURCE = 0x00000020;
+            public const uint LOAD_LIBRARY_SEARCH_APPLICATION_DIR = 0x00000200;
+            public const uint LOAD_LIBRARY_SEARCH_DEFAULT_DIRS = 0x00001000;
+            public const uint LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR = 0x00000100;
+            public const uint LOAD_LIBRARY_SEARCH_SYSTEM32 = 0x00000800;
+            public const uint LOAD_LIBRARY_SEARCH_USER_DIRS = 0x00000400;
+            public const uint LOAD_WITH_ALTERED_SEARCH_PATH = 0x00000008;
         }
     }
 }

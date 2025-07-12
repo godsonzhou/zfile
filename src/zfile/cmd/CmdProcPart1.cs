@@ -248,7 +248,7 @@ namespace zfile
 		}
 		private void cm_openfonts()
 		{
-
+			owner.NavigateToPathByTreeNode(owner.specialpaths["FONTS"]);
 		}
 
 		private void cm_opencontrols()

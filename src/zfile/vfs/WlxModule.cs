@@ -54,6 +54,17 @@ namespace zfile
 		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]	//bugfix: in pascal version max path is 32000, not 260
 		public string DefaultIniName;
 	}
+
+	// 添加一个更安全的参数结构体，用于测试不同的版本
+	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+	public struct ListDefaultParamStructV2
+	{
+		public int Size;
+		public int PluginInterfaceVersionLow;  // 使用 int 而不是 uint
+		public int PluginInterfaceVersionHi;   // 使用 int 而不是 uint
+		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+		public string DefaultIniName;
+	}
 	// 应使用结构体而非 IntPtr
 	[StructLayout(LayoutKind.Sequential)]
 	public struct RECT
@@ -63,11 +74,17 @@ namespace zfile
 		public int Right;
 		public int Bottom;
 	}
-	// 必需的函数委托定义
-	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-	public delegate IntPtr ListLoad(IntPtr parentWin, string fileToLoad, int showFlags);
-	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-	public delegate IntPtr ListLoadW(IntPtr parentWin, [MarshalAs(UnmanagedType.LPWStr)] string fileToLoad, int showFlags);
+			// 必需的函数委托定义
+		[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+		public delegate IntPtr ListLoad(IntPtr parentWin, string fileToLoad, int showFlags);
+		[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+		public delegate IntPtr ListLoadW(IntPtr parentWin, [MarshalAs(UnmanagedType.LPWStr)] string fileToLoad, int showFlags);
+
+		// 添加不同的调用约定版本
+		[UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+		public delegate IntPtr ListLoadCdecl(IntPtr parentWin, string fileToLoad, int showFlags);
+		[UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Unicode)]
+		public delegate IntPtr ListLoadWCdecl(IntPtr parentWin, [MarshalAs(UnmanagedType.LPWStr)] string fileToLoad, int showFlags);
 	public delegate int ListLoadNext(IntPtr parentWin, IntPtr pluginWin, string fileToLoad, int showFlags);
 	[UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
 	public delegate int ListLoadNextW(IntPtr parentWin, IntPtr pluginWin, [MarshalAs(UnmanagedType.LPWStr)] string fileToLoad, int showFlags);
@@ -268,6 +285,38 @@ namespace zfile
 				return true; // 如果检查失败，默认允许加载
 			}
 		}
+
+		/// <summary>
+		/// 检查插件是否使用了可能有问题的方法
+		/// </summary>
+		private bool CheckPluginMethods()
+		{
+			try
+			{
+				// 检查插件是否导出了某些可能有问题的函数
+				string[] problematicFunctions = {
+					"DllMain", "DllEntryPoint", "DllRegisterServer", "DllUnregisterServer",
+					"GetProcAddress", "LoadLibrary", "FreeLibrary"
+				};
+
+				foreach (var func in problematicFunctions)
+				{
+					IntPtr funcPtr = NativeMethods.GetProcAddress(ModuleHandle, func);
+					if (funcPtr != IntPtr.Zero)
+					{
+						Debug.Print($"WlxModule: Plugin {Name} exports potentially problematic function: {func}");
+						return false;
+					}
+				}
+
+				return true;
+			}
+			catch (Exception ex)
+			{
+				Debug.Print($"WlxModule: Exception checking plugin methods - {ex.Message}");
+				return true;
+			}
+		}
 		public WlxModule()
 		{
 			Name = string.Empty;
@@ -312,6 +361,13 @@ namespace zfile
 					//return false;
 				}
 
+				// 检查插件方法
+				if (!CheckPluginMethods())
+				{
+					Debug.Print($"WlxModule: Plugin {FilePath} failed method check, skipping");
+					//return false;
+				}
+
 				Debug.Print($"WlxModule: Attempting to load {FilePath}");
 				
 				// 尝试使用 LoadLibraryEx 进行更安全的加载
@@ -346,14 +402,30 @@ namespace zfile
 
 				Debug.Print($"WlxModule: Successfully loaded {FilePath}, Handle: {ModuleHandle}");
 
-				// 加载必需的函数
+				// 加载必需的函数 - 尝试不同的调用约定
 				_listLoad = GetDelegate<ListLoad>("ListLoad"); 
 				_listLoadW = GetDelegate<ListLoadW>("ListLoadW"); 
-				if(_listLoad == null && _listLoadW == null)
-				{
-					Debug.Print($"WlxModule: Required ListLoad function not found in {FilePath}");
-					throw new Exception("required listload can not be found!");
-				}
+				
+				// 如果标准调用约定失败，尝试Cdecl调用约定
+				//if (_listLoad == null)
+				//{
+				//	_listLoad = GetDelegate<ListLoadCdecl>("ListLoad") as ListLoad;
+				//	if (_listLoad != null)
+				//		Debug.Print($"WlxModule: Found ListLoad with Cdecl calling convention in {FilePath}");
+				//}
+				
+				//if (_listLoadW == null)
+				//{
+				//	_listLoadW = GetDelegate<ListLoadWCdecl>("ListLoadW") as ListLoadW;
+				//	if (_listLoadW != null)
+				//		Debug.Print($"WlxModule: Found ListLoadW with Cdecl calling convention in {FilePath}");
+				//}
+				
+				//if(_listLoad == null && _listLoadW == null)
+				//{
+				//	Debug.Print($"WlxModule: Required ListLoad function not found in {FilePath}");
+				//	throw new Exception("required listload can not be found!");
+				//}
 
 				Debug.Print($"WlxModule: Required functions loaded successfully for {FilePath}");
 
@@ -389,9 +461,10 @@ namespace zfile
 				// 初始化插件 - 使用更安全的方式
 				bool initSuccess = true;
 				
+				// 使用隔离的方式调用插件函数
 				try
 				{
-					CallListSetDefaultParams();
+					SafeCallListSetDefaultParams();
 					Debug.Print($"WlxModule: ListSetDefaultParams completed for {FilePath}");
 				}
 				catch (Exception ex)
@@ -403,7 +476,7 @@ namespace zfile
 
 				try
 				{
-					LoadDetectString();
+					SafeLoadDetectString();
 					Debug.Print($"WlxModule: LoadDetectString completed for {FilePath}");
 				}
 				catch (Exception ex)
@@ -488,30 +561,46 @@ namespace zfile
 					Debug.Print($"WlxModule: {Name} no ini file found, using default config path.");
 				}
 
-				var defaultParams = new ListDefaultParamStruct
-				{
-					Size = Marshal.SizeOf<ListDefaultParamStruct>(),
-					PluginInterfaceVersionHi = 2,
-					PluginInterfaceVersionLow = 0,
-					DefaultIniName = (Constants.ZfileCfgPath + "wincmd.ini") // 如果插件目录下没有对应的ini文件，则使用默认的wlx.ini
-				};
+				// 尝试不同的参数结构体版本
+				bool success = false;
+				Exception? lastException = null;
 
-				Debug.Print($"WlxModule: Allocating memory for default params structure, size: {defaultParams.Size}");
-				var ptr = Marshal.AllocHGlobal(Marshal.SizeOf(defaultParams));
-				
+				// 尝试版本1（原始版本）
 				try
 				{
-					Debug.Print($"WlxModule: Copying structure to unmanaged memory at {ptr}");
-					Marshal.StructureToPtr(defaultParams, ptr, false);
-					
-					Debug.Print($"WlxModule: Calling ListSetDefaultParams with ptr: {ptr}");
-					_listSetDefaultParams(ptr);
-					Debug.Print($"WlxModule: ListSetDefaultParams call completed successfully");
+					success = TryCallListSetDefaultParamsV1();
+					if (success)
+					{
+						Debug.Print($"WlxModule: ListSetDefaultParams V1 succeeded for {FilePath}");
+						return;
+					}
 				}
-				finally
+				catch (Exception ex)
 				{
-					Debug.Print($"WlxModule: Freeing unmanaged memory at {ptr}");
-					Marshal.FreeHGlobal(ptr);
+					lastException = ex;
+					Debug.Print($"WlxModule: ListSetDefaultParams V1 failed for {FilePath} - {ex.Message}");
+				}
+
+				// 尝试版本2（修改版本）
+				try
+				{
+					success = TryCallListSetDefaultParamsV2();
+					if (success)
+					{
+						Debug.Print($"WlxModule: ListSetDefaultParams V2 succeeded for {FilePath}");
+						return;
+					}
+				}
+				catch (Exception ex)
+				{
+					lastException = ex;
+					Debug.Print($"WlxModule: ListSetDefaultParams V2 failed for {FilePath} - {ex.Message}");
+				}
+
+				// 如果都失败了，抛出最后一个异常
+				if (lastException != null)
+				{
+					throw lastException;
 				}
 			}
 			catch (Exception ex)
@@ -519,6 +608,132 @@ namespace zfile
 				Debug.Print($"WlxModule: Exception in CallListSetDefaultParams for {FilePath} - {ex.Message}");
 				Debug.Print($"WlxModule: Stack trace - {ex.StackTrace}");
 				throw; // 重新抛出异常，让上层处理
+			}
+		}
+
+		private bool TryCallListSetDefaultParamsV1()
+		{
+			var defaultParams = new ListDefaultParamStruct
+			{
+				Size = Marshal.SizeOf<ListDefaultParamStruct>(),
+				PluginInterfaceVersionHi = 2,
+				PluginInterfaceVersionLow = 0,
+				DefaultIniName = (Constants.ZfileCfgPath + "wincmd.ini")
+			};
+
+			Debug.Print($"WlxModule: Trying V1 params structure, size: {defaultParams.Size}");
+			var ptr = Marshal.AllocHGlobal(Marshal.SizeOf(defaultParams));
+			
+			try
+			{
+				Debug.Print($"WlxModule: Copying V1 structure to unmanaged memory at {ptr}");
+				Marshal.StructureToPtr(defaultParams, ptr, false);
+				
+				Debug.Print($"WlxModule: Calling ListSetDefaultParams V1 with ptr: {ptr}");
+				_listSetDefaultParams(ptr);
+				Debug.Print($"WlxModule: ListSetDefaultParams V1 call completed successfully");
+				return true;
+			}
+			finally
+			{
+				Debug.Print($"WlxModule: Freeing unmanaged memory at {ptr}");
+				Marshal.FreeHGlobal(ptr);
+			}
+		}
+
+		private bool TryCallListSetDefaultParamsV2()
+		{
+			var defaultParams = new ListDefaultParamStructV2
+			{
+				Size = Marshal.SizeOf<ListDefaultParamStructV2>(),
+				PluginInterfaceVersionHi = 2,
+				PluginInterfaceVersionLow = 0,
+				DefaultIniName = (Constants.ZfileCfgPath + "wincmd.ini")
+			};
+
+			Debug.Print($"WlxModule: Trying V2 params structure, size: {defaultParams.Size}");
+			var ptr = Marshal.AllocHGlobal(Marshal.SizeOf(defaultParams));
+			
+			try
+			{
+				Debug.Print($"WlxModule: Copying V2 structure to unmanaged memory at {ptr}");
+				Marshal.StructureToPtr(defaultParams, ptr, false);
+				
+				Debug.Print($"WlxModule: Calling ListSetDefaultParams V2 with ptr: {ptr}");
+				_listSetDefaultParams(ptr);
+				Debug.Print($"WlxModule: ListSetDefaultParams V2 call completed successfully");
+				return true;
+			}
+			finally
+			{
+				Debug.Print($"WlxModule: Freeing unmanaged memory at {ptr}");
+				Marshal.FreeHGlobal(ptr);
+			}
+		}
+
+		/// <summary>
+		/// 安全的调用 ListSetDefaultParams
+		/// </summary>
+		private void SafeCallListSetDefaultParams()
+		{
+			if (_listSetDefaultParams == null) 
+			{
+				Debug.Print($"WlxModule: ListSetDefaultParams function not available for {FilePath}");
+				return;
+			}
+
+			// 使用 try-catch 包装调用，防止插件崩溃影响主程序
+			try
+			{
+				CallListSetDefaultParams();
+			}
+			catch (AccessViolationException ex)
+			{
+				Debug.Print($"WlxModule: AccessViolationException in ListSetDefaultParams for {FilePath} - {ex.Message}");
+				throw;
+			}
+			catch (BadImageFormatException ex)
+			{
+				Debug.Print($"WlxModule: BadImageFormatException in ListSetDefaultParams for {FilePath} - {ex.Message}");
+				throw;
+			}
+			catch (Exception ex)
+			{
+				Debug.Print($"WlxModule: Exception in ListSetDefaultParams for {FilePath} - {ex.Message}");
+				throw;
+			}
+		}
+
+		/// <summary>
+		/// 安全的调用 LoadDetectString
+		/// </summary>
+		private void SafeLoadDetectString()
+		{
+			if (_listGetDetectString == null) 
+			{
+				Debug.Print($"WlxModule: ListGetDetectString function not available for {FilePath}");
+				return;
+			}
+
+			// 使用 try-catch 包装调用，防止插件崩溃影响主程序
+			try
+			{
+				LoadDetectString();
+			}
+			catch (AccessViolationException ex)
+			{
+				Debug.Print($"WlxModule: AccessViolationException in LoadDetectString for {FilePath} - {ex.Message}");
+				throw;
+			}
+			catch (BadImageFormatException ex)
+			{
+				Debug.Print($"WlxModule: BadImageFormatException in LoadDetectString for {FilePath} - {ex.Message}");
+				throw;
+			}
+			catch (Exception ex)
+			{
+				Debug.Print($"WlxModule: Exception in LoadDetectString for {FilePath} - {ex.Message}");
+				throw;
 			}
 		}
 		public static byte[] StringToAnsiBytes(string str, int length)

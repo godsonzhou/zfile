@@ -145,7 +145,7 @@ namespace zfile
 							var startInfo = new ProcessStartInfo()
 							{
 								FileName = tmpcmds.cmd,	//*代表用管理员权限执行
-								UseShellExecute = false, //true,
+								UseShellExecute = true,
 								Arguments = tmpcmds.arg,	
 								Verb = cmdName.StartsWith("*") ? "runas" : string.Empty // 请求管理员权限
 							};
